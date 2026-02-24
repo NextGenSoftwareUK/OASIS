@@ -416,7 +416,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                             NFTTokenAddress = nftTokenAddress,
                             Title = nftData.TryGetProperty("name", out var name) ? name.GetString() : "",
                             Description = nftData.TryGetProperty("description", out var desc) ? desc.GetString() : "",
-                            ImageUrl = nftData.TryGetProperty("image", out var img) ? img.GetString() : ""
+                            ImageUrl = nftData.TryGetProperty("image", out var img) ? img.GetString() : "",
+                            JSONMetaDataURL = nftData.TryGetProperty("external_url", out var extUrl) ? extUrl.GetString() : ""
                         };
 
                         response.Result = nft;
@@ -850,24 +851,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     }
                 }
 
-                // Load all avatars first, then create avatar details from them
+                // Load avatar details as separate entities (do not build from Avatar)
                 var allAvatarsResult = await LoadAllAvatarsAsync(version);
                 if (!allAvatarsResult.IsError && allAvatarsResult.Result != null)
                 {
                     var avatarDetails = new List<IAvatarDetail>();
                     foreach (var avatar in allAvatarsResult.Result)
                     {
-                        var avatarDetail = new AvatarDetail
-                        {
-                            Id = avatar.Id,
-                            Username = avatar.Username,
-                            Email = avatar.Email,
-                            CreatedDate = avatar.CreatedDate,
-                            ModifiedDate = avatar.ModifiedDate
-                        };
-                        avatarDetails.Add(avatarDetail);
+                        var detailResult = await LoadAvatarDetailAsync(avatar.Id, version);
+                        if (!detailResult.IsError && detailResult.Result != null)
+                            avatarDetails.Add(detailResult.Result);
                     }
-
                     response.Result = avatarDetails;
                     response.IsError = false;
                     response.Message = $"Loaded {avatarDetails.Count} avatar details from Sui successfully";
@@ -1301,7 +1295,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
                 if (softDelete)
                 {
-                    // For soft delete, update the avatar with a deleted flag
+                    // For soft delete, set DeletedDate (IsDeleted is derived from it)
                     avatarResult.Result.DeletedDate = DateTime.UtcNow;
                     var saveResult = await SaveAvatarAsync(avatarResult.Result);
                     response.Result = !saveResult.IsError;
@@ -1358,7 +1352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 }
 
                 // First load the holon to return it
-                var loadResult = await LoadHolonAsync(id, false, true, 0, false, false, 0);
+                var loadResult = LoadHolon(id, false, true, 0, false, false, 0);
                 if (loadResult.IsError || loadResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref response, $"Holon with ID {id} not found");

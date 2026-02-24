@@ -115,6 +115,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// </summary>
         public async Task<OASISResult<T>> FailoverRequestAsync<T>(IRequest request)
         {
+            if (request == null)
+                return new OASISResult<T> { IsError = true, Message = "The request is required. Please provide a valid IRequest." };
             try
             {
                 var failoverProviders = _providerManager.GetProviderAutoFailOverList();
@@ -150,6 +152,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// </summary>
         public async Task<OASISResult<List<T>>> ReplicateRequestAsync<T>(IRequest request)
         {
+            if (request == null)
+                return new OASISResult<List<T>> { IsError = true, Message = "The request is required. Please provide a valid IRequest." };
             try
             {
                 var replicationProviders = _providerManager.GetProvidersThatAreAutoReplicating();

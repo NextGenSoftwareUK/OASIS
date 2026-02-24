@@ -276,6 +276,32 @@
                 "EnableStorage": true,
                 "EnableFirestore": true,
                 "EnableBigQuery": true
+            },
+            "ZkSyncOASIS": {
+                "RpcEndpoint": "https://mainnet.era.zksync.io",
+                "NetworkId": "mainnet",
+                "ChainId": "0x144",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "LineaOASIS": {
+                "RpcEndpoint": "https://rpc.linea.build",
+                "NetworkId": "mainnet",
+                "ChainId": "0xe708",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "ScrollOASIS": {
+                "RpcEndpoint": "https://rpc.scroll.io",
+                "NetworkId": "mainnet",
+                "ChainId": "0x82750",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "XRPLOASIS": {
+                "RpcEndpoint": "https://s1.ripple.com:51234",
+                "Network": "mainnet",
+                "ArchiveAccount": "rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         },
         "OASISSystemAccountId": "",

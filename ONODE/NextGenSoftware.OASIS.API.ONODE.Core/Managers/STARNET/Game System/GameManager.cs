@@ -7,7 +7,9 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Game;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -16,7 +18,6 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using Holon = NextGenSoftware.OASIS.API.Core.Holons.Holon;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             get
             {
                 if (_questManager == null && AvatarId != Guid.Empty)
-                    _questManager = new QuestManager(ProviderManager.Instance.CurrentStorageProvider, AvatarId, STARDNA, OASISDNA);
+                    _questManager = new QuestManager(OASISStorageProvider, AvatarId, STARDNA, OASISDNA);
                 return _questManager;
             }
         }
@@ -96,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             get
             {
                 if (_karmaManager == null)
-                    _karmaManager = new KarmaManager(ProviderManager.Instance.CurrentStorageProvider, OASISDNA);
+                    _karmaManager = new KarmaManager(OASISStorageProvider, OASISDNA);
                 return _karmaManager;
             }
         }
@@ -106,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             get
             {
                 if (_inventoryManager == null && AvatarId != Guid.Empty)
-                    _inventoryManager = new InventoryItemManager(ProviderManager.Instance.CurrentStorageProvider, AvatarId, STARDNA, OASISDNA);
+                    _inventoryManager = new InventoryItemManager(OASISStorageProvider, AvatarId, STARDNA, OASISDNA);
                 return _inventoryManager;
             }
         }
@@ -172,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 var holon = new Holon
                 {
                     Id = session.Id,
+                    HolonType = HolonType.GameSession, //TODO: Fix everywhere, all holons ALWAYS NEED A HolonType set, otherwise it causes all sorts of issues with loading, searching, etc. as it defaults to HolonType.Default which is not correct for any holon
                     Name = $"Game Session {gameId}",
                     Description = $"Active game session for avatar {avatarId}",
                     CreatedDate = DateTime.UtcNow,
@@ -1281,12 +1283,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 // Filter for cross-game quests (quests that can span multiple games)
-                var filtered = questsResult.Result?.Where(q => 
+                var crossGameQuests = questsResult.Result?.Where(q => 
                     q.MetaData != null && 
                     q.MetaData.ContainsKey("CrossGame") && 
                     Convert.ToBoolean(q.MetaData["CrossGame"])
-                ).ToList();
-                var crossGameQuests = filtered != null ? filtered.Cast<IQuestBase>().ToList() : new List<IQuestBase>();
+                ).Cast<IQuestBase>().ToList() ?? new List<IQuestBase>();
 
                 result.Result = crossGameQuests;
                 result.Message = "Cross-game quests retrieved successfully";
@@ -1324,7 +1325,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                result.Result = karmaResult.IsError ? 0 : (int)karmaResult.Result;
+                result.Result = (int)karmaResult.Result;
                 result.Message = "Karma retrieved successfully";
             }
             catch (Exception ex)

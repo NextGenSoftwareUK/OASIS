@@ -1,0 +1,105 @@
+diff --git a/linuxdoom-1.10/d_main.c b/linuxdoom-1.10/d_main.c
+--- a/linuxdoom-1.10/d_main.c
++++ b/linuxdoom-1.10/d_main.c
+@@ -1,5 +1,6 @@
+ #include "doomdef.h"
+ #include "doomstat.h"
++#include "doom_star_integration.h"
+ 
+ int main(int argc, char **argv)
+ {
+@@ -10,6 +11,9 @@ int main(int argc, char **argv)
+     myargc = argc;
+     myargv = argv;
+     
++    // Initialize OASIS STAR API integration
++    Doom_STAR_Init();
++    
+     D_DoomMain();
+     
+     return 0;
+diff --git a/linuxdoom-1.10/p_inter.c b/linuxdoom-1.10/p_inter.c
+--- a/linuxdoom-1.10/p_inter.c
++++ b/linuxdoom-1.10/p_inter.c
+@@ -1,5 +1,6 @@
+ #include "doomdef.h"
+ #include "p_local.h"
++#include "doom_star_integration.h"
+ 
+ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
+ {
+@@ -50,6 +51,20 @@ void P_TouchSpecialThing(mobj_t* special, mobj_t* toucher)
+         }
+     }
+     
++    // OASIS STAR API Integration: Track keycard pickups
++    if (special->sprite == SPR_KEYR) {
++        Doom_STAR_OnKeycardPickup(1);  // Red keycard
++    } else if (special->sprite == SPR_KEYB) {
++        Doom_STAR_OnKeycardPickup(2);  // Blue keycard
++    } else if (special->sprite == SPR_KEYY) {
++        Doom_STAR_OnKeycardPickup(3);  // Yellow keycard
++    } else if (special->sprite == SPR_BSKU) {
++        Doom_STAR_OnKeycardPickup(4);  // Skull key
++    }
++    
++    // Track other items for quests
++    if (special->sprite == SPR_BON1) {
++        Doom_STAR_OnItemPickup("berserk_pack", "Berserk Pack - Double damage");
++    } else if (special->sprite == SPR_INVU) {
++        Doom_STAR_OnItemPickup("invulnerability", "Invulnerability Sphere");
++    }
++    
+     // ... rest of existing code ...
+ }
+ 
+diff --git a/linuxdoom-1.10/p_doors.c b/linuxdoom-1.10/p_doors.c
+--- a/linuxdoom-1.10/p_doors.c
++++ b/linuxdoom-1.10/p_doors.c
+@@ -1,5 +1,6 @@
+ #include "doomdef.h"
+ #include "p_local.h"
++#include "doom_star_integration.h"
+ 
+ bool P_UseSpecialLine(line_t* line, mobj_t* thing)
+ {
+@@ -20,6 +21,15 @@ bool P_UseSpecialLine(line_t* line, mobj_t* thing)
+         // Check if door requires a keycard
+         if (line->special == Door_Open || line->special == Door_OpenStayOpen) {
+             int required_key = GetRequiredKey(line);
++            
++            // First check local Doom inventory
++            if (!HasLocalKeycard(required_key)) {
++                // Check cross-game inventory via STAR API
++                if (Doom_STAR_CheckDoorAccess(line - lines, required_key)) {
++                    // Door opened with cross-game keycard!
++                    OpenDoor(line);
++                    return true;
++                }
++            }
+         }
+     }
+     
+diff --git a/linuxdoom-1.10/Makefile b/linuxdoom-1.10/Makefile
+--- a/linuxdoom-1.10/Makefile
++++ b/linuxdoom-1.10/Makefile
+@@ -1,5 +1,8 @@
+ CC=gcc
+ CFLAGS=-Wall -O2
++STAR_API_DIR=../../OASIS Omniverse/NativeWrapper
++LIBS=-L$(STAR_API_DIR)/build/Release -lstar_api
++CFLAGS+=-I$(STAR_API_DIR) -I../../OASIS Omniverse/Doom
+ 
+ OBJS= d_main.o d_net.o g_game.o p_doors.o p_enemy.o p_floor.o \
+       p_inter.o p_lights.o p_map.o p_maputl.o p_mobj.o p_plats.o \
+@@ -6,6 +9,7 @@ OBJS= d_main.o d_net.o g_game.o d_item.o d_think.o d_ticcmd.o \
+       p_switch.o p_telept.o p_tick.o p_user.o r_bsp.o r_data.o \
+       r_draw.o r_main.o r_plane.o r_segs.o r_sky.o r_things.o \
+       s_sound.o st_lib.o st_stuff.o w_memcache.o w_wad.o z_zone.o \
++      doom_star_integration.o
+ 
+ doom: $(OBJS)
+ 	$(CC) $(OBJS) -o doom $(LIBS)
+
+
+

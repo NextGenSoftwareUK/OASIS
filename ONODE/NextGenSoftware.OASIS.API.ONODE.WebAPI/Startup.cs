@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -54,65 +53,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // services.AddDbContext<DataContext>();
             //services.AddCors(); //Needed twice? It is below too...
-            services.AddControllers(x =>
-            {
-                x.Filters.Add(typeof(ServiceExceptionInterceptor));
-                x.Filters.Add(typeof(Filters.OASISHttpStatusResultFilter));
-            })
-                .AddJsonOptions(x =>
-            {
-                x.JsonSerializerOptions.IgnoreNullValues = true;
-                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-            });
-            services.AddHttpClient();
-            services.AddHttpClient("Pinata", c => c.Timeout = TimeSpan.FromSeconds(45));
-            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(
-                Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions.SectionName));
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITokenMetadataByMintService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TokenMetadataByMintService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ISolanaSplTokenBalanceService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SolanaSplTokenBalanceService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintMintRecordService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintMintRecordService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IBaptiseSaintMintStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.BaptiseSaintMintStore>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IBaptiseRunAuditStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.BaptiseRunAuditStore>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintBlessingEligibilityService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintBlessingEligibilityService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITopTokenHoldersService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TopTokenHoldersService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IWalletPfpService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.WalletPfpService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintNameStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintNameStore>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintClaimCodeStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintClaimCodeStore>();
-            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions>(
-                Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions.SectionName));
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IHallVerificationNftSentStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HallVerificationNftSentStore>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IHallVerificationNftSenderService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HallVerificationNftSenderService>();
-            services.AddHostedService<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.PumpPortalSaintTradeStreamService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.IRecentTokenRecipientsService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.RecentTokenRecipientsService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ITelegramFlowStateStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TelegramFlowStateStore>();
-            services.AddSingleton<TelegramNftMintFlowService>();
-            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.DropToHoldersExecutionService>();
-            services.AddSingleton<WorldService>();
-            services.AddSingleton<QuestRegistryService>();
-            services.AddSingleton<QuestProofService>();
-            services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();
+            // Add exception filter with configuration
+            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
                 // Configure custom schema ID resolver to handle duplicate class names and generic types
-                c.CustomSchemaIds(type =>
+                c.CustomSchemaIds(type => 
                 {
-                    try
+                    // If the type is from the WebAPI Models namespace, use a different schema ID
+                    if (type.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
                     {
-                        if (type?.Namespace != null && type.Namespace.Contains("NextGenSoftware.OASIS.API.ONODE.WebAPI.Models"))
-                            return $"{type.Name}WebAPI";
-                        if (type != null && type.IsGenericType)
-                        {
-                            var genericTypeName = type.Name.Split('`')[0];
-                            var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
-                            return $"{genericTypeName}Of{genericArgs}";
-                        }
-                        return type?.Name ?? "Object";
+                        return $"{type.Name}WebAPI";
                     }
-                    catch
+                    
+                    // Handle generic types to include the full generic parameter information
+                    if (type.IsGenericType)
                     {
-                        return type?.Name ?? "Object";
+                        var genericTypeName = type.Name.Split('`')[0]; // Get the base name (e.g., "EnumValue")
+                        var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
+                        return $"{genericTypeName}Of{genericArgs}";
                     }
+                    
+                    // For all other types, use the default behavior
+                    return type.Name;
                 });
                 
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -179,7 +144,7 @@ The list above reflects the latest integrated providers. Please check the GitHub
 
 The Avatar (complete), half the Karma & half the Provider API's are currently implemented. The rest are coming soon... The SCMS (Smart Contract Management System) API's are completed but need to be refactored with some being removed so these also cannot be used currently. These are currently used for our first business use case, B.E.B (Built Environment Blockchain), a construction platform built on top of the OASIS API. More detailed documentation & future releases coming soon... 
 
-<b>Please <a target='_blank' href='https://api.oasisweb4.com/postman/OASIS_API.postman_collection.json'>download the Postman JSON file</a> and import it into <a href='https://www.postman.com/' target='_blank'>Postman</a> if you wish to have a play/test and get familiar with the OASIS API before plugging it into your website/app/game/service.<br><br> You can download the Postman Dev Environment files below:<br><br><a target='_blank' href='https://api.oasisweb4.com/postman/OASIS_API_DEV.postman_environment.json'>Postman DEV Environment JSON</a><br><a target='_blank' href='https://api.oasisweb4.com/postman/OASIS_API_STAGING.postman_environment.json'>Postman STAGING Environment JSON</a><br><a target='_blank' href='https://api.oasisweb4.com/postman/OASIS_API_LIVE.postman_environment.json'>Postman LIVE Environment JSON</a><br>
+<b>Please <a target='_blank' href='https://oasisweb4.one/postman/OASIS_API.postman_collection.json'>download the Postman JSON file</a> and import it into <a href='https://www.postman.com/' target='_blank'>Postman</a> if you wish to have a play/test and get familiar with the OASIS API before plugging it into your website/app/game/service.<br><br> You can download the Postman Dev Environment files below:<br><br><a target='_blank' href='https://oasisweb4.one/postman/OASIS_API_DEV.postman_environment.json'>Postman DEV Environment JSON</a><br><a target='_blank' href='https://oasisweb4.one/postman/OASIS_API_STAGING.postman_environment.json'>Postman STAGING Environment JSON</a><br><a target='_blank' href='https://oasisweb4.one/postman/OASIS_API_LIVE.postman_environment.json'>Postman LIVE Environment JSON</a><br>
 
 This project is Open Source and if you have any feedback or better still, wish to get involved we would love to hear from you, please contact us on <a target='_blank' href='https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK'>GitHub</a>, <a target='_blank' href='https://t.me/ourworldthegamechat'>Telegram</a>, <a target='_blank' href='https://discord.gg/RU6Z8YJ'>Discord</a> or using the <a href='mailto:ourworld@nextgensoftware.co.uk'>Contact</a> link below, we look forward to hearing from you...</b>
 
@@ -242,9 +207,6 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                     if (System.IO.File.Exists(path))
                         c.IncludeXmlComments(path, includeControllerXmlComments: true);
                 }
-
-                // Prevent Swagger 500 when generating schema for HttpResponseMessage-derived types (e.g. OASISHttpResponseMessage)
-                c.SchemaFilter<Filters.HttpResponseMessageSchemaFilter>();
             });
 
             /*
@@ -268,54 +230,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             // configure DI for application services
             // services.AddScoped<IAvatarService, AvatarService>(); // AvatarService is being phased out
             //services.AddScoped<IEmailService, EmailService>();
-            // Register ISolanaService with factory method to get dependencies from SolanaOASIS provider
-            services.AddScoped<ISolanaService>(serviceProvider =>
-            {
-                // Get the SolanaOASIS provider instance
-                var solanaProvider = NextGenSoftware.OASIS.API.Core.Managers.ProviderManager.Instance
-                    .GetProvider(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS) 
-                    as NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.SolanaOASIS;
-                
-                if (solanaProvider == null)
-                {
-                    throw new InvalidOperationException("SolanaOASIS provider is not activated or not available. Please ensure the provider is activated in OASIS_DNA.");
-                }
-                
-                // Try to get the existing _solanaService from the provider first
-                var providerType = solanaProvider.GetType();
-                var solanaServiceField = providerType.GetField("_solanaService", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (solanaServiceField != null)
-                {
-                    var existingService = solanaServiceField.GetValue(solanaProvider) as ISolanaService;
-                    if (existingService != null)
-                    {
-                        return existingService;
-                    }
-                }
-                
-                // If service doesn't exist, create a new one using the provider's account and RPC client
-                var accountField = providerType.GetField("_oasisSolanaAccount", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                var rpcClientField = providerType.GetField("_rpcClient", 
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                
-                if (accountField == null || rpcClientField == null)
-                {
-                    throw new InvalidOperationException("Unable to access SolanaOASIS provider internal fields. Provider may need to expose Account and RpcClient.");
-                }
-                
-                var account = accountField.GetValue(solanaProvider) as Solnet.Wallet.Account;
-                var rpcClient = rpcClientField.GetValue(solanaProvider) as Solnet.Rpc.IRpcClient;
-                
-                if (account == null || rpcClient == null)
-                {
-                    throw new InvalidOperationException("SolanaOASIS provider account or RPC client is null. Provider may not be properly initialized.");
-                }
-                
-                return new SolanaService(account, rpcClient);
-            });
+            //services.AddScoped<ISolanaService, SolanaService>(); //TODO: Not sure we need this? Want to remove this along with all other services ASAP! Use Managers in OASIS.API.Core and OASIS.API.ONODE.Core instead!
             //services.AddScoped<ICargoService, CargoService>();
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
@@ -361,14 +276,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
 
             // generated swagger json and swagger ui middleware
-            // When behind a reverse proxy at /api (e.g. oasisweb4.one/api), set Swagger:BasePath to "/api"
-            // so the UI fetches /api/swagger/v1/swagger.json and nginx routes it to this app instead of STAR.
-            var swaggerBasePath = (Configuration.GetSection("Swagger").GetValue<string>("BasePath") ?? "").TrimEnd('/');
-            var swaggerJsonUrl = string.IsNullOrEmpty(swaggerBasePath)
-                ? "/swagger/v1/swagger.json"
-                : $"{swaggerBasePath}/swagger/v1/swagger.json";
             app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint(swaggerJsonUrl, VERSION));
+            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
 
             app.UseSwaggerUI(config =>
             {
@@ -383,11 +292,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            // Only use HTTPS redirection in production (not in development to avoid self-signed certificate issues)
-            if (!string.Equals(env.EnvironmentName, "Development", StringComparison.OrdinalIgnoreCase))
-            {
+            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
                 app.UseHttpsRedirection();
-            }
 
             app.UseRouting();
             //app.UseSession();
@@ -404,11 +311,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             app.UseAuthorization();
 
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
-            // Subscription/credits API disabled - uncomment to require subscription or prepaid credits per request
-            // app.UseMiddleware<SubscriptionMiddleware>();
+            app.UseMiddleware<SubscriptionMiddleware>();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 

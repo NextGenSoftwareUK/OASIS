@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             //oasisAvatar.Inventory = avatar.Result.Inventory;
 
-            if (avatar.Result.Achievements != null)
+            if (avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
                     oasisAvatar.Inventory.Add((InventoryItem)item);

@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
@@ -39,6 +40,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 
         [CustomOASISProperty()]
         public bool SupportsCrossGameInterop { get; set; } = true;
+
+        [CustomOASISProperty()]
+        public bool SupportsCrossGameQuests { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsSharedInventory { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsAvatarSSO { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsKarmaScores { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsNFTs { get; set; }
+
+        [CustomOASISProperty()]
+        public bool SupportsKeycards { get; set; }
 
         [CustomOASISProperty()]
         public Dictionary<string, object> GameSettings { get; set; } = new Dictionary<string, object>();

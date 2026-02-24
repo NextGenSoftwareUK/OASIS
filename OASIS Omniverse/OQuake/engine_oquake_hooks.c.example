@@ -1,0 +1,32 @@
+/**
+ * Example engine hooks for OQuake (STAR API).
+ * Copy the relevant parts into your engine (e.g. host.c, pr_ext.c).
+ *
+ * 1. In host.c (or main init):
+ *    #include "oquake_star_integration.h"
+ *    In Host_Init():  OQuake_STAR_Init();
+ *    In Host_Shutdown():  OQuake_STAR_Cleanup();
+ *
+ * 2. When player picks up a key (in your item-touch or QuakeC):
+ *    OQuake_STAR_OnKeyPickup("silver_key");  or  OQuake_STAR_OnKeyPickup("gold_key");
+ *
+ * 3. When player touches a key door and does not have the key locally:
+ *    if (OQuake_STAR_CheckDoorAccess(door_targetname, "silver_key"))
+ *        open_door();
+ *
+ * 4. Add pr_ext_oquake.c to the build and register ex_OQuake_OnKeyPickup,
+ *    ex_OQuake_CheckDoorAccess in pr_ext.c. Link star_api.lib.
+ */
+
+#include "oquake_star_integration.h"
+
+/* Example: call from your init */
+void Example_Host_Init(void) {
+    /* ... existing init ... */
+    OQuake_STAR_Init();
+}
+
+void Example_Host_Shutdown(void) {
+    OQuake_STAR_Cleanup();
+    /* ... existing shutdown ... */
+}

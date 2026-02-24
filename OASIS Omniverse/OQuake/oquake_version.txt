@@ -1,0 +1,4 @@
+# OQuake - single place for all version strings (build scripts, in-game console, headers).
+# Edit these two lines only: line 1 = version, line 2 = build number.
+1.1
+1

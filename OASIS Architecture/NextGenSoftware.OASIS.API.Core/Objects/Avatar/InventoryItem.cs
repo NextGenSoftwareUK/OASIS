@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public InventoryItem()
         {
             this.HolonType = HolonType.InventoryItem;
+            this.STARNETHolonDNAJSONName = "InventoryItemDNAJSON";
         }
 
         public byte[] Image2D { get; set; }

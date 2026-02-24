@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.WebAPI;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
@@ -18,7 +17,7 @@ public class ONODEWebAPIUnitTests
         
         // Assert
         onodeWebAPI.Should().NotBeNull();
-        onodeWebAPI.ProviderType.Should().Be(ProviderType.ONODE);
+        ONODEWebAPI.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -29,7 +28,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Avatar.Should().NotBeNull();
-        onodeWebAPI.Avatar.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Avatar.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -40,7 +39,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Holon.Should().NotBeNull();
-        onodeWebAPI.Holon.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Holon.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -51,7 +50,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Key.Should().NotBeNull();
-        onodeWebAPI.Key.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Key.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Map.Should().NotBeNull();
-        onodeWebAPI.Map.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Map.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -73,7 +72,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.NFT.Should().NotBeNull();
-        onodeWebAPI.NFT.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.NFT.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -84,7 +83,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Search.Should().NotBeNull();
-        onodeWebAPI.Search.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Search.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -95,7 +94,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Wallet.Should().NotBeNull();
-        onodeWebAPI.Wallet.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Wallet.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -106,7 +105,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Data.Should().NotBeNull();
-        onodeWebAPI.Data.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Data.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -117,7 +116,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Storage.Should().NotBeNull();
-        onodeWebAPI.Storage.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Storage.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -128,7 +127,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Link.Should().NotBeNull();
-        onodeWebAPI.Link.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Link.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -139,7 +138,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Log.Should().NotBeNull();
-        onodeWebAPI.Log.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Log.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -150,7 +149,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Quest.Should().NotBeNull();
-        onodeWebAPI.Quest.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Quest.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -161,7 +160,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Mission.Should().NotBeNull();
-        onodeWebAPI.Mission.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Mission.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -172,7 +171,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Park.Should().NotBeNull();
-        onodeWebAPI.Park.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Park.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -183,7 +182,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Inventory.Should().NotBeNull();
-        onodeWebAPI.Inventory.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Inventory.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -194,7 +193,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.OAPP.Should().NotBeNull();
-        onodeWebAPI.OAPP.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.OAPP.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -205,7 +204,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Zome.Should().NotBeNull();
-        onodeWebAPI.Zome.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Zome.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -216,7 +215,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.CelestialBody.Should().NotBeNull();
-        onodeWebAPI.CelestialBody.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.CelestialBody.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -227,7 +226,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.CelestialSpace.Should().NotBeNull();
-        onodeWebAPI.CelestialSpace.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.CelestialSpace.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -238,7 +237,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.Chapter.Should().NotBeNull();
-        onodeWebAPI.Chapter.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.Chapter.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -249,7 +248,7 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.GeoHotSpot.Should().NotBeNull();
-        onodeWebAPI.GeoHotSpot.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.GeoHotSpot.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 
     [Fact]
@@ -260,6 +259,6 @@ public class ONODEWebAPIUnitTests
         
         // Act & Assert
         onodeWebAPI.GeoNFT.Should().NotBeNull();
-        onodeWebAPI.GeoNFT.ProviderType.Should().Be(ProviderType.ONODE);
+        onodeWebAPI.GeoNFT.EndpointName.Should().Be(ONODEWebAPI.EndpointName);
     }
 }

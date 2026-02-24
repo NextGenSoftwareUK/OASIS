@@ -671,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarData = JsonSerializer.Deserialize<AvatarDetail>(result.GetProperty("result").GetString());
-                        response.Result = avatarData as IAvatarDetail;
+                        response.Result = avatarData;
                         response.IsError = false;
                         response.Message = "Avatar detail loaded from NEAR successfully";
                     }
@@ -2333,7 +2333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -2416,7 +2416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -2841,7 +2841,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    var activateResult = await ActivateProviderAsync();
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
                         OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
@@ -3438,7 +3438,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var keyManager = KeyManager.Instance;
                 var avatarId = CreateDeterministicGuid($"{ProviderType.Value}:{accountId}");
                 var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.NEAROASIS);
-                if (keysResult.IsError || !keysResult.Result.Any())
+                if (keysResult.IsError || keysResult.Result == null || !keysResult.Result.Any())
                 {
                     return null;
                 }
@@ -3636,20 +3636,37 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         {
             try
             {
-                // Try to get from OASIS DNA first
-                // TODO: Fix OASISDNA.OASIS.Storage access
-                // if (OASISDNA?.OASIS?.Storage?.NEAR?.PublicKey != null)
-                // {
-                //     return OASISDNA.OASIS.Storage.NEAR.PublicKey;
-                // }
+                // Try to get from KeyManager first
+                if (KeyManager.Instance != null)
+                {
+                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
+                        Guid.Empty, // Use default avatar or get from context
+                        Core.Enums.ProviderType.NEAROASIS);
+                    
+                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any())
+                    {
+                        var firstPrivateKey = keysResult.Result.First();
+                        if (!string.IsNullOrWhiteSpace(firstPrivateKey))
+                            return await DerivePublicKeyFromPrivateKeyAsync(firstPrivateKey);
+                    }
+                }
 
                 // Get from wallet manager
-                // TODO: Fix WalletManager.GetWalletAsync
-                // var walletResult = await WalletManager.GetWalletAsync();
-                // if (!walletResult.IsError && walletResult.Result != null)
-                // {
-                //     return walletResult.Result.PublicKey ?? await DerivePublicKeyFromPrivateKeyAsync(await GetPrivateKeyForAccountAsync(accountId));
-                // }
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    Guid.Empty, // Use default avatar or get from context
+                    Core.Enums.ProviderType.NEAROASIS);
+                
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.PublicKey))
+                {
+                    return walletResult.Result.PublicKey;
+                }
+
+                // Derive from private key if available
+                var privateKey = await GetPrivateKeyForAccountAsync(accountId);
+                if (!string.IsNullOrWhiteSpace(privateKey))
+                {
+                    return await DerivePublicKeyFromPrivateKeyAsync(privateKey);
+                }
 
                 // Generate new key pair if none exists
                 var keyPair = await GenerateNEARKeyPairAsync();
@@ -4258,19 +4275,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool
+                // Lock token by transferring to bridge pool (one NFT – no amount)
                 var bridgePoolAddress = _contractAddress ?? "bridge.oasispool.near";
-                
-                // ILockWeb3TokenRequest doesn't have Amount in interface, but LockWeb3TokenRequest class does
-                var lockRequest = request as LockWeb3TokenRequest;
-                var amount = lockRequest?.Amount ?? 1m;
-                
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = request.FromWalletPrivateKey,
                     ToWalletAddress = bridgePoolAddress,
-                    Amount = amount
+                    Amount = 1m
                 };
 
                 return await SendTokenAsync(sendRequest);
@@ -4977,7 +4989,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
                 // If txHash is null, create deterministic hash from transaction parameters
-                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{bridgePoolAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
                 
                 result.Result = new BridgeTransactionResponse
                 {

@@ -12,6 +12,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
     //public interface IQuestManager : ISTARNETManagerBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>
     public interface IQuestManager : ISTARNETManagerBase<Quest, DownloadedQuest, InstalledQuest, STARNETDNA>
     {
+        Task<OASISResult<bool>> StartQuestAsync(Guid avatarId, Guid questId, string startNotes = null);
+        Task<OASISResult<bool>> CompleteQuestObjectiveAsync(Guid avatarId, Guid questId, Guid objectiveId, string gameSource = null, string completionNotes = null);
+        Task<OASISResult<bool>> CompleteQuestAsync(Guid avatarId, Guid questId, string completionNotes = null);
         //OASISResult<IQuest> AddGeoHotSpotToQuest(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default);
         //Task<OASISResult<IQuest>> AddGeoHotSpotToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoHotSpotId, ProviderType providerType = ProviderType.Default);
         //OASISResult<IQuest> AddGeoNFTToQuest(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default);

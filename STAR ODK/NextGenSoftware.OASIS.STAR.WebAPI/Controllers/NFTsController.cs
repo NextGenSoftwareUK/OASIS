@@ -10,6 +10,9 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 // duplicate using removed
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
@@ -23,6 +26,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class NFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        private async Task EnsureStarApiBootedAsync()
+        {
+            // Check if already booted and avatar is set
+            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                return;
+
+            await _bootLock.WaitAsync();
+            try
+            {
+                // Double-check after acquiring lock
+                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
+                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
+                    return;
+
+                // Boot OASIS if not already booted
+                if (!_starAPI.IsOASISBooted)
+                {
+                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
+                    if (boot.IsError)
+                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
+                }
+
+            }
+            finally
+            {
+                _bootLock.Release();
+            }
+        }
 
         /// <summary>
         /// Retrieves all NFTs in the system.
@@ -38,16 +72,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.NFTs.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testNFTs = TestDataHelper.GetTestSTARNFTs(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARNFT>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading NFTs: {ex.Message}",
-                    Exception = ex
-                });
+                    var testNFTs = TestDataHelper.GetTestSTARNFTs(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARNFT>>(testNFTs, "NFTs retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARNFT>>(ex, "GetAllNFTs");
             }
         }
 
@@ -70,12 +113,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "GetNFT");
             }
         }
 
@@ -98,12 +136,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "CreateNFT");
             }
         }
 
@@ -118,12 +151,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error updating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "updating NFT");
             }
         }
 
@@ -137,18 +165,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting NFT");
             }
         }
 
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneNFT(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.NFTs.CloneAsync(AvatarId, id, request.NewName);
@@ -156,12 +181,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning NFT");
             }
         }
 
@@ -177,6 +197,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateNFTWithOptions([FromBody] CreateNFTRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 var result = await _starAPI.NFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -184,12 +209,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "creating NFT");
             }
         }
 
@@ -209,18 +229,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.NFTs.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT");
             }
         }
 
@@ -239,18 +256,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.NFTs.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT from path");
             }
         }
 
@@ -273,12 +287,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT from published file");
             }
         }
 
@@ -298,14 +307,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.NFTs.LoadAllForAvatarAsync(AvatarId, showAllVersions, version);
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARNFT>>
+                return BadRequest(new OASISResult<IEnumerable<object>>
                 {
                     IsError = true,
-                    Message = $"Error loading NFTs for avatar: {ex.Message}",
+                    Message = $"Error loading NFT collection: {ex.Message}",
                     Exception = ex
                 });
             }
@@ -355,6 +367,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishNFT(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.NFTs.PublishAsync(
@@ -371,12 +385,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error publishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "publishing NFT");
             }
         }
 
@@ -402,12 +411,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error downloading NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARNFT>(ex, "downloading NFT");
             }
         }
 
@@ -459,12 +463,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading NFT version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "loading NFT version");
             }
         }
 
@@ -481,6 +480,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditNFT(Guid id, [FromBody] EditNFTRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARNFT> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.NFTs.EditAsync(id, request.NewDNA, AvatarId);
@@ -488,12 +489,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error editing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "editing NFT");
             }
         }
 
@@ -517,12 +513,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "unpublishing NFT");
             }
         }
 
@@ -546,12 +537,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error republishing NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "republishing NFT");
             }
         }
 
@@ -570,17 +556,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.NFTs.ActivateAsync(AvatarId, id, version);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error activating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "activating NFT");
             }
         }
 
@@ -604,12 +586,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARNFT>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARNFT>(ex, "deactivating NFT");
             }
         }
     }
