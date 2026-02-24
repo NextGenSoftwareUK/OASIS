@@ -641,7 +641,7 @@ Add conversation-specific methods:
 ```csharp
 public class ARWorldAgentManager : MonoBehaviour
 {
-    private string apiBaseUrl = "https://star-api.oasisplatform.world/api";
+    private string apiBaseUrl = "https://star-api.oasisweb4.com/api";
     private Dictionary<Guid, GameObject> activeAgents = new Dictionary<Guid, GameObject>();
     
     async void Start()

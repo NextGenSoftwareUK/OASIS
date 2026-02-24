@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     },
                     Connection = new AgentConnectionInfo
                     {
-                        Endpoint = baseUrl ?? "https://api.oasisplatform.world/api/a2a/jsonrpc",
+                        Endpoint = baseUrl ?? "https://api.oasisweb4.com/api/a2a/jsonrpc",
                         Protocol = "jsonrpc2.0",
                         Auth = new AgentAuthInfo
                         {
@@ -76,6 +76,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ["pricing"] = capabilities.Pricing ?? new Dictionary<string, decimal>()
                     }
                 };
+
+                // Merge capabilities.Metadata (e.g. openserv_agent_id, openserv_endpoint for OpenSERV agents)
+                if (capabilities.Metadata != null)
+                {
+                    foreach (var kvp in capabilities.Metadata)
+                    {
+                        if (kvp.Value != null)
+                            agentCard.Metadata[kvp.Key] = kvp.Value;
+                    }
+                }
 
                 // Add avatar metadata if available
                 if (avatarResult.Result.Email != null)

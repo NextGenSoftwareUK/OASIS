@@ -19,7 +19,7 @@ static bool g_star_initialized = false;
 
 void Quake_STAR_Init(void) {
     // Load configuration from file or environment
-    g_star_config.base_url = "https://star-api.oasisplatform.world/api";
+    g_star_config.base_url = "https://star-api.oasisweb4.com/api";
     g_star_config.api_key = getenv("STAR_API_KEY");
     g_star_config.avatar_id = getenv("STAR_AVATAR_ID");
     g_star_config.timeout_seconds = 10;

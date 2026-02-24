@@ -55,6 +55,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     context.Items["Avatar"] = avatarResult.Result;
+                    // STARAPI getters (NFTs, Quests, GeoNFTs, OAPPs, etc.) use AvatarManager.LoggedInAvatar
+                    // when creating managers; set it so data endpoints succeed.
+                    AvatarManager.LoggedInAvatar = avatarResult.Result;
                 }
             }
             catch (Exception ex)

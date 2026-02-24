@@ -24,7 +24,7 @@ The WEB5 STAR API is the gamification and business layer that runs on top of the
 
 ## 🔗 **Base URL**
 ```
-https://star-api.oasisplatform.world
+https://star-api.oasisweb4.com
 ```
 
 ## 🔐 **Authentication**

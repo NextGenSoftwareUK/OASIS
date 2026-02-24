@@ -85,15 +85,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         private readonly ITopTokenHoldersService _topTokenHoldersService;
         private readonly IWalletPfpService _walletPfpService;
+        private readonly ISaintNameStore _saintNameStore;
 
-        public TokenHoldersController(ITopTokenHoldersService topTokenHoldersService, IWalletPfpService walletPfpService = null)
+        public TokenHoldersController(ITopTokenHoldersService topTokenHoldersService, IWalletPfpService walletPfpService = null, ISaintNameStore saintNameStore = null)
         {
             _topTokenHoldersService = topTokenHoldersService;
             _walletPfpService = walletPfpService;
+            _saintNameStore = saintNameStore;
         }
 
         /// <summary>
-        /// Get top holders for a token mint (e.g. $SAINT). Optionally pass wallet to get that wallet's rank (1-based). When includePfp=true, resolves each holder's profile image via Helius DAS (first NFT image).
+        /// Get top holders for a token mint (e.g. $SAINT). Optionally pass wallet to get that wallet's rank (1-based). When includePfp=true, resolves each holder's profile image via Helius DAS. Saint names (when set via Saints/name) are always included when store is available.
         /// </summary>
         [AllowAnonymous]
         [HttpGet]
@@ -128,6 +130,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
+            if (_saintNameStore != null)
+            {
+                var names = await _saintNameStore.GetSaintNamesByWalletsAsync(list.Select(e => e.WalletAddress)).ConfigureAwait(false);
+                foreach (var entry in list)
+                {
+                    var key = entry.WalletAddress?.Trim()?.ToLowerInvariant();
+                    if (key != null && names.TryGetValue(key, out var saintName))
+                        entry.SaintName = saintName;
+                }
+            }
+
             return Ok(new TopHoldersResponse
             {
                 Mint = mint,
@@ -153,5 +166,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public decimal Balance { get; set; }
         /// <summary>Profile picture URL (e.g. first NFT image) when requested via includePfp=true.</summary>
         public string ImageUrl { get; set; }
+        /// <summary>Saint display name when set via Saints/name API (e.g. "St. Max of the Diamond Hands").</summary>
+        public string SaintName { get; set; }
     }
 }

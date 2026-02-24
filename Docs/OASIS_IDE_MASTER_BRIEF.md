@@ -62,8 +62,8 @@ Build a **full-featured IDE** that combines:
 │                                                             │
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  INTEGRATION LAYER                                     │  │
-│  │  • OASIS API (api.oasisplatform.world)                │  │
-│  │  • STAR API (star-api.oasisplatform.world)            │  │
+│  │  • OASIS API (api.oasisweb4.com)                │  │
+│  │  • STAR API (star-api.oasisweb4.com)            │  │
 │  │  • MCP Servers (local/remote)                          │  │
 │  │  • Agent Registry (SERV)                              │  │
 │  │  • LLM APIs (OpenAI, Anthropic, etc.)                 │  │

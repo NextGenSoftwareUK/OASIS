@@ -2299,7 +2299,7 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 <a name="oasisapi-overview"></a>
 ### WEB4 OASIS API Architectue Overview
 
-This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
+This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisweb4.com/](http://api.oasisweb4.com/)). 
 
 We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/OASIS#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
 	
@@ -2952,7 +2952,7 @@ It is located in the `NextGenSoftware.OASIS.API.Core` project.
 
 The API is constantly evolving so keeping the documentation in sync with the code is hard so please bare with us, in the meantime please check the codebase directly for latest changes. Thank you.
 
-You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/OASIS/releases).
+You can now use the OASIS API either through the [REST API](https://api.oasisweb4.com) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/OASIS/releases).
 
 You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/OASIS/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
 
@@ -3276,7 +3276,7 @@ https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
 http://www.ourworldthegame.com <br/>
 https://oasisplatform.world <br/>
-https://api.oasisplatform.world  <br/>
+https://api.oasisweb4.com  <br/>
 https://opensea.io/collection/theoasisandourworld  <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 

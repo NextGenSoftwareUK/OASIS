@@ -92,7 +92,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Get agent capabilities by agent ID
+        /// Get agent capabilities by agent ID.
+        /// Uses in-memory cache first; if not found (e.g. after API restart), loads from avatar MetaData (MongoDB).
         /// </summary>
         public async Task<OASISResult<IAgentCapabilities>> GetAgentCapabilitiesAsync(Guid agentId)
         {
@@ -103,17 +104,66 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 {
                     result.Result = _agentCapabilities[agentId];
                     result.Message = "Agent capabilities retrieved successfully";
+                    return result;
                 }
-                else
+
+                // Not in memory - try loading from avatar MetaData (persisted by RegisterOpenServAgentAsync)
+                var avatarResult = await AvatarManager.Instance.LoadAvatarAsync(agentId, false, false);
+                if (!avatarResult.IsError && avatarResult.Result?.MetaData != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"No capabilities found for agent {agentId}");
+                    var meta = avatarResult.Result.MetaData;
+                    if (meta.ContainsKey("A2A_OpenservAgentId") && meta.ContainsKey("A2A_OpenservEndpoint"))
+                    {
+                        var services = new List<string>();
+                        if (meta.ContainsKey("A2A_Services"))
+                        {
+                            var val = meta["A2A_Services"];
+                            if (val is List<string> svc)
+                                services = svc;
+                            else if (val is System.Collections.IEnumerable enumerable)
+                                foreach (var item in enumerable)
+                                    if (item != null) services.Add(item.ToString());
+                        }
+
+                        var caps = new AgentCapabilities
+                        {
+                            Services = services,
+                            Skills = new List<string> { "AI", "OpenSERV", "Reasoning" },
+                            Status = AgentStatus.Available,
+                            Description = meta.ContainsKey("A2A_Description") ? meta["A2A_Description"]?.ToString() ?? "" : "",
+                            Metadata = new Dictionary<string, object>
+                            {
+                                ["openserv_agent_id"] = meta["A2A_OpenservAgentId"],
+                                ["openserv_endpoint"] = meta["A2A_OpenservEndpoint"],
+                                ["openserv_api_key"] = meta.ContainsKey("A2A_OpenservApiKey") ? meta["A2A_OpenservApiKey"] ?? "" : ""
+                            }
+                        };
+                        if (meta.ContainsKey("A2A_OpenservLocalUrl") && meta["A2A_OpenservLocalUrl"] != null)
+                            caps.Metadata["openserv_local_url"] = meta["A2A_OpenservLocalUrl"];
+                        if (meta.ContainsKey("A2A_OpenservAuthToken") && meta["A2A_OpenservAuthToken"] != null)
+                            caps.Metadata["openserv_auth_token"] = meta["A2A_OpenservAuthToken"];
+
+                        _agentCapabilities[agentId] = caps;
+                        foreach (var svc in caps.Services ?? new List<string>())
+                        {
+                            if (!_serviceRegistry.ContainsKey(svc))
+                                _serviceRegistry[svc] = new List<Guid>();
+                            if (!_serviceRegistry[svc].Contains(agentId))
+                                _serviceRegistry[svc].Add(agentId);
+                        }
+                        result.Result = caps;
+                        result.Message = "Agent capabilities loaded from persisted storage";
+                        return result;
+                    }
                 }
+
+                OASISErrorHandling.HandleError(ref result, $"No capabilities found for agent {agentId}");
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error retrieving agent capabilities: {ex.Message}", ex);
             }
-            return await Task.FromResult(result);
+            return result;
         }
 
         /// <summary>

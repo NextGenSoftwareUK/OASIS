@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public IntelligentModeConfig IntelligentMode { get; set; } = new IntelligentModeConfig();
         
         public string OASISSystemAccountId { get; set; }
-        public string OASISAPIURL { get; set; }
+        public string OASISAPIURL { get; set; } = "https://api.oasisweb4.com";
         public string NetworkId { get; set; } = "onet-network";
         public Guid SettingsLookupHolonId { get; set; } = Guid.Empty;
         // Stats caching controls
@@ -52,6 +52,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int RemoveOldRefreshTokensAfterXDays { set; get; }
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+        /// <summary>Google OAuth 2.0 Client ID (for Sign in with Google). Get from Google Cloud Console.</summary>
+        public string GoogleClientId { get; set; }
     }
 
     public class ErrorHandlingSettings
@@ -360,6 +362,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string PublicKey { get; set; }
         /// <summary>Optional. When set, token metadata lookup (e.g. Solscan memecoin → NFT) uses this mainnet RPC. Leave empty to use ConnectionString (devnet) for everything.</summary>
         public string MainnetConnectionString { get; set; }
+        /// <summary>Mainnet mint/payer wallet private key (Base58). Required for minting on mainnet when using X-Solana-Cluster: mainnet.</summary>
+        public string MainnetPrivateKey { get; set; }
+        /// <summary>Mainnet mint/payer wallet public key (Base58). Must have SOL for minting.</summary>
+        public string MainnetPublicKey { get; set; }
     }
 
     //public class HoloOASISProviderSettings : ProviderSettingsBase

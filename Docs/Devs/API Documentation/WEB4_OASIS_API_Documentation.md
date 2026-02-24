@@ -22,7 +22,7 @@ The WEB4 OASIS API is the foundational data aggregation and identity layer that 
 
 ## 🔗 **Base URL**
 ```
-https://api.oasisplatform.world
+https://api.oasisweb4.com
 ```
 
 ## 🔐 **Authentication**
@@ -2281,7 +2281,7 @@ import { OASISClient } from '@oasis/api-client';
 
 const client = new OASISClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.oasisweb4.com'
 });
 
 // Get avatar
@@ -2342,7 +2342,7 @@ client.karma.add({
 
 ### **Sandbox Environment**
 ```
-https://sandbox-api.oasisplatform.world
+https://sandbox-api.oasisweb4.com
 ```
 
 ### **Test Data**

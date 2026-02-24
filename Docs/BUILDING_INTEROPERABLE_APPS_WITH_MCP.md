@@ -70,7 +70,7 @@ MCP is a protocol that allows AI assistants (like Cursor) to interact with exter
 **Example:**
 ```
 ❌ Without MCP (Traditional):
-const response = await fetch('https://api.oasisplatform.world/api/avatar/register', {
+const response = await fetch('https://api.oasisweb4.com/api/avatar/register', {
   method: 'POST',
   headers: { 'Authorization': 'Bearer token', 'Content-Type': 'application/json' },
   body: JSON.stringify({ username: 'player1', email: 'player@example.com', password: 'pass' })

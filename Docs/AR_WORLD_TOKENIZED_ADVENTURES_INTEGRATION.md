@@ -17,7 +17,7 @@ This document explains how to integrate tokenized adventures into the AR World g
 
 ### Base URL
 - **Development**: `http://localhost:50564/api`
-- **Production**: `https://star-api.oasisplatform.world/api`
+- **Production**: `https://star-api.oasisweb4.com/api`
 
 ### Authentication
 ```http
@@ -420,7 +420,7 @@ Once minted, place the adventure NFT at a real-world location:
 ```csharp
 public class ARWorldAdventureManager : MonoBehaviour
 {
-    private string starApiBaseUrl = "https://star-api.oasisplatform.world/api";
+    private string starApiBaseUrl = "https://star-api.oasisweb4.com/api";
     private string authToken;
     private string avatarId;
     

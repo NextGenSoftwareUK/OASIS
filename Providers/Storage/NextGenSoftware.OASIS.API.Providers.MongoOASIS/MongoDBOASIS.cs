@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
@@ -64,6 +65,29 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System")); 
             BsonSerializer.RegisterSerializer(objectSerializer);
+
+            // So Avatar/HolonBase documents with CreatedProviderType as { Value, Name } deserialize (driver otherwise fails on get-only Name)
+            BsonSerializer.RegisterSerializer(new EnumValueBsonSerializer<ProviderType>());
+            BsonSerializer.RegisterSerializer(new EnumValueBsonSerializer<OASISType>());
+            BsonSerializer.RegisterSerializer(new EnumValueBsonSerializer<AvatarType>());
+
+            // Use MetaDataDictionarySerializer for MetaData to avoid "Unknown discriminator value 'JsonElement'" when loading documents with polymorphic metadata
+            try
+            {
+                if (!BsonClassMap.IsClassMapRegistered(typeof(Entities.HolonBase)))
+                {
+                    BsonClassMap.RegisterClassMap<Entities.HolonBase>(cm =>
+                    {
+                        cm.AutoMap();
+                        cm.MapMember(c => c.MetaData).SetSerializer(new MetaDataDictionarySerializer());
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"MetaDataDictionarySerializer registration failed: {ex.Message}", ex);
+            }
+
             //BsonClassMap.RegisterClassMap<OAPPDNA>();
 
             /*

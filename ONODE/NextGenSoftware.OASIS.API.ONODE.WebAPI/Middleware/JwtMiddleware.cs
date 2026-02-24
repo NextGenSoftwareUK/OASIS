@@ -28,7 +28,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             // Skip JWT validation for login endpoint so auth never returns 401 due to missing/expired token in header
             var path = context.Request.Path.Value ?? "";
-            if (path.Contains("/api/avatar/authenticate", StringComparison.OrdinalIgnoreCase) &&
+            if ((path.Contains("/api/avatar/authenticate", StringComparison.OrdinalIgnoreCase) ||
+                path.Contains("/api/avatar/auth/google", StringComparison.OrdinalIgnoreCase)) &&
                 string.Equals(context.Request.Method, "POST", StringComparison.OrdinalIgnoreCase))
             {
                 await _next(context);

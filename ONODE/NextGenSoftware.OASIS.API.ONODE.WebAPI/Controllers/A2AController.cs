@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     /// Based on: https://github.com/a2aproject/A2A
     /// </summary>
     [Route("api/[controller]")]
+    [Route("api/serv")]  // Alias for SERV branding; both api/a2a and api/serv work
     [ApiController]
     public class A2AController : OASISControllerBase
     {
@@ -153,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///     "skills": ["Python", "Machine Learning"]
         ///   },
         ///   "connection": {
-        ///     "endpoint": "https://api.oasisplatform.world/api/a2a/jsonrpc",
+        ///     "endpoint": "https://api.oasisweb4.com/api/a2a/jsonrpc",
         ///     "protocol": "jsonrpc2.0",
         ///     "auth": {
         ///       "scheme": "bearer"
@@ -870,7 +873,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         ///       "services": ["data-analysis", "report-generation"]
         ///     },
         ///     "connection": {
-        ///       "endpoint": "https://api.oasisplatform.world/api/a2a/jsonrpc"
+        ///       "endpoint": "https://api.oasisweb4.com/api/a2a/jsonrpc"
         ///     }
         ///   }
         /// ]
@@ -1005,7 +1008,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     request.ApiKey,
                     request.Username,
                     request.Email,
-                    request.Password
+                    request.Password,
+                    request.LocalUrl,
+                    request.AuthToken
                 );
 
                 if (result.IsError)
@@ -1013,8 +1018,122 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     return BadRequest(new { error = result.Message });
                 }
 
-                // Extract agent ID from message if possible (optional enhancement)
-                return Ok(new { success = true, message = result.Message });
+                // Extract agent ID from message: "... as A2A agent {guid}"
+                var match = System.Text.RegularExpressions.Regex.Match(result.Message, @"as A2A agent ([0-9a-fA-F-]{36})");
+                var agentId = match.Success ? match.Groups[1].Value : (string)null;
+                return Ok(new { success = true, message = result.Message, agentId });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Chat with an OpenSERV agent (User or Agent can call)
+        /// </summary>
+        /// <remarks>
+        /// Sends a message to an OpenSERV agent's marvin_chat capability.
+        /// Allows human avatars (User type) to talk to agents.
+        /// 
+        /// **Authentication Required:** Yes (Bearer Token)
+        /// 
+        /// **Avatar Type:** User or Agent
+        /// </remarks>
+        [HttpPost("agents/{agentId}/chat")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> AgentChat(Guid agentId, [FromBody] AgentChatRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                {
+                    return Unauthorized(new { error = "Authentication required" });
+                }
+
+                if (request == null || string.IsNullOrWhiteSpace(request.Message))
+                {
+                    return BadRequest(new { error = "Message is required" });
+                }
+
+                var agentCardResult = await AgentManager.Instance.GetAgentCardAsync(agentId);
+                if (agentCardResult.IsError || agentCardResult.Result == null)
+                {
+                    return BadRequest(new { error = $"Agent not found: {agentId}" });
+                }
+
+                var agentCard = agentCardResult.Result;
+                if (!agentCard.Metadata.ContainsKey("openserv_endpoint") || !agentCard.Metadata.ContainsKey("openserv_agent_id"))
+                {
+                    return BadRequest(new { error = "Agent is not an OpenSERV agent" });
+                }
+
+                var openServEndpoint = (agentCard.Metadata["openserv_endpoint"] ?? "").ToString().TrimEnd('/');
+                var openServAgentId = (agentCard.Metadata["openserv_agent_id"] ?? "").ToString();
+                var openServApiKey = agentCard.Metadata.ContainsKey("openserv_api_key")
+                    ? (agentCard.Metadata["openserv_api_key"] ?? "").ToString()
+                    : "";
+
+                if (string.IsNullOrEmpty(openServEndpoint) || string.IsNullOrEmpty(openServAgentId))
+                {
+                    return BadRequest(new { error = "OpenSERV agent configuration incomplete" });
+                }
+
+                var payload = new
+                {
+                    args = new { message = request.Message, userId = request.UserId ?? Avatar.Id.ToString() },
+                    action = new { type = "user-chat" }
+                };
+
+                var openServAuthToken = agentCard.Metadata.ContainsKey("openserv_auth_token")
+                    ? (agentCard.Metadata["openserv_auth_token"] ?? "").ToString()
+                    : "";
+
+                async Task<HttpResponseMessage> TryChatAsync(string url)
+                {
+                    using var req = new HttpRequestMessage(HttpMethod.Post, url) { Content = JsonContent.Create(payload) };
+                    if (!string.IsNullOrEmpty(openServApiKey))
+                    {
+                        req.Headers.Add("Authorization", $"Bearer {openServApiKey}");
+                        req.Headers.Add("x-openserv-key", openServApiKey);
+                    }
+                    if (!string.IsNullOrEmpty(openServAuthToken))
+                        req.Headers.Add("x-openserv-auth-token", openServAuthToken);
+                    return await A2AManager.OpenServHttpClient.SendAsync(req);
+                }
+
+                // Try proxy first, then local fallback for dev
+                var chatUrl = $"{openServEndpoint}/tools/marvin_chat";
+                var response = await TryChatAsync(chatUrl);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var localUrl = agentCard.Metadata.ContainsKey("openserv_local_url")
+                        ? (agentCard.Metadata["openserv_local_url"] ?? "").ToString().TrimEnd('/')
+                        : "http://localhost:7378";
+                    if (!string.IsNullOrEmpty(localUrl))
+                    {
+                        response = await TryChatAsync($"{localUrl}/tools/marvin_chat");
+                    }
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode,
+                        new { error = $"OpenSERV agent request failed: {responseContent}" });
+                }
+
+                var json = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(responseContent);
+                var resultText = json.TryGetProperty("result", out var resultProp)
+                    ? resultProp.GetString()
+                    : responseContent;
+
+                return Ok(new { success = true, response = resultText ?? responseContent });
             }
             catch (Exception ex)
             {
@@ -2113,6 +2232,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// Password for the avatar (optional, auto-generated if not provided)
         /// </summary>
         public string Password { get; set; }
+
+        /// <summary>
+        /// Local agent URL for dev fallback (e.g. http://localhost:7378)
+        /// </summary>
+        public string LocalUrl { get; set; }
+
+        /// <summary>
+        /// Auth token for local agent (x-openserv-auth-token)
+        /// </summary>
+        public string AuthToken { get; set; }
+    }
+
+    /// <summary>
+    /// Request model for agent chat
+    /// </summary>
+    public class AgentChatRequest
+    {
+        /// <summary>
+        /// User message to send to the agent
+        /// </summary>
+        public string Message { get; set; }
+
+        /// <summary>
+        /// Optional user/avatar ID for memory (defaults to authenticated avatar)
+        /// </summary>
+        public string UserId { get; set; }
     }
 
     /// <summary>
