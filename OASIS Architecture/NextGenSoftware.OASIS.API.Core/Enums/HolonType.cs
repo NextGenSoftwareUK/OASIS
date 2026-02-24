@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Player,
         Avatar,
         AvatarDetail,
+        Clan,
         Mission,
         Chapter,
         Quest,

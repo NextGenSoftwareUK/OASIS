@@ -367,16 +367,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Sends an item from the sender's inventory to another avatar.
+        /// Sends an item from the sender's inventory to another avatar (or to a clan when forClan is true).
         /// Target can be username or avatar Id (as string). When itemId is provided, that specific item is sent; otherwise items are matched by name.
+        /// When forClan is true, target is treated as clan name and result messages use "clan" wording (e.g. "Clan not found").
         /// </summary>
-        public async Task<OASISResult<bool>> SendItemToAvatarAsync(Guid senderAvatarId, string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> SendItemToAvatarAsync(Guid senderAvatarId, string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default, bool forClan = false)
         {
             var result = new OASISResult<bool>();
             if (string.IsNullOrWhiteSpace(targetUsernameOrAvatarId) || string.IsNullOrWhiteSpace(itemName))
             {
                 result.IsError = true;
-                result.Message = "Target (username or avatar id) and item name are required.";
+                result.Message = forClan ? "Clan name and item name are required." : "Target (username or avatar id) and item name are required.";
                 return result;
             }
             if (quantity < 1) quantity = 1;
@@ -433,7 +434,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if (targetAvatarResult.IsError || targetAvatarResult.Result == null)
                     {
                         result.IsError = true;
-                        result.Message = $"Target avatar not found: {targetUsernameOrAvatarId}";
+                        result.Message = forClan ? $"Clan not found: {targetUsernameOrAvatarId}" : $"Target avatar not found: {targetUsernameOrAvatarId}";
                         return result;
                     }
                     targetAvatarId = targetAvatarResult.Result.Id;
@@ -460,7 +461,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (targetDetailResult.IsError || targetDetailResult.Result == null)
                 {
                     result.IsError = true;
-                    result.Message = $"Error loading target avatar: {targetDetailResult.Message}";
+                    result.Message = forClan ? $"Error loading clan: {targetDetailResult.Message}" : $"Error loading target avatar: {targetDetailResult.Message}";
                     return result;
                 }
                 var targetDetail = targetDetailResult.Result;
@@ -481,16 +482,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (saveTargetResult.IsError)
                 {
                     result.IsError = true;
-                    result.Message = $"Error updating target inventory: {saveTargetResult.Message}";
+                    result.Message = forClan ? $"Error updating clan inventory: {saveTargetResult.Message}" : $"Error updating target inventory: {saveTargetResult.Message}";
                     return result;
                 }
                 result.Result = true;
-                result.Message = $"Sent {matching.Count} x '{itemName}' to avatar.";
+                result.Message = forClan ? $"Sent {matching.Count} x '{itemName}' to clan." : $"Sent {matching.Count} x '{itemName}' to avatar.";
             }
             catch (Exception ex)
             {
                 result.IsError = true;
-                result.Message = $"Error sending item to avatar: {ex.Message}";
+                result.Message = forClan ? $"Error sending item to clan: {ex.Message}" : $"Error sending item to avatar: {ex.Message}";
                 result.Exception = ex;
             }
             return result;
@@ -498,15 +499,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         /// <summary>
         /// Sends an item from the sender's inventory to a clan.
-        /// For now, clan name is resolved as a single target avatar (username); when clan entity exists, can be extended to multiple recipients.
+        /// Clan name is resolved as a target (e.g. username representing the clan for now); when clan entity exists, can be extended to multiple recipients.
+        /// Uses clan-specific result messages (e.g. "Clan not found", "Sent to clan").
         /// </summary>
         public async Task<OASISResult<bool>> SendItemToClanAsync(Guid senderAvatarId, string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, ProviderType providerType = ProviderType.Default)
         {
             if (string.IsNullOrWhiteSpace(clanNameOrTargetUsername))
             {
-                return new OASISResult<bool> { IsError = true, Message = "Clan name or target username is required." };
+                return new OASISResult<bool> { IsError = true, Message = "Clan name is required." };
             }
-            return await SendItemToAvatarAsync(senderAvatarId, clanNameOrTargetUsername.Trim(), itemName, quantity, itemId, providerType).ConfigureAwait(false);
+            return await SendItemToAvatarAsync(senderAvatarId, clanNameOrTargetUsername.Trim(), itemName, quantity, itemId, providerType, forClan: true).ConfigureAwait(false);
         }
 
         #endregion

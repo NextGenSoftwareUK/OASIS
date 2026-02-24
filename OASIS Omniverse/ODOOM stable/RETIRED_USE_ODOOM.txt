@@ -1,0 +1,7 @@
+ODOOM stable is RETIRED.
+
+Use ODOOM instead — it is in sync with this tree and is the single maintained branch.
+
+Folder: ../ODOOM/
+
+As of the sync (beam-in speed fix, Sending.../result popup, odoom_send_status), ODOOM and ODOOM stable have the same behavior and UI. This "stable" folder is no longer maintained.
