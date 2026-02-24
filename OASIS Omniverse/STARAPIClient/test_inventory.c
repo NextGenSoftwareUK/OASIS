@@ -15,8 +15,10 @@ int main(int argc, char** argv)
 
     if (argc < 4)
     {
-        printf("Usage: %s <base_url> <username> <password> [api_key] [avatar_id]\n", argv[0]);
+        printf("Usage: %s <base_url> <username> <password> [api_key] [avatar_id] [send_avatar_target] [send_clan_name]\n", argv[0]);
         printf("Example: %s http://127.0.0.1:65535/api testuser testpass\n", argv[0]);
+        printf("  send_avatar_target = username or avatar id to send an item to (optional; tests send-to-avatar).\n");
+        printf("  send_clan_name     = clan name to send an item to (optional; tests send-to-clan).\n");
         return 1;
     }
 
@@ -25,6 +27,8 @@ int main(int argc, char** argv)
     const char* password = argv[3];
     const char* api_key = argc > 4 ? argv[4] : NULL;
     const char* avatar_id = argc > 5 ? argv[5] : NULL;
+    const char* send_avatar_target = argc > 6 ? argv[6] : NULL;
+    const char* send_clan_name = argc > 7 ? argv[7] : NULL;
 
     star_api_config_t config;
     config.base_url = base_url;
@@ -155,13 +159,11 @@ int main(int argc, char** argv)
         printf("   (Inventory is empty)\n");
     }
 
-    star_api_free_item_list(inventory);
-
     printf("\n5. Testing HasItem...\n");
     int has_test = star_api_has_item("TestItem");
     printf("   star_api_has_item(\"TestItem\") => %d\n", has_test);
     
-    /* Test has_item with items from inventory */
+    /* Test has_item with items from inventory (before freeing) */
     if (inventory != NULL && inventory->count > 0)
     {
         printf("   Testing has_item with existing items from inventory:\n");
@@ -174,6 +176,9 @@ int main(int argc, char** argv)
                 has ? "(exists)" : "(not found)");
         }
     }
+
+    star_api_free_item_list(inventory);
+    inventory = NULL;
 
     printf("\n6. Testing AddItem (starting weapons/items)...\n");
     
