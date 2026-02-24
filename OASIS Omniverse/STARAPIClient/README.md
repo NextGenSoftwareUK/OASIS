@@ -50,9 +50,9 @@ This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same
 
 **Recommendation:** **Move star_sync into STARAPIClient.** You already use a single client (STARAPIClient) for ODOOM and OQuake, so keeping sync client-agnostic doesn’t buy much in practice. One C# DLL and one codebase is easier to maintain, version, and ship; sync and cache live in the same process with no extra ABI boundary. The main cost is implementing the pump + main-thread callback contract carefully in C#. If you later introduce another `star_api_*` implementation, you can either add a minimal C shim for sync or re-extract a small sync layer. For the current setup, consolidating in STARAPIClient is the better trade-off.
 
-## Local inventory cache (where it lives)
+## Local inventory cache (single cache, minimal game hooks)
 
-The **local cache** is kept **inside STARAPIClient** (in memory). Behaviour:
+The **only** inventory cache lives **inside STARAPIClient**. Games (ODOOM, OQuake, etc.) do **not** keep a second cache: they call `star_api_has_item`, `star_api_get_inventory`, `star_api_use_item` and only refresh the overlay (e.g. push to CVars) when needed (after sync done, send, or use). This keeps integration minimal and generic. Behaviour:
 
 - **GetInventoryAsync** / **star_api_get_inventory**: Return the cached list when present; only call the API when the cache is null (e.g. first load or after `InvalidateInventoryCache()`).
 - **HasItemAsync** / **star_api_has_item**: Resolve from the cache when available; only call the API (via GetInventory) when the cache is null.

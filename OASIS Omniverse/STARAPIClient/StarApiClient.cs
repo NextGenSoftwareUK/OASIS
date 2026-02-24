@@ -470,12 +470,12 @@ public sealed class StarApiClient : IDisposable
             };
         }
 
-        var hasItem = inventory.Result!.Any(x =>
+        var found = inventory.Result!.Any(x =>
             string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(x.Description, itemName, StringComparison.OrdinalIgnoreCase));
 
         InvokeCallback(StarApiResultCode.Success);
-        return Success(hasItem, StarApiResultCode.Success, hasItem ? "Item found in inventory." : "Item not found in inventory.");
+        return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
     /// <summary>Get avatar inventory. Returns the local cache when available; only one HTTP fetch runs when cache is null (single-flight).</summary>
