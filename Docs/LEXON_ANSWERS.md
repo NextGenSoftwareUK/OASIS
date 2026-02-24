@@ -277,7 +277,7 @@ Users don't start from zero. Reputation is portable. Identity is universal.
 
 ## Getting Started
 
-1. **Explore the API**: `https://api.oasisplatform.world/swagger`
+1. **Explore the API**: `https://api.oasisweb4.com/swagger`
 2. **Avatar endpoints**: `/api/avatar/*` - registration, auth, profiles
 3. **Karma endpoints**: `/api/karma/*` - add, remove, query reputation
 4. **Use MCP**: Configure Cursor for AI-assisted development

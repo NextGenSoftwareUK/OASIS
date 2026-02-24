@@ -13,7 +13,7 @@ https://localhost:5000/api
 
 ### **Production**
 ```
-https://api.oasisplatform.world
+https://api.oasisweb4.com
 ```
 
 ## 🔐 **Authentication**

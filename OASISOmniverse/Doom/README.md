@@ -172,7 +172,7 @@ Or create a config file `doom_star_config.json`:
 
 ```json
 {
-  "starApiBaseUrl": "https://star-api.oasisplatform.world/api",
+  "starApiBaseUrl": "https://star-api.oasisweb4.com/api",
   "apiKey": "your_api_key_here",
   "avatarId": "your_avatar_id_here"
 }

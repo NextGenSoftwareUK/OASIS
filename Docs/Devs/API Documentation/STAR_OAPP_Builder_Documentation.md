@@ -595,7 +595,7 @@ import { OAPPBuilder } from '@oasis/oapp-builder-client';
 
 const builder = new OAPPBuilder({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world'
+  baseUrl: 'https://star-api.oasisweb4.com'
 });
 ```
 

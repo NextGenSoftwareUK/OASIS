@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class AvatarManager : OASISManager
     {
-        private const string LIVE_OASISSITE = "https://oasisweb4.one";
+        private const string LIVE_OASISSITE = "https://www.oasisweb4.com";
 
         private string OASISWebSiteURL
         {
@@ -36,92 +36,36 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private void SendPasswordResetEmail(IAvatar avatar)
         {
-            string message;
-
-            var resetUrl = $"{OASISWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
-            message =
-                $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                             <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
-
-
-            //if (!string.IsNullOrEmpty(origin))
-            //{
-            //    var resetUrl = $"{OASISDNA.OASIS.Email.VerificationWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
-            //    message =
-            //        $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-            //                 <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
-            //}
-            //else
-            //{
-            //    message =
-            //        $@"<p>Please use the below token to reset your password with the <code>/avatar/reset-password</code> api route:</p>
-            //                 <p><code>{avatar.ResetToken}</code></p>";
-            //}
+            var encodedToken = Uri.EscapeDataString(avatar.ResetToken ?? "");
+            var resetUrl = $"{OASISWebSiteURL.TrimEnd('/')}/avatar/reset-password?token={encodedToken}";
+            var html = EmailTemplates.GetPasswordResetEmailHtml(resetUrl, OASISWebSiteURL);
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                avatar.Email,
-                "OASIS - Reset Password",
-                $@"<h4>Reset Password</h4>
-                         {message}"
-            );
+            EmailManager.Send(avatar.Email, "OASIS - Reset Password", html);
         }
 
         private void SendAlreadyRegisteredEmail(string email, string message)
         {
-            message = String.Concat($"<p>{message}</p>", $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>");
-
-            //if (!string.IsNullOrEmpty(origin))
-            //    message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
-            //else
-            //    message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+            var html = EmailTemplates.GetAlreadyRegisteredEmailHtml(OASISWebSiteURL, message ?? "");
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                to: email,
-                subject: "OASIS Sign-up Verification - Email Already Registered",
-                html: $@"<h4>Email Already Registered</h4>{message}"
-                //html: $@"<h4>Email Already Registered</h4>
-                //         <p>Your email <strong>{email}</strong> is already registered.</p>
-                //         {message}"
-            );
+            EmailManager.Send(to: email, subject: "OASIS - Email Already Registered", html: html);
         }
 
         private void SendVerificationEmail(IAvatar avatar)
         {
-            var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
-            string message = $@"<p>Please click the below link to verify your email address:</p>
-                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-
-            //if (!string.IsNullOrEmpty(OASISDNA.OASIS.Email.VerificationWebSiteURL))
-            //{
-            //    var verifyUrl = $"{OASISDNA.OASIS.Email.VerificationWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
-            //    message = $@"<p>Please click the below link to verify your email address:</p>
-            //                 <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
-            //}
-            //else
-            //{
-            //    message = $@"<p>Please use the below token to verify your email address with the <code>/avatar/verify-email</code> api route:</p>
-            //                 <p><code>{avatar.VerificationToken}</code></p>";
-            //}
+            var encodedToken = Uri.EscapeDataString(avatar.VerificationToken ?? "");
+            var verifyUrl = $"{OASISWebSiteURL.TrimEnd('/')}/avatar/verify-email?token={encodedToken}";
+            var html = EmailTemplates.GetVerificationEmailHtml(verifyUrl, OASISWebSiteURL);
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                to: avatar.Email,
-                subject: "OASIS Sign-up Verification - Verify Email",
-                //html: $@"<h4>Verify Email</h4>
-                html: $@"<h4>Verify Email</h4>
-                         <p>Thanks for registering!</p>
-                         <p>Welcome to the OASIS!</p>
-                         <p>Ready Player One?</p>
-                         {message}"
-            );
+            EmailManager.Send(to: avatar.Email, subject: "OASIS - Verify your email", html: html);
         }
 
         private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, Guid? ownerAvatarId = null)
@@ -303,8 +247,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, EnumValue<AvatarType> originalAvatarType = null, AvatarType? registrationAvatarType = null)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, EnumValue<AvatarType> originalAvatarType = null, AvatarType? registrationAvatarType = null, bool isOAuthUser = false)
         {
+            // OAuth users (e.g. Google): auto-verify, skip email
+            if (isOAuthUser && result?.Result != null)
+            {
+                result.Result.IsActive = true;
+                result.Result.Verified = DateTime.UtcNow;
+                result.Result.VerificationToken = null;
+                result.Result.IsNewHolon = false;
+                var saveResult = SaveAvatarAsync(result.Result).Result;
+                if (!saveResult.IsError && saveResult.Result != null)
+                    result.Result = saveResult.Result;
+                result.Result = HideAuthDetails(result.Result);
+                result.IsSaved = true;
+                result.Message = "Avatar created with Google. You are now signed in.";
+                return result;
+            }
+
             // SIMPLE APPROACH: Auto-verify and activate ALL Agent-type avatars
             // Agents don't have email access, so email verification doesn't make sense
             // Check AvatarType - use registration parameter FIRST (most reliable), then fallback methods

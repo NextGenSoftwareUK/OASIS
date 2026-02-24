@@ -83,7 +83,7 @@ Content-Type: application/json
 
 {
   "openServApiKey": "sk-...",
-  "oasisAgentEndpoint": "https://api.oasisplatform.world/api/a2a/agent-card/{agentId}"
+  "oasisAgentEndpoint": "https://api.oasisweb4.com/api/a2a/agent-card/{agentId}"
 }
 ```
 
@@ -92,7 +92,7 @@ Content-Type: application/json
 var result = await A2AManager.Instance.RegisterOasisAgentWithOpenServAsync(
     agentId: myAgentId,
     openServApiKey: "sk-...",
-    oasisAgentEndpoint: "https://api.oasisplatform.world/api/a2a/agent-card/{agentId}"
+    oasisAgentEndpoint: "https://api.oasisweb4.com/api/a2a/agent-card/{agentId}"
 );
 ```
 

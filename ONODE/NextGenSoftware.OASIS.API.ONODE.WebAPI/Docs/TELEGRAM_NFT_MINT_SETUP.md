@@ -80,10 +80,30 @@ When `OasisApiBaseUrl` is set to a localhost URL (e.g. `https://localhost:5004`)
 
 **To use your own video when testing locally:** upload the file (e.g. `wwwroot/minting/witness-the-jpeg-miracle.mp4`) to a **public** URL (e.g. [Pinata](https://app.pinata.cloud/) → upload → copy URL), then set `MintingGifUrl` in `appsettings.Development.json` to that URL.
 
+**To use a specific GIF you found in Telegram:** the bot needs a **public URL** to the GIF (Telegram file links are not directly usable). Save or forward the GIF from Telegram to your machine, upload it to a public host (e.g. [Pinata](https://app.pinata.cloud/) → upload → copy “Gateway URL”), then set `MintingGifUrl` in `TelegramNftMint` (e.g. in `appsettings.Development.json`) to that URL. That GIF will be shown when “Minting your NFT…” is sent.
+
 ---
 
-## 7. Troubleshooting
+## 7. Using the bot in a group
+
+When the bot is in a **group**, Telegram's **Group Privacy** (default: on) means the bot only receives:
+
+- Messages that start with a **command** (e.g. `/mint`),
+- **Replies** to the bot's messages,
+- Messages that **@mention** the bot.
+
+So if someone sends a photo or GIF without replying to the bot, Telegram does **not** deliver that update, so the bot never sees the asset and the flow appears to hang.
+
+**Options:**
+
+1. **Reply to the bot:** When the bot says "Send a photo or GIF…", send the photo or GIF as a **reply to that message**. The bot now adds a short hint in groups: "In groups: send your photo or GIF as a **reply to this message**".
+2. **Disable Group Privacy:** In [@BotFather](https://t.me/BotFather), choose your bot, then **Bot Settings** → **Group Privacy** → **Turn off**. The bot will then receive all messages in the group (no need to reply).
+
+---
+
+## 8. Troubleshooting
 
 - **“Mint failed: bot avatar not configured”** – Set `BotAvatarId` to a valid OASIS avatar GUID that can mint on Solana.
 - **“Failed to upload image”** – Check `PinataJwt` and that the bot can download the photo from Telegram (valid `BotToken`).
 - **No reply in Telegram** – Ensure the webhook URL is HTTPS and returns 200 quickly; check logs for errors when processing the update.
+- **Command hung in a group after sending photo/GIF** – Telegram did not deliver the photo (Group Privacy). Send the photo as a **reply to the bot's message**, or turn off Group Privacy in @BotFather (see §7).

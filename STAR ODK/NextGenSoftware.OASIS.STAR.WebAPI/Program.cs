@@ -154,6 +154,7 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

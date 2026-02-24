@@ -40,7 +40,7 @@ static const char* GetKeycardDescription(int keycard_type) {
 
 void Doom_STAR_Init(void) {
     // Load configuration from file or environment
-    g_star_config.base_url = "https://star-api.oasisplatform.world/api";
+    g_star_config.base_url = "https://star-api.oasisweb4.com/api";
     g_star_config.api_key = getenv("STAR_API_KEY");  // Optional
     g_star_config.avatar_id = getenv("STAR_AVATAR_ID");  // Optional
     g_star_config.timeout_seconds = 10;

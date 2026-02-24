@@ -592,7 +592,7 @@ oportal-repo/
 **API Integration:**
 ```javascript
 // agents-dashboard.js
-const OASIS_API = 'https://api.oasisplatform.world';
+const OASIS_API = 'https://api.oasisweb4.com';
 
 // Get my agents
 async function getMyAgents() {

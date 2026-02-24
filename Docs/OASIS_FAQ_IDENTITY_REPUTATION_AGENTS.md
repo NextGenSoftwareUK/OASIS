@@ -1,8 +1,8 @@
 # OASIS FAQ: Identity, Reputation & Agents
 
-## OpenServe Agents
+## OpenSERV Agents
 
-### What is an OpenServe agent from a practical, community-facing perspective?
+### What is an OpenSERV agent from a practical, community-facing perspective?
 
 **Answer:**
 

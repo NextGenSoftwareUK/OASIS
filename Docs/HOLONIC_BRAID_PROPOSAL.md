@@ -1027,7 +1027,7 @@ https://oasisweb4.com
 
 **References**:
 - BRAID Paper: [arXiv:2512.15959](https://arxiv.org/pdf/2512.15959)
-- OASIS API: https://api.oasisplatform.world
+- OASIS API: https://api.oasisweb4.com
 - OpenSERV: https://openserv.ai
 
 ---

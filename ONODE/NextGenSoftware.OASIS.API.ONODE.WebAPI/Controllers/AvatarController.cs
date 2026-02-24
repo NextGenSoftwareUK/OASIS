@@ -24,6 +24,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security;
 using NextGenSoftware.OASIS.Common;
+using Google.Apis.Auth;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -212,6 +213,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             else
                 return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
+        }
+
+        /// <summary>
+        /// Authenticate or register using Google OAuth. Send the Google ID token from the frontend.
+        /// </summary>
+        /// <param name="request">Request containing the Google ID token from credential response.</param>
+        /// <returns>OASIS result containing authenticated avatar with JWT token.</returns>
+        [HttpPost("auth/google")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IAvatar>> AuthenticateWithGoogle(GoogleAuthRequest request)
+        {
+            OASISConfigResult<IAvatar> configResult = await ConfigureOASISEngineAsync<IAvatar>(request);
+            if (configResult.IsError && configResult.Response != null)
+                return configResult.Response;
+
+            var clientId = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security?.GoogleClientId;
+            if (string.IsNullOrEmpty(clientId))
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "Google OAuth is not configured. Set GoogleClientId in OASIS DNA Security." }, HttpStatusCode.ServiceUnavailable);
+
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                });
+
+                var email = payload.Email;
+                var firstName = payload.GivenName ?? "";
+                var lastName = payload.FamilyName ?? "";
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "Google account email not found." }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await Program.AvatarManager.AuthenticateWithGoogleAsync(email, firstName, lastName, ipAddress(), configResult.AutoReplicationMode, configResult.AutoFailOverMode, configResult.AutoLoadBalanceMode, request.WaitForAutoReplicationResult);
+                ResetOASISSettings(request, configResult);
+
+                if (!result.IsError && result.Result != null)
+                {
+                    setTokenCookie(result.Result.RefreshToken);
+                    return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK, request.ShowDetailedSettings);
+                }
+                return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.Unauthorized, request.ShowDetailedSettings);
+            }
+            catch (InvalidJwtException)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "Invalid Google token. Please try again." }, HttpStatusCode.Unauthorized);
+            }
         }
 
         /// <summary>

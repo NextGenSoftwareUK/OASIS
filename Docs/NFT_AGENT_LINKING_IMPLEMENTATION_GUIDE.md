@@ -310,7 +310,7 @@ if (result.IsError)
       "status": "Available"
     },
     "connection": {
-      "endpoint": "https://api.oasisplatform.world/api/a2a/jsonrpc",
+      "endpoint": "https://api.oasisweb4.com/api/a2a/jsonrpc",
       "protocol": "A2A_JSON-RPC_2.0"
     }
   },

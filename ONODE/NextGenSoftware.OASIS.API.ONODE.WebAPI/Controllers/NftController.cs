@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFTs;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -315,6 +316,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             else
             {
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
+            }
+
+            // Solana cluster selection: header X-Solana-Cluster, query cluster, or body request.Cluster (default devnet)
+            if (onChainProvider == ProviderType.SolanaOASIS)
+            {
+                string cluster = request?.Cluster?.Trim()
+                    ?? Request?.Headers["X-Solana-Cluster"].FirstOrDefault()?.Trim()
+                    ?? Request?.Query["cluster"].FirstOrDefault()?.Trim()
+                    ?? "devnet";
+                var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster);
+                if (clusterResult.IsError)
+                    return new OASISResult<IWeb4NFT>() { IsError = true, Message = clusterResult.Message };
             }
 
             // Smart defaults: If OffChainProvider not provided, default to MongoDBOASIS

@@ -104,7 +104,7 @@ This document outlines the architecture for attaching agents to NFTs, enabling a
       "skills": ["Python", "Machine Learning"]
     },
     "connection": {
-      "endpoint": "https://api.oasisplatform.world/api/a2a/jsonrpc",
+      "endpoint": "https://api.oasisweb4.com/api/a2a/jsonrpc",
       "protocol": "jsonrpc2.0"
     }
   },

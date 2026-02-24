@@ -78,7 +78,7 @@ Each provider implements `IOASISStorageProvider` (or DB/Blockchain variant), sto
 | Item | Location | Notes |
 |------|----------|--------|
 | **Hitchhikers** | `Hitchhikers/` | Marvin agent, holonic guides; first partnership using Holonic Braid / OASIS tech. |
-| **Holonic Braid (demo)** | `ONODE/.../Controllers/BraidController.cs` | OpenServe + OASIS collaboration demo; standard vs holonic metrics, LLM integration. |
+| **Holonic Braid (demo)** | `ONODE/.../Controllers/BraidController.cs` | OpenSERV + OASIS collaboration demo; standard vs holonic metrics, LLM integration. |
 | **OPORTAL** | `ONODE/NextGenSoftware.OASIS.API.ONODE.OPORTAL/`, `oportal-repo/` | Portal UI: avatars, NFTs, quests, wallet, missions, content verification, STAR dashboard. |
 | **ARWorld** | `ARWorld/` | Unity game; OASIS integration, avatars, gameplay. |
 | **Pangea** | `pangea-repo/` | Apps: cap-mgmt, launchboard, markets; use OASIS (e.g. cap-mgmt `oasis-client`, `oasis-sync`). |

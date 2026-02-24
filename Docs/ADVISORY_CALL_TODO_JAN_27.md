@@ -77,7 +77,7 @@ From impromptu Google Meet with Hesling Reidinga and advisors. Recording: https:
 ## 5. Holonic Braid & Hitchhikers
 
 - [ ] **Fix positioning**  
-  - Holonic Braid = OpenServe + Oasis collaboration (the architecture).  
+  - Holonic Braid = OpenSERV + Oasis collaboration (the architecture).  
   - Hitchhikers = first partnership *using* that tech (their agentic experience on Oasis infra).  
   - Message: “Hitchhikers uses your tech,” not “Hitchhikers’ tech.”
 
@@ -98,7 +98,7 @@ From impromptu Google Meet with Hesling Reidinga and advisors. Recording: https:
   They’re hesitant on token launch; align on why/when/how.
 
 - [ ] **Decide “which token and how”**  
-  OpenServe involvement implies a token; design which one and mechanics.
+  OpenSERV involvement implies a token; design which one and mechanics.
 
 - [ ] **Pause heavy Karma/avatar token push**  
   Focus on core tech and one flagship use case first.

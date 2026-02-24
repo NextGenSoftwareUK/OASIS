@@ -141,7 +141,7 @@ All endpoints require authentication (Bearer token).
 
 ```bash
 curl -X POST \
-  https://api.oasisplatform.world/api/voicememo/convert-to-infographic \
+  https://api.oasisweb4.com/api/voicememo/convert-to-infographic \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -F "file=@voice-memo.mp3" \
   -F "workflowId=cmigcvfwm0000k004u9shifki"
@@ -317,7 +317,7 @@ using (var client = new HttpClient())
     content.Add(fileContent, "file", "voice-memo.mp3");
     
     var response = await client.PostAsync(
-        "https://api.oasisplatform.world/api/voicememo/convert-to-infographic",
+        "https://api.oasisweb4.com/api/voicememo/convert-to-infographic",
         content
     );
     
@@ -331,14 +331,14 @@ using (var client = new HttpClient())
 ```bash
 # Step 1: Transcribe
 curl -X POST \
-  https://api.oasisplatform.world/api/voicememo/transcribe \
+  https://api.oasisweb4.com/api/voicememo/transcribe \
   -H "Authorization: Bearer TOKEN" \
   -F "file=@voice-memo.mp3" \
   > transcription.json
 
 # Step 2: Extract Plan
 curl -X POST \
-  https://api.oasisplatform.world/api/voicememo/extract-plan \
+  https://api.oasisweb4.com/api/voicememo/extract-plan \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"Transcription": "..."}' \
@@ -346,7 +346,7 @@ curl -X POST \
 
 # Step 3: Generate Infographic
 curl -X POST \
-  https://api.oasisplatform.world/api/voicememo/generate-infographic \
+  https://api.oasisweb4.com/api/voicememo/generate-infographic \
   -H "Authorization: Bearer TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"Prompt": "..."}' \

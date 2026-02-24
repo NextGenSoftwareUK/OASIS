@@ -88,7 +88,9 @@ RUN cd /src && \
     fi
 
 # Clear Libraries obj/bin to avoid "file already exists" when same project is referenced via symlink and /src path
-RUN rm -rf /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/obj /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/bin 2>/dev/null || true
+RUN find /src/NextGenSoftware-Libraries -type d -name obj -exec rm -rf {} + 2>/dev/null || true; \
+    find /src/NextGenSoftware-Libraries -type d -name bin -exec rm -rf {} + 2>/dev/null || true; \
+    true
 
 # Restore dependencies from project file directly (avoids solution file path issues)
 # This will automatically restore all dependencies including all 30+ providers
