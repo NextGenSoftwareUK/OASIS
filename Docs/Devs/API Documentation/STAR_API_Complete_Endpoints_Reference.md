@@ -13,7 +13,7 @@ https://localhost:5004/api
 
 ### **Production**
 ```
-https://star-api.oasisplatform.world/api
+https://star-api.oasisweb4.com/api
 ```
 
 ## 🔐 **Authentication**

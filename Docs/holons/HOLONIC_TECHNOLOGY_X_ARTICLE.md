@@ -393,7 +393,7 @@ Intelligent conflict resolution mechanisms ensure data consistency during synchr
 ### 9.2 API Specifications
 
 **REST API Endpoints:**
-- Base URL: `https://star-api.oasisplatform.world/api`
+- Base URL: `https://star-api.oasisweb4.com/api`
 - Authentication: JWT tokens or API keys
 - Rate Limiting: 1000 requests/minute per API key
 - Response Format: JSON with `OASISResult<T>` wrapper
@@ -402,7 +402,7 @@ Intelligent conflict resolution mechanisms ensure data consistency during synchr
 - Real-time holon updates
 - Event subscriptions
 - Bidirectional communication
-- Connection: `wss://star-api.oasisplatform.world/ws`
+- Connection: `wss://star-api.oasisweb4.com/ws`
 
 ### 9.3 Performance Benchmarks
 

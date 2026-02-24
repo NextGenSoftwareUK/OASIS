@@ -76,6 +76,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintBlessingEligibilityService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintBlessingEligibilityService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ITopTokenHoldersService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TopTokenHoldersService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IWalletPfpService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.WalletPfpService>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintNameStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintNameStore>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ISaintClaimCodeStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SaintClaimCodeStore>();
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions>(
+                Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions.SectionName));
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IHallVerificationNftSentStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HallVerificationNftSentStore>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IHallVerificationNftSenderService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.HallVerificationNftSenderService>();
+            services.AddHostedService<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.PumpPortalSaintTradeStreamService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.IRecentTokenRecipientsService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.RecentTokenRecipientsService>();
             services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.ITelegramFlowStateStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TelegramFlowStateStore>();
             services.AddSingleton<TelegramNftMintFlowService>();

@@ -96,7 +96,7 @@ import { OASISClient } from '@oasis/sdk';
 
 const client = new OASISClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.oasisweb4.com'
 });
 
 const result = await client.[endpoint].getExample({
@@ -126,7 +126,7 @@ var result = await client.[Endpoint].GetExampleAsync(new ExampleRequest
 
 ```bash
 # cURL
-curl -X GET "https://api.oasisplatform.world/api/[endpoint]/example?param2=123" \
+curl -X GET "https://api.oasisweb4.com/api/[endpoint]/example?param2=123" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 

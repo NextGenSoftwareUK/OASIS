@@ -5,7 +5,7 @@
 The **WEB5 STAR API** is the gamification and metaverse layer that runs on top of the [WEB4 OASIS API](../web4-oasis-api/overview.md). It provides mission systems, quests, location-based GeoNFTs, celestial worlds, OASIS Applications (OAPPs), inventory, competition, eggs, and map services for building immersive metaverse and game experiences.
 
 **Base URL (same host as WEB4):** `http://api.oasisweb4.com/api`  
-**Alternative STAR host (when deployed):** `https://star-api.oasisplatform.world` — confirm in your environment.
+**Alternative STAR host (when deployed):** `https://star-api.oasisweb4.com` — confirm in your environment.
 
 **Swagger UI:** [http://api.oasisweb4.com/swagger/index.html](http://api.oasisweb4.com/swagger/index.html)
 

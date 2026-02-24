@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
@@ -34,5 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public bool WaitTillNFTSent { get; set; } = true;
         public int WaitForNFTToSendInSeconds { get; set; } = 60;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
+        /// <summary>Solana cluster: "devnet" (default) or "mainnet"/"mainnet-beta". When mainnet, API uses mainnet RPC and mainnet mint wallet from OASIS_DNA.</summary>
+        public string Cluster { get; set; }
     }
 }

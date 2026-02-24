@@ -78,7 +78,7 @@ User Request → WEB5 STAR API → WEB4 OASIS API → Provider Selection → Dat
 // Initialize the foundational OASIS API
 const oasisAPI = new OASISClient({
   apiKey: 'your-oasis-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.oasisweb4.com'
 });
 
 // Boot OASIS and authenticate
@@ -94,7 +94,7 @@ const avatar = await oasisAPI.avatar.create({
 // Initialize STAR API with OASIS integration
 const starAPI = new STARClient({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world',
+  baseUrl: 'https://star-api.oasisweb4.com',
   oasisAPI: oasisAPI  // Pass the initialized OASIS API
 });
 
@@ -255,8 +255,8 @@ const client = new OASISClient({
   oasisApiKey: 'your-oasis-key',
   starApiKey: 'your-star-key',
   baseUrls: {
-    oasis: 'https://api.oasisplatform.world',
-    star: 'https://star-api.oasisplatform.world'
+    oasis: 'https://api.oasisweb4.com',
+    star: 'https://star-api.oasisweb4.com'
   }
 });
 

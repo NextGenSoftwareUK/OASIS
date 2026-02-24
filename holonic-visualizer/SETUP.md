@@ -61,7 +61,7 @@ Example STAR API integration:
 import { STARClient } from './api/STARClient.js';
 
 const starClient = new STARClient({
-    baseUrl: 'https://star-api.oasisplatform.world',
+    baseUrl: 'https://star-api.oasisweb4.com',
     apiKey: 'your-api-key'
 });
 

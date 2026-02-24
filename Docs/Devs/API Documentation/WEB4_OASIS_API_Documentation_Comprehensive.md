@@ -85,7 +85,7 @@ The WEB4 OASIS API is the core data aggregation layer that unifies all Web2 and 
 
 ## 🔗 **Base URL**
 ```
-https://api.oasisplatform.world
+https://api.oasisweb4.com
 ```
 
 ## 🔐 **Authentication**
@@ -1326,7 +1326,7 @@ Authorization: Bearer YOUR_TOKEN
       "size": 1024000,
       "contentType": "application/pdf",
       "uploadedAt": "2024-01-20T14:30:00Z",
-      "url": "https://api.oasisplatform.world/files/file_123",
+      "url": "https://api.oasisweb4.com/files/file_123",
       "hash": "sha256:abc123...",
       "encrypted": false,
       "compressed": false,
@@ -1358,7 +1358,7 @@ Authorization: Bearer YOUR_TOKEN
       "filename": "document.pdf",
       "size": 1024000,
       "contentType": "application/pdf",
-      "url": "https://api.oasisplatform.world/files/file_123",
+      "url": "https://api.oasisweb4.com/files/file_123",
       "hash": "sha256:abc123...",
       "createdAt": "2024-01-20T14:30:00Z",
       "metadata": {

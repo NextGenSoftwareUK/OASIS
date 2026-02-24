@@ -49,7 +49,7 @@ Edit `.env` with your OASIS API settings:
 # OASIS API Configuration
 OASIS_API_URL=http://localhost:5000
 # Or use remote API:
-# OASIS_API_URL=https://api.oasisplatform.world
+# OASIS_API_URL=https://api.oasisweb4.com
 
 # Optional: API Key if required
 OASIS_API_KEY=your_api_key_here
@@ -257,7 +257,7 @@ Or try:
       "command": "node",
       "args": ["/path/to/MCP/dist/index.js"],
       "env": {
-        "OASIS_API_URL": "https://api.oasisplatform.world",
+        "OASIS_API_URL": "https://api.oasisweb4.com",
         "OASIS_API_KEY": "your-api-key"
       }
     }

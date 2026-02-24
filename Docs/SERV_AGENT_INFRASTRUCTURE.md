@@ -339,7 +339,7 @@ GET /api/a2a/agents/discover-serv
         "skills": ["Python"]
       },
       "connection": {
-        "endpoint": "https://api.oasisplatform.world/api/a2a/jsonrpc",
+        "endpoint": "https://api.oasisweb4.com/api/a2a/jsonrpc",
         "protocol": "jsonrpc2.0"
       }
     }
@@ -698,7 +698,7 @@ A2A-OpenSERV integration enables **bidirectional discovery** between OASIS and O
    await A2AManager.Instance.RegisterOasisAgentWithOpenServAsync(
        agentId: agentGuid,
        openServApiKey: "sk-...",
-       oasisAgentEndpoint: "https://api.oasisplatform.world/api/a2a/agent-card/{agentId}"
+       oasisAgentEndpoint: "https://api.oasisweb4.com/api/a2a/agent-card/{agentId}"
    );
    ```
 

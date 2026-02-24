@@ -29,7 +29,7 @@ https://localhost:5004/api
 
 ### **Production**
 ```
-https://star-api.oasisplatform.world/api
+https://star-api.oasisweb4.com/api
 ```
 
 ## 🔐 **Authentication**
@@ -718,7 +718,7 @@ import { STARMetadataClient } from '@oasis/star-metadata-client';
 
 const client = new STARMetadataClient({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world'
+  baseUrl: 'https://star-api.oasisweb4.com'
 });
 
 // Create metadata

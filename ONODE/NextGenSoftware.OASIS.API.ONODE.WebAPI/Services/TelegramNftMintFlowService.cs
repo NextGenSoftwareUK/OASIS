@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -16,6 +17,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
@@ -43,13 +46,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private const int MaxRetries = 3;
         private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(1);
         private const string BuiltInMintingVideoPath = "/minting/witness-the-jpeg-miracle.mp4";
-        private static readonly string FallbackMintingGifUrl = "https://media.tenor.com/sbH2izFboncAAAAM/pink-panther-walk.gif"; // Fallback when built-in video unreachable (e.g. localhost); override with MintingGifUrl or MintingGifUrls in config
+        private const string SaintsWelcomePath = "/saints/welcome.mp4";
+        private const string SaintsConfirmPath = "/saints/confirm.png";
+        private const string SaintsJoinSaintsPath = "/saints/ascended-halls.mp4";
+        // Ascension-themed fallback when built-in video unreachable (e.g. localhost). To use your own GIF (e.g. one you found in Telegram): upload it to a public host (e.g. Pinata), then set MintingGifUrl in TelegramNftMint config.
+        private static readonly string FallbackMintingGifUrl = "https://media.tenor.com/2q7RCZAr-4gAAAAM/ascending-energy.gif";
+
+        private readonly ISolanaSplTokenBalanceService _splTokenBalanceService;
+        private readonly ISaintMintRecordService _saintMintRecordService;
+        private readonly ITopTokenHoldersService _topTokenHoldersService;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ITelegramFlowStateStore _flowStateStore;
+        private readonly IHallVerificationNftSentStore _hallVerificationNftSentStore;
+        private readonly IHallVerificationNftSenderService _hallVerificationNftSender;
+        private readonly HallVerificationNftOptions _hallVerificationNftOptions;
+        private string _dropSaintMetadataUrlCache;
+        private readonly ConcurrentDictionary<(long ChatId, long UserId), DropHoldersFlowState> _dropState = new ConcurrentDictionary<(long, long), DropHoldersFlowState>();
 
         public TelegramNftMintFlowService(
             IHttpClientFactory httpClientFactory,
             IOptions<TelegramNftMintOptions> options,
             ILogger<TelegramNftMintFlowService> logger,
-            ITokenMetadataByMintService tokenMetadataByMintService = null)
+            ITokenMetadataByMintService tokenMetadataByMintService = null,
+            ISolanaSplTokenBalanceService splTokenBalanceService = null,
+            ISaintMintRecordService saintMintRecordService = null,
+            ITopTokenHoldersService topTokenHoldersService = null,
+            IServiceProvider serviceProvider = null,
+            ITelegramFlowStateStore flowStateStore = null,
+            IHallVerificationNftSentStore hallVerificationNftSentStore = null,
+            IHallVerificationNftSenderService hallVerificationNftSender = null,
+            IOptions<HallVerificationNftOptions> hallVerificationNftOptions = null)
         {
             _httpClientFactory = httpClientFactory;
             _httpClient = httpClientFactory.CreateClient();
@@ -57,6 +83,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _options = options?.Value ?? new TelegramNftMintOptions();
             _logger = logger;
             _tokenMetadataByMintService = tokenMetadataByMintService;
+            _splTokenBalanceService = splTokenBalanceService;
+            _saintMintRecordService = saintMintRecordService;
+            _topTokenHoldersService = topTokenHoldersService;
+            _serviceProvider = serviceProvider;
+            _flowStateStore = flowStateStore;
+            _hallVerificationNftSentStore = hallVerificationNftSentStore;
+            _hallVerificationNftSender = hallVerificationNftSender;
+            _hallVerificationNftOptions = hallVerificationNftOptions?.Value;
         }
 
         /// <summary>
@@ -78,38 +112,156 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var stateKey = StateKey(chatId, user?.Id);
             var isGroup = IsGroupChat(chat);
 
-            // Commands
-            if (text.Equals("/mint", StringComparison.OrdinalIgnoreCase) || text.Equals("/start mint", StringComparison.OrdinalIgnoreCase))
+            // When someone sends a message in the SAINTS group: if they're in top 20 and we haven't sent the Hall verification NFT yet, send it and DM them.
+            if (isGroup && user?.Id != null && _options.SaintsGroupChatId.HasValue && chatId == _options.SaintsGroupChatId.Value)
             {
-                StartFlow(chatId, user?.Id);
-                // Pre-auth: if they logged in before in a private chat, use cached avatar so they can complete in group without password
-                if (user?.Id != null && _userIdToAvatarId.TryGetValue(user.Id, out var cachedAvatarId) && _state.TryGetValue(stateKey, out var newState))
-                {
-                    newState.UserAvatarId = cachedAvatarId;
-                    newState.Step = NftMintFlowStep.Image;
-                    return "✅ You're logged in.\n\n🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** or **mint address** to use that token's image and metadata. Type `skip` for a placeholder.\n\nType /logout to mint as the bot instead.";
-                }
-                if (isGroup)
-                    return "🔐 **OASIS login** (optional)\n\nIn groups you can type `skip` to mint as the bot.\nTo mint as your OASIS avatar, open me in a **private chat** (tap my name → Start) and log in there first; then you can /mint here as your avatar.\n\nType /cancel anytime to cancel.";
-                return "🔐 **OASIS login** (optional)\n\nSend your OASIS **username** to mint as your avatar, or type `skip` to mint as the bot.\n\nType /cancel anytime to cancel.";
+                var groupReply = await TrySendHallVerificationNftToGroupMemberAsync(user.Id).ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(groupReply))
+                    return groupReply;
             }
 
-            if (text.Equals("/logout", StringComparison.OrdinalIgnoreCase))
+            // Load persisted state from store so multi-instance (e.g. ECS) can resume the same conversation
+            if (_flowStateStore != null && _flowStateStore.IsConfigured)
+            {
+                if (!_dropState.ContainsKey(stateKey))
+                {
+                    var storedDrop = await _flowStateStore.GetDropStateAsync(chatId, user?.Id).ConfigureAwait(false);
+                    if (storedDrop != null)
+                        _dropState[stateKey] = storedDrop;
+                }
+                if (!_state.ContainsKey(stateKey))
+                {
+                    var storedMint = await _flowStateStore.GetMintStateAsync(chatId, user?.Id).ConfigureAwait(false);
+                    if (storedMint != null)
+                        _state[stateKey] = storedMint;
+                }
+            }
+
+            // Normalize command: Telegram may send /command@BotUsername (e.g. /join_saints@SAINT_Bot) when used from menu or in some chats
+            var commandText = NormalizeCommand(text);
+
+            // Commands
+            if (commandText.Equals("/mint", StringComparison.OrdinalIgnoreCase) || commandText.Equals("/start mint", StringComparison.OrdinalIgnoreCase))
+            {
+                await StartFlowAsync(chatId, user?.Id).ConfigureAwait(false);
+                if (_state.TryGetValue(stateKey, out var newState))
+                {
+                    newState.UserAvatarId = null;
+                    newState.Step = NftMintFlowStep.Image;
+                }
+                var welcomeLine = _options?.SaintsMintWelcomeLine?.Trim();
+                var welcomeMediaUrl = GetWelcomeMediaUrl(_options);
+                if (!string.IsNullOrEmpty(welcomeMediaUrl))
+                    await SendMediaAsync(chatId, welcomeMediaUrl, welcomeLine).ConfigureAwait(false);
+                var imagePrompt = ImageStepPrompt(isGroup) + "\n\nType `skip` for a placeholder. Type /cancel anytime to cancel.";
+                if (!string.IsNullOrEmpty(welcomeLine) && string.IsNullOrEmpty(welcomeMediaUrl))
+                    imagePrompt = welcomeLine + "\n\n" + imagePrompt;
+                return imagePrompt;
+            }
+
+            if (commandText.Equals("/logout", StringComparison.OrdinalIgnoreCase))
             {
                 if (user?.Id != null)
                     _userIdToAvatarId.TryRemove(user.Id, out _);
-                ClearFlow(chatId, user?.Id);
+                await ClearFlowAsync(chatId, user?.Id).ConfigureAwait(false);
                 return "Logged out. Use /mint to start again.";
             }
 
-            if (text.Equals("/cancel", StringComparison.OrdinalIgnoreCase))
+            // /join_saints: send secret group invite link only to users who have minted (and only in private chat)
+            // Match /join_saints, /join_saint (typo), /joinsaints, ／join_saints (fullwidth slash), /join_saints@BotName
+            var isJoinSaintsCommand = commandText.StartsWith("/join_saints", StringComparison.OrdinalIgnoreCase)
+                || commandText.StartsWith("/join_saint", StringComparison.OrdinalIgnoreCase)
+                || commandText.StartsWith("/joinsaints", StringComparison.OrdinalIgnoreCase);
+            if (isJoinSaintsCommand)
             {
-                ClearFlow(chatId, user?.Id);
+                try
+                {
+                    var link = _options?.SaintsSecretGroupInviteLink?.Trim();
+                    if (string.IsNullOrEmpty(link))
+                        return "The SAINTS secret group is not configured yet. Stay tuned.";
+                    if (isGroup)
+                        return "To get your invite link, open me in a **private chat** (tap my name → Start) and send /join_saints again.";
+                    if (user?.Id == null)
+                        return "I couldn't identify you. Try again in a private chat.";
+                    var hasMinted = _saintMintRecordService != null && await _saintMintRecordService.HasMintedAsync(user.Id).ConfigureAwait(false);
+                    if (!hasMinted)
+                        return "🔒 Mint a SAINT NFT first with /mint to unlock the secret group. Once you've minted, send /join_saints here to get your link.";
+                    var joinSuccessMediaUrl = GetJoinSaintsSuccessMediaUrl(_options);
+                    if (!string.IsNullOrEmpty(joinSuccessMediaUrl))
+                        await SendMediaAsync(chatId, joinSuccessMediaUrl, _options?.SaintsJoinSaintsLine?.Trim()).ConfigureAwait(false);
+                    return "🔐 **You're in.** Use this link to join the SAINTS secret group. Don't share it.\n\n" + link;
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "[TelegramNftMint] /join_saints failed for user {UserId}", user?.Id);
+                    return "Could not check mint status right now. Please try again in a moment.";
+                }
+            }
+
+            // --- /ordain = top holders; /baptise = newest investors; /dropholders = alias for ordain ---
+            if (commandText.Equals("/ordain", StringComparison.OrdinalIgnoreCase) || commandText.Equals("/dropholders", StringComparison.OrdinalIgnoreCase))
+            {
+                await StartDropFlowAsync(chatId, user?.Id, recipientMode: 1).ConfigureAwait(false);
+                return "📋 **Ordain**\n\nI'll send **1 NFT** per wallet to the **top holders** of the token you paste.\n\nDrop a link to the token mint (e.g. pump.fun/coin/… or Solscan token URL). Paste the token whose top holders you want to bless.\n\nExample: `9VTxmdpCD9dKsJZaBccHsBwYcebGV6iCZtKA8et5pump` or https://pump.fun/coin/…\n\n/cancel to cancel.";
+            }
+            if (commandText.Equals("/baptise", StringComparison.OrdinalIgnoreCase))
+            {
+                await StartDropFlowAsync(chatId, user?.Id, recipientMode: 2).ConfigureAwait(false);
+                return "📋 **Baptise**\n\nI'll send **1 NFT** per wallet to the **newest investors** of the token you paste.\n\nDrop a link to the token mint (e.g. pump.fun/coin/… or Solscan token URL). Paste the token whose newest investors you want to bless.\n\nExample: `9VTxmdpCD9dKsJZaBccHsBwYcebGV6iCZtKA8et5pump` or https://pump.fun/coin/…\n\n/cancel to cancel.";
+            }
+
+            if (commandText.Equals("/cancel", StringComparison.OrdinalIgnoreCase))
+            {
+                if (_dropState.TryGetValue(stateKey, out _))
+                {
+                    await ClearDropFlowAsync(chatId, user?.Id).ConfigureAwait(false);
+                    return "Cancelled.";
+                }
+                await ClearFlowAsync(chatId, user?.Id).ConfigureAwait(false);
                 return "Cancelled.";
             }
 
+            if (_dropState.TryGetValue(stateKey, out var dropState))
+            {
+                if (dropState.Step == DropHoldersFlowStep.CustomImage && (hasPhoto || hasDocument || hasAnimation))
+                {
+                    await SendMessageAsync(chatId, "📤 **Uploading image to IPFS...**").ConfigureAwait(false);
+                    string imageUrl = null;
+                    string imageContentType = "image/png";
+                    if (hasPhoto)
+                    {
+                        var (url, ct) = await DownloadPhotoAndUploadToPinataAsync(update.Message.Photo, chatId).ConfigureAwait(false);
+                        imageUrl = url;
+                        imageContentType = ct ?? "image/png";
+                    }
+                    else
+                    {
+                        var fileId = hasAnimation ? update.Message.Animation.FileId : update.Message.Document.FileId;
+                        var (url, ct) = await DownloadFileByFileIdAndUploadToPinataAsync(chatId, fileId).ConfigureAwait(false);
+                        imageUrl = url;
+                        imageContentType = ct ?? "image/gif";
+                    }
+                    if (string.IsNullOrEmpty(imageUrl))
+                        return "❌ Failed to upload image. Try another photo or GIF. Or /cancel.";
+                    var groupLink = dropState.UserProvidedGroupLink ?? _options?.OrdainNftTelegramGroupLink;
+                    var jsonUrl = await UploadMetadataJsonToPinataAsync("Saint", "SAINT", "Custom ordained.", imageUrl, imageContentType, groupLink, GetOrdainSecretMessage(), GetBaptiseX402PaymentEndpoint(), _options?.X402RevenueModel, _options?.X402TreasuryWallet).ConfigureAwait(false);
+                    if (string.IsNullOrEmpty(jsonUrl))
+                        return "❌ Failed to create metadata. Try again or /cancel.";
+                    dropState.CustomMetadataUrl = jsonUrl;
+                    dropState.Step = DropHoldersFlowStep.Confirm;
+                    await PersistDropStateAsync(chatId, user?.Id, dropState).ConfigureAwait(false);
+                    var recipientLinePhoto = dropState.RecipientMode == 2
+                        ? $"**newest {dropState.TopN} investors**"
+                        : $"**top {dropState.TopN} holders**";
+                    return $"📋 **Confirm**\n\nSplendid. I will mint **1 NFT** per wallet and send to {recipientLinePhoto} of {dropState.CommunityTokenName}.\n\nTreasury will pay the mint fee 🙏\n\nType **YES** to start, or /cancel to cancel.";
+                }
+                var dropReply = await HandleDropFlowStepAsync(dropState, text, chatId, user?.Id, stateKey).ConfigureAwait(false);
+                if (dropReply != null)
+                    return dropReply;
+            }
+
             if (!_state.TryGetValue(stateKey, out var state))
-                return "Use /mint to start creating an NFT.";
+                return "Use /mint to create an NFT, /ordain to bless top token holders, or /baptise to bless newest investors.";
 
             // Step: OASIS login (username)
             if (state.Step == NftMintFlowStep.OasisLogin)
@@ -118,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 {
                     state.UserAvatarId = null;
                     state.Step = NftMintFlowStep.Image;
-                    return "🎨 **Create NFT**\n\nSend a **photo** or **GIF**, or paste a **Solscan token URL** (e.g. https://solscan.io/token/...) or **mint address** to use that token's image and metadata.\n\nType `skip` for a placeholder.";
+                    return ImageStepPrompt(isGroup) + "\n\nType `skip` for a placeholder.";
                 }
                 if (string.IsNullOrWhiteSpace(text))
                     return "Send your OASIS **username**, or type `skip` to mint as the bot.";
@@ -158,7 +310,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 // Cache so they can /mint in groups as their avatar without typing password again
                 if (user?.Id != null)
                     _userIdToAvatarId[user.Id] = authResult.Result.Id;
-                return "✅ Logged in as your OASIS avatar. You can now use /mint in groups as your avatar too (no password needed there).\n\n🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** or **mint address** to use that token's image and metadata. Type `skip` for a placeholder.";
+                return "✅ Logged in as your OASIS avatar. You can now use /mint in groups as your avatar too (no password needed there).\n\n" + ImageStepPrompt(isGroup) + "\n\nType `skip` for a placeholder.";
             }
 
             // Step: Image
@@ -169,7 +321,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     state.ImageUrl = "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
                     state.ImageContentType = "image/png";
                     state.Step = NftMintFlowStep.Title;
-                    return "✅ Using placeholder image.\n\n**Title** for your NFT?";
+                    var doneLine = _options?.SaintsMintImageDoneLine?.Trim();
+                    if (!string.IsNullOrEmpty(_options?.SaintsMintImageDoneGifUrl))
+                        await SendAnimationAsync(chatId, _options.SaintsMintImageDoneGifUrl, doneLine).ConfigureAwait(false);
+                    var titlePrompt = !string.IsNullOrWhiteSpace(_options?.SaintsMintTitlePrompt) ? _options.SaintsMintTitlePrompt.Trim() : "**Title** for your NFT?";
+                    return string.IsNullOrEmpty(doneLine) ? "✅ Using placeholder image.\n\n" + titlePrompt : doneLine + "\n\n" + titlePrompt;
                 }
 
                 // Memecoin import: Solscan token URL or paste mint address (in-process, no HTTP/base URL needed)
@@ -208,7 +364,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     state.ImageUrl = imageUrl;
                     state.ImageContentType = imageContentType ?? "image/png";
                     state.Step = NftMintFlowStep.Title;
-                    return "✅ Image uploaded.\n\n**Title** for your NFT?";
+                    var doneLine = _options?.SaintsMintImageDoneLine?.Trim();
+                    if (!string.IsNullOrEmpty(_options?.SaintsMintImageDoneGifUrl))
+                        await SendAnimationAsync(chatId, _options.SaintsMintImageDoneGifUrl, doneLine).ConfigureAwait(false);
+                    var titlePrompt = !string.IsNullOrWhiteSpace(_options?.SaintsMintTitlePrompt) ? _options.SaintsMintTitlePrompt.Trim() : "**Title** for your NFT?";
+                    return string.IsNullOrEmpty(doneLine) ? "✅ Image uploaded.\n\n" + titlePrompt : doneLine + "\n\n" + titlePrompt;
                 }
 
                 if (hasDocument || hasAnimation)
@@ -221,10 +381,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     state.ImageUrl = imageUrl;
                     state.ImageContentType = imageContentType ?? "image/gif";
                     state.Step = NftMintFlowStep.Title;
-                    return "✅ GIF/image uploaded.\n\n**Title** for your NFT?";
+                    var doneLine = _options?.SaintsMintImageDoneLine?.Trim();
+                    if (!string.IsNullOrEmpty(_options?.SaintsMintImageDoneGifUrl))
+                        await SendAnimationAsync(chatId, _options.SaintsMintImageDoneGifUrl, doneLine).ConfigureAwait(false);
+                    var titlePrompt = !string.IsNullOrWhiteSpace(_options?.SaintsMintTitlePrompt) ? _options.SaintsMintTitlePrompt.Trim() : "**Title** for your NFT?";
+                    return string.IsNullOrEmpty(doneLine) ? "✅ GIF/image uploaded.\n\n" + titlePrompt : doneLine + "\n\n" + titlePrompt;
                 }
 
-                return "Send a **photo** or **GIF**, paste a **Solscan token URL** or **mint address**, or type `skip` for a placeholder.";
+                return ImageStepPrompt(isGroup) + "\n\nOr type `skip` for a placeholder.";
             }
 
             // Step: Title
@@ -234,7 +398,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return "Please send the **title** for your NFT.";
                 state.Title = text.Length > 32 ? text.Substring(0, 32) : text;
                 state.Step = NftMintFlowStep.Symbol;
-                return "**Symbol** (e.g. MYNFT, max 10 chars)?";
+                return !string.IsNullOrWhiteSpace(_options?.SaintsMintSymbolPrompt) ? _options.SaintsMintSymbolPrompt.Trim() : "**Symbol** (e.g. MYNFT, max 10 chars)?";
             }
 
             // Step: Symbol
@@ -244,7 +408,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return "Please send the **symbol** (e.g. MYNFT).";
                 state.Symbol = (text.Length > 10 ? text.Substring(0, 10) : text).ToUpperInvariant();
                 state.Step = NftMintFlowStep.Description;
-                return "**Description**? (optional – type `skip` to leave empty)";
+                return !string.IsNullOrWhiteSpace(_options?.SaintsMintDescriptionPrompt) ? _options.SaintsMintDescriptionPrompt.Trim() : "**Description**? (optional – type `skip` to leave empty)";
             }
 
             // Step: Description
@@ -252,7 +416,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 state.Description = text.Equals("skip", StringComparison.OrdinalIgnoreCase) ? "" : (text ?? "");
                 state.Step = NftMintFlowStep.Wallet;
-                return "Send your **Solana wallet address** to receive the NFT (e.g. 8bFhmkao9SJ6axVNcNRoeo85aNG45HP94oMtnQKGSUuz).";
+                return !string.IsNullOrWhiteSpace(_options?.SaintsMintWalletPrompt) ? _options.SaintsMintWalletPrompt.Trim() : "Send your **Solana wallet address** to receive the NFT (e.g. 8bFhmkao9SJ6axVNcNRoeo85aNG45HP94oMtnQKGSUuz).";
             }
 
             // Step: Wallet
@@ -260,10 +424,47 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 if (string.IsNullOrWhiteSpace(text) || text.Length < 32)
                     return "❌ Please send a valid Solana wallet address (32–44 characters).";
-                state.SendToWalletAddress = text.Trim();
+                var walletAddress = text.Trim();
+
+                // Token gate: require minimum balance of gating token in the receive wallet
+                if (!string.IsNullOrWhiteSpace(_options.SaintTokenMint) && _options.SaintTokenRequiredBalance > 0 && _splTokenBalanceService != null)
+                {
+                    // Ensure we're on the same cluster as mint (mainnet for token gating) so balance is read from correct network
+                    var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
+                    var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
+                    if (clusterResult.IsError)
+                        _logger?.LogWarning("[TelegramNftMint] EnsureSolanaCluster before balance check failed: {Message}", clusterResult.Message);
+
+                    var balanceResult = await _splTokenBalanceService.GetBalanceAsync(walletAddress, _options.SaintTokenMint.Trim()).ConfigureAwait(false);
+                    var balance = balanceResult.Result;
+                    var required = _options.SaintTokenRequiredBalance;
+                    var passed = !balanceResult.IsError && balance >= required;
+                    _logger?.LogInformation("[TelegramNftMint] Token gate: wallet {Wallet}, balance {Balance}, required {Required}, passed {Passed}, IsError {IsError}", walletAddress, balance, required, passed, balanceResult.IsError);
+
+                    if (balanceResult.IsError)
+                    {
+                        _logger?.LogWarning("[TelegramNftMint] Token balance check failed for wallet {Wallet}: {Message}", walletAddress, balanceResult.Message);
+                        return "❌ Could not verify token balance. Please try again or use another wallet.";
+                    }
+                    if (balance < required)
+                    {
+                        const string buySaintUrl = "https://pump.fun/coin/9VTxmdpCD9dKsJZaBccHsBwYcebGV6iCZtKA8et5pump";
+                        var msg = !string.IsNullOrWhiteSpace(_options.SaintTokenInsufficientMessage)
+                            ? _options.SaintTokenInsufficientMessage
+                            : $"🙇 You need at least **{required:N0}** SAINT in this wallet to mint. Your balance: **{balance:N0}**. [Buy SAINT on pump.fun ✨]({buySaintUrl})";
+                        return msg;
+                    }
+                }
+
+                state.SendToWalletAddress = walletAddress;
                 state.Step = NftMintFlowStep.Confirm;
+                var confirmLine = _options?.SaintsMintConfirmLine?.Trim();
+                var confirmMediaUrl = GetConfirmMediaUrl(_options);
+                if (!string.IsNullOrEmpty(confirmMediaUrl))
+                    await SendMediaAsync(chatId, confirmMediaUrl, confirmLine).ConfigureAwait(false);
                 await SendChatActionAsync(chatId, "typing").ConfigureAwait(false);
-                return $"📋 **Confirm**\n\nTitle: {state.Title}\nSymbol: {state.Symbol}\nDescription: {(string.IsNullOrEmpty(state.Description) ? "(none)" : state.Description)}\nSend to: {state.SendToWalletAddress.Substring(0, 8)}...{state.SendToWalletAddress.Substring(state.SendToWalletAddress.Length - 4)}\n\nType **YES** to mint, or /cancel to cancel.";
+                var confirmBlock = $"📋 **Confirm**\n\nTitle: {state.Title}\nSymbol: {state.Symbol}\nDescription: {(string.IsNullOrEmpty(state.Description) ? "(none)" : state.Description)}\nSend to: {state.SendToWalletAddress.Substring(0, 8)}...{state.SendToWalletAddress.Substring(state.SendToWalletAddress.Length - 4)}\n\nType **YES** to mint, or /cancel to cancel.";
+                return !string.IsNullOrEmpty(confirmMediaUrl) ? confirmBlock : (string.IsNullOrEmpty(confirmLine) ? confirmBlock : confirmLine + "\n\n" + confirmBlock);
             }
 
             // Step: Confirm
@@ -274,8 +475,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 await SendMessageAsync(chatId, "📤 **Uploading metadata to IPFS...**").ConfigureAwait(false);
                 await SendMintingMessageAsync(chatId).ConfigureAwait(false);
-                var result = await MintNftAsync(state).ConfigureAwait(false);
-                ClearFlow(chatId, user?.Id);
+                var result = await MintNftAsync(state, user?.Id).ConfigureAwait(false);
+                await ClearFlowAsync(chatId, user?.Id).ConfigureAwait(false);
                 return result;
             }
 
@@ -296,7 +497,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return false;
         }
 
-        /// <summary>Extract Solana mint from Solscan URL or raw mint address (base58, 32-44 chars).</summary>
+        /// <summary>Extract Solana mint from Solscan, pump.fun, or raw mint address (base58, 32-44 chars).</summary>
         private static string TryExtractMintFromText(string text)
         {
             if (string.IsNullOrWhiteSpace(text))
@@ -306,14 +507,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             var solscanMatch = Regex.Match(text, @"solscan\.io(?:/#?)?/token/([A-HJ-NP-Za-km-z1-9]{32,44})", RegexOptions.IgnoreCase);
             if (solscanMatch.Success)
                 return solscanMatch.Groups[1].Value;
-            // Any URL with /token/MINT (e.g. solscan or other explorers)
+            // pump.fun: https://pump.fun/coin/MINT (e.g. ...et5pump)
+            var pumpMatch = Regex.Match(text, @"pump\.fun/coin/([A-HJ-NP-Za-km-z1-9]{32,44})", RegexOptions.IgnoreCase);
+            if (pumpMatch.Success)
+                return pumpMatch.Groups[1].Value;
+            // Any URL with /token/MINT or /coin/MINT (explorers, pump.fun, etc.)
             var tokenPathMatch = Regex.Match(text, @"/token/([A-HJ-NP-Za-km-z1-9]{32,44})", RegexOptions.IgnoreCase);
             if (tokenPathMatch.Success)
                 return tokenPathMatch.Groups[1].Value;
+            var coinPathMatch = Regex.Match(text, @"/coin/([A-HJ-NP-Za-km-z1-9]{32,44})", RegexOptions.IgnoreCase);
+            if (coinPathMatch.Success)
+                return coinPathMatch.Groups[1].Value;
             // Raw mint: 32-44 base58 chars only (no spaces, no URL)
             if (text.Length >= 32 && text.Length <= 44 && Regex.IsMatch(text, @"^[A-HJ-NP-Za-km-z1-9]+$") && !text.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                 return text;
             return null;
+        }
+
+        /// <summary>Strip @BotUsername suffix and normalize slash so we recognise /join_saints, /join_saints@Bot, ／join_saints (fullwidth slash), etc.</summary>
+        private static string NormalizeCommand(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return text?.Trim() ?? "";
+            var t = text.Trim();
+            // Some Telegram clients send fullwidth slash (U+FF0F) instead of ASCII /
+            if (t.Length > 0 && t[0] == '\uFF0F')
+                t = '/' + t.Substring(1);
+            var at = t.IndexOf('@');
+            if (at > 0) return t.Substring(0, at).Trim();
+            return t;
         }
 
         private static (long, long) StateKey(long chatId, long? userId)
@@ -327,15 +548,258 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             return chat?.Type == "group" || chat?.Type == "supergroup";
         }
 
-        private void StartFlow(long chatId, long? userId)
+        /// <summary>When a user sends a message in the SAINTS group: if they have a linked wallet (from mint), are in top 20 $SAINT holders, and we haven't sent the Hall verification NFT yet, send the NFT and DM them. Returns reply to send in the group (or null).</summary>
+        private async Task<string> TrySendHallVerificationNftToGroupMemberAsync(long telegramUserId)
         {
-            var key = StateKey(chatId, userId);
-            _state[key] = new NftMintFlowState { ChatId = chatId, UserId = userId, Step = NftMintFlowStep.OasisLogin };
+            if (_saintMintRecordService == null || _topTokenHoldersService == null || _hallVerificationNftSentStore == null || _hallVerificationNftSender == null)
+                return null;
+            var saintMint = _options?.SaintTokenMint?.Trim();
+            if (string.IsNullOrEmpty(saintMint))
+                return null;
+
+            var wallet = await _saintMintRecordService.GetLatestWalletForTelegramUserAsync(telegramUserId).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(wallet))
+                return null;
+
+            if (await _hallVerificationNftSentStore.ContainsAsync(wallet).ConfigureAwait(false))
+                return null;
+
+            var topN = _hallVerificationNftOptions?.TopN > 0 ? _hallVerificationNftOptions.TopN : 20;
+            IReadOnlyList<(string WalletAddress, decimal Balance)> holders;
+            try
+            {
+                holders = await _topTokenHoldersService.GetTopHoldersAsync(saintMint, topN).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "[TelegramNftMint] SAINTS group: failed to get top holders for {Mint}", saintMint);
+                return null;
+            }
+            if (holders == null || holders.Count == 0)
+                return null;
+            var inTop = holders.Any(h => string.Equals(h.WalletAddress, wallet, StringComparison.OrdinalIgnoreCase));
+            if (!inTop)
+                return null;
+
+            var baseUrl = _hallVerificationNftOptions?.BaseUrl?.Trim() ?? _options?.OasisApiBaseUrl?.Trim();
+            if (string.IsNullOrEmpty(baseUrl))
+            {
+                _logger?.LogWarning("[TelegramNftMint] SAINTS group: no BaseUrl configured for Hall verification NFT.");
+                return null;
+            }
+
+            var (sent, error) = await _hallVerificationNftSender.SendToWalletAsync(wallet, baseUrl).ConfigureAwait(false);
+            if (!sent)
+            {
+                _logger?.LogWarning("[TelegramNftMint] SAINTS group: failed to send verification NFT to {Wallet}: {Error}", wallet, error);
+                return null;
+            }
+
+            await _hallVerificationNftSentStore.AddAsync(wallet).ConfigureAwait(false);
+            var dmMessage = "🪙 **Hall verification NFT sent.** Check your wallet — the NFT's description has a one-time code. Use it at **saints.fun** to claim your saint name in the Hall of Saints.";
+            await SendMessageAsync(telegramUserId, dmMessage).ConfigureAwait(false);
+            _logger?.LogInformation("[TelegramNftMint] SAINTS group: sent Hall verification NFT to user {UserId} (wallet {Wallet}).", telegramUserId, wallet);
+            return "✅ Check your DMs for next steps.";
         }
 
-        private void ClearFlow(long chatId, long? userId)
+        /// <summary>Prompt for the Image step. In groups, add hint to reply to the bot so Telegram delivers the update (Group Privacy).</summary>
+        private static string ImageStepPrompt(bool isGroup)
+        {
+            var baseText = "🎨 Send a **photo** or **GIF**, or paste a **Solscan token URL** (e.g. https://solscan.io/token/...) or **mint address** to use that token's image and metadata.";
+            if (isGroup)
+                return baseText + "\n\n💡 **In groups:** send your photo or GIF as a **reply to this message** so the bot can see it (or disable Group Privacy in @BotFather).";
+            return baseText;
+        }
+
+        private async Task StartFlowAsync(long chatId, long? userId)
+        {
+            var key = StateKey(chatId, userId);
+            var state = new NftMintFlowState { ChatId = chatId, UserId = userId, Step = NftMintFlowStep.OasisLogin };
+            _state[key] = state;
+            if (_flowStateStore != null && _flowStateStore.IsConfigured)
+                await _flowStateStore.SetMintStateAsync(chatId, userId, state).ConfigureAwait(false);
+        }
+
+        private async Task ClearFlowAsync(long chatId, long? userId)
         {
             _state.TryRemove(StateKey(chatId, userId), out _);
+            if (_flowStateStore != null && _flowStateStore.IsConfigured)
+                await _flowStateStore.RemoveMintStateAsync(chatId, userId).ConfigureAwait(false);
+        }
+
+        /// <param name="recipientMode">1 = top holders (/ordain); 2 = newest investors (/baptise).</param>
+        private async Task StartDropFlowAsync(long chatId, long? userId, int recipientMode = 0)
+        {
+            var key = StateKey(chatId, userId);
+            var state = new DropHoldersFlowState { ChatId = chatId, UserId = userId, Step = DropHoldersFlowStep.TokenInput, RecipientMode = recipientMode };
+            _dropState[key] = state;
+            if (_flowStateStore != null && _flowStateStore.IsConfigured)
+                await _flowStateStore.SetDropStateAsync(chatId, userId, state).ConfigureAwait(false);
+        }
+
+        private async Task ClearDropFlowAsync(long chatId, long? userId)
+        {
+            _dropState.TryRemove(StateKey(chatId, userId), out _);
+            if (_flowStateStore != null && _flowStateStore.IsConfigured)
+                await _flowStateStore.RemoveDropStateAsync(chatId, userId).ConfigureAwait(false);
+        }
+
+        private async Task PersistDropStateAsync(long chatId, long? userId, DropHoldersFlowState state)
+        {
+            if (_flowStateStore != null && _flowStateStore.IsConfigured && state != null)
+                await _flowStateStore.SetDropStateAsync(chatId, userId, state).ConfigureAwait(false);
+        }
+
+        private async Task PersistMintStateAsync(long chatId, long? userId, NftMintFlowState state)
+        {
+            if (_flowStateStore != null && _flowStateStore.IsConfigured && state != null)
+                await _flowStateStore.SetMintStateAsync(chatId, userId, state).ConfigureAwait(false);
+        }
+
+        private async Task<string> HandleDropFlowStepAsync(DropHoldersFlowState dropState, string text, long chatId, long? userId, (long, long) stateKey)
+        {
+            var maxHolders = _options?.DropMaxHolders > 0 ? _options.DropMaxHolders : 20;
+
+            if (dropState.Step == DropHoldersFlowStep.TokenInput)
+            {
+                var mint = TryExtractMintFromText(text) ?? text?.Trim();
+                if (string.IsNullOrEmpty(mint) || mint.Length < 32)
+                    return "Send a valid **token mint address** (Solana SPL, 32–44 chars). Or /cancel.";
+                dropState.CommunityTokenMint = mint;
+                var displayName = mint.Length > 12 ? mint.Substring(0, 8) + "…" + mint.Substring(mint.Length - 4) : mint;
+                if (_tokenMetadataByMintService != null)
+                {
+                    try
+                    {
+                        var meta = await _tokenMetadataByMintService.GetMetadataAsync(mint).ConfigureAwait(false);
+                        if (meta != null && (!string.IsNullOrWhiteSpace(meta.Name) || !string.IsNullOrWhiteSpace(meta.Symbol)))
+                            displayName = (meta.Name ?? meta.Symbol ?? "").Trim();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogDebug(ex, "[TelegramNftMint] Token metadata lookup failed for ordain mint {Mint}", mint);
+                    }
+                }
+                dropState.CommunityTokenName = displayName;
+                dropState.Step = DropHoldersFlowStep.TopN;
+                await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                var howManyLine = dropState.RecipientMode == 2 ? $"How many do you wish to baptise? (Max {maxHolders})" : dropState.RecipientMode == 1 ? $"How many do you wish to ordain? (Max {maxHolders})" : $"How many to send to? (Max {maxHolders})";
+                return $"Token acquired. **{displayName}**\n\n{howManyLine}";
+            }
+
+            if (dropState.Step == DropHoldersFlowStep.TopN)
+            {
+                if (!int.TryParse(text?.Trim(), out var n) || n <= 0 || n > maxHolders)
+                    return $"Send a number between 1 and {maxHolders}. Or /cancel.";
+                dropState.TopN = n;
+                await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                // If command already set RecipientMode (/ordain=1, /baptise=2), skip choice and go to NftChoice
+                if (dropState.RecipientMode == 1 || dropState.RecipientMode == 2)
+                {
+                    dropState.Step = DropHoldersFlowStep.NftChoice;
+                    await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                    return "What would thy send?\n\n**1** – pump.fun PFP (default)\n**2** – custom image\n\n---\n\nReply 1 or 2.";
+                }
+                dropState.Step = DropHoldersFlowStep.RecipientChoice;
+                await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                return "Who to send to?\n\n**1** – Top holders by balance\n**2** – Newest investors (recent buyers)\n\n---\n\nReply 1 or 2.";
+            }
+
+            if (dropState.Step == DropHoldersFlowStep.RecipientChoice)
+            {
+                var modeChoice = text?.Trim();
+                if (modeChoice == "1")
+                {
+                    dropState.RecipientMode = 1;
+                    dropState.Step = DropHoldersFlowStep.NftChoice;
+                    await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                    return "What would thy send?\n\n**1** – pump.fun PFP (default)\n**2** – custom image\n\n---\n\nReply 1 or 2.";
+                }
+                if (modeChoice == "2")
+                {
+                    dropState.RecipientMode = 2;
+                    dropState.Step = DropHoldersFlowStep.NftChoice;
+                    await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                    return "What would thy send?\n\n**1** – pump.fun PFP (default)\n**2** – custom image\n\n---\n\nReply 1 or 2.";
+                }
+                return "Reply **1** (top holders) or **2** (newest investors). Or /cancel.";
+            }
+
+            if (dropState.Step == DropHoldersFlowStep.CustomImage)
+                return "Send a **photo** or **GIF** for your custom baptise. Or /cancel.";
+
+            if (dropState.Step == DropHoldersFlowStep.NftChoice)
+            {
+                var choice = text?.Trim();
+                if (choice == "2")
+                {
+                    dropState.NftChoice = 2;
+                    dropState.Step = DropHoldersFlowStep.OptionalGroupLink;
+                    await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                    return "Optional: Send your **private Telegram group invite link** to embed in the NFT (e.g. https://t.me/joinchat/...). Or type **skip**.";
+                }
+                if (choice != "1")
+                    return "Reply **1** (pump.fun PFP) or **2** (custom image). Or /cancel.";
+                dropState.NftChoice = 1;
+                dropState.Step = DropHoldersFlowStep.OptionalGroupLink;
+                await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                return "Optional: Send your **private Telegram group invite link** to embed in the NFT (e.g. https://t.me/joinchat/...). Or type **skip**.";
+            }
+
+            if (dropState.Step == DropHoldersFlowStep.OptionalGroupLink)
+            {
+                var link = text?.Trim();
+                if (string.IsNullOrEmpty(link) || link.Equals("skip", StringComparison.OrdinalIgnoreCase))
+                    dropState.UserProvidedGroupLink = null;
+                else
+                {
+                    if (!link.StartsWith("http://", StringComparison.OrdinalIgnoreCase) && !link.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                        link = "https://" + link;
+                    if (link.IndexOf("t.me", StringComparison.OrdinalIgnoreCase) < 0 && link.IndexOf("telegram", StringComparison.OrdinalIgnoreCase) < 0)
+                        return "Send a valid Telegram invite link (e.g. https://t.me/joinchat/...) or type **skip**.";
+                    dropState.UserProvidedGroupLink = link;
+                }
+                if (dropState.NftChoice == 1)
+                {
+                    dropState.Step = DropHoldersFlowStep.Confirm;
+                    await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                    var recipientLine = dropState.RecipientMode == 2
+                        ? $"**newest {dropState.TopN} investors**"
+                        : $"**top {dropState.TopN} holders**";
+                    return $"📋 **Confirm**\n\nSplendid. I will mint **1 NFT** per wallet and send to {recipientLine} of {dropState.CommunityTokenName}.\n\nTreasury will pay the mint fee 🙏\n\nType **YES** to start, or /cancel to cancel.";
+                }
+                dropState.Step = DropHoldersFlowStep.CustomImage;
+                await PersistDropStateAsync(chatId, userId, dropState).ConfigureAwait(false);
+                return "Send the **image** (photo or GIF) for your custom baptise. /cancel to cancel.";
+            }
+
+            if (dropState.Step == DropHoldersFlowStep.Confirm)
+            {
+                if (!text.Equals("YES", StringComparison.OrdinalIgnoreCase))
+                    return "Type **YES** to baptise them, or /cancel to cancel.";
+                if (_topTokenHoldersService == null)
+                {
+                    await ClearDropFlowAsync(chatId, userId).ConfigureAwait(false);
+                    return "❌ Top holders service not configured. Contact support.";
+                }
+                var dropExecution = _serviceProvider?.GetService<DropToHoldersExecutionService>();
+                if (dropExecution == null)
+                {
+                    await ClearDropFlowAsync(chatId, userId).ConfigureAwait(false);
+                    return "❌ Drop execution not configured. Contact support.";
+                }
+                var customMetadataUrl = dropState.NftChoice == 2 ? dropState.CustomMetadataUrl : null;
+                if (dropState.NftChoice == 1 && !string.IsNullOrWhiteSpace(dropState.UserProvidedGroupLink))
+                {
+                    var imageUrl = GetConfirmMediaUrl(_options) ?? GetWelcomeMediaUrl(_options) ?? "https://via.placeholder.com/512/1a1a2e/eee?text=SAINT";
+                    customMetadataUrl = await UploadMetadataJsonToPinataAsync("Saint", "SAINT", "A Saint NFT. Ordained to top token holders.", imageUrl, "image/png", dropState.UserProvidedGroupLink, GetOrdainSecretMessage(), GetBaptiseX402PaymentEndpoint(), _options?.X402RevenueModel, _options?.X402TreasuryWallet).ConfigureAwait(false);
+                }
+                dropExecution.RunDropInBackground(dropState.CommunityTokenMint, dropState.TopN, chatId, customMetadataUrl, useNewestRecipients: dropState.RecipientMode == 2);
+                await ClearDropFlowAsync(chatId, userId).ConfigureAwait(false);
+                return dropState.RecipientMode == 2 ? "⏳ **Baptising.** I'll message you here when it's done." : "⏳ **Ordaining.** I'll message you here when it's done.";
+            }
+
+            return null;
         }
 
         private async Task<(string url, string contentType)> DownloadPhotoAndUploadToPinataAsync(System.Collections.Generic.List<TelegramPhotoSize> photoSizes, long chatId)
@@ -495,32 +959,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         /// <summary>
         /// Upload Metaplex-style NFT metadata JSON to Pinata for marketplace/Phantom compatibility.
         /// Follows Metaplex standard: name, description, image, category (required); symbol, external_url, attributes, properties, seller_fee_basis_points (optional).
-        /// Uses ipfs.io for the image URL when we have an IPFS hash so Solscan and other indexers that prefer that gateway can load the image.
+        /// optionalExternalUrl: e.g. Telegram group link for ordained NFTs (utility). optionalSecretMessage: "Message from SAINT" attribute for ordained NFTs.
+        /// When x402PaymentEndpoint is set, adds x402Config so the NFT can participate in revenue sharing (holders earn when payments are received).
         /// </summary>
-        private async Task<string> UploadMetadataJsonToPinataAsync(string name, string symbol, string description, string imageUrl, string imageContentType = "image/png")
+        private async Task<string> UploadMetadataJsonToPinataAsync(string name, string symbol, string description, string imageUrl, string imageContentType = "image/png", string optionalExternalUrl = null, string optionalSecretMessage = null, string x402PaymentEndpoint = null, string x402RevenueModel = null, string x402TreasuryWallet = null)
         {
             var rawImage = imageUrl ?? "https://via.placeholder.com/512/000000/FFFFFF?text=OASIS+NFT";
             // Prefer ipfs.io for the image field so Solscan/explorers that use it can display the image (same content, different gateway)
             var image = TryGetIpfsHash(rawImage, out var hash) ? $"https://ipfs.io/ipfs/{hash}" : rawImage;
-            var metadata = new
+            var externalUrl = optionalExternalUrl?.Trim();
+            if (string.IsNullOrEmpty(externalUrl))
+                externalUrl = null;
+            var attrs = new List<object>();
+            if (!string.IsNullOrWhiteSpace(optionalSecretMessage))
+                attrs.Add(new { trait_type = "Message from SAINT", value = optionalSecretMessage.Trim() });
+            var metadata = new Dictionary<string, object>
             {
-                name = name ?? "Telegram NFT",
-                symbol = symbol ?? "TNFT",
-                description = (description ?? "").Trim().Length > 0 ? description : "Minted via OASIS",
-                image = image,
-                external_url = (string)null,
-                category = "image", // Metaplex required; helps Phantom/marketplaces display correctly
-                seller_fee_basis_points = 500,
-                attributes = Array.Empty<object>(),
-                properties = new
+                ["name"] = name ?? "Telegram NFT",
+                ["symbol"] = symbol ?? "TNFT",
+                ["description"] = (description ?? "").Trim().Length > 0 ? description : "Minted via OASIS",
+                ["image"] = image,
+                ["external_url"] = externalUrl,
+                ["category"] = "image",
+                ["seller_fee_basis_points"] = 500,
+                ["attributes"] = attrs,
+                ["properties"] = new Dictionary<string, object>
                 {
-                    category = "image",
-                    files = new[]
-                    {
-                        new { uri = rawImage, type = imageContentType ?? "image/png" }
-                    }
+                    ["category"] = "image",
+                    ["files"] = new[] { new { uri = rawImage, type = imageContentType ?? "image/png" } }
                 }
             };
+            if (!string.IsNullOrWhiteSpace(x402PaymentEndpoint))
+            {
+                metadata["x402Config"] = new Dictionary<string, object>
+                {
+                    ["enabled"] = true,
+                    ["paymentEndpoint"] = x402PaymentEndpoint.Trim(),
+                    ["revenueModel"] = (x402RevenueModel ?? "equal").Trim(),
+                    ["treasuryWallet"] = (x402TreasuryWallet ?? "").Trim(),
+                    ["metadata"] = new Dictionary<string, object>
+                    {
+                        ["distributionFrequency"] = "realtime",
+                        ["revenueSharePercentage"] = 100
+                    }
+                };
+            }
             var json = JsonSerializer.Serialize(metadata);
             var bytes = Encoding.UTF8.GetBytes(json);
             return await UploadToPinataAsync(bytes, "metadata.json", "application/json").ConfigureAwait(false);
@@ -563,8 +1046,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         /// <summary>
         /// Web3-only mint + send: calls Solana provider directly (no NFTManager, no Web4/MongoDB).
         /// Provider mints with OASIS wallet and sends to state.SendToWalletAddress in one flow.
+        /// When telegramUserId is set and mint succeeds, records the mint for /join_saints gating.
         /// </summary>
-        private async Task<string> MintNftAsync(NftMintFlowState state)
+        private async Task<string> MintNftAsync(NftMintFlowState state, long? telegramUserId = null)
         {
             var title = state.Title ?? "Telegram NFT";
             var symbol = state.Symbol ?? "TNFT";
@@ -621,14 +1105,89 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 var txHash = result.Result?.TransactionResult ?? result.Result?.Web3NFT?.MintTransactionHash ?? "";
                 var nftAddress = result.Result?.Web3NFT?.NFTTokenAddress ?? "";
+                if (telegramUserId.HasValue && _saintMintRecordService != null)
+                {
+                    try
+                    {
+                        await _saintMintRecordService.RecordMintAsync(telegramUserId.Value, state.SendToWalletAddress ?? "", nftAddress, txHash).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "[TelegramNftMint] RecordMintAsync failed for user {UserId}", telegramUserId.Value);
+                    }
+                }
                 var txLink = $"https://solscan.io/tx/{txHash}?cluster={cluster}";
                 var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={cluster}";
-                return $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet.";
+                var successMsg = $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet. Mint a SAINT? Use /join_saints in a private chat to get the secret group link.";
+                if (!string.IsNullOrWhiteSpace(_options?.SaintsMintSuccessLine))
+                    successMsg += "\n\n" + _options.SaintsMintSuccessLine.Trim();
+                return successMsg;
             }
             catch (Exception ex)
             {
                 _logger?.LogError(ex, "[TelegramNftMint] Mint exception");
                 return $"❌ Mint failed: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Get or create a single metadata URL for "drop Saint" NFTs (cached so we upload once per process).
+        /// Used by drop-to-holders flow to mint the same Saint NFT to many wallets.
+        /// </summary>
+        public async Task<string> GetOrCreateDropSaintMetadataUrlAsync()
+        {
+            if (!string.IsNullOrEmpty(_dropSaintMetadataUrlCache))
+                return _dropSaintMetadataUrlCache;
+            var title = "Saint";
+            var symbol = "SAINT";
+            var description = "A Saint NFT. Dropped to top token holders.";
+            var imageUrl = GetConfirmMediaUrl(_options) ?? GetWelcomeMediaUrl(_options) ?? "https://via.placeholder.com/512/1a1a2e/eee?text=SAINT";
+            var jsonUrl = await UploadMetadataJsonToPinataAsync(title, symbol, description, imageUrl, "image/png", _options?.OrdainNftTelegramGroupLink, GetOrdainSecretMessage(), GetBaptiseX402PaymentEndpoint(), _options?.X402RevenueModel, _options?.X402TreasuryWallet).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(jsonUrl))
+                _dropSaintMetadataUrlCache = jsonUrl;
+            return jsonUrl;
+        }
+
+        /// <summary>
+        /// Mint one Saint NFT (using drop metadata) and send to the given wallet. Used by drop-to-holders.
+        /// Returns (Success, Error, TransactionSignature, NftMintAddress). NftMintAddress is set on success for x402/drip eligibility.
+        /// </summary>
+        public async Task<(bool Success, string Error, string TransactionSignature, string NftMintAddress)> MintNftToWalletAsync(string jsonMetaDataUrl, string walletAddress)
+        {
+            if (string.IsNullOrWhiteSpace(jsonMetaDataUrl) || string.IsNullOrWhiteSpace(walletAddress))
+                return (false, "Missing metadata URL or wallet.", null, null);
+            var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "mainnet" : _options.SolanaCluster.Trim();
+            var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
+            if (clusterResult.IsError)
+                return (false, clusterResult.Message ?? "Cluster switch failed.", null, null);
+            var providerResult = new NFTManager(Guid.Empty).GetNFTProvider(ProviderType.SolanaOASIS);
+            if (providerResult?.Result == null || providerResult.IsError)
+                return (false, "Solana provider not available.", null, null);
+            var treasuryAvatarId = Guid.Empty;
+            var treasuryIdStr = !string.IsNullOrWhiteSpace(_options.DropTreasuryAvatarId) ? _options.DropTreasuryAvatarId.Trim() : _options.BotAvatarId?.Trim();
+            if (!string.IsNullOrEmpty(treasuryIdStr) && Guid.TryParse(treasuryIdStr, out var parsed))
+                treasuryAvatarId = parsed;
+            var mintRequest = new MintWeb3NFTRequest
+            {
+                Title = "Saint",
+                Symbol = "SAINT",
+                JSONMetaDataURL = jsonMetaDataUrl,
+                SendToAddressAfterMinting = walletAddress.Trim(),
+                MintedByAvatarId = treasuryAvatarId
+            };
+            try
+            {
+                var result = await providerResult.Result.MintNFTAsync(mintRequest).ConfigureAwait(false);
+                if (result.IsError)
+                    return (false, result.Message ?? "Mint failed.", null, null);
+                var txHash = result.Result?.TransactionResult ?? result.Result?.Web3NFT?.MintTransactionHash ?? "";
+                var nftMintAddress = result.Result?.Web3NFT?.NFTTokenAddress?.Trim();
+                return (true, null, string.IsNullOrWhiteSpace(txHash) ? null : txHash.Trim(), string.IsNullOrWhiteSpace(nftMintAddress) ? null : nftMintAddress);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "[TelegramNftMint] MintNftToWallet failed for {Wallet}", walletAddress);
+                return (false, ex.Message, null, null);
             }
         }
 
@@ -651,6 +1210,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 _logger?.LogDebug(ex, "[TelegramNftMint] SendChatAction failed");
             }
+        }
+
+        /// <summary>Welcome media URL: SaintsMintWelcomeGifUrl if set, else {OasisApiBaseUrl}/saints/welcome.mp4 when base is public (Telegram must be able to fetch it).</summary>
+        private static string GetWelcomeMediaUrl(TelegramNftMintOptions options)
+        {
+            if (!string.IsNullOrWhiteSpace(options?.SaintsMintWelcomeGifUrl))
+                return options.SaintsMintWelcomeGifUrl.Trim();
+            var baseUrl = options?.OasisApiBaseUrl?.Trim();
+            if (string.IsNullOrEmpty(baseUrl)) return null;
+            if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || baseUrl.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) >= 0)
+                return null;
+            return baseUrl.TrimEnd('/') + SaintsWelcomePath;
+        }
+
+        /// <summary>Confirm media URL: SaintsMintConfirmGifUrl if set, else {OasisApiBaseUrl}/saints/confirm.png when base is public.</summary>
+        private static string GetConfirmMediaUrl(TelegramNftMintOptions options)
+        {
+            if (!string.IsNullOrWhiteSpace(options?.SaintsMintConfirmGifUrl))
+                return options.SaintsMintConfirmGifUrl.Trim();
+            var baseUrl = options?.OasisApiBaseUrl?.Trim();
+            if (string.IsNullOrEmpty(baseUrl)) return null;
+            if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || baseUrl.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) >= 0)
+                return null;
+            return baseUrl.TrimEnd('/') + SaintsConfirmPath;
+        }
+
+        /// <summary>Secret message for ordained NFT attribute "Message from SAINT". Default: "Sent with blessings from $SAINT".</summary>
+        private string GetOrdainSecretMessage()
+        {
+            return !string.IsNullOrWhiteSpace(_options?.OrdainNftSecretMessage) ? _options.OrdainNftSecretMessage.Trim() : "Sent with blessings from $SAINT";
+        }
+
+        /// <summary>When x402 is enabled for baptise, returns the payment endpoint URL (from X402PaymentEndpoint or OasisApiBaseUrl + /api/x402/revenue/saint). Otherwise null.</summary>
+        private string GetBaptiseX402PaymentEndpoint()
+        {
+            if (_options == null || !_options.X402Enabled)
+                return null;
+            var endpoint = _options.X402PaymentEndpoint?.Trim();
+            if (!string.IsNullOrEmpty(endpoint))
+                return endpoint;
+            var baseUrl = _options.OasisApiBaseUrl?.Trim();
+            if (string.IsNullOrEmpty(baseUrl))
+                return null;
+            return baseUrl.TrimEnd('/') + "/api/x402/revenue/saint";
+        }
+
+        /// <summary>Join Saints success media URL: SaintsJoinSaintsGifUrl if set, else {OasisApiBaseUrl}/saints/ascended-halls.mp4 when base is public.</summary>
+        private static string GetJoinSaintsSuccessMediaUrl(TelegramNftMintOptions options)
+        {
+            if (!string.IsNullOrWhiteSpace(options?.SaintsJoinSaintsGifUrl))
+                return options.SaintsJoinSaintsGifUrl.Trim();
+            var baseUrl = options?.OasisApiBaseUrl?.Trim();
+            if (string.IsNullOrEmpty(baseUrl)) return null;
+            if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || baseUrl.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) >= 0)
+                return null;
+            return baseUrl.TrimEnd('/') + SaintsJoinSaintsPath;
         }
 
         /// <summary>Pick animation URL: random from MintingGifUrls if set, else MintingGifUrl, else built-in video (when OasisApiBaseUrl set), else fallback GIF.</summary>
@@ -678,16 +1293,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         }
 
         /// <summary>
-        /// Send "Minting..." message with configured GIF (or default) before the actual mint.
-        /// Uses MintingGifUrls (random one) if set, else MintingGifUrl, else default.
+        /// Send an animation (GIF/MP4) to the chat with optional caption. Used for welcome, image-done, confirm, and minting steps.
         /// </summary>
-        private async Task SendMintingMessageAsync(long chatId)
+        private async Task SendAnimationAsync(long chatId, string animationUrl, string caption = null)
         {
-            if (string.IsNullOrEmpty(_options.BotToken))
+            if (string.IsNullOrEmpty(_options.BotToken) || string.IsNullOrWhiteSpace(animationUrl))
                 return;
-            var gifUrl = GetMintingGifUrl(_options);
             var url = $"https://api.telegram.org/bot{_options.BotToken}/sendAnimation";
-            var payload = new { chat_id = chatId, animation = gifUrl, caption = "🪙 **Minting your NFT...**\n\nOne moment please.", parse_mode = "Markdown" };
+            var payload = string.IsNullOrWhiteSpace(caption)
+                ? (object)new { chat_id = chatId, animation = animationUrl }
+                : new { chat_id = chatId, animation = animationUrl, caption = caption, parse_mode = "Markdown" };
             var json = JsonSerializer.Serialize(payload);
             try
             {
@@ -696,8 +1311,73 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex, "[TelegramNftMint] SendMintingMessage failed");
+                _logger?.LogWarning(ex, "[TelegramNftMint] SendAnimation failed");
             }
+        }
+
+        /// <summary>
+        /// Send a photo (PNG/JPEG) to the chat with optional caption. Used when confirm media is an image (e.g. /saints/confirm.png).
+        /// </summary>
+        private async Task SendPhotoAsync(long chatId, string photoUrl, string caption = null)
+        {
+            if (string.IsNullOrEmpty(_options.BotToken) || string.IsNullOrWhiteSpace(photoUrl))
+                return;
+            var url = $"https://api.telegram.org/bot{_options.BotToken}/sendPhoto";
+            var payload = string.IsNullOrWhiteSpace(caption)
+                ? (object)new { chat_id = chatId, photo = photoUrl }
+                : new { chat_id = chatId, photo = photoUrl, caption = caption, parse_mode = "Markdown" };
+            var json = JsonSerializer.Serialize(payload);
+            try
+            {
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                await _httpClient.PostAsync(url, content).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "[TelegramNftMint] SendPhoto failed");
+            }
+        }
+
+        /// <summary>
+        /// Send media by URL: photo for .png/.jpg/.jpeg (Telegram sendPhoto), animation for .gif/.mp4 etc. (sendAnimation).
+        /// </summary>
+        private async Task SendMediaAsync(long chatId, string mediaUrl, string caption = null)
+        {
+            if (string.IsNullOrWhiteSpace(mediaUrl)) return;
+            var u = mediaUrl.Trim();
+            var isPhoto = u.EndsWith(".png", StringComparison.OrdinalIgnoreCase)
+                || u.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase)
+                || u.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
+            if (isPhoto)
+                await SendPhotoAsync(chatId, u, caption).ConfigureAwait(false);
+            else
+                await SendAnimationAsync(chatId, u, caption).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Send "Minting..." message with configured GIF (or default) before the actual mint.
+        /// Uses MintingGifUrls (random one) if set, else MintingGifUrl, else default.
+        /// Caption can be overridden via SaintsMintMintingCaption.
+        /// </summary>
+        private async Task SendMintingMessageAsync(long chatId)
+        {
+            if (string.IsNullOrEmpty(_options.BotToken))
+                return;
+            var gifUrl = GetMintingGifUrl(_options);
+            var caption = !string.IsNullOrWhiteSpace(_options?.SaintsMintMintingCaption)
+                ? _options.SaintsMintMintingCaption
+                : "🪙 **Minting your NFT...**\n\nOne moment please.";
+            await SendAnimationAsync(chatId, gifUrl, caption).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Send the ordain success video (Ascended Halls) to the chat. Call before sending the ordain complete text message.
+        /// </summary>
+        public async Task SendOrdainSuccessMediaAsync(long chatId)
+        {
+            var url = GetJoinSaintsSuccessMediaUrl(_options);
+            if (!string.IsNullOrWhiteSpace(url))
+                await SendMediaAsync(chatId, url, null).ConfigureAwait(false);
         }
 
         /// <summary>

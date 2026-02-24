@@ -89,7 +89,7 @@ bool Quake_Example_CheckDoor(const char* door_name, const char* required_key) {
 int main(void) {
     // Initialize STAR API
     star_api_config_t config = {
-        .base_url = "https://star-api.oasisplatform.world/api",
+        .base_url = "https://star-api.oasisweb4.com/api",
         .api_key = getenv("STAR_API_KEY"),
         .avatar_id = getenv("STAR_AVATAR_ID"),
         .timeout_seconds = 10

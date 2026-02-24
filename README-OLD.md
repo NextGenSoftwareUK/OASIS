@@ -176,7 +176,7 @@ The WEB4 OASIS API enables you to integrate your project with everything else (W
 
 Various OASIS API functions and services can be accessed with this API such as Authentication, Karma, Avatars, Data, SEEDS, Wallets/Keys & more...
 
-http://api.oasisplatform.world
+http://api.oasisweb4.com
 
 This allows you to bridge between all of WEB2 & WEB3 Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near, Nexus, HIVE, CEPTR Pluggable Protocol, Fediverse, XMPP & many more! :) The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. If you wish to get involved and help build out any of these providers or any other you would like to see integrated please get in touch here: https://t.me/ourworldthegamechat. 
 
@@ -1130,7 +1130,7 @@ Businesses can also implement OAPP's if they qualify as a benevolent organisatio
 <a name="oasisapi-overview"></a>
 ### WEB4 OASIS API Architectue Overview
 
-This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisplatform.world/](http://api.oasisplatform.world/)). 
+This project is built on the principle of multilayer architecture. Where one of the first Presentation layer's is the REST API Service - [NextGenSoftware.OASIS.API.ONODE.WebAPI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.ONODE.WebAPI) ([http://api.oasisweb4.com/](http://api.oasisweb4.com/)). 
 
 We plan to also add a gRPC and GraphQL endpoint soon. There is also the [WEB 5 STAR ODK](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#web5-star-odk) CLI endpoint: [NextGenSoftware.OASIS.STAR.CLI](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.STAR.CLI) that is built on top of the OASIS API and is a Interoperable Metaverse Low Code Generator amongst many more things...
 	
@@ -1783,7 +1783,7 @@ It is located in the `NextGenSoftware.OASIS.API.Core` project.
 
 The API is constantly evolving so keeping the documentation in sync with the code is hard so please bare with us, in the meantime please check the codebase directly for latest changes. Thank you.
 
-You can now use the OASIS API either through the [REST API](https://api.oasisplatform.world) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases).
+You can now use the OASIS API either through the [REST API](https://api.oasisweb4.com) or through the [fully integrated native endpoint](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/releases).
 
 You can alternatively use the various OASIS API Managers contained in the [OASIS.API.Core](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/tree/master/NextGenSoftware.OASIS.API.Core) project directly.
 
@@ -2107,7 +2107,7 @@ https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 
 http://www.ourworldthegame.com <br/>
 https://oasisplatform.world <br/>
-https://api.oasisplatform.world  <br/>
+https://api.oasisweb4.com  <br/>
 https://opensea.io/collection/theoasisandourworld  <br/>
 http://www.nextgensoftware.co.uk <br/>
 http://www.yoga4autism.com <br/> 

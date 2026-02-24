@@ -50,7 +50,7 @@ Edit `~/.cursor/mcp.json`:
     "oasis-unified": {
       "command": "oasis-mcp",
       "env": {
-        "OASIS_API_URL": "https://api.oasisplatform.world",
+        "OASIS_API_URL": "https://api.oasisweb4.com",
         "OASIS_MCP_LICENSE_KEY": "your-key-here"
       }
     }

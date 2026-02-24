@@ -46,6 +46,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// <param name="username">Username for the avatar (optional, defaults to openserv_{agentId})</param>
         /// <param name="email">Email for the avatar (optional, auto-generated if not provided)</param>
         /// <param name="password">Password for the avatar (optional, auto-generated if not provided)</param>
+        /// <param name="localUrl">Local agent URL for dev fallback (e.g. http://localhost:7378)</param>
+        /// <param name="authToken">Auth token for local agent (x-openserv-auth-token)</param>
         /// <returns>OASISResult with registration status</returns>
         public async Task<OASISResult<bool>> RegisterOpenServAgentAsync(
             string openServAgentId,
@@ -54,7 +56,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             string apiKey = null,
             string username = null,
             string email = null,
-            string password = null)
+            string password = null,
+            string localUrl = null,
+            string authToken = null)
         {
             var result = new OASISResult<bool>();
             try
@@ -78,30 +82,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // 1. Create A2A agent avatar
+                // 1. Get or create A2A agent avatar
                 var avatarUsername = username ?? $"openserv_{openServAgentId}";
                 var avatarEmail = email ?? $"{avatarUsername}@openserv.agent";
                 var avatarPassword = password ?? Guid.NewGuid().ToString("N")[..16]; // Generate secure password
 
-                var avatarResult = await AvatarManager.Instance.RegisterAsync(
-                    avatarTitle: "Agent",
-                    firstName: "OpenSERV",
-                    lastName: openServAgentId,
-                    email: avatarEmail,
-                    password: avatarPassword,
-                    username: avatarUsername,
-                    avatarType: AvatarType.Agent,
-                    createdOASISType: OASISType.OASISAPIREST
-                );
+                // Try to load existing avatar by email first (reuse pre-existing agent)
+                var existingAvatarResult = await AvatarManager.Instance.LoadAvatarByEmailAsync(avatarEmail, false, true);
+                IAvatar avatar;
 
-                if (avatarResult.IsError || avatarResult.Result == null)
+                if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
                 {
-                    OASISErrorHandling.HandleError(ref result, 
-                        $"Failed to create avatar for OpenSERV agent: {avatarResult.Message}");
-                    return result;
+                    avatar = existingAvatarResult.Result;
+                    LoggingManager.Log($"Using existing OpenSERV agent avatar: {avatar.Email} (Id: {avatar.Id})", Logging.LogType.Info);
                 }
+                else
+                {
+                    var avatarResult = await AvatarManager.Instance.RegisterAsync(
+                        avatarTitle: "Agent",
+                        firstName: "OpenSERV",
+                        lastName: openServAgentId,
+                        email: avatarEmail,
+                        password: avatarPassword,
+                        username: avatarUsername,
+                        avatarType: AvatarType.Agent,
+                        createdOASISType: OASISType.OASISAPIREST
+                    );
 
-                var avatar = avatarResult.Result;
+                    if (avatarResult.IsError || avatarResult.Result == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result,
+                            $"Failed to create avatar for OpenSERV agent: {avatarResult.Message}");
+                        return result;
+                    }
+
+                    avatar = avatarResult.Result;
+                }
 
                 // 2. Register A2A capabilities
                 var a2aCapabilities = new AgentCapabilities
@@ -117,6 +133,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         ["openserv_api_key"] = apiKey ?? string.Empty
                     }
                 };
+                if (!string.IsNullOrEmpty(localUrl))
+                    a2aCapabilities.Metadata["openserv_local_url"] = localUrl;
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    // OpenServ SDK expects client to send bcrypt hash; agent compares with plain token
+                    var authTokenHash = BCrypt.Net.BCrypt.HashPassword(authToken);
+                    a2aCapabilities.Metadata["openserv_auth_token"] = authTokenHash;
+                }
 
                 var capabilitiesResult = await AgentManager.Instance
                     .RegisterAgentCapabilitiesAsync(avatar.Id, a2aCapabilities);
@@ -127,6 +151,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         $"Failed to register agent capabilities: {capabilitiesResult.Message}");
                     return result;
                 }
+
+                // 2b. Persist capabilities to avatar MetaData (MongoDB) so they survive API restarts
+                if (avatar.MetaData == null)
+                    avatar.MetaData = new Dictionary<string, object>();
+                avatar.MetaData["A2A_Services"] = capabilities;
+                avatar.MetaData["A2A_Description"] = a2aCapabilities.Description;
+                avatar.MetaData["A2A_OpenservAgentId"] = openServAgentId;
+                avatar.MetaData["A2A_OpenservEndpoint"] = openServEndpoint;
+                avatar.MetaData["A2A_OpenservApiKey"] = apiKey ?? string.Empty;
+                if (!string.IsNullOrEmpty(localUrl))
+                    avatar.MetaData["A2A_OpenservLocalUrl"] = localUrl;
+                if (!string.IsNullOrEmpty(authToken))
+                {
+                    var authTokenHash = BCrypt.Net.BCrypt.HashPassword(authToken);
+                    avatar.MetaData["A2A_OpenservAuthToken"] = authTokenHash;
+                }
+                var saveResult = await AvatarManager.Instance.SaveAvatarAsync(avatar);
+                if (saveResult.IsError)
+                    LoggingManager.Log($"Warning: Failed to persist agent capabilities to avatar MetaData: {saveResult.Message}", Logging.LogType.Warning);
 
                 // 3. Register with ONET Service Registry (UnifiedAgentServiceManager)
                 try
@@ -425,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         /// </summary>
         /// <param name="agentId">OASIS A2A agent ID</param>
         /// <param name="openServApiKey">OpenSERV API key for registration</param>
-        /// <param name="oasisAgentEndpoint">OASIS agent endpoint (e.g., https://api.oasisplatform.world/api/a2a/agent-card/{agentId})</param>
+        /// <param name="oasisAgentEndpoint">OASIS agent endpoint (e.g., https://api.oasisweb4.com/api/a2a/agent-card/{agentId})</param>
         /// <returns>OASISResult with OpenSERV registration status</returns>
         public async Task<OASISResult<string>> RegisterOasisAgentWithOpenServAsync(
             Guid agentId,
@@ -457,7 +500,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (string.IsNullOrEmpty(oasisAgentEndpoint))
                 {
                     // Default to OASIS API endpoint
-                    var baseUrl = ProviderManager.Instance.OASISDNA?.OASIS?.OASISAPIURL ?? "https://api.oasisplatform.world";
+                    var baseUrl = ProviderManager.Instance.OASISDNA?.OASIS?.OASISAPIURL ?? "https://api.oasisweb4.com";
                     oasisAgentEndpoint = $"{baseUrl}/api/a2a/agent-card/{agentId}";
                 }
 

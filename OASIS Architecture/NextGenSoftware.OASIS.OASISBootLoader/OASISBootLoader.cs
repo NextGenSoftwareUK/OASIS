@@ -562,6 +562,76 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             return result;
         }
 
+        /// <summary>
+        /// Switches the Solana provider to the given cluster (devnet or mainnet) so NFT mint and other Solana calls use the right RPC and wallet.
+        /// Call this before mint when the request specifies X-Solana-Cluster: mainnet (or cluster=mainnet).
+        /// </summary>
+        /// <param name="cluster">"mainnet" or "mainnet-beta" for mainnet; anything else (e.g. "devnet") uses devnet.</param>
+        /// <returns>Result with the active storage provider (Solana) or error if mainnet requested but mainnet config missing.</returns>
+        public static async Task<OASISResult<IOASISStorageProvider>> EnsureSolanaClusterAsync(string cluster)
+        {
+            OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();
+            try
+            {
+                if (!IsOASISBooted && !IsOASISBooting)
+                {
+                    var bootResult = BootOASIS(OASISDNAPath);
+                    if (bootResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, string.Concat("Error booting OASIS. Reason: ", bootResult.Message));
+                        return result;
+                    }
+                }
+
+                var solana = OASISDNA?.OASIS?.StorageProviders?.SolanaOASIS;
+                if (solana == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "SolanaOASIS config not found in OASIS_DNA.");
+                    return result;
+                }
+
+                bool useMainnet = string.Equals(cluster, "mainnet", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(cluster, "mainnet-beta", StringComparison.OrdinalIgnoreCase);
+
+                string connectionString;
+                string privateKey;
+                string publicKey;
+
+                if (useMainnet && !string.IsNullOrWhiteSpace(solana.MainnetConnectionString) && !string.IsNullOrWhiteSpace(solana.MainnetPrivateKey) && !string.IsNullOrWhiteSpace(solana.MainnetPublicKey))
+                {
+                    connectionString = solana.MainnetConnectionString;
+                    privateKey = solana.MainnetPrivateKey;
+                    publicKey = solana.MainnetPublicKey;
+                }
+                else
+                {
+                    if (useMainnet && (string.IsNullOrWhiteSpace(solana.MainnetConnectionString) || string.IsNullOrWhiteSpace(solana.MainnetPrivateKey) || string.IsNullOrWhiteSpace(solana.MainnetPublicKey)))
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Mainnet requested but MainnetConnectionString, MainnetPrivateKey, and MainnetPublicKey must be set in OASIS_DNA SolanaOASIS.");
+                        return result;
+                    }
+                    connectionString = solana.ConnectionString;
+                    privateKey = solana.PrivateKey;
+                    publicKey = solana.PublicKey;
+                }
+
+                if (ProviderManager.Instance.IsProviderRegistered(ProviderType.SolanaOASIS))
+                    ProviderManager.Instance.UnRegisterProvider(ProviderType.SolanaOASIS);
+
+                var solanaOasis = new SolanaOASIS(connectionString, privateKey, publicKey);
+                solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
+                ProviderManager.Instance.RegisterProvider(solanaOasis);
+                result = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(ProviderType.SolanaOASIS, true);
+                if (!result.IsError)
+                    result.Result = ProviderManager.Instance.CurrentStorageProvider;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"EnsureSolanaClusterAsync failed: {ex.Message}");
+            }
+            return result;
+        }
+
         public static async Task<OASISResult<IOASISStorageProvider>> GetAndActivateStorageProviderAsync(ProviderType providerType, string customConnectionString = null, bool forceRegister = false, bool setGlobally = false)
         {
             OASISResult<IOASISStorageProvider> result = new OASISResult<IOASISStorageProvider>();

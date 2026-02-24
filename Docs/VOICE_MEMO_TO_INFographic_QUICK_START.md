@@ -43,7 +43,7 @@ Get token: https://glif.app/settings/api-tokens
 
 ```bash
 curl -X POST \
-  https://api.oasisplatform.world/api/voicememo/convert-to-infographic \
+  https://api.oasisweb4.com/api/voicememo/convert-to-infographic \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -F "file=@voice-memo.mp3"
 ```

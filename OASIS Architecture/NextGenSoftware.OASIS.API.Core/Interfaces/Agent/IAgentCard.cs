@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.Agent
     public class AgentConnectionInfo
     {
         /// <summary>
-        /// A2A protocol endpoint URL (e.g., "https://api.oasisplatform.world/api/a2a/jsonrpc")
+        /// A2A protocol endpoint URL (e.g., "https://api.oasisweb4.com/api/a2a/jsonrpc")
         /// </summary>
         public string Endpoint { get; set; }
         

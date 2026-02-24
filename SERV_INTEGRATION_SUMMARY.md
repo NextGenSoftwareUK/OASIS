@@ -222,6 +222,7 @@ Multiple routing strategies:
 **OpenSERV Integration**:
 - `POST /api/a2a/openserv/register` - Register OpenSERV agent
 - `POST /api/a2a/workflow/execute` - Execute AI workflow
+- `POST /api/serv/agents/{agentId}/chat` - Chat with OpenSERV agent (User or Agent JWT; proxy first, local fallback for dev)
 
 ---
 
@@ -395,6 +396,7 @@ A2A services are automatically categorized:
 - API endpoints
 - Health monitoring
 - Service routing
+- User chat with OpenSERV agents (`POST /api/serv/agents/{agentId}/chat`) — proxy first, local fallback for dev
 
 ⚠️ **Future Enhancements**:
 - Enhanced ONET discovery integration (currently basic)
@@ -415,6 +417,6 @@ A2A services are automatically categorized:
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: February 2026  
 **Status**: ✅ Production Ready
 

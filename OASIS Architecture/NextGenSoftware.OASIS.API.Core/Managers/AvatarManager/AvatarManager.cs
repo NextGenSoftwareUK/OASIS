@@ -269,6 +269,134 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
+        /// <summary>
+        /// Authenticate or register using Google OAuth. Finds avatar by email or creates new one.
+        /// </summary>
+        public async Task<OASISResult<IAvatar>> AuthenticateWithGoogleAsync(string email, string firstName, string lastName, string ipAddress, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false)
+        {
+            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(email) || !ValidationHelper.IsValidEmail(email))
+                {
+                    result.IsError = true;
+                    result.Message = "Valid email is required.";
+                    return result;
+                }
+
+                List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
+                ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForAvatarLogin());
+
+                result = await LoadAvatarByEmailAsync(email, false, false);
+
+                if (result.Result != null)
+                {
+                    // Existing user - check deleted/inactive
+                    if (result.Result.DeletedDate != DateTime.MinValue)
+                    {
+                        result.IsError = true;
+                        result.Message = "This avatar was deleted. Please contact support.";
+                        result.Result = null;
+                        return result;
+                    }
+                    if (!result.Result.IsActive)
+                    {
+                        result.IsError = true;
+                        result.Message = "This avatar is no longer active.";
+                        result.Result = null;
+                        return result;
+                    }
+                    // OAuth: skip password check, issue JWT
+                    var jwtToken = GenerateJWTToken(result.Result);
+                    var refreshToken = generateRefreshToken(ipAddress);
+                    if (result.Result.RefreshTokens == null)
+                        result.Result.RefreshTokens = new List<RefreshToken>();
+                    result.Result.RefreshTokens.Add(refreshToken);
+                    result.Result.JwtToken = jwtToken;
+                    result.Result.RefreshToken = refreshToken.Token;
+                    result.Result.LastBeamedIn = DateTime.Now;
+                    result.Result.IsBeamedIn = true;
+                    LoggedInAvatar = result.Result;
+                    var saveResult = await SaveAvatarAsync(result.Result, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult);
+                    if (!saveResult.IsError && saveResult.IsSaved)
+                    {
+                        result.Result = HideAuthDetails(saveResult.Result, false, true, false, false);
+                        result.IsSaved = true;
+                        result.Message = "Avatar Successfully Authenticated.";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}", saveResult.DetailedMessage);
+                }
+                else
+                {
+                    // New user - register with OAuth (random password, auto-verify)
+                    var oauthPassword = Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+                    var username = email.Split('@')[0];
+                    if (string.IsNullOrWhiteSpace(firstName)) firstName = "User";
+                    if (string.IsNullOrWhiteSpace(lastName)) lastName = "User";
+
+                    var regResult = await PrepareToRegisterAvatarAsync("", firstName, lastName, email, oauthPassword, username, AvatarType.User, OASISType.OASISAPIREST, null);
+                    if (regResult.IsError || regResult.Result == null)
+                    {
+                        result.IsError = regResult.IsError;
+                        result.Message = regResult.Message;
+                        return result;
+                    }
+                    var avatarDetailResult = PrepareToRegisterAvatarDetail(regResult.Result.Id, regResult.Result.Username, regResult.Result.Email, OASISType.OASISAPIREST, ConsoleColor.Green, ConsoleColor.Green);
+                    if (avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null)
+                    {
+                        result.IsError = true;
+                        result.Message = avatarDetailResult?.Message ?? "Failed to create avatar details.";
+                        return result;
+                    }
+                    var originalAvatarType = regResult.Result.AvatarType;
+                    if (regResult.Result.MetaData == null) regResult.Result.MetaData = new Dictionary<string, object>();
+                    if (originalAvatarType != null) regResult.Result.MetaData["_OriginalAvatarType"] = originalAvatarType.Value.ToString();
+                    regResult.Result.MetaData["ExternalAuthProvider"] = "Google";
+
+                    var saveAvatarResult = await SaveAvatarAsync(regResult.Result);
+                    if (!saveAvatarResult.IsError && saveAvatarResult.IsSaved)
+                    {
+                        regResult.Result = saveAvatarResult.Result;
+                        if (regResult.Result.AvatarType == null && originalAvatarType != null) regResult.Result.AvatarType = originalAvatarType;
+                        var saveDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
+                        if (!saveDetailResult.IsError && saveDetailResult.Result != null)
+                        {
+                            result = AvatarRegistered(regResult, originalAvatarType, AvatarType.User, isOAuthUser: true);
+                            if (!result.IsError && result.Result != null)
+                            {
+                                var jwtToken = GenerateJWTToken(result.Result);
+                                var refreshToken = generateRefreshToken(ipAddress);
+                                if (result.Result.RefreshTokens == null) result.Result.RefreshTokens = new List<RefreshToken>();
+                                result.Result.RefreshTokens.Add(refreshToken);
+                                result.Result.JwtToken = jwtToken;
+                                result.Result.RefreshToken = refreshToken.Token;
+                                result.Result.LastBeamedIn = DateTime.Now;
+                                result.Result.IsBeamedIn = true;
+                                LoggedInAvatar = result.Result;
+                                var finalSave = await SaveAvatarAsync(result.Result, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult);
+                                if (!finalSave.IsError && finalSave.IsSaved)
+                                    result.Result = HideAuthDetails(finalSave.Result, false, true, false, false);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result.IsError = saveAvatarResult.IsError;
+                        result.Message = saveAvatarResult.Message;
+                    }
+                }
+
+                ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in AuthenticateWithGoogleAsync: {ex.Message}", ex.ToString());
+                result.Result = null;
+            }
+            return result;
+        }
+
         public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, Guid? ownerAvatarId = null)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();

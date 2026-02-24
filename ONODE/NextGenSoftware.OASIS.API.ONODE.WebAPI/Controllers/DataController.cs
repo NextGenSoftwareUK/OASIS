@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -467,6 +467,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
           OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
           response.Result.Result = Mapper.Convert<IHolon, Holon>(result.Result);
+          HolonMetadataSanitizer.SanitizeHolons(response.Result.Result);
           ResetOASISSettings(request, configResult);
 
           return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);

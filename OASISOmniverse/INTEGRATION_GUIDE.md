@@ -269,7 +269,7 @@ Or edit `Config/star_api_config.json`:
 
 ```json
 {
-  "starApiBaseUrl": "https://star-api.oasisplatform.world/api",
+  "starApiBaseUrl": "https://star-api.oasisweb4.com/api",
   "apiKey": "your_api_key_here",
   "avatarId": "your_avatar_id_here"
 }
@@ -297,7 +297,7 @@ Follow game-specific integration guides:
 
 ```c
 star_api_config_t config = {
-    .base_url = "https://star-api.oasisplatform.world/api",
+    .base_url = "https://star-api.oasisweb4.com/api",
     .api_key = "your_api_key",
     .avatar_id = "your_avatar_id",
     .timeout_seconds = 10

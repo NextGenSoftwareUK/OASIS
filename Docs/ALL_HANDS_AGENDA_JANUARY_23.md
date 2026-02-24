@@ -30,7 +30,7 @@
 ### Concept
 - Weekly show/AMA series featuring builders
 - Theme: "Build It With Oasis"
-- Format: Conversations about what people are building (OpenServe, external projects)
+- Format: Conversations about what people are building (OpenSERV, external projects)
 - Goal: Show how to build easier with Oasis and Star Hall
 
 ### Action Items
@@ -40,8 +40,8 @@
   - Weekly commitment
 
 - [ ] **Content Strategy**
-  - Feature builders from OpenServe ecosystem
-  - Feature builders outside OpenServe
+  - Feature builders from OpenSERV ecosystem
+  - Feature builders outside OpenSERV
   - Discuss integration opportunities with Oasis
   - Highlight Star Hall capabilities
 
@@ -203,7 +203,7 @@
   - Serve agent development timeline
 
 - [ ] **Identify Key Contacts**
-  - Tim from OpenServe (excited about Hitchhikers)
+  - Tim from OpenSERV (excited about Hitchhikers)
   - Hitchhiker's team contacts
   - Embassy coordinators
 

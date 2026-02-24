@@ -77,7 +77,7 @@ Game Integration/
 Edit `Config/star_api_config.json`:
 ```json
 {
-  "starApiBaseUrl": "https://star-api.oasisplatform.world/api",
+  "starApiBaseUrl": "https://star-api.oasisweb4.com/api",
   "apiKey": "YOUR_STAR_API_KEY",
   "avatarId": "YOUR_AVATAR_ID"
 }
@@ -123,7 +123,7 @@ Items collected in one game are stored in the STAR API and can be accessed from 
 #include "star_api.h"
 
 // Initialize the STAR API client
-star_api_init("https://star-api.oasisplatform.world/api", "YOUR_API_KEY");
+star_api_init("https://star-api.oasisweb4.com/api", "YOUR_API_KEY");
 
 // Check if player has a specific item
 bool has_keycard = star_api_has_item("red_keycard");
