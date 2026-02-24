@@ -80,6 +80,10 @@ public delegate void StarApiCallback(StarApiResultCode result, object? userData)
 public sealed class StarApiClient : IDisposable
 {
     private readonly object _stateLock = new();
+    private readonly object _inventoryCacheLock = new();
+
+    /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
+    private List<StarItem>? _cachedInventory;
 
     private HttpClient? _httpClient;
     private bool _initialized;
@@ -154,6 +158,7 @@ public sealed class StarApiClient : IDisposable
             _refreshToken = null;
             _lastError = string.Empty;
             _initialized = true;
+            _cachedInventory = null;
 
             if (!string.IsNullOrWhiteSpace(config.ApiKey))
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
@@ -429,8 +434,7 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API client cleaned up.");
     }
 
-    /// <summary>Check if the avatar has an item by name (calls GetInventory and checks locally).
-    /// For optimization, prefer checking the already-loaded inventory (local cache) in your game and only call this as a last resort for edge cases (e.g. cache not loaded).</summary>
+    /// <summary>Check if the avatar has an item by name. Uses local cache first; only hits the API when cache is null (e.g. first load).</summary>
     public async Task<OASISResult<bool>> HasItemAsync(string itemName, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -438,6 +442,18 @@ public sealed class StarApiClient : IDisposable
 
         if (string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<bool>("Item name is required.", StarApiResultCode.InvalidParam);
+
+        lock (_inventoryCacheLock)
+        {
+            if (_cachedInventory is not null)
+            {
+                var hasItem = _cachedInventory.Any(x =>
+                    string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(x.Description, itemName, StringComparison.OrdinalIgnoreCase));
+                InvokeCallback(StarApiResultCode.Success);
+                return Success(hasItem, StarApiResultCode.Success, hasItem ? "Item found in inventory (cached)." : "Item not found in inventory.");
+            }
+        }
 
         var inventory = await GetInventoryAsync(cancellationToken).ConfigureAwait(false);
         if (inventory.IsError)
@@ -459,10 +475,21 @@ public sealed class StarApiClient : IDisposable
         return Success(hasItem, StarApiResultCode.Success, hasItem ? "Item found in inventory." : "Item not found in inventory.");
     }
 
+    /// <summary>Get avatar inventory. Returns the local cache when available; only hits the API when cache is null (e.g. first load or after InvalidateInventoryCache).</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<List<StarItem>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        lock (_inventoryCacheLock)
+        {
+            if (_cachedInventory is not null)
+            {
+                var copy = new List<StarItem>(_cachedInventory);
+                InvokeCallback(StarApiResultCode.Success);
+                return Success(copy, StarApiResultCode.Success, $"Loaded {copy.Count} item(s) (cached).");
+            }
+        }
 
         var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
@@ -492,6 +519,10 @@ public sealed class StarApiClient : IDisposable
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
 
             var mapped = ParseInventoryItems(resultElement);
+            lock (_inventoryCacheLock)
+            {
+                _cachedInventory = new List<StarItem>(mapped);
+            }
 
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, $"Loaded {mapped.Count} item(s).");
@@ -499,6 +530,15 @@ public sealed class StarApiClient : IDisposable
         catch (Exception ex)
         {
             return FailAndCallback<List<StarItem>>($"Failed to load inventory: {ex.Message}", StarApiResultCode.Network, ex);
+        }
+    }
+
+    /// <summary>Clear the local inventory cache. Next GetInventory/HasItem will hit the API. Call after external inventory changes if needed.</summary>
+    public void InvalidateInventoryCache()
+    {
+        lock (_inventoryCacheLock)
+        {
+            _cachedInventory = null;
         }
     }
 
@@ -626,12 +666,35 @@ public sealed class StarApiClient : IDisposable
                 ItemType = ExtractMeta(item.MetaData, "ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType)
             };
 
+            lock (_inventoryCacheLock)
+            {
+                _cachedInventory ??= new List<StarItem>();
+                _cachedInventory.Add(mapped);
+            }
+
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, "Item added successfully.");
         }
         catch (Exception ex)
         {
             return FailAndCallback<StarItem>($"Failed to add item: {ex.Message}", StarApiResultCode.Network, ex);
+        }
+    }
+
+    private void RemoveFromInventoryCache(string itemName, int quantity)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || quantity <= 0) return;
+        lock (_inventoryCacheLock)
+        {
+            if (_cachedInventory is null || _cachedInventory.Count == 0) return;
+            var removed = 0;
+            _cachedInventory.RemoveAll(x =>
+            {
+                if (removed >= quantity) return false;
+                var match = string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase);
+                if (match) removed++;
+                return match;
+            });
         }
     }
 
@@ -1041,6 +1104,7 @@ public sealed class StarApiClient : IDisposable
         if (!parseResult)
             return FailAndCallback<bool>(parseErrorMessage, parseErrorCode);
 
+        RemoveFromInventoryCache(itemName, quantity);
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Item sent to avatar.");
     }
@@ -1083,6 +1147,7 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>(msg, parseErrorCode);
         }
 
+        RemoveFromInventoryCache(itemName, quantity);
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Item sent to clan.");
     }
@@ -2394,6 +2459,7 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
+    /// <summary>Send item to avatar. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_avatar", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToAvatar(sbyte* targetUsernameOrAvatarId, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2403,15 +2469,24 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        var result = client.SendItemToAvatarAsync(
-            PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
-            PtrToString(itemName) ?? string.Empty,
-            quantity < 1 ? 1 : quantity,
-            guid).GetAwaiter().GetResult();
-
-        return (int)FinalizeResult(result);
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var result = client.SendItemToAvatarAsync(
+                PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
+                PtrToString(itemName) ?? string.Empty,
+                quantity < 1 ? 1 : quantity,
+                guid,
+                cts.Token).GetAwaiter().GetResult();
+            return (int)FinalizeResult(result);
+        }
+        catch (OperationCanceledException)
+        {
+            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
+        }
     }
 
+    /// <summary>Send item to clan. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_clan", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToClan(sbyte* clanNameOrTarget, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2421,13 +2496,17 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        var result = client.SendItemToClanAsync(
-            PtrToString(clanNameOrTarget) ?? string.Empty,
-            PtrToString(itemName) ?? string.Empty,
-            quantity < 1 ? 1 : quantity,
-            guid).GetAwaiter().GetResult();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var result = client.SendItemToClanAsync(
+                PtrToString(clanNameOrTarget) ?? string.Empty,
+                PtrToString(itemName) ?? string.Empty,
+                quantity < 1 ? 1 : quantity,
+                guid,
+                cts.Token).GetAwaiter().GetResult();
 
-        if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
         {
             SetError("Clan not found.");
             var code = ExtractCode(result);
