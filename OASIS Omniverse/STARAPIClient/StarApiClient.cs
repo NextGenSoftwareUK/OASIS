@@ -84,6 +84,8 @@ public sealed class StarApiClient : IDisposable
 
     /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
     private List<StarItem>? _cachedInventory;
+    /// <summary>Single-flight fetch: when cache is null, only one HTTP get_inventory runs; other callers wait on this task.</summary>
+    private Task<OASISResult<List<StarItem>>>? _inventoryFetchTask;
 
     private HttpClient? _httpClient;
     private bool _initialized;
@@ -159,6 +161,7 @@ public sealed class StarApiClient : IDisposable
             _lastError = string.Empty;
             _initialized = true;
             _cachedInventory = null;
+            _inventoryFetchTask = null;
 
             if (!string.IsNullOrWhiteSpace(config.ApiKey))
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
@@ -475,12 +478,13 @@ public sealed class StarApiClient : IDisposable
         return Success(hasItem, StarApiResultCode.Success, hasItem ? "Item found in inventory." : "Item not found in inventory.");
     }
 
-    /// <summary>Get avatar inventory. Returns the local cache when available; only hits the API when cache is null (e.g. first load or after InvalidateInventoryCache).</summary>
+    /// <summary>Get avatar inventory. Returns the local cache when available; only one HTTP fetch runs when cache is null (single-flight).</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<List<StarItem>>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
+        Task<OASISResult<List<StarItem>>>? task;
         lock (_inventoryCacheLock)
         {
             if (_cachedInventory is not null)
@@ -489,9 +493,24 @@ public sealed class StarApiClient : IDisposable
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(copy, StarApiResultCode.Success, $"Loaded {copy.Count} item(s) (cached).");
             }
+            if (_inventoryFetchTask is null)
+                _inventoryFetchTask = FetchInventoryOnceAsync();
+            task = _inventoryFetchTask;
         }
 
-        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        var result = await task.ConfigureAwait(false);
+        lock (_inventoryCacheLock)
+        {
+            _inventoryFetchTask = null;
+            if (result.Result is not null)
+                _cachedInventory = new List<StarItem>(result.Result);
+        }
+        return result;
+    }
+
+    private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
+    {
+        var avatarIdResult = await EnsureAvatarIdAsync(CancellationToken.None).ConfigureAwait(false);
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
         {
             return new OASISResult<List<StarItem>>
@@ -505,11 +524,11 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError && ParseCode(response.ErrorCode, StarApiResultCode.ApiError) == StarApiResultCode.Network)
             {
-                await Task.Delay(200, cancellationToken).ConfigureAwait(false);
-                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(200, CancellationToken.None).ConfigureAwait(false);
+                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             }
             if (response.IsError)
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
@@ -519,11 +538,6 @@ public sealed class StarApiClient : IDisposable
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
 
             var mapped = ParseInventoryItems(resultElement);
-            lock (_inventoryCacheLock)
-            {
-                _cachedInventory = new List<StarItem>(mapped);
-            }
-
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, $"Loaded {mapped.Count} item(s).");
         }
@@ -539,6 +553,7 @@ public sealed class StarApiClient : IDisposable
         lock (_inventoryCacheLock)
         {
             _cachedInventory = null;
+            _inventoryFetchTask = null;
         }
     }
 
@@ -773,6 +788,7 @@ public sealed class StarApiClient : IDisposable
             if (response.IsError)
                 return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
+            RemoveFromInventoryCache(itemName, 1);
             InvokeCallback(StarApiResultCode.Success);
             return Success(true, StarApiResultCode.Success, "Item used successfully.");
         }
@@ -2507,13 +2523,18 @@ public static unsafe class StarApiExports
                 cts.Token).GetAwaiter().GetResult();
 
             if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            SetError("Clan not found.");
-            var code = ExtractCode(result);
-            InvokeCallback(code);
-            return (int)code;
+            {
+                SetError("Clan not found.");
+                var code = ExtractCode(result);
+                InvokeCallback(code);
+                return (int)code;
+            }
+            return (int)FinalizeResult(result);
         }
-        return (int)FinalizeResult(result);
+        catch (OperationCanceledException)
+        {
+            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
+        }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_last_error", CallConvs = [typeof(CallConvCdecl)])]
