@@ -429,6 +429,8 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API client cleaned up.");
     }
 
+    /// <summary>Check if the avatar has an item by name (calls GetInventory and checks locally).
+    /// For optimization, prefer checking the already-loaded inventory (local cache) in your game and only call this as a last resort for edge cases (e.g. cache not loaded).</summary>
     public async Task<OASISResult<bool>> HasItemAsync(string itemName, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -633,6 +635,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Record use of an item in a context (e.g. door). For optimization, prefer deciding access from the already-loaded inventory (local cache) and only call this when you need to record use or when cache is unavailable.</summary>
     public async Task<OASISResult<bool>> UseItemAsync(string itemName, string? context = null, CancellationToken cancellationToken = default)
     {
         return await UseItemCoreAsync(itemName, context, cancellationToken).ConfigureAwait(false);
@@ -2195,6 +2198,7 @@ public static unsafe class StarApiExports
         }
     }
 
+    /// <summary>Native export for star_api_has_item. Prefer checking already-loaded inventory (local cache) for optimization; use this as last resort.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_has_item", CallConvs = [typeof(CallConvCdecl)])]
     public static byte StarApiHasItem(sbyte* itemName)
     {
@@ -2296,6 +2300,7 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
+    /// <summary>Native export for star_api_use_item. Prefer deciding access from already-loaded inventory (local cache); use this when recording use or when cache unavailable.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_use_item", CallConvs = [typeof(CallConvCdecl)])]
     public static byte StarApiUseItem(sbyte* itemName, sbyte* context)
     {

@@ -52,10 +52,12 @@ star_api_result_t star_api_authenticate(const char* username, const char* passwo
 /* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
 star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
+/** Check if avatar has an item by name. For optimization, prefer checking the already-loaded inventory (local cache) and only call this as a last resort for edge cases (e.g. cache not loaded). */
 bool star_api_has_item(const char* item_name);
 star_api_result_t star_api_get_inventory(star_item_list_t** item_list);
 void star_api_free_item_list(star_item_list_t* item_list);
 star_api_result_t star_api_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type);
+/** Record use of an item in a context (e.g. door). For optimization, prefer deciding access from the already-loaded inventory (local cache) and only call this when you need to record use or when cache is unavailable. */
 bool star_api_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
