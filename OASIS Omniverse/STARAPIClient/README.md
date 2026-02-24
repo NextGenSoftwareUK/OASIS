@@ -23,6 +23,7 @@ This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same
 - Uses `UnmanagedCallersOnly` exports (no COM or reverse P/Invoke marshaling glue).
 - Built as NativeAOT for direct native DLL loading and fast startup.
 - Uses a shared `HttpClient` instance and minimal allocation interop conversions.
+- **Inventory optimization:** For door/lock checks and similar logic, prefer the **already-loaded inventory (local cache)**; call `HasItemAsync` / `UseItemAsync` (or `star_api_has_item` / `star_api_use_item`) only as a **last resort** when the cache is unavailable or for edge cases. This reduces API usage and keeps gameplay responsive.
 - Includes an optional add-item job queue (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`) for high-frequency item collection events.
 - Includes optional high-throughput queues for:
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
