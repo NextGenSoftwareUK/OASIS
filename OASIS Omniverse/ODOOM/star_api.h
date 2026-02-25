@@ -60,6 +60,11 @@ star_api_result_t star_api_add_item(const char* item_name, const char* descripti
 /** Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID; pass to star_api_add_item as nft_id. provider may be NULL (default SolanaOASIS). nft_id_out must be at least 128 bytes. */
 star_api_result_t star_api_mint_inventory_nft(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* provider, char* nft_id_out);
 bool star_api_use_item(const char* item_name, const char* context);
+/** Queue one add-item job (batching). nft_id may be NULL or empty for non-NFT items. */
+void star_api_queue_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* nft_id);
+star_api_result_t star_api_flush_add_item_jobs(void);
+void star_api_queue_use_item(const char* item_name, const char* context);
+star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
