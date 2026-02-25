@@ -70,6 +70,16 @@ So games (ODOOM, OQuake, etc.) get cache-first behaviour automatically: no need 
 - WEB4 URI can also be provided via environment variable `OASIS_WEB4_API_BASE_URL`.
 - Native C/C++ callers can set WEB4 URI at runtime with `star_api_set_oasis_base_url(...)`.
 
+## Inventory item NFT minting
+
+Games (e.g. ODOOM) can **mint an NFT** when the player collects an item, then add that item to STAR inventory with the **NFT ID** in metadata so it links to the NFTHolon on WEB4.
+
+- **`star_api_mint_inventory_nft`** (C) / **`MintInventoryItemNftAsync`** (C#): Calls the WEB4 OASIS API `/api/nft/mint-nft` to create an NFTHolon. Returns an NFT ID. Default **provider** is `SolanaOASIS`; can be overridden (e.g. from game config).
+- **`star_api_add_item(..., nft_id)`** (C) / **`AddItemAsync(..., nftId)`** (C#): When `nft_id` is set, the inventory item’s MetaData stores **NFTId** linking to that NFTHolon.
+- **Inventory overlay:** Items with a non-empty **NFTId** can be shown with a **[NFT]** prefix (e.g. `[NFT] quake_weapon_shotgun`) and grouped separately from non-NFT items of the same type (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
+
+Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** (0/1), and **nft_provider** (default `SolanaOASIS`). When mint is on for a category, the game mints on pickup then adds the item with the returned NFT ID.
+
 ## Binary Compatibility
 
 - Export names match the original wrapper: `star_api_init`, `star_api_authenticate`, `star_api_has_item`, etc.
@@ -130,6 +140,43 @@ If `cl.exe` is not on PATH, use the helper below. It discovers Visual Studio C++
 ```powershell
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_smoke_test_with_msvc.ps1" -Run
 ```
+
+## Inventory test (C)
+
+The C inventory test (`test_inventory.c`) exercises init, auth, get inventory, has_item, add_item, sync, **send-to-avatar**, and **send-to-clan**. Build and run with:
+
+**One-click (defaults: `http://localhost:5556`, user `dellams`):**
+
+```batch
+OASIS Omniverse\STARAPIClient\TEST_INVENTORY.bat
+```
+
+**PowerShell (custom URL/auth):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_and_test_inventory.ps1" -BaseUrl "http://localhost:5556" -Username "user" -Password "pass"
+```
+
+**Optional: send-to-avatar and send-to-clan**
+
+- Steps 9 and 10 always run. Without extra args they use placeholder targets so you can see API errors (e.g. “network call failed”, “holon not found”).
+- To test with real targets, pass the 6th and/or 7th arguments:
+  - **6th** = `send_avatar_target` (username or avatar id to send an item to).
+  - **7th** = `send_clan_name` (clan name to send an item to).
+
+Example (PowerShell):
+
+```powershell
+.\compile_and_test_inventory.ps1 -BaseUrl "http://localhost:5556" -Username "user" -Password "pass" -SendAvatarTarget "other_user" -SendClanName "MyClan"
+```
+
+Example (run built exe directly):
+
+```text
+test_inventory.exe http://localhost:5556 user pass "" "" other_user MyClan
+```
+
+(Use `""` for api_key and avatar_id if you don’t need them.)
 
 ## Unit + Integration + Harness (one click)
 
