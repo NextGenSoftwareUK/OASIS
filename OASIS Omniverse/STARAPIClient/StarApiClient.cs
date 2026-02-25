@@ -37,6 +37,8 @@ public sealed class StarItem
     public string Description { get; init; } = string.Empty;
     public string GameSource { get; init; } = "Unknown";
     public string ItemType { get; init; } = "Miscellaneous";
+    /// <summary>NFT ID from MetaData when item is linked to an NFTHolon (minted). Empty when not an NFT item.</summary>
+    public string NftId { get; init; } = string.Empty;
 }
 
 public sealed class StarAvatarProfile
@@ -557,9 +559,9 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, CancellationToken cancellationToken = default)
     {
-        return await AddItemCoreAsync(itemName, description, gameSource, itemType, cancellationToken).ConfigureAwait(false);
+        return await AddItemCoreAsync(itemName, description, gameSource, itemType, nftId, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<OASISResult<StarItem>> QueueAddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
@@ -628,7 +630,7 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Add-item queue flushed.");
     }
 
-    private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -656,6 +658,8 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
                 writer.WriteBoolean("CrossGameItem", true);
                 writer.WriteString("CollectedAt", DateTime.UtcNow.ToString("O"));
+                if (!string.IsNullOrWhiteSpace(nftId))
+                    writer.WriteString("NFTId", nftId);
                 writer.WriteEndObject();
                 writer.WriteEndObject();
             });
@@ -678,7 +682,8 @@ public sealed class StarApiClient : IDisposable
                 Name = item.Name ?? itemName,
                 Description = item.Description ?? description,
                 GameSource = ExtractMeta(item.MetaData, "GameSource", gameSource),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType)
+                ItemType = ExtractMeta(item.MetaData, "ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType),
+                NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty
             };
 
             lock (_inventoryCacheLock)
@@ -1044,6 +1049,80 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
+    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID to store in InventoryItem MetaData.NFTId. Default provider: SolanaOASIS.</summary>
+    public async Task<OASISResult<string>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<string>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(itemName))
+            return FailAndCallback<string>("Item name is required.", StarApiResultCode.InvalidParam);
+
+        var onChainProvider = string.IsNullOrWhiteSpace(provider) ? "SolanaOASIS" : provider;
+        string? sendToAvatarAfterMintingId = null;
+        lock (_stateLock)
+        {
+            if (Guid.TryParse(_avatarId, out var avatarGuid) && avatarGuid != Guid.Empty)
+                sendToAvatarAfterMintingId = avatarGuid.ToString();
+        }
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("title", itemName);
+            writer.WriteString("description", string.IsNullOrWhiteSpace(description) ? $"Inventory item: {itemName}" : description);
+            writer.WriteString("symbol", "STARITEM");
+            writer.WriteString("image", "AQ==");
+            writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-item.png");
+            writer.WriteString("thumbnail", "AQ==");
+            writer.WriteString("thumbnailUrl", "https://oasisweb4.one/images/star/default-item-thumb.png");
+            writer.WriteString("memoText", "Minted by STAR API (inventory item)");
+            writer.WriteNumber("numberToMint", 1);
+            writer.WriteBoolean("storeNFTMetaDataOnChain", false);
+            writer.WriteString("offChainProvider", "MongoDBOASIS");
+            writer.WriteString("onChainProvider", onChainProvider);
+            writer.WriteString("nftOffChainMetaType", "ExternalJSONURL");
+            writer.WriteString("JSONMetaDataURL", "https://oasisweb4.one/metadata/star/default-item.json");
+            writer.WriteString("nftStandardType", "ERC1155");
+            if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
+                writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
+            writer.WritePropertyName("metaData");
+            writer.WriteStartObject();
+            writer.WriteString("GameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
+            writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
+            writer.WriteString("ItemName", itemName);
+            writer.WriteString("MintedAt", DateTime.UtcNow.ToString("O"));
+            writer.WriteEndObject();
+            writer.WriteBoolean("waitTillNFTMinted", false);
+            writer.WriteNumber("waitForNFTToMintInSeconds", 10);
+            writer.WriteBoolean("waitTillNFTSent", false);
+            writer.WriteNumber("waitForNFTToSendInSeconds", 30);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/nft/mint-nft", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {response.Message}");
+            return FailAndCallback<string>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {parseErrorMessage}");
+            return FailAndCallback<string>(parseErrorMessage, parseErrorCode);
+        }
+
+        var nftId = ParseIdAsString(resultElement);
+        if (string.IsNullOrWhiteSpace(nftId))
+            return FailAndCallback<string>("API did not return an NFT ID.", StarApiResultCode.ApiError);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(nftId, StarApiResultCode.Success, "Inventory item NFT minted successfully.");
+    }
+
     public async Task<OASISResult<bool>> DeployBossNftAsync(string nftId, string targetGame, string? location = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1370,7 +1449,8 @@ public sealed class StarApiClient : IDisposable
                 Name = item.Name ?? string.Empty,
                 Description = item.Description ?? string.Empty,
                 GameSource = ExtractMeta(item.MetaData, "GameSource", "Unknown"),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous")
+                ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous"),
+                NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty
             });
         }
 
@@ -1833,7 +1913,7 @@ public sealed class StarApiClient : IDisposable
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.CancellationToken).ConfigureAwait(false);
+                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, null, job.CancellationToken).ConfigureAwait(false);
                     job.Completion.TrySetResult(result);
                 }
                 finally
@@ -2208,6 +2288,7 @@ public unsafe struct star_item_t
     public fixed byte description[512];
     public fixed byte game_source[64];
     public fixed byte item_type[64];
+    public fixed byte nft_id[128];
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -2344,6 +2425,7 @@ public static unsafe class StarApiExports
                 WriteFixedUtf8(src.Description, dst->description, 512);
                 WriteFixedUtf8(src.GameSource, dst->game_source, 64);
                 WriteFixedUtf8(src.ItemType, dst->item_type, 64);
+                WriteFixedUtf8(src.NftId ?? string.Empty, dst->nft_id, 128);
             }
         }
 
@@ -2366,19 +2448,50 @@ public static unsafe class StarApiExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_add_item", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType)
+    public static int StarApiAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* nftId)
     {
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
+        var nftIdStr = PtrToString(nftId);
         var result = client.AddItemAsync(
             PtrToString(itemName) ?? string.Empty,
             PtrToString(description) ?? string.Empty,
             PtrToString(gameSource) ?? string.Empty,
-            PtrToString(itemType) ?? "KeyItem").GetAwaiter().GetResult();
+            PtrToString(itemType) ?? "KeyItem",
+            string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr).GetAwaiter().GetResult();
 
         return (int)FinalizeResult(result);
+    }
+
+    /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. provider defaults to SolanaOASIS.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (nftIdOut is null)
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+
+        var result = client.MintInventoryItemNftAsync(
+            PtrToString(itemName) ?? string.Empty,
+            PtrToString(description),
+            PtrToString(gameSource) ?? string.Empty,
+            PtrToString(itemType) ?? "KeyItem",
+            PtrToString(provider)).GetAwaiter().GetResult();
+
+        if (result.IsError)
+        {
+            SetError(result.Message ?? "Mint failed.");
+            InvokeCallback(ExtractCode(result));
+            return (int)ExtractCode(result);
+        }
+
+        WriteUtf8ToOutput(result.Result ?? string.Empty, nftIdOut, 128);
+        InvokeCallback(StarApiResultCode.Success);
+        return (int)StarApiResultCode.Success;
     }
 
     /// <summary>Native export for star_api_use_item. Prefer deciding access from already-loaded inventory (local cache); use this when recording use or when cache unavailable.</summary>
@@ -2475,7 +2588,7 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
-    /// <summary>Send item to avatar. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
+    /// <summary>Send item to avatar. Uses the client's HTTP timeout (no extra cancellation).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_avatar", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToAvatar(sbyte* targetUsernameOrAvatarId, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2485,24 +2598,16 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var result = client.SendItemToAvatarAsync(
-                PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
-                PtrToString(itemName) ?? string.Empty,
-                quantity < 1 ? 1 : quantity,
-                guid,
-                cts.Token).GetAwaiter().GetResult();
-            return (int)FinalizeResult(result);
-        }
-        catch (OperationCanceledException)
-        {
-            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
-        }
+        var result = client.SendItemToAvatarAsync(
+            PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid,
+            CancellationToken.None).GetAwaiter().GetResult();
+        return (int)FinalizeResult(result);
     }
 
-    /// <summary>Send item to clan. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
+    /// <summary>Send item to clan. Uses the client's HTTP timeout (no extra cancellation).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_clan", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToClan(sbyte* clanNameOrTarget, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2512,29 +2617,21 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var result = client.SendItemToClanAsync(
-                PtrToString(clanNameOrTarget) ?? string.Empty,
-                PtrToString(itemName) ?? string.Empty,
-                quantity < 1 ? 1 : quantity,
-                guid,
-                cts.Token).GetAwaiter().GetResult();
+        var result = client.SendItemToClanAsync(
+            PtrToString(clanNameOrTarget) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid,
+            CancellationToken.None).GetAwaiter().GetResult();
 
-            if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                SetError("Clan not found.");
-                var code = ExtractCode(result);
-                InvokeCallback(code);
-                return (int)code;
-            }
-            return (int)FinalizeResult(result);
-        }
-        catch (OperationCanceledException)
+        if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
         {
-            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
+            SetError("Clan not found.");
+            var code = ExtractCode(result);
+            InvokeCallback(code);
+            return (int)code;
         }
+        return (int)FinalizeResult(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_last_error", CallConvs = [typeof(CallConvCdecl)])]

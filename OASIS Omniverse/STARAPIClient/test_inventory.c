@@ -213,7 +213,7 @@ int main(int argc, char** argv)
         {
             /* Item doesn't exist - try to add it */
             printf("     Attempting to add item...\n");
-            star_api_result_t add_result = star_api_add_item(item_name, item_desc, "Quake", item_type);
+            star_api_result_t add_result = star_api_add_item(item_name, item_desc, "Quake", item_type, NULL);
             printf("     star_api_add_item(\"%s\") => %d\n", item_name, (int)add_result);
             
             if (add_result == STAR_API_SUCCESS)
@@ -292,7 +292,8 @@ int main(int argc, char** argv)
             sync_test_item, 
             "Test sync item", 
             "Quake", 
-            "Weapon");
+            "Weapon",
+            NULL);
         printf("     star_api_add_item => %d\n", (int)sync_add_result);
         
         if (sync_add_result == STAR_API_SUCCESS)
@@ -310,6 +311,46 @@ int main(int argc, char** argv)
             const char* err = star_api_get_last_error();
             printf("     ✗ Failed to add: %s\n", err ? err : "(null)");
         }
+    }
+
+    /* 9. Send to Avatar (optional: pass send_avatar_target as 6th arg) */
+    printf("\n9. Testing Send to Avatar...\n");
+    {
+        const char* target = (send_avatar_target && send_avatar_target[0]) ? send_avatar_target : "nonexistent_avatar_test";
+        const char* item_to_send = "quake_weapon_shotgun";
+        if (!send_avatar_target || !send_avatar_target[0])
+            printf("   (No target provided; using placeholder to exercise API. Pass 6th arg for real send.)\n");
+        printf("   star_api_send_item_to_avatar(\"%s\", \"%s\", 1, NULL) => ", target, item_to_send);
+        fflush(stdout);
+        star_api_result_t send_av = star_api_send_item_to_avatar(target, item_to_send, 1, NULL);
+        printf("%d\n", (int)send_av);
+        if (send_av != STAR_API_SUCCESS)
+        {
+            const char* err = star_api_get_last_error();
+            printf("   Error: %s\n", err ? err : "(null)");
+        }
+        else
+            printf("   ✓ Sent to avatar successfully\n");
+    }
+
+    /* 10. Send to Clan (optional: pass send_clan_name as 7th arg) */
+    printf("\n10. Testing Send to Clan...\n");
+    {
+        const char* clan = (send_clan_name && send_clan_name[0]) ? send_clan_name : "TestClanNonexistent";
+        const char* item_to_send = "quake_weapon_shotgun";
+        if (!send_clan_name || !send_clan_name[0])
+            printf("   (No clan provided; using placeholder to exercise API. Pass 7th arg for real send.)\n");
+        printf("   star_api_send_item_to_clan(\"%s\", \"%s\", 1, NULL) => ", clan, item_to_send);
+        fflush(stdout);
+        star_api_result_t send_cl = star_api_send_item_to_clan(clan, item_to_send, 1, NULL);
+        printf("%d\n", (int)send_cl);
+        if (send_cl != STAR_API_SUCCESS)
+        {
+            const char* err = star_api_get_last_error();
+            printf("   Error: %s\n", err ? err : "(null)");
+        }
+        else
+            printf("   ✓ Sent to clan successfully\n");
     }
 
     star_api_cleanup();
