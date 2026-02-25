@@ -127,6 +127,9 @@ static char g_inventory_saved_all_binds[MAX_KEYS][128];
 static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
+static void OQ_StartInventorySyncIfNeeded(void);
+static void OQ_RefreshOverlayFromClient(void);
+static void OQ_AppendLocalToDisplay(void);
 static void OQ_ClampSelection(int filtered_count);
 static void OQ_ApplyBeamFacePreference(void);
 static void OQ_CheckAndSyncLocalItem(int index);
@@ -136,7 +139,7 @@ enum {
     OQ_GROUP_MODE_SUM = 1
 };
 
-/* Queue only: add to local list for display; sync runs on background when overlay opens (star_sync_inventory_start). Client does has_item/add_item; minimal API - same pattern as ODOOM. */
+/* Queue only: add to local list for display; sync starts in background straight away (OQ_StartInventorySyncIfNeeded) or when overlay opens. Client does has_item/add_item; minimal API - same pattern as ODOOM. */
 static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* description, const char* item_type)
 {
     int i;
@@ -163,7 +166,7 @@ static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* des
     return local_added;
 }
 
-/* Queue only: add to local list; sync runs when overlay opens (star_sync_inventory_start). Same pattern as ODOOM. */
+/* Queue only: add to local list; sync starts in background straight away (OQ_StartInventorySyncIfNeeded) or when overlay opens. Same pattern as ODOOM. */
 static int OQ_AddInventoryEvent(const char* item_prefix, const char* description, const char* item_type)
 {
     char item_name[128];
@@ -583,7 +586,8 @@ static void OQ_UseSelectedItem(void)
         return;
     }
 
-    if (star_api_use_item(item->name, "inventory_overlay")) {
+    star_api_queue_use_item(item->name, "inventory_overlay");
+    if (star_api_flush_use_item_jobs() == STAR_API_SUCCESS) {
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Used item: %s", item->name);
         OQ_RefreshOverlayFromClient();
     } else {
@@ -997,6 +1001,33 @@ static void OQ_AppendLocalToDisplay(void) {
     }
 }
 
+/** If there are pending (unsynced) local items and no sync in progress, start inventory sync on a background thread. Call after pickups and from OQ_RefreshInventoryCache. */
+static void OQ_StartInventorySyncIfNeeded(void) {
+    if (star_sync_inventory_in_progress() || star_sync_auth_in_progress() || !star_initialized())
+        return;
+    {
+        int pending = 0;
+        int l;
+        for (l = 0; l < g_local_inventory_count; l++) {
+            if (!g_local_inventory_synced[l]) { pending = 1; break; }
+        }
+        if (!pending || g_local_inventory_count <= 0)
+            return;
+        q_strlcpy(g_inventory_status, "Syncing...", sizeof(g_inventory_status));
+        for (l = 0; l < g_local_inventory_count; l++) {
+            star_sync_local_item_t* d = &g_star_sync_local_items[l];
+            oquake_inventory_entry_t* s = &g_local_inventory_entries[l];
+            q_strlcpy(d->name, s->name, sizeof(d->name));
+            q_strlcpy(d->description, s->description, sizeof(d->description));
+            q_strlcpy(d->game_source, "Quake", sizeof(d->game_source));
+            q_strlcpy(d->item_type, s->item_type, sizeof(d->item_type));
+            d->nft_id[0] = '\0';
+            d->synced = g_local_inventory_synced[l] ? 1 : 0;
+        }
+        star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", OQ_OnInventoryDone, NULL);
+    }
+}
+
 /** Start background inventory sync only when we have pending (unsynced) local items; otherwise refresh from client cache. Same pattern as ODOOM - minimal API calls. */
 static void OQ_RefreshInventoryCache(void) {
     if (star_sync_inventory_in_progress())
@@ -1010,29 +1041,9 @@ static void OQ_RefreshInventoryCache(void) {
         q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
         return;
     }
-    /* If we have pending (unsynced) local items, start sync so they are pushed to remote and we get fresh list. */
-    {
-        int pending = 0;
-        int l;
-        for (l = 0; l < g_local_inventory_count; l++) {
-            if (!g_local_inventory_synced[l]) { pending = 1; break; }
-        }
-        if (pending && g_local_inventory_count > 0) {
-            q_strlcpy(g_inventory_status, "Syncing...", sizeof(g_inventory_status));
-            for (l = 0; l < g_local_inventory_count; l++) {
-                star_sync_local_item_t* d = &g_star_sync_local_items[l];
-                oquake_inventory_entry_t* s = &g_local_inventory_entries[l];
-                q_strlcpy(d->name, s->name, sizeof(d->name));
-                q_strlcpy(d->description, s->description, sizeof(d->description));
-                q_strlcpy(d->game_source, "Quake", sizeof(d->game_source));
-                q_strlcpy(d->item_type, s->item_type, sizeof(d->item_type));
-                d->nft_id[0] = '\0';
-                d->synced = g_local_inventory_synced[l] ? 1 : 0;
-            }
-            star_sync_inventory_start(g_star_sync_local_items, g_local_inventory_count, "Quake", OQ_OnInventoryDone, NULL);
-            return;
-        }
-    }
+    OQ_StartInventorySyncIfNeeded();
+    if (star_sync_inventory_in_progress())
+        return;
     /* No pending items: refresh overlay from client cache only (one get_inventory). */
     OQ_RefreshOverlayFromClient();
 }
@@ -1567,6 +1578,12 @@ void OQuake_STAR_Init(void) {
         Cmd_AddCommand("oasis_inventory_nexttab", OQ_InventoryNextTab_f);
         Cmd_AddCommand("oasis_reload_config", OQ_ReloadConfig_f);
         g_star_console_registered = 1;
+        /* Default: I key opens OASIS inventory if not already bound */
+        {
+            int kn = Key_StringToKeynum("i");
+            if (kn >= 0 && (!keybindings[kn] || !keybindings[kn][0]))
+                Key_SetBinding(kn, "oasis_inventory_toggle");
+        }
     }
 
     /* Try to auto-load config from config.cfg or oasisstar.json */
@@ -2039,6 +2056,7 @@ void OQuake_STAR_OnKeyPickup(const char* key_name) {
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Collected: %s", key_name);
         }
     }
+    OQ_StartInventorySyncIfNeeded();
 }
 
 void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game)
@@ -2080,7 +2098,8 @@ void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items
 
     if (added > 0) {
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d new pickup(s)", added);
-        OQ_AppendLocalToDisplay(); /* show new items in overlay when opened; sync when overlay opens */
+        OQ_AppendLocalToDisplay();
+        OQ_StartInventorySyncIfNeeded();
     }
 }
 
@@ -2120,6 +2139,7 @@ void OQuake_STAR_OnStatsChangedEx(
     if (added > 0) {
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d pickup event(s)", added);
         OQ_AppendLocalToDisplay();
+        OQ_StartInventorySyncIfNeeded();
     }
 }
 
@@ -2145,6 +2165,9 @@ void OQuake_STAR_PollItems(void) {
     static int poll_prev_shells = -1, poll_prev_nails = -1, poll_prev_rockets = -1, poll_prev_cells = -1;
     static int poll_prev_health = -1, poll_prev_armor = -1;
     static int poll_prev_valid = 0;
+
+    /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
+    star_sync_pump();
 
     if (!sv.active || cls.demoplayback) {
         poll_prev_items = (unsigned int)cl.items;
@@ -2177,13 +2200,24 @@ void OQuake_STAR_PollItems(void) {
     poll_prev_valid = 1;
 }
 
+/** Called from main thread by star_sync_pump() when use-item (door key) completes. */
+static void OQ_OnUseItemDone(void* user_data) {
+    int success = 0;
+    char err_buf[384] = {0};
+    (void)user_data;
+    if (!star_sync_use_item_get_result(&success, err_buf, sizeof(err_buf)))
+        return;
+    if (success)
+        OQ_RefreshOverlayFromClient();
+}
+
 int OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name) {
     if (!g_star_initialized || !required_key_name)
         return 0;
+    /* star_api_has_item uses client cache first, then API if needed. */
     if (star_api_has_item(required_key_name)) {
         printf("OQuake STAR API: Door opened with cross-game key: %s\n", required_key_name);
-        if (star_api_use_item(required_key_name, door_targetname ? door_targetname : "quake_door"))
-            OQ_RefreshOverlayFromClient();
+        star_sync_use_item_start(required_key_name, door_targetname ? door_targetname : "quake_door", OQ_OnUseItemDone, NULL);
         return 1;
     }
     return 0;
@@ -2271,7 +2305,8 @@ void OQuake_STAR_Console_f(void) {
         if (strcmp(color, "silver") == 0) { name = OQUAKE_ITEM_SILVER_KEY; desc = get_key_description(name); }
         else if (strcmp(color, "gold") == 0) { name = OQUAKE_ITEM_GOLD_KEY; desc = get_key_description(name); }
         else { Con_Printf("Unknown keycard: %s. Use silver|gold.\n", color); return; }
-        star_api_result_t r = star_api_add_item(name, desc, "Quake", "KeyItem");
+        star_api_queue_add_item(name, desc, "Quake", "KeyItem", NULL);
+        star_api_result_t r = star_api_flush_add_item_jobs();
         if (r == STAR_API_SUCCESS) {
             Con_Printf("Added %s to STAR inventory.\n", name);
             q_strlcpy(g_star_last_pickup_name, name, sizeof(g_star_last_pickup_name));
@@ -2323,7 +2358,8 @@ void OQuake_STAR_Console_f(void) {
         const char* name = Cmd_Argv(2);
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Added from console";
         const char* type = argc > 4 ? Cmd_Argv(4) : "Miscellaneous";
-        star_api_result_t r = star_api_add_item(name, desc, "Quake", type);
+        star_api_queue_add_item(name, desc, "Quake", type, NULL);
+        star_api_result_t r = star_api_flush_add_item_jobs();
         if (r == STAR_API_SUCCESS) {
             Con_Printf("Added '%s' to STAR inventory.\n", name);
             q_strlcpy(g_star_last_pickup_name, name, sizeof(g_star_last_pickup_name));
@@ -2336,7 +2372,9 @@ void OQuake_STAR_Console_f(void) {
     if (strcmp(sub, "use") == 0) {
         if (argc < 3) { Con_Printf("Usage: star use <item_name> [context]\n"); return; }
         const char* ctx = argc > 3 ? Cmd_Argv(3) : "console";
-        int ok = star_api_use_item(Cmd_Argv(2), ctx);
+        star_api_queue_use_item(Cmd_Argv(2), ctx);
+        int r = star_api_flush_use_item_jobs();
+        int ok = (r == STAR_API_SUCCESS);
         Con_Printf("Use '%s' (context %s): %s\n", Cmd_Argv(2), ctx, ok ? "ok" : "failed");
         if (!ok) Con_Printf("  %s\n", star_api_get_last_error());
         return;
@@ -2722,8 +2760,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (!g_inventory_open || !cbx)
         return;
 
-    if (realtime - g_inventory_last_refresh > 2.0)
-        OQ_RefreshInventoryCache();
+    /* Inventory only loads after beam-in and refreshes once when opened; no periodic 2s refresh. */
 
     panel_w = q_min(glwidth - 48, 900);
     panel_h = q_min(glheight - 96, 480);  /* Increased height to prevent text overlap */

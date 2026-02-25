@@ -1353,7 +1353,8 @@ CCMD(star)
 		else if (strcmp(color, "yellow") == 0) { name = "yellow_keycard"; desc = "Yellow Keycard - Opens yellow doors"; }
 		else if (strcmp(color, "skull") == 0)  { name = "skull_key";      desc = "Skull Key - Opens skull-marked doors"; }
 		else { Printf("Unknown keycard: %s. Use red|blue|yellow|skull.\n", color); Printf("\n"); return; }
-		star_api_result_t r = star_api_add_item(name, desc, "ODOOM", "KeyItem");
+		star_api_queue_add_item(name, desc, "ODOOM", "KeyItem", nullptr);
+		star_api_result_t r = star_api_flush_add_item_jobs();
 		if (r == STAR_API_SUCCESS) Printf("Added %s to STAR inventory.\n", name);
 		else Printf("Failed: %s\n", star_api_get_last_error());
 		Printf("\n");
@@ -1501,7 +1502,9 @@ CCMD(star)
 	if (strcmp(sub, "use") == 0) {
 		if (argv.argc() < 3) { Printf("Usage: star use <item_name> [context]\n"); return; }
 		const char* ctx = argv.argc() > 3 ? argv[3] : "console";
-		bool ok = star_api_use_item(argv[2], ctx);
+		star_api_queue_use_item(argv[2], ctx);
+		int r = star_api_flush_use_item_jobs();
+		bool ok = (r == STAR_API_SUCCESS);
 		Printf("Use '%s' (context %s): %s\n", argv[2], ctx, ok ? "ok" : "failed");
 		if (!ok) Printf("  %s\n", star_api_get_last_error());
 		return;
