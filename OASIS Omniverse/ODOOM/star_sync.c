@@ -691,21 +691,34 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items: queue all add-item jobs (batching, including NFT), then flush, then get_inventory */
+    /* Sync local items: queue all add-item jobs (batching, including NFT), then flush, then get_inventory.
+     * Stack-mode events have unique names (e.g. doom_pickup_shells_000001): always add, skip has_item.
+     * Unlock-mode items (same name): use has_item to avoid duplicate add. */
     if (local && local_count > 0 && default_src[0]) {
         int i;
         for (i = 0; i < local_count; i++) {
             if (local[i].synced) continue;
-            if (star_api_has_item(local[i].name)) {
-                local[i].synced = 1;
-            } else {
-                const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                star_api_queue_add_item(
-                    local[i].name,
-                    local[i].description,
-                    local[i].game_source[0] ? local[i].game_source : default_src,
-                    local[i].item_type[0] ? local[i].item_type : "KeyItem",
-                    nft);
+            {
+                const char* n = local[i].name;
+                size_t len = strlen(n);
+                int is_stack_event = 0; /* e.g. doom_pickup_shells_000001: suffix _NNNNNN */
+                if (len >= 8 && n[len - 7] == '_') {
+                    int j;
+                    is_stack_event = 1;
+                    for (j = 0; j < 6; j++)
+                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack_event = 0; break; }
+                }
+                if (is_stack_event || !star_api_has_item(local[i].name)) {
+                    const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                    star_api_queue_add_item(
+                        local[i].name,
+                        local[i].description,
+                        local[i].game_source[0] ? local[i].game_source : default_src,
+                        local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                        nft);
+                } else {
+                    local[i].synced = 1;
+                }
             }
         }
         star_api_flush_add_item_jobs();

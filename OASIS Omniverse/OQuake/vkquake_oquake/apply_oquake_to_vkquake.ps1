@@ -88,6 +88,8 @@ if ($StarDll) {
 }
 
 # Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.
+# For anorak face when beamed in, inventory overlay (I key), and Send to Avatar/Clan popups,
+# you must patch vkQuake's sbar.c and gl_screen.c (or equivalent) as described in VKQUAKE_OQUAKE_INTEGRATION.md section 9.
 $faceSource = Join-Path $OQuakeRoot "face_anorak.png"
 if (-not (Test-Path $faceSource)) {
     $altFaceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png"
