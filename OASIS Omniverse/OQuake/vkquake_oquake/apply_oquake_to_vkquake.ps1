@@ -61,9 +61,11 @@ if (-not $StarDll -and (Test-Path (Join-Path $NativeWrapper "build\Release\star_
     $StarLib = Join-Path $NativeWrapper "build\Release\star_api.lib"
 }
 
+# star_sync: always use OQuake copy so OQuake-specific sync behaviour (sync add_item) is used. Fallback to STARAPIClient only if missing.
 $starSyncRoot = $OQuakeRoot
 if (-not (Test-Path (Join-Path $OQuakeRoot "star_sync.c"))) {
     $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
+    Write-Warning "[OQuake] OQuake\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake to avoid overwriting with STARAPIClient version on next apply."
 }
 $files = @(
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },

@@ -110,6 +110,13 @@ void star_sync_inventory_clear_result(void);
 /** Non-zero if an inventory refresh is currently in progress */
 int star_sync_inventory_in_progress(void);
 
+/** After a sync completes, returns how many star_api_add_item calls were made (0 = old queue path or no items to add). Call from the inventory-done callback. */
+int star_sync_inventory_get_last_add_item_calls(void);
+
+/** Optional: called after each star_api_add_item during inventory sync. item_name, success (1=ok 0=fail), error_message (when fail). Called from sync worker thread. Set to NULL to disable. */
+typedef void (*star_sync_add_item_log_fn)(const char* item_name, int success, const char* error_message, void* user_data);
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data);
+
 /* ---------------------------------------------------------------------------
  * One-shot sync of a single local item (has_item then add_item if missing).
  * Can be called from main thread; use for immediate sync when e.g. player picks up a key.

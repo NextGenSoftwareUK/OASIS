@@ -109,15 +109,14 @@ int main(int argc, char** argv)
     char avatar_id_buf[64] = {0};
     star_api_result_t avatar_id_result = star_api_get_avatar_id(avatar_id_buf, sizeof(avatar_id_buf));
     printf("   star_api_get_avatar_id => %d\n", (int)avatar_id_result);
-    if (avatar_id_result == STAR_API_SUCCESS)
-    {
-        printf("   ✓ Avatar ID: %s\n\n", avatar_id_buf);
-    }
+    if (avatar_id_result == STAR_API_SUCCESS && avatar_id_buf[0])
+        printf("   ✓ Avatar ID: %s\n", avatar_id_buf);
     else
     {
         const char* err = star_api_get_last_error();
-        printf("   WARNING: Could not get avatar ID: %s\n\n", err ? err : "(null)");
+        printf("   WARNING: Could not get avatar ID: %s\n", err ? err : "(null)");
     }
+    printf("\n   >>> TEST IS USING Username: %s | Avatar ID: %s <<<\n\n", username, avatar_id_buf[0] ? avatar_id_buf : "(none)");
 
     printf("4. Getting Inventory...\n");
     star_item_list_t* inventory = NULL;
@@ -271,6 +270,79 @@ int main(int argc, char** argv)
     {
         const char* err = star_api_get_last_error();
         printf("   ERROR: Failed to get inventory after adds: %s\n", err ? err : "(null)");
+    }
+
+    printf("\n7b. Testing STACKED items (Quake-style _NNNNNN, add each without has_item)...\n");
+    {
+        char av_buf[64] = {0};
+        star_api_get_avatar_id(av_buf, sizeof(av_buf));
+        printf("   Using Username: %s | Avatar ID: %s (all add_item/get_inventory use this)\n", username, av_buf[0] ? av_buf : "(none)");
+        /* Stacked items: name ends with _ and 6 digits. Always add, never has_item (same as OQuake sync). */
+        const char* stacked_items[][3] = {
+            {"quake_pickup_shells_000001", "Shells +25", "Ammo"},
+            {"quake_pickup_shells_000002", "Shells +25", "Ammo"},
+            {"quake_pickup_shells_000003", "Shells +25", "Ammo"},
+            {"quake_pickup_nails_000001", "Nails +25", "Ammo"},
+            {"quake_pickup_rockets_000001", "Rockets +5", "Ammo"},
+            {NULL, NULL, NULL}
+        };
+        int stacked_added = 0;
+        int stacked_failed = 0;
+        for (int i = 0; stacked_items[i][0] != NULL; i++)
+        {
+            const char* name = stacked_items[i][0];
+            const char* desc = stacked_items[i][1];
+            const char* type = stacked_items[i][2];
+            printf("   add_item \"%s\" => ", name);
+            fflush(stdout);
+            star_api_result_t r = star_api_add_item(name, desc, "Quake", type, NULL);
+            printf("%d", (int)r);
+            if (r == STAR_API_SUCCESS)
+            {
+                printf(" (success)\n");
+                stacked_added++;
+            }
+            else
+            {
+                const char* err = star_api_get_last_error();
+                printf(" FAILED: %s\n", err && err[0] ? err : "unknown error");
+                stacked_failed++;
+            }
+        }
+        printf("   Stacked add summary: %d succeeded, %d failed\n", stacked_added, stacked_failed);
+
+        /* Force a real GET from the API (clear cache). Otherwise get_inventory returns in-memory cache and we never see if the API actually persisted the items. */
+        printf("   Clearing client cache so next get_inventory hits the API...\n");
+        star_api_clear_cache();
+
+        /* Re-fetch inventory and check which stacked items appear (real HTTP GET). */
+        printf("   Re-fetching inventory to verify stacked items (real GET)...\n");
+        star_item_list_t* inv_stacked = NULL;
+        star_api_result_t inv_r = star_api_get_inventory(&inv_stacked);
+        if (inv_r == STAR_API_SUCCESS && inv_stacked != NULL)
+        {
+            for (int i = 0; stacked_items[i][0] != NULL; i++)
+            {
+                const char* name = stacked_items[i][0];
+                int found = 0;
+                for (size_t k = 0; k < inv_stacked->count; k++)
+                {
+                    if (strcmp(inv_stacked->items[k].name, name) == 0)
+                    {
+                        found = 1;
+                        break;
+                    }
+                }
+                printf("     %s in inventory: %s\n", name, found ? "YES" : "NO");
+            }
+            printf("   Total inventory count after stacked adds: %llu\n", (unsigned long long)inv_stacked->count);
+            star_api_free_item_list(inv_stacked);
+        }
+        else
+        {
+            const char* err = star_api_get_last_error();
+            printf("   ERROR: get_inventory after stacked adds failed: %s\n", err ? err : "(null)");
+        }
     }
 
     printf("\n8. Testing sync logic (check before add)...\n");
