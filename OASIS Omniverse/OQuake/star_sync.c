@@ -226,8 +226,12 @@ static int g_inv_has_result = 0;
 static star_item_list_t* g_inv_list = NULL;
 static star_api_result_t g_inv_result = STAR_API_ERROR_NOT_INITIALIZED;
 static char g_inv_error_msg[INV_ERROR_SIZE] = {0};
+static char g_inv_add_item_error[INV_ERROR_SIZE] = {0}; /* first add_item failure reason (e.g. "Avatar ID is not set...") */
+static int g_inv_add_item_calls = 0; /* number of star_api_add_item calls in last sync (0 = old queue path or none) */
 static star_sync_inventory_on_done_fn g_inv_on_done = NULL;
 static void* g_inv_on_done_user = NULL;
+static star_sync_add_item_log_fn g_add_item_log_fn = NULL;
+static void* g_add_item_log_user = NULL;
 
 #ifdef _WIN32
 static CRITICAL_SECTION g_inv_lock;
@@ -674,6 +678,7 @@ static void* inventory_thread_proc(void* param) {
     star_item_list_t* list = NULL;
     star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
     const char* err = NULL;
+    int add_item_calls = 0;
 
     (void)param;
 #ifdef _WIN32
@@ -691,9 +696,10 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items: queue all add-item jobs (batching, including NFT), then flush, then get_inventory.
-     * Stack-mode events have unique names (e.g. quake_pickup_shells_000001, doom_pickup_*_000001): always add, skip has_item.
-     * Unlock-mode items (same name): use has_item to avoid duplicate add. */
+    /* Sync local items: call star_api_add_item synchronously per item so HTTP is sent from this thread.
+     * Stack events: name ends with _NNNNNN (e.g. quake_pickup_shells_000001) – ALWAYS add, never call has_item.
+     * Unlock items: same name each time – call has_item first, add only if not present. */
+    g_inv_add_item_error[0] = '\0';
     if (local && local_count > 0 && default_src[0]) {
         int i;
         for (i = 0; i < local_count; i++) {
@@ -701,30 +707,53 @@ static void* inventory_thread_proc(void* param) {
             {
                 const char* n = local[i].name;
                 size_t len = strlen(n);
-                int is_stack_event = 0; /* suffix _NNNNNN */
+                /* Stack: suffix _ and exactly 6 digits (e.g. quake_pickup_shells_000001). Never use has_item for these. */
+                int is_stack_event = 0;
                 if (len >= 8 && n[len - 7] == '_') {
                     int j;
                     is_stack_event = 1;
                     for (j = 0; j < 6; j++)
                         if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack_event = 0; break; }
                 }
-                if (is_stack_event || !star_api_has_item(local[i].name)) {
+                if (is_stack_event) {
+                    /* Stacked: always add, do not call has_item. */
                     const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                    star_api_queue_add_item(
+                    star_api_result_t add_res = star_api_add_item(
                         local[i].name,
                         local[i].description,
                         local[i].game_source[0] ? local[i].game_source : default_src,
                         local[i].item_type[0] ? local[i].item_type : "KeyItem",
                         nft);
+                    add_item_calls++;
+                    {
+                        const char* add_err = (add_res != STAR_API_SUCCESS) ? star_api_get_last_error() : NULL;
+                        if (add_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0')
+                            str_copy(g_inv_add_item_error, add_err ? add_err : "add_item failed", sizeof(g_inv_add_item_error));
+                        if (g_add_item_log_fn)
+                            g_add_item_log_fn(local[i].name, (add_res == STAR_API_SUCCESS) ? 1 : 0, add_err ? add_err : "", g_add_item_log_user);
+                    }
                 } else {
-                    local[i].synced = 1;
+                    /* Unlock: add only if not already in inventory. */
+                    if (!star_api_has_item(local[i].name)) {
+                        const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                        star_api_result_t add_res = star_api_add_item(
+                            local[i].name,
+                            local[i].description,
+                            local[i].game_source[0] ? local[i].game_source : default_src,
+                            local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                            nft);
+                        add_item_calls++;
+                        {
+                            const char* add_err = (add_res != STAR_API_SUCCESS) ? star_api_get_last_error() : NULL;
+                            if (add_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0')
+                                str_copy(g_inv_add_item_error, add_err ? add_err : "add_item failed", sizeof(g_inv_add_item_error));
+                            if (g_add_item_log_fn)
+                                g_add_item_log_fn(local[i].name, (add_res == STAR_API_SUCCESS) ? 1 : 0, add_err ? add_err : "", g_add_item_log_user);
+                        }
+                    }
                 }
+                local[i].synced = 1;
             }
-        }
-        star_api_flush_add_item_jobs();
-        for (i = 0; i < local_count; i++) {
-            if (!local[i].synced)
-                local[i].synced = 1; /* all queued items marked synced after flush */
         }
     }
 
@@ -744,11 +773,18 @@ static void* inventory_thread_proc(void* param) {
 #endif
     g_inv_in_progress = 0;
     g_inv_has_result = 1;
+    g_inv_add_item_calls = add_item_calls;
     if (g_inv_list)
         star_api_free_item_list(g_inv_list);
     g_inv_list = list;
     g_inv_result = result;
     str_copy(g_inv_error_msg, err ? err : "", sizeof(g_inv_error_msg));
+    /* If add_item failed (e.g. not logged in / no avatar), surface that so user sees why pickups aren't saved */
+    if (g_inv_add_item_error[0] != '\0') {
+        str_copy(g_inv_error_msg, g_inv_add_item_error, sizeof(g_inv_error_msg));
+        if (g_inv_result == STAR_API_SUCCESS)
+            g_inv_result = STAR_API_ERROR_NOT_INITIALIZED; /* so UI shows error */
+    }
     /* Callback is invoked from main thread in star_sync_pump(), not from this worker. */
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
@@ -867,6 +903,40 @@ void star_sync_inventory_clear_result(void) {
         g_inv_list = NULL;
     }
     g_inv_has_result = 0;
+    g_inv_add_item_error[0] = '\0';
+    g_inv_add_item_calls = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+#endif
+}
+
+int star_sync_inventory_get_last_add_item_calls(void) {
+    int n;
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    n = g_inv_add_item_calls;
+    g_inv_add_item_calls = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+#endif
+    return n;
+}
+
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    g_add_item_log_fn = fn;
+    g_add_item_log_user = user_data;
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
 #else
