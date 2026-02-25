@@ -564,7 +564,7 @@ public sealed class StarApiClient : IDisposable
         return await AddItemCoreAsync(itemName, description, gameSource, itemType, nftId, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<OASISResult<StarItem>> QueueAddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    public Task<OASISResult<StarItem>> QueueAddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return Task.FromResult(FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized));
@@ -573,7 +573,7 @@ public sealed class StarApiClient : IDisposable
             return Task.FromResult(FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam));
 
         var tcs = new TaskCompletionSource<OASISResult<StarItem>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description, gameSource, itemType, cancellationToken, tcs));
+        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description, gameSource, itemType, nftId, cancellationToken, tcs));
         _addItemSignal.Release();
         return tcs.Task;
     }
@@ -590,7 +590,7 @@ public sealed class StarApiClient : IDisposable
                 continue;
 
             var source = string.IsNullOrWhiteSpace(item.GameSource) ? defaultGameSource : item.GameSource;
-            tasks.Add(QueueAddItemAsync(item.Name, item.Description, source, item.ItemType, cancellationToken));
+            tasks.Add(QueueAddItemAsync(item.Name, item.Description, source, item.ItemType, string.IsNullOrWhiteSpace(item.NftId) ? null : item.NftId, cancellationToken));
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -614,6 +614,15 @@ public sealed class StarApiClient : IDisposable
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(successful, StarApiResultCode.Success, $"Queued add-item jobs completed for {successful.Count} item(s).");
+    }
+
+    /// <summary>Enqueue one add-item job without returning a completion task. Used by native C sync lib for batching. Worker processes queue in batches.</summary>
+    public void EnqueueAddItemJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
+            return;
+        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description ?? string.Empty, gameSource, string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType, nftId, CancellationToken.None, null));
+        _addItemSignal.Release();
     }
 
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
@@ -736,6 +745,15 @@ public sealed class StarApiClient : IDisposable
         _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, cancellationToken, tcs));
         _useItemSignal.Release();
         return tcs.Task;
+    }
+
+    /// <summary>Enqueue one use-item job without returning a completion task. Used by native C sync lib for batching.</summary>
+    public void EnqueueUseItemJobOnly(string itemName, string? context = null)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName))
+            return;
+        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, CancellationToken.None, null));
+        _useItemSignal.Release();
     }
 
     public async Task<OASISResult<bool>> FlushUseItemJobsAsync(CancellationToken cancellationToken = default)
@@ -1906,15 +1924,15 @@ public sealed class StarApiClient : IDisposable
             {
                 if (job.CancellationToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
-                    job.Completion.TrySetResult(Fail<StarItem>("Queued add-item job was cancelled.", StarApiResultCode.Network));
+                    job.Completion?.TrySetResult(Fail<StarItem>("Queued add-item job was cancelled.", StarApiResultCode.Network));
                     continue;
                 }
 
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, null, job.CancellationToken).ConfigureAwait(false);
-                    job.Completion.TrySetResult(result);
+                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.NftId, job.CancellationToken).ConfigureAwait(false);
+                    job.Completion?.TrySetResult(result);
                 }
                 finally
                 {
@@ -1965,7 +1983,7 @@ public sealed class StarApiClient : IDisposable
             {
                 if (job.CancellationToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
-                    job.Completion.TrySetResult(Fail<bool>("Queued use-item job was cancelled.", StarApiResultCode.Network));
+                    job.Completion?.TrySetResult(Fail<bool>("Queued use-item job was cancelled.", StarApiResultCode.Network));
                     continue;
                 }
 
@@ -1973,7 +1991,7 @@ public sealed class StarApiClient : IDisposable
                 try
                 {
                     var result = await UseItemCoreAsync(job.ItemName, job.Context, job.CancellationToken).ConfigureAwait(false);
-                    job.Completion.TrySetResult(result);
+                    job.Completion?.TrySetResult(result);
                 }
                 finally
                 {
@@ -2218,12 +2236,13 @@ public sealed class StarApiClient : IDisposable
 
     private sealed class PendingAddItemJob
     {
-        public PendingAddItemJob(string itemName, string description, string gameSource, string itemType, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<StarItem>> completion)
+        public PendingAddItemJob(string itemName, string description, string gameSource, string itemType, string? nftId, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<StarItem>>? completion)
         {
             ItemName = itemName;
             Description = description;
             GameSource = gameSource;
             ItemType = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
+            NftId = string.IsNullOrWhiteSpace(nftId) ? null : nftId;
             CancellationToken = cancellationToken;
             Completion = completion;
         }
@@ -2232,13 +2251,14 @@ public sealed class StarApiClient : IDisposable
         public string Description { get; }
         public string GameSource { get; }
         public string ItemType { get; }
+        public string? NftId { get; }
         public CancellationToken CancellationToken { get; }
-        public TaskCompletionSource<OASISResult<StarItem>> Completion { get; }
+        public TaskCompletionSource<OASISResult<StarItem>>? Completion { get; }
     }
 
     private sealed class PendingUseItemJob
     {
-        public PendingUseItemJob(string itemName, string? context, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>> completion)
+        public PendingUseItemJob(string itemName, string? context, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>>? completion)
         {
             ItemName = itemName;
             Context = context;
@@ -2249,7 +2269,7 @@ public sealed class StarApiClient : IDisposable
         public string ItemName { get; }
         public string? Context { get; }
         public CancellationToken CancellationToken { get; }
-        public TaskCompletionSource<OASISResult<bool>> Completion { get; }
+        public TaskCompletionSource<OASISResult<bool>>? Completion { get; }
     }
 
     private sealed class PendingQuestObjectiveJob
@@ -2465,6 +2485,31 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_item", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* nftId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return;
+        var nftIdStr = PtrToString(nftId);
+        client.EnqueueAddItemJobOnly(
+            PtrToString(itemName) ?? string.Empty,
+            PtrToString(description) ?? string.Empty,
+            PtrToString(gameSource) ?? string.Empty,
+            PtrToString(itemType) ?? "KeyItem",
+            string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_flush_add_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiFlushAddItemJobs()
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        var result = client.FlushAddItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
+        return (int)FinalizeResult(result);
+    }
+
     /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. provider defaults to SolanaOASIS.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut)
@@ -2509,6 +2554,25 @@ public static unsafe class StarApiExports
         var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context)).GetAwaiter().GetResult();
         var code = FinalizeResult(result);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_use_item", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueUseItem(sbyte* itemName, sbyte* context)
+    {
+        var client = GetClient();
+        if (client is null)
+            return;
+        client.EnqueueUseItemJobOnly(PtrToString(itemName) ?? string.Empty, PtrToString(context));
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_flush_use_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiFlushUseItemJobs()
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        var result = client.FlushUseItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
+        return (int)FinalizeResult(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_start_quest", CallConvs = [typeof(CallConvCdecl)])]
