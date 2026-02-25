@@ -119,7 +119,18 @@ Outputs:
 
 Drop `star_api.dll` in place of the existing native wrapper DLL and keep using the same `star_api.h`/import-library workflow.
 
-## One-click publish + deploy
+## Diagnostic logging
+
+The client writes **add_item** (and related) diagnostics to:
+
+1. **`star_api.log`** – In the process current directory (e.g. the game exe folder when running OQuake). Each line is timestamped UTC. Append-only; delete the file to start fresh.
+2. **`System.Diagnostics.Trace`** – Same lines are sent to `Trace.WriteLine`. Attach a `TraceListener` (e.g. to a file or the debug output window) to capture them.
+
+Logged events include: `star_api_add_item` entry (item name, game source), result (success/failure and message), and inside `AddItemCoreAsync`: avatar check, POST URL, response success/error, and exceptions. Use this to confirm whether add_item is invoked, whether the HTTP request is sent, and how the server responds.
+</think>
+Verifying there are no linter errors:
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+ReadLints
 
 Use the helper script to publish and copy artifacts into the game integration folders:
 

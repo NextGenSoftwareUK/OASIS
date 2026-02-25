@@ -35,6 +35,15 @@ star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, co
 static void OQ_OnSendItemDone(void* user_data);
 static void OQ_OnInventoryDone(void* user_data);
 
+/** Called from sync worker after each star_api_add_item; logs result to console (success or error reason). */
+static void OQ_AddItemLogCb(const char* item_name, int success, const char* error_message, void* user_data) {
+    (void)user_data;
+    if (success)
+        Con_Printf("OQuake: add_item '%s' succeeded.\n", item_name ? item_name : "(null)");
+    else
+        Con_Printf("OQuake: add_item '%s' failed: %s\n", item_name ? item_name : "(null)", error_message && error_message[0] ? error_message : "unknown error");
+}
+
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
@@ -173,6 +182,9 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
     int local_added = 0;
     if (!item_prefix || !item_prefix[0])
         return 0;
+    /* Seed sequence so each run doesn't reuse _000001, _000002 (would collide with DB from previous session and prevent stacking). */
+    if (g_inventory_event_seq == 0)
+        g_inventory_event_seq = (unsigned int)(time(NULL) % 1000000U);
     g_inventory_event_seq++;
     q_snprintf(item_name, sizeof(item_name), "%s_%06u", item_prefix, g_inventory_event_seq);
 
@@ -772,8 +784,19 @@ static void OQ_OnInventoryDone(void* user_data) {
     star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
     char api_error_buf[256] = {0};
     (void)user_data;
-    if (!star_sync_inventory_get_result(&list, &result, api_error_buf, sizeof(api_error_buf)))
+    if (!star_sync_inventory_get_result(&list, &result, api_error_buf, sizeof(api_error_buf))) {
+        Con_Printf("OQuake: inventory sync callback ran but no result available (get_result=0).\n");
         return;
+    }
+    {
+        int add_calls = star_sync_inventory_get_last_add_item_calls();
+        if (result == STAR_API_SUCCESS)
+            Con_Printf("OQuake: inventory sync succeeded (add_item_calls=%d).\n", add_calls);
+        else
+            Con_Printf("OQuake: inventory sync failed: %s\n", api_error_buf[0] ? api_error_buf : "unknown error");
+        if (add_calls == 0 && result == STAR_API_SUCCESS)
+            Con_Printf("OQuake: add_item_calls=0 means rebuild with updated star_sync.c (sync add_item path) so pickups reach the API.\n");
+    }
     OQ_ProcessInventoryResult(list, result, api_error_buf[0] ? api_error_buf : NULL);
     if (list)
         star_api_free_item_list(list);
@@ -1003,16 +1026,29 @@ static void OQ_AppendLocalToDisplay(void) {
 
 /** If there are pending (unsynced) local items and no sync in progress, start inventory sync on a background thread. Call after pickups and from OQ_RefreshInventoryCache. */
 static void OQ_StartInventorySyncIfNeeded(void) {
-    if (star_sync_inventory_in_progress() || star_sync_auth_in_progress() || !star_initialized())
+    if (star_sync_inventory_in_progress() || star_sync_auth_in_progress() || !star_initialized()) {
+        /* Only log when we have local items we might want to sync, to avoid spam */
+        if (g_local_inventory_count > 0) {
+            int pending = 0;
+            int l;
+            for (l = 0; l < g_local_inventory_count; l++) { if (!g_local_inventory_synced[l]) { pending = 1; break; } }
+            if (pending)
+                Con_Printf("OQuake: sync skipped (in_progress=%d auth=%d initialized=%d)\n",
+                    star_sync_inventory_in_progress(), star_sync_auth_in_progress(), star_initialized());
+        }
         return;
+    }
     {
         int pending = 0;
         int l;
         for (l = 0; l < g_local_inventory_count; l++) {
             if (!g_local_inventory_synced[l]) { pending = 1; break; }
         }
-        if (!pending || g_local_inventory_count <= 0)
+        if (!pending || g_local_inventory_count <= 0) {
+            if (g_local_inventory_count > 0)
+                Con_Printf("OQuake: sync skipped (no pending local items, count=%d)\n", g_local_inventory_count);
             return;
+        }
         Con_Printf("OQuake: starting inventory sync (%d local items to push).\n", g_local_inventory_count);
         q_strlcpy(g_inventory_status, "Syncing...", sizeof(g_inventory_status));
         for (l = 0; l < g_local_inventory_count; l++) {
@@ -1551,6 +1587,7 @@ static void OQ_SyncConfigFiles(const char *cfg_path, const char *json_path) {
 
 void OQuake_STAR_Init(void) {
     star_sync_init();
+    star_sync_set_add_item_log_cb(OQ_AddItemLogCb, NULL);
     star_api_result_t result;
     const char* username;
     const char* password;
@@ -2140,10 +2177,8 @@ void OQuake_STAR_OnStatsChangedEx(
         Con_Printf("OQuake: %d pickup event(s) recorded (shells/nails/rockets/cells), starting sync.\n", added);
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d pickup event(s)", added);
         OQ_AppendLocalToDisplay();
+        /* Display already has new items from AppendLocalToDisplay; overlay reads g_inventory_entries each frame so it will update. Do not call get_inventory here or it can overwrite with stale cache before sync completes. */
         OQ_StartInventorySyncIfNeeded();
-        /* If inventory overlay is open, refresh from local cache immediately so new pickups appear without closing/reopening. */
-        if (g_inventory_open)
-            OQ_RefreshOverlayFromClient();
     }
 }
 

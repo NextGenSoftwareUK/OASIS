@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -559,6 +561,12 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Clear all client caches (e.g. inventory). Next GetInventory/HasItem will hit the API.</summary>
+    public void ClearCache()
+    {
+        InvalidateInventoryCache();
+    }
+
     public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, CancellationToken cancellationToken = default)
     {
         return await AddItemCoreAsync(itemName, description, gameSource, itemType, nftId, cancellationToken).ConfigureAwait(false);
@@ -642,16 +650,28 @@ public sealed class StarApiClient : IDisposable
     private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: not initialized");
             return FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         string? avatarId;
         lock (_stateLock)
             avatarId = _avatarId;
         if (string.IsNullOrWhiteSpace(avatarId))
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: Avatar ID not set (beam-in required)");
             return FailAndCallback<StarItem>("Avatar ID is not set. Complete beam-in (authenticate) first; add_item requires avatar context.", StarApiResultCode.NotInitialized);
+        }
 
         if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: missing required param");
             return FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam);
+        }
+
+        var url = $"{_baseApiUrl}/api/avatar/inventory";
+        StarApiExports.StarApiLog($"AddItemCoreAsync: sending POST to {url} name='{itemName}' avatarId={avatarId}");
 
         try
         {
@@ -673,9 +693,13 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
 
-            var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory", payload, cancellationToken).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
+            {
+                StarApiExports.StarApiLog($"AddItemCoreAsync: response IsError=true message='{response.Message}'");
                 return FailAndCallback<StarItem>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
+            StarApiExports.StarApiLog($"AddItemCoreAsync: POST succeeded, parsing response");
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
@@ -701,11 +725,13 @@ public sealed class StarApiClient : IDisposable
                 _cachedInventory.Add(mapped);
             }
 
+            StarApiExports.StarApiLog($"AddItemCoreAsync: item added id={mapped.Id} name='{mapped.Name}'");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, "Item added successfully.");
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLog($"AddItemCoreAsync: exception {ex.GetType().Name} message='{ex.Message}'");
             return FailAndCallback<StarItem>($"Failed to add item: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -1452,24 +1478,39 @@ public sealed class StarApiClient : IDisposable
     private List<StarItem> ParseInventoryItems(JsonElement element)
     {
         var items = new List<StarItem>();
-        if (element.ValueKind != JsonValueKind.Array)
-            return items;
+        var arraysToMerge = new List<JsonElement>();
 
-        foreach (var itemElement in element.EnumerateArray())
+        if (element.ValueKind == JsonValueKind.Array)
+            arraysToMerge.Add(element);
+        else if (element.ValueKind == JsonValueKind.Object)
         {
-            var item = ParseInventoryItemResponse(itemElement);
-            if (item is null)
-                continue;
-
-            items.Add(new StarItem
+            // API may return multiple arrays (e.g. Items + Holons). Merge all so new and old items both appear.
+            var arrayPropertyNames = new[] { "Items", "Inventory", "Results", "Data", "Holons", "InventoryItems" };
+            foreach (var name in arrayPropertyNames)
             {
-                Id = item.Id,
-                Name = item.Name ?? string.Empty,
-                Description = item.Description ?? string.Empty,
-                GameSource = ExtractMeta(item.MetaData, "GameSource", "Unknown"),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous"),
-                NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty
-            });
+                if (TryGetProperty(element, name, out var prop) && prop.ValueKind == JsonValueKind.Array)
+                    arraysToMerge.Add(prop);
+            }
+        }
+
+        foreach (var arrayElement in arraysToMerge)
+        {
+            foreach (var itemElement in arrayElement.EnumerateArray())
+            {
+                var item = ParseInventoryItemResponse(itemElement);
+                if (item is null)
+                    continue;
+
+                items.Add(new StarItem
+                {
+                    Id = item.Id,
+                    Name = item.Name ?? string.Empty,
+                    Description = item.Description ?? string.Empty,
+                    GameSource = ExtractMeta(item.MetaData, "GameSource", "Unknown"),
+                    ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous"),
+                    NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty
+                });
+            }
         }
 
         return items;
@@ -1480,24 +1521,43 @@ public sealed class StarApiClient : IDisposable
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        var idValue = GetStringProperty(element, "Id");
+        // API may return item wrapped in Holon/Item/Data (e.g. new items). Unwrap so we parse same shape as POST response.
+        if (TryGetProperty(element, "Holon", out var inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+        else if (TryGetProperty(element, "Item", out inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+        else if (TryGetProperty(element, "Data", out inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+
+        var idValue = GetStringProperty(element, "Id") ?? GetStringProperty(element, "id");
         Guid.TryParse(idValue, out var parsedGuid);
 
         Dictionary<string, JsonElement>? metadata = null;
         if (TryGetProperty(element, "MetaData", out var metaElement) && metaElement.ValueKind == JsonValueKind.Object)
-        {
-            metadata = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
-            foreach (var property in metaElement.EnumerateObject())
-                metadata[property.Name] = property.Value.Clone();
-        }
+            metadata = CloneMetaData(metaElement);
+        else if (TryGetProperty(element, "Metadata", out metaElement) && metaElement.ValueKind == JsonValueKind.Object)
+            metadata = CloneMetaData(metaElement);
+
+        var name = GetStringProperty(element, "Name") ?? GetStringProperty(element, "name");
+        var description = GetStringProperty(element, "Description") ?? GetStringProperty(element, "description");
+        if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
+            return null;
 
         return new InventoryItemResponse
         {
             Id = parsedGuid,
-            Name = GetStringProperty(element, "Name"),
-            Description = GetStringProperty(element, "Description"),
+            Name = name,
+            Description = description,
             MetaData = metadata
         };
+    }
+
+    private static Dictionary<string, JsonElement> CloneMetaData(JsonElement metaElement)
+    {
+        var metadata = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        foreach (var property in metaElement.EnumerateObject())
+            metadata[property.Name] = property.Value.Clone();
+        return metadata;
     }
 
     private static AvatarAuthResponse? ParseAvatarAuthResponse(JsonElement element)
@@ -2467,22 +2527,46 @@ public static unsafe class StarApiExports
         NativeMemory.Free(itemList);
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiInvalidateInventoryCache()
+    {
+        var client = GetClient();
+        client?.InvalidateInventoryCache();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_clear_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiClearCache()
+    {
+        var client = GetClient();
+        client?.ClearCache();
+    }
+
+    /// <summary>Add item to avatar inventory. When called from a native background thread (e.g. star_sync), run the async work on the .NET thread pool so HTTP is sent correctly (Native AOT / unmanaged caller can otherwise fail to send).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_add_item", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* nftId)
     {
         var client = GetClient();
         if (client is null)
+        {
+            StarApiLog("star_api_add_item: client is null");
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
+        var name = PtrToString(itemName) ?? string.Empty;
+        var desc = PtrToString(description) ?? string.Empty;
+        var source = PtrToString(gameSource) ?? string.Empty;
+        var type = PtrToString(itemType) ?? "KeyItem";
         var nftIdStr = PtrToString(nftId);
-        var result = client.AddItemAsync(
-            PtrToString(itemName) ?? string.Empty,
-            PtrToString(description) ?? string.Empty,
-            PtrToString(gameSource) ?? string.Empty,
-            PtrToString(itemType) ?? "KeyItem",
-            string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr).GetAwaiter().GetResult();
+        var nftIdOpt = string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr;
 
-        return (int)FinalizeResult(result);
+        StarApiLog($"star_api_add_item: name='{name}' gameSource='{source}' (calling AddItemAsync on thread pool)");
+
+        /* Run on thread pool so HTTP is sent from a proper .NET thread (caller is often a native sync thread). */
+        var result = Task.Run(() => client.AddItemAsync(name, desc, source, type, nftIdOpt).GetAwaiter().GetResult()).GetAwaiter().GetResult();
+
+        var code = FinalizeResult(result);
+        StarApiLog($"star_api_add_item: result IsError={result.IsError} code={(int)code} message={result.Message ?? "(ok)"}");
+        return (int)code;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_item", CallConvs = [typeof(CallConvCdecl)])]
@@ -2779,6 +2863,22 @@ public static unsafe class StarApiExports
     {
         lock (Sync)
             return _client;
+    }
+
+    private static readonly object LogLock = new();
+    internal static void StarApiLog(string message)
+    {
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] {message}";
+        Trace.WriteLine(line);
+        try
+        {
+            var dir = Environment.CurrentDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var path = Path.Combine(dir, "star_api.log");
+            lock (LogLock)
+                File.AppendAllText(path, line + Environment.NewLine);
+        }
+        catch { /* ignore file write errors */ }
     }
 
     private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)

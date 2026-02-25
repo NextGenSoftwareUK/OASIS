@@ -55,6 +55,10 @@ star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
 bool star_api_has_item(const char* item_name);
 star_api_result_t star_api_get_inventory(star_item_list_t** item_list);
+/** Clear client inventory cache. Next star_api_get_inventory will do a real HTTP GET. Use to verify API actually returns items (e.g. after add_item). */
+void star_api_invalidate_inventory_cache(void);
+/** Clear all client caches (e.g. inventory). Same effect as star_api_invalidate_inventory_cache. */
+void star_api_clear_cache(void);
 void star_api_free_item_list(star_item_list_t* item_list);
 star_api_result_t star_api_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* nft_id);
 /** Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID; pass to star_api_add_item as nft_id. provider may be NULL (default SolanaOASIS). nft_id_out must be at least 128 bytes. */
