@@ -1,0 +1,2 @@
+# Put built WASM DOOM files here: doom.js, doom.wasm, doom1.wad (and optional default.cfg).
+# See doom-wasm/README.md for clone, patch, build, and copy steps.

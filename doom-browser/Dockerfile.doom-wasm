@@ -1,0 +1,8 @@
+# Emscripten + autotools for building doom-wasm
+FROM emscripten/emsdk:latest
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    autoconf \
+    automake \
+    libtool \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
