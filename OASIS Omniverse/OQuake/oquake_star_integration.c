@@ -35,6 +35,8 @@ star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, co
 static void OQ_OnSendItemDone(void* user_data);
 static void OQ_OnInventoryDone(void* user_data);
 
+static qboolean g_star_debug_logging = false;
+
 /** Called from sync worker after each star_api_add_item; logs result to console only when star debug is on. */
 static void OQ_AddItemLogCb(const char* item_name, int success, const char* error_message, void* user_data) {
     (void)user_data;
@@ -56,7 +58,6 @@ static char g_star_last_pickup_name[256] = {0};
 static char g_star_last_pickup_desc[512] = {0};
 static char g_star_last_pickup_type[64] = {0};
 static qboolean g_star_has_last_pickup = false;
-static qboolean g_star_debug_logging = false;
 
 /* key binding helpers from keys.c */
 extern char *keybindings[MAX_KEYS];
@@ -296,12 +297,13 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
         q_strlcpy(label, name, label_size);
     }
 
-    /* Stackable types: group by label and sum. Use API quantity when present so reload shows correct total. */
-    if (!strcmp(label, "Shells") || !strcmp(label, "Nails") || !strcmp(label, "Rockets") || !strcmp(label, "Cells") ||
-        !strcmp(label, "Green Armor") || !strcmp(label, "Yellow Armor") || !strcmp(label, "Red Armor") ||
-        !strcmp(label, "Health")) {
+    /* Stackable types: group by label and sum. Prefer parsed delta for ammo so "Shells pickup +25" shows 25; use quantity for API/armor. */
+    if (!strcmp(label, "Shells") || !strcmp(label, "Nails") || !strcmp(label, "Rockets") || !strcmp(label, "Cells")) {
         *mode = OQ_GROUP_MODE_SUM;
-        *value = (item && item->quantity > 0) ? item->quantity : OQ_ParsePickupDelta(desc);
+        { int parsed = OQ_ParsePickupDelta(desc); *value = (parsed > 0) ? parsed : ((item && item->quantity > 0) ? item->quantity : 1); }
+    } else if (!strcmp(label, "Green Armor") || !strcmp(label, "Yellow Armor") || !strcmp(label, "Red Armor") || !strcmp(label, "Health")) {
+        *mode = OQ_GROUP_MODE_SUM;
+        *value = (item && item->quantity > 0) ? item->quantity : 1;
     } else if (!strcmp(label, "Silver Key") || !strcmp(label, "Gold Key")) {
         *mode = OQ_GROUP_MODE_SUM;
         *value = (item && item->quantity > 0) ? item->quantity : 1;
@@ -317,15 +319,22 @@ static int OQ_BuildGroupedRows(
     int filtered_count;
     int group_count = 0;
     int i;
+    int row_api_sum[OQ_MAX_INVENTORY_ITEMS];
+    int row_local_sum[OQ_MAX_INVENTORY_ITEMS];
 
     filtered_count = OQ_BuildFilteredIndices(filtered_indices, OQ_MAX_INVENTORY_ITEMS);
+    for (i = 0; i < max_rows; i++) {
+        row_api_sum[i] = 0;
+        row_local_sum[i] = 0;
+    }
     for (i = 0; i < filtered_count; i++) {
         int item_idx = filtered_indices[i];
         int row;
         char label[OQ_GROUP_LABEL_MAX];
         int mode;
         int value;
-        OQ_GetGroupedDisplayInfo(&g_inventory_entries[item_idx], label, sizeof(label), &mode, &value);
+        const oquake_inventory_entry_t* ent = &g_inventory_entries[item_idx];
+        OQ_GetGroupedDisplayInfo(ent, label, sizeof(label), &mode, &value);
         for (row = 0; row < group_count; row++) {
             if (out_modes[row] == mode && !strcmp(out_labels[row], label))
                 break;
@@ -340,7 +349,14 @@ static int OQ_BuildGroupedRows(
             q_strlcpy(out_labels[group_count], label, OQ_GROUP_LABEL_MAX);
             group_count++;
         }
-        out_values[row] += value;
+        /* Track API vs local so we show max (avoid double-count when both API and local have same label). */
+        if (ent->id[0] != '\0')
+            row_api_sum[row] += value;
+        else
+            row_local_sum[row] += value;
+        out_values[row] = (row_api_sum[row] > row_local_sum[row]) ? row_api_sum[row] : row_local_sum[row];
+        if (out_values[row] < 1)
+            out_values[row] = 1;
         if (out_pending[row] == false) {
             int j;
             for (j = 0; j < g_local_inventory_count; j++) {
@@ -595,11 +611,12 @@ static int OQ_ContainsNoCase(const char* haystack, const char* needle) {
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     const char* type = item ? item->item_type : NULL;
     const char* name = item ? item->name : NULL;
-    int is_key = OQ_ContainsNoCase(type, "key") || OQ_ContainsNoCase(name, "key");
-    int is_powerup = OQ_ContainsNoCase(type, "powerup");
-    int is_weapon = OQ_ContainsNoCase(type, "weapon");
-    int is_ammo = OQ_ContainsNoCase(type, "ammo");
-    int is_armor = OQ_ContainsNoCase(type, "armor");
+    /* API often returns "KeyItem" or "Miscellaneous"; derive category from name so items show in correct tab. */
+    int is_key = OQ_ContainsNoCase(type, "key") || (name && (strstr(name, "Key") != NULL || strstr(name, "key") != NULL));
+    int is_powerup = OQ_ContainsNoCase(type, "powerup") || (name && (strstr(name, "Megahealth") != NULL || strstr(name, "Ring") != NULL || strstr(name, "Pentagram") != NULL || strstr(name, "Biosuit") != NULL || strstr(name, "Quad") != NULL));
+    int is_weapon = OQ_ContainsNoCase(type, "weapon") || (name && (strstr(name, "Shotgun") != NULL || strstr(name, "Nailgun") != NULL || strstr(name, "Launcher") != NULL || strstr(name, "Lightning") != NULL));
+    int is_ammo = OQ_ContainsNoCase(type, "ammo") || (name && (strstr(name, "Shells") != NULL || strstr(name, "Nails") != NULL || strstr(name, "Rockets") != NULL || strstr(name, "Cells") != NULL));
+    int is_armor = OQ_ContainsNoCase(type, "armor") || (name && (strstr(name, "Armor") != NULL || strstr(name, "armor") != NULL));
 
     switch (tab) {
         case OQ_TAB_KEYS: return is_key;
