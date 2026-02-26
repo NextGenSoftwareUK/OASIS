@@ -124,7 +124,11 @@ export class OASISClient {
     WaitTillNFTMinted?: boolean;
     WaitForNFTToMintInSeconds?: number;
     AttemptToMintEveryXSeconds?: number;
+    /** Solana cluster: "devnet" (default) or "mainnet-beta". Use devnet for testing. */
+    Cluster?: string;
   }) {
+    const cluster = request.Cluster || process.env.OASIS_SOLANA_CLUSTER || 'devnet';
+    const clusterNorm = cluster === 'mainnet' ? 'mainnet-beta' : cluster;
     // Set defaults for required provider fields if not provided
     const mintRequest = {
       JSONMetaDataURL: request.JSONMetaDataURL,
@@ -148,8 +152,11 @@ export class OASISClient {
       WaitTillNFTMinted: request.WaitTillNFTMinted !== undefined ? request.WaitTillNFTMinted : true,
       WaitForNFTToMintInSeconds: request.WaitForNFTToMintInSeconds || 60,
       AttemptToMintEveryXSeconds: request.AttemptToMintEveryXSeconds || 1,
+      Cluster: clusterNorm,
     };
-    const response = await this.client.post('/api/nft/mint-nft', mintRequest);
+    const response = await this.client.post('/api/nft/mint-nft', mintRequest, {
+      headers: { 'X-Solana-Cluster': clusterNorm },
+    });
     return response.data;
   }
 
@@ -240,10 +247,18 @@ export class OASISClient {
   }
 
   /**
-   * Save holon
+   * Save holon.
+   * ONODE expects SaveHolonRequest: { holon, saveChildren?, recursive?, maxChildDepth?, continueOnError? }.
    */
-  async saveHolon(holon: any) {
-    const response = await this.client.post('/api/data/save-holon', holon);
+  async saveHolon(holon: any, saveChildren: boolean = true, recursive: boolean = true, maxChildDepth: number = 0, continueOnError: boolean = true) {
+    const request = {
+      holon,
+      saveChildren,
+      recursive,
+      maxChildDepth,
+      continueOnError,
+    };
+    const response = await this.client.post('/api/data/save-holon', request);
     return response.data;
   }
 
@@ -425,12 +440,12 @@ export class OASISClient {
   }
 
   /**
-   * Get provider wallets for avatar
+   * Get provider wallets for avatar.
+   * ONODE requires showOnlyDefault and decryptPrivateKeys path segments (e.g. false/false).
    */
   async getProviderWalletsForAvatar(avatarId: string, providerType?: string) {
-    const url = providerType
-      ? `/api/wallet/avatar/${avatarId}/wallets?providerType=${providerType}`
-      : `/api/wallet/avatar/${avatarId}/wallets`;
+    const path = `/api/wallet/avatar/${avatarId}/wallets/false/false`;
+    const url = providerType ? `${path}?providerType=${providerType}` : path;
     const response = await this.client.get(url);
     return response.data;
   }
@@ -657,12 +672,12 @@ export class OASISClient {
   }
 
   /**
-   * Get provider wallets for avatar by username
+   * Get provider wallets for avatar by username.
+   * ONODE requires showOnlyDefault and decryptPrivateKeys path segments (e.g. false/false).
    */
   async getProviderWalletsForAvatarByUsername(username: string, providerType?: string) {
-    const url = providerType
-      ? `/api/wallet/avatar/username/${username}/wallets?providerType=${providerType}`
-      : `/api/wallet/avatar/username/${username}/wallets`;
+    const path = `/api/wallet/avatar/username/${encodeURIComponent(username)}/wallets/false/false`;
+    const url = providerType ? `${path}?providerType=${providerType}` : path;
     const response = await this.client.get(url);
     return response.data;
   }

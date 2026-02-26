@@ -30,16 +30,17 @@ npm run build
 
 ### Step 4: Configure Cursor
 
-Create or edit `~/.cursor/mcp.json`:
+Create or edit `~/.cursor/mcp.json` (or add the server in **Cursor Settings → MCP**):
 
 ```json
 {
   "mcpServers": {
     "oasis-unified": {
-      "command": "node",
-      "args": ["/Users/maxgershfield/OASIS_CLEAN/MCP/dist/index.js"],
+      "command": "/usr/local/bin/node",
+      "args": ["/Users/maxgershfield/OASIS_CLEAN/MCP/dist/src/index.js"],
       "env": {
-        "OASIS_API_URL": "http://localhost:5000"
+        "OASIS_API_URL": "http://localhost:5003",
+        "OASIS_API_KEY": ""
       }
     }
   }
@@ -47,9 +48,10 @@ Create or edit `~/.cursor/mcp.json`:
 ```
 
 **Important:** 
-- Use **absolute paths** (full path from root)
-- Replace the path with your actual path if different
-- On macOS, you can get the full path with: `realpath /Users/maxgershfield/OASIS_CLEAN/MCP/dist/index.js`
+- Use the **full path to `node`** (e.g. `/usr/local/bin/node`). Cursor runs MCP without your shell PATH, so plain `"command": "node"` often causes **spawn node ENOENT**. Find yours with: `which node`
+- Use **absolute paths** for the script (full path from root)
+- Script path after build is `MCP/dist/src/index.js` (not `dist/index.js`)
+- Replace paths if your repo or node location is different
 
 ### Step 5: Restart Cursor
 
@@ -89,14 +91,24 @@ You should see:
 
 ## 🐛 Troubleshooting
 
+### "spawn node ENOENT" or "A system error occurred (spawn node ENOENT)"
+
+Cursor starts MCP without your terminal PATH, so it can't find `node`. Use the **full path** to node in `mcp.json`:
+
+```json
+"command": "/usr/local/bin/node"
+```
+
+Find your node path in a terminal: `which node` (e.g. `/usr/local/bin/node`, `/opt/homebrew/bin/node`, or `~/.nvm/versions/node/v20.x.x/bin/node` if using nvm). Put that path in `command` and restart Cursor.
+
 ### "Command not found" or "Cannot find module"
 
 **Fix:** Use absolute path in `mcp.json`
 
 ```bash
-# Get absolute path
+# Get absolute path to the script
 cd /Users/maxgershfield/OASIS_CLEAN/MCP
-realpath dist/index.js  # macOS/Linux
+realpath dist/src/index.js  # macOS/Linux
 ```
 
 ### "OASIS API connection failed"
