@@ -297,16 +297,12 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
         q_strlcpy(label, name, label_size);
     }
 
-    /* Stackable types: group by label and sum. Prefer parsed delta for ammo so "Shells pickup +25" shows 25; use quantity for API/armor. */
-    if (!strcmp(label, "Shells") || !strcmp(label, "Nails") || !strcmp(label, "Rockets") || !strcmp(label, "Cells")) {
+    /* Stackable types: always use quantity from DB/API when present; only use parsed/local for display when no quantity. */
+    if (!strcmp(label, "Shells") || !strcmp(label, "Nails") || !strcmp(label, "Rockets") || !strcmp(label, "Cells") ||
+        !strcmp(label, "Green Armor") || !strcmp(label, "Yellow Armor") || !strcmp(label, "Red Armor") || !strcmp(label, "Health") ||
+        !strcmp(label, "Silver Key") || !strcmp(label, "Gold Key")) {
         *mode = OQ_GROUP_MODE_SUM;
-        { int parsed = OQ_ParsePickupDelta(desc); *value = (parsed > 0) ? parsed : ((item && item->quantity > 0) ? item->quantity : 1); }
-    } else if (!strcmp(label, "Green Armor") || !strcmp(label, "Yellow Armor") || !strcmp(label, "Red Armor") || !strcmp(label, "Health")) {
-        *mode = OQ_GROUP_MODE_SUM;
-        *value = (item && item->quantity > 0) ? item->quantity : 1;
-    } else if (!strcmp(label, "Silver Key") || !strcmp(label, "Gold Key")) {
-        *mode = OQ_GROUP_MODE_SUM;
-        *value = (item && item->quantity > 0) ? item->quantity : 1;
+        *value = (item && item->quantity > 0) ? item->quantity : (OQ_ParsePickupDelta(desc) > 0 ? OQ_ParsePickupDelta(desc) : 1);
     }
 
     OQ_AppendGameSourceTag(item, label, label_size);
@@ -2313,7 +2309,12 @@ void OQuake_STAR_Console_f(void) {
             size_t i;
             Con_Printf("STAR inventory (%d items):\n", g_inventory_count);
             for (i = 0; i < (size_t)g_inventory_count; i++) {
-                Con_Printf("  %s - %s (%s, %s)\n", g_inventory_entries[i].name, g_inventory_entries[i].description, g_inventory_entries[i].game_source, g_inventory_entries[i].item_type);
+                Con_Printf("  %s - %s (%s, type=%s, qty=%d)\n",
+                    g_inventory_entries[i].name,
+                    g_inventory_entries[i].description,
+                    g_inventory_entries[i].game_source,
+                    g_inventory_entries[i].item_type[0] ? g_inventory_entries[i].item_type : "unknown",
+                    g_inventory_entries[i].quantity > 0 ? g_inventory_entries[i].quantity : 1);
             }
         } else {
             Con_Printf("STAR inventory is empty.\n");

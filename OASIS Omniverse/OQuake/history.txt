@@ -1,6 +1,3 @@
-star
-star config
-star face
 star face off
 star face on
 star beamin dellams test!
@@ -58,6 +55,9 @@ star debug on
 star beamin dellams test!
 star debug on
 star beamin dellams test!
+star debug on
+star beamin dellams test!
+star inventory
 star debug on
 star beamin dellams test!
 star inventory
