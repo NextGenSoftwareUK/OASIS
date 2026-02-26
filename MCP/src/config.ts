@@ -22,7 +22,8 @@ export const config = {
   bananaApiKey: process.env.BANANA_API_KEY || '',
   nanoBananaApiUrl: process.env.NANO_BANANA_API_URL || 'https://api.nanobananaapi.ai/api/v1/nanobanana',
   nanoBananaApiKey: process.env.NANO_BANANA_API_KEY || '',
-  oasisApiKey: process.env.OASIS_API_KEY || '',
+  // JWT for OASIS (agent or user). MCP uses this so Cursor can act as an agent without in-session auth.
+  oasisApiKey: process.env.OASIS_API_KEY || process.env.OASIS_JWT_TOKEN || '',
   openservApiKey: process.env.OPENSERV_API_KEY || '',
   mode: process.env.MCP_MODE || 'stdio', // 'stdio' | 'http'
   port: parseInt(process.env.PORT || '3000', 10),

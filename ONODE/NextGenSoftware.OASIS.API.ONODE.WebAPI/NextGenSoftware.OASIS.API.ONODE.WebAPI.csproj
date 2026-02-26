@@ -26,16 +26,8 @@
   <ItemGroup>
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
-    <!-- Excluded post-merge: depend on APIs removed in nextgen/master (MNEE, Telegram mint, TokenMetadataByMint, SolanaSplTokenBalance) -->
     <Compile Remove="Controllers\MNEEController.cs" />
-    <Compile Remove="Controllers\SaintsController.cs" />
-    <Compile Remove="Controllers\TelegramWebhookController.cs" />
-    <Compile Remove="Services\TelegramNftMintFlowService.cs" />
-    <Compile Remove="Services\TokenMetadataByMintService.cs" />
-    <Compile Remove="Services\SolanaSplTokenBalanceService.cs" />
-    <Compile Remove="Services\DropToHoldersExecutionService.cs" />
-    <Compile Remove="Services\SaintBlessingEligibilityService.cs" />
-    <Compile Remove="Services\HallVerificationNftSenderService.cs" />
+    <!-- Re-enabled: Telegram mint flow + SAINTS (MNEE intentionally excluded) -->
   </ItemGroup>
 
   <ItemGroup>

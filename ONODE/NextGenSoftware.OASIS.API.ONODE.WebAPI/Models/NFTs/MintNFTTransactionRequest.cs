@@ -35,6 +35,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public int WaitForNFTToSendInSeconds { get; set; } = 60;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
         /// <summary>Solana cluster: "devnet" (default) or "mainnet"/"mainnet-beta". When mainnet, API uses mainnet RPC and mainnet mint wallet from OASIS_DNA.</summary>
-        public string Cluster { get; set; }
+        public string Cluster { get; set; } = "devnet";
     }
 }

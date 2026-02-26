@@ -60,23 +60,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 // Memecoins / Solscan tokens are on mainnet: use MainnetConnectionString when set so lookup succeeds.
                 var mainnetRpc = OASISDNAManager.OASISDNA?.OASIS?.StorageProviders?.SolanaOASIS?.MainnetConnectionString
                     ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.StorageProviders?.SolanaOASIS?.MainnetConnectionString;
-                var solanaOasis = providerResult.Result as SolanaOASIS
-                    ?? ProviderManager.Instance?.GetStorageProvider(ProviderType.SolanaOASIS) as SolanaOASIS;
 
-                OASISResult<IWeb3NFT> loadResult;
-                if (!string.IsNullOrWhiteSpace(mainnetRpc) && solanaOasis != null)
-                {
-                    _logger?.LogInformation("[TokenMetadataByMint] Using mainnet RPC for mint {Mint}", mint);
-                    loadResult = await solanaOasis.LoadOnChainNFTDataWithRpcAsync(mint, mainnetRpc.Trim()).ConfigureAwait(false);
-                }
+                // Use standard LoadOnChainNFTDataAsync (provider uses its configured RPC; mainnet when set in OASIS_DNA).
+                if (string.IsNullOrWhiteSpace(mainnetRpc))
+                    _logger?.LogWarning("[TokenMetadataByMint] MainnetConnectionString not set; memecoin lookup may fail for mainnet tokens. Mint: {Mint}", mint);
                 else
-                {
-                    if (string.IsNullOrWhiteSpace(mainnetRpc))
-                        _logger?.LogWarning("[TokenMetadataByMint] MainnetConnectionString not set; memecoin lookup may fail for mainnet tokens. Mint: {Mint}", mint);
-                    else
-                        _logger?.LogWarning("[TokenMetadataByMint] SolanaOASIS instance not available for mainnet RPC; using default provider. Mint: {Mint}", mint);
-                    loadResult = await solanaProvider.LoadOnChainNFTDataAsync(mint).ConfigureAwait(false);
-                }
+                    _logger?.LogInformation("[TokenMetadataByMint] Using mainnet RPC for mint {Mint}", mint);
+                OASISResult<IWeb3NFT> loadResult = await solanaProvider.LoadOnChainNFTDataAsync(mint).ConfigureAwait(false);
                 if (loadResult?.Result == null || loadResult.IsError)
                 {
                     _logger?.LogWarning("[TokenMetadataByMint] Metaplex lookup failed for {Mint}: {Message}", mint, loadResult?.Message);
