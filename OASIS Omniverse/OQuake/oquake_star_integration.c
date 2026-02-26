@@ -2309,15 +2309,11 @@ void OQuake_STAR_Console_f(void) {
             size_t i;
             Con_Printf("STAR inventory (%d items):\n", g_inventory_count);
             for (i = 0; i < (size_t)g_inventory_count; i++) {
-                const char *gs = g_inventory_entries[i].game_source[0] ? g_inventory_entries[i].game_source : "n/a";
-                if (gs[0] && q_strcasecmp(gs, "Unknown") == 0)
-                    gs = "n/a";  /* normalize when GameSource not set */
                 const char *type = g_inventory_entries[i].item_type[0] ? g_inventory_entries[i].item_type : "n/a";
                 int qty = g_inventory_entries[i].quantity > 0 ? g_inventory_entries[i].quantity : 1;
-                Con_Printf("  %s - %s (gs=%s, type=%s, qty=%d)\n",
+                Con_Printf("  %s - %s (type=%s, qty=%d)\n",
                     g_inventory_entries[i].name,
                     g_inventory_entries[i].description,
-                    gs,
                     type,
                     qty);
             }
