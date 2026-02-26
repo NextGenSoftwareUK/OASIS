@@ -1,6 +1,6 @@
-# WEB5 STAR API C# Native Wrapper (C/C++ Compatible)
+# WEB5 STAR API C# Client (C/C++ Compatible)
 
-This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same C ABI entry points used by existing C and C++ game integrations.
+This project is the **STAR API client** for ODOOM, OQuake, and other C/C++ games. It implements the same C ABI entry points (`star_api_*`) used by game integrations. **NativeWrapper (the legacy C++ wrapper) is now obsoleted by this C# STARAPIClient;** ODOOM and OQuake use this client exclusively.
 
 ## STARAPIClient vs star_sync (why both?)
 
@@ -92,7 +92,7 @@ Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **min
 - Uses `UnmanagedCallersOnly` exports (no COM or reverse P/Invoke marshaling glue).
 - Built as NativeAOT for direct native DLL loading and fast startup.
 - Uses a shared `HttpClient` instance and minimal allocation interop conversions.
-- **Local inventory cache:** The client keeps a single in-memory cache of the last loaded inventory. `GetInventory`, `HasItem`, and `UseItem` use this cache first and only hit the API when the cache is null or the item is not found (for has_item). Cache is updated on add/send so games get correct state without extra refetches. See [Local inventory cache](#local-inventory-cache-where-it-lives) above.
+- **Local inventory cache:** The client keeps a single in-memory cache of the last loaded inventory. `GetInventory`, `HasItem`, and `UseItem` use this cache first and only hit the API when the cache is null or the item is not found (for has_item). Cache is updated on add/send so games get correct state without extra refetches. See [Local inventory cache](#local-inventory-cache-single-cache-minimal-game-hooks) above.
 - Includes an optional add-item job queue (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`) for high-frequency item collection events.
 - Includes optional high-throughput queues for:
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
@@ -117,7 +117,7 @@ Outputs:
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/publish/star_api.dll`
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
 
-Drop `star_api.dll` in place of the existing native wrapper DLL and keep using the same `star_api.h`/import-library workflow.
+Drop `star_api.dll` in place of the existing DLL (or the legacy NativeWrapper output) and keep using the same `star_api.h`/import-library workflow. NativeWrapper is obsolete; use this client for ODOOM, OQuake, and new integrations.
 
 ## Diagnostic logging
 

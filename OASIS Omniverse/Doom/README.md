@@ -4,15 +4,17 @@
 
 This guide explains how to integrate the OASIS STAR API into the Doom source code to enable cross-game item sharing with Quake and other games.
 
+**Note:** The legacy **NativeWrapper** (C++) is **obsoleted by the C# STARAPIClient**. For new integrations use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below reference NativeWrapper for legacy setups only.
+
 ## Prerequisites
 
 1. Doom source code (from [id Software's GitHub](https://github.com/id-Software/DOOM))
-2. STAR API client library (built from `NativeWrapper/`)
+2. STAR API client library (built from **STARAPIClient**; NativeWrapper is obsolete)
 3. STAR API credentials (API key and Avatar ID)
 
 ## Building the Integration
 
-### Step 1: Build the Native Wrapper
+### Step 1: Build the STAR API client (or legacy NativeWrapper)
 
 ```bash
 cd Game Integration/NativeWrapper

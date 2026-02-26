@@ -727,10 +727,19 @@ public sealed class StarApiClient : IDisposable
             lock (_inventoryCacheLock)
             {
                 _cachedInventory ??= new List<StarItem>();
-                _cachedInventory.Add(mapped);
+                if (stack)
+                {
+                    var idx = _cachedInventory.FindIndex(x => string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase));
+                    if (idx >= 0)
+                        _cachedInventory[idx] = mapped;
+                    else
+                        _cachedInventory.Add(mapped);
+                }
+                else
+                    _cachedInventory.Add(mapped);
             }
 
-            StarApiExports.StarApiLog($"AddItemCoreAsync: item added id={mapped.Id} name='{mapped.Name}'");
+            StarApiExports.StarApiLog($"AddItemCoreAsync: item added id={mapped.Id} name='{mapped.Name}' quantity={mapped.Quantity}");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, "Item added successfully.");
         }

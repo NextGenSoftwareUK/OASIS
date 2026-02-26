@@ -174,16 +174,14 @@ echo 1. Set your credentials:
 echo    set STAR_USERNAME=your_username
 echo    set STAR_PASSWORD=your_password
 echo.
-echo 2. Build DOOM:
-echo    cd %DOOM_PATH%
-echo    make
+echo 2. Build ODOOM: OASIS Omniverse\ODOOM\BUILD ODOOM.bat
+echo    Build OQuake: "OASIS Omniverse\OQuake\BUILD_OQUAKE.bat" (Developer Command Prompt for VS)
 echo.
-echo 3. Test:
-echo    .\linux\linuxxdoom.exe
+echo 3. Run: ODOOM\build\ODOOM.exe or OQuake\build\OQUAKE.exe
 echo.
 echo For detailed instructions, see:
-echo   - START_HERE.md
-echo   - COMPLETE_SETUP_GUIDE.md
+echo   - README.md
+echo   - DEVELOPER_ONBOARDING.md
 echo.
 
 :end
