@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OASIS Omniverse — Leaderboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0a0a0a;
+      color: #e8e0d8;
+      font-family: 'Press Start 2P', monospace;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header img {
+      width: 80px;
+      height: auto;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 10px rgba(196,30,30,0.7));
+    }
+    .header h1 {
+      font-size: 14px;
+      color: #c41e1e;
+      text-shadow: 0 0 12px rgba(196,30,30,0.6);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      line-height: 1.6;
+    }
+    .header p {
+      font-size: 7px;
+      color: #666;
+      margin-top: 0.75rem;
+    }
+
+    .board {
+      background: #111;
+      border: 3px solid #3a2a1a;
+      box-shadow: 0 0 20px rgba(196,30,30,0.15), inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .board-title {
+      background: linear-gradient(180deg, #2a1a0a 0%, #1a0f05 100%);
+      border-bottom: 2px solid #5a3a1a;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .board-title span {
+      font-size: 8px;
+      color: #d4a832;
+      text-shadow: 0 0 6px rgba(212,168,50,0.4);
+    }
+    .board-title .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: blink 1.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .row {
+      display: grid;
+      grid-template-columns: 48px 1fr auto;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #1a1a1a;
+      transition: background 0.15s;
+    }
+    .row:last-child { border-bottom: none; }
+    .row:hover { background: #161010; }
+
+    .rank {
+      font-size: 8px;
+      text-align: center;
+    }
+    .rank-1 { color: #d4a832; text-shadow: 0 0 8px rgba(212,168,50,0.5); }
+    .rank-2 { color: #aaa; }
+    .rank-3 { color: #c87533; }
+    .rank-other { color: #555; }
+
+    .player {
+      font-size: 7px;
+      color: #e8e0d8;
+      word-break: break-all;
+    }
+    .player .tag {
+      display: block;
+      font-size: 6px;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .score {
+      font-size: 8px;
+      color: #4ade80;
+      text-align: right;
+      text-shadow: 0 0 6px rgba(74,222,128,0.3);
+    }
+
+    .empty {
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 7px;
+      color: #444;
+      line-height: 2;
+    }
+
+    .footer {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .footer a {
+      font-size: 7px;
+      color: #c41e1e;
+      text-decoration: none;
+      padding: 10px 20px;
+      border: 2px solid #5a1010;
+      background: #1a0505;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+    }
+    .footer a:hover { background: #2a0808; border-color: #8b1a1a; color: #e03030; }
+
+    .loading {
+      padding: 40px 20px;
+      text-align: center;
+      font-size: 7px;
+      color: #555;
+    }
+    .loading::after {
+      content: '...';
+      animation: dots 1.2s steps(4,end) infinite;
+    }
+    @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+
+    .error-msg {
+      padding: 30px 20px;
+      text-align: center;
+      font-size: 6px;
+      color: #e55;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="oasis-logo.png" alt="OASIS" onerror="this.style.display='none'">
+      <h1>OASIS Omniverse<br>Leaderboard</h1>
+      <p>Top scores from DOOM &amp; Quake sessions</p>
+    </div>
+
+    <div class="board">
+      <div class="board-title">
+        <span><span class="live-dot"></span>LIVE RANKINGS</span>
+        <span id="lastUpdated" style="font-size:6px;color:#555">—</span>
+      </div>
+      <div id="boardBody">
+        <div class="loading">Fetching scores</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <a href="/" target="_blank">▶ PLAY DOOM NOW</a>
+    </div>
+  </div>
+
+  <script>
+    var SCORE_LABELS = ['🏆', '🥈', '🥉'];
+
+    function rankClass(i) {
+      if (i === 0) return 'rank-1';
+      if (i === 1) return 'rank-2';
+      if (i === 2) return 'rank-3';
+      return 'rank-other';
+    }
+
+    function renderScores(scores) {
+      var body = document.getElementById('boardBody');
+      if (!scores || scores.length === 0) {
+        body.innerHTML = '<div class="empty">No scores yet.<br>Be the first to play!</div>';
+        return;
+      }
+      var html = '';
+      scores.forEach(function (entry, i) {
+        var rankLabel = i < 3 ? SCORE_LABELS[i] : ('#' + (i + 1));
+        var playerDisplay = entry.player || 'Unknown';
+        var scoreDisplay = entry.score != null ? entry.score.toLocaleString() : '0';
+        html += '<div class="row">'
+          + '<span class="rank ' + rankClass(i) + '">' + rankLabel + '</span>'
+          + '<span class="player">' + escHtml(playerDisplay) + '</span>'
+          + '<span class="score">' + escHtml(scoreDisplay) + '</span>'
+          + '</div>';
+      });
+      body.innerHTML = html;
+
+      var ts = document.getElementById('lastUpdated');
+      if (ts) ts.textContent = 'Updated ' + new Date().toLocaleTimeString();
+    }
+
+    function escHtml(s) {
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;');
+    }
+
+    function loadScores() {
+      fetch('/api/soar/top-scores')
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error(r.status)); })
+        .then(function (data) {
+          if (data && data.scores) {
+            renderScores(data.scores);
+          } else {
+            document.getElementById('boardBody').innerHTML =
+              '<div class="error-msg">Could not load scores.</div>';
+          }
+        })
+        .catch(function (err) {
+          // Show stub data if server unreachable (useful for Portals embed preview)
+          renderScores([
+            { rank: 1, player: 'DOOMSLAYER', score: 3600 },
+            { rank: 2, player: 'OASIS_PILOT', score: 2400 },
+            { rank: 3, player: 'QUAKE_LORD', score: 1800 },
+          ]);
+          console.warn('[Leaderboard] Could not fetch live scores:', err && err.message ? err.message : err);
+        });
+    }
+
+    // Initial load + auto-refresh every 30 seconds
+    loadScores();
+    setInterval(loadScores, 30000);
+  </script>
+</body>
+</html>
