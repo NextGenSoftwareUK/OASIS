@@ -78,6 +78,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public IList<Spell> Spells { get; set; } = new List<Spell>();
         public IList<Achievement> Achievements { get; set; } = new List<Achievement>();
         public IList<InventoryItem> Inventory { get; set; } = new List<InventoryItem>();
+        /// <summary>JSON-serialized inventory for reliable persistence of Quantity/Stack (used when non-null on load/save).</summary>
+        public string InventoryJson { get; set; }
         public IList<KarmaAkashicRecord> KarmaAkashicRecords { get; set; } = new List<KarmaAkashicRecord>();
 
         public int Level { get; set; }

@@ -696,9 +696,9 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items: call star_api_add_item synchronously per item so HTTP is sent from this thread.
-     * Stack events: name ends with _NNNNNN (e.g. quake_pickup_shells_000001) – ALWAYS add, never call has_item.
-     * Unlock items: same name each time – call has_item first, add only if not present. */
+    /* Sync local items: queue each add then flush (batching) for better throughput when picking up many items at once.
+     * Stack events: name ends with _NNNNNN – ALWAYS queue add, never call has_item.
+     * Unlock items: same name each time – call has_item first, queue add only if not present. */
     g_inv_add_item_error[0] = '\0';
     if (local && local_count > 0 && default_src[0]) {
         int i;
@@ -707,7 +707,7 @@ static void* inventory_thread_proc(void* param) {
             {
                 const char* n = local[i].name;
                 size_t len = strlen(n);
-                /* Stack: suffix _ and exactly 6 digits (e.g. quake_pickup_shells_000001). Never use has_item for these. */
+                /* Stack: suffix _ and exactly 6 digits (e.g. Shells_000001). Never use has_item for these. */
                 int is_stack_event = 0;
                 if (len >= 8 && n[len - 7] == '_') {
                     int j;
@@ -716,43 +716,43 @@ static void* inventory_thread_proc(void* param) {
                         if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack_event = 0; break; }
                 }
                 if (is_stack_event) {
-                    /* Stacked: always add, do not call has_item. */
+                    /* Stacked: send base name (no _NNNNNN) so API increments Quantity on existing item. */
+                    char base_name[128];
+                    size_t base_len = len >= 8 ? (size_t)(len - 7) : len;
+                    if (base_len >= sizeof(base_name)) base_len = sizeof(base_name) - 1;
+                    memcpy(base_name, n, base_len);
+                    base_name[base_len] = '\0';
                     const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                    star_api_result_t add_res = star_api_add_item(
-                        local[i].name,
+                    int qty = (local[i].quantity > 0) ? local[i].quantity : 1;
+                    star_api_queue_add_item(
+                        base_name,
                         local[i].description,
                         local[i].game_source[0] ? local[i].game_source : default_src,
                         local[i].item_type[0] ? local[i].item_type : "KeyItem",
-                        nft);
+                        nft, qty, qty);
                     add_item_calls++;
-                    {
-                        const char* add_err = (add_res != STAR_API_SUCCESS) ? star_api_get_last_error() : NULL;
-                        if (add_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0')
-                            str_copy(g_inv_add_item_error, add_err ? add_err : "add_item failed", sizeof(g_inv_add_item_error));
-                        if (g_add_item_log_fn)
-                            g_add_item_log_fn(local[i].name, (add_res == STAR_API_SUCCESS) ? 1 : 0, add_err ? add_err : "", g_add_item_log_user);
-                    }
                 } else {
                     /* Unlock: add only if not already in inventory. */
                     if (!star_api_has_item(local[i].name)) {
                         const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                        star_api_result_t add_res = star_api_add_item(
+                        star_api_queue_add_item(
                             local[i].name,
                             local[i].description,
                             local[i].game_source[0] ? local[i].game_source : default_src,
                             local[i].item_type[0] ? local[i].item_type : "KeyItem",
-                            nft);
+                            nft, 1, 1);
                         add_item_calls++;
-                        {
-                            const char* add_err = (add_res != STAR_API_SUCCESS) ? star_api_get_last_error() : NULL;
-                            if (add_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0')
-                                str_copy(g_inv_add_item_error, add_err ? add_err : "add_item failed", sizeof(g_inv_add_item_error));
-                            if (g_add_item_log_fn)
-                                g_add_item_log_fn(local[i].name, (add_res == STAR_API_SUCCESS) ? 1 : 0, add_err ? add_err : "", g_add_item_log_user);
-                        }
                     }
                 }
                 local[i].synced = 1;
+            }
+        }
+        /* Send all queued add-item requests in one flush (batch). */
+        if (add_item_calls > 0) {
+            star_api_result_t flush_res = star_api_flush_add_item_jobs();
+            if (flush_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0') {
+                const char* flush_err = star_api_get_last_error();
+                str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
             }
         }
     }
@@ -967,6 +967,6 @@ star_api_result_t star_sync_single_item(const char* name,
     if (!name || !name[0]) return STAR_API_ERROR_INVALID_PARAM;
     if (star_api_has_item(name))
         return STAR_API_SUCCESS;
-    star_api_queue_add_item(name, description ? description : "", game_source ? game_source : "", item_type ? item_type : "KeyItem", nft_id);
+    star_api_queue_add_item(name, description ? description : "", game_source ? game_source : "", item_type ? item_type : "KeyItem", nft_id, 1, 1);
     return star_api_flush_add_item_jobs();
 }

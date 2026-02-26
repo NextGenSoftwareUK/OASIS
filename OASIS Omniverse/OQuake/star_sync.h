@@ -48,6 +48,7 @@ typedef struct star_sync_local_item {
     char game_source[64];
     char item_type[64];
     char nft_id[128];  /* optional; empty = no NFT. When set, add_item stores NFTId in item MetaData. */
+    int  quantity;     /* for stack/ammo: amount to add (e.g. 20 shells). 0 = use 1 when sending. */
     int  synced;  /* output: set to 1 by sync layer when item is on remote */
 } star_sync_local_item_t;
 

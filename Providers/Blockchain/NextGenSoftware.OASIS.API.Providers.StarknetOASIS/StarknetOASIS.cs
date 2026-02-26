@@ -3442,22 +3442,39 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
     {
         try
         {
+            // Try full deserialize first so Inventory (including Quantity/Stack) is restored
+            try
+            {
+                var raw = element.GetRawText();
+                if (!string.IsNullOrWhiteSpace(raw))
+                {
+                    var full = JsonSerializer.Deserialize<AvatarDetail>(raw);
+                    if (full != null)
+                        return full;
+                }
+            }
+            catch { /* fall back to minimal parse */ }
+
             var avatarDetail = new AvatarDetail();
             if (element.TryGetProperty("id", out var idProp))
             {
                 var idStr = idProp.GetString();
                 if (Guid.TryParse(idStr, out var id))
-                {
                     avatarDetail.Id = id;
-                }
             }
             if (element.TryGetProperty("username", out var usernameProp))
-            {
                 avatarDetail.Username = usernameProp.GetString();
-            }
             if (element.TryGetProperty("email", out var emailProp))
-            {
                 avatarDetail.Email = emailProp.GetString();
+            if (element.TryGetProperty("Inventory", out var invProp))
+            {
+                var invRaw = invProp.GetRawText();
+                if (!string.IsNullOrWhiteSpace(invRaw))
+                {
+                    var list = JsonSerializer.Deserialize<List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>>(invRaw);
+                    if (list != null)
+                        avatarDetail.Inventory = new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IInventoryItem>(list);
+                }
             }
             return avatarDetail;
         }

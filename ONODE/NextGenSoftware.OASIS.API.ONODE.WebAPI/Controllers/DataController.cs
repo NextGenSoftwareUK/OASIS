@@ -310,7 +310,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                     OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                     var holons = Mapper.Convert<IHolon, Holon>(result.Result);
-                    response.Result.Result = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
+                    var list = holons as IList<Holon> ?? holons?.ToList() ?? new List<Holon>();
+                    response.Result.Result = list;
+
+                    // Ensure serialization never sees a lazy enumerable (avoids "Error while copying content to a stream")
+                    if (response.Result?.Result != null && !(response.Result.Result is IList<Holon>))
+                        response.Result.Result = response.Result.Result.ToList();
 
                     return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
                 }
