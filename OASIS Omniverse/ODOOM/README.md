@@ -6,6 +6,31 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 ## Quick start
 
+### macOS (Homebrew)
+
+1. **Build:** From this folder run:
+   ```bash
+   ./build_odoom_mac.sh
+   ```
+   Installs all Homebrew deps, clones UZDoom, compiles it, and sets up OASIS mods automatically.
+   Output: **uzdoom.app** in `~/Source/UZDoom/build/`.
+
+2. **Run:**
+   ```bash
+   ~/Source/UZDoom/build/run_odoom_mac.sh
+   ```
+   Or `open ~/Source/UZDoom/build/uzdoom.app` directly.
+
+3. **WAD:** The build script auto-downloads **Freedoom** (free). To use your own: copy `doom2.wad` to `~/Source/UZDoom/build/`.
+
+4. **STAR API:** Export credentials before running:
+   ```bash
+   export STAR_USERNAME=youruser STAR_PASSWORD=yourpass
+   ~/Source/UZDoom/build/run_odoom_mac.sh
+   ```
+
+### Windows
+
 1. **Prerequisites:** Visual Studio 2019+, CMake, Python 3, UZDoom clone (e.g. `C:\Source\UZDoom`). See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md).
 
 2. **Build:** From this folder run:
