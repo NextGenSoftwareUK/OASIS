@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOOM — OASIS Avatar</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24'>🔥</text></svg>">
+  <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0a0a0a;
+      color: #ccc;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Launcher (login + avatar card) — ASCII DOOM + OASIS background */
+    #launcher {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      gap: 1.25rem;
+      position: relative;
+      background: #0a0a0a url(doom-oasis-bg.png) center center no-repeat;
+      background-size: cover;
+    }
+    #launcher::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+    }
+    #launcher > * { position: relative; z-index: 1; }
+    .launcher-logo {
+      width: 140px;
+      height: auto;
+      margin-bottom: 0.5rem;
+      filter: drop-shadow(0 0 8px rgba(200, 60, 40, 0.5));
+    }
+    #launcher.hidden { display: none; }
+    h1 { font-size: 1.5rem; font-weight: 600; }
+    p { color: #888; text-align: center; max-width: 360px; line-height: 1.5; }
+    .muted { font-size: 13px; color: #666; }
+
+    #login { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    #login.hidden { display: none; }
+    .hidden { display: none !important; }
+    .row { display: flex; gap: 0.5rem; align-items: center; }
+    input {
+      padding: 10px 14px;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #eee;
+      font-size: 15px;
+      width: 220px;
+    }
+    input::placeholder { color: #666; }
+    button, .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+    }
+    button.primary, .btn.primary { background: #c41e1e; color: #fff; }
+    button.primary:hover, .btn.primary:hover { background: #e03030; }
+    button.secondary { background: #333; color: #ccc; }
+    button.secondary:hover { background: #444; }
+    .error { color: #e55; font-size: 14px; }
+
+    #avatar { display: none; flex-direction: column; align-items: center; gap: 1rem; }
+    #avatar.visible { display: flex; }
+    .avatar-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      min-width: 320px;
+    }
+    .avatar-portrait-wrap {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      background: #1a1a1a;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .avatar-portrait-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar-portrait-wrap.placeholder { background: #222; color: #555; font-size: 24px; }
+    .avatar-info { flex: 1; }
+    .avatar-name { font-weight: 600; font-size: 1.1rem; }
+    .avatar-meta { color: #888; font-size: 14px; margin-top: 4px; }
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+
+    /* Game view: avatar bar + DOOM canvas */
+    #gameView {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      background: #0a0a0a;
+    }
+    #gameView.visible { display: flex !important; }
+    /* DOOM-style HUD bar: 8-bit font, blocky text, ASCII feel */
+    #avatarBar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      min-height: 56px;
+      font-family: 'Press Start 2P', monospace;
+      background: linear-gradient(180deg, #2a2520 0%, #1a1510 50%, #0f0c08 100%);
+      border-bottom: 4px solid #3a3028;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.04), 0 2px 0 rgba(0,0,0,0.6);
+      -webkit-font-smoothing: none;
+      -moz-osx-font-smoothing: unset;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #avatarBar .portrait-wrap {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #5a4a3a;
+      background: #0d0a08;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 6px rgba(0,0,0,0.8), 0 0 0 1px #2a2018;
+    }
+    #avatarBar .portrait-wrap img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+    #avatarBar .portrait-wrap.placeholder {
+      color: #8b7355;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 14px;
+    }
+    #avatarBar .name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 10px;
+      color: #e8e0d8;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px 0 0 #000, 0 1px 0 #000;
+      letter-spacing: 0.02em;
+    }
+    #avatarBar .meta {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 9px;
+      color: #c41e1e;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      margin-left: 6px;
+    }
+    #avatarBar .spacer { flex: 1; }
+    #gameView .back-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 8px;
+      padding: 10px 14px;
+      background: #8b1a1a;
+      border: 3px solid #5a1010;
+      color: #fff;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000;
+      box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 2px 0 #000;
+    }
+    #gameView .back-btn:hover {
+      background: #a02020;
+      border-color: #6a1818;
+      color: #fff;
+    }
+    #dos {
+      flex: 1 1 0;
+      min-height: 400px;
+      width: 100%;
+      position: relative;
+      background: #000;
+    }
+    #dos iframe {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #dos canvas { display: block; width: 100%; height: 100%; }
+    /* Match official doom-wasm: canvas must have no border/padding for correct mouse coords */
+    canvas.emscripten { border: 0 none; background-color: #000; display: block; }
+    .dos-loading { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: #888; font-family: monospace; }
+    #avatarBar .game-claim-wrap { display: flex; align-items: center; gap: 8px; }
+    #avatarBar .game-claim-wrap select {
+      font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 6px 8px;
+      background: #1a1510; color: #e8e0d8; border: 2px solid #5a4a3a; min-width: 120px;
+    }
+    .weapon-nft-notification {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; align-items: center; gap: 16px; padding: 16px 20px;
+      background: linear-gradient(180deg, #2a2520 0%, #1a1510 100%);
+      border: 4px solid #5a4a3a; box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      animation: weaponNftSlide 0.3s ease-out;
+    }
+    .weapon-nft-notification.hidden { display: none !important; }
+    .weapon-nft-img { width: 80px; height: 80px; object-fit: contain; background: #0d0a08; border: 2px solid #3a3028; }
+    .weapon-nft-text { display: flex; flex-direction: column; gap: 4px; }
+    .weapon-nft-title { font-family: 'Press Start 2P', monospace; font-size: 10px; color: #4ade80; text-transform: uppercase; }
+    .weapon-nft-sub { font-family: 'Press Start 2P', monospace; font-size: 8px; color: #888; }
+    @keyframes weaponNftSlide { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div id="launcher">
+    <img src="oasis-logo.png" alt="OASIS" class="launcher-logo">
+    <h1>DOOM — OASIS Avatar</h1>
+    <div id="login">
+      <p>Log in with your OASIS avatar to play as yourself.</p>
+      <form id="loginForm" class="row" onsubmit="return handleLogin(event)">
+        <input type="text" id="username" placeholder="Username" required autocomplete="username">
+        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+        <button type="submit" class="primary">Login</button>
+      </form>
+      <p id="loginError" class="error hidden"></p>
+      <p class="muted">API: <span id="apiBase">—</span> · <a href="#" id="apiSwitch">Switch</a></p>
+    </div>
+    <div id="avatar">
+      <div class="avatar-card">
+        <div id="portraitWrap" class="avatar-portrait-wrap placeholder">?</div>
+        <div class="avatar-info">
+          <div id="displayName" class="avatar-name">—</div>
+          <div id="avatarMeta" class="avatar-meta">LVL ?  KARMA ?</div>
+        </div>
+      </div>
+      <p class="muted">Your OASIS avatar will appear in the game bar. One play option — OASIS / STAR integrated.</p>
+      <div class="actions">
+        <button type="button" class="primary" id="playDoomBtn">Play DOOM</button>
+        <button type="button" class="secondary" onclick="logout()">Logout</button>
+      </div>
+      <div id="claimWeaponSection" class="claim-weapon hidden">
+        <p class="muted" style="margin-bottom:6px">Claim a weapon you found in DOOM as an NFT (sent to your avatar):</p>
+        <div class="row" style="flex-wrap:wrap; gap:8px; align-items:center">
+          <select id="weaponSelect" style="min-width:160px; padding:6px; background:#1a1a1a; color:#ccc; border:1px solid #444"></select>
+          <button type="button" class="secondary" id="claimWeaponBtn">Claim weapon</button>
+        </div>
+        <p id="claimWeaponMsg" class="muted hidden" style="margin-top:6px; font-size:0.9em"></p>
+        <p class="muted" style="margin-top:6px; font-size:0.85em">If you didn’t see an in-game popup when you picked up a weapon, you’re on the js-dos build. Claim above to get the NFT. Rebuild the WASM from doom-wasm-src for instant in-game notifications.</p>
+      </div>
+    </div>
+    <p class="muted">Arrow keys move, Ctrl fire. Run <code>npm start</code> in doom-browser so the game loads.</p>
+  </div>
+
+  <div id="gameView">
+    <div id="avatarBar">
+      <div id="gamePortraitWrap" class="portrait-wrap placeholder">?</div>
+      <span id="gameName" class="name">—</span>
+      <span id="gameMeta" class="meta">LVL —  KARMA —  XP —</span>
+      <div class="spacer"></div>
+      <div id="gameClaimWrap" class="game-claim-wrap hidden" aria-hidden="true">
+        <select id="gameWeaponSelect" title="Weapon you just picked up"></select>
+        <button type="button" class="secondary back-btn" id="gameClaimWeaponBtn">Claim NFT</button>
+      </div>
+      <button type="button" class="secondary back-btn" id="missionBtn" onclick="awardXpMission()">MISSION</button>
+      <button type="button" class="secondary back-btn" onclick="exitGame()">EXIT</button>
+    </div>
+    <div id="dos"></div>
+    <div id="weaponNftNotification" class="weapon-nft-notification hidden">
+      <img id="weaponNftImg" alt="" class="weapon-nft-img">
+      <div class="weapon-nft-text">
+        <span id="weaponNftTitle" class="weapon-nft-title">You received</span>
+        <span id="weaponNftSub" class="weapon-nft-sub">NFT sent to your avatar</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var STORAGE_JWT = 'oasis_doom_jwt';
+      var STORAGE_ID = 'oasis_doom_avatar_id';
+      var currentProfile = null;
+      var dosInstance = null;
+      var gameStartTime = 0;
+      var gameMode = 'wasm';
+      var gameMessageListener = null;
+
+      // ── OASIS Omniverse: Sponsor Integrations ─────────────────────────────
+      // Tapestry (Onchain Social) — set via ?tapestryKey= or window.TAPESTRY_API_KEY
+      var TAPESTRY_API_KEY = (function () {
+        var q = typeof location !== 'undefined' && location.search ? new URLSearchParams(location.search) : null;
+        return (q && q.get('tapestryKey')) || window.TAPESTRY_API_KEY || '';
+      })();
+      var TAPESTRY_API_BASE = 'https://api.usetapestry.dev/api';
+
+      // Session weapon tracking (for Tapestry post + SOAR score)
+      var weaponsCollectedThisSession = [];
+      var sessionKillCount = 0;
+
+      function getApiBase() {
+        var q = new URLSearchParams(window.location.search);
+        if (q.has('onode')) return q.get('onode').replace(/\/$/, '');
+        if (q.has('api')) return q.get('api').replace(/\/$/, '');
+        if (window.OASIS_API_BASE) return window.OASIS_API_BASE.replace(/\/$/, '');
+        var host = window.location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:5003';
+        return 'https://api.oasisweb4.com';
+      }
+
+      function getIdFromJwt(jwt) {
+        try {
+          var parts = jwt.split('.');
+          if (parts.length !== 3) return null;
+          var payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+          var decoded = JSON.parse(atob(payload));
+          return decoded.id || decoded.avatarId || decoded.sub || null;
+        } catch (e) { return null; }
+      }
+
+      var apiBase = getApiBase();
+      if (document.getElementById('apiBase')) document.getElementById('apiBase').textContent = apiBase;
+      var apiSwitch = document.getElementById('apiSwitch');
+      if (apiSwitch) {
+        apiSwitch.textContent = apiBase.indexOf('localhost') !== -1 ? 'Use remote API' : 'Use local API';
+        apiSwitch.href = apiBase.indexOf('localhost') !== -1 ? '?api=https://api.oasisweb4.com' : '?api=http://localhost:5003';
+      }
+
+      function showLogin(err) {
+        var launcher = document.getElementById('launcher');
+        var gameView = document.getElementById('gameView');
+        if (launcher) { launcher.classList.remove('hidden'); launcher.style.display = 'flex'; }
+        if (gameView) { gameView.classList.remove('visible'); gameView.style.display = 'none'; }
+        var login = document.getElementById('login');
+        var avatar = document.getElementById('avatar');
+        if (login) login.classList.remove('hidden');
+        if (avatar) avatar.classList.remove('visible');
+        var el = document.getElementById('loginError');
+        if (el) { el.textContent = err || ''; el.classList.toggle('hidden', !err); }
+      }
+
+      function setProfile(profile) {
+        currentProfile = profile;
+        document.getElementById('displayName').textContent = profile.displayName || profile.username || '—';
+        var xp = profile.xp != null ? profile.xp : '?';
+        document.getElementById('avatarMeta').textContent = 'LVL ' + (profile.level != null ? profile.level : '?') + '  KARMA ' + (profile.karma != null ? profile.karma : '?') + '  XP ' + xp;
+        var wrap = document.getElementById('portraitWrap');
+        wrap.innerHTML = '';
+        wrap.classList.add('placeholder');
+        if (profile.portraitUrl) {
+          var img = document.createElement('img');
+          img.alt = 'Avatar';
+          img.src = profile.portraitUrl;
+          wrap.appendChild(img);
+          wrap.classList.remove('placeholder');
+        } else {
+          var img = document.createElement('img');
+          img.alt = 'Avatar';
+          img.src = 'doom-avatar-pfp.png';
+          img.onerror = function () { wrap.textContent = '?'; wrap.classList.add('placeholder'); };
+          wrap.appendChild(img);
+          wrap.classList.remove('placeholder');
+        }
+      }
+
+      function showAvatar(profile) {
+        var launcher = document.getElementById('launcher');
+        var gameView = document.getElementById('gameView');
+        if (launcher) { launcher.classList.remove('hidden'); launcher.style.display = 'flex'; }
+        if (gameView) { gameView.classList.remove('visible'); gameView.style.display = 'none'; }
+        setProfile(profile);
+        var login = document.getElementById('login');
+        var avatar = document.getElementById('avatar');
+        if (login) login.classList.add('hidden');
+        if (avatar) avatar.classList.add('visible');
+      }
+
+      function checkAuthAndJson(r, fromPortalParam) {
+        if (r.status === 401) {
+          if (fromPortalParam) {
+            return Promise.reject(new Error('Unauthorized'));
+          }
+          logout();
+          showLogin('Session expired or invalid. Please log in again.');
+          return Promise.reject(new Error('Unauthorized'));
+        }
+        return r.json();
+      }
+
+      function refreshProfileFromApi() {
+        var jwt = sessionStorage.getItem(STORAGE_JWT);
+        var id = sessionStorage.getItem(STORAGE_ID);
+        if (!jwt || !id) return Promise.resolve();
+        return fetch(apiBase + '/api/avatar/get-avatar-detail-by-id/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } })
+          .then(checkAuthAndJson)
+          .then(function (res) {
+            if (res.isError || res.IsError || !(res.result || res.Result)) return;
+            var d = (res.result && res.result.result) ? res.result.result : (res.result || res.Result);
+            if (d && d.Result) d = d.Result;
+            var portraitUrl = (d.portrait && d.portrait.startsWith('data:')) ? d.portrait : (d.portrait || d.Portrait || '');
+            var level = d.level != null ? d.level : (d.Level != null ? d.Level : '?');
+            var karma = d.karma != null ? d.karma : (d.Karma != null ? d.Karma : '?');
+            var xp = d.xp != null ? d.xp : (d.XP != null ? d.XP : '?');
+            currentProfile = {
+              displayName: [d.firstName || d.FirstName, d.lastName || d.LastName].filter(Boolean).join(' ') || d.username || d.Username,
+              username: d.username || d.Username,
+              level: level,
+              karma: karma,
+              xp: xp,
+              portraitUrl: portraitUrl,
+              solanaWallet: d.solanaWallet || d.SolanaWallet || ''
+            };
+            setProfile(currentProfile);
+            renderGameAvatarBar();
+          });
+      }
+
+      function addXpForGameAction(amount, sourceDesc) {
+        var jwt = sessionStorage.getItem(STORAGE_JWT);
+        var id = sessionStorage.getItem(STORAGE_ID);
+        if (!jwt || !id) return Promise.resolve();
+        var currentXP = 0;
+        if (currentProfile && (currentProfile.xp != null || currentProfile.xp === 0)) currentXP = parseInt(currentProfile.xp, 10) || 0;
+        return fetch(apiBase + '/api/avatar/get-avatar-detail-by-id/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } })
+          .then(function (r) { return checkAuthAndJson(r); })
+          .then(function (res) {
+            if (res.isError || res.IsError || !(res.result || res.Result)) return Promise.resolve();
+            var d = (res.result && res.result.result) ? res.result.result : (res.result || res.Result);
+            if (d && d.Result) d = d.Result;
+            var existing = d.xp != null ? d.xp : (d.XP != null ? d.XP : 0);
+            currentXP = parseInt(existing, 10) || 0;
+            var newXP = currentXP + (amount || 25);
+            return fetch(apiBase + '/api/avatar/update-avatar-detail-by-id/' + id, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+              body: JSON.stringify({ XP: newXP })
+            }).then(checkAuthAndJson);
+          })
+          .then(function (res) {
+            if (res && (res.isError || res.IsError)) {
+              console.warn('OASIS update XP response:', res);
+              return Promise.resolve();
+            }
+            return refreshProfileFromApi();
+          })
+          .catch(function (err) { console.warn('OASIS add-XP error:', err); return Promise.resolve(); });
+      }
+
+      window.awardXpMission = function () {
+        var btn = document.getElementById('missionBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '...'; }
+        addXpForGameAction(50, 'Mission complete').then(function () {
+          if (btn) { btn.disabled = false; btn.textContent = 'MISSION'; }
+          refreshProfileFromApi();
+          showXpToast('+50 XP');
+        });
+      };
+
+      function showXpToast(msg) {
+        var bar = document.getElementById('avatarBar');
+        if (!bar) return;
+        var toast = document.createElement('span');
+        toast.className = 'meta';
+        toast.style.cssText = 'color:#4ade80; margin-left: 8px; animation: fade 2s ease-out forwards;';
+        toast.textContent = msg;
+        bar.appendChild(toast);
+        setTimeout(function () { if (toast.parentNode) toast.remove(); }, 2500);
+      }
+
+      var weaponCatalog = null;
+      function loadWeaponCatalog() {
+        if (weaponCatalog) return Promise.resolve(weaponCatalog);
+        return fetch('weapon-nft-catalog.json').then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('Catalog not found')); })
+          .then(function (data) { weaponCatalog = data; return data; });
+      }
+      function populateWeaponSelect(weapons) {
+        var sel = document.getElementById('weaponSelect');
+        if (!sel || !weapons || !weapons.length) return;
+        sel.innerHTML = '';
+        weapons.forEach(function (w, i) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = w.title || w.name;
+          sel.appendChild(opt);
+        });
+      }
+      function populateGameWeaponSelect(weapons) {
+        var sel = document.getElementById('gameWeaponSelect');
+        if (!sel || !weapons || !weapons.length) return;
+        sel.innerHTML = '';
+        weapons.forEach(function (w, i) {
+          var opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = w.title || w.name;
+          sel.appendChild(opt);
+        });
+      }
+      function doMintWeapon(weapon) {
+        var jwt = sessionStorage.getItem(STORAGE_JWT);
+        var id = sessionStorage.getItem(STORAGE_ID);
+        if (!jwt || !id) return Promise.resolve({ success: false, error: 'Log in first.' });
+        var imageUrl = weapon.imageUrl || ('https://via.placeholder.com/512/1a1a1a/888?text=' + encodeURIComponent(weapon.name || 'DOOM'));
+        var body = {
+          Title: weapon.title || ('DOOM ' + weapon.name),
+          Description: weapon.description || '',
+          ImageUrl: imageUrl,
+          Symbol: 'OWPN',
+          NumberToMint: 1,
+          SendToAvatarAfterMintingId: id,
+          MetaData: {
+            itemType: 'weapon',
+            originGame: 'doom',
+            originId: String(weapon.doomednum),
+            name: weapon.name,
+            description: weapon.description,
+            portable: weapon.portable,
+            raw: weapon.raw
+          }
+        };
+        return fetch(apiBase + '/api/nft/mint-nft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+          body: JSON.stringify(body)
+        })
+          .then(function (r) { return r.json().then(function (data) { return { status: r.status, data: data }; }); })
+          .then(function (res) {
+            if (res.status >= 200 && res.status < 300 && !(res.data && (res.data.isError || res.data.IsError))) {
+              return { success: true, weapon: weapon };
+            }
+            var err = (res.data && (res.data.message || res.data.Message)) || ('Mint failed (' + res.status + ')');
+            return { success: false, error: err };
+          })
+          .catch(function (err) { return { success: false, error: err && err.message ? err.message : 'Request failed' }; });
+      }
+      function showWeaponNftNotification(weapon) {
+        var el = document.getElementById('weaponNftNotification');
+        var img = document.getElementById('weaponNftImg');
+        var title = document.getElementById('weaponNftTitle');
+        var sub = document.getElementById('weaponNftSub');
+        if (!el || !img || !title) return;
+        var imageUrl = weapon.imageUrl || ('https://via.placeholder.com/512/1a1a1a/888?text=' + encodeURIComponent(weapon.name || 'DOOM'));
+        img.src = imageUrl;
+        img.alt = weapon.title || weapon.name;
+        title.textContent = 'You received: ' + (weapon.title || weapon.name);
+        if (sub) sub.textContent = 'NFT sent to your avatar';
+        el.classList.remove('hidden');
+        el.style.display = 'flex';
+        if (window._weaponNftNotificationTimer) clearTimeout(window._weaponNftNotificationTimer);
+        window._weaponNftNotificationTimer = setTimeout(function () {
+          el.classList.add('hidden');
+          el.style.display = 'none';
+          window._weaponNftNotificationTimer = null;
+        }, 5000);
+      }
+      function gameClaimWeapon() {
+        if (!weaponCatalog || !weaponCatalog.weapons || !weaponCatalog.weapons.length) return;
+        var sel = document.getElementById('gameWeaponSelect');
+        var idx = sel ? parseInt(sel.value, 10) : 0;
+        var weapon = weaponCatalog.weapons[idx];
+        if (!weapon) return;
+        var btn = document.getElementById('gameClaimWeaponBtn');
+        if (btn) { btn.disabled = true; btn.textContent = '…'; }
+        doMintWeapon(weapon).then(function (res) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Claim NFT'; }
+          if (res.success) showWeaponNftNotification(res.weapon);
+        });
+      }
+      function claimWeapon() {
+        var id = sessionStorage.getItem(STORAGE_ID);
+        if (!id) { setClaimWeaponMsg('Log in first.', true); return; }
+        if (!weaponCatalog || !weaponCatalog.weapons || !weaponCatalog.weapons.length) { setClaimWeaponMsg('Weapon list not loaded.', true); return; }
+        var sel = document.getElementById('weaponSelect');
+        var idx = sel ? parseInt(sel.value, 10) : 0;
+        var weapon = weaponCatalog.weapons[idx];
+        if (!weapon) { setClaimWeaponMsg('Select a weapon.', true); return; }
+        var btn = document.getElementById('claimWeaponBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Minting…'; }
+        setClaimWeaponMsg('');
+        doMintWeapon(weapon).then(function (res) {
+          if (btn) { btn.disabled = false; btn.textContent = 'Claim weapon'; }
+          if (res.success) setClaimWeaponMsg('Weapon NFT minted and sent to your avatar.', false);
+          else setClaimWeaponMsg(res.error || 'Failed', true);
+        });
+      }
+      function setClaimWeaponMsg(msg, isError) {
+        var el = document.getElementById('claimWeaponMsg');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.classList.toggle('hidden', !msg);
+        el.style.color = isError ? '#e11' : '#4ade80';
+      }
+
+      // ── Tapestry: find-or-create onchain social profile ───────────────────
+      function createOrFindTapestryProfile(walletAddress, username) {
+        if (!TAPESTRY_API_KEY || !walletAddress) return Promise.resolve(null);
+        return fetch(TAPESTRY_API_BASE + '/profiles/findOrCreate?apiKey=' + TAPESTRY_API_KEY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: walletAddress,
+            username: username || walletAddress.slice(0, 12),
+            bio: 'Playing DOOM in the OASIS Omniverse — cross-game metaverse on Solana.',
+            blockchain: 'SOLANA',
+            execution: 'FAST_UNCONFIRMED'
+          })
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.resolve(null); })
+          .then(function (profile) {
+            if (profile && profile.id) {
+              sessionStorage.setItem('tapestry_profile_id', profile.id);
+              console.log('[Tapestry] Profile ready:', profile.id);
+            }
+            return profile;
+          })
+          .catch(function (err) {
+            console.warn('[Tapestry] createOrFindProfile error:', err && err.message ? err.message : err);
+            return null;
+          });
+      }
+
+      // ── Tapestry: post game result to onchain social feed ────────────────
+      function postGameResultToTapestry(walletAddress, sessionSeconds, weapons) {
+        if (!TAPESTRY_API_KEY || !walletAddress) return Promise.resolve(null);
+        var weaponList = weapons && weapons.length > 0 ? weapons.join(', ') : 'none';
+        var text = 'I just played DOOM in the OASIS Omniverse! '
+          + 'Survived ' + sessionSeconds + 's. '
+          + 'Weapons collected: ' + weaponList + '. '
+          + 'Play at oasisweb4.com \uD83D\uDD25 #OASISMetaverse #Solana #Graveyard';
+        return fetch(TAPESTRY_API_BASE + '/contents?apiKey=' + TAPESTRY_API_KEY, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: walletAddress,
+            text: text,
+            execution: 'FAST_UNCONFIRMED'
+          })
+        })
+          .then(function (r) { return r.ok ? r.json() : Promise.resolve(null); })
+          .then(function (content) {
+            console.log('[Tapestry] Post created:', content && content.id ? content.id : '(no id)');
+            return content;
+          })
+          .catch(function (err) {
+            console.warn('[Tapestry] postGameResult error:', err && err.message ? err.message : err);
+            return null;
+          });
+      }
+
+      // ── SOAR: submit score via local server route ────────────────────────
+      function submitScoreToSoar(playerWallet, score) {
+        if (!playerWallet || score <= 0) return Promise.resolve(null);
+        return fetch('/api/soar/submit-score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ playerWallet: playerWallet, score: score })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            if (res && res.success) {
+              console.log('[SOAR] Score submitted:', score, res.stub ? '(stub — set SOAR_AUTH_KEYPAIR to go live)' : 'sig: ' + res.signature);
+            } else {
+              console.warn('[SOAR] Score submission failed:', res && res.error);
+            }
+            return res;
+          })
+          .catch(function (err) {
+            console.warn('[SOAR] submitScore error:', err && err.message ? err.message : err);
+            return null;
+          });
+      }
+
+      function renderGameAvatarBar() {
+        if (!currentProfile) return;
+        var name = currentProfile.displayName || currentProfile.username || '—';
+        document.getElementById('gameName').textContent = name + (fromPortal ? ' (from link)' : '');
+        var xp = currentProfile.xp != null ? currentProfile.xp : '?';
+        document.getElementById('gameMeta').textContent = 'LVL ' + (currentProfile.level != null ? currentProfile.level : '?') + '  KARMA ' + (currentProfile.karma != null ? currentProfile.karma : '?') + '  XP ' + xp;
+        var wrap = document.getElementById('gamePortraitWrap');
+        wrap.innerHTML = '';
+        wrap.classList.add('placeholder');
+        if (currentProfile.portraitUrl) {
+          var img = document.createElement('img');
+          img.alt = 'Avatar';
+          img.src = currentProfile.portraitUrl;
+          wrap.appendChild(img);
+          wrap.classList.remove('placeholder');
+        } else {
+          var img = document.createElement('img');
+          img.alt = 'Avatar';
+          img.src = 'doom-avatar-pfp.png';
+          img.onerror = function () { wrap.textContent = '?'; wrap.classList.add('placeholder'); };
+          wrap.appendChild(img);
+          wrap.classList.remove('placeholder');
+        }
+      }
+
+      window.handleLogin = function (e) {
+        e.preventDefault();
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        var errEl = document.getElementById('loginError');
+        errEl.textContent = '';
+        errEl.classList.add('hidden');
+        fetch(apiBase + '/api/avatar/authenticate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username, password: password })
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            console.log('OASIS authenticate response:', data);
+            var isError = data.isError === true || data.IsError === true;
+            if (isError) {
+              showLogin(data.message || data.Message || 'Login failed. Check console (F12) for response.');
+              return;
+            }
+            var result = (data.result && data.result.result) ? data.result.result : (data.result || data.Result);
+            if (!result) {
+              showLogin(data.message || data.Message || 'Login failed. No result in response.');
+              return;
+            }
+            var token = result.token || result.jwtToken || result.JwtToken;
+            var id = result.id || result.avatarId || result.AvatarId;
+            if (id && typeof id !== 'string') id = id.toString ? id.toString() : String(id);
+            if (!token || !id) {
+              showLogin('No token or id in response. Open DevTools (F12) → Console and try again.');
+              return;
+            }
+            sessionStorage.setItem(STORAGE_JWT, token);
+            sessionStorage.setItem(STORAGE_ID, id);
+            var displayName = result.username || result.Username || result.firstName || result.FirstName;
+            fetch(apiBase + '/api/avatar/get-avatar-detail-by-id/' + id, {
+              headers: { 'Authorization': 'Bearer ' + token }
+            })
+              .then(function (r) { return r.json(); })
+              .then(function (res) {
+                if (res.isError || res.IsError || !(res.result || res.Result)) {
+                  showAvatar({ displayName: displayName, username: result.username || result.Username, level: '?', karma: '?', xp: '?' });
+                  return;
+                }
+                var d = (res.result && res.result.result) ? res.result.result : (res.result || res.Result);
+                if (d && d.Result) d = d.Result;
+                var first = d.firstName || d.FirstName;
+                var last = d.lastName || d.LastName;
+                var portraitUrl = (d.portrait && d.portrait.startsWith('data:')) ? d.portrait : (d.portrait || d.Portrait || '');
+                var level = d.level != null ? d.level : (d.Level != null ? d.Level : '?');
+                var karma = d.karma != null ? d.karma : (d.Karma != null ? d.Karma : '?');
+                var xp = d.xp != null ? d.xp : (d.XP != null ? d.XP : '?');
+                var builtProfile = {
+                  displayName: [first, last].filter(Boolean).join(' ') || d.username || d.Username,
+                  username: d.username || d.Username,
+                  level: level,
+                  karma: karma,
+                  xp: xp,
+                  portraitUrl: portraitUrl,
+                  solanaWallet: d.solanaWallet || d.SolanaWallet || ''
+                };
+                showAvatar(builtProfile);
+                // Tapestry: create/find onchain social profile in background
+                if (builtProfile.solanaWallet) {
+                  createOrFindTapestryProfile(builtProfile.solanaWallet, builtProfile.username);
+                }
+              })
+              .catch(function () {
+                showAvatar({ displayName: displayName, username: result.username || result.Username, level: '?', karma: '?', xp: '?' });
+              });
+          })
+          .catch(function (err) {
+            console.error('OASIS login error:', err);
+            showLogin('Network error. Is the API at ' + apiBase + ' running? CORS allowed for this page?');
+          });
+        return false;
+      };
+
+      window.logout = function () {
+        sessionStorage.removeItem(STORAGE_JWT);
+        sessionStorage.removeItem(STORAGE_ID);
+        currentProfile = null;
+        showLogin();
+      };
+
+      (function () {
+        var params = typeof location !== 'undefined' && location.search ? new URLSearchParams(location.search) : null;
+        var doomBaseParam = params && params.get('doomBase');
+        var port = typeof location !== 'undefined' && location.port ? location.port : '';
+        var onDoomServer = (port === '8765' || port === '8766');
+        if (doomBaseParam) {
+          window.DOOM_WASM_BASE = doomBaseParam.replace(/\/$/, '') + '/doom-wasm-build/';
+        } else if (!onDoomServer) {
+          window.DOOM_WASM_BASE = 'http://localhost:8765/doom-wasm-build/';
+        } else {
+          window.DOOM_WASM_BASE = '/doom-wasm-build/';
+        }
+      })();
+      var DOOM_WASM_BASE = window.DOOM_WASM_BASE || '/doom-wasm-build/';
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[DOOM] Page origin: ' + (typeof location !== 'undefined' ? location.origin : '') + ', DOOM_WASM_BASE: ' + DOOM_WASM_BASE);
+      }
+      var DOOM_JSDOS_BUNDLE = '/doom.jsdos';
+      var DOOM_JSDOS_SCRIPT = 'https://v8.js-dos.com/latest/js-dos.js';
+      var WEAPON_ENUM_TO_DOOMEDNUM = { 2: 2001, 3: 2002, 4: 2003, 5: 2004, 6: 2005, 7: 2006, 8: 82 };
+
+      function startDoomWithJsDos(container, showErr, hideLoading) {
+        if (!container) return;
+        container.innerHTML = '<div class="dos-loading">Loading DOOM (js-dos)…</div>';
+        function runJsDos(DosFn) {
+          try {
+            DosFn(container, { url: DOOM_JSDOS_BUNDLE, autoStart: true });
+            if (hideLoading) { var el = container.querySelector('.dos-loading'); if (el) el.remove(); }
+          } catch (e) {
+            if (showErr) showErr('js-dos failed: ' + (e && e.message ? e.message : e));
+          }
+        }
+        var Dos = window.Dos || window.CiDos || (window.JSDOS && window.JSDOS.Dos);
+        if (Dos) { runJsDos(Dos); return; }
+        var s = document.createElement('script');
+        s.src = DOOM_JSDOS_SCRIPT;
+        s.onload = function () {
+          Dos = window.Dos || window.CiDos || (window.JSDOS && window.JSDOS.Dos);
+          if (Dos) runJsDos(Dos); else if (showErr) showErr('js-dos loaded but Dos not found.');
+        };
+        s.onerror = function () { if (showErr) showErr('Could not load js-dos script.'); };
+        document.head.appendChild(s);
+      }
+
+      function onWeaponPickedUpInGame(weaponEnum) {
+        var doomednum = WEAPON_ENUM_TO_DOOMEDNUM[weaponEnum];
+        if (doomednum == null) return;
+        if (!weaponCatalog || !weaponCatalog.weapons) return;
+        var weapon = weaponCatalog.weapons.filter(function (w) { return w.doomednum === doomednum; })[0];
+        if (!weapon) return;
+        doMintWeapon(weapon).then(function (res) {
+          if (res.success) {
+            showWeaponNftNotification(res.weapon);
+            // Track for Tapestry post-game summary
+            var name = res.weapon.title || res.weapon.name;
+            if (weaponsCollectedThisSession.indexOf(name) === -1) {
+              weaponsCollectedThisSession.push(name);
+            }
+          }
+        });
+      }
+
+      function startDoomInContainer(container) {
+        container.innerHTML = '<div class="dos-loading" style="z-index:2;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#ccc;">Loading DOOM (WASM)…</div>';
+        function showErr(msg) {
+          container.innerHTML = '<div class="dos-loading" style="color:#c41e1e;z-index:2;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">' + msg + '</div>';
+        }
+        function hideLoading() {
+          var loading = container.querySelector('.dos-loading');
+          if (loading) loading.remove();
+        }
+
+        var canvasWrap = document.createElement('div');
+        canvasWrap.className = 'emscripten_border';
+        canvasWrap.style.cssText = 'display:block; margin:0 auto;';
+        var canvas = document.createElement('canvas');
+        canvas.id = 'dosDoomCanvas';
+        canvas.className = 'emscripten frame';
+        canvas.width = 800;
+        canvas.height = 600;
+        canvas.tabIndex = -1;
+        canvas.oncontextmenu = function (e) { e.preventDefault(); };
+        canvas.style.display = 'block';
+        canvas.style.width = '800px';
+        canvas.style.height = '600px';
+        canvas.style.background = '#000';
+        canvasWrap.appendChild(canvas);
+        container.appendChild(canvasWrap);
+
+        var baseUrl = (DOOM_WASM_BASE.indexOf('http') === 0) ? DOOM_WASM_BASE : ((typeof location !== 'undefined' && location.origin ? location.origin : '') + DOOM_WASM_BASE);
+        var wadDir = '/libsdl/doom-ws-wasm';
+        var wadPath = wadDir + '/doom1.wad';
+        var cfgPath = wadDir + '/default.cfg';
+        var commonArgs = ['-iwad', '/doom1.wad', '-window', '-nogui', '-nomusic', '-config', cfgPath];
+
+        window.Module = {
+          locateFile: function (path) {
+            if (path === 'websockets-doom.wasm') return DOOM_WASM_BASE + 'doom.wasm';
+            return DOOM_WASM_BASE + path;
+          },
+          canvas: canvas,
+          noInitialRun: true,
+          onWeaponPickedUp: onWeaponPickedUpInGame,
+          onRuntimeInitialized: function () {
+            var runDoom = function () {
+              try {
+                if (typeof Module.FS !== 'undefined') {
+                  try { Module.FS.mkdirTree(wadDir); } catch (e) {}
+                  Module.FS.chdir(wadDir);
+                }
+                var doCallMain = function () {
+                  if (typeof Module.callMain === 'function') Module.callMain(commonArgs);
+                };
+                if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(function () { requestAnimationFrame(doCallMain); });
+                else doCallMain();
+              } catch (e) {
+                showErr('WASM start: ' + (e && e.message ? e.message : e));
+              }
+            };
+            function showError(msg) {
+              hideLoading();
+              showErr(msg);
+            }
+            fetch(baseUrl + 'doom1.wad')
+              .then(function (r) {
+                if (!r.ok) throw new Error('doom1.wad ' + r.status);
+                return r.arrayBuffer();
+              })
+              .then(function (buf) {
+                var u8 = new Uint8Array(buf);
+                if (typeof Module.FS !== 'undefined') {
+                  try { Module.FS.mkdirTree(wadDir); } catch (e) {}
+                  Module.FS.writeFile(wadPath, u8);
+                  Module.FS.writeFile('/doom1.wad', u8);
+                }
+                return fetch(baseUrl + 'default.cfg').then(function (rc) { return rc.ok ? rc.text() : ''; });
+              })
+              .then(function (cfg) {
+                if (cfg && typeof Module.FS !== 'undefined') Module.FS.writeFile(cfgPath, cfg);
+                hideLoading();
+                runDoom();
+              })
+              .catch(function (err) {
+                var msg = (err && err.message) ? err.message : (typeof err === 'string' ? err : (err && err.reason) ? err.reason : String(err));
+                if (typeof console !== 'undefined') console.error('IWAD fetch failed (tried: ' + baseUrl + 'doom1.wad):', err);
+                showError('Failed to load IWAD: ' + msg);
+              });
+          },
+          print: function (text) {
+            if (typeof text !== 'string') text = Array.prototype.slice.call(arguments).join(' ');
+            if (text && text.indexOf('doom: 13, kill') !== -1) {
+              try {
+                sessionKillCount++;
+                if (currentProfile) addXpForGameAction(5, 'DOOM kill');
+              } catch (e) {}
+            }
+            if (typeof console !== 'undefined' && console.log) console.log(text);
+          },
+          printErr: function (text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            if (typeof console !== 'undefined' && console.error) console.error(text);
+          },
+          setStatus: function () {},
+          totalDependencies: 0,
+          monitorRunDependencies: function (left) {
+            Module.totalDependencies = Math.max(Module.totalDependencies || 0, left);
+          }
+        };
+
+        var script = document.createElement('script');
+        script.src = DOOM_WASM_BASE + 'doom.js';
+        script.async = true;
+        script.onerror = function () {
+          showErr('Could not load DOOM WASM. Ensure doom-wasm-build/ has doom.js and doom.wasm (rebuild from doom-wasm-src).');
+        };
+        document.head.appendChild(script);
+      }
+
+      function startGame() {
+        gameMode = 'wasm';
+        gameStartTime = Date.now();
+        weaponsCollectedThisSession = [];
+        sessionKillCount = 0;
+        var launcher = document.getElementById('launcher');
+        var gameView = document.getElementById('gameView');
+        var container = document.getElementById('dos');
+        if (!launcher || !gameView || !container) return;
+        launcher.classList.add('hidden');
+        launcher.style.display = 'none';
+        gameView.classList.add('visible');
+        gameView.style.display = 'flex';
+        gameView.style.visibility = 'visible';
+        renderGameAvatarBar();
+        startDoomInContainer(container);
+        if (gameMessageListener) window.removeEventListener('message', gameMessageListener);
+        gameMessageListener = function (event) {
+          if (event.data && event.data.type === 'doom-kill' && currentProfile) {
+            addXpForGameAction(5, 'DOOM kill');
+          }
+        };
+        window.addEventListener('message', gameMessageListener);
+      }
+
+      window.exitGame = function () {
+        if (gameMessageListener) {
+          window.removeEventListener('message', gameMessageListener);
+          gameMessageListener = null;
+        }
+        var playedMs = Date.now() - gameStartTime;
+        var sessionSeconds = Math.round(playedMs / 1000);
+
+        // OASIS XP on exit
+        if (playedMs >= 15000) {
+          addXpForGameAction(25, 'DOOM play session (' + sessionSeconds + 's)');
+        }
+
+        // ── MagicBlock SOAR: submit score (seconds survived + 10×kills) ────
+        var soarScore = sessionSeconds + (sessionKillCount * 10);
+        var solanaWallet = currentProfile && currentProfile.solanaWallet;
+        if (solanaWallet && soarScore > 0) {
+          submitScoreToSoar(solanaWallet, soarScore).then(function (res) {
+            if (res && res.success) {
+              showXpToast('Score ' + soarScore + ' on leaderboard!');
+            }
+          });
+        }
+
+        // ── Tapestry: post game result to onchain social feed ───────────────
+        if (solanaWallet && sessionSeconds >= 5) {
+          var weaponsSnapshot = weaponsCollectedThisSession.slice();
+          postGameResultToTapestry(solanaWallet, sessionSeconds, weaponsSnapshot)
+            .then(function (content) {
+              if (content) showXpToast('Result posted to your feed!');
+            });
+        }
+
+        // Tear down game UI
+        document.getElementById('gameView').classList.remove('visible');
+        document.getElementById('launcher').classList.remove('hidden');
+        var container = document.getElementById('dos');
+        container.innerHTML = '';
+        dosInstance = null;
+        var claimSection = document.getElementById('claimWeaponSection');
+        if (claimSection) {
+          claimSection.classList.remove('hidden');
+          claimSection.style.display = 'block';
+        }
+      };
+
+      document.getElementById('playDoomBtn').addEventListener('click', startGame);
+      var claimBtn = document.getElementById('claimWeaponBtn');
+      if (claimBtn) claimBtn.addEventListener('click', claimWeapon);
+      var gameClaimBtn = document.getElementById('gameClaimWeaponBtn');
+      if (gameClaimBtn) gameClaimBtn.addEventListener('click', gameClaimWeapon);
+      loadWeaponCatalog().then(function (data) {
+        if (data && data.weapons) {
+          populateWeaponSelect(data.weapons);
+          populateGameWeaponSelect(data.weapons);
+        }
+      }).catch(function () {});
+
+      // Token from URL (e.g. portal launch): ?onode=...&token=...
+      var q = new URLSearchParams(window.location.search);
+      var urlToken = q.get('token');
+      var urlOnode = q.get('onode');
+      if (urlToken && urlOnode) {
+        apiBase = urlOnode.replace(/\/$/, '');
+        var urlId = getIdFromJwt(urlToken);
+        if (urlId) {
+          sessionStorage.setItem(STORAGE_JWT, urlToken);  // token accepted and stored here
+          sessionStorage.setItem(STORAGE_ID, urlId);
+        }
+      }
+
+      var jwt = sessionStorage.getItem(STORAGE_JWT);
+      var id = sessionStorage.getItem(STORAGE_ID);
+      var fromPortal = !!(urlToken && urlOnode);
+      if (fromPortal && document.getElementById('apiBase')) {
+        document.getElementById('apiBase').textContent = apiBase + ' (token from link)';
+      }
+
+      if (jwt && id) {
+        if (fromPortal) {
+          currentProfile = { displayName: 'OASIS Player', username: '', level: '?', karma: '?', xp: '?', portraitUrl: '' };
+          showAvatar(currentProfile);
+        }
+        fetch(apiBase + '/api/avatar/get-avatar-detail-by-id/' + id, {
+          headers: { 'Authorization': 'Bearer ' + jwt }
+        })
+          .then(function (r) { return checkAuthAndJson(r, fromPortal); })
+          .then(function (res) {
+            if (res.isError || res.IsError || !(res.result || res.Result)) { if (!fromPortal) logout(); return; }
+            var d = (res.result && res.result.result) ? res.result.result : (res.result || res.Result);
+            if (d && d.Result) d = d.Result;
+            var portraitUrl = (d.portrait && d.portrait.startsWith('data:')) ? d.portrait : (d.portrait || d.Portrait || '');
+            var level = d.level != null ? d.level : (d.Level != null ? d.Level : '?');
+            var karma = d.karma != null ? d.karma : (d.Karma != null ? d.Karma : '?');
+            var xp = d.xp != null ? d.xp : (d.XP != null ? d.XP : '?');
+            var profile = {
+              displayName: [d.firstName || d.FirstName, d.lastName || d.LastName].filter(Boolean).join(' ') || d.username || d.Username,
+              username: d.username || d.Username,
+              level: level,
+              karma: karma,
+              xp: xp,
+              portraitUrl: portraitUrl
+            };
+            if (fromPortal) {
+              setProfile(profile);
+              renderGameAvatarBar();
+            } else {
+              showAvatar(profile);
+            }
+          })
+          .catch(function (err) {
+            if (err && err.message === 'Unauthorized') {
+              if (fromPortal) {
+                var msg = document.querySelector('#avatar .muted');
+                if (msg) msg.textContent = 'Profile could not be loaded. You can still Play DOOM or Logout to sign in again.';
+              }
+              return;
+            }
+            if (!fromPortal) logout();
+          });
+      } else {
+        showLogin();
+      }
+    })();
+  </script>
+</body>
+</html>
