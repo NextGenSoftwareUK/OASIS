@@ -1,13 +1,3 @@
-star config
-star beamin dellams test!
-star
-star inventory
-star beamin
-star beamin dellams test!
-star beamin dellams
-star beamin dellams test!
-star beamin dellams test
-star beamin dellams test!
 star
 star beamin dellams test!
 star face
@@ -60,3 +50,14 @@ star beamin dellams test!
 star inventory
 star beamin dellams test!
 star inventory
+star beamin dellams test!
+star inventory
+star beamin dellams test!
+star inventory
+star beamin dellams test!
+star inventory
+star beamin dellams test!
+star inventory
+star beamin dellams test!
+star inventory
+star beamin dellams test!
