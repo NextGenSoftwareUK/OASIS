@@ -1498,8 +1498,8 @@ public sealed class StarApiClient : IDisposable
             arraysToMerge.Add(element);
         else if (element.ValueKind == JsonValueKind.Object)
         {
-            // API may return multiple arrays (e.g. Items + Holons). Merge all so new and old items both appear.
-            var arrayPropertyNames = new[] { "Items", "Inventory", "Results", "Data", "Holons", "InventoryItems" };
+            // API may return payload as Result/result (array or object with array inside). Merge all arrays so ammo/armor/items appear.
+            var arrayPropertyNames = new[] { "Result", "Results", "Items", "Inventory", "Data", "Holons", "InventoryItems", "value" };
             foreach (var name in arrayPropertyNames)
             {
                 if (TryGetProperty(element, name, out var prop) && prop.ValueKind == JsonValueKind.Array)
@@ -1564,6 +1564,18 @@ public sealed class StarApiClient : IDisposable
                 quantity = q;
             else if (qtyEl.ValueKind == JsonValueKind.String && int.TryParse(qtyEl.GetString(), out var qs))
                 quantity = qs;
+        }
+        if (metadata != null)
+        {
+            if (string.IsNullOrWhiteSpace(name)) name = ExtractMeta(metadata, "Name", string.Empty) ?? ExtractMeta(metadata, "name", string.Empty) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(itemType)) itemType = ExtractMeta(metadata, "ItemType", string.Empty) ?? ExtractMeta(metadata, "itemType", string.Empty) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(gameSource)) gameSource = ExtractMeta(metadata, "GameSource", string.Empty) ?? ExtractMeta(metadata, "gameSource", string.Empty) ?? string.Empty;
+            if (quantity <= 1)
+            {
+                var qtyStr = ExtractMeta(metadata, "Quantity", string.Empty) ?? ExtractMeta(metadata, "quantity", string.Empty);
+                if (!string.IsNullOrWhiteSpace(qtyStr) && int.TryParse(qtyStr, out var qm) && qm > 0)
+                    quantity = qm;
+            }
         }
         if (quantity < 1) quantity = 1;
         if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
