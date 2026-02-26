@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -258,11 +259,49 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             }
 
             //oasisAvatar.Inventory = avatar.Result.Inventory;
-
-            if (avatar.Result.Inventory != null)
+            // Prefer InventoryJson for reliable Quantity/Stack persistence (avoids BSON nested serialization issues)
+            if (!string.IsNullOrWhiteSpace(avatar.Result.InventoryJson))
+            {
+                try
+                {
+                    var list = JsonSerializer.Deserialize<List<InventoryItem>>(avatar.Result.InventoryJson);
+                    if (list != null)
+                    {
+                        foreach (var inv in list)
+                            oasisAvatar.Inventory.Add(new InventoryItem
+                            {
+                                Name = inv.Name,
+                                Description = inv.Description,
+                                Quantity = inv.Quantity,
+                                Stack = inv.Stack,
+                                Id = inv.Id,
+                                Image2D = inv.Image2D,
+                                Image2DURI = inv.Image2DURI,
+                                Object3D = inv.Object3D,
+                                Object3DURI = inv.Object3DURI
+                            });
+                    }
+                }
+                catch { /* fall back to Inventory list below */ }
+            }
+            if (oasisAvatar.Inventory.Count == 0 && avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
-                    oasisAvatar.Inventory.Add((InventoryItem)item);
+                {
+                    var inv = item as InventoryItem ?? new InventoryItem();
+                    oasisAvatar.Inventory.Add(new InventoryItem
+                    {
+                        Name = inv.Name,
+                        Description = inv.Description,
+                        Quantity = inv.Quantity,
+                        Stack = inv.Stack,
+                        Id = inv.Id,
+                        Image2D = inv.Image2D,
+                        Image2DURI = inv.Image2DURI,
+                        Object3D = inv.Object3D,
+                        Object3DURI = inv.Object3DURI
+                    });
+                }
             }
 
             oasisAvatar.Address = avatar.Result.Address;
@@ -574,11 +613,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             }
 
             //mongoAvatar.Inventory = avatar.Inventory;
-
-            if (avatar.Inventory != null)
+            // Persist inventory as JSON for reliable Quantity/Stack (avoids BSON nested serialization issues)
+            if (avatar.Inventory != null && avatar.Inventory.Count > 0)
             {
+                mongoAvatar.InventoryJson = JsonSerializer.Serialize(avatar.Inventory);
                 foreach (var item in avatar.Inventory)
-                    mongoAvatar.Inventory.Add((InventoryItem)item);
+                {
+                    var inv = item as InventoryItem ?? new InventoryItem();
+                    mongoAvatar.Inventory.Add(new InventoryItem
+                    {
+                        Name = inv.Name,
+                        Description = inv.Description,
+                        Quantity = inv.Quantity,
+                        Stack = inv.Stack,
+                        Id = inv.Id,
+                        Image2D = inv.Image2D,
+                        Image2DURI = inv.Image2DURI,
+                        Object3D = inv.Object3D,
+                        Object3DURI = inv.Object3DURI
+                    });
+                }
             }
 
             mongoAvatar.Address = avatar.Address;

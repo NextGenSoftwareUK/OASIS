@@ -65,7 +65,8 @@ void Quake_STAR_OnKeyPickup(const char* key_name) {
         key_name,
         description,
         "Quake",
-        "KeyItem"
+        "KeyItem",
+        NULL, 1, 1
     );
     
     if (result == STAR_API_SUCCESS) {
@@ -103,7 +104,8 @@ void Quake_STAR_OnItemPickup(const char* item_name, const char* item_description
         item_name,
         item_description ? item_description : "Item from Quake",
         "Quake",
-        "Miscellaneous"
+        "Miscellaneous",
+        NULL, 1, 1
     );
     
     if (result == STAR_API_SUCCESS) {

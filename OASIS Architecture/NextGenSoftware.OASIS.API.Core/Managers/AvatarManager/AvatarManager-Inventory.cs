@@ -83,6 +83,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (item.Id == Guid.Empty)
                     item.Id = Guid.NewGuid();
 
+                int addQty = item.Quantity > 0 ? item.Quantity : 1;
+                bool stack = item.Stack;
+
                 // Check if item already exists by ID (client sent an explicit id that is already in inventory)
                 var existingById = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
                 if (existingById != null)
@@ -93,25 +96,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Optionally treat add-by-name as idempotent: if same name exists, return success with existing item
+                // If same name exists: stack = increment quantity; !stack = return error
                 var existingByName = avatarDetail.Inventory.FirstOrDefault(i =>
                     i.Name?.Equals(item.Name, StringComparison.OrdinalIgnoreCase) == true);
                 if (existingByName != null)
                 {
+                    if (!stack)
+                    {
+                        result.IsError = true;
+                        result.Message = "Item already exists";
+                        result.Result = existingByName;
+                        return result;
+                    }
+                    int existingQty = existingByName.Quantity > 0 ? existingByName.Quantity : 1;
+                    existingByName.Quantity = existingQty + addQty;
                     result.Result = existingByName;
-                    result.Message = "Item already exists in avatar inventory (matched by name)";
+                    result.Message = $"Item quantity updated; total quantity: {existingByName.Quantity}";
+                    var saveResult = await SaveAvatarDetailAsync(avatarDetail);
+                    if (saveResult.IsError)
+                    {
+                        result.IsError = true;
+                        result.Message = $"Error saving avatar detail: {saveResult.Message}";
+                        return result;
+                    }
                     return result;
                 }
 
-                // Add the item
+                // New item: set quantity and add
+                item.Quantity = addQty;
                 avatarDetail.Inventory.Add(item);
 
                 // Save the updated avatar detail
-                var saveResult = await SaveAvatarDetailAsync(avatarDetail);
-                if (saveResult.IsError)
+                var addSaveResult = await SaveAvatarDetailAsync(avatarDetail);
+                if (addSaveResult.IsError)
                 {
                     result.IsError = true;
-                    result.Message = $"Error saving avatar detail: {saveResult.Message}";
+                    result.Message = $"Error saving avatar detail: {addSaveResult.Message}";
                     return result;
                 }
 
@@ -474,7 +494,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         Name = template.Name,
                         Description = template.Description,
                         HolonType = template.HolonType,
-                        MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null
+                        MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null,
+                        Quantity = 1
                     };
                     targetDetail.Inventory.Add(newItem);
                 }
