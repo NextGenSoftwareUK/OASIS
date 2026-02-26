@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "originGame": "doom",
+  "description": "DOOM weapon definitions for minting cross-game weapon NFTs. Use MetaData.portable + MetaData.raw when calling POST /api/nft/mint-nft. For image sources (2D sprites, 3D models) see WEAPON_IMAGE_SOURCES.md.",
+  "weapons": [
+    {
+      "doomednum": 2001,
+      "name": "Shotgun",
+      "title": "DOOM Shotgun",
+      "description": "DOOM Shotgun. Good at close range. Portable across OASIS games.",
+      "portable": {
+        "damageTier": 2,
+        "ammoKind": "shell",
+        "range": "short",
+        "fireRate": "single",
+        "rarity": "common"
+      },
+      "raw": { "damageMin": 35, "damageMax": 105, "ammoPerShot": 1 }
+    },
+    {
+      "doomednum": 2002,
+      "name": "Chaingun",
+      "title": "DOOM Chaingun",
+      "description": "DOOM Chaingun. Rapid fire, good against crowds.",
+      "portable": {
+        "damageTier": 2,
+        "ammoKind": "bullet",
+        "range": "medium",
+        "fireRate": "continuous",
+        "rarity": "common"
+      },
+      "raw": { "damageMin": 5, "damageMax": 15, "ammoPerShot": 1 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/Chaingun" }
+    },
+    {
+      "doomednum": 2003,
+      "name": "Rocket Launcher",
+      "title": "DOOM Rocket Launcher",
+      "description": "DOOM Rocket Launcher. Explosive, long range. Can hurt the player up close.",
+      "portable": {
+        "damageTier": 4,
+        "ammoKind": "rocket",
+        "range": "long",
+        "fireRate": "single",
+        "rarity": "uncommon"
+      },
+      "raw": { "damageMin": 148, "damageMax": 288, "ammoPerShot": 1 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/Rocket_launcher" }
+    },
+    {
+      "doomednum": 2004,
+      "name": "Plasma Rifle",
+      "title": "DOOM Plasma Rifle",
+      "description": "DOOM Plasma Rifle. High rate of fire, energy weapon.",
+      "portable": {
+        "damageTier": 3,
+        "ammoKind": "cell",
+        "range": "medium",
+        "fireRate": "continuous",
+        "rarity": "uncommon"
+      },
+      "raw": { "damageMin": 5, "damageMax": 40, "ammoPerShot": 1 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/Plasma_gun" }
+    },
+    {
+      "doomednum": 2005,
+      "name": "BFG 9000",
+      "title": "DOOM BFG 9000",
+      "description": "DOOM BFG 9000. The Big Fucking Gun. Devastating trace damage.",
+      "portable": {
+        "damageTier": 5,
+        "ammoKind": "cell",
+        "range": "long",
+        "fireRate": "single",
+        "rarity": "legendary"
+      },
+      "raw": { "damageMin": 2060, "damageMax": 4200, "ammoPerShot": 40 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/BFG9000" }
+    },
+    {
+      "doomednum": 2006,
+      "name": "Chainsaw",
+      "title": "DOOM Chainsaw",
+      "description": "DOOM Chainsaw. Melee, no ammo. Cuts through demons.",
+      "portable": {
+        "damageTier": 2,
+        "ammoKind": "none",
+        "range": "melee",
+        "fireRate": "melee",
+        "rarity": "common"
+      },
+      "raw": { "damageMin": 10, "damageMax": 20, "ammoPerShot": 0 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/Chainsaw" }
+    },
+    {
+      "doomednum": 82,
+      "name": "Super Shotgun",
+      "title": "DOOM Super Shotgun",
+      "description": "DOOM Super Shotgun. Double-barrel, deadlier at close range.",
+      "portable": {
+        "damageTier": 3,
+        "ammoKind": "shell",
+        "range": "short",
+        "fireRate": "single",
+        "rarity": "uncommon"
+      },
+      "raw": { "damageMin": 70, "damageMax": 210, "ammoPerShot": 2 },
+      "imageUrl": null,
+      "imageSources": { "doomWiki": "https://doomwiki.org/wiki/Super_shotgun" }
+    }
+  ]
+}

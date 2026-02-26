@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DOOM (WASM)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    canvas.frame { display: block; background: #000; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" class="frame" width="800" height="600"></canvas>
+  <script>
+    (function() {
+      var basePath = "/doom-wasm-build/";
+      var baseUrl = (typeof location !== "undefined" && location.origin ? location.origin : "") + basePath;
+      var wadDir = "/libsdl/doom-ws-wasm";
+      var wadPath = wadDir + "/doom1.wad";
+      var cfgPath = wadDir + "/default.cfg";
+      var commonArgs = ["-iwad", "/doom1.wad", "-window", "-nogui", "-nomusic", "-config", cfgPath];
+      var Module = {
+        locateFile: function(path) {
+          if (path === "websockets-doom.wasm") return basePath + "doom.wasm";
+          return basePath + path;
+        },
+        noInitialRun: true,
+        preRun: function() {},
+        onRuntimeInitialized: function() {
+          try { Module.FS.mkdirTree(wadDir); } catch (e) {}
+          function runDoom() {
+            try { Module.FS.chdir(wadDir); } catch (e) {}
+            callMain(commonArgs);
+          }
+          function showError(msg) {
+            var c = document.getElementById("canvas");
+            if (c && c.parentNode) {
+              c.style.display = "none";
+              var div = document.createElement("div");
+              div.style.cssText = "color:#c00;font:14px monospace;padding:20px;text-align:center;";
+              div.textContent = msg;
+              c.parentNode.appendChild(div);
+            }
+            console.error(msg);
+          }
+          fetch(baseUrl + "doom1.wad")
+            .then(function(r) { if (!r.ok) throw new Error("doom1.wad " + r.status); return r.arrayBuffer(); })
+            .then(function(buf) {
+              var u8 = new Uint8Array(buf);
+              Module.FS.writeFile(wadPath, u8);
+              Module.FS.writeFile("/doom1.wad", u8);
+              if (typeof console !== "undefined" && console.log) console.log("IWAD written: " + wadPath + " and /doom1.wad (" + u8.length + " bytes)");
+              return fetch(baseUrl + "default.cfg").then(function(r) { return r.ok ? r.text() : ""; });
+            })
+            .then(function(cfg) {
+              if (cfg) Module.FS.writeFile(cfgPath, cfg);
+              try {
+                if (!Module.FS.analyzePath(wadPath).exists) throw new Error("IWAD not in FS after write");
+              } catch (e) {
+                showError("IWAD missing in FS: " + e.message);
+                return;
+              }
+              runDoom();
+            })
+            .catch(function(err) {
+              showError("Failed to load IWAD: " + err.message + ". Check " + baseUrl + "doom1.wad");
+            });
+        },
+        print: function(text) {
+          if (typeof text !== "string") text = Array.prototype.slice.call(arguments).join(" ");
+          if (text.indexOf("doom: 13, kill") !== -1) {
+            try { parent.postMessage({ type: "doom-kill" }, "*"); } catch (e) {}
+          }
+          console.log(text);
+        },
+        printErr: function(text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(" ");
+          console.error(text);
+        },
+        canvas: document.getElementById("canvas"),
+        setStatus: function() {},
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          Module.totalDependencies = Math.max(Module.totalDependencies, left);
+        }
+      };
+      var script = document.createElement("script");
+      script.src = basePath + "doom.js";
+      script.async = true;
+      document.head.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

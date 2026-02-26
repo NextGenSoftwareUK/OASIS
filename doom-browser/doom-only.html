@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOOM</title>
+  <link rel="stylesheet" href="https://v8.js-dos.com/latest/js-dos.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #0a0a0a; }
+    #dos { width: 100%; height: 100%; min-height: 400px; }
+    .status { position: fixed; bottom: 0; left: 0; right: 0; padding: 8px 12px; background: rgba(0,0,0,0.8); color: #888; font: 12px monospace; }
+  </style>
+</head>
+<body>
+  <div id="dos"></div>
+  <div class="status" id="status">Loading js-dos…</div>
+
+  <script src="https://v8.js-dos.com/latest/js-dos.js"></script>
+  <script>
+    (function () {
+      var bundleUrl = '/doom.jsdos';
+      var el = document.getElementById('dos');
+      var status = document.getElementById('status');
+
+      function setStatus(msg) {
+        if (status) status.textContent = msg;
+      }
+
+      function tryRun() {
+        var Dos = window.Dos || window.CiDos || (window.JSDOS && window.JSDOS.Dos);
+        if (!Dos) {
+          setStatus('Dos not found. Check console.');
+          return;
+        }
+
+        setStatus('Starting DOOM…');
+        try {
+          Dos(el, { url: bundleUrl, autoStart: true });
+          setStatus('DOOM loading. Arrow keys move, Ctrl fire.');
+        } catch (e) {
+          setStatus('Error: ' + (e && e.message ? e.message : e));
+          console.error(e);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryRun);
+      } else {
+        tryRun();
+      }
+    })();
+  </script>
+</body>
+</html>
