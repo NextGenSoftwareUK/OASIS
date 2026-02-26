@@ -429,12 +429,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 // Token gate: require minimum balance of gating token in the receive wallet
                 if (!string.IsNullOrWhiteSpace(_options.SaintTokenMint) && _options.SaintTokenRequiredBalance > 0 && _splTokenBalanceService != null)
                 {
-                    // Ensure we're on the same cluster as mint (mainnet for token gating) so balance is read from correct network
-                    var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
-                    var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
-                    if (clusterResult.IsError)
-                        _logger?.LogWarning("[TelegramNftMint] EnsureSolanaCluster before balance check failed: {Message}", clusterResult.Message);
-
+                    // Cluster is determined by OASIS_DNA / provider config; balance check uses mainnet RPC when configured.
                     var balanceResult = await _splTokenBalanceService.GetBalanceAsync(walletAddress, _options.SaintTokenMint.Trim()).ConfigureAwait(false);
                     var balance = balanceResult.Result;
                     var required = _options.SaintTokenRequiredBalance;
@@ -1069,15 +1064,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 }
             }
 
-            // Switch Solana to the cluster from options (devnet or mainnet) so mint uses the right RPC and wallet
-            var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
-            var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
-            if (clusterResult.IsError)
-            {
-                _logger?.LogWarning("[TelegramNftMint] EnsureSolanaCluster failed: {Message}", clusterResult.Message);
-                return $"❌ Mint failed: {clusterResult.Message}";
-            }
-
+            // Cluster (devnet/mainnet) is determined by OASIS_DNA / provider config.
             var providerResult = new NFTManager(Guid.Empty).GetNFTProvider(ProviderType.SolanaOASIS);
             if (providerResult?.Result == null || providerResult.IsError)
             {
@@ -1116,8 +1103,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                         _logger?.LogWarning(ex, "[TelegramNftMint] RecordMintAsync failed for user {UserId}", telegramUserId.Value);
                     }
                 }
-                var txLink = $"https://solscan.io/tx/{txHash}?cluster={cluster}";
-                var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={cluster}";
+                var clusterForLink = string.IsNullOrWhiteSpace(_options?.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
+                var txLink = $"https://solscan.io/tx/{txHash}?cluster={clusterForLink}";
+                var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={clusterForLink}";
                 var successMsg = $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet. Mint a SAINT? Use /join_saints in a private chat to get the secret group link.";
                 if (!string.IsNullOrWhiteSpace(_options?.SaintsMintSuccessLine))
                     successMsg += "\n\n" + _options.SaintsMintSuccessLine.Trim();
@@ -1156,10 +1144,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             if (string.IsNullOrWhiteSpace(jsonMetaDataUrl) || string.IsNullOrWhiteSpace(walletAddress))
                 return (false, "Missing metadata URL or wallet.", null, null);
-            var cluster = string.IsNullOrWhiteSpace(_options.SolanaCluster) ? "mainnet" : _options.SolanaCluster.Trim();
-            var clusterResult = await OASISBootLoader.OASISBootLoader.EnsureSolanaClusterAsync(cluster).ConfigureAwait(false);
-            if (clusterResult.IsError)
-                return (false, clusterResult.Message ?? "Cluster switch failed.", null, null);
+            // Cluster is determined by OASIS_DNA / provider config.
             var providerResult = new NFTManager(Guid.Empty).GetNFTProvider(ProviderType.SolanaOASIS);
             if (providerResult?.Result == null || providerResult.IsError)
                 return (false, "Solana provider not available.", null, null);

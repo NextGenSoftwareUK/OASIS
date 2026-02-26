@@ -8,12 +8,16 @@ This folder contains all Docker-related files for building and deploying the OAS
 
 - **Dockerfile** - Main production Dockerfile for building the OASIS API (ONODE)
 - **Dockerfile.star** - Dockerfile for building the STAR API (Missions, Quests, GeoNFTs, etc.)
+- **Dockerfile.mcp** - Dockerfile for the OASIS MCP HTTP server (Streamable HTTP, for hosted deployment)
 - **.dockerignore** - Files and directories to exclude from Docker build context
+- **.dockerignore.mcp** - MCP-only context for `Dockerfile.mcp` (used by deploy-mcp.sh)
 - **docker-compose.yml** - Docker Compose configuration for local development
 - **build.sh** - Script to build OASIS API (ONODE) Docker image locally
 - **PRE_BUILD.md** - Pre-flight checklist and build/run commands
 - **build-star.sh** - Script to build STAR API Docker image locally
-- **deploy.sh** - Script to build and push Docker image to AWS ECR
+- **deploy.sh** - Script to build and push OASIS API Docker image to AWS ECR
+- **deploy-star.sh** - Script to build and push STAR API image to AWS ECR
+- **deploy-mcp.sh** - Script to build and push OASIS MCP HTTP server image to AWS ECR
 - **update-ecs.sh** - Script to update AWS ECS service with new image
 - **COMPARISON.md** - Comparison between previous working image and current setup
 - **BUILD_STATUS.md** - Build status and configuration details
@@ -49,6 +53,14 @@ Then access:
 ./docker/build-star.sh
 docker run -p 50564:80 star-api:latest
 ```
+
+### Build and Deploy MCP (HTTP server for hosted MCP)
+
+```bash
+./docker/deploy-mcp.sh
+```
+
+Builds the MCP Streamable HTTP server (from `MCP/`) and pushes to ECR as `oasis-mcp`. See **RUN_MCP_ON_EC2_STEPS.md** for pull/run on EC2 and Cursor URL config.
 
 ### Build and Deploy to AWS ECR
 

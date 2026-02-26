@@ -235,6 +235,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             //services.AddScoped<INftService, NftService>();
             //services.AddScoped<IOlandService, OlandService>();
             services.AddHttpContextAccessor();
+            services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();
 
             //services.AddCors(options =>
             //{

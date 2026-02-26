@@ -261,6 +261,11 @@ export const oasisTools: Tool[] = [
           type: 'string',
           description: 'Avatar ID to send NFT to after minting (optional)',
         },
+        Cluster: {
+          type: 'string',
+          description: 'Solana cluster: "devnet" (default for testing, no real SOL) or "mainnet-beta". Use devnet to avoid mainnet fees.',
+          enum: ['devnet', 'mainnet-beta', 'mainnet'],
+        },
       },
       required: [], // Made optional to support interactive mode - handler will prompt for missing required fields
     },
@@ -1941,6 +1946,7 @@ export async function handleOASISTool(
           WaitTillNFTMinted: args.WaitTillNFTMinted,
           WaitForNFTToMintInSeconds: args.WaitForNFTToMintInSeconds,
           AttemptToMintEveryXSeconds: args.AttemptToMintEveryXSeconds,
+          Cluster: args.Cluster,
         });
       }
 
