@@ -37,7 +37,8 @@ void Doom_Example_KeycardPickup(int keycard_type) {
         keycard_name,
         descriptions[keycard_type],
         "Doom",
-        "KeyItem"
+        "KeyItem",
+        NULL, 1, 1
     );
     
     if (result == STAR_API_SUCCESS) {
