@@ -685,15 +685,15 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteNumber("HolonType", 11);
                 writer.WriteNumber("Quantity", quantity < 1 ? 1 : quantity);
                 writer.WriteBoolean("Stack", stack);
-                writer.WritePropertyName("MetaData");
-                writer.WriteStartObject();
                 writer.WriteString("GameSource", gameSource);
                 writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
-                writer.WriteBoolean("CrossGameItem", true);
-                writer.WriteString("CollectedAt", DateTime.UtcNow.ToString("O"));
                 if (!string.IsNullOrWhiteSpace(nftId))
+                {
+                    writer.WritePropertyName("MetaData");
+                    writer.WriteStartObject();
                     writer.WriteString("NFTId", nftId);
-                writer.WriteEndObject();
+                    writer.WriteEndObject();
+                }
                 writer.WriteEndObject();
             });
 
@@ -718,8 +718,8 @@ public sealed class StarApiClient : IDisposable
                 Id = item.Id,
                 Name = item.Name ?? itemName,
                 Description = item.Description ?? description,
-                GameSource = ExtractMeta(item.MetaData, "GameSource", gameSource),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType),
+                GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : gameSource,
+                ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : (string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType),
                 NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
                 Quantity = item.Quantity
             };
@@ -1520,8 +1520,8 @@ public sealed class StarApiClient : IDisposable
                     Id = item.Id,
                     Name = item.Name ?? string.Empty,
                     Description = item.Description ?? string.Empty,
-                    GameSource = ExtractMeta(item.MetaData, "GameSource", "Unknown"),
-                    ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous"),
+                    GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : "n/a",
+                    ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : "Miscellaneous",
                     NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
                     Quantity = item.Quantity
                 });
@@ -1555,6 +1555,8 @@ public sealed class StarApiClient : IDisposable
 
         var name = GetStringProperty(element, "Name") ?? GetStringProperty(element, "name");
         var description = GetStringProperty(element, "Description") ?? GetStringProperty(element, "description");
+        var gameSource = GetStringProperty(element, "GameSource") ?? GetStringProperty(element, "gameSource");
+        var itemType = GetStringProperty(element, "ItemType") ?? GetStringProperty(element, "itemType");
         int quantity = 1;
         if (TryGetProperty(element, "Quantity", out var qtyEl))
         {
@@ -1572,6 +1574,8 @@ public sealed class StarApiClient : IDisposable
             Id = parsedGuid,
             Name = name,
             Description = description,
+            GameSource = gameSource,
+            ItemType = itemType,
             MetaData = metadata,
             Quantity = quantity
         };
@@ -2318,6 +2322,10 @@ public sealed class StarApiClient : IDisposable
         public string? Description { get; set; }
         public Dictionary<string, JsonElement>? MetaData { get; set; }
         public int Quantity { get; set; } = 1;
+        /// <summary>From API / InventoryItem holon.</summary>
+        public string? GameSource { get; set; }
+        /// <summary>From API / InventoryItem holon.</summary>
+        public string? ItemType { get; set; }
     }
 
     private sealed class PendingAddItemJob
