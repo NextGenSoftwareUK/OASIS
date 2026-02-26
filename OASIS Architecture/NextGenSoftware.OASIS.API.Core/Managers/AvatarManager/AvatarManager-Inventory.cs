@@ -65,6 +65,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
                 return result;
             }
+            // Promote MetaData to first-class GameSource/ItemType so the holon persists them (STAR client may send only MetaData)
+            if (item is IHolonBase holonBase && holonBase.MetaData != null)
+            {
+                if (string.IsNullOrWhiteSpace(item.ItemType) && holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
+                    item.ItemType = typeObj.ToString();
+                if (string.IsNullOrWhiteSpace(item.GameSource) && holonBase.MetaData.TryGetValue("GameSource", out var gsObj) && gsObj != null)
+                    item.GameSource = gsObj.ToString();
+            }
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);

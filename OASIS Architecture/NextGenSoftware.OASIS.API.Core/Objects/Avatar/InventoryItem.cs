@@ -21,6 +21,10 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         public int Quantity { get; set; } = 1;
         /// <summary>When adding: if true and item exists by name, increment Quantity; if false and item exists, return error "Item already exists". Default true.</summary>
         public bool Stack { get; set; } = true;
+        /// <summary>Game/source that added this item (e.g. Quake, OQUAKE). Persisted on the holon.</summary>
+        public string GameSource { get; set; }
+        /// <summary>Category of item (e.g. Ammo, Armor, Weapon, KeyItem). Persisted on the holon.</summary>
+        public string ItemType { get; set; }
         //public InventoryItemType InventoryItemType { get; set; }
     }
 }
