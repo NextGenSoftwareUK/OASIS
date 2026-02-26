@@ -696,9 +696,8 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items: queue each add then flush (batching) for better throughput when picking up many items at once.
-     * Stack events: name ends with _NNNNNN – ALWAYS queue add, never call has_item.
-     * Unlock items: same name each time – call has_item first, queue add only if not present. */
+    /* Sync local items: one entry per type with quantity. quantity > 1 = stack (add that many). quantity == 1 = unlock (has_item then add if missing).
+     * Legacy: name ending _NNNNNN is also treated as stack (strip suffix, use quantity). */
     g_inv_add_item_error[0] = '\0';
     if (local && local_count > 0 && default_src[0]) {
         int i;
@@ -707,30 +706,37 @@ static void* inventory_thread_proc(void* param) {
             {
                 const char* n = local[i].name;
                 size_t len = strlen(n);
-                /* Stack: suffix _ and exactly 6 digits (e.g. Shells_000001). Never use has_item for these. */
-                int is_stack_event = 0;
-                if (len >= 8 && n[len - 7] == '_') {
+                int qty = (local[i].quantity > 0) ? local[i].quantity : 1;
+                /* Stack: quantity > 1, OR name ends with _NNNNNN. Send add_item(name, qty) so API has one item per type. */
+                int is_stack = (qty > 1);
+                if (!is_stack && len >= 8 && n[len - 7] == '_') {
                     int j;
-                    is_stack_event = 1;
+                    is_stack = 1;
                     for (j = 0; j < 6; j++)
-                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack_event = 0; break; }
+                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack = 0; break; }
                 }
-                if (is_stack_event) {
-                    /* Stacked: send base name (no _NNNNNN) so API increments Quantity on existing item. */
+                if (is_stack) {
                     char base_name[128];
-                    size_t base_len = len >= 8 ? (size_t)(len - 7) : len;
+                    size_t base_len = len;
+                    if (len >= 8 && n[len - 7] == '_') {
+                        int j, dig = 1;
+                        for (j = 0; j < 6; j++)
+                            if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { dig = 0; break; }
+                        if (dig) base_len = (size_t)(len - 7);
+                    }
                     if (base_len >= sizeof(base_name)) base_len = sizeof(base_name) - 1;
                     memcpy(base_name, n, base_len);
                     base_name[base_len] = '\0';
-                    const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                    int qty = (local[i].quantity > 0) ? local[i].quantity : 1;
-                    star_api_queue_add_item(
-                        base_name,
-                        local[i].description,
-                        local[i].game_source[0] ? local[i].game_source : default_src,
-                        local[i].item_type[0] ? local[i].item_type : "KeyItem",
-                        nft, qty, qty);
-                    add_item_calls++;
+                    {
+                        const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                        star_api_queue_add_item(
+                            base_name,
+                            local[i].description,
+                            local[i].game_source[0] ? local[i].game_source : default_src,
+                            local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                            nft, qty, qty);
+                        add_item_calls++;
+                    }
                 } else {
                     /* Unlock: add only if not already in inventory. */
                     if (!star_api_has_item(local[i].name)) {

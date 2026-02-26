@@ -1,6 +1,3 @@
-star
-star beamin dellams test!
-star face
 STAR
 STAR BEAMIN DELLAMS test!
 star
@@ -61,3 +58,6 @@ star inventory
 star beamin dellams test!
 star inventory
 star beamin dellams test!
+star inventory
+star beamin dellams test!
+star inventory
