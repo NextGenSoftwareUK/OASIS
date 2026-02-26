@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Quake logo - public domain. Stylized Q from Quake logo font by Sasha Shor, 1996. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1151 1735">
+  <path fill="#4a90d9" d="M575.7 0C258 0 0 258 0 575.7c0 318 258 576 575.7 576 318 0 576-258 576-576C1151.7 258 893.7 0 575.7 0zm0 173.5c-222 0-402 180-402 402s180 402 402 402 402-180 402-402-180-402-402-402z"/>
+  <path fill="#4a90d9" d="M575.7 461c63 0 115 52 115 115s-52 115-115 115-115-52-115-115 52-115 115-115z"/>
+  <path fill="#4a90d9" d="M700 865l400 600 100-70-400-600z"/>
+</svg>
