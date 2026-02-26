@@ -258,25 +258,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisAvatar.Achievements.Add((Achievement)item);
             }
 
-            //oasisAvatar.Inventory = avatar.Result.Inventory;
-            // Prefer InventoryJson for reliable Quantity/Stack persistence (avoids BSON nested serialization issues)
-            if (!string.IsNullOrWhiteSpace(avatar.Result.InventoryJson))
-            {
-                try
-                {
-                    var list = JsonSerializer.Deserialize<List<InventoryItem>>(avatar.Result.InventoryJson);
-                    if (list != null)
-                    {
-                        foreach (var inv in list)
-                        {
-                            // Add deserialized item directly so MetaData (GameSource, ItemType) is preserved
-                            oasisAvatar.Inventory.Add(inv);
-                        }
-                    }
-                }
-                catch { /* fall back to Inventory list below */ }
-            }
-            if (oasisAvatar.Inventory.Count == 0 && avatar.Result.Inventory != null)
+            if (avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
                 {
@@ -609,11 +591,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     mongoAvatar.Achievements.Add((Achievement)item);
             }
 
-            //mongoAvatar.Inventory = avatar.Inventory;
-            // Persist inventory as JSON for reliable Quantity/Stack (avoids BSON nested serialization issues)
             if (avatar.Inventory != null && avatar.Inventory.Count > 0)
             {
-                mongoAvatar.InventoryJson = JsonSerializer.Serialize(avatar.Inventory);
                 foreach (var item in avatar.Inventory)
                 {
                     var inv = item as InventoryItem ?? new InventoryItem();
