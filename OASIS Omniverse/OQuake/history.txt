@@ -1,16 +1,3 @@
-star beamout
-star face off
-star face
-star beamin anorak test!
-star face on
-exec config.cfg
-star config
-star
-exec config.cfg
-star config
-exec config.cfg
-star config
-star beamin dellams test!
 star beamin dellans test!
 star config
 star beamin dellams test!
@@ -60,4 +47,17 @@ star config
 star beamin dellams test!
 star debug
 star debug off
+star beamin dellams test!
+star debug
+star beamin dellams test!
+star debug
+star beamin dellams test!
+star debug
+star debug on
+star beamin dellams test!
+star debug
+star debug on
+star beamin dellams test!
+star debug
+star debug on
 star beamin dellams test!
