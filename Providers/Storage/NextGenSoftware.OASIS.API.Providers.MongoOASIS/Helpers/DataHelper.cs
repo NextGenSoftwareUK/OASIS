@@ -268,18 +268,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     if (list != null)
                     {
                         foreach (var inv in list)
-                            oasisAvatar.Inventory.Add(new InventoryItem
-                            {
-                                Name = inv.Name,
-                                Description = inv.Description,
-                                Quantity = inv.Quantity,
-                                Stack = inv.Stack,
-                                Id = inv.Id,
-                                Image2D = inv.Image2D,
-                                Image2DURI = inv.Image2DURI,
-                                Object3D = inv.Object3D,
-                                Object3DURI = inv.Object3DURI
-                            });
+                        {
+                            // Add deserialized item directly so MetaData (GameSource, ItemType) is preserved
+                            oasisAvatar.Inventory.Add(inv);
+                        }
                     }
                 }
                 catch { /* fall back to Inventory list below */ }
@@ -289,7 +281,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                 foreach (var item in avatar.Result.Inventory)
                 {
                     var inv = item as InventoryItem ?? new InventoryItem();
-                    oasisAvatar.Inventory.Add(new InventoryItem
+                    var copy = new InventoryItem
                     {
                         Name = inv.Name,
                         Description = inv.Description,
@@ -299,8 +291,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Image2D = inv.Image2D,
                         Image2DURI = inv.Image2DURI,
                         Object3D = inv.Object3D,
-                        Object3DURI = inv.Object3DURI
-                    });
+                        Object3DURI = inv.Object3DURI,
+                        GameSource = inv.GameSource,
+                        ItemType = inv.ItemType
+                    };
+                    if (inv.MetaData != null && inv.MetaData.Count > 0)
+                        copy.MetaData = new Dictionary<string, object>(inv.MetaData);
+                    oasisAvatar.Inventory.Add(copy);
                 }
             }
 
@@ -630,7 +627,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Image2D = inv.Image2D,
                         Image2DURI = inv.Image2DURI,
                         Object3D = inv.Object3D,
-                        Object3DURI = inv.Object3DURI
+                        Object3DURI = inv.Object3DURI,
+                        GameSource = inv.GameSource,
+                        ItemType = inv.ItemType
                     });
                 }
             }
