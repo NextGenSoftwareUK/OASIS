@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OASIS Portal — Space</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='24' font-size='24'>🌌</text></svg>">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #ui-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #ui-overlay > * { pointer-events: auto; }
+
+    /* Login panel */
+    #login-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 10, 30, 0.95);
+      border: 2px solid rgba(0, 255, 255, 0.4);
+      border-radius: 12px;
+      padding: 2rem;
+      min-width: 320px;
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+    }
+    #login-panel.hidden { display: none !important; }
+    #login-panel h1 {
+      color: #00ffff;
+      font-size: 1.5rem;
+      font-weight: 300;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    #login-panel p {
+      color: #88aacc;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    #login-panel input {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: rgba(0, 20, 40, 0.8);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+    }
+    #login-panel input::placeholder { color: #6688aa; }
+    #login-panel button {
+      width: 100%;
+      padding: 12px 24px;
+      background: linear-gradient(180deg, #00cccc 0%, #008888 100%);
+      border: none;
+      border-radius: 8px;
+      color: #000;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    #login-panel button:hover { opacity: 0.9; }
+    #login-error {
+      color: #ff6666;
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    /* HUD - avatar + instructions */
+    #hud {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+    #hud > * { pointer-events: auto; }
+    #hud.hidden { display: none !important; }
+    .hud-avatar {
+      background: rgba(0, 10, 30, 0.8);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 8px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .hud-avatar img {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+    .hud-avatar .name { color: #00ffff; font-weight: 500; }
+    .hud-avatar .meta { color: #88aacc; font-size: 12px; }
+    .hud-instructions {
+      color: #88aacc;
+      font-size: 13px;
+      text-align: right;
+    }
+    .hud-instructions kbd {
+      background: rgba(0, 255, 255, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    #logout-btn {
+      margin-left: 8px;
+      padding: 6px 12px;
+      background: rgba(200, 80, 80, 0.4);
+      border: 1px solid rgba(255, 100, 100, 0.5);
+      border-radius: 6px;
+      color: #ff8888;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    #logout-btn:hover { background: rgba(200, 80, 80, 0.6); }
+
+    /* Portal label */
+    #portal-label {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 10, 30, 0.9);
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      border-radius: 8px;
+      padding: 12px 24px;
+      color: #00ffff;
+      font-size: 1rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #portal-label.visible { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+
+  <div id="ui-overlay">
+    <div id="login-panel">
+      <h1>OASIS Portal</h1>
+      <p>Drop in to the omniverse. Enter DOOM or Quake with your OASIS avatar.</p>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Username" required autocomplete="username">
+        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+        <button type="submit">Enter</button>
+      </form>
+      <div id="login-error"></div>
+      <p style="margin-top: 1rem; text-align: center;">
+        <button type="button" id="demo-btn" style="background: transparent; border: 1px solid rgba(0,255,255,0.4); color: #88aacc; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px;">Enter without auth (demo)</button>
+      </p>
+    </div>
+
+    <div id="hud" class="hidden">
+      <div class="hud-avatar">
+        <img id="avatar-portrait" src="" alt="" onerror="this.style.display='none'">
+        <div>
+          <div id="avatar-name" class="name">—</div>
+          <div id="avatar-meta" class="meta">LVL —  KARMA —</div>
+        </div>
+        <button type="button" id="logout-btn">Logout</button>
+      </div>
+      <div class="hud-instructions">
+        <div>Orbit: <kbd>Mouse</kbd> · Move: <kbd>WASD</kbd> · Enter portal: <kbd>Click</kbd></div>
+      </div>
+    </div>
+
+    <div id="portal-label"></div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
