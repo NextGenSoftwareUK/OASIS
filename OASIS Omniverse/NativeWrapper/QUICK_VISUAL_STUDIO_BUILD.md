@@ -1,4 +1,6 @@
-# Quick Visual Studio Build Guide
+# Quick Visual Studio Build Guide (legacy)
+
+**Note:** NativeWrapper is **not currently used**; it was obsoleted by the C# STARAPIClient. ODOOM and OQuake use STARAPIClient. This guide is for reference only.
 
 ## 🚀 Fastest Method (3 Steps)
 

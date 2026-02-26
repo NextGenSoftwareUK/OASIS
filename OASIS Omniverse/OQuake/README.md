@@ -42,9 +42,11 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 **vkQuake** is the recommended engine (Vulkan, 2021 rerelease support). Set `VKQUAKE_SRC=C:\Source\vkQuake` in BUILD_OQUAKE.bat; the script will clone and build vkQuake and copy **OQUAKE.exe** and **star_api.dll** into `OASIS Omniverse\OQuake\build\`. See **ENGINE_RECOMMENDATION.md** for why vkQuake and **VKQUAKE_OQUAKE_INTEGRATION.md** (in vkquake_oquake) for host.c/pr_ext.c edits.
 
-## Cross-game keys
+## Cross-game keys and inventory
 
 - OQuake **silver_key** can open **ODOOM red** doors; ODOOM **red_keycard** can open OQuake **silver** doors.
 - OQuake **gold_key** can open **ODOOM blue/yellow** doors; ODOOM **blue/yellow keycard** can open OQuake **gold** doors.
+- **Ammo** (shells, nails, rockets, cells) syncs with the **actual pickup amount** (e.g. Shells +20 per box); totals persist correctly after quit/reload.
+- In-game console **add_item** messages are shown only when **star debug** is on (`star debug on` / `star debug off` / `star debug status` in console).
 
 Set **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID** for the STAR API.

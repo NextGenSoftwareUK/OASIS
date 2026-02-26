@@ -754,6 +754,8 @@ static void* inventory_thread_proc(void* param) {
                 const char* flush_err = star_api_get_last_error();
                 str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
             }
+            /* Invalidate cache so next get_inventory fetches from API and returns correct quantities (client was appending each add response to cache, so cache had duplicate/stacked entries). */
+            star_api_invalidate_inventory_cache();
         }
     }
 

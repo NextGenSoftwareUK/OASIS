@@ -1,8 +1,8 @@
-# OASIS STAR API - Game Integration Guide
+# OASIS STAR API – Game Integration Guide
 
 ## Overview
 
-This guide provides comprehensive instructions for integrating classic open-source games (Doom, Quake) with the OASIS STAR API to enable cross-game item sharing, quest systems, and future NFT-based features.
+This guide describes how **ODOOM** and **OQuake** (and other games) integrate with the OASIS STAR API for cross-game item sharing, quests, and avatar/SSO. For setup (repos, tools, build, config), use **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
 
 ## Table of Contents
 
@@ -246,15 +246,15 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
    - On Linux/Mac: libcurl development libraries
    - On Windows: Windows SDK (for WinHTTP)
 
-### Step 1: Build Native Wrapper
+### Step 1: Build STAR API client (STARAPIClient)
 
-```bash
-cd Game Integration/NativeWrapper
-mkdir build && cd build
-cmake ..
-make
-# Windows: cmake .. && cmake --build . --config Release
+ODOOM and OQuake use the **C# STARAPIClient** (not the legacy NativeWrapper). Build from OASIS repo root:
+
+```powershell
+dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
+
+Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build the client. The legacy C++ NativeWrapper is obsoleted by the C# STARAPIClient; do not use it for new work.
 
 ### Step 2: Configure API Credentials
 
@@ -426,30 +426,17 @@ printf("Last error: %s\n", error);
    - Document item mappings
    - Use descriptive names
 
-## Next Steps
+## Next steps
 
-1. **Complete Phase 1:**
-   - Integrate Doom
-   - Integrate Quake
-   - Test cross-game item sharing
-
-2. **Implement Phase 2:**
-   - Create quest system
-   - Implement quest tracking
-   - Add quest rewards
-
-3. **Plan Phase 3:**
-   - Design NFT boss system
-   - Implement boss collection
-   - Implement boss deployment
+1. **Setup:** Use [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) to clone repos, install tools, and build ODOOM/OQuake.
+2. **Phase 1:** Build and run ODOOM and OQuake; test cross-game item sharing (keycards, keys, ammo).
+3. **Phase 2:** Use the quest system; see [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md).
+4. **Phase 3:** NFT boss collection (foundation in place).
 
 ## Support
 
-For issues or questions:
-- Check game-specific README files
-- Review API documentation
-- Check STAR API logs
-- Contact OASIS support
+- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](ODOOM/README.md), [OQuake/README.md](OQuake/README.md), [STARAPIClient/README.md](STARAPIClient/README.md)
+- **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `star_api.log` in game exe folder)
 
 ## License
 
