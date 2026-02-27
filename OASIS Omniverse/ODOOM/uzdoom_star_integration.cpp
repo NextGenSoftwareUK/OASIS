@@ -71,6 +71,7 @@ static const int STAR_PICKUP_GENERIC_ITEM = 9001;
 static std::string g_star_pending_item_name;
 static std::string g_star_pending_item_desc;
 static std::string g_star_pending_item_type;
+static int g_star_pending_item_amount = 1;
 static bool g_star_has_pending_item = false;
 static std::string g_star_last_pickup_name;
 static std::string g_star_last_pickup_type;
@@ -811,6 +812,24 @@ static bool EqualsNoCase(const std::string& a, const std::string& b) {
 	return true;
 }
 
+/** Hardcoded Doom ammo pickup amounts for demo (from doomammo.zs / Doom Wiki). Returns 0 to use default 1. */
+static int GetHardcodedAmmoAmount(const char* className) {
+	if (!className || !className[0]) return 0;
+	/* Bullets */
+	if (strstr(className, "ClipBox") || strstr(className, "BoxOfBullets")) return 50;
+	if (strstr(className, "Clip") || strstr(className, "Bullet")) return 10;
+	/* Shells */
+	if (strstr(className, "ShellBox") || strstr(className, "BoxOfShells")) return 20;
+	if (strstr(className, "Shell") && !strstr(className, "Shotgun")) return 4;
+	/* Rockets */
+	if (strstr(className, "RocketBox") || strstr(className, "BoxOfRockets")) return 5;
+	if (strstr(className, "Rocket")) return 1;
+	/* Cells */
+	if (strstr(className, "CellPack") || strstr(className, "BulkCell")) return 100;
+	if (strstr(className, "Cell")) return 20;
+	return 0;
+}
+
 /** Map Doom class name to short display/API name (game shown in brackets in UI). Same pattern as OQuake. */
 static std::string ToStarItemName(const char* className) {
 	if (!className || !className[0]) return "Item";
@@ -1220,8 +1239,13 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		g_star_pending_item_name = ToStarItemName(cls);
 		g_star_pending_item_desc = std::string("Picked up ") + (cls ? cls : "Item");
 		g_star_pending_item_type = type;
+		/* Hardcoded ammo amounts for demo (Doom standard: Clip=10, ClipBox=50, Shell=4, ShellBox=20, etc.). */
+		{
+			int amt = GetHardcodedAmmoAmount(cls);
+			g_star_pending_item_amount = (amt > 0) ? amt : 1;
+		}
 		g_star_has_pending_item = true;
-		StarLogInfo("Pickup detected: %s (type=%s).", cls ? cls : "Inventory", type);
+		StarLogInfo("Pickup detected: %s (type=%s, amount=%d).", cls ? cls : "Inventory", type, g_star_pending_item_amount);
 		return STAR_PICKUP_GENERIC_ITEM;
 	}
 
@@ -1278,7 +1302,10 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 			Printf(PRINT_HIGH, "STAR API: Mint NFT failed for \"%s\": %s\n", name, err && err[0] ? err : "unknown error");
 		}
 	}
-	star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nft_id_arg, 1, 1);
+	int qty = 1;
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && g_star_has_pending_item)
+		qty = (g_star_pending_item_amount > 0) ? g_star_pending_item_amount : 1;
+	star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nft_id_arg, qty, 1);
 	g_star_last_pickup_name = name;
 	g_star_last_pickup_type = itemType;
 	g_star_last_pickup_desc = desc;
@@ -1298,6 +1325,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		g_star_pending_item_name.clear();
 		g_star_pending_item_desc.clear();
 		g_star_pending_item_type.clear();
+		g_star_pending_item_amount = 1;
 	}
 }
 
@@ -1312,8 +1340,7 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!keyname) return 0;
 
 	if (star_api_has_item(keyname)) {
-		StarLogInfo("Door access granted via shared inventory key: %s", keyname);
-		/* Use item on API from background thread; overlay refresh in ODOOM_OnUseItemDone. */
+		/* Consume the keycard when opening this door (not on beam-in; only when door is actually opened). */
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
 		return 1;
 	}
