@@ -6,9 +6,9 @@
   "stack_weapons": 1,
   "stack_powerups": 1,
   "stack_keys": 1,
-  "mint_weapons": 1,
-  "mint_armor": 1,
-  "mint_powerups": 1,
-  "mint_keys": 1,
+  "mint_weapons": 0,
+  "mint_armor": 0,
+  "mint_powerups": 0,
+  "mint_keys": 0,
   "nft_provider": "SolanaOASIS"
 }
