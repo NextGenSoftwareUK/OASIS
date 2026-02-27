@@ -39,6 +39,7 @@ void star_sync_pump(void);
 /* ---------------------------------------------------------------------------
  * Local item entry: one item to sync to remote (has_item then add_item if missing).
  * name, description, game_source, item_type are inputs; synced is output (1 when synced).
+ * nft_id: optional; if set, add_item is called with this NFT ID (item is linked to NFTHolon).
  * Game allocates an array of these and passes to star_sync_inventory_start.
  * --------------------------------------------------------------------------- */
 typedef struct star_sync_local_item {
@@ -46,6 +47,8 @@ typedef struct star_sync_local_item {
     char description[512];
     char game_source[64];
     char item_type[64];
+    char nft_id[128];  /* optional; empty = no NFT. When set, add_item stores NFTId in item MetaData. */
+    int  quantity;     /* for stack/ammo: amount to add (e.g. 20 shells). 0 = use 1 when sending. */
     int  synced;  /* output: set to 1 by sync layer when item is on remote */
 } star_sync_local_item_t;
 
@@ -108,6 +111,13 @@ void star_sync_inventory_clear_result(void);
 /** Non-zero if an inventory refresh is currently in progress */
 int star_sync_inventory_in_progress(void);
 
+/** After a sync completes, returns how many star_api_add_item calls were made (0 = old queue path or no items to add). Call from the inventory-done callback. */
+int star_sync_inventory_get_last_add_item_calls(void);
+
+/** Optional: called after each star_api_add_item during inventory sync. item_name, success (1=ok 0=fail), error_message (when fail). Called from sync worker thread. Set to NULL to disable. */
+typedef void (*star_sync_add_item_log_fn)(const char* item_name, int success, const char* error_message, void* user_data);
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data);
+
 /* ---------------------------------------------------------------------------
  * One-shot sync of a single local item (has_item then add_item if missing).
  * Can be called from main thread; use for immediate sync when e.g. player picks up a key.
@@ -116,7 +126,8 @@ star_api_result_t star_sync_single_item(
     const char* name,
     const char* description,
     const char* game_source,
-    const char* item_type
+    const char* item_type,
+    const char* nft_id  /* NULL or empty for non-NFT items */
 );
 
 /* ---------------------------------------------------------------------------
@@ -137,6 +148,22 @@ int star_sync_send_item_get_result(int* success_out, char* error_msg_buf, size_t
 
 /** Non-zero if a send is currently in progress */
 int star_sync_send_item_in_progress(void);
+
+/* ---------------------------------------------------------------------------
+ * Async use item (e.g. door/key) - runs on background thread so API is off main thread.
+ * --------------------------------------------------------------------------- */
+
+/** Optional completion callback: invoked from main thread when star_sync_pump() sees use-item finished. */
+typedef void (*star_sync_use_item_on_done_fn)(void* user_data);
+
+/** Start use-item on a background thread. When done, on_done(user_data) is invoked from main thread in star_sync_pump(). Pass NULL for polling. */
+void star_sync_use_item_start(const char* item_name, const char* context, star_sync_use_item_on_done_fn on_done, void* user_data);
+
+/** Get result after use-item finished. success_out: 1 = success, 0 = failure. Returns 1 if result was consumed. */
+int star_sync_use_item_get_result(int* success_out, char* error_msg_buf, size_t error_msg_size);
+
+/** Non-zero if a use-item is currently in progress */
+int star_sync_use_item_in_progress(void);
 
 #ifdef __cplusplus
 }

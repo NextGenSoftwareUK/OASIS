@@ -24,10 +24,10 @@ Copy these into `VKQUAKE_SRC/Quake/` (from OASIS Omniverse):
 | `oquake_star_integration.c` | `OQuake/oquake_star_integration.c` |
 | `oquake_star_integration.h` | `OQuake/oquake_star_integration.h` |
 | `oquake_version.h` | `OQuake/oquake_version.h` (generated from **`OQuake/oquake_version.txt`** – OQuake's version source; run build or `generate_oquake_version.ps1` to regenerate) |
-| `star_api.h` | `NativeWrapper/star_api.h` |
+| `star_api.h` | `STARAPIClient/` (NativeWrapper is obsolete) |
 | `pr_ext_oquake.c` | `OQuake/vkquake_oquake/pr_ext_oquake.c` |
 
-Also copy `star_api.dll` and `star_api.lib` (from Doom folder or NativeWrapper build) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
+Also copy `star_api.dll` and `star_api.lib` (from STARAPIClient publish, or Doom folder if already built; NativeWrapper is obsolete) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
 
 ---
 
@@ -188,6 +188,70 @@ Once integrated, the OASIS splash will appear during loading and match the profe
 3. Build or copy quake-rerelease-qc progs (with `OQuake_OnKeyPickup` / `OQuake_CheckDoorAccess` in defs.qc) into the game dir.
 4. Run with STAR env set (`STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`).
 5. In-game: pick up a key in OQuake and/or ODOOM; doors that use the OQuake builtins should open with cross-game keys.
+
+---
+
+---
+
+## 9. Anorak face when beamed in, inventory overlay (I key), and Send to Avatar / Send to Clan
+
+All of the **logic** for these features lives in **OASIS**, in `OQuake/oquake_star_integration.c` (and its header). The apply script copies that file into vkQuake and patches **host.c** only. For the following to **appear in-game**, the **vkQuake engine** must call into the integration:
+
+| Feature | Where the logic lives (OASIS) | What vkQuake must do |
+|--------|------------------------------|------------------------|
+| **I key** for inventory | `OQuake_STAR_Init()` binds `oasis_inventory_toggle` to key **I** if unbound (see around line 1582 in oquake_star_integration.c). | Nothing extra: once host.c calls `OQuake_STAR_Init()`, the binding is registered. |
+| **Inventory popup** (tabs, list, status) | `OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx)` | Somewhere in the 2D HUD path (e.g. **gl_screen.c** or **r_screen.c**), call `OQuake_STAR_DrawInventoryOverlay(cbx)` so the overlay and **Send to Avatar / Send to Clan** popups are drawn. |
+| **Send to Avatar / Send to Clan** | Same overlay: Z=Send Avatar, X=Send Clan; popup uses `g_inventory_send_popup` and `star_sync` send-item API. | Same as above: drawing the inventory overlay draws the send popups. |
+| **Beamed In: &lt;username&gt;** text | `OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx)` | In the same 2D HUD path, call `OQuake_STAR_DrawBeamedInStatus(cbx)` (e.g. once per frame when in game). |
+| **Anorak face** when beamed in | `OQuake_STAR_ShouldUseAnorakFace()` and cvar `oasis_star_anorak_face` | In **sbar.c**, where the status bar face is drawn, if `OQuake_STAR_ShouldUseAnorakFace()` is true, draw the **face_anorak** pic instead of the normal health face. |
+
+So: **the code is not missing from OASIS** — it is all in `oquake_star_integration.c`. What can be “missing” is the **engine hooks** in **vkQuake’s** `sbar.c` and the 2D drawing file (e.g. **gl_screen.c**). If you re-cloned vkQuake or reverted it, those edits live only in **C:\\Source\\vkQuake** (or wherever your vkQuake source is), not in the OASIS repo.
+
+### 9a. sbar.c – anorak face when beamed in
+
+1. Add at the top with the other includes:
+   ```c
+   #include "oquake_star_integration.h"
+   ```
+2. Add a static pic pointer (e.g. next to `sb_face_invis`):
+   ```c
+   static qpic_t *sb_face_anorak;
+   ```
+3. In **Sbar_LoadPics**, after loading the other faces (e.g. after `sb_face_quad = Draw_PicFromWad ("face_quad");`), load the anorak face. If your engine can load from the game dir (e.g. `id1/gfx/face_anorak.png`), use that; otherwise ensure `face_anorak` is in your gfx WAD:
+   ```c
+   sb_face_anorak = Draw_PicFromWad ("face_anorak");  /* or Draw_PicFromFile / engine-specific */
+   if (sb_face_anorak == pic_nul)
+       sb_face_anorak = NULL;
+   ```
+   (Use `pic_nul` or whatever your engine uses for “failed to load”.)
+4. Where the status bar **face** is drawn (after the invis/invuln/quad special cases, just before `Sbar_DrawPic (cbx, x, y, sb_faces[f][anim]);`), add:
+   ```c
+   if (OQuake_STAR_ShouldUseAnorakFace() && sb_face_anorak)
+   {
+       Sbar_DrawPic (cbx, x, y, sb_face_anorak);
+       return;
+   }
+   ```
+   Then the normal `Sbar_DrawPic (cbx, x, y, sb_faces[f][anim]);` runs when not beamed in.
+
+The apply script copies **face_anorak.png** into the Quake install dir (`id1/gfx/`). Your engine must load it (e.g. from that path or from a WAD that includes it) for the anorak face to show.
+
+### 9b. gl_screen.c (or equivalent) – inventory overlay and Beamed In text
+
+You need a **cb_context_t** and the same drawing API the status bar uses (`Draw_String`, `Draw_Fill`, etc.). In vkQuake, the sbar is drawn with `cb_context_t *cbx`. Find where the 2D HUD is drawn (e.g. after the status bar or in the same pass).
+
+1. Add:
+   ```c
+   #include "oquake_star_integration.h"
+   ```
+2. Where you have `cbx` and are drawing the HUD (e.g. after `Sbar_Draw` or in the same function that draws the sbar):
+   ```c
+   OQuake_STAR_DrawBeamedInStatus (cbx);   /* "Beamed In: <username>" at bottom-left */
+   OQuake_STAR_DrawInventoryOverlay (cbx); /* inventory panel + Send to Avatar/Clan popups */
+   ```
+   Order depends on desired layering; typically draw Beamed In first, then the overlay so the overlay can sit on top.
+
+After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/oquake_star_integration.c**.
 
 ---
 

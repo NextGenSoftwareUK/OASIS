@@ -1213,14 +1213,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
         {
             try
             {
-                // Serialize AvatarDetail to JSON with Polkadot blockchain structure
+                // Serialize AvatarDetail to JSON with Polkadot blockchain structure (includes inventory with Quantity/Stack for contract support)
                 var polkadotData = new
                 {
                     avatar_id = avatarDetail.Id.ToString(),
                     username = avatarDetail.Username,
                     email = avatarDetail.Email,
                     created = avatarDetail.CreatedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    modified = avatarDetail.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ")
+                    modified = avatarDetail.ModifiedDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    inventory = avatarDetail.Inventory
                 };
 
                 return System.Text.Json.JsonSerializer.Serialize(polkadotData, new JsonSerializerOptions

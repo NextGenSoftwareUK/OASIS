@@ -54,9 +54,11 @@ You must own Quake to use the game data; get it from [Steam](https://store.steam
 4. **STAR API credentials** (same as ODOOM: SSO or API key)
 5. **Vulkan SDK** (for vkQuake) – https://vulkan.lunarg.com/sdk/home
 
-## Step 1: Build the Native Wrapper
+**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** OQuake and the build script use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below that mention NativeWrapper are for legacy reference; prefer building/publishing STARAPIClient.
 
-Same as ODOOM. From OASIS root:
+## Step 1: Build the STAR API client (STARAPIClient; NativeWrapper obsolete)
+
+For current OQuake, use STARAPIClient (see main README and STARAPIClient/README.md). Legacy: from OASIS root:
 
 ```powershell
 cd C:\Source\OASIS-master
@@ -117,7 +119,7 @@ Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Lin
 
 ## Troubleshooting
 
-- **star_api.lib/dll not found:** Build NativeWrapper; BUILD_OQUAKE.bat copies from Doom folder.
+- **star_api.lib/dll not found:** Build or publish **STARAPIClient** (NativeWrapper is obsolete); BUILD_OQUAKE.bat uses STARAPIClient.
 - **MSBuild not in PATH:** Open **Developer Command Prompt for VS 2022** and run BUILD_OQUAKE.bat from there.
 - **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID are set and init succeeds.
 - **gfx.wad / id1:** Use `-basedir` to point to your Steam Quake install or copy id1 and gfx.wad next to the exe.

@@ -1,126 +1,87 @@
 # 🎉 Integration Status Report
 
-## ✅ COMPLETE: All Code Integrated!
+## ✅ COMPLETE: ODOOM & OQuake Integrated
 
-**Date**: Integration completed  
-**Status**: ✅ Ready to Build and Test
+**Status**: ✅ Ready to build and test
 
 ---
 
 ## 📦 Integration Summary
 
-### DOOM Fork (`C:\Source\DOOM\linuxdoom-1.10\`)
+### ODOOM (UZDoom + STAR API)
 
-| File | Status | Details |
-|------|--------|---------|
-| `doom_star_integration.h` | ✅ Added | Integration header |
-| `doom_star_integration.c` | ✅ Added | Full implementation |
-| `star_api.h` | ✅ Added | STAR API header |
-| `d_main.c` | ✅ Modified | Line 1110-1111: STAR API init |
-| `p_inter.c` | ✅ Modified | Lines 421-467: Keycard tracking |
-| `p_doors.c` | ✅ Modified | Lines 225-256: Cross-game access |
-| `Makefile` | ✅ Modified | Build config updated |
+- **Location:** `OASIS Omniverse\ODOOM\` (integration code); engine: UZDoom (e.g. `C:\Source\UZDoom`)
+- **Build:** `OASIS Omniverse\ODOOM\BUILD ODOOM.bat`
+- **Output:** `ODOOM\build\ODOOM.exe`
+- **Features:** Keycard pickup, door access (local + cross-game), inventory sync, avatar/SSO, quests
 
-**Integration Points**:
-- ✅ Game initialization
-- ✅ Keycard pickup (red, blue, yellow, skull)
-- ✅ Door access (checks local + cross-game)
-- ✅ Item tracking (berserk pack, etc.)
+### OQuake (vkQuake + STAR API)
 
-### Quake Fork (`C:\Source\quake-rerelease-qc\`)
+- **Location:** `OASIS Omniverse\OQuake\` (integration code); engine: vkQuake (e.g. `C:\Source\vkQuake`); game data: quake-rerelease-qc
+- **Build:** `OASIS Omniverse\OQuake\BUILD_OQUAKE.bat` (run from Developer Command Prompt for VS)
+- **Output:** `OQuake\build\OQUAKE.exe`, `star_api.dll`
+- **Features:** Keys, ammo (with correct quantities), weapons, inventory sync, avatar/SSO, quests
 
-| File | Status | Details |
-|------|--------|---------|
-| `quake_star_integration.h` | ✅ Added | Integration header |
-| `quake_star_integration.c` | ✅ Added | Native C bridge |
-| `star_api.h` | ✅ Added | STAR API header |
-| `QUAKE_STAR_INTEGRATION.md` | ✅ Added | Integration guide |
+### STARAPIClient
 
-**Status**: Files ready, requires QuakeC modifications (documented)
+- **Location:** `OASIS Omniverse\STARAPIClient\`
+- **Output:** `star_api.dll`, `star_api.lib` (used by ODOOM and OQuake)
+- Game build scripts use or build the client; see [STARAPIClient/README.md](STARAPIClient/README.md).
 
 ---
 
-## 🚀 Next Steps (Your Action Items)
+## 🚀 Next steps
 
-### 1️⃣ Build Native Wrapper (5 minutes)
+### 1️⃣ Full setup (first time)
 
-**Visual Studio** (Recommended):
-```
-1. Open Visual Studio
-2. Open: C:\Source\OASIS-master\Game Integration\NativeWrapper\star_api.vcxproj
-3. Build → Build Solution (Release, x64)
-```
+Follow **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – clone repos, install tools, build, config.
 
-**Output**: `build/Release/star_api.dll`
-
-### 2️⃣ Set Credentials (1 minute)
+### 2️⃣ Set credentials
 
 ```powershell
 $env:STAR_USERNAME = "your_username"
 $env:STAR_PASSWORD = "your_password"
 ```
 
-### 3️⃣ Build DOOM (5 minutes)
+### 3️⃣ Build ODOOM / OQuake
 
-```cmd
-cd C:\Source\DOOM\linuxdoom-1.10
-make
+- **ODOOM:** From `OASIS Omniverse\ODOOM\` run `BUILD ODOOM.bat`
+- **OQuake:** From repo root (Developer Command Prompt for VS) run `"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"`
+
+### 4️⃣ Test
+
+```powershell
+$env:STAR_USERNAME = "your_username"
+$env:STAR_PASSWORD = "your_password"
 ```
 
-### 4️⃣ Test (2 minutes)
-
-```cmd
-.\linux\linuxxdoom.exe
-```
-
-**Expected**: Console shows "STAR API: Authenticated via SSO..."
+Then run `ODOOM\build\ODOOM.exe` or `OQuake\build\OQUAKE.exe`. Console should show Beamin (SSO) success and cross-game features enabled.
 
 ---
 
-## ✨ What Works Now
+## ✨ What works now
 
 Once built:
-- ✅ **Cross-Game Items**: Collect in DOOM, use in Quake
-- ✅ **Avatar Login**: SSO authentication
-- ✅ **Quest Tracking**: Automatic objective completion
-- ✅ **Multi-Game Quests**: Create quests spanning games
-- ✅ **NFT Foundation**: Ready for boss collection (Phase 3)
+- ✅ **Cross-game items**: Collect in ODOOM, use in OQuake (and vice versa)
+- ✅ **Avatar login**: SSO (Beamin) or API key + avatar ID
+- ✅ **Quest tracking**: Automatic objective completion
+- ✅ **Ammo quantities**: Shells, nails, etc. sync with correct totals (e.g. +20 per pickup); totals persist after reload
+- ✅ **NFT foundation**: Ready for boss collection (Phase 3)
 
-## 📊 Files Created/Modified
+## 🎯 Success indicators
 
-### Created: 12 files
-- DOOM: 4 files
-- Quake: 4 files  
-- Documentation: 4 files
-
-### Modified: 4 files
-- DOOM: 4 source files
-
-## 🎯 Success Indicators
-
-You'll know it's working when:
-1. ✅ DOOM starts without errors
-2. ✅ Console: "STAR API: Authenticated..."
-3. ✅ Pickup keycard: "STAR API: Added red_keycard..."
-4. ✅ Doors open with cross-game keycards
+- ODOOM/OQuake start without STAR API errors
+- Console: Beamin (SSO) or API key auth success
+- Pick up keycard/keys/ammo; press `I` for inventory; items appear and sync
+- After quit/reload, ammo totals match what you collected
 
 ## 📚 Documentation
 
-All guides are in `Game Integration/`:
-- **Quick Start**: `START_HERE.md`
-- **Complete Guide**: `COMPLETE_SETUP_GUIDE.md`
-- **Next Steps**: `NEXT_STEPS.md`
-- **Windows Guide**: `WINDOWS_QUICKSTART.md`
-
-## 🎮 Ready to Build!
-
-**Everything is integrated. Just follow the 3 steps above!**
-
----
-
-**Integration Complete** ✅  
-**Ready to Build** ⏳  
-**Ready to Test** ⏳
+- **Start here:** [README.md](README.md) (main entry) and **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** (onboarding – canonical setup guide)
+- **Quick start:** [QUICKSTART.md](QUICKSTART.md) (minimal steps + checklist)
+- **Integration:** [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md), [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md)
+- **Games:** [ODOOM/README.md](ODOOM/README.md), [OQuake/README.md](OQuake/README.md)
+- **Client:** [STARAPIClient/README.md](STARAPIClient/README.md)
 
 
 

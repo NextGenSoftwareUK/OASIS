@@ -5,6 +5,9 @@ param(
     [string]$Password = "",
     [string]$ApiKey = "",
     [string]$AvatarId = "",
+    [string]$SendAvatarTarget = "",
+    [string]$SendClanName = "",
+    [bool]$RebuildClient = $true,
     [switch]$BuildOnly
 )
 
@@ -16,6 +19,24 @@ $nativeDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/native"
 $publishDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/publish"
 $testSource = Join-Path $scriptDir "test_inventory.c"
 $testExe = Join-Path $scriptDir "test_inventory.exe"
+
+# Prompt to rebuild client when not explicitly passed (default Y)
+if (-not $PSBoundParameters.ContainsKey('RebuildClient'))
+{
+    $response = Read-Host "Rebuild STAR API client first? [Y/n]"
+    if ($response -eq 'n' -or $response -eq 'N') { $RebuildClient = $false }
+    else { $RebuildClient = $true }
+}
+
+if ($RebuildClient)
+{
+    Write-Host "Rebuilding STAR API client (dotnet publish)..." -ForegroundColor Yellow
+    $csproj = Join-Path $scriptDir "STARAPIClient.csproj"
+    if (!(Test-Path $csproj)) { throw "Missing project: $csproj" }
+    & dotnet publish $csproj -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+    if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE" }
+    Write-Host "[OK] STAR API client published." -ForegroundColor Green
+}
 
 if (!(Test-Path $testSource)) { throw "Missing test source: $testSource" }
 if (!(Test-Path (Join-Path $nativeDir "star_api.lib"))) { throw "Missing import lib: $nativeDir/star_api.lib" }
@@ -70,7 +91,7 @@ if ($BuildOnly)
 {
     Write-Host "`nBuild-only mode. Skipping test execution." -ForegroundColor Yellow
     Write-Host "To run the test manually:" -ForegroundColor Yellow
-    Write-Host '  .\test_inventory.exe <base_url> <username> <password> [api_key] [avatar_id]' -ForegroundColor Cyan
+    Write-Host '  .\test_inventory.exe <base_url> <username> <password> [api_key] [avatar_id] [send_avatar_target] [send_clan_name]' -ForegroundColor Cyan
     return
 }
 
@@ -79,7 +100,7 @@ if ([string]::IsNullOrWhiteSpace($Username) -or [string]::IsNullOrWhiteSpace($Pa
     Write-Host "`n[WARNING] Username and password are required to run the test." -ForegroundColor Yellow
     Write-Host 'Usage: .\compile_and_test_inventory.ps1 -BaseUrl <url> -Username <user> -Password <pass> [options]' -ForegroundColor Cyan
     Write-Host "`nOr run manually:" -ForegroundColor Yellow
-    Write-Host "  .\test_inventory.exe [base_url] [username] [password] [api_key] [avatar_id]" -ForegroundColor Cyan
+    Write-Host "  .\test_inventory.exe [base_url] [username] [password] [api_key] [avatar_id] [send_avatar_target] [send_clan_name]" -ForegroundColor Cyan
     return
 }
 
@@ -91,6 +112,8 @@ Write-Host "`n" -NoNewline
 $testArgs = @($BaseUrl, $Username, $Password)
 if (![string]::IsNullOrWhiteSpace($ApiKey)) { $testArgs += $ApiKey }
 if (![string]::IsNullOrWhiteSpace($AvatarId)) { $testArgs += $AvatarId }
+if (![string]::IsNullOrWhiteSpace($SendAvatarTarget)) { $testArgs += $SendAvatarTarget }
+if (![string]::IsNullOrWhiteSpace($SendClanName)) { $testArgs += $SendClanName }
 
 & $testExe $testArgs
 $exitCode = $LASTEXITCODE

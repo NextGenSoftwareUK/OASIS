@@ -1,4 +1,6 @@
-# Building in Visual Studio - Step by Step Guide
+# Building in Visual Studio - Step by Step Guide (legacy)
+
+**Note:** NativeWrapper is **not currently used**; it was obsoleted by the C# STARAPIClient. ODOOM and OQuake use STARAPIClient. This guide is for reference only.
 
 ## Method 1: Using the Visual Studio Project File (Easiest)
 

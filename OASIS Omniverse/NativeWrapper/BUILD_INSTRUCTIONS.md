@@ -1,4 +1,6 @@
-# Building the STAR API Native Wrapper
+# Building the STAR API Native Wrapper (legacy)
+
+**Note:** NativeWrapper is **not currently used**. It was obsoleted by the C# STARAPIClient. ODOOM and OQuake use STARAPIClient (see `OASIS Omniverse/STARAPIClient/README.md`). This guide is kept for reference only.
 
 ## Windows Build Options
 

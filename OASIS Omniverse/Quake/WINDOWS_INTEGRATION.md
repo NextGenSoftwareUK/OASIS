@@ -4,6 +4,8 @@
 
 This guide is the legacy Quake integration. It is specifically for integrating the OASIS STAR API into your Quake fork located at `C:\Source\quake-rerelease-qc`.
 
+**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** Use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). Steps below that mention NativeWrapper are for legacy reference only.
+
 ## Prerequisites
 
 1. **Visual Studio** (2019 or later) with C++ development tools
@@ -11,11 +13,11 @@ This guide is the legacy Quake integration. It is specifically for integrating t
 3. **Quake Engine** - Your fork should have a build system
 4. **STAR API Credentials** - Get from OASIS platform
 
-## Step 1: Build the Native Wrapper
+## Step 1: Build the STAR API client (STARAPIClient; NativeWrapper obsolete)
 
-Same as DOOM integration - see `Doom/WINDOWS_INTEGRATION.md` Step 1.
+Use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). Legacy: same as DOOM integration – see `Doom/WINDOWS_INTEGRATION.md` Step 1.
 
-The library will be at: `C:\Source\OASIS-master\Game Integration\NativeWrapper\build\Release\star_api.lib`
+The library will be at: `OASIS Omniverse\STARAPIClient` publish output, or legacy: `Game Integration\NativeWrapper\build\Release\star_api.lib`
 
 ## Step 2: Set Environment Variables
 

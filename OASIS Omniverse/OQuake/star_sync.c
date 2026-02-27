@@ -226,8 +226,12 @@ static int g_inv_has_result = 0;
 static star_item_list_t* g_inv_list = NULL;
 static star_api_result_t g_inv_result = STAR_API_ERROR_NOT_INITIALIZED;
 static char g_inv_error_msg[INV_ERROR_SIZE] = {0};
+static char g_inv_add_item_error[INV_ERROR_SIZE] = {0}; /* first add_item failure reason (e.g. "Avatar ID is not set...") */
+static int g_inv_add_item_calls = 0; /* number of star_api_add_item calls in last sync (0 = old queue path or none) */
 static star_sync_inventory_on_done_fn g_inv_on_done = NULL;
 static void* g_inv_on_done_user = NULL;
+static star_sync_add_item_log_fn g_add_item_log_fn = NULL;
+static void* g_add_item_log_user = NULL;
 
 #ifdef _WIN32
 static CRITICAL_SECTION g_inv_lock;
@@ -263,6 +267,138 @@ static int g_send_success = 0;
 static char g_send_error_msg[SEND_ERROR_SIZE] = {0};
 static star_sync_send_item_on_done_fn g_send_on_done = NULL;
 static void* g_send_on_done_user = NULL;
+
+#define USE_ITEM_NAME_SIZE 256
+#define USE_CONTEXT_SIZE 128
+#define USE_ERROR_SIZE 384
+#ifdef _WIN32
+static CRITICAL_SECTION g_use_lock;
+static HANDLE g_use_thread = NULL;
+#else
+static pthread_mutex_t g_use_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t g_use_thread = 0;
+#endif
+static char g_use_item_name_buf[USE_ITEM_NAME_SIZE];
+static char g_use_context_buf[USE_CONTEXT_SIZE];
+static int g_use_in_progress = 0;
+static int g_use_has_result = 0;
+static int g_use_success = 0;
+static char g_use_error_msg[USE_ERROR_SIZE] = {0};
+static star_sync_use_item_on_done_fn g_use_on_done = NULL;
+static void* g_use_on_done_user = NULL;
+
+#ifdef _WIN32
+static DWORD WINAPI use_item_thread_proc(LPVOID param) {
+#else
+static void* use_item_thread_proc(void* param) {
+#endif
+    char item_name[USE_ITEM_NAME_SIZE], context[USE_CONTEXT_SIZE];
+    int used = 0;
+    const char* err = NULL;
+    (void)param;
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#endif
+#ifndef _WIN32
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    str_copy(item_name, g_use_item_name_buf, sizeof(item_name));
+    str_copy(context, g_use_context_buf, sizeof(context));
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_unlock(&g_use_lock);
+#endif
+    star_api_queue_use_item(item_name, context[0] ? context : "unknown");
+    used = (star_api_flush_use_item_jobs() == STAR_API_SUCCESS);
+    if (!used)
+        err = star_api_get_last_error();
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    g_use_in_progress = 0;
+    g_use_has_result = 1;
+    g_use_success = used ? 1 : 0;
+    str_copy(g_use_error_msg, err ? err : "", sizeof(g_use_error_msg));
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+    return 0;
+#else
+    pthread_mutex_unlock(&g_use_lock);
+    return NULL;
+#endif
+}
+
+void star_sync_use_item_start(const char* item_name, const char* context, star_sync_use_item_on_done_fn on_done, void* user_data) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    if (g_use_in_progress) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_use_lock);
+#else
+        pthread_mutex_unlock(&g_use_lock);
+#endif
+        return;
+    }
+    g_use_has_result = 0;
+    g_use_on_done = on_done;
+    g_use_on_done_user = user_data;
+    str_copy(g_use_item_name_buf, item_name ? item_name : "", sizeof(g_use_item_name_buf));
+    str_copy(g_use_context_buf, context ? context : "", sizeof(g_use_context_buf));
+    g_use_in_progress = 1;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+    g_use_thread = CreateThread(NULL, 0, use_item_thread_proc, NULL, 0, NULL);
+#else
+    pthread_mutex_unlock(&g_use_lock);
+    pthread_create(&g_use_thread, NULL, use_item_thread_proc, NULL);
+#endif
+}
+
+int star_sync_use_item_get_result(int* success_out, char* error_msg_buf, size_t error_msg_size) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    if (!g_use_has_result) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_use_lock);
+#else
+        pthread_mutex_unlock(&g_use_lock);
+#endif
+        return 0;
+    }
+    if (success_out) *success_out = g_use_success;
+    if (error_msg_buf && error_msg_size) str_copy(error_msg_buf, g_use_error_msg, error_msg_size);
+    g_use_has_result = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_unlock(&g_use_lock);
+#endif
+    return 1;
+}
+
+int star_sync_use_item_in_progress(void) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    int in_progress = g_use_in_progress;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_unlock(&g_use_lock);
+#endif
+    return in_progress;
+}
 
 #ifdef _WIN32
 static DWORD WINAPI send_item_thread_proc(LPVOID param) {
@@ -427,6 +563,7 @@ void star_sync_init(void) {
     InitializeCriticalSection(&g_auth_lock);
     InitializeCriticalSection(&g_inv_lock);
     InitializeCriticalSection(&g_send_lock);
+    InitializeCriticalSection(&g_use_lock);
 #endif
     g_sync_initialized = 1;
 }
@@ -435,6 +572,7 @@ void star_sync_cleanup(void) {
     if (!g_sync_initialized) return;
     star_sync_inventory_clear_result();
 #ifdef _WIN32
+    DeleteCriticalSection(&g_use_lock);
     DeleteCriticalSection(&g_send_lock);
     DeleteCriticalSection(&g_inv_lock);
     DeleteCriticalSection(&g_auth_lock);
@@ -506,6 +644,27 @@ void star_sync_pump(void) {
 #endif
     if (send_fn)
         send_fn(send_ud);
+
+    star_sync_use_item_on_done_fn use_fn = NULL;
+    void* use_ud = NULL;
+#ifdef _WIN32
+    EnterCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_lock(&g_use_lock);
+#endif
+    if (g_use_has_result && g_use_on_done) {
+        use_fn = g_use_on_done;
+        use_ud = g_use_on_done_user;
+        g_use_on_done = NULL;
+        g_use_on_done_user = NULL;
+    }
+#ifdef _WIN32
+    LeaveCriticalSection(&g_use_lock);
+#else
+    pthread_mutex_unlock(&g_use_lock);
+#endif
+    if (use_fn)
+        use_fn(use_ud);
 }
 
 #ifdef _WIN32
@@ -519,6 +678,7 @@ static void* inventory_thread_proc(void* param) {
     star_item_list_t* list = NULL;
     star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
     const char* err = NULL;
+    int add_item_calls = 0;
 
     (void)param;
 #ifdef _WIN32
@@ -536,22 +696,72 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items first */
+    /* Sync local items: one entry per type with quantity. quantity > 1 = stack (add that many). quantity == 1 = unlock (has_item then add if missing).
+     * Legacy: name ending _NNNNNN is also treated as stack (strip suffix, use quantity). */
+    g_inv_add_item_error[0] = '\0';
     if (local && local_count > 0 && default_src[0]) {
         int i;
         for (i = 0; i < local_count; i++) {
             if (local[i].synced) continue;
-            if (star_api_has_item(local[i].name)) {
+            {
+                const char* n = local[i].name;
+                size_t len = strlen(n);
+                int qty = (local[i].quantity > 0) ? local[i].quantity : 1;
+                /* Stack: quantity > 1, OR name ends with _NNNNNN. Send add_item(name, qty) so API has one item per type. */
+                int is_stack = (qty > 1);
+                if (!is_stack && len >= 8 && n[len - 7] == '_') {
+                    int j;
+                    is_stack = 1;
+                    for (j = 0; j < 6; j++)
+                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack = 0; break; }
+                }
+                if (is_stack) {
+                    char base_name[128];
+                    size_t base_len = len;
+                    if (len >= 8 && n[len - 7] == '_') {
+                        int j, dig = 1;
+                        for (j = 0; j < 6; j++)
+                            if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { dig = 0; break; }
+                        if (dig) base_len = (size_t)(len - 7);
+                    }
+                    if (base_len >= sizeof(base_name)) base_len = sizeof(base_name) - 1;
+                    memcpy(base_name, n, base_len);
+                    base_name[base_len] = '\0';
+                    {
+                        const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                        star_api_queue_add_item(
+                            base_name,
+                            local[i].description,
+                            local[i].game_source[0] ? local[i].game_source : default_src,
+                            local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                            nft, qty, qty);
+                        add_item_calls++;
+                    }
+                } else {
+                    /* Unlock: add only if not already in inventory. */
+                    if (!star_api_has_item(local[i].name)) {
+                        const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                        star_api_queue_add_item(
+                            local[i].name,
+                            local[i].description,
+                            local[i].game_source[0] ? local[i].game_source : default_src,
+                            local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                            nft, 1, 1);
+                        add_item_calls++;
+                    }
+                }
                 local[i].synced = 1;
-            } else {
-                star_api_result_t add_res = star_api_add_item(
-                    local[i].name,
-                    local[i].description,
-                    local[i].game_source[0] ? local[i].game_source : default_src,
-                    local[i].item_type);
-                if (add_res == STAR_API_SUCCESS)
-                    local[i].synced = 1;
             }
+        }
+        /* Send all queued add-item requests in one flush (batch). */
+        if (add_item_calls > 0) {
+            star_api_result_t flush_res = star_api_flush_add_item_jobs();
+            if (flush_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0') {
+                const char* flush_err = star_api_get_last_error();
+                str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
+            }
+            /* Invalidate cache so next get_inventory fetches from API and returns correct quantities (client was appending each add response to cache, so cache had duplicate/stacked entries). */
+            star_api_invalidate_inventory_cache();
         }
     }
 
@@ -571,11 +781,18 @@ static void* inventory_thread_proc(void* param) {
 #endif
     g_inv_in_progress = 0;
     g_inv_has_result = 1;
+    g_inv_add_item_calls = add_item_calls;
     if (g_inv_list)
         star_api_free_item_list(g_inv_list);
     g_inv_list = list;
     g_inv_result = result;
     str_copy(g_inv_error_msg, err ? err : "", sizeof(g_inv_error_msg));
+    /* If add_item failed (e.g. not logged in / no avatar), surface that so user sees why pickups aren't saved */
+    if (g_inv_add_item_error[0] != '\0') {
+        str_copy(g_inv_error_msg, g_inv_add_item_error, sizeof(g_inv_error_msg));
+        if (g_inv_result == STAR_API_SUCCESS)
+            g_inv_result = STAR_API_ERROR_NOT_INITIALIZED; /* so UI shows error */
+    }
     /* Callback is invoked from main thread in star_sync_pump(), not from this worker. */
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
@@ -694,6 +911,40 @@ void star_sync_inventory_clear_result(void) {
         g_inv_list = NULL;
     }
     g_inv_has_result = 0;
+    g_inv_add_item_error[0] = '\0';
+    g_inv_add_item_calls = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+#endif
+}
+
+int star_sync_inventory_get_last_add_item_calls(void) {
+    int n;
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    n = g_inv_add_item_calls;
+    g_inv_add_item_calls = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+#endif
+    return n;
+}
+
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    g_add_item_log_fn = fn;
+    g_add_item_log_user = user_data;
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
 #else
@@ -719,13 +970,11 @@ int star_sync_inventory_in_progress(void) {
 star_api_result_t star_sync_single_item(const char* name,
     const char* description,
     const char* game_source,
-    const char* item_type) {
+    const char* item_type,
+    const char* nft_id) {
     if (!name || !name[0]) return STAR_API_ERROR_INVALID_PARAM;
     if (star_api_has_item(name))
         return STAR_API_SUCCESS;
-    return star_api_add_item(
-        name,
-        description ? description : "",
-        game_source ? game_source : "",
-        item_type ? item_type : "");
+    star_api_queue_add_item(name, description ? description : "", game_source ? game_source : "", item_type ? item_type : "KeyItem", nft_id, 1, 1);
+    return star_api_flush_add_item_jobs();
 }

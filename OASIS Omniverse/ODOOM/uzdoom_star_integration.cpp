@@ -5,9 +5,8 @@
  * Keycard pickups are reported to STAR; door/lock checks can use cross-game inventory.
  * In-game console: "star" command for testing (star version, star inventory, star add, etc.).
  *
- * Threading: star_sync uses background threads for auth and for inventory (like OQuake).
- * Pickups and inventory fetch run on a background thread via star_sync_inventory_start;
- * the main thread only polls for completion. This keeps the game responsive.
+ * Minimal hooks: pickups call star_api_queue_add_item; overlay calls star_api_get_inventory.
+ * All sync, local delta, and background flush are in the C# StarApiClient.
  */
 
 #include "uzdoom_star_integration.h"
@@ -106,6 +105,12 @@ CVAR(Int, odoom_star_stack_armor, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_weapons, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_powerups, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_keys, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/* Mint NFT when collecting: 1 = on, 0 = off. Default provider for minting. */
+CVAR(Int, odoom_star_mint_weapons, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_armor, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_powerups, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_keys, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(String, odoom_star_nft_provider, "SolanaOASIS", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 /* Config: ODOOM stores STAR options in the engine config. Typical path: Documents\\My Games\\UZDoom
  * (or OneDrive\\Documents\\My Games\\UZDoom) - ini file there is written on exit. STAR cvars use
@@ -115,13 +120,6 @@ static std::string g_odoom_json_config_path;
 
 /** When init (e.g. star_api_init) has failed, we skip retrying until user runs beamin again to avoid spamming "couldn't find the host". */
 static bool g_star_init_failed_this_session = false;
-
-/* Async inventory (background thread, like OQuake). Pending pickups are synced then inventory is fetched. */
-#define ODOOM_SYNC_PENDING_MAX 64
-static star_sync_local_item_t g_odoom_pending_sync[ODOOM_SYNC_PENDING_MAX];
-static int g_odoom_pending_sync_count = 0;
-static star_sync_local_item_t g_odoom_in_flight_sync[ODOOM_SYNC_PENDING_MAX];
-static int g_odoom_in_flight_count = 0;
 
 /* Inventory overlay: when open, temporarily clear key bindings (OQuake-style) so arrows/keys only drive the popup.
  * We read raw key state here and set odoom_key_* CVars so ZScript can drive selection/use/send/tabs. */
@@ -233,6 +231,26 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_stack_keys = (atoi(value) != 0) ? 1 : 0;
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "mint_weapons", value, (int)sizeof(value))) {
+		odoom_star_mint_weapons = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "mint_armor", value, (int)sizeof(value))) {
+		odoom_star_mint_armor = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "mint_powerups", value, (int)sizeof(value))) {
+		odoom_star_mint_powerups = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "mint_keys", value, (int)sizeof(value))) {
+		odoom_star_mint_keys = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "nft_provider", value, (int)sizeof(value))) {
+		odoom_star_nft_provider = value;
+		loaded = true;
+	}
 	return loaded;
 }
 
@@ -248,7 +266,21 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	fprintf(f, "  \"stack_armor\": %d,\n", odoom_star_stack_armor ? 1 : 0);
 	fprintf(f, "  \"stack_weapons\": %d,\n", odoom_star_stack_weapons ? 1 : 0);
 	fprintf(f, "  \"stack_powerups\": %d,\n", odoom_star_stack_powerups ? 1 : 0);
-	fprintf(f, "  \"stack_keys\": %d\n", odoom_star_stack_keys ? 1 : 0);
+	fprintf(f, "  \"stack_keys\": %d,\n", odoom_star_stack_keys ? 1 : 0);
+	fprintf(f, "  \"mint_weapons\": %d,\n", odoom_star_mint_weapons ? 1 : 0);
+	fprintf(f, "  \"mint_armor\": %d,\n", odoom_star_mint_armor ? 1 : 0);
+	fprintf(f, "  \"mint_powerups\": %d,\n", odoom_star_mint_powerups ? 1 : 0);
+	fprintf(f, "  \"mint_keys\": %d,\n", odoom_star_mint_keys ? 1 : 0);
+	{
+		const char* prov = (const char*)odoom_star_nft_provider;
+		if (!prov) prov = "";
+		fprintf(f, "  \"nft_provider\": \"");
+		for (; *prov; prov++) {
+			if (*prov == '"' || *prov == '\\') fputc('\\', f);
+			fputc((unsigned char)*prov, f);
+		}
+		fprintf(f, "\"\n");
+	}
 	fprintf(f, "}\n");
 	fclose(f);
 	return true;
@@ -292,7 +324,8 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #endif
 }
 
-/** Push inventory list to CVars for ZScript overlay. list may be null (clears overlay). Caller keeps ownership. */
+/** Push inventory list to CVars for ZScript overlay. list may be null (clears overlay). Caller keeps ownership.
+ * Items with nft_id set get "[NFT] " prefix in the name so overlay shows [NFT] and groups by "[NFT] Name" vs "Name". */
 static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	static char listBuf[24576];
 	FBaseCVar* countVar = FindCVar("odoom_star_inventory_count", nullptr);
@@ -321,8 +354,14 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	};
 	for (size_t i = 0; i < n && off < sizeof(listBuf) - 320; i++) {
 		const star_item_t* it = &list->items[i];
-		char name[256], desc[256], type[64], game[64];
-		copySafe(name, it->name, 256);
+		char name[320], desc[256], type[64], game[64];
+		bool isNft = (it->nft_id[0] != '\0');
+		if (isNft) {
+			snprintf(name, sizeof(name), "[NFT] %s", it->name);
+			copySafe(name, name, 320);  /* sanitize tabs/newlines for CVar list */
+		} else {
+			copySafe(name, it->name, 256);
+		}
 		copySafe(desc, it->description, 256);
 		copySafe(type, it->item_type, 64);
 		copySafe(game, it->game_source, 64);
@@ -337,7 +376,7 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	listVar->SetGenericRep(v, CVAR_String);
 }
 
-/** Refresh overlay from client cache (one get_inventory; client returns cache). Call after send/use so overlay stays in sync. */
+/** Refresh overlay from client (get_inventory returns API + pending merged in C#). Call after send/use or when overlay is open so list stays in sync. */
 static void ODOOM_RefreshOverlayFromClient(void) {
 	star_item_list_t* list = nullptr;
 	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return;
@@ -346,23 +385,15 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 }
 
 static void ODOOM_OnAuthDone(void* user_data);
-static void ODOOM_OnInventoryDone(void* user_data);
 static void ODOOM_OnSendItemDone(void* user_data);
+static void ODOOM_OnUseItemDone(void* user_data);
 
-/** Start background inventory sync if we have pending items and no sync in progress. */
+static void StarLogInfo(const char* fmt, ...);
+static void StarLogError(const char* fmt, ...);
+
+/** C# client flushes add_item queue in background; no sync started from ODOOM. */
 static void ODOOM_StartInventorySyncIfNeeded(void) {
-	if (!g_star_initialized || star_sync_inventory_in_progress())
-		return;
-	if (g_odoom_pending_sync_count <= 0) return;
-	int n = g_odoom_pending_sync_count;
-	if (n > ODOOM_SYNC_PENDING_MAX) n = ODOOM_SYNC_PENDING_MAX;
-	for (int i = 0; i < n; i++) {
-		g_odoom_in_flight_sync[i] = g_odoom_pending_sync[i];
-		g_odoom_in_flight_sync[i].synced = 0;
-	}
-	g_odoom_in_flight_count = n;
-	g_odoom_pending_sync_count = 0;
-	star_sync_inventory_start(g_odoom_in_flight_sync, n, "ODOOM", ODOOM_OnInventoryDone, nullptr);
+	/* No-op: heavy lifting (sync, local delta, multithreading) is in C# StarApiClient. */
 }
 
 /** Called from main thread by star_sync_pump() when auth completes. */
@@ -384,26 +415,11 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
-		/* Start inventory fetch in background so popup has data when opened (same as OQuake). */
-		if (!star_sync_inventory_in_progress())
-			star_sync_inventory_start(nullptr, 0, "ODOOM", ODOOM_OnInventoryDone, nullptr);
+		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
 		Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", error_buf[0] ? error_buf : star_api_get_last_error());
 	}
-}
-
-/** Called from main thread by star_sync_pump() when inventory refresh completes. Single cache lives in client; we just push to overlay and release. */
-static void ODOOM_OnInventoryDone(void* user_data) {
-	(void)user_data;
-	star_item_list_t* list = nullptr;
-	star_api_result_t res = STAR_API_ERROR_API_ERROR;
-	char err_buf[256] = {};
-	if (!star_sync_inventory_get_result(&list, &res, err_buf, sizeof(err_buf)))
-		return;
-	ODOOM_PushInventoryToCVars(list);
-	star_sync_inventory_clear_result();
-	g_odoom_in_flight_count = 0;
 }
 
 /** Called from main thread by star_sync_pump() when send-item completes (same pattern as Quake). */
@@ -435,6 +451,19 @@ static void ODOOM_OnSendItemDone(void* user_data) {
 	/* Do NOT refetch inventory here; we updated the cache above. Keeps API hits to minimum. */
 }
 
+/** Called from main thread by star_sync_pump() when use-item (e.g. door key) completes. */
+static void ODOOM_OnUseItemDone(void* user_data) {
+	(void)user_data;
+	int success = 0;
+	char err_buf[384] = {};
+	if (!star_sync_use_item_get_result(&success, err_buf, sizeof(err_buf)))
+		return;
+	if (success)
+		ODOOM_RefreshOverlayFromClient();
+	else if (err_buf[0])
+		StarLogError("star_api_use_item failed: %s", err_buf);
+}
+
 /** Called every frame from the main loop (see apply_odoom_branding.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
@@ -442,6 +471,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
+
+	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). */
+	if (open)
+		ODOOM_RefreshOverlayFromClient();
 
 	if (open && !g_odoom_inventory_bindings_captured)
 	{
@@ -752,19 +785,46 @@ static bool EqualsNoCase(const std::string& a, const std::string& b) {
 	return true;
 }
 
+/** Map Doom class name to short display/API name (game shown in brackets in UI). Same pattern as OQuake. */
 static std::string ToStarItemName(const char* className) {
-	if (!className || !className[0]) return "pickup_item";
+	if (!className || !className[0]) return "Item";
+	const char* c = className;
+	/* Ammo */
+	if (strstr(c, "Clip") || strstr(c, "Bullet")) return "Bullets";
+	if (strstr(c, "Shell") && !strstr(c, "Shotgun")) return "Shells";
+	if (strstr(c, "Cell")) return "Cells";
+	if (strstr(c, "Rocket")) return "Rockets";
+	/* Armor */
+	if (strstr(c, "GreenArmor")) return "Green Armor";
+	if (strstr(c, "BlueArmor") || strstr(c, "BlueSphere")) return "Blue Armor";
+	/* Health */
+	if (strstr(c, "Stimpack")) return "Stimpack";
+	if (strstr(c, "Medikit")) return "Medikit";
+	if (strstr(c, "HealthBonus")) return "Health Bonus";
+	if (strstr(c, "SoulSphere")) return "Soul Sphere";
+	if (strstr(c, "Megasphere")) return "Mega Sphere";
+	/* Powerups */
+	if (strstr(c, "InvulnSphere") || strstr(c, "Invulnerability")) return "Invulnerability";
+	if (strstr(c, "Berserk")) return "Berserk";
+	if (strstr(c, "Backpack")) return "Backpack";
+	/* Weapons */
+	if (strstr(c, "Fist")) return "Fist";
+	if (strstr(c, "Pistol")) return "Pistol";
+	if (strstr(c, "Shotgun")) return "Shotgun";
+	if (strstr(c, "Chaingun")) return "Chaingun";
+	if (strstr(c, "RocketLauncher")) return "Rocket Launcher";
+	if (strstr(c, "PlasmaRifle")) return "Plasma Rifle";
+	if (strstr(c, "BFG")) return "BFG9000";
+	if (strstr(c, "Chainsaw")) return "Chainsaw";
+	/* Fallback: title-case style from class name */
 	std::string out;
-	out.reserve(std::strlen(className) + 8);
 	for (const char* p = className; *p; ++p) {
-		unsigned char c = static_cast<unsigned char>(*p);
-		if (std::isalnum(c)) out.push_back(static_cast<char>(std::tolower(c)));
-		else out.push_back('_');
+		unsigned char ch = static_cast<unsigned char>(*p);
+		if (std::isalnum(ch)) out.push_back(static_cast<char>(p == className ? std::toupper(ch) : std::tolower(ch)));
+		else if (ch == '_' || ch == ' ') out.push_back(' ');
 	}
-	while (!out.empty() && out.front() == '_') out.erase(out.begin());
-	while (!out.empty() && out.back() == '_') out.pop_back();
-	if (out.empty()) out = "pickup_item";
-	return out;
+	while (!out.empty() && out.back() == ' ') out.pop_back();
+	return out.empty() ? "Item" : out;
 }
 
 static bool IsMockAnorakCredentials(const std::string& username, const std::string& password) {
@@ -1001,9 +1061,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		else
 			odoom_star_username = "Avatar";
 		StarApplyBeamFacePreference();
-		if (logVerbose) StarLogInfo("Beam-in (API key/avatar). Starting inventory sync in background.");
-		if (!star_sync_inventory_in_progress())
-			star_sync_inventory_start(nullptr, 0, "ODOOM", ODOOM_OnInventoryDone, nullptr);
+		if (logVerbose) StarLogInfo("Beam-in (API key/avatar).");
 		return true;
 	}
 
@@ -1016,10 +1074,10 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 
 static const char* GetKeycardName(int keynum) {
 	switch (keynum) {
-		case 1: return "red_keycard";
-		case 2: return "blue_keycard";
-		case 3: return "yellow_keycard";
-		case 4: return "skull_key";
+		case 1: return "Red Keycard";
+		case 2: return "Blue Keycard";
+		case 3: return "Yellow Keycard";
+		case 4: return "Skull Key";
 		default: return nullptr;
 	}
 }
@@ -1054,8 +1112,7 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 
 	StarLogInfo("STAR bootstrap: Beaming in...");
-	if (StarTryInitializeAndAuthenticate(true) && !star_sync_inventory_in_progress())
-		star_sync_inventory_start(nullptr, 0, "ODOOM", ODOOM_OnInventoryDone, nullptr);
+	if (StarTryInitializeAndAuthenticate(true)) { /* C# client handles inventory; overlay refreshes from get_inventory when opened. */ }
 	Printf(PRINT_NONOTIFY, "STAR: debug=%s auth_source=%s initialized=%s\n",
 		g_star_debug_logging ? "on" : "off",
 		StarAuthSourceLabel(),
@@ -1155,10 +1212,10 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	const char* desc = nullptr;
 	const char* itemType = "KeyItem";
 	if (keynum == STAR_PICKUP_OQUAKE_GOLD_KEY) {
-		name = "gold_key";
+		name = "Gold Key";
 		desc = "Gold key - Opens gold doors in OQuake";
 	} else if (keynum == STAR_PICKUP_OQUAKE_SILVER_KEY) {
-		name = "silver_key";
+		name = "Silver Key";
 		desc = "Silver key - Opens silver doors in OQuake";
 	} else if (keynum >= 1 && keynum <= 4) {
 		name = GetKeycardName(keynum);
@@ -1170,22 +1227,27 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 	if (!name || !desc) return;
 
-	/* Queue for background sync (like OQuake) so main thread doesn't block. */
-	if (g_odoom_pending_sync_count < ODOOM_SYNC_PENDING_MAX) {
-		star_sync_local_item_t* p = &g_odoom_pending_sync[g_odoom_pending_sync_count++];
-		strncpy(p->name, name, sizeof(p->name) - 1); p->name[sizeof(p->name) - 1] = '\0';
-		strncpy(p->description, desc, sizeof(p->description) - 1); p->description[sizeof(p->description) - 1] = '\0';
-		strncpy(p->game_source, "ODOOM", sizeof(p->game_source) - 1); p->game_source[sizeof(p->game_source) - 1] = '\0';
-		strncpy(p->item_type, itemType, sizeof(p->item_type) - 1); p->item_type[sizeof(p->item_type) - 1] = '\0';
-		p->synced = 0;
-		g_star_last_pickup_name = name;
-		g_star_last_pickup_type = itemType;
-		g_star_last_pickup_desc = desc;
-		g_star_has_last_pickup = true;
-		/* Do not start sync on every pickup; inventory loads once after beam-in only. */
-	} else {
-		StarLogError("Pending sync queue full; pickup %s not synced.", name);
+	/* Minimal hook: queue pickup to C# client; client manages delta and sync. */
+	char nft_id_buf[128] = {};
+	char* nft_id_arg = nullptr;
+	bool isKey = (keynum >= 1 && keynum <= 4) || keynum == STAR_PICKUP_OQUAKE_GOLD_KEY || keynum == STAR_PICKUP_OQUAKE_SILVER_KEY;
+	bool isWeapon = itemType && (strstr(itemType, "Weapon") != nullptr || strstr(itemType, "weapon") != nullptr);
+	bool isArmor = itemType && (strstr(itemType, "Armor") != nullptr || strstr(itemType, "armor") != nullptr);
+	bool isPowerup = itemType && (strstr(itemType, "owerup") != nullptr || strstr(itemType, "Health") != nullptr);
+	bool doMint = (isKey && odoom_star_mint_keys) || (isWeapon && odoom_star_mint_weapons) || (isArmor && odoom_star_mint_armor) || (isPowerup && odoom_star_mint_powerups);
+	if (doMint) {
+		const char* provider = (const char*)odoom_star_nft_provider;
+		if (!provider || !provider[0]) provider = "SolanaOASIS";
+		if (star_api_mint_inventory_nft(name, desc, "ODOOM", itemType ? itemType : "Item", provider, nft_id_buf) == STAR_API_SUCCESS && nft_id_buf[0])
+			nft_id_arg = nft_id_buf;
+		else if (star_api_get_last_error() && star_api_get_last_error()[0])
+			StarLogError("Mint NFT for %s failed: %s", name, star_api_get_last_error());
 	}
+	star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nft_id_arg, 1, 1);
+	g_star_last_pickup_name = name;
+	g_star_last_pickup_type = itemType;
+	g_star_last_pickup_desc = desc;
+	g_star_has_last_pickup = true;
 	if (keynum == STAR_PICKUP_GENERIC_ITEM) {
 		g_star_has_pending_item = false;
 		g_star_pending_item_name.clear();
@@ -1206,11 +1268,8 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 
 	if (star_api_has_item(keyname)) {
 		StarLogInfo("Door access granted via shared inventory key: %s", keyname);
-		bool used = star_api_use_item(keyname, "odoom_door");
-		if (used)
-			ODOOM_RefreshOverlayFromClient();
-		else
-			StarLogError("star_api_use_item failed for %s: %s", keyname, star_api_get_last_error());
+		/* Use item on API from background thread; overlay refresh in ODOOM_OnUseItemDone. */
+		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
 		return 1;
 	}
 
@@ -1239,9 +1298,9 @@ CCMD(star)
 		Printf("  star status         - Show init state and last error\n");
 		Printf("  star inventory      - List items in STAR inventory\n");
 		Printf("  star lastpickup     - Show most recent synced pickup\n");
-		Printf("  star has <item>     - Check if you have an item (e.g. red_keycard)\n");
-		Printf("  star add <item> [desc] [type] - Add item (e.g. star add red_keycard)\n");
-		Printf("  star use <item> [context]     - Use item (e.g. star use red_keycard door)\n");
+		Printf("  star has <item>     - Check if you have an item (e.g. Red Keycard)\n");
+		Printf("  star add <item> [desc] [type] - Add item (e.g. star add Red Keycard)\n");
+		Printf("  star use <item> [context]     - Use item (e.g. star use Red Keycard door)\n");
 		Printf("  star quest start <id>        - Start a quest\n");
 		Printf("  star quest objective <quest> <obj> - Complete quest objective\n");
 		Printf("  star quest complete <id>    - Complete a quest\n");
@@ -1250,9 +1309,11 @@ CCMD(star)
 		Printf("  star pickup keycard <red|blue|yellow|skull> - Add keycard (convenience)\n");
 		Printf("  star debug on|off|status - Toggle STAR debug logging in console\n");
 		Printf("  star face on|off|status - Toggle beamed-in face switch (default on)\n");
-		Printf("  star config        - Show current STAR config (URLs, beam face, stack options)\n");
+		Printf("  star config        - Show current STAR config (URLs, beam face, stack, mint NFT, provider)\n");
 		Printf("  star config save   - Write config to oasisstar.json now (also saved on exit)\n");
 		Printf("  star stack <armor|weapons|powerups|keys> <0|1> - Stack (1) or unlock (0) per category\n");
+		Printf("  star mint <armor|weapons|powerups|keys> <0|1> - Mint NFT when collecting (1=on, 0=off)\n");
+		Printf("  star nftprovider <name> - Default NFT mint provider (e.g. SolanaOASIS)\n");
 		Printf("  star seturl <url>       - Set STAR API URL (saved to config)\n");
 		Printf("  star setoasisurl <url>  - Set OASIS API URL (saved to config)\n");
 		Printf("  star reloadconfig  - Reload from oasisstar.json\n");
@@ -1273,12 +1334,13 @@ CCMD(star)
 		const char* color = argv[3];
 		const char* name = nullptr;
 		const char* desc = nullptr;
-		if (strcmp(color, "red") == 0)    { name = "red_keycard";  desc = "Red Keycard - Opens red doors"; }
-		else if (strcmp(color, "blue") == 0)   { name = "blue_keycard";  desc = "Blue Keycard - Opens blue doors"; }
-		else if (strcmp(color, "yellow") == 0) { name = "yellow_keycard"; desc = "Yellow Keycard - Opens yellow doors"; }
-		else if (strcmp(color, "skull") == 0)  { name = "skull_key";      desc = "Skull Key - Opens skull-marked doors"; }
+		if (strcmp(color, "red") == 0)    { name = "Red Keycard";  desc = "Red Keycard - Opens red doors"; }
+		else if (strcmp(color, "blue") == 0)   { name = "Blue Keycard";  desc = "Blue Keycard - Opens blue doors"; }
+		else if (strcmp(color, "yellow") == 0) { name = "Yellow Keycard"; desc = "Yellow Keycard - Opens yellow doors"; }
+		else if (strcmp(color, "skull") == 0)  { name = "Skull Key";      desc = "Skull Key - Opens skull-marked doors"; }
 		else { Printf("Unknown keycard: %s. Use red|blue|yellow|skull.\n", color); Printf("\n"); return; }
-		star_api_result_t r = star_api_add_item(name, desc, "ODOOM", "KeyItem");
+		star_api_queue_add_item(name, desc, "ODOOM", "KeyItem", nullptr, 1, 1);
+		star_api_result_t r = star_api_flush_add_item_jobs();
 		if (r == STAR_API_SUCCESS) Printf("Added %s to STAR inventory.\n", name);
 		else Printf("Failed: %s\n", star_api_get_last_error());
 		Printf("\n");
@@ -1409,24 +1471,16 @@ CCMD(star)
 		const char* name = argv[2];
 		const char* desc = argv.argc() > 3 ? argv[3] : "Added from console";
 		const char* type = argv.argc() > 4 ? argv[4] : "Miscellaneous";
-		if (g_odoom_pending_sync_count < ODOOM_SYNC_PENDING_MAX) {
-			star_sync_local_item_t* p = &g_odoom_pending_sync[g_odoom_pending_sync_count++];
-			strncpy(p->name, name, sizeof(p->name) - 1); p->name[sizeof(p->name) - 1] = '\0';
-			strncpy(p->description, desc, sizeof(p->description) - 1); p->description[sizeof(p->description) - 1] = '\0';
-			strncpy(p->game_source, "ODOOM", sizeof(p->game_source) - 1); p->game_source[sizeof(p->game_source) - 1] = '\0';
-			strncpy(p->item_type, type, sizeof(p->item_type) - 1); p->item_type[sizeof(p->item_type) - 1] = '\0';
-			p->synced = 0;
-			/* Do not auto-start sync; keep API hits to minimum. */
-			Printf("Queued '%s' for sync. Inventory loads once after beam-in.\n", name);
-		} else {
-			Printf("Sync queue full; try again later.\n");
-		}
+		star_api_queue_add_item(name, desc, "ODOOM", type, nullptr, 1, 1);
+		Printf("Queued '%s' for sync.\n", name);
 		return;
 	}
 	if (strcmp(sub, "use") == 0) {
 		if (argv.argc() < 3) { Printf("Usage: star use <item_name> [context]\n"); return; }
 		const char* ctx = argv.argc() > 3 ? argv[3] : "console";
-		bool ok = star_api_use_item(argv[2], ctx);
+		star_api_queue_use_item(argv[2], ctx);
+		int r = star_api_flush_use_item_jobs();
+		bool ok = (r == STAR_API_SUCCESS);
 		Printf("Use '%s' (context %s): %s\n", argv[2], ctx, ok ? "ok" : "failed");
 		if (!ok) Printf("  %s\n", star_api_get_last_error());
 		return;
@@ -1618,11 +1672,51 @@ CCMD(star)
 		Printf("    stack_weapons:  %s\n", odoom_star_stack_weapons ? "1 (stack)" : "0 (unlock)");
 		Printf("    stack_powerups: %s\n", odoom_star_stack_powerups ? "1 (stack)" : "0 (unlock)");
 		Printf("    stack_keys:     %s\n", odoom_star_stack_keys ? "1 (stack)" : "0 (unlock)");
+		Printf("  Mint NFT when collecting (1=on, 0=off):\n");
+		Printf("    mint_weapons:   %s\n", odoom_star_mint_weapons ? "1" : "0");
+		Printf("    mint_armor:    %s\n", odoom_star_mint_armor ? "1" : "0");
+		Printf("    mint_powerups: %s\n", odoom_star_mint_powerups ? "1" : "0");
+		Printf("    mint_keys:     %s\n", odoom_star_mint_keys ? "1" : "0");
+		Printf("  NFT mint provider: %s\n", (const char*)odoom_star_nft_provider && ((const char*)odoom_star_nft_provider)[0] ? (const char*)odoom_star_nft_provider : "SolanaOASIS");
 		Printf("\n");
 		Printf("To set: star seturl <url>   star setoasisurl <url>\n");
 		Printf("        star stack <armor|weapons|powerups|keys> <0|1>\n");
+		Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
+		Printf("        star nftprovider <name>  (e.g. SolanaOASIS)\n");
 		Printf("To save now: star config save (also saved on exit)\n");
 		Printf("\n");
+		return;
+	}
+	if (strcmp(sub, "mint") == 0) {
+		if (argv.argc() < 4) {
+			Printf("Usage: star mint <armor|weapons|powerups|keys> <0|1>\n");
+			Printf("  1 = mint NFT when collecting that category, 0 = off. Default provider in star nftprovider.\n");
+			return;
+		}
+		const char* cat = argv[2];
+		const char* val = argv[3];
+		int on = (val[0] == '1' && val[1] == '\0') ? 1 : 0;
+		if (strcmp(cat, "armor") == 0) { odoom_star_mint_armor = on; }
+		else if (strcmp(cat, "weapons") == 0) { odoom_star_mint_weapons = on; }
+		else if (strcmp(cat, "powerups") == 0) { odoom_star_mint_powerups = on; }
+		else if (strcmp(cat, "keys") == 0) { odoom_star_mint_keys = on; }
+		else {
+			Printf("Unknown category: %s. Use armor|weapons|powerups|keys.\n", cat);
+			return;
+		}
+		ODOOM_SaveStarConfigToFiles();
+		Printf("Mint NFT for %s set to %s. Config saved.\n", cat, on ? "on" : "off");
+		return;
+	}
+	if (strcmp(sub, "nftprovider") == 0) {
+		if (argv.argc() < 3) {
+			Printf("Usage: star nftprovider <provider_name>\n");
+			Printf("  Default: SolanaOASIS. Used when minting NFTs for collected items.\n");
+			return;
+		}
+		odoom_star_nft_provider = argv[2];
+		ODOOM_SaveStarConfigToFiles();
+		Printf("NFT mint provider set to: %s. Config saved.\n", argv[2]);
 		return;
 	}
 	if (strcmp(sub, "stack") == 0) {
