@@ -1,8 +1,8 @@
-# NativeWrapper (legacy – not currently used)
+# NativeWrapper — **DEPRECATED – DO NOT USE**
 
-**NativeWrapper is not currently being used.** It was obsoleted by the C# **STARAPIClient**, which produces `star_api.dll` and `star_api.lib` and is what ODOOM and OQuake use today.
+**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. This folder is kept for reference only.
 
-This folder is kept for reference only. For building and using the STAR API with ODOOM/OQuake, see:
+For building and using the STAR API with ODOOM/OQuake, see:
 
 - **[../STARAPIClient/README.md](../STARAPIClient/README.md)** – current client, build, and deployment
 - [../README.md](../README.md) – OASIS Omniverse overview

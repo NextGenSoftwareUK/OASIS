@@ -77,6 +77,7 @@ Install these before building ODOOM, OQuake, or the OASIS APIs.
 ### OASIS repo layout (relevant folders)
 
 - `Scripts\` – start/stop WEB4 and WEB5 APIs, run tests.
+- `OASIS Omniverse\` – root for **BUILD EVERYTHING.bat** (build client + ODOOM + OQuake with no prompts), **BUILD_AND_DEPLOY_STAR_CLIENT.bat**, and game folders.
 - `OASIS Omniverse\ODOOM\` – ODOOM build and run scripts.
 - `OASIS Omniverse\OQuake\` – OQuake build and run scripts.
 - `OASIS Omniverse\STARAPIClient\` – C# client and C exports used by the games.
@@ -86,7 +87,8 @@ Install these before building ODOOM, OQuake, or the OASIS APIs.
 - **Build:** From `OASIS Omniverse\ODOOM\` run:
   - `BUILD ODOOM.bat`
 - **Build and run:** Run:
-  - `BUILD & RUN ODOOM.bat`
+  - `RUN ODOOM.bat`
+- **Build everything (no prompts):** From `OASIS Omniverse\` run **BUILD EVERYTHING.bat** to build STARAPIClient, ODOOM, and OQuake with no prompts; then use RUN ODOOM.bat / RUN OQUAKE.bat to launch.
 - Output: `OASIS Omniverse\ODOOM\build\ODOOM.exe` (and DLLs). Place your WAD (e.g. `doom2.wad`) in `build\` or configure the game to find it.
 - If UZDoom is not at `C:\Source\UZDoom`, set **UZDOOM_SRC** at the top of `BUILD ODOOM.bat`.
 
@@ -95,7 +97,7 @@ Install these before building ODOOM, OQuake, or the OASIS APIs.
 - **Build:** From the OASIS repo root run:
   - `"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"`
 - **Build and run:** Run:
-  - `"OASIS Omniverse\OQuake\BUILD & RUN OQUAKE.bat"`
+  - `"OASIS Omniverse\OQuake\RUN OQUAKE.bat"`
 - Set **VKQUAKE_SRC** (e.g. `C:\Source\vkQuake`) and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** in the script if needed. Run from **Developer Command Prompt for VS** so MSBuild is in PATH.
 - Output: `OASIS Omniverse\OQuake\build\` (OQUAKE.exe and star_api.dll). Quake game data (id1, pak0.pak, pak1.pak, gfx.wad) must be available (e.g. via `-basedir` or next to the exe). See `OQuake\WINDOWS_INTEGRATION.md`.
 
@@ -154,6 +156,8 @@ Both games read STAR/WEB4 URLs and options from a config file named **oasisstar.
 
 - **star_api_url** – WEB5 (STAR) API base URL (e.g. `http://localhost:5556` or `https://oasisweb4.one/star/api`).
 - **oasis_api_url** – WEB4 (OASIS/ONODE) API base URL (e.g. `http://localhost:5555` or `https://oasisweb4.one/api`).
+- **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint an NFT (WEB4 NFTHolon) when collecting that category; `0` to disable. Optional; default off for keys/weapons/armor/powerups if omitted.
+- **nft_provider** – NFT mint provider (e.g. `SolanaOASIS`). Optional.
 
 Other keys (e.g. `beam_face`, `stack_armor`, `stack_keys`) control behavior; you can leave them as-is for onboarding.
 
@@ -167,7 +171,12 @@ Other keys (e.g. `beam_face`, `stack_armor`, `stack_keys`) control behavior; you
   "stack_armor": 1,
   "stack_weapons": 1,
   "stack_powerups": 1,
-  "stack_keys": 1
+  "stack_keys": 1,
+  "mint_weapons": 0,
+  "mint_armor": 0,
+  "mint_powerups": 0,
+  "mint_keys": 0,
+  "nft_provider": "SolanaOASIS"
 }
 ```
 
@@ -184,7 +193,11 @@ Example (excerpt):
 {
   "star_api_url": "https://oasisweb4.one/star/api",
   "oasis_api_url": "https://oasisweb4.one/api",
-  ...
+  "mint_weapons": 0,
+  "mint_armor": 0,
+  "mint_powerups": 0,
+  "mint_keys": 0,
+  "nft_provider": "SolanaOASIS"
 }
 ```
 
@@ -201,12 +214,13 @@ Summary:
 |------|--------|
 | Clone everything | OASIS-master, UZDoom, vkQuake, quake-rerelease-qc under e.g. `C:\Source\`. |
 | Install tools | VS (C++), CMake, Python 3, Vulkan SDK, .NET SDK. |
+| Build everything (no prompts) | From `OASIS Omniverse\`: **BUILD EVERYTHING.bat** (client + ODOOM + OQuake; then use RUN ODOOM.bat / RUN OQUAKE.bat). |
 | Start local APIs | From OASIS repo root: `Scripts\start_web4_and_web5_apis.bat`. |
 | Stop local APIs | `Scripts\stop_web4_and_web5_apis.bat`. |
 | Build ODOOM | `OASIS Omniverse\ODOOM\BUILD ODOOM.bat` (set UZDOOM_SRC if needed). |
-| Run ODOOM | `OASIS Omniverse\ODOOM\BUILD & RUN ODOOM.bat` or run `build\ODOOM.exe`. |
+| Run ODOOM | `OASIS Omniverse\ODOOM\RUN ODOOM.bat` or run `build\ODOOM.exe`. |
 | Build OQuake | From repo root: `"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"` (set VKQUAKE_SRC; use Developer Command Prompt). |
-| Run OQuake | `"OASIS Omniverse\OQuake\BUILD & RUN OQUAKE.bat"` or run `build\OQUAKE.exe` with game data. |
+| Run OQuake | `"OASIS Omniverse\OQuake\RUN OQUAKE.bat"` or run `build\OQUAKE.exe` with game data. |
 | Use live APIs | Edit `ODOOM\build\oasisstar.json` and `OQuake\build\oasisstar.json`: set `star_api_url` and `oasis_api_url` to `https://oasisweb4.one/star/api` and `https://oasisweb4.one/api`. |
 | Auth (games) | Set env vars: `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`. |
 

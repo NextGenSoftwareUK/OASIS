@@ -1,6 +1,6 @@
 @echo off
 REM Build ODOOM if needed, then launch. Put WAD (e.g. doom2.wad) in ODOOM\build\.
-echo   O A S I S   O D O O M   ^|   Build ^& Run
+echo   O A S I S   O D O O M   ^|   Run
 echo.
 set "ODOOM_SRC=C:\Source\UZDoom"
 set "HERE=%~dp0"

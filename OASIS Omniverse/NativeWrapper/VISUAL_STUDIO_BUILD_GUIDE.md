@@ -1,13 +1,13 @@
-# Building in Visual Studio - Step by Step Guide (legacy)
+# Building in Visual Studio - Step by Step Guide — **DEPRECATED**
 
-**Note:** NativeWrapper is **not currently used**; it was obsoleted by the C# STARAPIClient. ODOOM and OQuake use STARAPIClient. This guide is for reference only.
+**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. Build from `OASIS Omniverse/STARAPIClient` (see that folder's README). This guide is for reference only.
 
 ## Method 1: Using the Visual Studio Project File (Easiest)
 
 ### Step 1: Open the Project
 1. **Open Visual Studio** (2019 or 2022)
 2. **File** → **Open** → **Project/Solution...**
-3. Navigate to: `C:\Source\OASIS-master\Game Integration\NativeWrapper\`
+3. Navigate to: `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\`
 4. Select: **star_api.vcxproj**
 5. Click **Open**
 
@@ -38,7 +38,7 @@
 
 ### Step 2: Navigate and Build
 ```cmd
-cd C:\Source\OASIS-master\Game Integration\NativeWrapper
+cd C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper
 mkdir build
 cd build
 cmake .. -G "Visual Studio 17 2022" -A x64
@@ -56,7 +56,7 @@ cmake --build . --config Release
 1. **File** → **New** → **Project**
 2. Select: **Visual C++** → **Windows Desktop** → **Dynamic Link Library (.dll)**
 3. Name: `star_api`
-4. Location: `C:\Source\OASIS-master\Game Integration\NativeWrapper\`
+4. Location: `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\`
 
 ### Step 2: Add Source Files
 1. **Right-click** project → **Add** → **Existing Item**
@@ -104,7 +104,7 @@ cmake --build . --config Release
 ## After Building
 
 Once built, the library will be at:
-- `C:\Source\OASIS-master\Game Integration\NativeWrapper\build\Release\star_api.dll`
+- `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\Release\star_api.dll`
 
 You can then:
 1. Build DOOM (it will link to this library)

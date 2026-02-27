@@ -154,11 +154,12 @@ enum {
     OQ_GROUP_MODE_SUM = 1
 };
 
-/** If mint is on for this item_type, mint NFT and fill nft_id_out (max 128 bytes). Returns 1 if nft_id_out is set, 0 otherwise. */
-static int OQ_MaybeMintForItemType(const char* item_name, const char* description, const char* item_type, char* nft_id_out, size_t nft_id_size)
+/** If mint is on for this item_type, mint NFT and fill nft_id_out (max 128 bytes). Optional hash_out (128 bytes) for tx hash. Returns 1 if nft_id_out is set, 0 otherwise. */
+static int OQ_MaybeMintForItemType(const char* item_name, const char* description, const char* item_type, char* nft_id_out, size_t nft_id_size, char* hash_out, size_t hash_size)
 {
     if (!nft_id_out || nft_id_size < 128 || !item_name || !item_name[0]) return 0;
     nft_id_out[0] = '\0';
+    if (hash_out && hash_size >= 128) hash_out[0] = '\0';
     if (!item_type || !item_type[0]) return 0;
     qboolean do_mint = false;
     if (strstr(item_type, "Key") || !strcmp(item_type, "KeyItem"))
@@ -173,8 +174,18 @@ static int OQ_MaybeMintForItemType(const char* item_name, const char* descriptio
     {
         const char* provider = oquake_star_nft_provider.string;
         if (!provider || !provider[0]) provider = "SolanaOASIS";
-        if (star_api_mint_inventory_nft(item_name, description ? description : "", "Quake", item_type, provider, nft_id_out) == STAR_API_SUCCESS && nft_id_out[0])
+        star_api_result_t r = star_api_mint_inventory_nft(item_name, description ? description : "", "Quake", item_type, provider, nft_id_out, (hash_out && hash_size >= 128) ? hash_out : NULL);
+        if (r == STAR_API_SUCCESS && nft_id_out[0]) {
+            if (hash_out && hash_out[0])
+                Con_Printf("STAR API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", item_name, nft_id_out, hash_out);
+            else
+                Con_Printf("STAR API: NFT minted for \"%s\". NFT ID: %s\n", item_name, nft_id_out);
             return 1;
+        }
+        {
+            const char* err = star_api_get_last_error();
+            Con_Printf("STAR API: Mint NFT failed for \"%s\": %s\n", item_name, (err && err[0]) ? err : "unknown error");
+        }
     }
     return 0;
 }
@@ -183,8 +194,8 @@ static int OQ_MaybeMintForItemType(const char* item_name, const char* descriptio
 static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* description, const char* item_type)
 {
     if (!item_name || !item_name[0]) return 0;
-    char nft_buf[128];
-    const char* nft_id = OQ_MaybeMintForItemType(item_name, description, item_type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+    char nft_buf[128], hash_buf[128];
+    const char* nft_id = OQ_MaybeMintForItemType(item_name, description, item_type, nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)) ? nft_buf : NULL;
     star_api_queue_add_item(item_name, description ? description : "", "Quake", item_type ? item_type : "Item", nft_id, 1, 1);
     return 1;
 }
@@ -198,8 +209,8 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
             delta = atoi(p + 1);
     }
     if (delta < 1) delta = 1;
-    char nft_buf[128];
-    const char* nft_id = OQ_MaybeMintForItemType(item_prefix, description, item_type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+    char nft_buf[128], hash_buf[128];
+    const char* nft_id = OQ_MaybeMintForItemType(item_prefix, description, item_type, nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)) ? nft_buf : NULL;
     star_api_queue_add_item(item_prefix, description ? description : "", "Quake", item_type ? item_type : "Item", nft_id, delta, 1);
     return 1;
 }
@@ -2046,8 +2057,8 @@ void OQuake_STAR_Console_f(void) {
         else if (strcmp(color, "gold") == 0) { name = OQUAKE_ITEM_GOLD_KEY; desc = get_key_description(name); }
         else { Con_Printf("Unknown keycard: %s. Use silver|gold.\n", color); return; }
         {
-            char nft_buf[128];
-            const char* nft_id = OQ_MaybeMintForItemType(name, desc, "KeyItem", nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+            char nft_buf[128], hash_buf[128];
+            const char* nft_id = OQ_MaybeMintForItemType(name, desc, "KeyItem", nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)) ? nft_buf : NULL;
             star_api_queue_add_item(name, desc, "Quake", "KeyItem", nft_id, 1, 1);
         }
         star_api_result_t r = star_api_flush_add_item_jobs();
@@ -2109,8 +2120,8 @@ void OQuake_STAR_Console_f(void) {
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Added from console";
         const char* type = argc > 4 ? Cmd_Argv(4) : "Miscellaneous";
         {
-            char nft_buf[128];
-            const char* nft_id = OQ_MaybeMintForItemType(name, desc, type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+            char nft_buf[128], hash_buf[128];
+            const char* nft_id = OQ_MaybeMintForItemType(name, desc, type, nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)) ? nft_buf : NULL;
             star_api_queue_add_item(name, desc, "Quake", type, nft_id, 1, 1);
         }
         star_api_result_t r = star_api_flush_add_item_jobs();

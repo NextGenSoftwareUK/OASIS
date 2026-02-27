@@ -12,7 +12,7 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
    ```
    This builds the STAR API if needed, copies OQuake files into `C:\Source\quake-rerelease-qc` and (if `VKQUAKE_SRC` is set) builds vkQuake with STAR. You need the **Vulkan SDK** and **Visual Studio**; run from **Developer Command Prompt for VS 2022** so MSBuild is in PATH.
 
-2. **Run the game:** Use **BUILD & RUN OQUAKE.bat** to launch OQuake with your Steam Quake basedir (edit the script to set `OQUAKE_BASEDIR` and `VKQUAKE_SRC` if needed).
+2. **Run the game:** Use **RUN OQUAKE.bat** to launch OQuake with your Steam Quake basedir (edit the script to set `OQUAKE_BASEDIR` and `VKQUAKE_SRC` if needed).
 
 3. **Game data:** vkQuake needs Quake game data (id1 with pak0.pak, pak1.pak, and gfx.wad). Use `-basedir` to point to your Steam Quake install or copy the data next to the exe. See **WINDOWS_INTEGRATION.md** for details.
 
@@ -32,7 +32,7 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 | File | Purpose |
 |------|--------|
 | **BUILD_OQUAKE.bat** | Build star_api, copy OQuake + STAR into quake-rerelease-qc and vkQuake, build vkQuake (OQUAKE.exe + star_api.dll copied to `build\`) |
-| **BUILD & RUN OQUAKE.bat** | If already built, launches OQuake with Steam basedir; otherwise runs BUILD_OQUAKE.bat then launches |
+| **RUN OQUAKE.bat** | If already built, launches OQuake with Steam basedir; otherwise runs BUILD_OQUAKE.bat then launches |
 | **oquake_star_integration.c/h** | STAR API integration (init, key pickup, door check) |
 | **oquake_version.h** | OQuake version/build for branding (from oquake_version.txt) |
 | **engine_oquake_hooks.c.example** | Example engine hooks (Host_Init, key pickup, door) |

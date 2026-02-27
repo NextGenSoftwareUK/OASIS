@@ -1,6 +1,6 @@
 @echo off
 REM Build OQuake if needed, then launch. Edit paths below if required.
-echo   O A S I S   O Q U A K E   ^|   Build ^& Run
+echo   O A S I S   O Q U A K E   ^|   Run
 echo.
 set "OQUAKE_BASEDIR=C:\Program Files (x86)\Steam\steamapps\common\Quake"
 set "VKQUAKE_SRC=C:\Source\vkQuake"

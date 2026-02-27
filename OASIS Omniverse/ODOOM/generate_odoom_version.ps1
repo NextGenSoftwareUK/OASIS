@@ -43,7 +43,7 @@ $aboutContent = @"
 
 ODOOM is a fork of UZDoom with the OASIS STAR API integrated for cross-game features in the OASIS Omniverse. It uses a native Windows/SDL2 stack with proper sound, music, and mouse handling.
 
-ODOOM adds STAR API integration so keycard pickups are reported to the STAR API, door and lock checks can use cross-game inventory, and keys from other STAR-integrated games (including OQuake) can open doors. Use BUILD ODOOM.bat to build (output: ODOOM.exe in ODOOM\build\) or BUILD & RUN ODOOM.bat to build and launch.
+ODOOM adds STAR API integration so keycard pickups are reported to the STAR API, door and lock checks can use cross-game inventory, and keys from other STAR-integrated games (including OQuake) can open doors. Use BUILD ODOOM.bat to build (output: ODOOM.exe in ODOOM\build\) or RUN ODOOM.bat to build and launch.
 
 Full credit for the underlying engine goes to the UZDoom project. ODOOM is by NextGen World Ltd. See CREDITS_AND_LICENSE.md in this folder for details.
 
