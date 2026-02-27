@@ -1,10 +1,9 @@
 @echo off
-setlocal EnableExtensions EnableDelayedExpansion
+setlocal EnableExtensions
 REM ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
-REM Usage: BUILD ODOOM.bat [ run | batch ] [ nosprites ]
+REM Usage: BUILD ODOOM.bat [ run ] [ nosprites ]
 REM   (none) = prompt clean/incremental, then copy, branding, build
-REM   run    = incremental build then launch (no prompts)
-REM   batch  = incremental build, no prompts, do not launch (for BUILD EVERYTHING.bat)
+REM   run    = incremental build then launch (no prompt)
 REM   nosprites = skip sprite/icon regeneration for faster builds
 
 if /i "%~1"=="__logrun" (
@@ -31,9 +30,9 @@ exit /b %ODOOM_BUILD_EXIT%
 
 set "UZDOOM_SRC=C:\Source\UZDoom"
 set "HERE=%~dp0"
-set "DOOM_FOLDER=%HERE%..\Doom"
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "ODOOM_INTEGRATION=%HERE%"
+set "DOOM_FOLDER=%ODOOM_INTEGRATION%"
 set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
 set "ULTIMATE_DOOM_BUILDER_ASSETS=C:\Source\UltimateDoomBuilder\Assets\Common\UDBScript\Scripts\OASIS\Sprites"
 set "OASIS_SPRITES_SRC=%ULTIMATE_DOOM_BUILDER_BUILD%\UDBScript\Scripts\OASIS\Sprites"
@@ -46,19 +45,6 @@ if exist "%ODOOM_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a 
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY; if(-not $v){$v='1.0 (Build 1)'}; $w=60; function c($s){$p=[math]::Max(0,[int](($w-$s.Length)/2)); '  '+(' '*$p)+$s}; Write-Host ''; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('O A S I S   O D O O M  v'+$v)) -ForegroundColor Cyan; Write-Host (c('By NextGen World Ltd')) -ForegroundColor DarkGray; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('Enabling full interoperable games across the OASIS Omniverse!')) -ForegroundColor DarkMagenta; Write-Host ''"
 
-if /i not "%~1"=="run" if /i not "%~1"=="batch" (
-    echo.
-    set /p "DEPLOY_STAR=  Build and deploy STARAPIClient first? [y/N]: "
-    if /i "!DEPLOY_STAR!"=="Y" (
-        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-        if errorlevel 1 (echo [ODOOM] STARAPIClient build/deploy failed. & pause & exit /b 1)
-    )
-    if /i "!DEPLOY_STAR!"=="YES" (
-        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-        if errorlevel 1 (echo [ODOOM] STARAPIClient build/deploy failed. & pause & exit /b 1)
-    )
-)
-
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
@@ -66,7 +52,7 @@ set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
-if /i not "%~1"=="run" if /i not "%~1"=="batch" (
+if /i not "%~1"=="run" (
     echo.
     set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
 )
@@ -74,7 +60,7 @@ if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
-if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" if /i not "%~1"=="batch" (
+if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
     echo.
     set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build (Y/N)? [Y]: "
     if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
@@ -95,14 +81,21 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
     pause
     exit /b 1
 )
-if not exist "%DOOM_FOLDER%\star_api.dll" (
-    echo star_api not found: %DOOM_FOLDER%
-    echo Build STARAPIClient (BUILD_AND_DEPLOY_STAR_CLIENT.bat) or copy star_api.dll/lib from Doom folder.
+if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
+    if exist "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
+        echo [ODOOM] star_api not found. Building and deploying STARAPIClient...
+        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+        if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
+    )
+)
+if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
+    echo star_api not found: %ODOOM_INTEGRATION%
+    echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy star_api.dll and star_api.lib into the ODOOM folder.
     pause
     exit /b 1
 )
-if not exist "%DOOM_FOLDER%\star_api.lib" (
-    echo star_api.lib not found: %DOOM_FOLDER%
+if not exist "%ODOOM_INTEGRATION%\star_api.lib" (
+    echo star_api.lib not found: %ODOOM_INTEGRATION%
     pause
     exit /b 1
 )
@@ -297,7 +290,7 @@ if "%REQ_OQ_MISSING%"=="1" (
 )
 echo [ODOOM][DONE] OQ runtime sprite verification passed.
 if exist "%ODOOM_INTEGRATION%odoom_version_generated.h" copy /Y "%ODOOM_INTEGRATION%odoom_version_generated.h" "%UZDOOM_SRC%\src\odoom_version_generated.h" >nul
-powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%apply_odoom_branding.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
+powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%patch_uzdoom_engine.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
 if exist "%ODOOM_INTEGRATION%oasis_banner.png" (
     copy /Y "%ODOOM_INTEGRATION%oasis_banner.png" "%UZDOOM_SRC%\wadsrc\static\ui\banner-dark.png" >nul
     copy /Y "%ODOOM_INTEGRATION%oasis_banner.png" "%UZDOOM_SRC%\wadsrc\static\ui\banner-light.png" >nul
@@ -362,7 +355,7 @@ echo.
 echo ---
 echo [ODOOM][DONE] ODOOM ready: %ODOOM_INTEGRATION%build\ODOOM.exe
 echo [ODOOM][INFO] Put doom2.wad in build folder. odoom_face.pk3 is included for beamed-in status bar face.
-echo [ODOOM][INFO] Use "RUN ODOOM.bat" to launch.
+echo [ODOOM][INFO] Use "BUILD & RUN ODOOM.bat" to launch.
 echo ---
 
 if /i "%~1"=="run" (
@@ -373,4 +366,4 @@ if /i "%~1"=="run" (
         start "" "%UZDOOM_SRC%\build\Release\uzdoom.exe"
     )
 )
-if /i not "%~1"=="batch" pause
+pause

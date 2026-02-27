@@ -34,7 +34,7 @@ So: **odoom_version.txt** = source of truth; the rest are outputs. No redundancy
 |------|-------------|
 | **BUILD ODOOM.bat** | Main build: copy integration, run branding, CMake, package to `build\` (ODOOM.exe, Editor folder, etc.). |
 | **RUN ODOOM.bat** | Build if needed, then launch ODOOM.exe. |
-| **apply_odoom_branding.ps1** | Patches UZDoom source: version.h, startscreen, status bar, about, Editor button, launcher button bar. |
+| **patch_uzdoom_engine.ps1** | Patches UZDoom source for ODOOM: version.h, startscreen, status bar, d_main/g_game (inventory capture), sbar_mugshot (OASIS face), p_interaction (boss kill), cvarinfo, about.txt, CMake (star_sync.c), ZScript/MAPINFO/Doom mapinfo (OQuake, inventory), launcher Editor button. Idempotent. See **WINDOWS_INTEGRATION.md** § “What patch_uzdoom_engine.ps1 does” for the full list. |
 
 ### STAR integration (source)
 
