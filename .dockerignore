@@ -1,8 +1,72 @@
-# MCP Docker build - only include MCP directory (exclude rest of repo)
-*
-!MCP
-# Exclude so they are built/fetched in container
-MCP/node_modules
-MCP/dist
-MCP/.env
-MCP/*.log
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+Docs/
+Images/
+Logos/
+
+# Build outputs
+**/bin/
+**/obj/
+**/out/
+**/publish/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Test files
+**/TestHarness/
+**/UnitTests/
+**/IntegrationTests/
+**/TestResults/
+
+# Logs
+*.log
+build.log
+build_errors.txt
+
+# Archives
+*.zip
+*.rar
+*.7z
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Large directories that aren't needed for build
+Archived/
+External Libs/
+lumina-j5-bootstrap/
+
+# Package files
+*.nupkg
+*.snupkg
+
+# Coverage reports
+coverage/
+*.coverage
+*.coveragexml
+
+# JetBrains
+.idea/
+
+# Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
