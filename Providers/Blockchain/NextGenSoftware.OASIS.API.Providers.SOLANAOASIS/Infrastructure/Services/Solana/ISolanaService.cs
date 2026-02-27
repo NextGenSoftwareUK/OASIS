@@ -27,4 +27,13 @@ public interface ISolanaService
 
     /// <summary>Transfer fungible SPL tokens between two wallets, creating the recipient ATA if needed.</summary>
     Task<OASISResult<SendTransactionResult>> SendSplTokensAsync(string tokenMintAddress, string fromWalletAddress, string toWalletAddress, ulong amount, string cluster = "devnet");
+
+    /// <summary>
+    /// Transfer mint authority of an SPL token to the OASIS server wallet.
+    /// Call once per token mint. After this, MintSplTokensAsync will succeed for that mint.
+    /// </summary>
+    /// <param name="tokenMintAddress">The mint address of the SPL token.</param>
+    /// <param name="currentAuthorityPrivateKey">Base58 private key of the current mint authority (used only to sign this transaction).</param>
+    /// <param name="cluster">Solana cluster: "devnet" (default) or "mainnet-beta".</param>
+    Task<OASISResult<string>> SetMintAuthorityToOasisAsync(string tokenMintAddress, string currentAuthorityPrivateKey, string cluster = "devnet");
 }
