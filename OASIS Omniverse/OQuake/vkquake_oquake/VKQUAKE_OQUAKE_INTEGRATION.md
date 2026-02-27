@@ -24,10 +24,10 @@ Copy these into `VKQUAKE_SRC/Quake/` (from OASIS Omniverse):
 | `oquake_star_integration.c` | `OQuake/oquake_star_integration.c` |
 | `oquake_star_integration.h` | `OQuake/oquake_star_integration.h` |
 | `oquake_version.h` | `OQuake/oquake_version.h` (generated from **`OQuake/oquake_version.txt`** – OQuake's version source; run build or `generate_oquake_version.ps1` to regenerate) |
-| `star_api.h` | `STARAPIClient/` (NativeWrapper is obsolete) |
+| `star_api.h` | `STARAPIClient/` (use STARAPIClient only) |
 | `pr_ext_oquake.c` | `OQuake/vkquake_oquake/pr_ext_oquake.c` |
 
-Also copy `star_api.dll` and `star_api.lib` (from STARAPIClient publish, or Doom folder if already built; NativeWrapper is obsolete) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
+Also copy `star_api.dll` and `star_api.lib` from **STARAPIClient** publish (or Doom folder if already built) next to the **built** vkquake.exe; the build only needs the `.lib` for linking.
 
 ---
 

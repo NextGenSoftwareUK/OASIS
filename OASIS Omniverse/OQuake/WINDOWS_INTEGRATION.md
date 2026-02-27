@@ -54,22 +54,18 @@ You must own Quake to use the game data; get it from [Steam](https://store.steam
 4. **STAR API credentials** (same as ODOOM: SSO or API key)
 5. **Vulkan SDK** (for vkQuake) – https://vulkan.lunarg.com/sdk/home
 
-**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** OQuake and the build script use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below that mention NativeWrapper are for legacy reference; prefer building/publishing STARAPIClient.
+**STAR API client:** Use **STARAPIClient** only (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
 
-## Step 1: Build the STAR API client (STARAPIClient; NativeWrapper obsolete)
+## Step 1: Build the STAR API client (STARAPIClient)
 
-For current OQuake, use STARAPIClient (see main README and STARAPIClient/README.md). Legacy: from OASIS root:
+From OASIS root run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** or:
 
 ```powershell
 cd C:\Source\OASIS-master
-cd "OASIS Omniverse\NativeWrapper"
-mkdir build -Force
-cd build
-cmake .. -G "Visual Studio 16 2019" -A x64
-cmake --build . --config Release
+dotnet publish "OASIS Omniverse\STARAPIClient\STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
-Output: `OASIS Omniverse\NativeWrapper\build\Release\star_api.lib` and `star_api.dll`.
+Output: `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\star_api.dll` and `native\star_api.lib`.
 
 ## Step 2: Set Environment Variables
 
@@ -119,7 +115,7 @@ Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Lin
 
 ## Troubleshooting
 
-- **star_api.lib/dll not found:** Build or publish **STARAPIClient** (NativeWrapper is obsolete); BUILD_OQUAKE.bat uses STARAPIClient.
+- **star_api.lib/dll not found:** Build **STARAPIClient** (run BUILD_AND_DEPLOY_STAR_CLIENT.bat, or answer Y when BUILD_OQUAKE.bat asks to build and deploy STARAPIClient first).
 - **MSBuild not in PATH:** Open **Developer Command Prompt for VS 2022** and run BUILD_OQUAKE.bat from there.
 - **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID are set and init succeeds.
 - **gfx.wad / id1:** Use `-basedir` to point to your Steam Quake install or copy id1 and gfx.wad next to the exe.

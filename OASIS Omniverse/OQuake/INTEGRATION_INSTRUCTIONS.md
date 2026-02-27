@@ -10,8 +10,8 @@ From **OASIS Omniverse\OQuake** you need:
 - `oquake_star_integration.h`
 - `oquake_version.h`
 - `star_sync.c` and `star_sync.h` (generic async layer from **OASIS Omniverse\STARAPIClient**)
-- `star_api.h` (from **STARAPIClient**; NativeWrapper is obsolete)
-- `star_api.lib` and `star_api.dll` (from STARAPIClient publish, or Doom folder if already built; NativeWrapper is obsolete)
+- `star_api.h` (from **STARAPIClient**)
+- `star_api.lib` and `star_api.dll` (from STARAPIClient publish, or Doom folder if already built)
 
 If using **vkQuake**, also use:
 

@@ -26,7 +26,6 @@ $targets = @(
     (Join-Path $scriptDir "..\Quake"),
     (Join-Path $scriptDir "..\ODOOM"),
     (Join-Path $scriptDir "..\OQuake"),
-    (Join-Path $scriptDir "..\NativeWrapper"),
     "C:\Source\UZDoom\src",
     "C:\Source\vkQuake\Quake"
 )

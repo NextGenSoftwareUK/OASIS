@@ -16,7 +16,7 @@ This guide covers integrating the OASIS STAR API into **ODOOM** (UZDoom-based, a
 
 ## Automated build (recommended)
 
-**No separate client build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from **STARAPIClient** (ODOOM uses STARAPIClient, not NativeWrapper).
+**No separate client build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from **STARAPIClient**. ODOOM uses STARAPIClient only.
 
 From the OASIS repo, in `OASIS Omniverse\ODOOM\`, run the single script:
 
@@ -110,7 +110,7 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
 
 ### Step 1: STAR API client (pre-built)
 
-Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\STARAPIClient\`. ODOOM uses **STARAPIClient** (not NativeWrapper). No need to build the client again if the Doom folder already has the lib/dll.
+Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\STARAPIClient\`. ODOOM uses **STARAPIClient** only. No need to build the client again if the Doom folder already has the lib/dll.
 
 ### Step 2: Integration files in ODOOM source (UZDoom)
 
@@ -145,7 +145,7 @@ cmake .. -G "Visual Studio 17 2022" -A x64 `
   -DSTAR_API_LIB_DIR="C:/Source/OASIS-master/OASIS Omniverse/Doom"
 ```
 
-`STAR_API_DIR` = path to **STARAPIClient** (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper. `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
+`STAR_API_DIR` = path to **STARAPIClient** (for `star_api.h`). `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
 
 ### Step 4: Build ODOOM
 
@@ -184,7 +184,7 @@ $env:STAR_AVATAR_ID = "your_avatar_id"
 ### Step 7: Run and test
 
 1. Put your WAD (e.g. `doom2.wad`) in the same folder as **ODOOM.exe** (e.g. `OASIS Omniverse\ODOOM\build\`) or where the engine expects it.
-2. Run **ODOOM.exe** (or use `BUILD & RUN ODOOM.bat` to build and launch).
+2. Run **ODOOM.exe** (or use `RUN ODOOM.bat` to build and launch).
 3. In the console you should see either:
    - `STAR API: Authenticated via SSO. Cross-game features enabled.` or
    - `STAR API: No authentication configured...` if env vars are not set.
@@ -204,7 +204,7 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 ## Troubleshooting
 
 - **star_api.lib not found**  
-  Use pre-built client: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the **STARAPIClient** folder (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper.
+  Use pre-built client: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the **STARAPIClient** folder (for `star_api.h`).
 
 - **star_api.dll missing at runtime**  
   Copy `star_api.dll` from `OASIS Omniverse\Doom\` to the same directory as `ODOOM.exe`.
@@ -222,5 +222,5 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 - STAR integration is **optional** and enabled only when `OASIS_STAR_API=ON` and `STAR_API_DIR` is set.
 - Keycard pickups in ODOOM are reported to the STAR API; door/lock checks can use cross-game inventory (including **OQuake** silver_key/gold_key for red/blue/yellow doors).
 - UZDoom’s Windows port should give you correct sound, music, and mouse behavior compared to the older Linux Doom port.
-- **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **BUILD & RUN ODOOM.bat** to build and launch.
+- **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **RUN ODOOM.bat** to build and launch.
 - **Credits:** ODOOM is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) (GPL-3.0). See **CREDITS_AND_LICENSE.md** in this folder.

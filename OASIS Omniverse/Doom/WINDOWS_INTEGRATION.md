@@ -4,7 +4,7 @@
 
 This guide is for the older Linux Doom port. It is specifically for integrating the OASIS STAR API into your DOOM fork located at `C:\Source\DOOM`.
 
-**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** For new work use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below that mention NativeWrapper are for legacy reference only.
+**STAR API client:** Use **STARAPIClient** only (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
 
 ## Prerequisites
 
@@ -13,43 +13,18 @@ This guide is for the older Linux Doom port. It is specifically for integrating 
 3. **Git** - Already installed (you have the fork)
 4. **STAR API Credentials** - Get from OASIS platform
 
-## Step 1: Build the STAR API client (legacy: NativeWrapper; prefer STARAPIClient)
+## Step 1: Build the STAR API client (STARAPIClient)
 
-**Prefer:** Build/publish the C# **STARAPIClient** (NativeWrapper is obsolete). See `OASIS Omniverse/STARAPIClient/README.md`.
-
-### Option A: Using Visual Studio (legacy NativeWrapper)
+Build the C# **STARAPIClient**. See `OASIS Omniverse/STARAPIClient/README.md`.
 
 ```powershell
-# Navigate to OASIS project
 cd C:\Source\OASIS-master
-
-# Navigate to native wrapper
-cd "OASIS Omniverse\NativeWrapper"
-
-# Create build directory
-mkdir build
-cd build
-
-# Configure with CMake (Visual Studio generator)
-cmake .. -G "Visual Studio 16 2019" -A x64
-
-# Build
-cmake --build . --config Release
+dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true
 ```
 
-### Option B: Using Command Line (MinGW)
+Outputs: `star_api.dll` and `star_api.lib` (in `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/`). Use `star_api.h` from `OASIS Omniverse/STARAPIClient/`.
 
-If you have MinGW installed:
-
-```powershell
-cd C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper
-mkdir build
-cd build
-cmake .. -G "MinGW Makefiles"
-cmake --build . --config Release
-```
-
-The library will be at: `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\Release\star_api.lib` (or `.dll`)
+The library and DLL are in `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/`.
 
 ## Step 2: Set Environment Variables
 
@@ -81,7 +56,7 @@ cd C:\Source\OASIS-master
 # Copy integration files to DOOM
 Copy-Item "OASIS Omniverse\Doom\doom_star_integration.c" "C:\Source\DOOM\linuxdoom-1.10\"
 Copy-Item "OASIS Omniverse\Doom\doom_star_integration.h" "C:\Source\DOOM\linuxdoom-1.10\"
-Copy-Item "OASIS Omniverse\NativeWrapper\star_api.h" "C:\Source\DOOM\linuxdoom-1.10\"
+Copy-Item "OASIS Omniverse\STARAPIClient\star_api.h" "C:\Source\DOOM\linuxdoom-1.10\"
 ```
 
 ## Step 4: Modify DOOM Source Files
@@ -162,17 +137,17 @@ mkdir -p linux
 make WINDOWS=1
 ```
 
-The executable is `linux/linuxxdoom` (or `linux\linuxxdoom.exe`). Ensure `star_api.dll` is in the same directory as the exe or on PATH (copy from `OASIS Omniverse\NativeWrapper\build\` or `build\Release\`).
+The executable is `linux/linuxxdoom` (or `linux\linuxxdoom.exe`). Ensure `star_api.dll` is in the same directory as the exe or on PATH (copy from `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\`).
 
 ### If using Visual Studio Project
 
 1. Open Visual Studio
 2. Add `doom_star_integration.c` to the project
 3. Add include directories:
-   - `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper`
+   - `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient`
    - `C:\Source\OASIS-master\OASIS Omniverse\Doom`
 4. Add library directory:
-   - `C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper\build\Release`
+   - `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\native` (or publish folder)
 5. Add library: `star_api.lib`
 6. Add linker input: `winhttp.lib` (for Windows HTTP support)
 

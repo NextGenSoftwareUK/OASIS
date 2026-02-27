@@ -1,17 +1,68 @@
-# Phase 2: Multi-Game Quest System
+# Phase 2: Multi-Game Quest System (WEB5 STAR Quest API)
 
 ## Overview
 
-Phase 2 implements a comprehensive quest system that spans multiple games, allowing players to complete objectives across Doom, Quake, and other integrated games.
+Phase 2 is the **multi-game quest system** backed by the **WEB5 STAR API** (Quest API). The flow is:
 
-## Features
+1. **WEB5 STAR API** – Hosts the Quest API (create quests, start/complete quests, complete objectives). This is the backend OASIS STAR service (e.g. `https://oasisweb4.one/star/api` or local WEB5).
+2. **STARAPIClient** – C# client that talks to WEB5 over HTTP and exposes a **C ABI** (`star_api_*`) for native games. Quest methods in the client call WEB5’s quest endpoints.
+3. **ODOOM & OQuake** – Use **STARAPIClient** (`star_api.dll`) to start quests, complete objectives when the player does the required action (e.g. pick up keycard), and complete quests. No direct HTTP from the games; all quest calls go through the client.
 
-- **Cross-Game Quests**: Quests with objectives in multiple games
-- **Automatic Progress Tracking**: Objectives automatically tracked when items are collected
-- **Quest Rewards**: Special items and NFTs as rewards
-- **Quest Notifications**: In-game notifications for quest progress
+This doc describes the **WEB5 STAR Quest API** we are plugging into STARAPIClient, and how ODOOM and OQuake consume it via the client.
 
-## Quest Structure
+---
+
+## WEB5 STAR Quest API (backend)
+
+The STAR API (WEB5) exposes REST endpoints for quests. STARAPIClient calls these; games do not call them directly.
+
+| Action | HTTP | Endpoint |
+|--------|------|----------|
+| Start a quest | POST | `{base}/api/quests/{questId}/start` |
+| Complete an objective | POST | `{base}/api/quests/{questId}/objectives/{objectiveId}/complete` (body: `gameSource`) |
+| Complete a quest | POST | `{base}/api/quests/{questId}/complete` |
+| Create quest (e.g. cross-game) | POST | `{base}/api/quests/create` (body: name, description, objectives, etc.) |
+| Get active quests | GET | `{base}/api/quests/by-status/InProgress` |
+
+`{base}` is the STAR API base URL (e.g. from `oasisstar.json`: `star_api_url`). Auth uses the same avatar/API key as inventory (Bearer or X-Avatar-Id).
+
+Quest definitions (id, name, description, objectives, rewards) are managed by the backend. Games use the client to **start** quests, **complete objectives** when the player does the in-game action, and **complete** the quest when all objectives are done.
+
+---
+
+## STARAPIClient (C ABI for games)
+
+STARAPIClient implements the WEB5 Quest API and exposes these to native code via the C ABI (used by ODOOM and OQuake):
+
+| C function | Purpose |
+|------------|---------|
+| `star_api_start_quest(const char* quest_id)` | Start a quest by ID. Calls WEB5 `POST …/quests/{questId}/start`. |
+| `star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source)` | Mark an objective complete (e.g. “collect red keycard”). Calls WEB5 `POST …/objectives/{objectiveId}/complete` with `gameSource` (e.g. `"Doom"`, `"Quake"`). |
+| `star_api_complete_quest(const char* quest_id)` | Complete the quest and claim rewards. Calls WEB5 `POST …/quests/{questId}/complete`. |
+
+The C# client also supports batching objective completions (`QueueCompleteQuestObjectiveAsync` / `FlushQuestObjectiveJobsAsync`) and getting active quests (`GetActiveQuestsAsync`); these may be exposed on the C ABI in a future update for in-game quest UIs.
+
+---
+
+## How ODOOM and OQuake use it
+
+- **No direct WEB5 calls** – All quest traffic goes through STARAPIClient (`star_api.dll`).
+- **When the player does the thing** – For example, ODOOM calls `star_api_complete_quest_objective(quest_id, "doom_red_keycard", "Doom")` when the player picks up the red keycard; OQuake does the same for Quake objectives (e.g. silver key) with `game_source` `"Quake"`.
+- **Quest IDs and objective IDs** – Come from the backend (or config). The game only needs to know which `quest_id` and `objective_id` to pass for each in-game event.
+- **Start / complete** – Games call `star_api_start_quest(quest_id)` when the player accepts a quest, and `star_api_complete_quest(quest_id)` when all objectives are done (or the backend can infer completion from objectives).
+
+So: **WEB5 STAR Quest API** is the source of truth; **STARAPIClient** is what we plug into next and expose to ODOOM/OQuake via the C API above.
+
+---
+
+## Quest structure (WEB5 / STARAPIClient)
+
+Quest and objective shape is defined by the WEB5 API. Conceptually:
+
+- **Quest** – Id, name, description, status (e.g. InProgress, Completed), list of objectives, optional rewards.
+- **Objective** – Id, description, game source (e.g. doom, quake), item or action required, completion status.
+
+Example cross-game quest (structure aligned with WEB5/STARAPIClient):
 
 ```json
 {
@@ -19,21 +70,21 @@ Phase 2 implements a comprehensive quest system that spans multiple games, allow
   "name": "Cross-Dimensional Keycard Hunt",
   "description": "Collect keycards from multiple dimensions to unlock the Master Keycard",
   "type": "CrossGame",
-  "difficulty": "Medium",
+  "status": "InProgress",
   "objectives": [
     {
       "id": "doom_red_keycard",
       "description": "Collect red keycard in Doom",
       "game": "doom",
-      "item": "red_keycard",
-      "status": "Pending"
+      "itemRequired": "red_keycard",
+      "isCompleted": false
     },
     {
       "id": "quake_silver_key",
       "description": "Collect silver key in Quake",
       "game": "quake",
-      "item": "silver_key",
-      "status": "Pending"
+      "itemRequired": "silver_key",
+      "isCompleted": false
     }
   ],
   "rewards": {
@@ -44,173 +95,61 @@ Phase 2 implements a comprehensive quest system that spans multiple games, allow
 }
 ```
 
-## Implementation
+Creation and listing are done via WEB5 (or admin tools). Games use the C API to start, complete objectives, and complete the quest.
 
-### 1. Quest Creation
+---
 
-Quests can be created via the STAR API or predefined in the system:
+## Example flow in a game (ODOOM / OQuake)
 
-```c
-// Create a cross-game quest
-star_api_result_t result = star_api_create_quest(
-    "cross_dimensional_keycard_hunt",
-    "Cross-Dimensional Keycard Hunt",
-    "Collect keycards from multiple dimensions",
-    objectives_array,
-    num_objectives
-);
-```
+1. **Quest available** – Backend or config defines the quest; player accepts. Game calls `star_api_start_quest("cross_dimensional_keycard_hunt")`.
+2. **Objective 1 (Doom)** – Player picks up red keycard. ODOOM integration calls `star_api_complete_quest_objective("cross_dimensional_keycard_hunt", "doom_red_keycard", "Doom")`.
+3. **Objective 2 (Quake)** – Player picks up silver key. OQuake integration calls `star_api_complete_quest_objective("cross_dimensional_keycard_hunt", "quake_silver_key", "Quake")`.
+4. **Quest complete** – When all objectives are complete (either tracked client-side or inferred by backend), game calls `star_api_complete_quest("cross_dimensional_keycard_hunt")`. WEB5 applies rewards (e.g. add master_keycard to inventory).
 
-### 2. Automatic Objective Tracking
+---
 
-When items are collected, the system automatically checks for active quests:
+## Integration points in ODOOM / OQuake
+
+### ODOOM (Doom integration)
+
+When the player picks up a keycard (or other quest-relevant item), the Doom/ODOOM integration already adds the item to inventory. In addition, it can call the quest API:
 
 ```c
-// In doom_star_integration.c
-void Doom_STAR_OnKeycardPickup(int keycard_type) {
-    // Add to inventory
-    star_api_add_item(...);
-    
-    // Check active quests and update objectives
-    // This happens server-side automatically when item is added
-}
+// When player picks up red keycard – add to inventory and optionally complete objective
+star_api_add_item("red_keycard", "Red Keycard", "Doom", "KeyItem", NULL, 1, 1);
+star_api_complete_quest_objective("cross_dimensional_keycard_hunt", "doom_red_keycard", "Doom");
 ```
 
-### 3. Quest Progress Checking
+Quest IDs and objective IDs can be configured per map or per quest so the same pickup logic drives multiple quests.
+
+### OQuake (Quake integration)
+
+Same idea: on key (or item) pickup, add to inventory and complete the matching objective:
 
 ```c
-// Check if a quest objective is complete
-bool objective_complete = star_api_is_quest_objective_complete(
-    "cross_dimensional_keycard_hunt",
-    "doom_red_keycard"
-);
-
-// Complete a quest objective manually (if needed)
-star_api_result_t result = star_api_complete_quest_objective(
-    "cross_dimensional_keycard_hunt",
-    "doom_red_keycard",
-    "Doom"
-);
+// When player picks up silver key
+star_api_add_item("silver_key", "Silver Key", "Quake", "KeyItem", NULL, 1, 1);
+star_api_complete_quest_objective("cross_dimensional_keycard_hunt", "quake_silver_key", "Quake");
 ```
 
-### 4. Quest Completion
+---
 
-When all objectives are complete, the quest can be completed:
+## Quest types (backend-defined)
 
-```c
-// Complete quest and claim rewards
-star_api_result_t result = star_api_complete_quest(
-    "cross_dimensional_keycard_hunt"
-);
+The WEB5 Quest API can support different quest types; games just call start/objective/complete. Examples:
 
-if (result == STAR_API_SUCCESS) {
-    // Quest rewards are automatically added to inventory
-    printf("Quest completed! Rewards added to inventory.\n");
-}
-```
+- **Collection quests** – Objectives like “collect red_keycard”, “collect silver_key”; games call `star_api_complete_quest_objective` when the item is picked up.
+- **Exploration / location** – Objective “visit E1M1 secret”; game calls `star_api_complete_quest_objective` when the player enters the trigger.
+- **Combat / achievements** – Objective “kill 10 imps”; game calls `star_api_complete_quest_objective` when count is reached.
 
-## Example Quest Flow
+Rewards (items, NFTs, karma, XP) are defined and applied on the backend when the quest is completed via `star_api_complete_quest`.
 
-### Quest: "The Keymaster's Challenge"
+---
 
-**Objective 1: Doom**
-- Player collects red keycard in Doom
-- System detects item collection
-- Quest objective "doom_red_keycard" marked complete
+## Summary
 
-**Objective 2: Quake**
-- Player collects silver key in Quake
-- System detects item collection
-- Quest objective "quake_silver_key" marked complete
+- **WEB5 STAR API** – Provides the Quest API (REST). Next step is to ensure STARAPIClient is fully wired to these endpoints and that ODOOM/OQuake use only the client.
+- **STARAPIClient** – Talks to WEB5 and exposes **star_api_start_quest**, **star_api_complete_quest_objective**, **star_api_complete_quest** to native games.
+- **ODOOM & OQuake** – Use STARAPIClient (`star_api.dll`) for all quest operations; no direct WEB5 access. They call the C API when the player starts a quest, completes an objective, or completes the quest.
 
-**Quest Complete:**
-- All objectives complete
-- Master Keycard reward added to inventory
-- Available in all games!
-
-## Integration Points
-
-### Doom Integration
-
-```c
-// In doom_star_integration.c
-void Doom_STAR_OnKeycardPickup(int keycard_type) {
-    const char* keycard_name = GetKeycardName(keycard_type);
-    
-    // Add to inventory (triggers quest check server-side)
-    star_api_add_item(keycard_name, ...);
-    
-    // Optional: Check quest progress locally
-    // (Server-side checking is automatic)
-}
-```
-
-### Quake Integration
-
-```c
-// In quake_star_integration.c
-void Quake_STAR_OnKeyPickup(const char* key_name) {
-    // Add to inventory (triggers quest check server-side)
-    star_api_add_item(key_name, ...);
-}
-```
-
-## Quest Types
-
-### 1. Collection Quests
-- Collect specific items across games
-- Example: "Collect all keycard types"
-
-### 2. Exploration Quests
-- Visit specific locations in different games
-- Example: "Visit the secret room in Doom E1M1 and Quake E1M1"
-
-### 3. Combat Quests
-- Defeat enemies across games
-- Example: "Defeat 100 enemies total across Doom and Quake"
-
-### 4. Achievement Quests
-- Complete specific achievements
-- Example: "Complete Doom on Nightmare and Quake on Hard"
-
-## Quest Rewards
-
-### Item Rewards
-- Special items only obtainable through quests
-- Example: Master Keycard, Universal Key
-
-### NFT Rewards
-- Unique NFTs as quest completion rewards
-- Example: Quest Completion Badge NFT
-
-### Experience & Karma
-- XP and Karma points for quest completion
-- Used for avatar progression
-
-## Server-Side Quest Management
-
-The STAR API handles:
-- Quest state management
-- Objective progress tracking
-- Automatic objective completion detection
-- Reward distribution
-- Quest notification system
-
-## Client-Side Integration
-
-Games only need to:
-1. Add items to inventory (automatic quest checking)
-2. Optionally check quest progress
-3. Display quest notifications
-4. Handle quest completion rewards
-
-## Future Enhancements
-
-- **Dynamic Quests**: Procedurally generated quests
-- **Cooperative Quests**: Multi-player quests
-- **Quest Chains**: Sequential quests with storylines
-- **Seasonal Quests**: Time-limited quests
-- **Community Quests**: Server-wide quests
-
-
-
+For setup, build, and config (including `star_api_url` for WEB5), see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) and [STARAPIClient/README.md](STARAPIClient/README.md).

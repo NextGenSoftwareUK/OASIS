@@ -9,25 +9,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$NativeWrapper = Join-Path (Split-Path -Parent $ScriptDir) "NativeWrapper"
-$DoomFolder = Join-Path (Split-Path -Parent $ScriptDir) "Doom"
+$OasisRoot = Split-Path -Parent $ScriptDir
+$STARAPIClientRoot = Join-Path $OasisRoot "STARAPIClient"
+$DoomFolder = Join-Path $OasisRoot "Doom"
 
 if (-not $QuakeSrc -or -not (Test-Path $QuakeSrc)) {
     Write-Host "Set QUAKE_SRC or pass -QuakeSrc (e.g. C:\Source\quake-rerelease-qc)"
     exit 1
 }
 
-# STAR DLL/LIB
+# STAR DLL/LIB (use STARAPIClient only)
 $StarDll = $null
 $StarLib = $null
 if (Test-Path (Join-Path $DoomFolder "star_api.dll")) {
     $StarDll = Join-Path $DoomFolder "star_api.dll"
     $StarLib = Join-Path $DoomFolder "star_api.lib"
 }
-$NWRelease = Join-Path $NativeWrapper "build\Release"
-if (-not $StarDll -and (Test-Path (Join-Path $NWRelease "star_api.dll"))) {
-    $StarDll = Join-Path $NWRelease "star_api.dll"
-    $StarLib = Join-Path $NWRelease "star_api.lib"
+$StarPublish = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
+if (-not $StarDll -and (Test-Path (Join-Path $StarPublish "star_api.dll"))) {
+    $StarDll = Join-Path $StarPublish "star_api.dll"
+    $StarNative = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\native"
+    if (Test-Path (Join-Path $StarNative "star_api.lib")) { $StarLib = Join-Path $StarNative "star_api.lib" }
 }
 
 $files = @(
@@ -36,7 +38,7 @@ $files = @(
     @{ Src = Join-Path $ScriptDir "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "engine_oquake_hooks.c.example"; Dest = "engine_oquake_hooks.c.example" },
     @{ Src = Join-Path $ScriptDir "WINDOWS_INTEGRATION.md"; Dest = "WINDOWS_INTEGRATION.md" },
-    @{ Src = Join-Path $NativeWrapper "star_api.h"; Dest = "star_api.h" }
+    @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" }
 )
 
 Write-Host "Copying OQuake integration to $QuakeSrc"

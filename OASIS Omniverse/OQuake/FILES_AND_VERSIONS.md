@@ -31,7 +31,7 @@ So: **oquake_version.txt** = source of truth; the rest are outputs. No redundanc
 | File | Description |
 |------|-------------|
 | **BUILD_OQUAKE.bat** | Build star_api, copy OQuake + STAR into quake-rerelease-qc (and vkQuake if set), build engine; copies OQUAKE.exe + star_api.dll to `build\`. |
-| **BUILD & RUN OQUAKE.bat** | Launch OQuake (build first if needed). |
+| **RUN OQUAKE.bat** | Launch OQuake (build first if needed). |
 | **COPY_TO_QUAKE_AND_BUILD.ps1** | Copy integration into quake tree; used/called by build flow. |
 | **vkquake_oquake/apply_oquake_to_vkquake.ps1** | Copies OQuake/vkQuake files into vkQuake’s Quake folder. |
 | **vkquake_oquake/pr_ext_oquake.c** | vkQuake extension builtins (STAR key pickup, door check). |

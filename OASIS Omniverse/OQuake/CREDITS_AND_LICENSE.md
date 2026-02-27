@@ -18,7 +18,7 @@ The OASIS Omniverse integration adds:
 
 - STAR API integration code (`oquake_star_integration.c`, `oquake_star_integration.h`, `oquake_version.h`)
 - vkQuake-specific glue (`vkquake_oquake/pr_ext_oquake.c`, `apply_oquake_to_vkquake.ps1`)
-- Build and run scripts (`BUILD_OQUAKE.bat`, `BUILD & RUN OQUAKE.bat`)
+- Build and run scripts (`BUILD_OQUAKE.bat`, `RUN OQUAKE.bat`)
 - Documentation in this folder
 
 These integration files are copied into your vkQuake source tree; you build from the vkQuake repository with our integration applied.

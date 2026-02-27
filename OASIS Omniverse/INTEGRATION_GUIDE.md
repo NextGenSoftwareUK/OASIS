@@ -9,43 +9,39 @@ This guide describes how **ODOOM** and **OQuake** (and other games) integrate wi
 1. [Architecture Overview](#architecture-overview)
 2. [Phase 1: Cross-Game Item Sharing](#phase-1-cross-game-item-sharing)
 3. [Phase 2: Multi-Game Quests](#phase-2-multi-game-quests)
-4. [Future: NFT Boss Collection](#future-nft-boss-collection)
-5. [Setup Instructions](#setup-instructions)
-6. [API Reference](#api-reference)
-7. [Troubleshooting](#troubleshooting)
+4. [Inventory NFT minting](#inventory-nft-minting)
+5. [Future: NFT Boss Collection](#future-nft-boss-collection)
+6. [Setup Instructions](#setup-instructions)
+7. [API Reference](#api-reference)
+8. [Troubleshooting](#troubleshooting)
 
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Game Engines (C/C++)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │   Doom   │  │  Quake   │  │  Doom II │  │  Others  │    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
-└───────┼─────────────┼─────────────┼─────────────┼──────────┘
+│                    Game Engines (C/C++)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │  ODOOM   │  │  OQuake  │  │  Doom II │  │  Others  │     │
+│  │ (UZDoom) │  │(vkQuake) │  │          │  │          │     │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘     │
+└───────┼─────────────┼─────────────┼─────────────┼───────────┘
         │             │             │             │
         └─────────────┴─────────────┴─────────────┘
                       │
         ┌─────────────▼─────────────┐
-        │   C/C++ Wrapper Library   │
-        │    (star_api.h/cpp)       │
+        │   STARAPIClient           │
+        │   (star_api.dll / C ABI)  │
+        │   C# client → star_api_*  │
         └─────────────┬─────────────┘
                       │
-        ┌─────────────▼─────────────┐
-        │   HTTP REST Client       │
-        │   (WinHTTP / libcurl)     │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   OASIS STAR API          │
-        │   (REST/HTTP)             │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   Inventory System        │
-        │   Quest System            │
-        │   NFT System              │
-        └───────────────────────────┘
+         ┌────────────┴────────────┐
+         │                         │
+┌────────▼────────┐    ┌───────────▼─────────┐
+│  OASIS API      │    │  OASIS STAR API     │
+│  (WEB4)         │    │  (WEB5)             │
+│  Avatar / SSO   │    │  Inventory • Quests │
+│  NFT mint       │    │  REST/HTTP          │
+└─────────────────┘    └─────────────────────┘
 ```
 
 ## Phase 1: Cross-Game Item Sharing
@@ -180,6 +176,15 @@ if (objective1_complete && objective2_complete) {
    - Master keycard reward given
    - Available in all games!
 
+## Inventory NFT minting
+
+When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mint an NFT** (WEB4 NFTHolon) and attach it to the inventory item. Config keys:
+
+- **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
+- **nft_provider** – Provider name (e.g. `SolanaOASIS`).
+
+The games call `star_api_mint_inventory_nft` (STARAPIClient C ABI) when mint is on for the item type; the mint is synchronous; the resulting NFT ID is stored with the item in STAR inventory. In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately.
+
 ## Future: NFT Boss Collection
 
 ### Goal
@@ -248,13 +253,13 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
 
 ### Step 1: Build STAR API client (STARAPIClient)
 
-ODOOM and OQuake use the **C# STARAPIClient** (not the legacy NativeWrapper). Build from OASIS repo root:
+ODOOM and OQuake use **STARAPIClient** only. Build from OASIS repo root:
 
 ```powershell
 dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
 
-Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build the client. The legacy C++ NativeWrapper is obsoleted by the C# STARAPIClient; do not use it for new work.
+Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build STARAPIClient. Do not use NativeWrapper.
 
 ### Step 2: Configure API Credentials
 

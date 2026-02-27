@@ -22,4 +22,4 @@ See **ENGINE_COMPARISON.md** for a short comparison of vkQuake, QuakeSpasm, and 
 1. Set **VKQUAKE_SRC** in BUILD_OQUAKE.bat (e.g. `C:\Source\vkQuake`).
 2. Run **BUILD_OQUAKE.bat** (from **Developer Command Prompt for VS 2022** so MSBuild and Vulkan SDK are found).
 3. Follow **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** for host.c, pr_ext.c, and project changes (the apply script copies files; you still add sources and link star_api.lib).
-4. Run **BUILD & RUN OQUAKE.bat** to launch with your Quake game data (e.g. Steam basedir).
+4. Run **RUN OQUAKE.bat** to launch with your Quake game data (e.g. Steam basedir).

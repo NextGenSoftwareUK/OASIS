@@ -1,7 +1,7 @@
 /**
  * ODOOM - OASIS STAR API Integration Implementation
  *
- * Build this file as part of ODOOM (UZDoom) with STAR API from STARAPIClient (not NativeWrapper).
+ * Build this file as part of ODOOM (UZDoom) with STAR API from STARAPIClient.
  * Keycard pickups are reported to STAR; door/lock checks can use cross-game inventory.
  * In-game console: "star" command for testing (star version, star inventory, star add, etc.).
  *
@@ -1256,6 +1256,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 
 	/* Minimal hook: queue pickup to C# client; client manages delta and sync. */
 	char nft_id_buf[128] = {};
+	char hash_buf[128] = {};
 	char* nft_id_arg = nullptr;
 	bool isKey = (keynum >= 1 && keynum <= 4) || keynum == STAR_PICKUP_OQUAKE_GOLD_KEY || keynum == STAR_PICKUP_OQUAKE_SILVER_KEY;
 	bool isWeapon = itemType && (strstr(itemType, "Weapon") != nullptr || strstr(itemType, "weapon") != nullptr);
@@ -1265,10 +1266,17 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	if (doMint) {
 		const char* provider = (const char*)odoom_star_nft_provider;
 		if (!provider || !provider[0]) provider = "SolanaOASIS";
-		if (star_api_mint_inventory_nft(name, desc, "ODOOM", itemType ? itemType : "Item", provider, nft_id_buf) == STAR_API_SUCCESS && nft_id_buf[0])
+		star_api_result_t mintRes = star_api_mint_inventory_nft(name, desc, "ODOOM", itemType ? itemType : "Item", provider, nft_id_buf, hash_buf);
+		if (mintRes == STAR_API_SUCCESS && nft_id_buf[0]) {
 			nft_id_arg = nft_id_buf;
-		else if (star_api_get_last_error() && star_api_get_last_error()[0])
-			StarLogError("Mint NFT for %s failed: %s", name, star_api_get_last_error());
+			if (hash_buf[0])
+				Printf(PRINT_HIGH, "STAR API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", name, nft_id_buf, hash_buf);
+			else
+				Printf(PRINT_HIGH, "STAR API: NFT minted for \"%s\". NFT ID: %s\n", name, nft_id_buf);
+		} else {
+			const char* err = star_api_get_last_error();
+			Printf(PRINT_HIGH, "STAR API: Mint NFT failed for \"%s\": %s\n", name, err && err[0] ? err : "unknown error");
+		}
 	}
 	star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nft_id_arg, 1, 1);
 	g_star_last_pickup_name = name;

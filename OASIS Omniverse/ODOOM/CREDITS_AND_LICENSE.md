@@ -17,7 +17,7 @@
 The OASIS Omniverse integration adds:
 
 - STAR API integration code (`uzdoom_star_integration.cpp`, `uzdoom_star_integration.h`, `odoom_branding.h`, `apply_odoom_branding.ps1`)
-- Build and run scripts (`BUILD ODOOM.bat`, `BUILD & RUN ODOOM.bat`)
+- Build and run scripts (`BUILD ODOOM.bat`, `RUN ODOOM.bat`)
 - Documentation in this folder
 
 These integration files are copied into your UZDoom source tree; you build from the UZDoom repository with our patches applied.

@@ -1,9 +1,10 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 REM ODOOM - UZDoom + OASIS STAR API. Credit: UZDoom (GPL-3.0). See CREDITS_AND_LICENSE.md.
-REM Usage: BUILD ODOOM.bat [ run ] [ nosprites ]
+REM Usage: BUILD ODOOM.bat [ run | batch ] [ nosprites ]
 REM   (none) = prompt clean/incremental, then copy, branding, build
-REM   run    = incremental build then launch (no prompt)
+REM   run    = incremental build then launch (no prompts)
+REM   batch  = incremental build, no prompts, do not launch (for BUILD EVERYTHING.bat)
 REM   nosprites = skip sprite/icon regeneration for faster builds
 
 if /i "%~1"=="__logrun" (
@@ -31,7 +32,7 @@ exit /b %ODOOM_BUILD_EXIT%
 set "UZDOOM_SRC=C:\Source\UZDoom"
 set "HERE=%~dp0"
 set "DOOM_FOLDER=%HERE%..\Doom"
-set "NATIVEWRAPPER=%HERE%..\NativeWrapper"
+set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "ODOOM_INTEGRATION=%HERE%"
 set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
 set "ULTIMATE_DOOM_BUILDER_ASSETS=C:\Source\UltimateDoomBuilder\Assets\Common\UDBScript\Scripts\OASIS\Sprites"
@@ -45,6 +46,19 @@ if exist "%ODOOM_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a 
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY; if(-not $v){$v='1.0 (Build 1)'}; $w=60; function c($s){$p=[math]::Max(0,[int](($w-$s.Length)/2)); '  '+(' '*$p)+$s}; Write-Host ''; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('O A S I S   O D O O M  v'+$v)) -ForegroundColor Cyan; Write-Host (c('By NextGen World Ltd')) -ForegroundColor DarkGray; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('Enabling full interoperable games across the OASIS Omniverse!')) -ForegroundColor DarkMagenta; Write-Host ''"
 
+if /i not "%~1"=="run" if /i not "%~1"=="batch" (
+    echo.
+    set /p "DEPLOY_STAR=  Build and deploy STARAPIClient first? [y/N]: "
+    if /i "!DEPLOY_STAR!"=="Y" (
+        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+        if errorlevel 1 (echo [ODOOM] STARAPIClient build/deploy failed. & pause & exit /b 1)
+    )
+    if /i "!DEPLOY_STAR!"=="YES" (
+        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+        if errorlevel 1 (echo [ODOOM] STARAPIClient build/deploy failed. & pause & exit /b 1)
+    )
+)
+
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
@@ -52,7 +66,7 @@ set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
-if /i not "%~1"=="run" (
+if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
     set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
 )
@@ -60,7 +74,7 @@ if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
-if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
+if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
     set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build (Y/N)? [Y]: "
     if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
@@ -83,7 +97,7 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
 )
 if not exist "%DOOM_FOLDER%\star_api.dll" (
     echo star_api not found: %DOOM_FOLDER%
-    echo Build NativeWrapper or copy star_api.dll/lib from Doom folder.
+    echo Build STARAPIClient (BUILD_AND_DEPLOY_STAR_CLIENT.bat) or copy star_api.dll/lib from Doom folder.
     pause
     exit /b 1
 )
@@ -92,8 +106,8 @@ if not exist "%DOOM_FOLDER%\star_api.lib" (
     pause
     exit /b 1
 )
-if not exist "%NATIVEWRAPPER%\star_api.h" (
-    echo star_api.h not found: %NATIVEWRAPPER%
+if not exist "%STARAPICLIENT%\star_api.h" (
+    echo star_api.h not found: %STARAPICLIENT%
     pause
     exit /b 1
 )
@@ -299,7 +313,7 @@ echo [ODOOM][STEP] Configuring CMake and STAR API...
 cd /d "%UZDOOM_SRC%"
 if not exist build mkdir build
 cd build
-set "STAR_API_DIR=%NATIVEWRAPPER%"
+set "STAR_API_DIR=%STARAPICLIENT%"
 set "STAR_API_LIB_DIR=%DOOM_FOLDER%"
 echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR%"
 echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR%"
@@ -348,7 +362,7 @@ echo.
 echo ---
 echo [ODOOM][DONE] ODOOM ready: %ODOOM_INTEGRATION%build\ODOOM.exe
 echo [ODOOM][INFO] Put doom2.wad in build folder. odoom_face.pk3 is included for beamed-in status bar face.
-echo [ODOOM][INFO] Use "BUILD & RUN ODOOM.bat" to launch.
+echo [ODOOM][INFO] Use "RUN ODOOM.bat" to launch.
 echo ---
 
 if /i "%~1"=="run" (
@@ -359,4 +373,4 @@ if /i "%~1"=="run" (
         start "" "%UZDOOM_SRC%\build\Release\uzdoom.exe"
     )
 )
-pause
+if /i not "%~1"=="batch" pause
