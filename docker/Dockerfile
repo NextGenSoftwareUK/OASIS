@@ -33,9 +33,8 @@ COPY . .
 # Remove Holochain provider and related files to avoid build errors
 RUN rm -rf /src/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETClientExtensions.cs && \
-    rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETP2PProvider.cs && \
-    rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs
-# NetworkMetrics.cs is now committed to the repo — no need to generate it here
+    rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETP2PProvider.cs
+# NetworkMetricsService.cs contains the NetworkMetrics class used by ONETDiscovery and ONETRouting — keep it
 # Comment out HoloOASIS references in OASISBootLoader
 RUN sed -i 's/^using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/\/\/using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
     sed -i '/case ProviderType.HoloOASIS:/,/^[[:space:]]*break;/s/^/\/\//' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
