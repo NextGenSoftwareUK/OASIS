@@ -105,18 +105,20 @@ CVAR(Int, odoom_star_stack_armor, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_weapons, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_powerups, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_keys, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-/* Mint NFT when collecting: 1 = on, 0 = off. Default provider for minting. */
-CVAR(Int, odoom_star_mint_weapons, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Int, odoom_star_mint_armor, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Int, odoom_star_mint_powerups, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(Int, odoom_star_mint_keys, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
-CVAR(String, odoom_star_nft_provider, "SolanaOASIS", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/* Mint NFT when collecting: 1 = on, 0 = off. Not archived so oasisstar.json wins over ini. */
+CVAR(Int, odoom_star_mint_weapons, 0, CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_armor, 0, CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_powerups, 0, CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_mint_keys, 0, CVAR_GLOBALCONFIG)
+CVAR(String, odoom_star_nft_provider, "SolanaOASIS", CVAR_GLOBALCONFIG)
 
 /* Config: ODOOM stores STAR options in the engine config. Typical path: Documents\\My Games\\UZDoom
  * (or OneDrive\\Documents\\My Games\\UZDoom) - ini file there is written on exit. STAR cvars use
  * CVAR_ARCHIVE so they should appear in that ini; if not visible, use oasisstar.json (loaded/saved
  * when found) for parity with OQuake and cross-game config sharing. */
 static std::string g_odoom_json_config_path;
+/** Frames until we re-apply oasisstar.json so mint etc. override ini. Set in Init when json loaded. */
+static int g_odoom_reapply_json_frames = -1;
 
 /** When init (e.g. star_api_init) has failed, we skip retrying until user runs beamin again to avoid spamming "couldn't find the host". */
 static bool g_star_init_failed_this_session = false;
@@ -251,6 +253,20 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_nft_provider = value;
 		loaded = true;
 	}
+	if (loaded) {
+		/* Apply mint and nft_provider to engine cvars so they persist (ini may have loaded 0 before this). */
+		UCVarValue u;
+		FBaseCVar* v = nullptr;
+		u.Int = odoom_star_mint_weapons ? 1 : 0; v = FindCVar("odoom_star_mint_weapons", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_mint_armor ? 1 : 0; v = FindCVar("odoom_star_mint_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_mint_powerups ? 1 : 0; v = FindCVar("odoom_star_mint_powerups", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_mint_keys ? 1 : 0; v = FindCVar("odoom_star_mint_keys", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		v = FindCVar("odoom_star_nft_provider", nullptr);
+		if (v && v->GetRealType() == CVAR_String) {
+			UCVarValue vs; vs.String = (char*)(const char*)odoom_star_nft_provider;
+			v->SetGenericRep(vs, CVAR_String);
+		}
+	}
 	return loaded;
 }
 
@@ -365,7 +381,8 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		copySafe(desc, it->description, 256);
 		copySafe(type, it->item_type, 64);
 		copySafe(game, it->game_source, 64);
-		int wr = snprintf(listBuf + off, (size_t)(sizeof(listBuf) - off), "%s\t%s\t%s\t%s\n", name, desc, type, game);
+		int qty = (it->quantity > 0) ? it->quantity : 1;
+		int wr = snprintf(listBuf + off, (size_t)(sizeof(listBuf) - off), "%s\t%s\t%s\t%s\t%d\n", name, desc, type, game, qty);
 		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off) off += (size_t)wr;
 		else break;
 	}
@@ -468,6 +485,15 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 void ODOOM_InventoryInputCaptureFrame(void)
 {
 	star_sync_pump();
+
+	/* Re-apply oasisstar.json after a short delay so mint etc. override ini load. */
+	if (g_odoom_reapply_json_frames == 0) {
+		g_odoom_reapply_json_frames = -1;
+		if (!g_odoom_json_config_path.empty())
+			ODOOM_LoadJsonConfig(g_odoom_json_config_path.c_str());
+	} else if (g_odoom_reapply_json_frames > 0) {
+		g_odoom_reapply_json_frames--;
+	}
 
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
@@ -1099,6 +1125,7 @@ void UZDoom_STAR_Init(void) {
 		std::string path;
 		if (ODOOM_FindConfigFile("oasisstar.json", path) && ODOOM_LoadJsonConfig(path.c_str())) {
 			g_odoom_json_config_path = path;
+			g_odoom_reapply_json_frames = 70;  /* Re-apply after ~2s so mint etc. override ini */
 			StarLogInfo("Loaded STAR config from: %s", path.c_str());
 		}
 	}
@@ -1435,7 +1462,8 @@ CCMD(star)
 			if (count == 0) { Printf("Inventory is empty.\n"); star_api_free_item_list(list); Printf("\n"); return; }
 			Printf("STAR inventory (%zu items):\n", count);
 			for (size_t i = 0; i < count; i++) {
-				Printf("  %s - %s (%s, %s)\n", list->items[i].name, list->items[i].description, list->items[i].game_source, list->items[i].item_type);
+				int qty = (list->items[i].quantity > 0) ? list->items[i].quantity : 1;
+				Printf("  %s - %s (type=%s, game=%s, qty=%d)\n", list->items[i].name, list->items[i].description, list->items[i].item_type, list->items[i].game_source, qty);
 			}
 			star_api_free_item_list(list);
 			Printf("\n");

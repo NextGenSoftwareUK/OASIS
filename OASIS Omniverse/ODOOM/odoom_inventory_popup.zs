@@ -161,16 +161,18 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			int starCount = 0;
 			array<String> starNames, starDescs, starTypes, starGames;
-			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
+			array<int> starQuantities;
+			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames, starQuantities);
 			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
 
-			// Group STAR by short label (like OQuake): same label = one row, sum count; keep first raw name per group for send
+			// Group STAR by short label (like OQuake): same label = one row, sum quantity; keep first raw name per group for send
 			array<String> starGroupLabels;
 			array<int> starGroupCounts;
 			array<String> starGroupFirstNames;
 			for (int i = 0; i < starCount; i++)
 			{
+				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
 				String label = StarItemShortLabel(starNames[i], starGames[i]);
 				int r = 0;
 				for (r = 0; r < starGroupLabels.Size(); r++)
@@ -178,18 +180,20 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (r >= starGroupLabels.Size())
 				{
 					starGroupLabels.Push(label);
-					starGroupCounts.Push(1);
+					starGroupCounts.Push(qty);
 					starGroupFirstNames.Push(starNames[i]);
 				}
 				else
-					starGroupCounts[r]++;
+					starGroupCounts[r] += qty;
 			}
 			int starGroupCount = starGroupLabels.Size();
 			cachedStarCount = starGroupCount;
 			cachedStarListForTab = "";
 			for (int i = 0; i < starGroupCount; i++)
 			{
-				String line = (starGroupCounts[i] > 1) ? String.Format("%s x%d", starGroupLabels[i], starGroupCounts[i]) : starGroupLabels[i];
+				// Always show QTY in list like OQuake (e.g. "Shells (OQUAKE) x50" or "Silver Key x1")
+				int qty = starGroupCounts[i] > 0 ? starGroupCounts[i] : 1;
+				String line = String.Format("%s x%d", starGroupLabels[i], qty);
 				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, line);
 			}
 
@@ -220,7 +224,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			cachedLocalListForTab = "";
 			for (int i = 0; i < localGroupCount; i++)
 			{
-				String line = (localGroupAmount[i] > 1) ? String.Format("%s  x%d", localGroupDisp[i], localGroupAmount[i]) : localGroupDisp[i];
+				// Always show QTY in list like OQuake (e.g. "Shells x50" or "Red Keycard x1")
+				int qty = localGroupAmount[i] > 0 ? localGroupAmount[i] : 1;
+				String line = String.Format("%s x%d", localGroupDisp[i], qty);
 				cachedLocalListForTab = String.Format("%s%s\n", cachedLocalListForTab, line);
 			}
 
@@ -514,14 +520,15 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 	}
 
-	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\n" per line) and append STAR items for active tab to display list.
-	// Returns number of STAR rows added. Row data appended to starNames, starDescs, starTypes, starGames.
-	private int BuildStarItemsForTab(out array<String> starNames, out array<String> starDescs, out array<String> starTypes, out array<String> starGames)
+	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\tquantity\n" per line, quantity optional) and append STAR items for active tab.
+	// Returns number of STAR rows. Row data in starNames, starDescs, starTypes, starGames, starQuantities (qty per row, for grouping).
+	private int BuildStarItemsForTab(out array<String> starNames, out array<String> starDescs, out array<String> starTypes, out array<String> starGames, out array<int> starQuantities)
 	{
 		starNames.Clear();
 		starDescs.Clear();
 		starTypes.Clear();
 		starGames.Clear();
+		starQuantities.Clear();
 		CVar listVar = CVar.FindCVar("odoom_star_inventory_list");
 		if (listVar == null) return 0;
 		String listStr = listVar.GetString();
@@ -537,11 +544,18 @@ class OASISInventoryOverlayHandler : EventHandler
 			String desc = parts[1];
 			String typ = parts[2];
 			String game = parts[3];
+			int qty = 1;
+			if (parts.Size() >= 5 && parts[4].Length() > 0)
+			{
+				qty = parts[4].ToInt();
+				if (qty < 1) qty = 1;
+			}
 			if (!IsStarItemInTab(typ, name, activeTab)) continue;
 			starNames.Push(name);
 			starDescs.Push(desc);
 			starTypes.Push(typ);
 			starGames.Push(game);
+			starQuantities.Push(qty);
 		}
 		return starNames.Size();
 	}
