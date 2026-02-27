@@ -4,12 +4,27 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
+using Solnet.Rpc;
 using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 
-public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : ISolanaService
+public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient, string mainnetRpcUrl = null) : ISolanaService
 {
+    /// <summary>
+    /// Returns the appropriate RPC client for the requested cluster.
+    /// "mainnet-beta" and "mainnet" use the mainnet RPC URL if one was configured;
+    /// everything else (including null / empty / "devnet") falls back to the default rpcClient.
+    /// </summary>
+    private IRpcClient GetRpcForCluster(string cluster)
+    {
+        if (!string.IsNullOrWhiteSpace(mainnetRpcUrl) &&
+            (string.Equals(cluster, "mainnet-beta", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(cluster, "mainnet", StringComparison.OrdinalIgnoreCase)))
+            return ClientFactory.GetClient(mainnetRpcUrl);
+
+        return rpcClient;
+    }
     /// <summary>Token-2022 (Token Extensions) program ID. When a mint is owned by this program, use it for ATA creation and transfer.</summary>
     private static readonly PublicKey Token2022ProgramId = new("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
 
@@ -684,6 +699,324 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             IsError = false,
             Result = result
         };
+
+        return response;
+    }
+
+    /// <summary>
+    /// Mint fungible SPL tokens to a recipient wallet.
+    /// The OASIS account must be the mint authority for the given token mint.
+    /// Creates the recipient's Associated Token Account if it does not yet exist.
+    /// </summary>
+    public async Task<OASISResult<MintNftResult>> MintSplTokensAsync(string tokenMintAddress, string toWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        var response = new OASISResult<MintNftResult>();
+        var originalConsoleOut = Console.Out;
+        var rpc = GetRpcForCluster(cluster);
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tokenMintAddress))
+                return HandleError<MintNftResult>("TokenMintAddress is required.");
+            if (string.IsNullOrWhiteSpace(toWalletAddress))
+                return HandleError<MintNftResult>("ToWalletAddress is required.");
+            if (amount == 0)
+                return HandleError<MintNftResult>("Amount must be greater than zero.");
+
+            var mintPubkey = new PublicKey(tokenMintAddress);
+            var toPubkey = new PublicKey(toWalletAddress);
+
+            // Determine token program (legacy vs Token-2022)
+            bool useToken2022 = false;
+            var mintAccountInfo = await rpc.GetAccountInfoAsync(mintPubkey);
+            if (mintAccountInfo.WasSuccessful && mintAccountInfo.Result?.Value?.Owner != null)
+                useToken2022 = string.Equals(mintAccountInfo.Result.Value.Owner, Token2022ProgramId.Key, StringComparison.Ordinal);
+
+            // Derive the recipient's ATA
+            PublicKey toAta = useToken2022
+                ? DeriveAssociatedTokenAccount(toPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPubkey, mintPubkey);
+
+            var blockHashResult = await rpc.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+                return HandleError<MintNftResult>("Failed to get latest block hash: " + blockHashResult.Reason);
+
+            var builder = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey);
+
+            // Create ATA for recipient if it doesn't exist
+            var ataInfoResult = await rpc.GetAccountInfoAsync(toAta);
+            bool needsAta = !ataInfoResult.WasSuccessful || ataInfoResult.Result?.Value == null
+                || ataInfoResult.Result.Value.Data == null || ataInfoResult.Result.Value.Data.Count == 0;
+
+            if (needsAta)
+            {
+                TransactionInstruction createAtaIx = useToken2022
+                    ? CreateAssociatedTokenAccountInstruction(oasisAccount.PublicKey, toPubkey, mintPubkey, Token2022ProgramId)
+                    : AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(oasisAccount.PublicKey, toPubkey, mintPubkey);
+                if (createAtaIx != null)
+                    builder = builder.AddInstruction(createAtaIx);
+            }
+
+            // MintTo instruction: mint authority signs, tokens land in the recipient ATA
+            builder = builder.AddInstruction(TokenProgram.MintTo(mintPubkey, toAta, amount, oasisAccount.PublicKey));
+
+            Console.SetOut(new NullTextWriter());
+            var sendResult = await rpc.SendTransactionAsync(builder.Build(oasisAccount), skipPreflight: false, commitment: Commitment.Confirmed);
+            Console.SetOut(originalConsoleOut);
+
+            if (!sendResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendResult.Reason ?? "MintTo transaction failed.";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            // Confirm on-chain
+            string txSig = sendResult.Result;
+            for (int i = 0; i < 8; i++)
+            {
+                await Task.Delay(2000);
+                var txResult = await rpc.GetTransactionAsync(txSig, Commitment.Confirmed);
+                if (txResult.WasSuccessful && txResult.Result?.Meta != null)
+                {
+                    if (txResult.Result.Meta.Error != null)
+                    {
+                        string logs = txResult.Result.Meta.LogMessages != null ? string.Join("; ", txResult.Result.Meta.LogMessages.Take(10)) : "";
+                        response.IsError = true;
+                        response.Message = $"MintTo failed on-chain: {txResult.Result.Meta.Error}. Logs: {logs}";
+                        OASISErrorHandling.HandleError(ref response, response.Message);
+                        return response;
+                    }
+                    break;
+                }
+            }
+
+            response.Result = new MintNftResult(toAta.Key, cluster ?? "devnet", txSig);
+        }
+        catch (Exception ex)
+        {
+            Console.SetOut(originalConsoleOut);
+            response.IsError = true;
+            response.Message = ex.Message;
+            OASISErrorHandling.HandleError(ref response, ex.Message);
+        }
+        finally
+        {
+            Console.SetOut(originalConsoleOut);
+        }
+
+        return response;
+    }
+
+    /// <summary>
+    /// Burn fungible SPL tokens from a wallet's Associated Token Account.
+    /// The OASIS account must be the token-account owner or mint authority.
+    /// </summary>
+    public async Task<OASISResult<BurnNftResult>> BurnSplTokensAsync(string tokenMintAddress, string fromWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        var response = new OASISResult<BurnNftResult>();
+        var originalConsoleOut = Console.Out;
+        var rpc = GetRpcForCluster(cluster);
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tokenMintAddress))
+                return HandleError<BurnNftResult>("TokenMintAddress is required.");
+            if (string.IsNullOrWhiteSpace(fromWalletAddress))
+                return HandleError<BurnNftResult>("FromWalletAddress is required.");
+            if (amount == 0)
+                return HandleError<BurnNftResult>("Amount must be greater than zero.");
+
+            var mintPubkey = new PublicKey(tokenMintAddress);
+            var fromPubkey = new PublicKey(fromWalletAddress);
+
+            bool useToken2022 = false;
+            var mintAccountInfo = await rpc.GetAccountInfoAsync(mintPubkey);
+            if (mintAccountInfo.WasSuccessful && mintAccountInfo.Result?.Value?.Owner != null)
+                useToken2022 = string.Equals(mintAccountInfo.Result.Value.Owner, Token2022ProgramId.Key, StringComparison.Ordinal);
+
+            // Derive the source ATA
+            PublicKey fromAta = useToken2022
+                ? DeriveAssociatedTokenAccount(fromPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPubkey, mintPubkey);
+
+            var blockHashResult = await rpc.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+                return HandleError<BurnNftResult>("Failed to get latest block hash: " + blockHashResult.Reason);
+
+            // Burn: the OASIS account signs as the authority over the token account
+            byte[] tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey)
+                .AddInstruction(TokenProgram.Burn(fromAta, mintPubkey, amount, oasisAccount.PublicKey))
+                .Build(oasisAccount);
+
+            Console.SetOut(new NullTextWriter());
+            var sendResult = await rpc.SendTransactionAsync(tx, skipPreflight: false, commitment: Commitment.Confirmed);
+            Console.SetOut(originalConsoleOut);
+
+            if (!sendResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendResult.Reason ?? "Burn transaction failed.";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            string txSig = sendResult.Result;
+            for (int i = 0; i < 8; i++)
+            {
+                await Task.Delay(2000);
+                var txResult = await rpc.GetTransactionAsync(txSig, Commitment.Confirmed);
+                if (txResult.WasSuccessful && txResult.Result?.Meta != null)
+                {
+                    if (txResult.Result.Meta.Error != null)
+                    {
+                        string logs = txResult.Result.Meta.LogMessages != null ? string.Join("; ", txResult.Result.Meta.LogMessages.Take(10)) : "";
+                        response.IsError = true;
+                        response.Message = $"Burn failed on-chain: {txResult.Result.Meta.Error}. Logs: {logs}";
+                        OASISErrorHandling.HandleError(ref response, response.Message);
+                        return response;
+                    }
+                    break;
+                }
+            }
+
+            response.Result = new BurnNftResult(fromAta.Key, cluster ?? "devnet", txSig);
+        }
+        catch (Exception ex)
+        {
+            Console.SetOut(originalConsoleOut);
+            response.IsError = true;
+            response.Message = ex.Message;
+            OASISErrorHandling.HandleError(ref response, ex.Message);
+        }
+        finally
+        {
+            Console.SetOut(originalConsoleOut);
+        }
+
+        return response;
+    }
+
+    /// <summary>
+    /// Transfer fungible SPL tokens between two wallets.
+    /// Delegates to the existing SendNftAsync implementation which already handles
+    /// Token-2022 detection, ATA creation, transfer, and on-chain confirmation.
+    /// </summary>
+    public async Task<OASISResult<SendTransactionResult>> SendSplTokensAsync(string tokenMintAddress, string fromWalletAddress, string toWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        if (string.IsNullOrWhiteSpace(tokenMintAddress))
+            return HandleError<SendTransactionResult>("TokenMintAddress is required.");
+        if (string.IsNullOrWhiteSpace(fromWalletAddress))
+            return HandleError<SendTransactionResult>("FromWalletAddress is required.");
+        if (string.IsNullOrWhiteSpace(toWalletAddress))
+            return HandleError<SendTransactionResult>("ToWalletAddress is required.");
+        if (amount == 0)
+            return HandleError<SendTransactionResult>("Amount must be greater than zero.");
+
+        var response = new OASISResult<SendTransactionResult>();
+        var originalConsoleOut = Console.Out;
+        var rpc = GetRpcForCluster(cluster);
+
+        try
+        {
+            var fromPubkey = new PublicKey(fromWalletAddress);
+            var toPubkey = new PublicKey(toWalletAddress);
+            var mintPubkey = new PublicKey(tokenMintAddress);
+
+            bool useToken2022 = false;
+            var mintAccountResult = await rpc.GetAccountInfoAsync(mintPubkey);
+            if (mintAccountResult.WasSuccessful && mintAccountResult.Result?.Value?.Owner != null)
+                useToken2022 = string.Equals(mintAccountResult.Result.Value.Owner, Token2022ProgramId.Key, StringComparison.Ordinal);
+
+            PublicKey toAta = useToken2022
+                ? DeriveAssociatedTokenAccount(toPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(toPubkey, mintPubkey);
+            PublicKey fromAta = useToken2022
+                ? DeriveAssociatedTokenAccount(fromPubkey, mintPubkey, Token2022ProgramId)
+                : AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(fromPubkey, mintPubkey);
+
+            var accountInfoResult = await rpc.GetAccountInfoAsync(toAta);
+            bool needsCreateTokenAccount = !accountInfoResult.WasSuccessful || accountInfoResult.Result?.Value == null
+                || accountInfoResult.Result.Value.Data == null || accountInfoResult.Result.Value.Data.Count == 0;
+
+            var blockHashResult = await rpc.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+                return HandleError<SendTransactionResult>("Failed to get latest block hash: " + blockHashResult.Reason);
+
+            var builder = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(fromPubkey);
+
+            if (needsCreateTokenAccount)
+            {
+                TransactionInstruction createAtaIx = useToken2022
+                    ? CreateAssociatedTokenAccountInstruction(fromPubkey, toPubkey, mintPubkey, Token2022ProgramId)
+                    : AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(fromPubkey, toPubkey, mintPubkey);
+                if (createAtaIx != null)
+                    builder = builder.AddInstruction(createAtaIx);
+            }
+
+            TransactionInstruction transferIx = useToken2022
+                ? CreateTransferInstruction(fromAta, toAta, amount, fromPubkey, Token2022ProgramId)
+                : TokenProgram.Transfer(fromAta, toAta, amount, fromPubkey);
+            builder = builder.AddInstruction(transferIx);
+
+            Console.SetOut(new NullTextWriter());
+            var sendResult = await rpc.SendTransactionAsync(builder.Build(oasisAccount), skipPreflight: false, commitment: Commitment.Confirmed);
+            Console.SetOut(originalConsoleOut);
+
+            if (!sendResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendResult.Reason ?? "Send SPL token transaction failed.";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            string txSig = sendResult.Result;
+            for (int i = 0; i < 8; i++)
+            {
+                await Task.Delay(2000);
+                var txResult = await rpc.GetTransactionAsync(txSig, Commitment.Confirmed);
+                if (!txResult.WasSuccessful || txResult.Result == null) continue;
+                if (txResult.Result.Meta?.Error != null)
+                {
+                    string logs = txResult.Result.Meta.LogMessages != null ? string.Join("; ", txResult.Result.Meta.LogMessages.Take(15)) : "";
+                    response.IsError = true;
+                    response.Message = $"Send SPL token failed on-chain: {txResult.Result.Meta.Error}. Logs: {logs}";
+                    OASISErrorHandling.HandleError(ref response, response.Message);
+                    return response;
+                }
+                if (txResult.Result.Meta?.Error == null)
+                {
+                    response.Result = new SendTransactionResult { TransactionHash = txSig };
+                    break;
+                }
+            }
+
+            if (response.Result == null && !response.IsError)
+            {
+                response.IsError = true;
+                response.Message = $"Send transaction could not be confirmed in time. Check status: {txSig}";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.SetOut(originalConsoleOut);
+            response.IsError = true;
+            response.Message = ex.Message;
+            OASISErrorHandling.HandleError(ref response, ex.Message);
+        }
+        finally
+        {
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }

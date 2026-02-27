@@ -53,6 +53,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     private WalletManager _walletManager;
     private readonly Account _oasisSolanaAccount;
     private readonly IRpcClient _rpcClient;
+    private readonly string _mainnetRpcUrl;
 
     private KeyManager KeyManager
     {
@@ -76,7 +77,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         }
     }
 
-    public SolanaOASIS(string hostUri, string privateKey, string publicKey)
+    public SolanaOASIS(string hostUri, string privateKey, string publicKey, string mainnetRpcUrl = null)
     {
         this.ProviderName = nameof(SolanaOASIS);
         this.ProviderDescription = "Solana Blockchain Provider";
@@ -84,6 +85,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
         this._rpcClient = ClientFactory.GetClient(hostUri);
         this._oasisSolanaAccount = new(privateKey, publicKey);
+        this._mainnetRpcUrl = mainnetRpcUrl;
 
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
@@ -98,7 +100,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient, _mainnetRpcUrl);
 
             result.Result = true;
             IsProviderActivated = true;
@@ -119,7 +121,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
         try
         {
             _solanaRepository = new SolanaRepository(_oasisSolanaAccount, _rpcClient);
-            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient);
+            _solanaService = new SolanaService(_oasisSolanaAccount, _rpcClient, _mainnetRpcUrl);
 
             result.Result = true;
             IsProviderActivated = true;
@@ -4398,5 +4400,59 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
             return new Guid(bytes.Take(16).ToArray());
         }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SPL Fungible Token helpers — called by NftController endpoints
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Mint fungible SPL tokens to a recipient wallet.
+    /// The OASIS platform account must be the mint authority.
+    /// </summary>
+    public async Task<OASISResult<MintNftResult>> MintSplTokensAsync(string tokenMintAddress, string toWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        var result = new OASISResult<MintNftResult>();
+
+        if (!IsProviderActivated || _solanaService == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not activated.");
+            return result;
+        }
+
+        return await _solanaService.MintSplTokensAsync(tokenMintAddress, toWalletAddress, amount, cluster);
+    }
+
+    /// <summary>
+    /// Burn fungible SPL tokens from a wallet ATA.
+    /// </summary>
+    public async Task<OASISResult<BurnNftResult>> BurnSplTokensAsync(string tokenMintAddress, string fromWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        var result = new OASISResult<BurnNftResult>();
+
+        if (!IsProviderActivated || _solanaService == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not activated.");
+            return result;
+        }
+
+        return await _solanaService.BurnSplTokensAsync(tokenMintAddress, fromWalletAddress, amount, cluster);
+    }
+
+    /// <summary>
+    /// Transfer fungible SPL tokens between two wallets.
+    /// Creates the recipient ATA if it does not yet exist.
+    /// </summary>
+    public async Task<OASISResult<SendTransactionResult>> SendSplTokensAsync(string tokenMintAddress, string fromWalletAddress, string toWalletAddress, ulong amount, string cluster = "devnet")
+    {
+        var result = new OASISResult<SendTransactionResult>();
+
+        if (!IsProviderActivated || _solanaService == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not activated.");
+            return result;
+        }
+
+        return await _solanaService.SendSplTokensAsync(tokenMintAddress, fromWalletAddress, toWalletAddress, amount, cluster);
+    }
     }
     #endregion

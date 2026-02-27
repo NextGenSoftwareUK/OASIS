@@ -15,6 +15,9 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -41,7 +44,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         public NftController()
         {
-           
+        }
+
+        private OASISResult<SolanaOASIS> GetSolanaProvider()
+        {
+            var result = new OASISResult<SolanaOASIS>();
+            IOASISProvider provider = ProviderManager.Instance.GetProvider(ProviderType.SolanaOASIS);
+
+            if (provider == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not registered.");
+                return result;
+            }
+
+            if (!provider.IsProviderActivated)
+            {
+                var activateResult = provider.ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate SolanaOASIS provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = provider as SolanaOASIS;
+
+            if (result.Result == null)
+                OASISErrorHandling.HandleError(ref result, "The registered SolanaOASIS provider could not be cast to SolanaOASIS.");
+
+            return result;
         }
 
 
@@ -788,6 +819,132 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IEnumerable<IWeb4NFTCollection>>> SearchWeb4NFTCollectionsAsync(string searchTerm, Guid avatarId, Dictionary<string, string> filterByMetaData = null, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All, bool searchOnlyForCurrentAvatar = true, ProviderType providerType = ProviderType.Default)
         {
             return await NFTManager.SearchWeb4NFTCollectionsAsync(searchTerm, avatarId, filterByMetaData, metaKeyValuePairMatchMode, searchOnlyForCurrentAvatar, providerType);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // SPL Fungible Token endpoints (Pangea / Launchboard cap-table ops)
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Mint fungible SPL tokens to a recipient wallet.
+        /// The OASIS platform account must be the mint authority of the token.
+        /// Used by Pangea for share issuances and daily vesting cron jobs.
+        /// </summary>
+        /// <param name="request">TokenMintAddress, ToWalletAddress, Amount, OnChainProvider.</param>
+        /// <returns>Transaction hash and the recipient ATA address.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("mint-tokens")]
+        [ProducesResponseType(typeof(OASISResult<MintNftResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<MintNftResult>> MintSplTokensAsync([FromBody] Models.NFT.MintSplTokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<MintNftResult> { IsError = true, Message = "Request body is required. Provide TokenMintAddress, ToWalletAddress, and Amount." };
+
+            if (string.IsNullOrWhiteSpace(request.TokenMintAddress))
+                return new OASISResult<MintNftResult> { IsError = true, Message = "TokenMintAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                return new OASISResult<MintNftResult> { IsError = true, Message = "ToWalletAddress is required." };
+
+            if (request.Amount == 0)
+                return new OASISResult<MintNftResult> { IsError = true, Message = "Amount must be greater than zero." };
+
+            var providerResult = GetSolanaProvider();
+            if (providerResult.IsError)
+                return new OASISResult<MintNftResult> { IsError = true, Message = providerResult.Message };
+
+            return await providerResult.Result.MintSplTokensAsync(request.TokenMintAddress, request.ToWalletAddress, request.Amount, request.Cluster);
+        }
+
+        /// <summary>
+        /// Burn fungible SPL tokens from a wallet.
+        /// Used by Pangea on SAFE-to-equity conversion or security cancellation.
+        /// </summary>
+        /// <param name="request">TokenMintAddress, FromWalletAddress, Amount, OnChainProvider.</param>
+        /// <returns>Transaction hash.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("burn-tokens")]
+        [ProducesResponseType(typeof(OASISResult<BurnNftResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<BurnNftResult>> BurnSplTokensAsync([FromBody] Models.NFT.BurnSplTokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<BurnNftResult> { IsError = true, Message = "Request body is required. Provide TokenMintAddress, FromWalletAddress, and Amount." };
+
+            if (string.IsNullOrWhiteSpace(request.TokenMintAddress))
+                return new OASISResult<BurnNftResult> { IsError = true, Message = "TokenMintAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.FromWalletAddress))
+                return new OASISResult<BurnNftResult> { IsError = true, Message = "FromWalletAddress is required." };
+
+            if (request.Amount == 0)
+                return new OASISResult<BurnNftResult> { IsError = true, Message = "Amount must be greater than zero." };
+
+            var providerResult = GetSolanaProvider();
+            if (providerResult.IsError)
+                return new OASISResult<BurnNftResult> { IsError = true, Message = providerResult.Message };
+
+            return await providerResult.Result.BurnSplTokensAsync(request.TokenMintAddress, request.FromWalletAddress, request.Amount, request.Cluster);
+        }
+
+        /// <summary>
+        /// Transfer fungible SPL tokens between two wallets.
+        /// Creates the recipient ATA if it does not yet exist.
+        /// Used by Pangea for secondary share transfers on the cap table.
+        /// </summary>
+        /// <param name="request">TokenMintAddress, FromWalletAddress, ToWalletAddress, Amount, OnChainProvider.</param>
+        /// <returns>Transaction hash.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("send-token")]
+        [ProducesResponseType(typeof(OASISResult<SendTransactionResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<SendTransactionResult>> SendSplTokenAsync([FromBody] Models.NFT.SendSplTokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "Request body is required. Provide TokenMintAddress, FromWalletAddress, ToWalletAddress, and Amount." };
+
+            if (string.IsNullOrWhiteSpace(request.TokenMintAddress))
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "TokenMintAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.FromWalletAddress))
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "FromWalletAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "ToWalletAddress is required." };
+
+            if (request.Amount == 0)
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = "Amount must be greater than zero." };
+
+            var providerResult = GetSolanaProvider();
+            if (providerResult.IsError)
+                return new OASISResult<SendTransactionResult> { IsError = true, Message = providerResult.Message };
+
+            return await providerResult.Result.SendSplTokensAsync(request.TokenMintAddress, request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.Cluster);
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // Route aliases to fix 404s from Pangea integration testing
+        // ─────────────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Alias: GET /api/nft/get-all-nfts — returns all NFTs (Wizard/Admin only).
+        /// Exists to fix 404 reported by Pangea; delegates to load-all-nfts.
+        /// </summary>
+        [Authorize(AvatarType.Wizard)]
+        [HttpGet]
+        [Route("get-all-nfts")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<IWeb4NFT>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<IEnumerable<IWeb4NFT>>> GetAllNFTsAsync()
+        {
+            return await NFTManager.LoadAllWeb4NFTsAsync();
         }
     }
 }
