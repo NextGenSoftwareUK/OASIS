@@ -61,9 +61,11 @@ if (-not $StarDll -and (Test-Path (Join-Path $NativeWrapper "build\Release\star_
     $StarLib = Join-Path $NativeWrapper "build\Release\star_api.lib"
 }
 
+# star_sync: always use OQuake copy so OQuake-specific sync behaviour (sync add_item) is used. Fallback to STARAPIClient only if missing.
 $starSyncRoot = $OQuakeRoot
 if (-not (Test-Path (Join-Path $OQuakeRoot "star_sync.c"))) {
     $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
+    Write-Warning "[OQuake] OQuake\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake to avoid overwriting with STARAPIClient version on next apply."
 }
 $files = @(
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
@@ -88,6 +90,8 @@ if ($StarDll) {
 }
 
 # Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.
+# For anorak face when beamed in, inventory overlay (I key), and Send to Avatar/Clan popups,
+# you must patch vkQuake's sbar.c and gl_screen.c (or equivalent) as described in VKQUAKE_OQUAKE_INTEGRATION.md section 9.
 $faceSource = Join-Path $OQuakeRoot "face_anorak.png"
 if (-not (Test-Path $faceSource)) {
     $altFaceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png"
@@ -119,6 +123,27 @@ if (Test-Path $HostC) {
     if ($content -notmatch 'oquake_version\.h') {
         $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_version.h`""
         $patched = $true
+    }
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"oquake_version\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
+        $patched = $true
+        Write-Host "[OQuake] Patched host.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    # OQuake STAR init at startup (registers 'star' command and prints welcome message)
+    if ($content -notmatch 'OQuake_STAR_Init') {
+        if ($content -match '(\s+PR_Init\s*\(\)\s*;)') {
+            $content = $content -replace '(\s+PR_Init\s*\(\)\s*;)', "`$1`r`n	OQuake_STAR_Init ();"
+            $patched = $true
+            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_Init()" -ForegroundColor Green
+        }
+    }
+    # OQuake STAR cleanup at shutdown
+    if ($content -notmatch 'OQuake_STAR_Cleanup') {
+        if ($content -match 'Host_WriteConfiguration\s*\(\)\s*;') {
+            $content = $content -replace '(Host_WriteConfiguration\s*\(\)\s*;\s*\r?\n)(\s*\r?\n)(\s+NET_Shutdown)', "`$1`$2	OQuake_STAR_Cleanup ();`$2`$3"
+            $patched = $true
+            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_Cleanup()" -ForegroundColor Green
+        }
     }
     # Call OQuake STAR item poll every frame so pickups are reported even if sbar isn't drawn
     if ($content -notmatch 'OQuake_STAR_PollItems') {

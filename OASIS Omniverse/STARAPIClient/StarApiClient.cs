@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.IO;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -37,6 +39,10 @@ public sealed class StarItem
     public string Description { get; init; } = string.Empty;
     public string GameSource { get; init; } = "Unknown";
     public string ItemType { get; init; } = "Miscellaneous";
+    /// <summary>NFT ID from MetaData when item is linked to an NFTHolon (minted). Empty when not an NFT item.</summary>
+    public string NftId { get; init; } = string.Empty;
+    /// <summary>Stack size. When adding with stack=true, API increments this if item exists; otherwise new item gets this quantity. Default 1.</summary>
+    public int Quantity { get; init; } = 1;
 }
 
 public sealed class StarAvatarProfile
@@ -86,6 +92,10 @@ public sealed class StarApiClient : IDisposable
     private List<StarItem>? _cachedInventory;
     /// <summary>Single-flight fetch: when cache is null, only one HTTP get_inventory runs; other callers wait on this task.</summary>
     private Task<OASISResult<List<StarItem>>>? _inventoryFetchTask;
+
+    /// <summary>Pickup delta array: one entry per item type (name -> pending qty to add). Games call QueueAddItem; we merge here and return API + pending in GetInventory. Worker flushes to API in background.</summary>
+    private readonly Dictionary<string, LocalPendingEntry> _localPending = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _localPendingLock = new();
 
     private HttpClient? _httpClient;
     private bool _initialized;
@@ -478,7 +488,7 @@ public sealed class StarApiClient : IDisposable
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
-    /// <summary>Get avatar inventory. Returns the local cache when available; only one HTTP fetch runs when cache is null (single-flight).</summary>
+    /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -489,9 +499,9 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedInventory is not null)
             {
-                var copy = new List<StarItem>(_cachedInventory);
+                var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                 InvokeCallback(StarApiResultCode.Success);
-                return Success(copy, StarApiResultCode.Success, $"Loaded {copy.Count} item(s) (cached).");
+                return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending).");
             }
             if (_inventoryFetchTask is null)
                 _inventoryFetchTask = FetchInventoryOnceAsync();
@@ -505,7 +515,59 @@ public sealed class StarApiClient : IDisposable
             if (result.Result is not null)
                 _cachedInventory = new List<StarItem>(result.Result);
         }
+        if (result.Result is not null)
+        {
+            var merged = MergeLocalPendingIntoInventory(result.Result);
+            return Success(merged, StarApiResultCode.Success, result.Message ?? $"Loaded {merged.Count} item(s).");
+        }
         return result;
+    }
+
+    /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
+    private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
+    {
+        Dictionary<string, LocalPendingEntry> snapshot;
+        lock (_localPendingLock)
+        {
+            snapshot = new Dictionary<string, LocalPendingEntry>(_localPending, StringComparer.OrdinalIgnoreCase);
+        }
+        if (snapshot.Count == 0)
+            return new List<StarItem>(apiList);
+
+        var nameToPending = snapshot;
+        var merged = new List<StarItem>(apiList.Count + nameToPending.Count);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in apiList)
+        {
+            seen.Add(item.Name);
+            var extra = nameToPending.TryGetValue(item.Name, out var pe) ? pe.Quantity : 0;
+            merged.Add(new StarItem
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                GameSource = item.GameSource,
+                ItemType = item.ItemType,
+                NftId = item.NftId,
+                Quantity = Math.Max(1, item.Quantity + extra)
+            });
+        }
+        foreach (var kv in nameToPending)
+        {
+            if (seen.Contains(kv.Key))
+                continue;
+            merged.Add(new StarItem
+            {
+                Id = Guid.Empty,
+                Name = kv.Value.Name,
+                Description = kv.Value.Description,
+                GameSource = kv.Value.GameSource,
+                ItemType = kv.Value.ItemType,
+                NftId = string.Empty,
+                Quantity = Math.Max(1, kv.Value.Quantity)
+            });
+        }
+        return merged;
     }
 
     private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
@@ -557,23 +619,27 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    /// <summary>Clear all client caches (e.g. inventory). Next GetInventory/HasItem will hit the API.</summary>
+    public void ClearCache()
     {
-        return await AddItemCoreAsync(itemName, description, gameSource, itemType, cancellationToken).ConfigureAwait(false);
+        InvalidateInventoryCache();
     }
 
-    public Task<OASISResult<StarItem>> QueueAddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
+    {
+        return await AddItemCoreAsync(itemName, description, gameSource, itemType, nftId, quantity, stack, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task<OASISResult<StarItem>> QueueAddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return Task.FromResult(FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized));
 
-        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
-            return Task.FromResult(FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam));
+        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+            return Task.FromResult(FailAndCallback<StarItem>("Item name and game source are required.", StarApiResultCode.InvalidParam));
 
-        var tcs = new TaskCompletionSource<OASISResult<StarItem>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description, gameSource, itemType, cancellationToken, tcs));
-        _addItemSignal.Release();
-        return tcs.Task;
+        EnqueueAddItemJobOnly(itemName, description, gameSource, itemType, nftId, quantity, stack);
+        return Task.FromResult(Success(new StarItem { Id = Guid.Empty, Name = itemName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType, Quantity = quantity < 1 ? 1 : quantity }, StarApiResultCode.Success, "Queued for sync."));
     }
 
     public async Task<OASISResult<List<StarItem>>> QueueAddItemsAsync(IEnumerable<StarItem> items, string defaultGameSource = "Unknown", CancellationToken cancellationToken = default)
@@ -588,7 +654,7 @@ public sealed class StarApiClient : IDisposable
                 continue;
 
             var source = string.IsNullOrWhiteSpace(item.GameSource) ? defaultGameSource : item.GameSource;
-            tasks.Add(QueueAddItemAsync(item.Name, item.Description, source, item.ItemType, cancellationToken));
+            tasks.Add(QueueAddItemAsync(item.Name, item.Description, source, item.ItemType, string.IsNullOrWhiteSpace(item.NftId) ? null : item.NftId, item.Quantity, true, cancellationToken));
         }
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -614,12 +680,40 @@ public sealed class StarApiClient : IDisposable
         return Success(successful, StarApiResultCode.Success, $"Queued add-item jobs completed for {successful.Count} item(s).");
     }
 
+    /// <summary>Add pickup to local delta (one row per type). Used by native C: game calls this on pickup; GetInventory returns API + pending; worker flushes to API in background. No per-call HTTP.</summary>
+    public void EnqueueAddItemJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+            return;
+        var qty = quantity < 1 ? 1 : quantity;
+        var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
+        lock (_localPendingLock)
+        {
+            if (_localPending.TryGetValue(itemName, out var existing))
+            {
+                existing.Quantity += qty;
+            }
+            else
+            {
+                _localPending[itemName] = new LocalPendingEntry
+                {
+                    Name = itemName,
+                    Description = description ?? string.Empty,
+                    GameSource = gameSource,
+                    ItemType = type,
+                    Quantity = qty
+                };
+            }
+        }
+        _addItemSignal.Release();
+    }
+
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        while ((!_pendingAddItemJobs.IsEmpty || Volatile.Read(ref _activeAddItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
+        while ((GetLocalPendingCount() > 0 || Volatile.Read(ref _activeAddItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
             await Task.Delay(20, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
@@ -628,19 +722,37 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Add-item queue flushed.");
     }
 
-    private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", CancellationToken cancellationToken = default)
+    private int GetLocalPendingCount()
+    {
+        lock (_localPendingLock)
+            return _localPending.Count;
+    }
+
+    private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: not initialized");
             return FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         string? avatarId;
         lock (_stateLock)
             avatarId = _avatarId;
         if (string.IsNullOrWhiteSpace(avatarId))
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: Avatar ID not set (beam-in required)");
             return FailAndCallback<StarItem>("Avatar ID is not set. Complete beam-in (authenticate) first; add_item requires avatar context.", StarApiResultCode.NotInitialized);
+        }
 
         if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
+        {
+            StarApiExports.StarApiLog("AddItemCoreAsync: missing required param");
             return FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam);
+        }
+
+        var url = $"{_baseApiUrl}/api/avatar/inventory";
+        StarApiExports.StarApiLog($"AddItemCoreAsync: sending POST to {url} name='{itemName}' avatarId={avatarId}");
 
         try
         {
@@ -650,19 +762,27 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteString("Name", itemName);
                 writer.WriteString("Description", $"{description} | Source: {gameSource}");
                 writer.WriteNumber("HolonType", 11);
-                writer.WritePropertyName("MetaData");
-                writer.WriteStartObject();
+                writer.WriteNumber("Quantity", quantity < 1 ? 1 : quantity);
+                writer.WriteBoolean("Stack", stack);
                 writer.WriteString("GameSource", gameSource);
                 writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
-                writer.WriteBoolean("CrossGameItem", true);
-                writer.WriteString("CollectedAt", DateTime.UtcNow.ToString("O"));
-                writer.WriteEndObject();
+                if (!string.IsNullOrWhiteSpace(nftId))
+                {
+                    writer.WritePropertyName("MetaData");
+                    writer.WriteStartObject();
+                    writer.WriteString("NFTId", nftId);
+                    writer.WriteEndObject();
+                }
                 writer.WriteEndObject();
             });
 
-            var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory", payload, cancellationToken).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
+            {
+                StarApiExports.StarApiLog($"AddItemCoreAsync: response IsError=true message='{response.Message}'");
                 return FailAndCallback<StarItem>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
+            StarApiExports.StarApiLog($"AddItemCoreAsync: POST succeeded, parsing response");
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
@@ -677,21 +797,34 @@ public sealed class StarApiClient : IDisposable
                 Id = item.Id,
                 Name = item.Name ?? itemName,
                 Description = item.Description ?? description,
-                GameSource = ExtractMeta(item.MetaData, "GameSource", gameSource),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType)
+                GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : gameSource,
+                ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : (string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType),
+                NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
+                Quantity = item.Quantity
             };
 
             lock (_inventoryCacheLock)
             {
                 _cachedInventory ??= new List<StarItem>();
-                _cachedInventory.Add(mapped);
+                if (stack)
+                {
+                    var idx = _cachedInventory.FindIndex(x => string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase));
+                    if (idx >= 0)
+                        _cachedInventory[idx] = mapped;
+                    else
+                        _cachedInventory.Add(mapped);
+                }
+                else
+                    _cachedInventory.Add(mapped);
             }
 
+            StarApiExports.StarApiLog($"AddItemCoreAsync: item added id={mapped.Id} name='{mapped.Name}' quantity={mapped.Quantity}");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, "Item added successfully.");
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLog($"AddItemCoreAsync: exception {ex.GetType().Name} message='{ex.Message}'");
             return FailAndCallback<StarItem>($"Failed to add item: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -731,6 +864,15 @@ public sealed class StarApiClient : IDisposable
         _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, cancellationToken, tcs));
         _useItemSignal.Release();
         return tcs.Task;
+    }
+
+    /// <summary>Enqueue one use-item job without returning a completion task. Used by native C sync lib for batching.</summary>
+    public void EnqueueUseItemJobOnly(string itemName, string? context = null)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName))
+            return;
+        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, CancellationToken.None, null));
+        _useItemSignal.Release();
     }
 
     public async Task<OASISResult<bool>> FlushUseItemJobsAsync(CancellationToken cancellationToken = default)
@@ -1044,6 +1186,80 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
+    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID to store in InventoryItem MetaData.NFTId. Default provider: SolanaOASIS.</summary>
+    public async Task<OASISResult<string>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<string>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(itemName))
+            return FailAndCallback<string>("Item name is required.", StarApiResultCode.InvalidParam);
+
+        var onChainProvider = string.IsNullOrWhiteSpace(provider) ? "SolanaOASIS" : provider;
+        string? sendToAvatarAfterMintingId = null;
+        lock (_stateLock)
+        {
+            if (Guid.TryParse(_avatarId, out var avatarGuid) && avatarGuid != Guid.Empty)
+                sendToAvatarAfterMintingId = avatarGuid.ToString();
+        }
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("title", itemName);
+            writer.WriteString("description", string.IsNullOrWhiteSpace(description) ? $"Inventory item: {itemName}" : description);
+            writer.WriteString("symbol", "STARITEM");
+            writer.WriteString("image", "AQ==");
+            writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-item.png");
+            writer.WriteString("thumbnail", "AQ==");
+            writer.WriteString("thumbnailUrl", "https://oasisweb4.one/images/star/default-item-thumb.png");
+            writer.WriteString("memoText", "Minted by STAR API (inventory item)");
+            writer.WriteNumber("numberToMint", 1);
+            writer.WriteBoolean("storeNFTMetaDataOnChain", false);
+            writer.WriteString("offChainProvider", "MongoDBOASIS");
+            writer.WriteString("onChainProvider", onChainProvider);
+            writer.WriteString("nftOffChainMetaType", "ExternalJSONURL");
+            writer.WriteString("JSONMetaDataURL", "https://oasisweb4.one/metadata/star/default-item.json");
+            writer.WriteString("nftStandardType", "ERC1155");
+            if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
+                writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
+            writer.WritePropertyName("metaData");
+            writer.WriteStartObject();
+            writer.WriteString("GameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
+            writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
+            writer.WriteString("ItemName", itemName);
+            writer.WriteString("MintedAt", DateTime.UtcNow.ToString("O"));
+            writer.WriteEndObject();
+            writer.WriteBoolean("waitTillNFTMinted", false);
+            writer.WriteNumber("waitForNFTToMintInSeconds", 10);
+            writer.WriteBoolean("waitTillNFTSent", false);
+            writer.WriteNumber("waitForNFTToSendInSeconds", 30);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/nft/mint-nft", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {response.Message}");
+            return FailAndCallback<string>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+        {
+            if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
+                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {parseErrorMessage}");
+            return FailAndCallback<string>(parseErrorMessage, parseErrorCode);
+        }
+
+        var nftId = ParseIdAsString(resultElement);
+        if (string.IsNullOrWhiteSpace(nftId))
+            return FailAndCallback<string>("API did not return an NFT ID.", StarApiResultCode.ApiError);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(nftId, StarApiResultCode.Success, "Inventory item NFT minted successfully.");
+    }
+
     public async Task<OASISResult<bool>> DeployBossNftAsync(string nftId, string targetGame, string? location = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1355,23 +1571,40 @@ public sealed class StarApiClient : IDisposable
     private List<StarItem> ParseInventoryItems(JsonElement element)
     {
         var items = new List<StarItem>();
-        if (element.ValueKind != JsonValueKind.Array)
-            return items;
+        var arraysToMerge = new List<JsonElement>();
 
-        foreach (var itemElement in element.EnumerateArray())
+        if (element.ValueKind == JsonValueKind.Array)
+            arraysToMerge.Add(element);
+        else if (element.ValueKind == JsonValueKind.Object)
         {
-            var item = ParseInventoryItemResponse(itemElement);
-            if (item is null)
-                continue;
-
-            items.Add(new StarItem
+            // API may return payload as Result/result (array or object with array inside). Merge all arrays so ammo/armor/items appear.
+            var arrayPropertyNames = new[] { "Result", "Results", "Items", "Inventory", "Data", "Holons", "InventoryItems", "value" };
+            foreach (var name in arrayPropertyNames)
             {
-                Id = item.Id,
-                Name = item.Name ?? string.Empty,
-                Description = item.Description ?? string.Empty,
-                GameSource = ExtractMeta(item.MetaData, "GameSource", "Unknown"),
-                ItemType = ExtractMeta(item.MetaData, "ItemType", "Miscellaneous")
-            });
+                if (TryGetProperty(element, name, out var prop) && prop.ValueKind == JsonValueKind.Array)
+                    arraysToMerge.Add(prop);
+            }
+        }
+
+        foreach (var arrayElement in arraysToMerge)
+        {
+            foreach (var itemElement in arrayElement.EnumerateArray())
+            {
+                var item = ParseInventoryItemResponse(itemElement);
+                if (item is null)
+                    continue;
+
+                items.Add(new StarItem
+                {
+                    Id = item.Id,
+                    Name = item.Name ?? string.Empty,
+                    Description = item.Description ?? string.Empty,
+                    GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : "n/a",
+                    ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : "Miscellaneous",
+                    NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
+                    Quantity = item.Quantity
+                });
+            }
         }
 
         return items;
@@ -1382,24 +1615,69 @@ public sealed class StarApiClient : IDisposable
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        var idValue = GetStringProperty(element, "Id");
+        // API may return item wrapped in Holon/Item/Data (e.g. new items). Unwrap so we parse same shape as POST response.
+        if (TryGetProperty(element, "Holon", out var inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+        else if (TryGetProperty(element, "Item", out inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+        else if (TryGetProperty(element, "Data", out inner) && inner.ValueKind == JsonValueKind.Object)
+            element = inner;
+
+        var idValue = GetStringProperty(element, "Id") ?? GetStringProperty(element, "id");
         Guid.TryParse(idValue, out var parsedGuid);
 
         Dictionary<string, JsonElement>? metadata = null;
         if (TryGetProperty(element, "MetaData", out var metaElement) && metaElement.ValueKind == JsonValueKind.Object)
+            metadata = CloneMetaData(metaElement);
+        else if (TryGetProperty(element, "Metadata", out metaElement) && metaElement.ValueKind == JsonValueKind.Object)
+            metadata = CloneMetaData(metaElement);
+
+        var name = GetStringProperty(element, "Name") ?? GetStringProperty(element, "name");
+        var description = GetStringProperty(element, "Description") ?? GetStringProperty(element, "description");
+        var gameSource = GetStringProperty(element, "GameSource") ?? GetStringProperty(element, "gameSource");
+        var itemType = GetStringProperty(element, "ItemType") ?? GetStringProperty(element, "itemType");
+        int quantity = 1;
+        if (TryGetProperty(element, "Quantity", out var qtyEl))
         {
-            metadata = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
-            foreach (var property in metaElement.EnumerateObject())
-                metadata[property.Name] = property.Value.Clone();
+            if (qtyEl.ValueKind == JsonValueKind.Number && qtyEl.TryGetInt32(out var q))
+                quantity = q;
+            else if (qtyEl.ValueKind == JsonValueKind.String && int.TryParse(qtyEl.GetString(), out var qs))
+                quantity = qs;
         }
+        if (metadata != null)
+        {
+            if (string.IsNullOrWhiteSpace(name)) name = ExtractMeta(metadata, "Name", string.Empty) ?? ExtractMeta(metadata, "name", string.Empty) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(itemType)) itemType = ExtractMeta(metadata, "ItemType", string.Empty) ?? ExtractMeta(metadata, "itemType", string.Empty) ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(gameSource)) gameSource = ExtractMeta(metadata, "GameSource", string.Empty) ?? ExtractMeta(metadata, "gameSource", string.Empty) ?? string.Empty;
+            if (quantity <= 1)
+            {
+                var qtyStr = ExtractMeta(metadata, "Quantity", string.Empty) ?? ExtractMeta(metadata, "quantity", string.Empty);
+                if (!string.IsNullOrWhiteSpace(qtyStr) && int.TryParse(qtyStr, out var qm) && qm > 0)
+                    quantity = qm;
+            }
+        }
+        if (quantity < 1) quantity = 1;
+        if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
+            return null;
 
         return new InventoryItemResponse
         {
             Id = parsedGuid,
-            Name = GetStringProperty(element, "Name"),
-            Description = GetStringProperty(element, "Description"),
-            MetaData = metadata
+            Name = name,
+            Description = description,
+            GameSource = gameSource,
+            ItemType = itemType,
+            MetaData = metadata,
+            Quantity = quantity
         };
+    }
+
+    private static Dictionary<string, JsonElement> CloneMetaData(JsonElement metaElement)
+    {
+        var metadata = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        foreach (var property in metaElement.EnumerateObject())
+            metadata[property.Name] = property.Value.Clone();
+        return metadata;
     }
 
     private static AvatarAuthResponse? ParseAvatarAuthResponse(JsonElement element)
@@ -1785,10 +2063,9 @@ public sealed class StarApiClient : IDisposable
             pending.Completion.TrySetResult(Fail<bool>("Quest objective queue stopped.", StarApiResultCode.NotInitialized));
     }
 
+    /// <summary>Background worker: flush local pending to API (one add_item per type), then invalidate cache. Games only call EnqueueAddItemJobOnly; this does the heavy lifting.</summary>
     private async Task ProcessAddItemJobsAsync(CancellationToken cancellationToken)
     {
-        var batch = new List<PendingAddItemJob>(Math.Max(1, AddItemBatchSize));
-
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -1800,12 +2077,14 @@ public sealed class StarApiClient : IDisposable
                 break;
             }
 
-            batch.Clear();
-            while (_pendingAddItemJobs.TryDequeue(out var pending) && batch.Count < Math.Max(1, AddItemBatchSize))
-                batch.Add(pending);
-
-            if (batch.Count == 0)
-                continue;
+            Dictionary<string, LocalPendingEntry> snapshot;
+            lock (_localPendingLock)
+            {
+                if (_localPending.Count == 0)
+                    continue;
+                snapshot = new Dictionary<string, LocalPendingEntry>(_localPending, StringComparer.OrdinalIgnoreCase);
+                _localPending.Clear();
+            }
 
             if (AddItemBatchWindow > TimeSpan.Zero)
             {
@@ -1815,32 +2094,41 @@ public sealed class StarApiClient : IDisposable
                 }
                 catch (OperationCanceledException)
                 {
+                    lock (_localPendingLock)
+                    {
+                        foreach (var kv in snapshot)
+                            _localPending[kv.Key] = kv.Value;
+                    }
                     break;
                 }
-
-                while (_pendingAddItemJobs.TryDequeue(out var pending) && batch.Count < Math.Max(1, AddItemBatchSize))
-                    batch.Add(pending);
             }
 
-            foreach (var job in batch)
+            foreach (var kv in snapshot)
             {
-                if (job.CancellationToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    job.Completion.TrySetResult(Fail<StarItem>("Queued add-item job was cancelled.", StarApiResultCode.Network));
+                    lock (_localPendingLock)
+                    {
+                        if (_localPending.TryGetValue(kv.Key, out var existing))
+                            existing.Quantity += kv.Value.Quantity;
+                        else
+                            _localPending[kv.Key] = kv.Value;
+                    }
                     continue;
                 }
-
+                var entry = kv.Value;
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.CancellationToken).ConfigureAwait(false);
-                    job.Completion.TrySetResult(result);
+                    await AddItemCoreAsync(entry.Name, entry.Description, entry.GameSource, entry.ItemType, null, entry.Quantity, true, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     Interlocked.Decrement(ref _activeAddItemJobs);
                 }
             }
+
+            InvalidateInventoryCache();
         }
     }
 
@@ -1885,7 +2173,7 @@ public sealed class StarApiClient : IDisposable
             {
                 if (job.CancellationToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
                 {
-                    job.Completion.TrySetResult(Fail<bool>("Queued use-item job was cancelled.", StarApiResultCode.Network));
+                    job.Completion?.TrySetResult(Fail<bool>("Queued use-item job was cancelled.", StarApiResultCode.Network));
                     continue;
                 }
 
@@ -1893,7 +2181,7 @@ public sealed class StarApiClient : IDisposable
                 try
                 {
                     var result = await UseItemCoreAsync(job.ItemName, job.Context, job.CancellationToken).ConfigureAwait(false);
-                    job.Completion.TrySetResult(result);
+                    job.Completion?.TrySetResult(result);
                 }
                 finally
                 {
@@ -2134,16 +2422,34 @@ public sealed class StarApiClient : IDisposable
         public string? Name { get; set; }
         public string? Description { get; set; }
         public Dictionary<string, JsonElement>? MetaData { get; set; }
+        public int Quantity { get; set; } = 1;
+        /// <summary>From API / InventoryItem holon.</summary>
+        public string? GameSource { get; set; }
+        /// <summary>From API / InventoryItem holon.</summary>
+        public string? ItemType { get; set; }
+    }
+
+    /// <summary>One row per item type: accumulated delta until flushed to API. Used by GetInventory merge and background flush.</summary>
+    private sealed class LocalPendingEntry
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string GameSource { get; set; } = string.Empty;
+        public string ItemType { get; set; } = "KeyItem";
+        public int Quantity { get; set; }
     }
 
     private sealed class PendingAddItemJob
     {
-        public PendingAddItemJob(string itemName, string description, string gameSource, string itemType, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<StarItem>> completion)
+        public PendingAddItemJob(string itemName, string description, string gameSource, string itemType, string? nftId, int quantity, bool stack, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<StarItem>>? completion)
         {
             ItemName = itemName;
             Description = description;
             GameSource = gameSource;
             ItemType = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
+            NftId = string.IsNullOrWhiteSpace(nftId) ? null : nftId;
+            Quantity = quantity < 1 ? 1 : quantity;
+            Stack = stack;
             CancellationToken = cancellationToken;
             Completion = completion;
         }
@@ -2152,13 +2458,16 @@ public sealed class StarApiClient : IDisposable
         public string Description { get; }
         public string GameSource { get; }
         public string ItemType { get; }
+        public string? NftId { get; }
+        public int Quantity { get; }
+        public bool Stack { get; }
         public CancellationToken CancellationToken { get; }
-        public TaskCompletionSource<OASISResult<StarItem>> Completion { get; }
+        public TaskCompletionSource<OASISResult<StarItem>>? Completion { get; }
     }
 
     private sealed class PendingUseItemJob
     {
-        public PendingUseItemJob(string itemName, string? context, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>> completion)
+        public PendingUseItemJob(string itemName, string? context, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>>? completion)
         {
             ItemName = itemName;
             Context = context;
@@ -2169,7 +2478,7 @@ public sealed class StarApiClient : IDisposable
         public string ItemName { get; }
         public string? Context { get; }
         public CancellationToken CancellationToken { get; }
-        public TaskCompletionSource<OASISResult<bool>> Completion { get; }
+        public TaskCompletionSource<OASISResult<bool>>? Completion { get; }
     }
 
     private sealed class PendingQuestObjectiveJob
@@ -2208,6 +2517,8 @@ public unsafe struct star_item_t
     public fixed byte description[512];
     public fixed byte game_source[64];
     public fixed byte item_type[64];
+    public fixed byte nft_id[128];
+    public int quantity;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -2344,6 +2655,8 @@ public static unsafe class StarApiExports
                 WriteFixedUtf8(src.Description, dst->description, 512);
                 WriteFixedUtf8(src.GameSource, dst->game_source, 64);
                 WriteFixedUtf8(src.ItemType, dst->item_type, 64);
+                WriteFixedUtf8(src.NftId ?? string.Empty, dst->nft_id, 128);
+                dst->quantity = src.Quantity;
             }
         }
 
@@ -2365,20 +2678,105 @@ public static unsafe class StarApiExports
         NativeMemory.Free(itemList);
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiInvalidateInventoryCache()
+    {
+        var client = GetClient();
+        client?.InvalidateInventoryCache();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_clear_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiClearCache()
+    {
+        var client = GetClient();
+        client?.ClearCache();
+    }
+
+    /// <summary>Add item to avatar inventory. quantity: amount to add; stack: 1 = increment if exists, 0 = error if exists.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_add_item", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType)
+    public static int StarApiAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* nftId, int quantity, int stack)
+    {
+        var client = GetClient();
+        if (client is null)
+        {
+            StarApiLog("star_api_add_item: client is null");
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
+
+        var name = PtrToString(itemName) ?? string.Empty;
+        var desc = PtrToString(description) ?? string.Empty;
+        var source = PtrToString(gameSource) ?? string.Empty;
+        var type = PtrToString(itemType) ?? "KeyItem";
+        var nftIdStr = PtrToString(nftId);
+        var nftIdOpt = string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr;
+        var qty = quantity < 1 ? 1 : quantity;
+        var doStack = stack != 0;
+
+        StarApiLog($"star_api_add_item: name='{name}' quantity={qty} stack={doStack} (calling AddItemAsync on thread pool)");
+
+        var result = Task.Run(() => client.AddItemAsync(name, desc, source, type, nftIdOpt, qty, doStack).GetAwaiter().GetResult()).GetAwaiter().GetResult();
+
+        var code = FinalizeResult(result);
+        StarApiLog($"star_api_add_item: result IsError={result.IsError} code={(int)code} message={result.Message ?? "(ok)"}");
+        return (int)code;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_item", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueAddItem(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* nftId, int quantity, int stack)
+    {
+        var client = GetClient();
+        if (client is null)
+            return;
+        var nftIdStr = PtrToString(nftId);
+        var qty = quantity < 1 ? 1 : quantity;
+        var doStack = stack != 0;
+        client.EnqueueAddItemJobOnly(
+            PtrToString(itemName) ?? string.Empty,
+            PtrToString(description) ?? string.Empty,
+            PtrToString(gameSource) ?? string.Empty,
+            PtrToString(itemType) ?? "KeyItem",
+            string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr,
+            qty,
+            doStack);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_flush_add_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiFlushAddItemJobs()
     {
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
-
-        var result = client.AddItemAsync(
-            PtrToString(itemName) ?? string.Empty,
-            PtrToString(description) ?? string.Empty,
-            PtrToString(gameSource) ?? string.Empty,
-            PtrToString(itemType) ?? "KeyItem").GetAwaiter().GetResult();
-
+        var result = client.FlushAddItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
         return (int)FinalizeResult(result);
+    }
+
+    /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. provider defaults to SolanaOASIS.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (nftIdOut is null)
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+
+        var result = client.MintInventoryItemNftAsync(
+            PtrToString(itemName) ?? string.Empty,
+            PtrToString(description),
+            PtrToString(gameSource) ?? string.Empty,
+            PtrToString(itemType) ?? "KeyItem",
+            PtrToString(provider)).GetAwaiter().GetResult();
+
+        if (result.IsError)
+        {
+            SetError(result.Message ?? "Mint failed.");
+            InvokeCallback(ExtractCode(result));
+            return (int)ExtractCode(result);
+        }
+
+        WriteUtf8ToOutput(result.Result ?? string.Empty, nftIdOut, 128);
+        InvokeCallback(StarApiResultCode.Success);
+        return (int)StarApiResultCode.Success;
     }
 
     /// <summary>Native export for star_api_use_item. Prefer deciding access from already-loaded inventory (local cache); use this when recording use or when cache unavailable.</summary>
@@ -2396,6 +2794,25 @@ public static unsafe class StarApiExports
         var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context)).GetAwaiter().GetResult();
         var code = FinalizeResult(result);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_use_item", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueUseItem(sbyte* itemName, sbyte* context)
+    {
+        var client = GetClient();
+        if (client is null)
+            return;
+        client.EnqueueUseItemJobOnly(PtrToString(itemName) ?? string.Empty, PtrToString(context));
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_flush_use_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiFlushUseItemJobs()
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        var result = client.FlushUseItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
+        return (int)FinalizeResult(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_start_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -2475,7 +2892,7 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
-    /// <summary>Send item to avatar. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
+    /// <summary>Send item to avatar. Uses the client's HTTP timeout (no extra cancellation).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_avatar", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToAvatar(sbyte* targetUsernameOrAvatarId, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2485,24 +2902,16 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var result = client.SendItemToAvatarAsync(
-                PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
-                PtrToString(itemName) ?? string.Empty,
-                quantity < 1 ? 1 : quantity,
-                guid,
-                cts.Token).GetAwaiter().GetResult();
-            return (int)FinalizeResult(result);
-        }
-        catch (OperationCanceledException)
-        {
-            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
-        }
+        var result = client.SendItemToAvatarAsync(
+            PtrToString(targetUsernameOrAvatarId) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid,
+            CancellationToken.None).GetAwaiter().GetResult();
+        return (int)FinalizeResult(result);
     }
 
-    /// <summary>Send item to clan. Uses a 10s timeout so the game UI doesn't wait for the full HttpClient timeout (30s).</summary>
+    /// <summary>Send item to clan. Uses the client's HTTP timeout (no extra cancellation).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_send_item_to_clan", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSendItemToClan(sbyte* clanNameOrTarget, sbyte* itemName, int quantity, sbyte* itemId)
     {
@@ -2512,29 +2921,21 @@ public static unsafe class StarApiExports
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
-        try
-        {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            var result = client.SendItemToClanAsync(
-                PtrToString(clanNameOrTarget) ?? string.Empty,
-                PtrToString(itemName) ?? string.Empty,
-                quantity < 1 ? 1 : quantity,
-                guid,
-                cts.Token).GetAwaiter().GetResult();
+        var result = client.SendItemToClanAsync(
+            PtrToString(clanNameOrTarget) ?? string.Empty,
+            PtrToString(itemName) ?? string.Empty,
+            quantity < 1 ? 1 : quantity,
+            guid,
+            CancellationToken.None).GetAwaiter().GetResult();
 
-            if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                SetError("Clan not found.");
-                var code = ExtractCode(result);
-                InvokeCallback(code);
-                return (int)code;
-            }
-            return (int)FinalizeResult(result);
-        }
-        catch (OperationCanceledException)
+        if (result.IsError && !string.IsNullOrEmpty(result.Message) && result.Message.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
         {
-            return (int)SetErrorAndReturn("Send timed out (10s).", StarApiResultCode.Network);
+            SetError("Clan not found.");
+            var code = ExtractCode(result);
+            InvokeCallback(code);
+            return (int)code;
         }
+        return (int)FinalizeResult(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_last_error", CallConvs = [typeof(CallConvCdecl)])]
@@ -2618,6 +3019,22 @@ public static unsafe class StarApiExports
     {
         lock (Sync)
             return _client;
+    }
+
+    private static readonly object LogLock = new();
+    internal static void StarApiLog(string message)
+    {
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] {message}";
+        Trace.WriteLine(line);
+        try
+        {
+            var dir = Environment.CurrentDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var path = Path.Combine(dir, "star_api.log");
+            lock (LogLock)
+                File.AppendAllText(path, line + Environment.NewLine);
+        }
+        catch { /* ignore file write errors */ }
     }
 
     private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)

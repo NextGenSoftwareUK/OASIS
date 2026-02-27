@@ -15,7 +15,10 @@ if (!string.IsNullOrWhiteSpace(token))
 {
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
     if (avatarId.HasValue)
+    {
         client.DefaultRequestHeaders.Add("X-Avatar-Id", avatarId.Value.ToString());
+        HarnessConfig.AvatarId = avatarId;
+    }
 }
 
 using var swaggerDoc = JsonDocument.Parse(await client.GetStringAsync($"{baseUrl}/swagger/v1/swagger.json"));
@@ -120,6 +123,10 @@ static (string Url, HttpContent? Content) BuildRequest(JsonElement swaggerRoot, 
             content = new StringContent(JsonSerializer.Serialize("Test message"), Encoding.UTF8, "application/json");
         else if (pathLower.Contains("start-new-chat-session"))
             content = new StringContent(JsonSerializer.Serialize(new List<Guid> { avatarId ?? Guid.NewGuid() }), Encoding.UTF8, "application/json");
+        else if (pathLower.Contains("hyperdrive") && pathLower.Contains("mode") && endpoint.Method == "PUT")
+            content = new StringContent(JsonSerializer.Serialize("Legacy"), Encoding.UTF8, "application/json");
+        else if (pathLower.Contains("hyperdrive") && pathLower.Contains("failover/preventive"))
+            content = new StringContent("[0]", Encoding.UTF8, "application/json"); // List<ProviderType>, 0 = Default
         else
         {
             var requestBody = GenerateRequestBody(swaggerRoot, endpoint);
@@ -371,6 +378,8 @@ static int GetIntegerValue(string propertyName, JsonElement schema)
         return def.GetInt32();
     
     var lowerName = propertyName.ToLowerInvariant();
+    if (lowerName.Contains("healthcheckintervalms"))
+        return 100; // API requires 1-1000
     if (lowerName.Contains("version") || lowerName.Contains("level"))
         return 1;
     if (lowerName.Contains("count") || lowerName.Contains("limit") || lowerName.Contains("size"))
@@ -493,6 +502,15 @@ static Dictionary<string, object> GenerateDefaultBody(string path)
         body["Name"] = "Test Item";
         body["Description"] = "Test inventory item";
     }
+    else if (lowerPath.Contains("send-to-avatar") || lowerPath.Contains("send-to-clan"))
+    {
+        body["Target"] = HarnessConfig.AvatarId?.ToString() ?? Guid.Empty.ToString();
+        body["ItemName"] = "TestItem";
+    }
+    else if (lowerPath.Contains("subscription") && lowerPath.Contains("checkout"))
+    {
+        body["PlanId"] = "silver";
+    }
     else if (lowerPath.Contains("nft"))
     {
         body["Name"] = "Test NFT";
@@ -537,7 +555,7 @@ static Dictionary<string, string> GenerateQueryParameters(JsonElement swaggerRoo
                     if (string.IsNullOrWhiteSpace(name))
                         continue;
 
-                    var value = GetQueryParameterValue(param, name, avatarId);
+                    var value = GetQueryParameterValue(param, name, avatarId, endpoint.Path);
                     if (value != null)
                         queryParams[name] = value;
                 }
@@ -551,9 +569,10 @@ static Dictionary<string, string> GenerateQueryParameters(JsonElement swaggerRoo
     return queryParams;
 }
 
-static string? GetQueryParameterValue(JsonElement param, string name, Guid? avatarId)
+static string? GetQueryParameterValue(JsonElement param, string name, Guid? avatarId, string path)
 {
     var lowerName = name.ToLowerInvariant();
+    var lowerPath = path?.ToLowerInvariant() ?? "";
 
     // Use schema enum first so we always send valid enum values (reduces 400s)
     if (param.TryGetProperty("schema", out var schema) && schema.TryGetProperty("enum", out var enumProp) && enumProp.ValueKind == JsonValueKind.Array && enumProp.GetArrayLength() > 0)
@@ -567,6 +586,9 @@ static string? GetQueryParameterValue(JsonElement param, string name, Guid? avat
             return "test";
         if (lowerName.Contains("itemname"))
             return "Test Item";
+        // Map search-locations expects LocationType: Hub, Quest, Social, Shop, Arena, Dungeon, Custom (not Default)
+        if ((lowerName == "type" || lowerName.Contains("type")) && lowerPath.Contains("search-locations"))
+            return "Hub";
         if (lowerName.Contains("type") || lowerName.Contains("holontype") || lowerName.Contains("holonType"))
             return "Default";
         if (lowerName.Contains("status"))
@@ -655,6 +677,10 @@ static string ResolvePath(string path, Guid? avatarId)
             return "true";
         if (key.Contains("recursive"))
             return "false";
+        if (key.Contains("maxchilddepth"))
+            return "0";
+        if (key == "x" || key == "y")
+            return "1";
         if (key.Contains("continueonerror"))
             return "false";
         if (key.Contains("removeduplicates"))
@@ -670,7 +696,7 @@ static string ResolvePath(string path, Guid? avatarId)
         if (key.Contains("holochainagentid"))
             return "test-agent-id";
         if (key.Contains("karmatype"))
-            return path.ToLowerInvariant().Contains("negative") ? "Negative" : "Positive";
+            return path.ToLowerInvariant().Contains("get-negative-karma-weighting") ? "None" : "None";
         if (key.Contains("weighting"))
             return "1.0";
         if (key.Contains("model"))
@@ -837,4 +863,5 @@ static class HarnessConfig
 {
     public static string Username { get; set; } = "";
     public static string Password { get; set; } = "";
+    public static Guid? AvatarId { get; set; }
 }

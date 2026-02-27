@@ -83,6 +83,12 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
    | `star pickup keycard <red\|blue\|yellow\|skull>` | Add a keycard to inventory (e.g. `star pickup keycard red`). |
    | `star beamin` | Log in / authenticate (uses `STAR_USERNAME`/`STAR_PASSWORD` or API key from env). |
    | `star beamout` | Log out / disconnect from STAR. |
+   | `star config` | Show STAR config (URLs, stack, **mint NFT** options, **nft_provider**). |
+   | `star config save` | Write config to **oasisstar.json** (also saved on exit). |
+   | `star mint <armor\|weapons\|powerups\|keys> <0\|1>` | Turn **mint NFT** on (1) or off (0) when collecting that category. |
+   | `star nftprovider <name>` | Set default NFT mint provider (e.g. `SolanaOASIS`). |
+
+   **Config files:** STAR options are stored in **oasisstar.json** (when found) and in the engine config (**uzdoom.ini** or equivalent) via CVars. Keys: `star_api_url`, `oasis_api_url`, `beam_face`, `stack_armor`, `stack_weapons`, `stack_powerups`, `stack_keys`, **`mint_weapons`**, **`mint_armor`**, **`mint_powerups`**, **`mint_keys`** (0/1), and **`nft_provider`** (default `SolanaOASIS`). When mint is on for a category, picking up that item mints an NFT (WEB4 NFTHolon) and adds the inventory item with that NFT ID in metadata. In the **inventory popup**, NFT items show **[NFT]** at the front of the name and are grouped separately (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
 
    **Quick checks:**  
    - `star version` — should show “Initialized: yes” if auth is set.  
