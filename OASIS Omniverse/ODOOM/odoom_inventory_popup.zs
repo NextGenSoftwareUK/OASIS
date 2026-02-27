@@ -197,38 +197,14 @@ class OASISInventoryOverlayHandler : EventHandler
 				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, line);
 			}
 
-			// Group local items by class name (like OQuake): same item type = one row, sum amounts
+			// Show only shared (STAR/ODOOM) inventory; do not show local Doom actor items to avoid duplicates.
+			int localGroupCount = 0;
+			cachedLocalCount = 0;
+			cachedLocalListForTab = "";
 			array<String> localGroupClass;
 			array<String> localGroupDisp;
 			array<int> localGroupAmount;
 			array<int> localGroupRepIdx;
-			for (int i = 0; i < tabItems.Size(); i++)
-			{
-				String cls = tabItems[i].GetClassName();
-				int amt = tabItems[i].Amount;
-				int r = 0;
-				for (r = 0; r < localGroupClass.Size(); r++)
-					if (localGroupClass[r] == cls) break;
-				if (r >= localGroupClass.Size())
-				{
-					localGroupClass.Push(cls);
-					localGroupDisp.Push(GetItemDisplayNamePlay(tabItems[i]));
-					localGroupAmount.Push(amt);
-					localGroupRepIdx.Push(i);
-				}
-				else
-					localGroupAmount[r] += amt;
-			}
-			int localGroupCount = localGroupClass.Size();
-			cachedLocalCount = localGroupCount;
-			cachedLocalListForTab = "";
-			for (int i = 0; i < localGroupCount; i++)
-			{
-				// Always show QTY in list like OQuake (e.g. "Shells x50" or "Red Keycard x1")
-				int qty = localGroupAmount[i] > 0 ? localGroupAmount[i] : 1;
-				String line = String.Format("%s x%d", localGroupDisp[i], qty);
-				cachedLocalListForTab = String.Format("%s%s\n", cachedLocalListForTab, line);
-			}
 
 			int listCount = starGroupCount + localGroupCount;
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
