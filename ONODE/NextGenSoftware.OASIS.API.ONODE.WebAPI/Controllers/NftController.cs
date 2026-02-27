@@ -929,6 +929,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await providerResult.Result.SendSplTokensAsync(request.TokenMintAddress, request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.Cluster);
         }
 
+        /// <summary>
+        /// Create a plain fungible SPL token mint with the OASIS server wallet as mint authority.
+        /// Use this endpoint — NOT mint-nft — when you need a fungible token that can be minted
+        /// in arbitrary quantities via /api/nft/mint-tokens.
+        ///
+        /// Background: mint-nft with NFTStandardType=SPL routes through Metaplex, which creates a
+        /// Metaplex NFT (supply=1, decimals=0) and assigns a Metaplex PDA as mint authority.
+        /// That PDA is NOT the OASIS server wallet, so subsequent mint-tokens calls fail with
+        /// "custom program error: 0x4" (OwnerMismatch / insufficient authority).
+        ///
+        /// This endpoint uses SystemProgram.CreateAccount + TokenProgram.InitializeMint directly,
+        /// setting the OASIS server wallet as both mint authority and freeze authority, so
+        /// mint-tokens will work immediately without any set-mint-authority call.
+        /// </summary>
+        /// <param name="request">Decimals (default 0 for whole-unit share tokens) and Cluster.</param>
+        /// <returns>The mint address of the newly created fungible SPL token.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-spl-token")]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<string>> CreateSplFungibleTokenAsync([FromBody] Models.NFT.CreateSplTokenRequest request)
+        {
+            request ??= new Models.NFT.CreateSplTokenRequest();
+
+            var providerResult = GetSolanaProvider();
+            if (providerResult.IsError)
+                return new OASISResult<string> { IsError = true, Message = providerResult.Message };
+
+            return await providerResult.Result.CreateSplFungibleTokenAsync(request.Decimals, request.Cluster ?? "devnet");
+        }
+
         // ─────────────────────────────────────────────────────────────────────
         // Route aliases to fix 404s from Pangea integration testing
         // ─────────────────────────────────────────────────────────────────────

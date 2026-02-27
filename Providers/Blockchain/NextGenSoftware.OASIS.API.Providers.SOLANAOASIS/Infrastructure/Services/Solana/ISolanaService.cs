@@ -36,4 +36,14 @@ public interface ISolanaService
     /// <param name="currentAuthorityPrivateKey">Base58 private key of the current mint authority (used only to sign this transaction).</param>
     /// <param name="cluster">Solana cluster: "devnet" (default) or "mainnet-beta".</param>
     Task<OASISResult<string>> SetMintAuthorityToOasisAsync(string tokenMintAddress, string currentAuthorityPrivateKey, string cluster = "devnet");
+
+    /// <summary>
+    /// Create a plain fungible SPL token mint with the OASIS server wallet as the mint authority.
+    /// Use this instead of mint-nft (which goes through Metaplex) when you need a fungible token
+    /// that can be minted in arbitrary quantities via MintSplTokensAsync.
+    /// </summary>
+    /// <param name="decimals">Number of decimal places for the token (e.g. 6 for USDC-like, 0 for whole-unit shares).</param>
+    /// <param name="cluster">Solana cluster: "devnet" (default) or "mainnet-beta".</param>
+    /// <returns>The mint address of the newly created SPL token.</returns>
+    Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals, string cluster = "devnet");
 }

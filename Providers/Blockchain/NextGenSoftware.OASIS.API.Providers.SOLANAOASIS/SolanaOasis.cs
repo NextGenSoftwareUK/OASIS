@@ -4471,5 +4471,24 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         return await _solanaService.SetMintAuthorityToOasisAsync(tokenMintAddress, currentAuthorityPrivateKey, cluster);
     }
+
+    /// <summary>
+    /// Creates a plain fungible SPL token mint with the OASIS server wallet as mint authority.
+    /// This is the correct way to create a token that can later be minted via MintSplTokensAsync.
+    /// Do NOT use mint-nft with NFTStandardType=SPL for fungible tokens — that goes through
+    /// Metaplex and sets a PDA (not the OASIS wallet) as mint authority, causing OwnerMismatch errors.
+    /// </summary>
+    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals = 0, string cluster = "devnet")
+    {
+        var result = new OASISResult<string>();
+
+        if (!IsProviderActivated || _solanaService == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not activated.");
+            return result;
+        }
+
+        return await _solanaService.CreateSplFungibleTokenAsync(decimals, cluster);
+    }
     }
     #endregion
