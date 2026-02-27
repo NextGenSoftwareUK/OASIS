@@ -4454,5 +4454,22 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
         return await _solanaService.SendSplTokensAsync(tokenMintAddress, fromWalletAddress, toWalletAddress, amount, cluster);
     }
+
+    /// <summary>
+    /// Transfer mint authority of an SPL token to the OASIS server wallet.
+    /// Call once per token mint so that subsequent MintSplTokensAsync calls succeed.
+    /// </summary>
+    public async Task<OASISResult<string>> SetMintAuthorityToOasisAsync(string tokenMintAddress, string currentAuthorityPrivateKey, string cluster = "devnet")
+    {
+        var result = new OASISResult<string>();
+
+        if (!IsProviderActivated || _solanaService == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "SolanaOASIS provider is not activated.");
+            return result;
+        }
+
+        return await _solanaService.SetMintAuthorityToOasisAsync(tokenMintAddress, currentAuthorityPrivateKey, cluster);
+    }
     }
     #endregion

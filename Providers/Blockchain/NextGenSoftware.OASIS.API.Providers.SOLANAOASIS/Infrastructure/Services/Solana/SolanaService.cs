@@ -1021,6 +1021,105 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient, st
         return response;
     }
 
+    /// <summary>
+    /// Transfers mint authority of an SPL token to the OASIS server wallet.
+    /// Pangea calls this once per token mint after creating the mint. After this call,
+    /// MintSplTokensAsync will succeed without any additional authority credentials.
+    /// </summary>
+    public async Task<OASISResult<string>> SetMintAuthorityToOasisAsync(string tokenMintAddress, string currentAuthorityPrivateKey, string cluster = "devnet")
+    {
+        var response = new OASISResult<string>();
+        var originalConsoleOut = Console.Out;
+        var rpc = GetRpcForCluster(cluster);
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(tokenMintAddress))
+                return HandleError<string>("TokenMintAddress is required.");
+            if (string.IsNullOrWhiteSpace(currentAuthorityPrivateKey))
+                return HandleError<string>("CurrentAuthorityPrivateKey is required.");
+
+            // Decode the current authority keypair from the provided private key
+            var currentAuthorityKeypair = new Account(currentAuthorityPrivateKey, string.Empty);
+
+            var mintPubkey = new PublicKey(tokenMintAddress);
+
+            // Verify current mint authority matches the provided key
+            var mintInfo = await rpc.GetAccountInfoAsync(mintPubkey, Commitment.Confirmed, BinaryEncoding.JsonParsed);
+            if (!mintInfo.WasSuccessful || mintInfo.Result?.Value == null)
+                return HandleError<string>($"Could not retrieve mint account info for {tokenMintAddress}. Check the address and cluster.");
+
+            var blockHashResult = await rpc.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+                return HandleError<string>("Failed to get latest block hash: " + blockHashResult.Reason);
+
+            // Build SetAuthority instruction: transfer MintTokens authority to the OASIS server wallet
+            var setAuthorityIx = TokenProgram.SetAuthority(
+                mintPubkey,
+                AuthorityType.MintTokens,
+                oasisAccount.PublicKey,       // new authority = OASIS server wallet
+                currentAuthorityKeypair.PublicKey  // current authority
+            );
+
+            var tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(currentAuthorityKeypair.PublicKey)
+                .AddInstruction(setAuthorityIx)
+                .Build(new List<Account> { currentAuthorityKeypair });
+
+            Console.SetOut(new NullTextWriter());
+            var sendResult = await rpc.SendTransactionAsync(tx, skipPreflight: false, commitment: Commitment.Confirmed);
+            Console.SetOut(originalConsoleOut);
+
+            if (!sendResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendResult.Reason ?? "SetAuthority transaction failed.";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            string txSig = sendResult.Result;
+
+            // Poll for confirmation
+            for (int i = 0; i < 8; i++)
+            {
+                await Task.Delay(2000);
+                var txResult = await rpc.GetTransactionAsync(txSig, Commitment.Confirmed);
+                if (txResult.WasSuccessful && txResult.Result?.Meta != null)
+                {
+                    if (txResult.Result.Meta.Error != null)
+                    {
+                        string logs = txResult.Result.Meta.LogMessages != null
+                            ? string.Join("; ", txResult.Result.Meta.LogMessages.Take(10))
+                            : "";
+                        response.IsError = true;
+                        response.Message = $"SetAuthority failed on-chain: {txResult.Result.Meta.Error}. Logs: {logs}";
+                        OASISErrorHandling.HandleError(ref response, response.Message);
+                        return response;
+                    }
+                    break;
+                }
+            }
+
+            response.Result = txSig;
+            response.Message = $"Mint authority for {tokenMintAddress} successfully transferred to OASIS server wallet {oasisAccount.PublicKey}. Transaction: {txSig}";
+        }
+        catch (Exception ex)
+        {
+            Console.SetOut(originalConsoleOut);
+            response.IsError = true;
+            response.Message = ex.Message;
+            OASISErrorHandling.HandleError(ref response, ex.Message);
+        }
+        finally
+        {
+            Console.SetOut(originalConsoleOut);
+        }
+
+        return response;
+    }
+
     public async Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username)
     {
         try
