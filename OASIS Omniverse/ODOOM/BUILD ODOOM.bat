@@ -308,10 +308,17 @@ if not exist build mkdir build
 cd build
 set "STAR_API_DIR=%STARAPICLIENT%"
 set "STAR_API_LIB_DIR=%DOOM_FOLDER%"
-echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR%"
-echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR%"
-echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE%"
-cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE%"
+REM Use short (8.3) paths for cmake so paths with spaces (e.g. OASIS Omniverse) do not break the linker
+for %%I in ("%STAR_API_DIR%") do set "STAR_API_DIR_CMAKE=%%~sI"
+for %%I in ("%STAR_API_LIB_DIR%") do set "STAR_API_LIB_DIR_CMAKE=%%~sI"
+for %%I in ("%PYTHON3_EXE%") do set "PYTHON3_EXE_CMAKE=%%~sI"
+if not defined STAR_API_DIR_CMAKE set "STAR_API_DIR_CMAKE=%STAR_API_DIR%"
+if not defined STAR_API_LIB_DIR_CMAKE set "STAR_API_LIB_DIR_CMAKE=%STAR_API_LIB_DIR%"
+if not defined PYTHON3_EXE_CMAKE set "PYTHON3_EXE_CMAKE=%PYTHON3_EXE%"
+echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE_CMAKE%"
+cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%"
 if errorlevel 1 (echo [ODOOM][ERROR] CMake failed. & pause & exit /b 1)
 
 echo.
