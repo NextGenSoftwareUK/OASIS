@@ -63,7 +63,7 @@ void star_api_clear_cache(void);
 void star_api_free_item_list(star_item_list_t* item_list);
 /** quantity: amount to add (or initial if new). stack: 1 = if item exists increment quantity; 0 = if exists return error "item already exists". */
 star_api_result_t star_api_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* nft_id, int quantity, int stack);
-/** Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID; pass to star_api_add_item as nft_id. provider may be NULL (default SolanaOASIS). nft_id_out must be at least 128 bytes. hash_out optional (128 bytes) for tx hash/signature; pass NULL to omit. */
+/** Mint an NFT for an inventory item via WEB4 OASIS API (NFTHolon). Returns NFT ID; pass to star_api_add_item as nft_id. provider may be NULL (default SolanaOASIS). nft_id_out must be at least 128 bytes. hash_out optional (128 bytes) for tx hash/signature; pass NULL to omit. */
 star_api_result_t star_api_mint_inventory_nft(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* provider, char* nft_id_out, char* hash_out);
 bool star_api_use_item(const char* item_name, const char* context);
 /** Queue one add-item job (batching). nft_id may be NULL. quantity and stack: same as star_api_add_item (default 1, 1). */
@@ -74,7 +74,8 @@ star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
-star_api_result_t star_api_create_boss_nft(const char* boss_name, const char* description, const char* game_source, const char* boss_stats, char* nft_id_out);
+/** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
+star_api_result_t star_api_create_boss_nft(const char* boss_name, const char* description, const char* game_source, const char* boss_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
 star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 /** Set avatar ID on the client (e.g. after SSO from C++ auth result). Does not change JWT. */

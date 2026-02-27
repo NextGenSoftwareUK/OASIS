@@ -177,14 +177,14 @@ static int OQ_MaybeMintForItemType(const char* item_name, const char* descriptio
         star_api_result_t r = star_api_mint_inventory_nft(item_name, description ? description : "", "Quake", item_type, provider, nft_id_out, (hash_out && hash_size >= 128) ? hash_out : NULL);
         if (r == STAR_API_SUCCESS && nft_id_out[0]) {
             if (hash_out && hash_out[0])
-                Con_Printf("STAR API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", item_name, nft_id_out, hash_out);
+                Con_Printf("WEB4 OASIS API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", item_name, nft_id_out, hash_out);
             else
-                Con_Printf("STAR API: NFT minted for \"%s\". NFT ID: %s\n", item_name, nft_id_out);
+                Con_Printf("WEB4 OASIS API: NFT minted for \"%s\". NFT ID: %s\n", item_name, nft_id_out);
             return 1;
         }
         {
             const char* err = star_api_get_last_error();
-            Con_Printf("STAR API: Mint NFT failed for \"%s\": %s\n", item_name, (err && err[0]) ? err : "unknown error");
+            Con_Printf("WEB4 OASIS API: Mint NFT failed for \"%s\": %s\n", item_name, (err && err[0]) ? err : "unknown error");
         }
     }
     return 0;
@@ -1716,6 +1716,10 @@ void OQuake_STAR_Init(void) {
     if (result != STAR_API_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
+        /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
+        if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
+            star_api_set_oasis_base_url(oquake_oasis_api_url.string);
+        }
         /* Username: CVAR -> env var */
         username = oquake_star_username.string;
         if (!username || !username[0]) {
@@ -1801,11 +1805,12 @@ void OQuake_STAR_OnBossKilled(const char* boss_name) {
     char nft_id[128] = {0};
     char desc[256];
     q_snprintf(desc, sizeof(desc), "Boss defeated in OQuake: %s", boss_name);
-    star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "Quake", "{}", nft_id);
+    const char* prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : NULL;
+    star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "Quake", "{}", prov, nft_id);
     if (r == STAR_API_SUCCESS && nft_id[0])
-        Con_Printf("STAR API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
+        Con_Printf("WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
     else if (r != STAR_API_SUCCESS)
-        Con_Printf("STAR API: Boss NFT failed for \"%s\": %s\n", boss_name, star_api_get_last_error() ? star_api_get_last_error() : "unknown");
+        Con_Printf("WEB4 OASIS API: Boss NFT failed for \"%s\": %s\n", boss_name, star_api_get_last_error() ? star_api_get_last_error() : "unknown");
 }
 
 void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game)
@@ -2203,7 +2208,8 @@ void OQuake_STAR_Console_f(void) {
         const char* name = Cmd_Argv(2);
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Boss from OQuake";
         char nft_id[64] = {0};
-        star_api_result_t r = star_api_create_boss_nft(name, desc, "Quake", "{}", nft_id);
+        const char* prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : NULL;
+        star_api_result_t r = star_api_create_boss_nft(name, desc, "Quake", "{}", prov, nft_id);
         if (r == STAR_API_SUCCESS) Con_Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
         else Con_Printf("Failed: %s\n", star_api_get_last_error());
         return;
@@ -2301,6 +2307,10 @@ void OQuake_STAR_Console_f(void) {
         if (r != STAR_API_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());
             return;
+        }
+        /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
+        if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
+            star_api_set_oasis_base_url(oquake_oasis_api_url.string);
         }
         /* Load username: runtime -> CVAR -> env */
         const char* username = runtime_user;
@@ -2516,6 +2526,8 @@ void OQuake_STAR_Console_f(void) {
             return;
         }
         Cvar_Set("oquake_oasis_api_url", Cmd_Argv(2));
+        if (g_star_initialized)
+            star_api_set_oasis_base_url(Cmd_Argv(2));
         OQ_SaveStarConfigToFiles();
         Con_Printf("OASIS API URL set to: %s. Config files updated.\n", Cmd_Argv(2));
         return;

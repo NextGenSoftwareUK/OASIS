@@ -74,7 +74,8 @@ star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
-star_api_result_t star_api_create_boss_nft(const char* boss_name, const char* description, const char* game_source, const char* boss_stats, char* nft_id_out);
+/** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
+star_api_result_t star_api_create_boss_nft(const char* boss_name, const char* description, const char* game_source, const char* boss_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
 star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 /** Set avatar ID on the client (e.g. after SSO from C++ auth result). Does not change JWT. */

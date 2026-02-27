@@ -1078,6 +1078,12 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		g_star_client_ready = true;
 		g_star_init_failed_this_session = false;
 		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
+		/* NFT minting and avatar auth use WEB4 OASIS API; set from oasis_api_url (oasisstar.json) so mint goes to WEB4 not WEB5. */
+		const char* oasis_url = (const char*)odoom_oasis_api_url;
+		if (HasValue(oasis_url)) {
+			star_api_set_oasis_base_url(oasis_url);
+			if (logVerbose) StarLogInfo("WEB4 OASIS API URL set to: %s (for mint/auth).", oasis_url);
+		}
 	}
 
 	const char* username = g_star_effective_username.empty() ? nullptr : g_star_effective_username.c_str();
@@ -1294,12 +1300,12 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		if (mintRes == STAR_API_SUCCESS && nft_id_buf[0]) {
 			nft_id_arg = nft_id_buf;
 			if (hash_buf[0])
-				Printf(PRINT_HIGH, "STAR API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", name, nft_id_buf, hash_buf);
+				Printf(PRINT_HIGH, "WEB4 OASIS API: NFT minted for \"%s\". NFT ID: %s, Hash: %s\n", name, nft_id_buf, hash_buf);
 			else
-				Printf(PRINT_HIGH, "STAR API: NFT minted for \"%s\". NFT ID: %s\n", name, nft_id_buf);
+				Printf(PRINT_HIGH, "WEB4 OASIS API: NFT minted for \"%s\". NFT ID: %s\n", name, nft_id_buf);
 		} else {
 			const char* err = star_api_get_last_error();
-			Printf(PRINT_HIGH, "STAR API: Mint NFT failed for \"%s\": %s\n", name, err && err[0] ? err : "unknown error");
+			Printf(PRINT_HIGH, "WEB4 OASIS API: Mint NFT failed for \"%s\": %s\n", name, err && err[0] ? err : "unknown error");
 		}
 	}
 	int qty = 1;
@@ -1357,12 +1363,13 @@ void UZDoom_STAR_OnBossKilled(const char* boss_name) {
 	char nft_id[128] = {};
 	char desc[256];
 	std::snprintf(desc, sizeof(desc), "Boss defeated in ODOOM: %s", boss_name);
-	star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "ODOOM", "{}", nft_id);
+	const char* prov = (const char*)odoom_star_nft_provider;
+	star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
 	if (r == STAR_API_SUCCESS && nft_id[0])
-		Printf(PRINT_HIGH, "STAR API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
+		Printf(PRINT_HIGH, "WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
 	else if (r != STAR_API_SUCCESS) {
 		const char* err = star_api_get_last_error();
-		Printf(PRINT_HIGH, "STAR API: Boss NFT failed for \"%s\": %s\n", boss_name, err && err[0] ? err : "unknown");
+		Printf(PRINT_HIGH, "WEB4 OASIS API: Boss NFT failed for \"%s\": %s\n", boss_name, err && err[0] ? err : "unknown");
 	}
 }
 
@@ -1603,7 +1610,8 @@ CCMD(star)
 		const char* name = argv[2];
 		const char* desc = argv.argc() > 3 ? argv[3] : "Boss from UZDoom";
 		char nft_id[64] = {};
-		star_api_result_t r = star_api_create_boss_nft(name, desc, "ODOOM", "{}", nft_id);
+		const char* prov = (const char*)odoom_star_nft_provider;
+		star_api_result_t r = star_api_create_boss_nft(name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
 		if (r == STAR_API_SUCCESS) Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
 		else Printf("Failed: %s\n", star_api_get_last_error());
 		return;
@@ -1837,9 +1845,11 @@ CCMD(star)
 	}
 	if (strcmp(sub, "setoasisurl") == 0) {
 		if (argv.argc() < 3) { Printf("Usage: star setoasisurl <oasis_api_url>\n"); return; }
-		odoom_oasis_api_url = argv[2];
-		ODOOM_SaveStarConfigToFiles();
-		Printf("OASIS API URL set to: %s. Config saved.\n", argv[2]);
+			odoom_oasis_api_url = argv[2];
+			if (g_star_client_ready)
+				star_api_set_oasis_base_url(argv[2]);
+			ODOOM_SaveStarConfigToFiles();
+			Printf("OASIS API URL set to: %s. Config saved.\n", argv[2]);
 		return;
 	}
 	if (strcmp(sub, "reloadconfig") == 0) {
