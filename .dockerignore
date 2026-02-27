@@ -48,10 +48,39 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
-# Large directories that aren't needed for build
+# Large directories not needed for OASIS API (ONODE WebAPI) build
 Archived/
 External Libs/
 lumina-j5-bootstrap/
+ARWorld/
+IsoCity/
+Q2P/
+SmartContractGenerator/
+STAR-Mac-Build/
+OASIS-IDE/
+worldgen-oasis-demo/
+SAINTS/
+pangea/
+pangea-repo/
+launchboard-contracts-v1/
+TimoRidesLP/
+Hitchhikers/
+IKA/
+CRE/
+BillionsHealed/
+MCP/
+MCP_backup_20260111_003443/
+A2A/
+Apps/
+Ascend-protocol/
+ALWL_landing/
+NFT_Content/
+OASIS Omniverse/
+node_modules/
+holochain-client-csharp/
+holochain-client-csharp.backup/
+"STAR ODK"/
+docker/
 
 # Package files
 *.nupkg
