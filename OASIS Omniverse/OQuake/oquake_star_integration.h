@@ -49,6 +49,8 @@ int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
+/** Call from engine or QuakeC when a boss is killed to mint a boss NFT (WEB4). Pass boss name (e.g. "Shub-Niggurath"). */
+void OQuake_STAR_OnBossKilled(const char* boss_name);
 
 #ifdef __cplusplus
 }

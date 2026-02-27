@@ -7,11 +7,11 @@ This folder contains files and instructions to build **OQuake**: vkQuake with OA
 ## Overview
 
 1. **Copy** OQuake + STAR files into vkQuake's `Quake/` directory.
-2. **Add** `pr_ext_oquake.c` to the build and **register** the two OQuake builtins in the engine's extension table.
+2. **Add** `pr_ext_oquake.c` to the build and **register** the three OQuake builtins in the engine's extension table.
 3. **Call** `OQuake_STAR_Init()` at startup and `OQuake_STAR_Cleanup()` at shutdown.
 4. **Link** `star_api.lib` and ship `star_api.dll` next to the exe.
 
-After this, the QuakeC in quake-rerelease-qc (which declares `OQuake_OnKeyPickup` and `OQuake_CheckDoorAccess` as `#0:ex_OQuake_*`) will call into the STAR API.
+After this, the QuakeC in quake-rerelease-qc (which declares `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, and `OQuake_OnBossKilled` as `#0:ex_OQuake_*`) will call into the STAR API.
 
 ---
 
@@ -61,14 +61,16 @@ OQuake_STAR_Cleanup ();
 ```c
 extern void PF_OQuake_OnKeyPickup (void);
 extern void PF_OQuake_CheckDoorAccess (void);
+extern void PF_OQuake_OnBossKilled (void);
 ```
 
-**Extension builtin table**: vkQuake maps QC extension function **names** to builtin function pointers when progs are loaded. You need to add the two OQuake names to that table.
+**Extension builtin table**: vkQuake maps QC extension function **names** to builtin function pointers when progs are loaded. You need to add the three OQuake names to that table.
 
 - Search in `pr_ext.c` for where extension builtins are registered (e.g. a table of `{ "ex_bprint", PF_bprint }` or a block that calls something like `PR_RegisterExtBuiltin("ex_...", PF_...)`).
-- Add two entries so that:
+- Add three entries so that:
   - `"ex_OQuake_OnKeyPickup"` → `PF_OQuake_OnKeyPickup`
   - `"ex_OQuake_CheckDoorAccess"` → `PF_OQuake_CheckDoorAccess`
+  - `"ex_OQuake_OnBossKilled"` → `PF_OQuake_OnBossKilled`
 
 Exact location and format depend on the vkQuake version; look for `ex_` or `PR_EnableExtensions` / `PR_FindExtFunction` and add the OQuake pair in the same way as existing extension builtins.
 
@@ -185,7 +187,7 @@ Once integrated, the OASIS splash will appear during loading and match the profe
 
 1. Build vkQuake with the above changes.
 2. Copy `star_api.dll` next to the engine exe (e.g. `OQUAKE.exe` or `vkquake.exe`).
-3. Build or copy quake-rerelease-qc progs (with `OQuake_OnKeyPickup` / `OQuake_CheckDoorAccess` in defs.qc) into the game dir.
+3. Build or copy quake-rerelease-qc progs (with `OQuake_OnKeyPickup` / `OQuake_CheckDoorAccess` / `OQuake_OnBossKilled` in defs.qc) into the game dir.
 4. Run with STAR env set (`STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`).
 5. In-game: pick up a key in OQuake and/or ODOOM; doors that use the OQuake builtins should open with cross-game keys.
 
@@ -259,8 +261,9 @@ After rebuilding vkQuake with these changes, the anorak face when beamed in, the
 
 Already done if you use the provided defs/items/doors:
 
-- `defs.qc`: `OQuake_OnKeyPickup = #0:ex_OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess`
+- `defs.qc`: `OQuake_OnKeyPickup = #0:ex_OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess`, `OQuake_OnBossKilled = #0:ex_OQuake_OnBossKilled`
 - `items.qc`: after giving key, call `OQuake_OnKeyPickup("silver_key")` or `"gold_key"`.
+- When a boss is killed (e.g. in map script or monster death): call `OQuake_OnBossKilled("Shub-Niggurath")` or the boss name to mint a boss NFT.
 - `doors.qc`: if player lacks local key, call `OQuake_CheckDoorAccess(..., "silver_key")` or `"gold_key"`; if it returns 1, open the door.
 
 No changes needed there once the engine builtins are registered.

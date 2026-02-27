@@ -22,8 +22,6 @@ if (!(Test-Path $libPath)) { throw "Missing output: $libPath" }
 if (!(Test-Path $headerPath)) { throw "Missing header: $headerPath" }
 
 $targets = @(
-    (Join-Path $scriptDir "..\Doom"),
-    (Join-Path $scriptDir "..\Quake"),
     (Join-Path $scriptDir "..\ODOOM"),
     (Join-Path $scriptDir "..\OQuake"),
     "C:\Source\UZDoom\src",
