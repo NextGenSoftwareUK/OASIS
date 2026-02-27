@@ -51,6 +51,8 @@ static int g_star_initialized = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
+/* Frames until we re-apply oasisstar.json (so mint etc. override config.cfg). Set in Init when json path found. */
+static int g_oq_reapply_json_frames = -1;
 /* Last pickup synced to STAR (for star lastpickup). */
 static char g_star_last_pickup_name[256] = {0};
 static char g_star_last_pickup_desc[512] = {0};
@@ -78,6 +80,12 @@ cvar_t oquake_star_stack_weapons = {"oquake_star_stack_weapons", "1", CVAR_ARCHI
 cvar_t oquake_star_stack_powerups = {"oquake_star_stack_powerups", "1", CVAR_ARCHIVE};
 cvar_t oquake_star_stack_keys = {"oquake_star_stack_keys", "1", CVAR_ARCHIVE};
 cvar_t oquake_star_stack_sigils = {"oquake_star_stack_sigils", "1", CVAR_ARCHIVE};
+/* Mint NFT when collecting: 1 = on, 0 = off. Not CVAR_ARCHIVE so oasisstar.json wins over config.cfg. */
+cvar_t oquake_star_mint_weapons = {"oquake_star_mint_weapons", "0", 0};
+cvar_t oquake_star_mint_armor = {"oquake_star_mint_armor", "0", 0};
+cvar_t oquake_star_mint_powerups = {"oquake_star_mint_powerups", "0", 0};
+cvar_t oquake_star_mint_keys = {"oquake_star_mint_keys", "0", 0};
+cvar_t oquake_star_nft_provider = {"oquake_star_nft_provider", "SolanaOASIS", 0};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -146,11 +154,38 @@ enum {
     OQ_GROUP_MODE_SUM = 1
 };
 
+/** If mint is on for this item_type, mint NFT and fill nft_id_out (max 128 bytes). Returns 1 if nft_id_out is set, 0 otherwise. */
+static int OQ_MaybeMintForItemType(const char* item_name, const char* description, const char* item_type, char* nft_id_out, size_t nft_id_size)
+{
+    if (!nft_id_out || nft_id_size < 128 || !item_name || !item_name[0]) return 0;
+    nft_id_out[0] = '\0';
+    if (!item_type || !item_type[0]) return 0;
+    qboolean do_mint = false;
+    if (strstr(item_type, "Key") || !strcmp(item_type, "KeyItem"))
+        do_mint = (atoi(oquake_star_mint_keys.string) != 0);
+    else if (strstr(item_type, "Weapon") || !strcmp(item_type, "Weapon"))
+        do_mint = (atoi(oquake_star_mint_weapons.string) != 0);
+    else if (strstr(item_type, "Armor") || !strcmp(item_type, "Armor"))
+        do_mint = (atoi(oquake_star_mint_armor.string) != 0);
+    else if (strstr(item_type, "Powerup") || strstr(item_type, "Artifact") || !strcmp(item_type, "Powerup"))
+        do_mint = (atoi(oquake_star_mint_powerups.string) != 0);
+    if (!do_mint) return 0;
+    {
+        const char* provider = oquake_star_nft_provider.string;
+        if (!provider || !provider[0]) provider = "SolanaOASIS";
+        if (star_api_mint_inventory_nft(item_name, description ? description : "", "Quake", item_type, provider, nft_id_out) == STAR_API_SUCCESS && nft_id_out[0])
+            return 1;
+    }
+    return 0;
+}
+
 /* Minimal hooks: on pickup call star_api_queue_add_item; client holds delta array and merges into get_inventory. */
 static int OQ_AddInventoryUnlockIfMissing(const char* item_name, const char* description, const char* item_type)
 {
     if (!item_name || !item_name[0]) return 0;
-    star_api_queue_add_item(item_name, description ? description : "", "Quake", item_type ? item_type : "Item", NULL, 1, 1);
+    char nft_buf[128];
+    const char* nft_id = OQ_MaybeMintForItemType(item_name, description, item_type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+    star_api_queue_add_item(item_name, description ? description : "", "Quake", item_type ? item_type : "Item", nft_id, 1, 1);
     return 1;
 }
 static int OQ_AddInventoryEvent(const char* item_prefix, const char* description, const char* item_type)
@@ -163,7 +198,9 @@ static int OQ_AddInventoryEvent(const char* item_prefix, const char* description
             delta = atoi(p + 1);
     }
     if (delta < 1) delta = 1;
-    star_api_queue_add_item(item_prefix, description ? description : "", "Quake", item_type ? item_type : "Item", NULL, delta, 1);
+    char nft_buf[128];
+    const char* nft_id = OQ_MaybeMintForItemType(item_prefix, description, item_type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+    star_api_queue_add_item(item_prefix, description ? description : "", "Quake", item_type ? item_type : "Item", nft_id, delta, 1);
     return 1;
 }
 
@@ -966,6 +1003,26 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_stack_sigils", value);
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "mint_weapons", value, sizeof(value))) {
+        Cvar_Set("oquake_star_mint_weapons", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "mint_armor", value, sizeof(value))) {
+        Cvar_Set("oquake_star_mint_armor", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "mint_powerups", value, sizeof(value))) {
+        Cvar_Set("oquake_star_mint_powerups", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "mint_keys", value, sizeof(value))) {
+        Cvar_Set("oquake_star_mint_keys", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "nft_provider", value, sizeof(value))) {
+        Cvar_Set("oquake_star_nft_provider", value);
+        loaded = 1;
+    }
     
     return loaded;
 }
@@ -984,6 +1041,11 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     const char *s_powerups = oquake_star_stack_powerups.string;
     const char *s_keys = oquake_star_stack_keys.string;
     const char *s_sigils = oquake_star_stack_sigils.string;
+    const char *m_weapons = oquake_star_mint_weapons.string;
+    const char *m_armor = oquake_star_mint_armor.string;
+    const char *m_powerups = oquake_star_mint_powerups.string;
+    const char *m_keys = oquake_star_mint_keys.string;
+    const char *nft_prov = oquake_star_nft_provider.string;
     
     fprintf(f, "{\n");
     fprintf(f, "  \"config_file\": \"%s\",\n", config_file && config_file[0] ? config_file : "json");
@@ -994,7 +1056,22 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     fprintf(f, "  \"stack_weapons\": %s,\n", (s_weapons && atoi(s_weapons)) ? "1" : "0");
     fprintf(f, "  \"stack_powerups\": %s,\n", (s_powerups && atoi(s_powerups)) ? "1" : "0");
     fprintf(f, "  \"stack_keys\": %s,\n", (s_keys && atoi(s_keys)) ? "1" : "0");
-    fprintf(f, "  \"stack_sigils\": %s\n", (s_sigils && atoi(s_sigils)) ? "1" : "0");
+    fprintf(f, "  \"stack_sigils\": %s,\n", (s_sigils && atoi(s_sigils)) ? "1" : "0");
+    fprintf(f, "  \"mint_weapons\": %s,\n", (m_weapons && atoi(m_weapons)) ? "1" : "0");
+    fprintf(f, "  \"mint_armor\": %s,\n", (m_armor && atoi(m_armor)) ? "1" : "0");
+    fprintf(f, "  \"mint_powerups\": %s,\n", (m_powerups && atoi(m_powerups)) ? "1" : "0");
+    fprintf(f, "  \"mint_keys\": %s,\n", (m_keys && atoi(m_keys)) ? "1" : "0");
+    fprintf(f, "  \"nft_provider\": \"");
+    if (nft_prov && nft_prov[0]) {
+        const char* p;
+        for (p = nft_prov; *p; p++) {
+            if (*p == '"' || *p == '\\') fputc('\\', f);
+            fputc((unsigned char)*p, f);
+        }
+    } else {
+        fprintf(f, "SolanaOASIS");
+    }
+    fprintf(f, "\"\n");
     fprintf(f, "}\n");
     
     fclose(f);
@@ -1089,6 +1166,11 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         fprintf(f, "set oquake_star_stack_powerups \"%s\"\n", oquake_star_stack_powerups.string);
         fprintf(f, "set oquake_star_stack_keys \"%s\"\n", oquake_star_stack_keys.string);
         fprintf(f, "set oquake_star_stack_sigils \"%s\"\n", oquake_star_stack_sigils.string);
+        fprintf(f, "set oquake_star_mint_weapons \"%s\"\n", atoi(oquake_star_mint_weapons.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_mint_armor \"%s\"\n", atoi(oquake_star_mint_armor.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_mint_powerups \"%s\"\n", atoi(oquake_star_mint_powerups.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_mint_keys \"%s\"\n", atoi(oquake_star_mint_keys.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_nft_provider \"%s\"\n", oquake_star_nft_provider.string ? oquake_star_nft_provider.string : "SolanaOASIS");
     }
     fclose(f);
     return 1;
@@ -1167,6 +1249,11 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_stack_powerups);
     Cvar_RegisterVariable(&oquake_star_stack_keys);
     Cvar_RegisterVariable(&oquake_star_stack_sigils);
+    Cvar_RegisterVariable(&oquake_star_mint_weapons);
+    Cvar_RegisterVariable(&oquake_star_mint_armor);
+    Cvar_RegisterVariable(&oquake_star_mint_powerups);
+    Cvar_RegisterVariable(&oquake_star_mint_keys);
+    Cvar_RegisterVariable(&oquake_star_nft_provider);
 
     if (!g_star_console_registered) {
         Cmd_AddCommand("star", OQuake_STAR_Console_f);
@@ -1266,6 +1353,16 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_stack_keys", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_stack_sigils") == 0) {
                                     Cvar_Set("oquake_star_stack_sigils", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_weapons") == 0) {
+                                    Cvar_Set("oquake_star_mint_weapons", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_armor") == 0) {
+                                    Cvar_Set("oquake_star_mint_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_powerups") == 0) {
+                                    Cvar_Set("oquake_star_mint_powerups", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
+                                    Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
+                                    Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 }
                             }
                         }
@@ -1379,6 +1476,16 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_stack_keys", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_stack_sigils") == 0) {
                                     Cvar_Set("oquake_star_stack_sigils", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_weapons") == 0) {
+                                    Cvar_Set("oquake_star_mint_weapons", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_armor") == 0) {
+                                    Cvar_Set("oquake_star_mint_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_powerups") == 0) {
+                                    Cvar_Set("oquake_star_mint_powerups", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
+                                    Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
+                                    Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 }
                             }
                         }
@@ -1475,6 +1582,16 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_stack_keys", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_stack_sigils") == 0) {
                                     Cvar_Set("oquake_star_stack_sigils", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_weapons") == 0) {
+                                    Cvar_Set("oquake_star_mint_weapons", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_armor") == 0) {
+                                    Cvar_Set("oquake_star_mint_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_powerups") == 0) {
+                                    Cvar_Set("oquake_star_mint_powerups", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
+                                    Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
+                                    Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 }
                             }
                         }
@@ -1541,9 +1658,11 @@ void OQuake_STAR_Init(void) {
         /* Store JSON path for delayed reload (after Quake's exec config.cfg runs) */
         if (found_json && found_json_path[0]) {
             q_strlcpy(g_json_config_path, found_json_path, sizeof(g_json_config_path));
+            g_oq_reapply_json_frames = 70;  /* Re-apply JSON after ~2s so mint etc. override config.cfg */
         } else if (!found_json && found_json_path[0]) {
             /* JSON will be created, store the path */
             q_strlcpy(g_json_config_path, found_json_path, sizeof(g_json_config_path));
+            g_oq_reapply_json_frames = 70;
         }
         
         /* Queue delayed reload of JSON after Quake's exec config.cfg completes */
@@ -1776,6 +1895,18 @@ void OQuake_STAR_PollItems(void) {
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
 
+    /* Re-apply oasisstar.json after a short delay so mint/stack from JSON override any config.cfg load. */
+    if (g_oq_reapply_json_frames == 0) {
+        g_oq_reapply_json_frames = -1;
+        if (g_json_config_path[0] && OQ_LoadJsonConfig(g_json_config_path)) {
+            const char* config_url = oquake_star_api_url.string;
+            if (config_url && config_url[0])
+                g_star_config.base_url = config_url;
+        }
+    } else if (g_oq_reapply_json_frames > 0) {
+        g_oq_reapply_json_frames--;
+    }
+
     if (!sv.active || cls.demoplayback) {
         poll_prev_items = (unsigned int)cl.items;
         poll_prev_shells = cl.stats[STAT_SHELLS];
@@ -1885,9 +2016,11 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star beamin   - Log in using STAR_USERNAME/STAR_PASSWORD or API key\n");
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
         Con_Printf("  star face on|off|status - Toggle beam-in face switch\n");
-        Con_Printf("  star config        - Show current config (URLs, stack options)\n");
+        Con_Printf("  star config        - Show current config (URLs, stack, mint options)\n");
         Con_Printf("  star config save   - Write config to files now (also saved on exit)\n");
         Con_Printf("  star stack <armor|weapons|powerups|keys|sigils> <0|1> - Stack (1) or unlock (0)\n");
+        Con_Printf("  star mint <armor|weapons|powerups|keys> <0|1> - Mint NFT when collecting (1=on, 0=off)\n");
+        Con_Printf("  star nftprovider <name> - Set NFT mint provider (e.g. SolanaOASIS)\n");
         Con_Printf("  star seturl <url>       - Set STAR API URL (saved to config)\n");
         Con_Printf("  star setoasisurl <url>  - Set OASIS API URL (saved to config)\n");
         Con_Printf("  star configfile json|cfg - Prefer oasisstar.json or config.cfg\n");
@@ -1912,7 +2045,11 @@ void OQuake_STAR_Console_f(void) {
         if (strcmp(color, "silver") == 0) { name = OQUAKE_ITEM_SILVER_KEY; desc = get_key_description(name); }
         else if (strcmp(color, "gold") == 0) { name = OQUAKE_ITEM_GOLD_KEY; desc = get_key_description(name); }
         else { Con_Printf("Unknown keycard: %s. Use silver|gold.\n", color); return; }
-        star_api_queue_add_item(name, desc, "Quake", "KeyItem", NULL, 1, 1);
+        {
+            char nft_buf[128];
+            const char* nft_id = OQ_MaybeMintForItemType(name, desc, "KeyItem", nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+            star_api_queue_add_item(name, desc, "Quake", "KeyItem", nft_id, 1, 1);
+        }
         star_api_result_t r = star_api_flush_add_item_jobs();
         if (r == STAR_API_SUCCESS) {
             Con_Printf("Added %s to STAR inventory.\n", name);
@@ -1971,7 +2108,11 @@ void OQuake_STAR_Console_f(void) {
         const char* name = Cmd_Argv(2);
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Added from console";
         const char* type = argc > 4 ? Cmd_Argv(4) : "Miscellaneous";
-        star_api_queue_add_item(name, desc, "Quake", type, NULL, 1, 1);
+        {
+            char nft_buf[128];
+            const char* nft_id = OQ_MaybeMintForItemType(name, desc, type, nft_buf, sizeof(nft_buf)) ? nft_buf : NULL;
+            star_api_queue_add_item(name, desc, "Quake", type, nft_id, 1, 1);
+        }
         star_api_result_t r = star_api_flush_add_item_jobs();
         if (r == STAR_API_SUCCESS) {
             Con_Printf("Added '%s' to STAR inventory.\n", name);
@@ -2252,8 +2393,16 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("    stack_powerups: %s\n", atoi(oquake_star_stack_powerups.string) ? "1 (stack)" : "0 (unlock)");
         Con_Printf("    stack_keys:     %s\n", atoi(oquake_star_stack_keys.string) ? "1 (stack)" : "0 (unlock)");
         Con_Printf("    stack_sigils:   %s (OQuake only)\n", atoi(oquake_star_stack_sigils.string) ? "1 (stack)" : "0 (unlock)");
+        Con_Printf("  Mint NFT when collecting (1=on, 0=off):\n");
+        Con_Printf("    mint_weapons:   %s\n", atoi(oquake_star_mint_weapons.string) ? "1" : "0");
+        Con_Printf("    mint_armor:     %s\n", atoi(oquake_star_mint_armor.string) ? "1" : "0");
+        Con_Printf("    mint_powerups:  %s\n", atoi(oquake_star_mint_powerups.string) ? "1" : "0");
+        Con_Printf("    mint_keys:      %s\n", atoi(oquake_star_mint_keys.string) ? "1" : "0");
+        Con_Printf("  NFT mint provider: %s\n", oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS");
         Con_Printf("\n");
         Con_Printf("To set: star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
+        Con_Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
+        Con_Printf("        star nftprovider <name>\n");
         Con_Printf("URLs: star seturl <url>   star setoasisurl <url>\n");
         Con_Printf("Config file: star configfile json|cfg\n");
         Con_Printf("To save now: star config save (also saved on exit)\n");
@@ -2283,6 +2432,40 @@ void OQuake_STAR_Console_f(void) {
         Cvar_Set(cvar, on ? "1" : "0");
         OQ_SaveStarConfigToFiles();
         Con_Printf("%s set to %s (%s). Config files updated.\n", cvar, on ? "1" : "0", on ? "stack" : "unlock");
+        return;
+    }
+    if (strcmp(sub, "mint") == 0) {
+        if (argc < 4) {
+            Con_Printf("Usage: star mint <armor|weapons|powerups|keys> <0|1>\n");
+            Con_Printf("  1 = mint NFT when collecting that category, 0 = off.\n");
+            return;
+        }
+        const char* cat = Cmd_Argv(2);
+        const char* val = Cmd_Argv(3);
+        int on = (val[0] == '1' && val[1] == '\0') ? 1 : 0;
+        const char* cvar = NULL;
+        if (strcmp(cat, "armor") == 0) cvar = "oquake_star_mint_armor";
+        else if (strcmp(cat, "weapons") == 0) cvar = "oquake_star_mint_weapons";
+        else if (strcmp(cat, "powerups") == 0) cvar = "oquake_star_mint_powerups";
+        else if (strcmp(cat, "keys") == 0) cvar = "oquake_star_mint_keys";
+        if (!cvar) {
+            Con_Printf("Unknown category: %s. Use armor|weapons|powerups|keys\n", cat);
+            return;
+        }
+        Cvar_Set(cvar, on ? "1" : "0");
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("%s set to %s. Config files updated.\n", cvar, on ? "1" : "0");
+        return;
+    }
+    if (strcmp(sub, "nftprovider") == 0) {
+        if (argc < 3) {
+            Con_Printf("Usage: star nftprovider <name>\n");
+            Con_Printf("  e.g. SolanaOASIS (default). Used when minting inventory item NFTs.\n");
+            return;
+        }
+        Cvar_Set("oquake_star_nft_provider", Cmd_Argv(2));
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("NFT provider set to: %s. Config files updated.\n", Cmd_Argv(2));
         return;
     }
     if (strcmp(sub, "seturl") == 0) {

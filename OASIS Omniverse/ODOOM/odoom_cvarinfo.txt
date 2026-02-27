@@ -30,6 +30,6 @@ server string odoom_send_status = "";
 server int odoom_send_last_char = 0;
 
 // STAR API inventory for overlay (same data as "star inventory" command). C++ updates when cache changes.
-// odoom_star_inventory_list: one line per item, format "name\tdesc\ttype\tgame" (tab-separated)
+// odoom_star_inventory_list: one line per item, format "name\tdesc\ttype\tgame\tquantity" (tab-separated, quantity for QTY display)
 server int odoom_star_inventory_count = 0;
 server string odoom_star_inventory_list = "";
