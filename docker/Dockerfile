@@ -56,8 +56,10 @@ RUN cd /src && \
         ln -s /src/NextGenSoftware-Libraries ../NextGenSoftware-Libraries; \
     fi
 
-# Clear Libraries obj/bin to avoid "file already exists" when same project is referenced via symlink and /src path
-RUN rm -rf /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/obj /src/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/*/bin 2>/dev/null || true
+# Clear ALL obj/bin from the entire source tree to avoid NuGet "file already exists" collisions
+# (both the /src path and the symlinked /NextGenSoftware-Libraries path must be clean before restore)
+RUN find /src -type d \( -name obj -o -name bin \) -exec rm -rf {} + 2>/dev/null || true && \
+    find /NextGenSoftware-Libraries -type d \( -name obj -o -name bin \) -exec rm -rf {} + 2>/dev/null || true
 
 # Restore dependencies from project file directly (avoids solution file path issues)
 # This will automatically restore all dependencies including all 30+ providers
