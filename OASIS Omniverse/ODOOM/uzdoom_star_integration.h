@@ -35,6 +35,13 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special);
 void UZDoom_STAR_PostTouchSpecial(int keynum);
 
 /**
+ * Call from engine when a boss monster is killed to mint a boss NFT (WEB4).
+ * Pass the boss name (e.g. "Cyberdemon", "SpiderMastermind"). No-op if not initialized.
+ * The engine should call this from actor death handling when the dying actor is a boss type.
+ */
+void UZDoom_STAR_OnBossKilled(const char* boss_name);
+
+/**
  * If local key check failed, try cross-game inventory. Returns true if door/lock
  * should be opened (STAR API had the key and used it).
  */

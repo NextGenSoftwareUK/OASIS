@@ -481,7 +481,7 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 		StarLogError("star_api_use_item failed: %s", err_buf);
 }
 
-/** Called every frame from the main loop (see apply_odoom_branding.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
+/** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
 	star_sync_pump();
@@ -1283,6 +1283,16 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	g_star_last_pickup_type = itemType;
 	g_star_last_pickup_desc = desc;
 	g_star_has_last_pickup = true;
+	/* Auto-complete matching quest objective (WEB5 STAR Quest API). */
+	static const char ODOOM_DEFAULT_QUEST_ID[] = "cross_dimensional_keycard_hunt";
+	if (keynum >= 1 && keynum <= 3) {
+		const char* obj = (keynum == 1) ? "doom_red_keycard" : (keynum == 2) ? "doom_blue_keycard" : "doom_yellow_keycard";
+		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, obj, "ODOOM");
+	} else if (keynum == STAR_PICKUP_OQUAKE_SILVER_KEY) {
+		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_silver_key", "ODOOM");
+	} else if (keynum == STAR_PICKUP_OQUAKE_GOLD_KEY) {
+		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", "ODOOM");
+	}
 	if (keynum == STAR_PICKUP_GENERIC_ITEM) {
 		g_star_has_pending_item = false;
 		g_star_pending_item_name.clear();
@@ -1312,6 +1322,21 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	// Gold/silver keys only open their matching doors in OQuake.
 
 	return 0;
+}
+
+void UZDoom_STAR_OnBossKilled(const char* boss_name) {
+	if (!boss_name || !boss_name[0] || !g_star_initialized) return;
+	if (!StarTryInitializeAndAuthenticate(false)) return;
+	char nft_id[128] = {};
+	char desc[256];
+	std::snprintf(desc, sizeof(desc), "Boss defeated in ODOOM: %s", boss_name);
+	star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "ODOOM", "{}", nft_id);
+	if (r == STAR_API_SUCCESS && nft_id[0])
+		Printf(PRINT_HIGH, "STAR API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
+	else if (r != STAR_API_SUCCESS) {
+		const char* err = star_api_get_last_error();
+		Printf(PRINT_HIGH, "STAR API: Boss NFT failed for \"%s\": %s\n", boss_name, err && err[0] ? err : "unknown");
+	}
 }
 
 //-----------------------------------------------------------------------------
