@@ -59,9 +59,9 @@ if not exist "%NATIVEWRAPPER%\star_api.h" (echo star_api.h not found: %NATIVEWRA
 REM --- QuakeC tree ---
 if not exist "%QUAKE_SRC%" (echo Quake source not found: %QUAKE_SRC% & echo Edit QUAKE_SRC at top of script. & pause & exit /b 1)
 
-REM --- star_sync (generic async layer from STARAPIClient) ---
+REM --- star_sync (generic async layer from STARAPIClient). Copy only when OQuake has none, so local edits are not overwritten every build. ---
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
-if exist "%STARAPICLIENT%\star_sync.c" (
+if not exist "%OQUAKE_INTEGRATION%star_sync.c" if exist "%STARAPICLIENT%\star_sync.c" (
     copy /Y "%STARAPICLIENT%\star_sync.c" "%OQUAKE_INTEGRATION%\" >nul
     copy /Y "%STARAPICLIENT%\star_sync.h" "%OQUAKE_INTEGRATION%\" >nul
 )

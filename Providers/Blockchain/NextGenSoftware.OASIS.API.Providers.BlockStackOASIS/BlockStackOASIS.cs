@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -764,7 +765,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             if (detailData == null || !detailData.ContainsKey("id")) return null;
             var idStr = detailData["id"]?.ToString();
             if (string.IsNullOrWhiteSpace(idStr) || !Guid.TryParse(idStr, out var id)) return null;
-            return new AvatarDetail
+            var detail = new AvatarDetail
             {
                 Id = id,
                 Username = detailData.GetValueOrDefault("username")?.ToString(),
@@ -772,6 +773,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                 CreatedDate = DateTime.TryParse(detailData.GetValueOrDefault("createdDate")?.ToString(), out var cd) ? cd : DateTime.UtcNow,
                 ModifiedDate = DateTime.TryParse(detailData.GetValueOrDefault("modifiedDate")?.ToString(), out var md) ? md : DateTime.UtcNow
             };
+            if (detailData.TryGetValue("inventory", out var invObj) && invObj != null)
+            {
+                try
+                {
+                    var invJson = invObj.ToString();
+                    if (!string.IsNullOrWhiteSpace(invJson))
+                    {
+                        var list = JsonSerializer.Deserialize<List<InventoryItem>>(invJson);
+                        if (list != null)
+                            detail.Inventory = new List<IInventoryItem>(list);
+                    }
+                }
+                catch { /* preserve empty inventory on deserialize error */ }
+            }
+            return detail;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)

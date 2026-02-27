@@ -1,8 +1,10 @@
 # Windows Integration Guide for DOOM Fork
 
-**Recommended:** For the **working Doom port** with STAR and cross-game keys (OQuake silver/gold at doors), use **UZDoom/ODOOM** and run `OASIS Omniverse\UZDoom\BUILD_ODOOM.bat` (or `BUILD_UZDOOM_STAR.bat`). See `UZDoom\WINDOWS_INTEGRATION.md`.
+**Recommended:** For the **working Doom port** with STAR and cross-game keys (OQuake silver/gold at doors), use **UZDoom/ODOOM** and run `OASIS Omniverse\ODOOM\BUILD ODOOM.bat`. See `ODOOM\WINDOWS_INTEGRATION.md`.
 
 This guide is for the older Linux Doom port. It is specifically for integrating the OASIS STAR API into your DOOM fork located at `C:\Source\DOOM`.
+
+**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** For new work use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below that mention NativeWrapper are for legacy reference only.
 
 ## Prerequisites
 
@@ -11,9 +13,11 @@ This guide is for the older Linux Doom port. It is specifically for integrating 
 3. **Git** - Already installed (you have the fork)
 4. **STAR API Credentials** - Get from OASIS platform
 
-## Step 1: Build the Native Wrapper
+## Step 1: Build the STAR API client (legacy: NativeWrapper; prefer STARAPIClient)
 
-### Option A: Using Visual Studio
+**Prefer:** Build/publish the C# **STARAPIClient** (NativeWrapper is obsolete). See `OASIS Omniverse/STARAPIClient/README.md`.
+
+### Option A: Using Visual Studio (legacy NativeWrapper)
 
 ```powershell
 # Navigate to OASIS project

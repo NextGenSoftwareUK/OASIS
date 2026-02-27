@@ -1,6 +1,6 @@
-# WEB5 STAR API C# Native Wrapper (C/C++ Compatible)
+# WEB5 STAR API C# Client (C/C++ Compatible)
 
-This project ports the C++ WEB5 STAR API wrapper to C# while preserving the same C ABI entry points used by existing C and C++ game integrations.
+This project is the **STAR API client** for ODOOM, OQuake, and other C/C++ games. It implements the same C ABI entry points (`star_api_*`) used by game integrations. **NativeWrapper (the legacy C++ wrapper) is now obsoleted by this C# STARAPIClient;** ODOOM and OQuake use this client exclusively.
 
 ## STARAPIClient vs star_sync (why both?)
 
@@ -70,6 +70,16 @@ So games (ODOOM, OQuake, etc.) get cache-first behaviour automatically: no need 
 - WEB4 URI can also be provided via environment variable `OASIS_WEB4_API_BASE_URL`.
 - Native C/C++ callers can set WEB4 URI at runtime with `star_api_set_oasis_base_url(...)`.
 
+## Inventory item NFT minting
+
+Games (e.g. ODOOM) can **mint an NFT** when the player collects an item, then add that item to STAR inventory with the **NFT ID** in metadata so it links to the NFTHolon on WEB4.
+
+- **`star_api_mint_inventory_nft`** (C) / **`MintInventoryItemNftAsync`** (C#): Calls the WEB4 OASIS API `/api/nft/mint-nft` to create an NFTHolon. Returns an NFT ID. Default **provider** is `SolanaOASIS`; can be overridden (e.g. from game config).
+- **`star_api_add_item(..., nft_id)`** (C) / **`AddItemAsync(..., nftId)`** (C#): When `nft_id` is set, the inventory item’s MetaData stores **NFTId** linking to that NFTHolon.
+- **Inventory overlay:** Items with a non-empty **NFTId** can be shown with a **[NFT]** prefix (e.g. `[NFT] quake_weapon_shotgun`) and grouped separately from non-NFT items of the same type (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
+
+Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** (0/1), and **nft_provider** (default `SolanaOASIS`). When mint is on for a category, the game mints on pickup then adds the item with the returned NFT ID.
+
 ## Binary Compatibility
 
 - Export names match the original wrapper: `star_api_init`, `star_api_authenticate`, `star_api_has_item`, etc.
@@ -82,7 +92,7 @@ So games (ODOOM, OQuake, etc.) get cache-first behaviour automatically: no need 
 - Uses `UnmanagedCallersOnly` exports (no COM or reverse P/Invoke marshaling glue).
 - Built as NativeAOT for direct native DLL loading and fast startup.
 - Uses a shared `HttpClient` instance and minimal allocation interop conversions.
-- **Local inventory cache:** The client keeps a single in-memory cache of the last loaded inventory. `GetInventory`, `HasItem`, and `UseItem` use this cache first and only hit the API when the cache is null or the item is not found (for has_item). Cache is updated on add/send so games get correct state without extra refetches. See [Local inventory cache](#local-inventory-cache-where-it-lives) above.
+- **Local inventory cache:** The client keeps a single in-memory cache of the last loaded inventory. `GetInventory`, `HasItem`, and `UseItem` use this cache first and only hit the API when the cache is null or the item is not found (for has_item). Cache is updated on add/send so games get correct state without extra refetches. See [Local inventory cache](#local-inventory-cache-single-cache-minimal-game-hooks) above.
 - Includes an optional add-item job queue (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`) for high-frequency item collection events.
 - Includes optional high-throughput queues for:
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
@@ -107,9 +117,20 @@ Outputs:
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/publish/star_api.dll`
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
 
-Drop `star_api.dll` in place of the existing native wrapper DLL and keep using the same `star_api.h`/import-library workflow.
+Drop `star_api.dll` in place of the existing DLL (or the legacy NativeWrapper output) and keep using the same `star_api.h`/import-library workflow. NativeWrapper is obsolete; use this client for ODOOM, OQuake, and new integrations.
 
-## One-click publish + deploy
+## Diagnostic logging
+
+The client writes **add_item** (and related) diagnostics to:
+
+1. **`star_api.log`** – In the process current directory (e.g. the game exe folder when running OQuake). Each line is timestamped UTC. Append-only; delete the file to start fresh.
+2. **`System.Diagnostics.Trace`** – Same lines are sent to `Trace.WriteLine`. Attach a `TraceListener` (e.g. to a file or the debug output window) to capture them.
+
+Logged events include: `star_api_add_item` entry (item name, game source), result (success/failure and message), and inside `AddItemCoreAsync`: avatar check, POST URL, response success/error, and exceptions. Use this to confirm whether add_item is invoked, whether the HTTP request is sent, and how the server responds.
+</think>
+Verifying there are no linter errors:
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+ReadLints
 
 Use the helper script to publish and copy artifacts into the game integration folders:
 
@@ -130,6 +151,43 @@ If `cl.exe` is not on PATH, use the helper below. It discovers Visual Studio C++
 ```powershell
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_smoke_test_with_msvc.ps1" -Run
 ```
+
+## Inventory test (C)
+
+The C inventory test (`test_inventory.c`) exercises init, auth, get inventory, has_item, add_item, sync, **send-to-avatar**, and **send-to-clan**. Build and run with:
+
+**One-click (defaults: `http://localhost:5556`, user `dellams`):**
+
+```batch
+OASIS Omniverse\STARAPIClient\TEST_INVENTORY.bat
+```
+
+**PowerShell (custom URL/auth):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_and_test_inventory.ps1" -BaseUrl "http://localhost:5556" -Username "user" -Password "pass"
+```
+
+**Optional: send-to-avatar and send-to-clan**
+
+- Steps 9 and 10 always run. Without extra args they use placeholder targets so you can see API errors (e.g. “network call failed”, “holon not found”).
+- To test with real targets, pass the 6th and/or 7th arguments:
+  - **6th** = `send_avatar_target` (username or avatar id to send an item to).
+  - **7th** = `send_clan_name` (clan name to send an item to).
+
+Example (PowerShell):
+
+```powershell
+.\compile_and_test_inventory.ps1 -BaseUrl "http://localhost:5556" -Username "user" -Password "pass" -SendAvatarTarget "other_user" -SendClanName "MyClan"
+```
+
+Example (run built exe directly):
+
+```text
+test_inventory.exe http://localhost:5556 user pass "" "" other_user MyClan
+```
+
+(Use `""` for api_key and avatar_id if you don’t need them.)
 
 ## Unit + Integration + Harness (one click)
 
@@ -252,7 +310,7 @@ Compile your game sources and **include `star_sync.c`** in the build (or build a
 1. **Init** – Call `star_api_init()` as usual (e.g. at startup).
 2. **Auth** – Call `star_sync_auth_start(username, password)`. Each frame (or where you draw status), call `star_sync_auth_poll()`: if it returns `1`, call `star_sync_auth_get_result()` to get success/username/avatar_id/error and update your game state (e.g. set avatar_id for later API calls); if it returns `0`, still in progress; if `-1`, no pending result.
 3. **Inventory** – When authenticated, call `star_sync_inventory_start(local_items, local_count, "GameName")` with your array of `star_sync_local_item_t` (or `NULL`/`0` to only fetch). Each frame call `star_sync_inventory_poll()`: if it returns `1`, call `star_sync_inventory_get_result()` to get the `star_item_list_t*`, process it, then call `star_api_free_item_list(list)` and optionally `star_sync_inventory_clear_result()`.
-4. **Single item** – For one-off sync (e.g. key pickup), call `star_sync_single_item(name, description, game_source, item_type)` from the main thread.
+4. **Single item** – For one-off sync (e.g. key pickup), call `star_sync_single_item(name, description, game_source, item_type, nft_id)` from the main thread. Pass `NULL` for `nft_id` for non-NFT items.
 
 Keep `local_items` and its `synced` flags valid until the inventory refresh completes (poll returns 1). The sync layer updates `synced` in the background. Using this layer keeps threading and sync logic out of game code and makes porting other games to OASIS easier.
 

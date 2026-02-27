@@ -100,7 +100,8 @@ void Doom_STAR_OnKeycardPickup(int keycard_type) {
         keycard_name,
         keycard_desc,
         "Doom",
-        "KeyItem"
+        "KeyItem",
+        NULL, 1, 1
     );
     
     if (result == STAR_API_SUCCESS) {
@@ -152,7 +153,8 @@ void Doom_STAR_OnItemPickup(const char* item_name, const char* item_description)
         item_name,
         item_description ? item_description : "Item from Doom",
         "Doom",
-        "Miscellaneous"
+        "Miscellaneous",
+        NULL, 1, 1
     );
     
     if (result == STAR_API_SUCCESS) {

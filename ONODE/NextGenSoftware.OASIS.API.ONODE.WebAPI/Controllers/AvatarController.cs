@@ -2318,9 +2318,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Adds an item to the avatar's inventory.
-        /// The item can be from the STARNET store (created by anyone) or a new item.
-        /// Accepts InventoryItem object directly (ASP.NET Core automatically deserializes JSON).
-        /// Matches AvatarManager.AddItemToAvatarInventoryAsync signature.
+        /// Quantity (default 1): amount to add; if item with same name exists and Stack is true, this is added to existing Quantity.
+        /// Stack (default true): if true and item exists by name, increment Quantity; if false and item exists, returns error "Item already exists".
+        /// Accepts InventoryItem with Name, Description, optional Quantity, optional Stack, and optional MetaData.
         /// </summary>
         [HttpPost("inventory")]
         [Authorize]
