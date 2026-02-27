@@ -1120,6 +1120,106 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient, st
         return response;
     }
 
+    /// <summary>
+    /// Creates a plain fungible SPL token mint with the OASIS server wallet as the mint authority.
+    /// Unlike mint-nft (which routes through Metaplex and sets a PDA as mint authority),
+    /// this creates a standard SPL token that can be minted in arbitrary quantities via MintSplTokensAsync.
+    /// </summary>
+    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals, string cluster = "devnet")
+    {
+        var response = new OASISResult<string>();
+        var originalConsoleOut = Console.Out;
+        var rpc = GetRpcForCluster(cluster);
+
+        try
+        {
+            // Generate a new keypair for the mint account
+            var mintAccount = new Account();
+
+            // Fetch minimum rent-exempt balance for a Mint account (82 bytes)
+            var rentResult = await rpc.GetMinimumBalanceForRentExemptionAsync(TokenProgram.MintAccountDataSize);
+            if (!rentResult.WasSuccessful)
+                return HandleError<string>("Failed to get rent exemption: " + rentResult.Reason);
+
+            var blockHashResult = await rpc.GetLatestBlockHashAsync();
+            if (!blockHashResult.WasSuccessful)
+                return HandleError<string>("Failed to get latest block hash: " + blockHashResult.Reason);
+
+            // 1. SystemProgram.CreateAccount — allocates space and funds the mint account
+            // 2. TokenProgram.InitializeMint — sets oasisAccount as mint authority (and freeze authority)
+            var tx = new TransactionBuilder()
+                .SetRecentBlockHash(blockHashResult.Result.Value.Blockhash)
+                .SetFeePayer(oasisAccount.PublicKey)
+                .AddInstruction(SystemProgram.CreateAccount(
+                    oasisAccount.PublicKey,          // payer / funding account
+                    mintAccount.PublicKey,           // new mint account address
+                    rentResult.Result,               // lamports for rent exemption
+                    TokenProgram.MintAccountDataSize, // space required for a Mint
+                    TokenProgram.ProgramIdKey))       // owner = SPL Token program
+                .AddInstruction(TokenProgram.InitializeMint(
+                    mintAccount.PublicKey,           // mint account to initialise
+                    decimals,                        // token decimals
+                    oasisAccount.PublicKey,          // mint authority  ← OASIS wallet
+                    oasisAccount.PublicKey))         // freeze authority ← OASIS wallet
+                .Build(new List<Account> { oasisAccount, mintAccount });
+
+            Console.SetOut(new NullTextWriter());
+            var sendResult = await rpc.SendTransactionAsync(tx, skipPreflight: false, commitment: Commitment.Confirmed);
+            Console.SetOut(originalConsoleOut);
+
+            if (!sendResult.WasSuccessful)
+            {
+                response.IsError = true;
+                response.Message = sendResult.Reason ?? "CreateAccount+InitializeMint transaction failed.";
+                OASISErrorHandling.HandleError(ref response, response.Message);
+                return response;
+            }
+
+            string txSig = sendResult.Result;
+
+            // Poll for confirmation
+            for (int i = 0; i < 8; i++)
+            {
+                await Task.Delay(2000);
+                var txResult = await rpc.GetTransactionAsync(txSig, Commitment.Confirmed);
+                if (txResult.WasSuccessful && txResult.Result?.Meta != null)
+                {
+                    if (txResult.Result.Meta.Error != null)
+                    {
+                        string logs = txResult.Result.Meta.LogMessages != null
+                            ? string.Join("; ", txResult.Result.Meta.LogMessages.Take(10))
+                            : "";
+                        response.IsError = true;
+                        response.Message = $"CreateSplFungibleToken failed on-chain: {txResult.Result.Meta.Error}. Logs: {logs}";
+                        OASISErrorHandling.HandleError(ref response, response.Message);
+                        return response;
+                    }
+                    break;
+                }
+            }
+
+            response.Result = mintAccount.PublicKey.Key;
+            response.Message = $"Fungible SPL token created successfully. Mint address: {mintAccount.PublicKey.Key}. " +
+                               $"Mint authority: {oasisAccount.PublicKey.Key} (OASIS server wallet). " +
+                               $"Decimals: {decimals}. Transaction: {txSig}";
+
+            Console.WriteLine($"[CreateSplFungibleToken] Mint: {mintAccount.PublicKey.Key} | Authority: {oasisAccount.PublicKey.Key} | Decimals: {decimals} | Tx: {txSig}");
+        }
+        catch (Exception ex)
+        {
+            Console.SetOut(originalConsoleOut);
+            response.IsError = true;
+            response.Message = ex.Message;
+            OASISErrorHandling.HandleError(ref response, ex.Message);
+        }
+        finally
+        {
+            Console.SetOut(originalConsoleOut);
+        }
+
+        return response;
+    }
+
     public async Task<OASISResult<SolanaAvatarDto>> GetAvatarByUsernameAsync(string username)
     {
         try
