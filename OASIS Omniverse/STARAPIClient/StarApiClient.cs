@@ -1186,13 +1186,13 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
-    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID to store in InventoryItem MetaData.NFTId. Default provider: SolanaOASIS.</summary>
-    public async Task<OASISResult<string>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
+    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS.</summary>
+    public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
-            return FailAndCallback<string>("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return FailAndCallback<(string NftId, string? Hash)>("Client is not initialized.", StarApiResultCode.NotInitialized);
         if (string.IsNullOrWhiteSpace(itemName))
-            return FailAndCallback<string>("Item name is required.", StarApiResultCode.InvalidParam);
+            return FailAndCallback<(string NftId, string? Hash)>("Item name is required.", StarApiResultCode.InvalidParam);
 
         var onChainProvider = string.IsNullOrWhiteSpace(provider) ? "SolanaOASIS" : provider;
         string? sendToAvatarAfterMintingId = null;
@@ -1240,24 +1240,29 @@ public sealed class StarApiClient : IDisposable
         if (response.IsError)
         {
             if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
-                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {response.Message}");
-            return FailAndCallback<string>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+                return Success((warningMintId!, (string?)null), StarApiResultCode.Success, $"Inventory item NFT created with warnings: {response.Message}");
+            return FailAndCallback<(string NftId, string? Hash)>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
         {
             if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
-                return Success(warningMintId!, StarApiResultCode.Success, $"Inventory item NFT created with warnings: {parseErrorMessage}");
-            return FailAndCallback<string>(parseErrorMessage, parseErrorCode);
+                return Success((warningMintId!, (string?)null), StarApiResultCode.Success, $"Inventory item NFT created with warnings: {parseErrorMessage}");
+            return FailAndCallback<(string NftId, string? Hash)>(parseErrorMessage, parseErrorCode);
         }
 
         var nftId = ParseIdAsString(resultElement);
         if (string.IsNullOrWhiteSpace(nftId))
-            return FailAndCallback<string>("API did not return an NFT ID.", StarApiResultCode.ApiError);
+            return FailAndCallback<(string NftId, string? Hash)>("API did not return an NFT ID.", StarApiResultCode.ApiError);
+
+        var hash = GetStringProperty(resultElement, "Hash")
+            ?? GetStringProperty(resultElement, "TransactionHash")
+            ?? GetStringProperty(resultElement, "Signature")
+            ?? GetStringProperty(resultElement, "TxHash");
 
         InvokeCallback(StarApiResultCode.Success);
-        return Success(nftId, StarApiResultCode.Success, "Inventory item NFT minted successfully.");
+        return Success((nftId, string.IsNullOrWhiteSpace(hash) ? null : hash), StarApiResultCode.Success, "Inventory item NFT minted successfully.");
     }
 
     public async Task<OASISResult<bool>> DeployBossNftAsync(string nftId, string targetGame, string? location = null, CancellationToken cancellationToken = default)
@@ -2750,9 +2755,9 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
-    /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. provider defaults to SolanaOASIS.</summary>
+    /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut)
+    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut, sbyte* hashOut)
     {
         var client = GetClient();
         if (client is null)
@@ -2774,7 +2779,10 @@ public static unsafe class StarApiExports
             return (int)ExtractCode(result);
         }
 
-        WriteUtf8ToOutput(result.Result ?? string.Empty, nftIdOut, 128);
+        var (nftId, hash) = result.Result;
+        WriteUtf8ToOutput(nftId ?? string.Empty, nftIdOut, 128);
+        if (hashOut is not null)
+            WriteUtf8ToOutput(hash ?? string.Empty, hashOut, 128);
         InvokeCallback(StarApiResultCode.Success);
         return (int)StarApiResultCode.Success;
     }

@@ -4,42 +4,41 @@
 
 This guide explains how to integrate the OASIS STAR API into the Doom source code to enable cross-game item sharing with Quake and other games.
 
-**Note:** The legacy **NativeWrapper** (C++) is **obsoleted by the C# STARAPIClient**. For new integrations use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below reference NativeWrapper for legacy setups only.
+**Note:** Use **STARAPIClient** only for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
 
 ## Prerequisites
 
 1. Doom source code (from [id Software's GitHub](https://github.com/id-Software/DOOM))
-2. STAR API client library (built from **STARAPIClient**; NativeWrapper is obsolete)
+2. STAR API client library (built from **STARAPIClient**)
 3. STAR API credentials (API key and Avatar ID)
 
 ## Building the Integration
 
-### Step 1: Build the STAR API client (or legacy NativeWrapper)
+### Step 1: Build the STAR API client (STARAPIClient)
+
+Build from **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`):
 
 ```bash
-cd Game Integration/NativeWrapper
-mkdir build && cd build
-cmake ..
-make
-# On Windows: cmake .. && cmake --build . --config Release
+cd "OASIS Omniverse/STARAPIClient"
+dotnet publish STARAPIClient.csproj -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true
 ```
 
-This will create `libstar_api.a` (or `star_api.lib` on Windows).
+Outputs: `star_api.dll` and `star_api.lib` (in `bin/Release/net8.0/win-x64/`). Use `star_api.h` from the STARAPIClient folder.
 
 ### Step 2: Integrate into Doom Build System
 
 Add to Doom's Makefile or CMakeLists.txt:
 
 ```makefile
-# Add STAR API library
-LIBS += -L../Game\ Integration/NativeWrapper/build -lstar_api
+# Add STAR API library (from STARAPIClient publish)
+LIBS += -L../OASIS\ Omniverse/STARAPIClient/bin/Release/net8.0/win-x64 -lstar_api
 
-# On Windows, add:
-# LIBS += ../Game\ Integration/NativeWrapper/build/Release/star_api.lib
+# On Windows:
+# LIBS += path/to/star_api.lib
 
 # Add include path
-CFLAGS += -I../Game\ Integration/NativeWrapper
-CFLAGS += -I../Game\ Integration/Doom
+CFLAGS += -I../OASIS\ Omniverse/STARAPIClient
+CFLAGS += -I../OASIS\ Omniverse/Doom
 ```
 
 ### Step 3: Link the Integration Code

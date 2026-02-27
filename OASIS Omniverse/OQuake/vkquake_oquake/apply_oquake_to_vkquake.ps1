@@ -12,8 +12,9 @@ param(
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
-$NativeWrapper = Join-Path (Split-Path -Parent $OQuakeRoot) "NativeWrapper"
-$DoomFolder = Join-Path (Split-Path -Parent $OQuakeRoot) "Doom"
+$OasisRoot = Split-Path -Parent $OQuakeRoot
+$STARAPIClientRoot = Join-Path $OasisRoot "STARAPIClient"
+$DoomFolder = Join-Path $OasisRoot "Doom"
 
 if (-not $VkQuakeSrc -or -not (Test-Path $VkQuakeSrc)) {
     Write-Host "Error: VkQuake source path required. Use -VkQuakeSrc or set VKQUAKE_SRC." -ForegroundColor Red
@@ -49,16 +50,19 @@ $versionDisplay = "1.0 (Build 1)"
 $versionDisplayPath = Join-Path $OQuakeRoot "version_display.txt"
 if (Test-Path $versionDisplayPath) { $versionDisplay = (Get-Content $versionDisplayPath -Raw).Trim() }
 
-# STAR DLL/LIB
+# STAR DLL/LIB (use STARAPIClient only: prefer Doom folder, then STARAPIClient publish)
 $StarDll = $null
 $StarLib = $null
 if (Test-Path (Join-Path $DoomFolder "star_api.dll")) {
     $StarDll = Join-Path $DoomFolder "star_api.dll"
     $StarLib = Join-Path $DoomFolder "star_api.lib"
 }
-if (-not $StarDll -and (Test-Path (Join-Path $NativeWrapper "build\Release\star_api.dll"))) {
-    $StarDll = Join-Path $NativeWrapper "build\Release\star_api.dll"
-    $StarLib = Join-Path $NativeWrapper "build\Release\star_api.lib"
+$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
+if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
+    $StarDll = Join-Path $StarPublishDir "star_api.dll"
+    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\native"
+    $StarLib = Join-Path $StarLibDir "star_api.lib"
+    if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
 # star_sync: always use OQuake copy so OQuake-specific sync behaviour (sync add_item) is used. Fallback to STARAPIClient only if missing.
@@ -72,7 +76,7 @@ $files = @(
     @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
     @{ Src = Join-Path $OQuakeRoot "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
-    @{ Src = Join-Path $NativeWrapper "star_api.h"; Dest = "star_api.h" },
+    @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" },
     @{ Src = Join-Path $starSyncRoot "star_sync.c"; Dest = "star_sync.c" },
     @{ Src = Join-Path $starSyncRoot "star_sync.h"; Dest = "star_sync.h" }
 )
@@ -85,8 +89,11 @@ foreach ($f in $files) {
 }
 if ($StarDll) {
     Copy-Item -Path $StarDll -Destination (Join-Path $QuakeDir "star_api.dll") -Force
-    Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "star_api.lib") -Force
-    $copied += 2
+    $copied++
+    if ($StarLib -and (Test-Path $StarLib)) {
+        Copy-Item -Path $StarLib -Destination (Join-Path $QuakeDir "star_api.lib") -Force
+        $copied++
+    }
 }
 
 # Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.

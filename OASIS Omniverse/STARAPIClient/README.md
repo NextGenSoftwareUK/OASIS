@@ -1,6 +1,6 @@
 # WEB5 STAR API C# Client (C/C++ Compatible)
 
-This project is the **STAR API client** for ODOOM, OQuake, and other C/C++ games. It implements the same C ABI entry points (`star_api_*`) used by game integrations. **NativeWrapper (the legacy C++ wrapper) is now obsoleted by this C# STARAPIClient;** ODOOM and OQuake use this client exclusively.
+This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games. ODOOM and OQuake use **STARAPIClient only**—do not use NativeWrapper. This C# client implements the C ABI entry points (`star_api_*`) used by game integrations.
 
 ## STARAPIClient vs star_sync (why both?)
 
@@ -117,7 +117,7 @@ Outputs:
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/publish/star_api.dll`
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
 
-Drop `star_api.dll` in place of the existing DLL (or the legacy NativeWrapper output) and keep using the same `star_api.h`/import-library workflow. NativeWrapper is obsolete; use this client for ODOOM, OQuake, and new integrations.
+Drop `star_api.dll` (and `star_api.lib`) next to the game exe. Use `star_api.h` from this folder. ODOOM and OQuake use STARAPIClient only.
 
 ## Diagnostic logging
 

@@ -2,7 +2,7 @@
 
 This guide explains how to integrate the OASIS STAR API into the [NextGenSoftwareUK/quake-rerelease-qc](https://github.com/NextGenSoftwareUK/quake-rerelease-qc) fork.
 
-**Note:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** Use **STARAPIClient** for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`). References to NativeWrapper below are legacy.
+**Note:** Use **STARAPIClient** only for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`).
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This guide explains how to integrate the OASIS STAR API into the [NextGenSoftwar
    cd quake-rerelease-qc
    ```
 
-2. Build the STAR API client (STARAPIClient; NativeWrapper is obsolete – see main README and STARAPIClient/README.md)
+2. Build the STAR API client from **STARAPIClient** (see main README and STARAPIClient/README.md)
 
 3. Set environment variables:
    ```bash
@@ -30,7 +30,7 @@ Copy the integration files to your Quake source directory:
 # From OASIS-master root
 cp "Game Integration/Quake/quake_star_integration.c" quake-rerelease-qc/
 cp "Game Integration/Quake/quake_star_integration.h" quake-rerelease-qc/
-cp "OASIS Omniverse/STARAPIClient/star_api.h" quake-rerelease-qc/   # or from NativeWrapper if using legacy
+cp "OASIS Omniverse/STARAPIClient/star_api.h" quake-rerelease-qc/
 ```
 
 ### Step 2: Modify host.c
@@ -143,7 +143,7 @@ void QuakeC_OnItemPickup(const char* item_name, const char* item_desc) {
 Add to your Makefile or build script:
 
 ```makefile
-STAR_API_DIR=../Game\ Integration/NativeWrapper
+STAR_API_DIR=../OASIS\ Omniverse/STARAPIClient
 LIBS=-L$(STAR_API_DIR)/build -lstar_api
 CFLAGS+=-I$(STAR_API_DIR) -I../Game\ Integration/Quake
 

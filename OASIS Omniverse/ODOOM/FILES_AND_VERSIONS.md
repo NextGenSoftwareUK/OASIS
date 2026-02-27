@@ -33,7 +33,7 @@ So: **odoom_version.txt** = source of truth; the rest are outputs. No redundancy
 | File | Description |
 |------|-------------|
 | **BUILD ODOOM.bat** | Main build: copy integration, run branding, CMake, package to `build\` (ODOOM.exe, Editor folder, etc.). |
-| **BUILD & RUN ODOOM.bat** | Build if needed, then launch ODOOM.exe. |
+| **RUN ODOOM.bat** | Build if needed, then launch ODOOM.exe. |
 | **apply_odoom_branding.ps1** | Patches UZDoom source: version.h, startscreen, status bar, about, Editor button, launcher button bar. |
 
 ### STAR integration (source)

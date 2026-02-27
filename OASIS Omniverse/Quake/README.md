@@ -4,37 +4,38 @@
 
 This guide explains how to integrate the OASIS STAR API into the Quake source code to enable cross-game item sharing with Doom and other games.
 
-**Note:** The legacy **NativeWrapper** (C++) is **obsoleted by the C# STARAPIClient**. For new integrations use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). The steps below reference NativeWrapper for legacy setups only.
+**Note:** Use **STARAPIClient** only for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
 
 ## Prerequisites
 
 1. Quake source code (from [id Software's GitHub](https://github.com/id-Software/Quake))
-2. STAR API client library (built from **STARAPIClient**; NativeWrapper is obsolete)
+2. STAR API client library (built from **STARAPIClient**)
 3. STAR API credentials (API key and Avatar ID)
 
 ## Building the Integration
 
-### Step 1: Build the STAR API client (or legacy NativeWrapper)
+### Step 1: Build the STAR API client (STARAPIClient)
+
+Build from **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`):
 
 ```bash
-cd Game Integration/NativeWrapper
-mkdir build && cd build
-cmake ..
-make
-# On Windows: cmake .. && cmake --build . --config Release
+cd "OASIS Omniverse/STARAPIClient"
+dotnet publish STARAPIClient.csproj -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true
 ```
+
+Outputs: `star_api.dll` and `star_api.lib`. Use `star_api.h` from the STARAPIClient folder.
 
 ### Step 2: Integrate into Quake Build System
 
 Add to Quake's Makefile:
 
 ```makefile
-# Add STAR API library
-LIBS += -L../Game\ Integration/NativeWrapper/build -lstar_api
+# Add STAR API library (from STARAPIClient publish)
+LIBS += -L../OASIS\ Omniverse/STARAPIClient/bin/Release/net8.0/win-x64 -lstar_api
 
 # Add include path
-CFLAGS += -I../Game\ Integration/NativeWrapper
-CFLAGS += -I../Game\ Integration/Quake
+CFLAGS += -I../OASIS\ Omniverse/STARAPIClient
+CFLAGS += -I../OASIS\ Omniverse/Quake
 ```
 
 ### Step 3: Link the Integration Code

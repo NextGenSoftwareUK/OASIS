@@ -2,7 +2,7 @@
 
 This guide explains how to integrate the OASIS STAR API into the [NextGenSoftwareUK/DOOM](https://github.com/NextGenSoftwareUK/DOOM) fork.
 
-**Note:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** Use **STARAPIClient** for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`). References to NativeWrapper below are legacy.
+**Note:** Use **STARAPIClient** only for the STAR API client (see `OASIS Omniverse/STARAPIClient/README.md`).
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This guide explains how to integrate the OASIS STAR API into the [NextGenSoftwar
    cd DOOM
    ```
 
-2. Build the STAR API client (STARAPIClient; NativeWrapper is obsolete – see main README and STARAPIClient/README.md)
+2. Build the STAR API client from **STARAPIClient** (see main README and STARAPIClient/README.md)
 
 3. Set environment variables:
    ```bash
@@ -30,7 +30,7 @@ Copy the integration files to your Doom source directory:
 # From OASIS-master root
 cp "Game Integration/Doom/doom_star_integration.c" DOOM/linuxdoom-1.10/
 cp "Game Integration/Doom/doom_star_integration.h" DOOM/linuxdoom-1.10/
-cp "OASIS Omniverse/STARAPIClient/star_api.h" DOOM/linuxdoom-1.10/   # or from NativeWrapper if using legacy
+cp "OASIS Omniverse/STARAPIClient/star_api.h" DOOM/linuxdoom-1.10/
 ```
 
 ### Step 2: Modify d_main.c
@@ -120,9 +120,9 @@ bool P_UseSpecialLine(line_t* line, mobj_t* thing)
 Add to `linuxdoom-1.10/Makefile`:
 
 ```makefile
-STAR_API_DIR=../../Game\ Integration/NativeWrapper
-LIBS=-L$(STAR_API_DIR)/build -lstar_api
-CFLAGS+=-I$(STAR_API_DIR) -I../../Game\ Integration/Doom
+STAR_API_DIR=../../OASIS\ Omniverse/STARAPIClient
+LIBS=-L$(STAR_API_DIR)/bin/Release/net8.0/win-x64 -lstar_api
+CFLAGS+=-I$(STAR_API_DIR) -I../../OASIS\ Omniverse/Doom
 
 OBJS= ... doom_star_integration.o
 ```

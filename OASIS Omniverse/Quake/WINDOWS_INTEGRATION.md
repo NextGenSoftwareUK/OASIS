@@ -4,7 +4,7 @@
 
 This guide is the legacy Quake integration. It is specifically for integrating the OASIS STAR API into your Quake fork located at `C:\Source\quake-rerelease-qc`.
 
-**STAR API client:** **NativeWrapper is now obsoleted by the C# STARAPIClient.** Use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). Steps below that mention NativeWrapper are for legacy reference only.
+**STAR API client:** Use **STARAPIClient** only (see `OASIS Omniverse/STARAPIClient/README.md`). Do not use NativeWrapper.
 
 ## Prerequisites
 
@@ -13,11 +13,11 @@ This guide is the legacy Quake integration. It is specifically for integrating t
 3. **Quake Engine** - Your fork should have a build system
 4. **STAR API Credentials** - Get from OASIS platform
 
-## Step 1: Build the STAR API client (STARAPIClient; NativeWrapper obsolete)
+## Step 1: Build the STAR API client (STARAPIClient)
 
 Use **STARAPIClient** (see `OASIS Omniverse/STARAPIClient/README.md`). Legacy: same as DOOM integration – see `Doom/WINDOWS_INTEGRATION.md` Step 1.
 
-The library will be at: `OASIS Omniverse\STARAPIClient` publish output, or legacy: `Game Integration\NativeWrapper\build\Release\star_api.lib`
+The library will be at: `OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\publish\star_api.dll`
 
 ## Step 2: Set Environment Variables
 
@@ -32,7 +32,7 @@ cd C:\Source\OASIS-master
 # Copy integration files to Quake
 Copy-Item "Game Integration\Quake\quake_star_integration.c" "C:\Source\quake-rerelease-qc\"
 Copy-Item "Game Integration\Quake\quake_star_integration.h" "C:\Source\quake-rerelease-qc\"
-Copy-Item "Game Integration\NativeWrapper\star_api.h" "C:\Source\quake-rerelease-qc\"
+Copy-Item "OASIS Omniverse\STARAPIClient\star_api.h" "C:\Source\quake-rerelease-qc\"
 ```
 
 ## Step 4: Modify Quake Source Files
@@ -164,17 +164,17 @@ void door_use(edict_t* self, edict_t* other, edict_t* activator) {
 1. Add `quake_star_integration.c` to project
 2. If using bridge, add `quake_star_bridge.c`
 3. Add include directories:
-   - `C:\Source\OASIS-master\Game Integration\NativeWrapper`
+   - `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient`
    - `C:\Source\OASIS-master\Game Integration\Quake`
 4. Add library directory:
-   - `C:\Source\OASIS-master\Game Integration\NativeWrapper\build\Release`
+   - `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient\bin\Release\net8.0\win-x64\native`
 5. Add library: `star_api.lib`
 6. Add linker input: `winhttp.lib`
 
 ### Makefile (if applicable)
 
 ```makefile
-STAR_API_DIR=C:/Source/OASIS-master/Game Integration/NativeWrapper
+STAR_API_DIR=C:/Source/OASIS-master/OASIS Omniverse/STARAPIClient
 LIBS=-L$(STAR_API_DIR)/build/Release -lstar_api
 CFLAGS+=-I$(STAR_API_DIR) -IC:/Source/OASIS-master/Game Integration/Quake
 
