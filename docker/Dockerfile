@@ -35,41 +35,7 @@ RUN rm -rf /src/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS 
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETClientExtensions.cs && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETP2PProvider.cs && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs
-# Create minimal NetworkMetrics and SystemMetrics stubs to allow compilation without Holochain
-RUN rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetrics.cs && \
-    cat > /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetrics.cs << 'EOF'
-using System;
-namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
-{
-    public class NetworkMetrics
-    {
-        public int ActiveConnections { get; set; }
-        public int TotalConnections { get; set; }
-        public double AverageLatency { get; set; }
-        public double TotalThroughput { get; set; }
-        public string NetworkId { get; set; }
-        public DateTime Timestamp { get; set; }
-        public double Latency { get; set; }
-        public double Reliability { get; set; }
-        public double Throughput { get; set; }
-        public DateTime LastUpdated { get; set; }
-        public double MaxLatency { get; set; }
-        public double LatencyVariance { get; set; }
-        public double Stability { get; set; }
-        public double TrafficLoad { get; set; }
-        public double Health { get; set; }
-        public double Capacity { get; set; }
-    }
-    
-    public class SystemMetrics
-    {
-        public double CpuLoad { get; set; }
-        public double MemoryLoad { get; set; }
-        public double DiskLoad { get; set; }
-        public DateTime Timestamp { get; set; }
-    }
-}
-EOF
+# NetworkMetrics.cs is now committed to the repo — no need to generate it here
 # Comment out HoloOASIS references in OASISBootLoader
 RUN sed -i 's/^using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/\/\/using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
     sed -i '/case ProviderType.HoloOASIS:/,/^[[:space:]]*break;/s/^/\/\//' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
