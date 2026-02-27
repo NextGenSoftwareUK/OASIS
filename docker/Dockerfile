@@ -36,7 +36,8 @@ RUN rm -rf /src/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS 
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETP2PProvider.cs && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs
 # Create minimal NetworkMetrics and SystemMetrics stubs to allow compilation without Holochain
-RUN cat > /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetrics.cs << 'EOF'
+RUN rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetrics.cs && \
+    cat > /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetrics.cs << 'EOF'
 using System;
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 {
