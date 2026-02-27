@@ -34,7 +34,14 @@ COPY . .
 RUN rm -rf /src/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETClientExtensions.cs && \
     rm -f /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/HoloNETP2PProvider.cs
-# NetworkMetricsService.cs contains the NetworkMetrics class used by ONETDiscovery and ONETRouting — keep it
+# NetworkMetricsService.cs contains the NetworkMetrics class (used by ONETDiscovery/ONETRouting) but also has HoloNET usings.
+# Comment out HoloNET using directives and stub out the HoloNET-dependent parts so NetworkMetrics/SystemMetrics data classes remain.
+RUN sed -i 's/^using NextGenSoftware.Holochain/\/\/using NextGenSoftware.Holochain/' \
+        /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs && \
+    sed -i 's/private HoloNETClientBase _holoNETClient;/private object _holoNETClient;/' \
+        /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs && \
+    sed -i 's/public async Task<OASISResult<bool>> InitializeAsync(HoloNETClientBase holoNETClient)/public async Task<OASISResult<bool>> InitializeAsync(object holoNETClient)/' \
+        /src/ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Network/NetworkMetricsService.cs || true
 # Comment out HoloOASIS references in OASISBootLoader
 RUN sed -i 's/^using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/\/\/using NextGenSoftware.OASIS.API.Providers.HoloOASIS;/' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
     sed -i '/case ProviderType.HoloOASIS:/,/^[[:space:]]*break;/s/^/\/\//' "/src/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/OASISBootLoader.cs" && \
