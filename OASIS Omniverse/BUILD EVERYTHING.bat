@@ -7,11 +7,7 @@ set "ROOT=%~dp0"
 set "ROOT=%ROOT:~0,-1%"
 cd /d "%ROOT%"
 
-echo.
-echo ============================================================
-echo   BUILD EVERYTHING - STARAPIClient + ODOOM + OQuake
-echo ============================================================
-echo.
+call "%ROOT%\run_oasis_header.bat" BUILD
 
 echo [1/3] Building and deploying STARAPIClient...
 call "%ROOT%\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
@@ -36,9 +32,5 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo.
-echo ============================================================
-echo   BUILD EVERYTHING completed successfully.
-echo   Run RUN ODOOM.bat or RUN OQUAKE.bat to launch.
-echo ============================================================
+if exist "%ROOT%\show_oasis_header.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\show_oasis_header.ps1" -Success -Message "B U I L D   E V E R Y T H I N G   c o m p l e t e d   s u c c e s s f u l l y" -Message2 "Run RUN ODOOM.bat or RUN OQUAKE.bat to launch."
 exit /b 0

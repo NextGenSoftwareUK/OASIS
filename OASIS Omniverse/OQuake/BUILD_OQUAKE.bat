@@ -10,7 +10,6 @@ set "QUAKE_SRC=C:\Source\quake-rerelease-qc"
 set "VKQUAKE_SRC=C:\Source\vkQuake"
 set "QUAKE_ENGINE_EXE="
 set "HERE=%~dp0"
-set "DOOM_FOLDER=%HERE%..\Doom"
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "OQUAKE_INTEGRATION=%HERE%"
 
@@ -19,7 +18,7 @@ if exist "%OQUAKE_INTEGRATION%generate_oquake_version.ps1" powershell -NoProfile
 set "VERSION_DISPLAY=1.0 (Build 1)"
 if exist "%OQUAKE_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a in ("%OQUAKE_INTEGRATION%version_display.txt") do set "VERSION_DISPLAY=%%a"
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY; if(-not $v){$v='1.0 (Build 1)'}; $w=60; function c($s){$p=[math]::Max(0,[int](($w-$s.Length)/2)); '  '+(' '*$p)+$s}; Write-Host ''; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('O A S I S   O Q U A K E  v'+$v)) -ForegroundColor Cyan; Write-Host (c('By NextGen World Ltd')) -ForegroundColor DarkGray; Write-Host ('  '+('='*$w)) -ForegroundColor DarkCyan; Write-Host (c('Enabling full interoperable games across the OASIS Omniverse!')) -ForegroundColor DarkMagenta; Write-Host ''"
+call "%HERE%..\run_oasis_header.bat" OQUAKE
 
 if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
@@ -45,7 +44,7 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%DOOM_FOLDER%\star_api.dll" set "STAR_DLL=%DOOM_FOLDER%\star_api.dll" & set "STAR_LIB=%DOOM_FOLDER%\star_api.lib"
+if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
 set "STAR_PUBLISH=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish"
 set "STAR_NATIVE=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native"
 if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" (set "STAR_LIB=%STAR_NATIVE%\star_api.lib") else (set "STAR_LIB=")
@@ -54,14 +53,12 @@ if not defined STAR_DLL (
     echo [STAR API] Building STARAPIClient...
     if not exist "%STARAPICLIENT%\STARAPIClient.csproj" (echo STARAPIClient not found: %STARAPICLIENT% & pause & exit /b 1)
     cd /d "%HERE%.."
-    dotnet publish "STARAPIClient\STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
-    if errorlevel 1 (echo STARAPIClient build failed. & pause & exit /b 1)
+    call BUILD_AND_DEPLOY_STAR_CLIENT.bat
+    if errorlevel 1 (cd /d "%~dp0" & echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
     cd /d "%~dp0"
-    if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll"
-    if exist "%STAR_NATIVE%\star_api.lib" set "STAR_LIB=%STAR_NATIVE%\star_api.lib"
+    if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
+    if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" set "STAR_LIB=%STAR_NATIVE%\star_api.lib"
     if not exist "%STAR_DLL%" (echo star_api.dll missing after build. & pause & exit /b 1)
-    if defined STAR_LIB copy /Y "%STAR_LIB%" "%DOOM_FOLDER%\star_api.lib" >nul
-    copy /Y "%STAR_DLL%" "%DOOM_FOLDER%\star_api.dll" >nul
     echo [STAR API] Ready.
 )
 

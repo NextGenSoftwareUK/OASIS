@@ -1784,7 +1784,28 @@ void OQuake_STAR_OnKeyPickup(const char* key_name) {
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Collected: %s", key_name);
         }
     }
+    /* Auto-complete matching quest objective (WEB5 STAR Quest API). */
+    {
+        static const char OQUAKE_DEFAULT_QUEST_ID[] = "cross_dimensional_keycard_hunt";
+        if (strcmp(key_name, OQUAKE_ITEM_SILVER_KEY) == 0)
+            star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_silver_key", "Quake");
+        else if (strcmp(key_name, OQUAKE_ITEM_GOLD_KEY) == 0)
+            star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_gold_key", "Quake");
+    }
     OQ_StartInventorySyncIfNeeded();
+}
+
+void OQuake_STAR_OnBossKilled(const char* boss_name) {
+    if (!boss_name || !boss_name[0] || !g_star_initialized)
+        return;
+    char nft_id[128] = {0};
+    char desc[256];
+    q_snprintf(desc, sizeof(desc), "Boss defeated in OQuake: %s", boss_name);
+    star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "Quake", "{}", nft_id);
+    if (r == STAR_API_SUCCESS && nft_id[0])
+        Con_Printf("STAR API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
+    else if (r != STAR_API_SUCCESS)
+        Con_Printf("STAR API: Boss NFT failed for \"%s\": %s\n", boss_name, star_api_get_last_error() ? star_api_get_last_error() : "unknown");
 }
 
 void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game)
