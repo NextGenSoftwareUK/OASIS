@@ -934,6 +934,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         // ─────────────────────────────────────────────────────────────────────
 
         /// <summary>
+        /// Transfer mint authority of an SPL token to the OASIS server wallet.
+        /// Call this once per token mint (using the private key of whoever currently holds authority).
+        /// After this call, subsequent calls to /api/nft/mint-tokens will succeed for that token.
+        /// The private key is used only to sign this one transaction and is never stored.
+        /// </summary>
+        [Authorize]
+        [HttpPost]
+        [Route("set-mint-authority")]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<string>> SetMintAuthorityAsync([FromBody] Models.NFT.SetMintAuthorityRequest request)
+        {
+            if (request == null)
+                return new OASISResult<string> { IsError = true, Message = "Request body is required. Provide TokenMintAddress and CurrentAuthorityPrivateKey." };
+
+            if (string.IsNullOrWhiteSpace(request.TokenMintAddress))
+                return new OASISResult<string> { IsError = true, Message = "TokenMintAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.CurrentAuthorityPrivateKey))
+                return new OASISResult<string> { IsError = true, Message = "CurrentAuthorityPrivateKey is required (base58 private key of current mint authority)." };
+
+            var providerResult = GetSolanaProvider();
+            if (providerResult.IsError)
+                return new OASISResult<string> { IsError = true, Message = providerResult.Message };
+
+            return await providerResult.Result.SetMintAuthorityToOasisAsync(request.TokenMintAddress, request.CurrentAuthorityPrivateKey, request.Cluster ?? "devnet");
+        }
+
+        /// <summary>
         /// Alias: GET /api/nft/get-all-nfts — returns all NFTs (Wizard/Admin only).
         /// Exists to fix 404 reported by Pangea; delegates to load-all-nfts.
         /// </summary>
