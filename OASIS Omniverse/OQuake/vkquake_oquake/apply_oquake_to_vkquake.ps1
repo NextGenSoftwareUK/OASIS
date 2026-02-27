@@ -14,7 +14,6 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
 $OasisRoot = Split-Path -Parent $OQuakeRoot
 $STARAPIClientRoot = Join-Path $OasisRoot "STARAPIClient"
-$DoomFolder = Join-Path $OasisRoot "Doom"
 
 if (-not $VkQuakeSrc -or -not (Test-Path $VkQuakeSrc)) {
     Write-Host "Error: VkQuake source path required. Use -VkQuakeSrc or set VKQUAKE_SRC." -ForegroundColor Red
@@ -50,12 +49,13 @@ $versionDisplay = "1.0 (Build 1)"
 $versionDisplayPath = Join-Path $OQuakeRoot "version_display.txt"
 if (Test-Path $versionDisplayPath) { $versionDisplay = (Get-Content $versionDisplayPath -Raw).Trim() }
 
-# STAR DLL/LIB (use STARAPIClient only: prefer Doom folder, then STARAPIClient publish)
+# STAR DLL/LIB (prefer OQuake folder, then STARAPIClient publish)
 $StarDll = $null
 $StarLib = $null
-if (Test-Path (Join-Path $DoomFolder "star_api.dll")) {
-    $StarDll = Join-Path $DoomFolder "star_api.dll"
-    $StarLib = Join-Path $DoomFolder "star_api.lib"
+if (Test-Path (Join-Path $OQuakeRoot "star_api.dll")) {
+    $StarDll = Join-Path $OQuakeRoot "star_api.dll"
+    $StarLib = Join-Path $OQuakeRoot "star_api.lib"
+    if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 $StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
 if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {

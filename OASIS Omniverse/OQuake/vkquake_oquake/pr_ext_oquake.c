@@ -2,13 +2,13 @@
  * OQuake extension builtins
  *
  * Provides PF_ wrappers for OQuake STAR API so QuakeC can call
- * OQuake_OnKeyPickup and OQuake_CheckDoorAccess (ex_OQuake_OnKeyPickup,
- * ex_OQuake_CheckDoorAccess). Add this file to the OQuake build and register
- * these builtins in pr_ext.c's extension table.
+ * OQuake_OnKeyPickup, OQuake_CheckDoorAccess, OQuake_OnBossKilled.
+ * Add this file to the OQuake build and register these builtins in pr_ext.c's extension table.
  *
  * QuakeC (defs.qc):
  *   void(string keyname) OQuake_OnKeyPickup = #0:ex_OQuake_OnKeyPickup;
  *   float(string doorname, string requiredkey) OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess;
+ *   void(string bossname) OQuake_OnBossKilled = #0:ex_OQuake_OnBossKilled;
  */
 
 #include "quakedef.h"
@@ -31,4 +31,12 @@ void PF_OQuake_CheckDoorAccess (void)
 	if (requiredkey)
 		r = (float) OQuake_STAR_CheckDoorAccess (doorname ? doorname : "", requiredkey);
 	G_FLOAT (OFS_RETURN) = r;
+}
+
+/* OQuake builtin: void(string bossname) - report boss kill to STAR (mint boss NFT) */
+void PF_OQuake_OnBossKilled (void)
+{
+	const char *bossname = G_STRING (OFS_PARM0);
+	if (bossname)
+		OQuake_STAR_OnBossKilled (bossname);
 }
