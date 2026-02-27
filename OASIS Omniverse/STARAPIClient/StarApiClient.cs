@@ -93,6 +93,10 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Single-flight fetch: when cache is null, only one HTTP get_inventory runs; other callers wait on this task.</summary>
     private Task<OASISResult<List<StarItem>>>? _inventoryFetchTask;
 
+    /// <summary>Pickup delta array: one entry per item type (name -> pending qty to add). Games call QueueAddItem; we merge here and return API + pending in GetInventory. Worker flushes to API in background.</summary>
+    private readonly Dictionary<string, LocalPendingEntry> _localPending = new(StringComparer.OrdinalIgnoreCase);
+    private readonly object _localPendingLock = new();
+
     private HttpClient? _httpClient;
     private bool _initialized;
     // WEB5 STAR API base URI.
@@ -484,7 +488,7 @@ public sealed class StarApiClient : IDisposable
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
-    /// <summary>Get avatar inventory. Returns the local cache when available; only one HTTP fetch runs when cache is null (single-flight).</summary>
+    /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -495,9 +499,9 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedInventory is not null)
             {
-                var copy = new List<StarItem>(_cachedInventory);
+                var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                 InvokeCallback(StarApiResultCode.Success);
-                return Success(copy, StarApiResultCode.Success, $"Loaded {copy.Count} item(s) (cached).");
+                return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending).");
             }
             if (_inventoryFetchTask is null)
                 _inventoryFetchTask = FetchInventoryOnceAsync();
@@ -511,7 +515,59 @@ public sealed class StarApiClient : IDisposable
             if (result.Result is not null)
                 _cachedInventory = new List<StarItem>(result.Result);
         }
+        if (result.Result is not null)
+        {
+            var merged = MergeLocalPendingIntoInventory(result.Result);
+            return Success(merged, StarApiResultCode.Success, result.Message ?? $"Loaded {merged.Count} item(s).");
+        }
         return result;
+    }
+
+    /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
+    private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
+    {
+        Dictionary<string, LocalPendingEntry> snapshot;
+        lock (_localPendingLock)
+        {
+            snapshot = new Dictionary<string, LocalPendingEntry>(_localPending, StringComparer.OrdinalIgnoreCase);
+        }
+        if (snapshot.Count == 0)
+            return new List<StarItem>(apiList);
+
+        var nameToPending = snapshot;
+        var merged = new List<StarItem>(apiList.Count + nameToPending.Count);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in apiList)
+        {
+            seen.Add(item.Name);
+            var extra = nameToPending.TryGetValue(item.Name, out var pe) ? pe.Quantity : 0;
+            merged.Add(new StarItem
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                GameSource = item.GameSource,
+                ItemType = item.ItemType,
+                NftId = item.NftId,
+                Quantity = Math.Max(1, item.Quantity + extra)
+            });
+        }
+        foreach (var kv in nameToPending)
+        {
+            if (seen.Contains(kv.Key))
+                continue;
+            merged.Add(new StarItem
+            {
+                Id = Guid.Empty,
+                Name = kv.Value.Name,
+                Description = kv.Value.Description,
+                GameSource = kv.Value.GameSource,
+                ItemType = kv.Value.ItemType,
+                NftId = string.Empty,
+                Quantity = Math.Max(1, kv.Value.Quantity)
+            });
+        }
+        return merged;
     }
 
     private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
@@ -579,13 +635,11 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return Task.FromResult(FailAndCallback<StarItem>("Client is not initialized.", StarApiResultCode.NotInitialized));
 
-        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
-            return Task.FromResult(FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam));
+        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+            return Task.FromResult(FailAndCallback<StarItem>("Item name and game source are required.", StarApiResultCode.InvalidParam));
 
-        var tcs = new TaskCompletionSource<OASISResult<StarItem>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description, gameSource, itemType, nftId, quantity, stack, cancellationToken, tcs));
-        _addItemSignal.Release();
-        return tcs.Task;
+        EnqueueAddItemJobOnly(itemName, description, gameSource, itemType, nftId, quantity, stack);
+        return Task.FromResult(Success(new StarItem { Id = Guid.Empty, Name = itemName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType, Quantity = quantity < 1 ? 1 : quantity }, StarApiResultCode.Success, "Queued for sync."));
     }
 
     public async Task<OASISResult<List<StarItem>>> QueueAddItemsAsync(IEnumerable<StarItem> items, string defaultGameSource = "Unknown", CancellationToken cancellationToken = default)
@@ -626,12 +680,31 @@ public sealed class StarApiClient : IDisposable
         return Success(successful, StarApiResultCode.Success, $"Queued add-item jobs completed for {successful.Count} item(s).");
     }
 
-    /// <summary>Enqueue one add-item job without returning a completion task. Used by native C sync lib for batching. Worker processes queue in batches.</summary>
+    /// <summary>Add pickup to local delta (one row per type). Used by native C: game calls this on pickup; GetInventory returns API + pending; worker flushes to API in background. No per-call HTTP.</summary>
     public void EnqueueAddItemJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true)
     {
-        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(description) || string.IsNullOrWhiteSpace(gameSource))
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
             return;
-        _pendingAddItemJobs.Enqueue(new PendingAddItemJob(itemName, description ?? string.Empty, gameSource, string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType, nftId, quantity, stack, CancellationToken.None, null));
+        var qty = quantity < 1 ? 1 : quantity;
+        var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
+        lock (_localPendingLock)
+        {
+            if (_localPending.TryGetValue(itemName, out var existing))
+            {
+                existing.Quantity += qty;
+            }
+            else
+            {
+                _localPending[itemName] = new LocalPendingEntry
+                {
+                    Name = itemName,
+                    Description = description ?? string.Empty,
+                    GameSource = gameSource,
+                    ItemType = type,
+                    Quantity = qty
+                };
+            }
+        }
         _addItemSignal.Release();
     }
 
@@ -640,13 +713,19 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        while ((!_pendingAddItemJobs.IsEmpty || Volatile.Read(ref _activeAddItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
+        while ((GetLocalPendingCount() > 0 || Volatile.Read(ref _activeAddItemJobs) > 0) && !cancellationToken.IsCancellationRequested)
             await Task.Delay(20, cancellationToken).ConfigureAwait(false);
 
         if (cancellationToken.IsCancellationRequested)
             return FailAndCallback<bool>("Flush add-item jobs was cancelled.", StarApiResultCode.Network);
 
         return Success(true, StarApiResultCode.Success, "Add-item queue flushed.");
+    }
+
+    private int GetLocalPendingCount()
+    {
+        lock (_localPendingLock)
+            return _localPending.Count;
     }
 
     private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
@@ -1984,10 +2063,9 @@ public sealed class StarApiClient : IDisposable
             pending.Completion.TrySetResult(Fail<bool>("Quest objective queue stopped.", StarApiResultCode.NotInitialized));
     }
 
+    /// <summary>Background worker: flush local pending to API (one add_item per type), then invalidate cache. Games only call EnqueueAddItemJobOnly; this does the heavy lifting.</summary>
     private async Task ProcessAddItemJobsAsync(CancellationToken cancellationToken)
     {
-        var batch = new List<PendingAddItemJob>(Math.Max(1, AddItemBatchSize));
-
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -1999,12 +2077,14 @@ public sealed class StarApiClient : IDisposable
                 break;
             }
 
-            batch.Clear();
-            while (_pendingAddItemJobs.TryDequeue(out var pending) && batch.Count < Math.Max(1, AddItemBatchSize))
-                batch.Add(pending);
-
-            if (batch.Count == 0)
-                continue;
+            Dictionary<string, LocalPendingEntry> snapshot;
+            lock (_localPendingLock)
+            {
+                if (_localPending.Count == 0)
+                    continue;
+                snapshot = new Dictionary<string, LocalPendingEntry>(_localPending, StringComparer.OrdinalIgnoreCase);
+                _localPending.Clear();
+            }
 
             if (AddItemBatchWindow > TimeSpan.Zero)
             {
@@ -2014,32 +2094,41 @@ public sealed class StarApiClient : IDisposable
                 }
                 catch (OperationCanceledException)
                 {
+                    lock (_localPendingLock)
+                    {
+                        foreach (var kv in snapshot)
+                            _localPending[kv.Key] = kv.Value;
+                    }
                     break;
                 }
-
-                while (_pendingAddItemJobs.TryDequeue(out var pending) && batch.Count < Math.Max(1, AddItemBatchSize))
-                    batch.Add(pending);
             }
 
-            foreach (var job in batch)
+            foreach (var kv in snapshot)
             {
-                if (job.CancellationToken.IsCancellationRequested || cancellationToken.IsCancellationRequested)
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    job.Completion?.TrySetResult(Fail<StarItem>("Queued add-item job was cancelled.", StarApiResultCode.Network));
+                    lock (_localPendingLock)
+                    {
+                        if (_localPending.TryGetValue(kv.Key, out var existing))
+                            existing.Quantity += kv.Value.Quantity;
+                        else
+                            _localPending[kv.Key] = kv.Value;
+                    }
                     continue;
                 }
-
+                var entry = kv.Value;
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var result = await AddItemCoreAsync(job.ItemName, job.Description, job.GameSource, job.ItemType, job.NftId, job.Quantity, job.Stack, job.CancellationToken).ConfigureAwait(false);
-                    job.Completion?.TrySetResult(result);
+                    await AddItemCoreAsync(entry.Name, entry.Description, entry.GameSource, entry.ItemType, null, entry.Quantity, true, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     Interlocked.Decrement(ref _activeAddItemJobs);
                 }
             }
+
+            InvalidateInventoryCache();
         }
     }
 
@@ -2338,6 +2427,16 @@ public sealed class StarApiClient : IDisposable
         public string? GameSource { get; set; }
         /// <summary>From API / InventoryItem holon.</summary>
         public string? ItemType { get; set; }
+    }
+
+    /// <summary>One row per item type: accumulated delta until flushed to API. Used by GetInventory merge and background flush.</summary>
+    private sealed class LocalPendingEntry
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string GameSource { get; set; } = string.Empty;
+        public string ItemType { get; set; } = "KeyItem";
+        public int Quantity { get; set; }
     }
 
     private sealed class PendingAddItemJob
