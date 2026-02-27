@@ -1,15 +1,4 @@
 star beamin dellams test!
-star beamed in dellams tets!
-star beamed in dellams test!
-star
-star beamin dellams test!
-STAR BEAMIN DELLAMS TEST!
-star beamin dellams test!
-star beamin dellams test
-star beamin dellams test!
-star
-star config
-star beamin dellams test!
 star debug
 star debug off
 star beamin dellams test!
@@ -59,3 +48,14 @@ star inventory
 star beamin dellams test!
 star inventory
 star beamin dellams test!
+star config
+star beamin dellams test!
+star config
+star beamin dellams test!
+star config
+star beamin dellams test!
+star config
+star beamin dellams test!
+star config
+star inventory
+star
