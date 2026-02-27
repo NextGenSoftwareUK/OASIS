@@ -553,6 +553,7 @@ star_api_result_t star_api_create_boss_nft(
     const char* description,
     const char* game_source,
     const char* boss_stats,
+    const char* provider,
     char* nft_id_out
 ) {
     if (!g_state.initialized || !boss_name || !nft_id_out) {

@@ -72,7 +72,7 @@ So games (ODOOM, OQuake, etc.) get cache-first behaviour automatically: no need 
 
 ## Inventory item NFT minting
 
-Games (e.g. ODOOM) can **mint an NFT** when the player collects an item, then add that item to STAR inventory with the **NFT ID** in metadata so it links to the NFTHolon on WEB4.
+NFT minting uses the **WEB4 OASIS API** (not the WEB5 STAR API). Games (e.g. ODOOM) can **mint an NFT** when the player collects an item, then add that item to STAR inventory with the **NFT ID** in metadata so it links to the NFTHolon on WEB4.
 
 - **`star_api_mint_inventory_nft`** (C) / **`MintInventoryItemNftAsync`** (C#): Calls the WEB4 OASIS API `/api/nft/mint-nft` to create an NFTHolon. Returns an NFT ID. Default **provider** is `SolanaOASIS`; can be overridden (e.g. from game config).
 - **`star_api_add_item(..., nft_id)`** (C) / **`AddItemAsync(..., nftId)`** (C#): When `nft_id` is set, the inventory item’s MetaData stores **NFTId** linking to that NFTHolon.

@@ -183,7 +183,7 @@ When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mi
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
 - **nft_provider** – Provider name (e.g. `SolanaOASIS`).
 
-The games call `star_api_mint_inventory_nft` (STARAPIClient C ABI) when mint is on for the item type; the mint is synchronous; the resulting NFT ID is stored with the item in STAR inventory. In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately.
+The games call `star_api_mint_inventory_nft` (STARAPIClient C ABI) when mint is on for the item type; the mint is performed via the **WEB4 OASIS API** (not WEB5 STAR API), is synchronous, and the resulting NFT ID is stored with the item in STAR inventory. In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately.
 
 ## Future: NFT Boss Collection
 

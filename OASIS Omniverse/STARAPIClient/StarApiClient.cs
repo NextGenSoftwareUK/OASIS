@@ -144,13 +144,16 @@ public sealed class StarApiClient : IDisposable
 
         var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 30;
         var normalizedBaseUrl = baseUri.ToString().TrimEnd('/');
+        // NFT minting and avatar auth use WEB4 OASIS API only; do not fall back to WEB5 URL.
         var oasisBaseUrl = FirstNonEmpty(
             config.Web4OasisApiBaseUrl,
-            Environment.GetEnvironmentVariable("OASIS_WEB4_API_BASE_URL"),
-            normalizedBaseUrl)!.TrimEnd('/');
+            Environment.GetEnvironmentVariable("OASIS_WEB4_API_BASE_URL"))?.TrimEnd('/') ?? string.Empty;
         var apiIndex = oasisBaseUrl.IndexOf("/api", StringComparison.OrdinalIgnoreCase);
         if (apiIndex >= 0)
             oasisBaseUrl = oasisBaseUrl[..apiIndex];
+        // When WEB5 is localhost:5556, default WEB4 to localhost:5555 so mint/auth work without extra config.
+        if (string.IsNullOrWhiteSpace(oasisBaseUrl) && (normalizedBaseUrl.Contains(":5556", StringComparison.Ordinal) || normalizedBaseUrl.Contains("localhost:5556", StringComparison.OrdinalIgnoreCase)))
+            oasisBaseUrl = normalizedBaseUrl.Contains("https://", StringComparison.OrdinalIgnoreCase) ? "https://localhost:5555" : "http://localhost:5555";
 
         lock (_stateLock)
         {
@@ -186,6 +189,11 @@ public sealed class StarApiClient : IDisposable
     {
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        string oasisUrl;
+        lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
+        if (string.IsNullOrWhiteSpace(oasisUrl))
+            return FailAndCallback<bool>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
@@ -1090,10 +1098,16 @@ public sealed class StarApiClient : IDisposable
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} active quest(s).");
     }
 
-    public async Task<OASISResult<string>> CreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, CancellationToken cancellationToken = default)
+    /// <summary>Mint an NFT for a boss kill via WEB4 OASIS API. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
+    public async Task<OASISResult<string>> CreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, string? provider = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<string>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        string oasisUrl;
+        lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
+        if (string.IsNullOrWhiteSpace(oasisUrl))
+            return FailAndCallback<string>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
 
         if (string.IsNullOrWhiteSpace(bossName))
             return FailAndCallback<string>("Boss name is required.", StarApiResultCode.InvalidParam);
@@ -1117,6 +1131,9 @@ public sealed class StarApiClient : IDisposable
                 sendToAvatarAfterMintingId = avatarGuid.ToString();
         }
 
+        var onChainProvider = string.IsNullOrWhiteSpace(provider) ? "SolanaOASIS" : provider;
+        var nftStandardType = string.Equals(onChainProvider, "SolanaOASIS", StringComparison.OrdinalIgnoreCase) ? "SPL" : "ERC1155";
+
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
@@ -1127,14 +1144,14 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-boss.png");
             writer.WriteString("thumbnail", "AQ==");
             writer.WriteString("thumbnailUrl", "https://oasisweb4.one/images/star/default-boss-thumb.png");
-            writer.WriteString("memoText", "Minted by WEB5 STAR API Client");
+            writer.WriteString("memoText", "Minted by WEB4 OASIS API");
             writer.WriteNumber("numberToMint", 1);
             writer.WriteBoolean("storeNFTMetaDataOnChain", false);
             writer.WriteString("offChainProvider", "MongoDBOASIS");
-            writer.WriteString("onChainProvider", "ArbitrumOASIS");
+            writer.WriteString("onChainProvider", onChainProvider);
             writer.WriteString("nftOffChainMetaType", "ExternalJSONURL");
             writer.WriteString("JSONMetaDataURL", "https://oasisweb4.one/metadata/star/default-boss.json");
-            writer.WriteString("nftStandardType", "ERC1155");
+            writer.WriteString("nftStandardType", nftStandardType);
             if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
                 writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
             writer.WritePropertyName("metaData");
@@ -1186,11 +1203,17 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
-    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS.</summary>
+    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS. Same as nft_provider in oasisstar.json.</summary>
     public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<(string NftId, string? Hash)>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        string oasisUrl;
+        lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
+        if (string.IsNullOrWhiteSpace(oasisUrl))
+            return FailAndCallback<(string NftId, string? Hash)>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
+
         if (string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<(string NftId, string? Hash)>("Item name is required.", StarApiResultCode.InvalidParam);
 
@@ -1212,14 +1235,14 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-item.png");
             writer.WriteString("thumbnail", "AQ==");
             writer.WriteString("thumbnailUrl", "https://oasisweb4.one/images/star/default-item-thumb.png");
-            writer.WriteString("memoText", "Minted by STAR API (inventory item)");
+            writer.WriteString("memoText", "Minted by WEB4 OASIS API (inventory item)");
             writer.WriteNumber("numberToMint", 1);
             writer.WriteBoolean("storeNFTMetaDataOnChain", false);
             writer.WriteString("offChainProvider", "MongoDBOASIS");
             writer.WriteString("onChainProvider", onChainProvider);
             writer.WriteString("nftOffChainMetaType", "ExternalJSONURL");
             writer.WriteString("JSONMetaDataURL", "https://oasisweb4.one/metadata/star/default-item.json");
-            writer.WriteString("nftStandardType", "ERC1155");
+            writer.WriteString("nftStandardType", string.Equals(onChainProvider, "SolanaOASIS", StringComparison.OrdinalIgnoreCase) ? "SPL" : "ERC1155");
             if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
                 writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
             writer.WritePropertyName("metaData");
@@ -2755,7 +2778,7 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
-    /// <summary>Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
+    /// <summary>Mint an NFT for an inventory item via WEB4 OASIS API (NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut, sbyte* hashOut)
     {
@@ -2861,7 +2884,7 @@ public static unsafe class StarApiExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_create_boss_nft", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiCreateBossNft(sbyte* bossName, sbyte* description, sbyte* gameSource, sbyte* bossStats, sbyte* nftIdOut)
+    public static int StarApiCreateBossNft(sbyte* bossName, sbyte* description, sbyte* gameSource, sbyte* bossStats, sbyte* provider, sbyte* nftIdOut)
     {
         if (nftIdOut is null)
             return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
@@ -2874,7 +2897,8 @@ public static unsafe class StarApiExports
             PtrToString(bossName) ?? string.Empty,
             PtrToString(description),
             PtrToString(gameSource),
-            PtrToString(bossStats)).GetAwaiter().GetResult();
+            PtrToString(bossStats),
+            PtrToString(provider)).GetAwaiter().GetResult();
 
         var code = FinalizeResult(result);
         if (code == StarApiResultCode.Success && !string.IsNullOrWhiteSpace(result.Result))
