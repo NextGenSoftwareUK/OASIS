@@ -735,6 +735,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        ///     Load all provider wallets for an avatar by ID, filtered to a specific provider (alias path).
+        ///     Alias: GET /api/wallet/get-wallets-for-avatar/{avatarId}/{providerType}
+        ///     Added to fix 404 reported by Pangea integration testing.
+        ///     The primary working path is /api/wallet/avatar/{id}/wallets/false/false.
+        /// </summary>
+        /// <param name="avatarId">The avatar ID.</param>
+        /// <param name="providerType">The provider type name (e.g. SolanaOASIS).</param>
+        /// <returns>OASIS result containing the provider wallets or error details.</returns>
+        [Authorize]
+        [HttpGet("get-wallets-for-avatar/{avatarId}/{providerType}")]
+        [ProducesResponseType(typeof(OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> GetWalletsForAvatarAsync(Guid avatarId, string providerType)
+        {
+            ProviderType parsedProvider = ProviderType.Default;
+            if (!string.IsNullOrWhiteSpace(providerType))
+                Enum.TryParse(providerType, out parsedProvider);
+
+            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, false, ProviderType.All, parsedProvider);
+        }
+
+        /// <summary>
         ///     Create a new wallet for an avatar by ID.
         /// </summary>
         /// <param name="avatarId">The avatar ID.</param>

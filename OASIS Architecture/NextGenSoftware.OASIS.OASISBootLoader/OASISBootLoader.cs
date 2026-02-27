@@ -818,7 +818,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 SolanaOASIS solanaOasis = new(
                                     OASISDNA.OASIS.StorageProviders.SolanaOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.SolanaOASIS.PrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PublicKey);
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.PublicKey,
+                                    OASISDNA.OASIS.StorageProviders.SolanaOASIS.MainnetConnectionString);
                                 solanaOasis.OnStorageProviderError += SolanaOASIS_StorageProviderError;
                                 result.Result = solanaOasis;
                             }
