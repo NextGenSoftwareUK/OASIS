@@ -2373,7 +2373,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (!g_inventory_open || !cbx)
         return;
 
-    /* Inventory only loads after beam-in and refreshes once when opened; no periodic 2s refresh. */
+    /* Refresh list from client every frame while overlay is open (merge is in-memory, so pickups show immediately). */
+    OQ_RefreshOverlayFromClient();
 
     panel_w = q_min(glwidth - 48, 900);
     panel_h = q_min(glheight - 96, 480);  /* Increased height to prevent text overlap */
