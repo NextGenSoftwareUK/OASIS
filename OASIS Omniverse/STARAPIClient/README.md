@@ -203,6 +203,8 @@ test_inventory.exe http://localhost:5556 user pass "" "" other_user MyClan
 
 ## Unit + Integration + Harness (one click)
 
+The **test harness** (`TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness`) covers the same flows as the C **test_inventory** (init, auth, get avatar, get inventory, has_item, add_item, queue add, flush, use_item, quests, boss NFT, send-to-avatar, send-to-clan, invalidate cache) plus **NFT minting**: direct `MintInventoryItemNftAsync` (Id + Hash), pickup-with-mint via `EnqueuePickupWithMintJobOnly` + flush, and `ConsumeLastMintResult` for console display. **Unit tests** cover not-initialized paths, `ConsumeLastMintResult` when no mint, and WEB4-required mint. **Integration tests** cover full workflow, mint (Id + Hash), pickup-with-mint + consume, send-to-avatar, send-to-clan, and invalidate cache + refetch.
+
 Run the full WEB5 STAR API client validation suite:
 
 ```powershell
@@ -253,17 +255,28 @@ Optional fallback stop by known local ports:
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/stop_local_web4_and_web5_apis.ps1" -UsePortFallback
 ```
 
+Tests default to **real APIs**: WEB5 STAR API `http://localhost:5556`, WEB4 OASIS API `http://localhost:5555`. Override with env vars; use fake servers only when you opt in (e.g. CI with no real servers).
+
+**Test Harness** (console app):
+
+- Default: real APIs at WEB5 `http://localhost:5556`, WEB4 `http://localhost:5555`.
+- `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL` – override endpoints (defaults above).
+- `STARAPI_HARNESS_USE_FAKE_SERVER=true` or `STARAPI_HARNESS_MODE=fake` – use in-process fake servers instead of real APIs.
+- `STARAPI_HARNESS_MODE` – `real` (default), `fake`, `real-local`, `real-live`.
+- `STARAPI_USERNAME` / `STARAPI_PASSWORD` (and optionally `STARAPI_API_KEY` / `STARAPI_AVATAR_ID`) for real API auth.
+- `STARAPI_HARNESS_JUNIT_PATH` – optional JUnit XML output path.
+
+**Integration tests** (xunit):
+
+- Default: real APIs at WEB5 `http://localhost:5556`, WEB4 `http://localhost:5555`.
+- `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL` – override endpoints.
+- `STARAPI_INTEGRATION_USE_FAKE=true` – use in-process fake servers (e.g. for CI).
+- `STARAPI_USERNAME` / `STARAPI_PASSWORD` – credentials when running against real APIs.
+
 Fake server implementation locations:
 
 - Integration test fake server: `OASIS Omniverse/STARAPIClient/TestProjects/NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests/FakeStarApiServer.cs`
 - Harness fake server: `OASIS Omniverse/STARAPIClient/TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness/FakeHarnessApiServer.cs`
-
-Harness runtime config env vars:
-
-- `STARAPI_HARNESS_MODE` (`fake`, `real-local`, `real-live`)
-- `STARAPI_HARNESS_USE_FAKE_SERVER` (legacy compatibility switch)
-- `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL`
-- `STARAPI_HARNESS_JUNIT_PATH`
 
 ## Usage patterns (direct vs queued)
 

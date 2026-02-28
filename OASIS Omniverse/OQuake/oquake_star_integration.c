@@ -1952,6 +1952,12 @@ void OQuake_STAR_PollItems(void) {
         if (star_api_consume_last_mint_result(item_buf, sizeof(item_buf), nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)))
             Con_Printf("NFT minted: %s | ID: %s | Hash: %s\n", item_buf, nft_buf, hash_buf[0] ? hash_buf : "(none)");
     }
+    /* Show any background errors (mint/add_item failure or pickup not queued) in console. */
+    {
+        char err_buf[512] = {0};
+        if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
+            Con_Printf("%s\n", err_buf);
+    }
 
     /* Re-apply oasisstar.json after a short delay so mint/stack from JSON override any config.cfg load. */
     if (g_oq_reapply_json_frames == 0) {
