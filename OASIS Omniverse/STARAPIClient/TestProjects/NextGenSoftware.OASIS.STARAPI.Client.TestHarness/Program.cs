@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.STARAPI.Client;
+using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.Common;
 using System.Xml.Linq;
 
@@ -12,11 +12,12 @@ internal static class Program
 
     private static async Task Main()
     {
-        var harnessMode = GetEnv("STARAPI_HARNESS_MODE", "fake").Trim().ToLowerInvariant();
+        // Default: real APIs at WEB5 localhost:5556, WEB4 localhost:5555. Set STARAPI_HARNESS_USE_FAKE_SERVER=true or STARAPI_HARNESS_MODE=fake to use in-process fake servers.
+        var harnessMode = GetEnv("STARAPI_HARNESS_MODE", "real").Trim().ToLowerInvariant();
         var useFakeServer = harnessMode == "fake" ||
-                            GetEnv("STARAPI_HARNESS_USE_FAKE_SERVER", "true").Equals("true", StringComparison.OrdinalIgnoreCase);
-        var web5BaseUrl = GetEnv("STARAPI_WEB5_BASE_URL", "http://localhost:5055");
-        var web4BaseUrl = GetEnv("STARAPI_WEB4_BASE_URL", "http://localhost:5056");
+                            GetEnv("STARAPI_HARNESS_USE_FAKE_SERVER", "false").Equals("true", StringComparison.OrdinalIgnoreCase);
+        var web5BaseUrl = GetEnv("STARAPI_WEB5_BASE_URL", "http://localhost:5556");
+        var web4BaseUrl = GetEnv("STARAPI_WEB4_BASE_URL", "http://localhost:5555");
         var username = GetEnv("STARAPI_USERNAME", string.Empty);
         var password = GetEnv("STARAPI_PASSWORD", string.Empty);
         var apiKey = GetEnv("STARAPI_API_KEY", string.Empty);
@@ -136,7 +137,43 @@ internal static class Program
         else
             Console.WriteLine("DeployBossNftAsync skipped because CreateBossNftAsync did not return an NFT id.");
 
-        Check("GetNftCollectionAsync", await client.GetNftCollectionAsync());
+        /* NFT minting tests (inventory item mint: Id + Hash) */
+        var mintItemName = $"HarnessMintKey-{suffix}";
+        var mintDirect = await client.MintInventoryItemNftAsync(mintItemName, "Harness direct mint", "Harness", "KeyItem");
+        Check("MintInventoryItemNftAsync", mintDirect);
+        if (!mintDirect.IsError && mintDirect.Result.NftId is { } nftId)
+        {
+            if (string.IsNullOrWhiteSpace(mintDirect.Result.Hash))
+                Console.WriteLine("[PASS] MintInventoryItemNftAsync => NftId present (Hash optional).");
+            else
+                Console.WriteLine($"[PASS] MintInventoryItemNftAsync => NftId: {nftId}, Hash: {mintDirect.Result.Hash}");
+        }
+
+        var pickupMintItem = $"HarnessPickupMint-{suffix}";
+        client.EnqueuePickupWithMintJobOnly(pickupMintItem, "Harness pickup-with-mint", "Harness", "KeyItem", doMint: true, quantity: 1);
+        Check("FlushAddItemJobsAsync (pickup-with-mint)", await client.FlushAddItemJobsAsync());
+        await Task.Delay(500);
+        var consumed = client.ConsumeLastMintResult(out var lastItem, out var lastNftId, out var lastHash);
+        if (consumed && (lastNftId is not null || lastItem is not null))
+        {
+            _passed++;
+            _results.Add(("ConsumeLastMintResult (after pickup-with-mint)", true, $"Item={lastItem}, NftId={lastNftId}, Hash={lastHash ?? "(none)"}"));
+            Console.WriteLine($"[PASS] ConsumeLastMintResult => Item: {lastItem}, ID: {lastNftId}, Hash: {lastHash ?? "(none)"}");
+        }
+        else
+        {
+            _failed++;
+            _results.Add(("ConsumeLastMintResult (after pickup-with-mint)", false, consumed ? "No result consumed" : "Consume returned false"));
+            Console.WriteLine("[FAIL] ConsumeLastMintResult => no mint result (pickup-with-mint may not have completed in time).");
+        }
+
+        /* Inventory tests (from test_inventory.c): invalidate cache, send-to-avatar, send-to-clan */
+        client.InvalidateInventoryCache();
+        Check("GetInventoryAsync (after invalidate)", await client.GetInventoryAsync());
+
+        Check("SendItemToAvatarAsync", await client.SendItemToAvatarAsync("harness-target-avatar", itemA, 1));
+        Check("SendItemToClanAsync", await client.SendItemToClanAsync("HarnessTestClan", itemB, 1));
+
         Check("GetLastError", client.GetLastError());
         Check("Cleanup", client.Cleanup());
 

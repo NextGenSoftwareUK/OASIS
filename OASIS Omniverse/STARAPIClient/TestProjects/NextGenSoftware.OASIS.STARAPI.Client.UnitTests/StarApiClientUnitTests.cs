@@ -109,6 +109,53 @@ public class StarApiClientUnitTests
         Assert.False(cleanupResult.IsError);
     }
 
+    [Fact]
+    public void ConsumeLastMintResult_WhenNoMint_ReturnsFalse()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com/api" });
+
+        var consumed = client.ConsumeLastMintResult(out var itemName, out var nftId, out var hash);
+        Assert.False(consumed);
+        Assert.Null(itemName);
+        Assert.Null(nftId);
+        Assert.Null(hash);
+    }
+
+    [Fact]
+    public void EnqueuePickupWithMintJobOnly_WhenNotInitialized_DoesNotThrow()
+    {
+        using var client = new StarApiClient();
+        client.EnqueuePickupWithMintJobOnly("Item", "Desc", "Game", "KeyItem", doMint: true, quantity: 1);
+    }
+
+    [Fact]
+    public async Task MintInventoryItemNftAsync_WhenWeb4UrlNotSet_ReturnsError()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com/api" });
+
+        var mint = await client.MintInventoryItemNftAsync("Key", "Desc", "Game", "KeyItem");
+        Assert.True(mint.IsError);
+        Assert.Contains("WEB4", mint.Message ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SendItemToAvatarAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.SendItemToAvatarAsync("target", "item", 1);
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task SendItemToClanAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.SendItemToClanAsync("clan", "item", 1);
+        AssertNotInitialized(result);
+    }
+
     private static void AssertNotInitialized<T>(OASISResult<T> result)
     {
         Assert.True(result.IsError);

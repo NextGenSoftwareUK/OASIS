@@ -325,8 +325,20 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 await WriteJsonAsync(response, 200, new
                 {
                     IsError = false,
-                    Result = new { Id = "nft-001" }
+                    Result = new { Id = "nft-001", Hash = "tx-integration-mint-001" }
                 }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-avatar")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-clan")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
             }
 
