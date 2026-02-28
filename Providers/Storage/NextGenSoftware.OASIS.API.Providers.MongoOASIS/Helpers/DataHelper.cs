@@ -275,7 +275,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Object3D = inv.Object3D,
                         Object3DURI = inv.Object3DURI,
                         GameSource = inv.GameSource,
-                        ItemType = inv.ItemType
+                        ItemType = inv.ItemType,
+                        NftId = inv.NftId
                     };
                     if (inv.MetaData != null && inv.MetaData.Count > 0)
                         copy.MetaData = new Dictionary<string, object>(inv.MetaData);
@@ -596,7 +597,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                 foreach (var item in avatar.Inventory)
                 {
                     var inv = item as InventoryItem ?? new InventoryItem();
-                    mongoAvatar.Inventory.Add(new InventoryItem
+                    var mongoInv = new InventoryItem
                     {
                         Name = inv.Name,
                         Description = inv.Description,
@@ -608,8 +609,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                         Object3D = inv.Object3D,
                         Object3DURI = inv.Object3DURI,
                         GameSource = inv.GameSource,
-                        ItemType = inv.ItemType
-                    });
+                        ItemType = inv.ItemType,
+                        NftId = inv.NftId
+                    };
+                    if (inv.MetaData != null && inv.MetaData.Count > 0)
+                        mongoInv.MetaData = new Dictionary<string, object>(inv.MetaData);
+                    mongoAvatar.Inventory.Add(mongoInv);
                 }
             }
 

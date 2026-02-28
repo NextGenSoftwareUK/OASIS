@@ -14,6 +14,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         #region Avatar Inventory Management
 
+        /// <summary>When loading avatar detail from provider, promote MetaData.NFTId to NftId on each inventory item so GET inventory returns NftId and Quake/Doom show [NFT] prefix.</summary>
+        private static void PromoteInventoryNftIdFromMetaData(IAvatarDetail detail)
+        {
+            if (detail?.Inventory == null) return;
+            foreach (var item in detail.Inventory)
+            {
+                if (!string.IsNullOrWhiteSpace(item.NftId)) continue;
+                if (item is IHolonBase hb && hb.MetaData != null)
+                {
+                    if (hb.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                    else if (hb.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets all inventory items owned by the avatar
         /// This is the avatar's actual inventory (items they own), not items they created
@@ -65,14 +82,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
                 return result;
             }
-            // Promote MetaData to first-class GameSource/ItemType so the holon persists them (STAR client may send only MetaData)
+            // Promote MetaData to first-class GameSource/ItemType/NftId so the holon persists them (STAR client may send only MetaData)
             if (item is IHolonBase holonBase && holonBase.MetaData != null)
             {
                 if (string.IsNullOrWhiteSpace(item.ItemType) && holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
                     item.ItemType = typeObj.ToString();
                 if (string.IsNullOrWhiteSpace(item.GameSource) && holonBase.MetaData.TryGetValue("GameSource", out var gsObj) && gsObj != null)
                     item.GameSource = gsObj.ToString();
+                if (string.IsNullOrWhiteSpace(item.NftId))
+                {
+                    if (holonBase.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                    else if (holonBase.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                }
             }
+            /* Ensure NftId is in MetaData so providers that persist custom fields via MetaData return it on GET (Quake/Doom [NFT] prefix). */
+            if (!string.IsNullOrWhiteSpace(item.NftId) && item is IHolonBase hb && hb.MetaData != null)
+                hb.MetaData["NFTId"] = item.NftId;
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
@@ -503,7 +530,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         Description = template.Description,
                         HolonType = template.HolonType,
                         MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null,
-                        Quantity = 1
+                        Quantity = 1,
+                        NftId = template.NftId,
+                        GameSource = template.GameSource,
+                        ItemType = template.ItemType
                     };
                     targetDetail.Inventory.Add(newItem);
                 }

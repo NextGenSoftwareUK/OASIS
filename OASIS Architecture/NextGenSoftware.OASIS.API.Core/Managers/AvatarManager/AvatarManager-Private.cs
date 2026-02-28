@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -625,6 +625,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -673,6 +674,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -721,6 +723,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else

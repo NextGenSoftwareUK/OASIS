@@ -103,6 +103,8 @@ Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **min
 
 ## Build (Native DLL + Import Library)
 
+**Build one thing at a time.** Do not run more than one build (or heavy test run) at a time; it can cause issues. Run each build or test suite separately and wait for it to finish before starting the next.
+
 From repo root:
 
 ```bash

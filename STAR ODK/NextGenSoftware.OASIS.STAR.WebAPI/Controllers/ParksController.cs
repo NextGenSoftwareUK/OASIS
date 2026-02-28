@@ -25,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         /// <summary>
         /// Retrieves all parks in the system.
         /// </summary>

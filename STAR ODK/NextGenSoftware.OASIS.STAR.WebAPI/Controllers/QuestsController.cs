@@ -28,55 +28,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
+
+        protected override STARAPI GetStarAPI() => _starAPI;
         private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
-
-        private IActionResult ValidateAvatarId<T>()
-        {
-            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
-            if (UseTestDataWhenLiveDataNotAvailable)
-                return null;
-                
-            if (AvatarId == Guid.Empty)
-            {
-                return BadRequest(new OASISResult<T>
-                {
-                    IsError = true,
-                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                });
-            }
-            return null;
-        }
-
-        private async Task EnsureStarApiBootedAsync()
-        {
-            // Check if already booted and avatar is set
-            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                // Double-check after acquiring lock
-                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-                    return;
-
-                // Boot OASIS if not already booted
-                if (!_starAPI.IsOASISBooted)
-                {
-                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                    if (boot.IsError)
-                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-                }
-
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
 
         /// <summary>
         /// Retrieves all quests in the system.
@@ -455,6 +409,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
                 var result = await _starAPI.Quests.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -466,6 +426,39 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 
                 if (result.IsError)
                     return BadRequest(result);
+
+                // Add objectives (sub-quests) if provided.
+                if (request.Objectives != null && request.Objectives.Count > 0 && result.Result != null)
+                {
+                    var manager = CreateQuestManager();
+                    int order = 0;
+                    foreach (var obj in request.Objectives)
+                    {
+                        var subQuest = new Quest
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = string.IsNullOrWhiteSpace(obj.Name) ? (obj.Description?.Trim() ?? "Objective") : obj.Name,
+                            Description = obj.Description?.Trim() ?? "",
+                            Order = obj.Order >= 0 ? obj.Order : order,
+                            Status = QuestStatus.NotStarted,
+                            Type = QuestType.SideQuest,
+                            QuestType = QuestType.SideQuest,
+                            Requirements = new List<string>()
+                        };
+                        if (!string.IsNullOrWhiteSpace(obj.GameSource))
+                            subQuest.Requirements.Add($"GameSource:{obj.GameSource}");
+                        if (!string.IsNullOrWhiteSpace(obj.ItemRequired))
+                            subQuest.Requirements.Add($"ItemRequired:{obj.ItemRequired}");
+                        var addResult = await manager.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
+                        if (addResult.IsError)
+                            return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to add objective: {addResult.Message}" });
+                        order++;
+                    }
+                    // Reload quest so Result includes the new objectives.
+                    var reload = await _starAPI.Quests.LoadAsync(AvatarId, result.Result.Id, 0);
+                    if (!reload.IsError && reload.Result != null)
+                        result = reload;
+                }
                 
                 return Ok(result);
             }
@@ -478,6 +471,88 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return Ok(TestDataHelper.CreateSuccessResult<Quest>(testQuest, "Quest created successfully (using test data)"));
                 }
                 return HandleException<Quest>(ex, "creating quest");
+            }
+        }
+
+        /// <summary>
+        /// Adds an objective (sub-quest) to an existing quest.
+        /// </summary>
+        /// <param name="id">The parent quest ID.</param>
+        /// <param name="request">Objective description and optional game source / item required.</param>
+        /// <returns>The created sub-quest (objective) with its ID.</returns>
+        [HttpPost("{id}/objectives")]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddQuestObjective(Guid id, [FromBody] AddQuestObjectiveRequest request)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                if (request == null)
+                    return BadRequest(new OASISResult<Quest> { IsError = true, Message = "Request body is required." });
+
+                var subQuest = new Quest
+                {
+                    Id = Guid.NewGuid(),
+                    Name = string.IsNullOrWhiteSpace(request.Name) ? (request.Description?.Trim() ?? "Objective") : request.Name,
+                    Description = request.Description?.Trim() ?? "",
+                    Order = request.Order >= 0 ? request.Order : 0,
+                    Status = QuestStatus.NotStarted,
+                    Type = QuestType.SideQuest,
+                    QuestType = QuestType.SideQuest,
+                    Requirements = new List<string>()
+                };
+                if (!string.IsNullOrWhiteSpace(request.GameSource))
+                    subQuest.Requirements.Add($"GameSource:{request.GameSource}");
+                if (!string.IsNullOrWhiteSpace(request.ItemRequired))
+                    subQuest.Requirements.Add($"ItemRequired:{request.ItemRequired}");
+
+                var manager = CreateQuestManager();
+                var result = await manager.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
+
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<Quest>(ex, "adding quest objective");
+            }
+        }
+
+        /// <summary>
+        /// Removes an objective (sub-quest) from a quest.
+        /// </summary>
+        /// <param name="parentId">The parent quest ID.</param>
+        /// <param name="objectiveId">The objective (sub-quest) ID to remove.</param>
+        [HttpDelete("{parentId}/objectives/{objectiveId}")]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RemoveQuestObjective(Guid parentId, Guid objectiveId)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var manager = CreateQuestManager();
+                var result = await manager.RemoveQuestAsync(AvatarId, parentId, objectiveId, ProviderType.Default);
+
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<Quest>(ex, "removing quest objective");
             }
         }
 
@@ -1043,6 +1118,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public HolonType HolonSubType { get; set; } = HolonType.Quest;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
+        /// <summary>Optional list of objectives (sub-quests) to create with the quest. Each gets a distinct ID so CompleteQuestObjective can be used.</summary>
+        public List<QuestObjectiveRequest>? Objectives { get; set; }
+    }
+
+    /// <summary>Objective (sub-quest) payload for create or add objective.</summary>
+    public class QuestObjectiveRequest
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string GameSource { get; set; } = "";
+        public string ItemRequired { get; set; } = "";
+        public int Order { get; set; } = -1;
+    }
+
+    public class AddQuestObjectiveRequest
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string GameSource { get; set; } = "";
+        public string ItemRequired { get; set; } = "";
+        public int Order { get; set; } = -1;
     }
 
     public class EditQuestRequest

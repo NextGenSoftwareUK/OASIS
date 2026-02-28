@@ -33,29 +33,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         // STARAPI implementation for inventory endpoints (Web4 doesn't have /api/avatar/inventory)
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private async Task EnsureStarApiBootedAsync()
-        {
-            if (_starAPI.IsOASISBooted)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                if (_starAPI.IsOASISBooted)
-                    return;
-
-                var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                if (boot.IsError)
-                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Forwards a request to WEB4 OASIS API and returns the response.
