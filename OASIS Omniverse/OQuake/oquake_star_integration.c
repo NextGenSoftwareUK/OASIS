@@ -48,6 +48,8 @@ static void OQ_AddItemLogCb(const char* item_name, int success, const char* erro
 
 static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
+/** 1 only after user has run "star beamin" and it succeeded (or async auth callback). Used to gate mint/add so we do not mint shells/shotgun etc. at startup before beamin. */
+static int g_star_beamed_in = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
@@ -109,6 +111,7 @@ typedef struct oquake_inventory_entry_s {
     char item_type[64];
     char id[64];  /* STAR inventory item Guid (empty for local-only entries) */
     char game_source[64];  /* e.g. ODOOM, OQUAKE - for display (ODOOM)/(OQUAKE) */
+    char nft_id[128];  /* when set, show [NFT] prefix in overlay (persists after reload / from API) */
     int quantity;  /* from API (stack size); use for display so reload shows correct total */
 } oquake_inventory_entry_t;
 
@@ -271,7 +274,10 @@ static void OQ_GetGroupedDisplayInfo(const oquake_inventory_entry_t* item, char*
     if (out_value) *out_value = 1;
     if (!item) return;
     if (label && label_size > 0) {
-        q_strlcpy(label, item->name, label_size);
+        if (item->nft_id[0] != '\0')
+            q_snprintf(label, label_size, "[NFT] %s", item->name);
+        else
+            q_strlcpy(label, item->name, label_size);
         OQ_AppendGameSourceTag(item, label, label_size);
     }
     if (mode) *mode = OQ_IsStackableType(item->name) ? OQ_GROUP_MODE_SUM : OQ_GROUP_MODE_COUNT;
@@ -295,7 +301,10 @@ static int OQ_BuildGroupedRows(
         if (display_qty < 1) display_qty = 1;
 
         out_rep_indices[group_count] = item_idx;
-        q_strlcpy(out_labels[group_count], ent->name, OQ_GROUP_LABEL_MAX);
+        if (ent->nft_id[0] != '\0')
+            q_snprintf(out_labels[group_count], OQ_GROUP_LABEL_MAX, "[NFT] %s", ent->name);
+        else
+            q_strlcpy(out_labels[group_count], ent->name, OQ_GROUP_LABEL_MAX);
         OQ_AppendGameSourceTag(ent, out_labels[group_count], OQ_GROUP_LABEL_MAX);
         out_modes[group_count] = OQ_IsStackableType(ent->name) ? OQ_GROUP_MODE_SUM : OQ_GROUP_MODE_COUNT;
         out_values[group_count] = display_qty;
@@ -598,6 +607,7 @@ static void OQ_OnAuthDone(void* user_data) {
             Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
         OQ_ApplyBeamFacePreference();
+        g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
         g_inventory_last_refresh = 0.0;
         /* C# client flushes queued add_item jobs in background; just refresh overlay when user opens inventory. */
@@ -644,6 +654,7 @@ static void OQ_RefreshOverlayFromClient(void) {
             q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
             q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
             q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
+            q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
             dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
             g_inventory_count++;
         }
@@ -1836,6 +1847,15 @@ void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items
         return;
     if (gained == 0)
         return;
+    /* Only mint/add after user has beamed in and started a level; avoid minting shells/shotgun at startup. */
+    if (!g_star_beamed_in)
+        return;
+    {
+        extern server_t sv;
+        extern client_static_t cls;
+        if (!sv.active || cls.demoplayback)
+            return;
+    }
 
     if (gained & IT_SHOTGUN) added += OQ_StackWeapons() ? OQ_AddInventoryEvent("Shotgun", "Shotgun discovered", "Weapon") : OQ_AddInventoryUnlockIfMissing("Shotgun", "Shotgun discovered", "Weapon");
     if (gained & IT_SUPER_SHOTGUN) added += OQ_StackWeapons() ? OQ_AddInventoryEvent("Super Shotgun", "Super Shotgun discovered", "Weapon") : OQ_AddInventoryUnlockIfMissing("Super Shotgun", "Super Shotgun discovered", "Weapon");
@@ -1888,6 +1908,15 @@ void OQuake_STAR_OnStatsChangedEx(
     (void)new_health;
     if (!in_real_game)
         return;
+    /* Only mint/add after user has beamed in and started a level; avoid minting shells/shotgun at startup. */
+    if (!g_star_beamed_in)
+        return;
+    {
+        extern server_t sv;
+        extern client_static_t cls;
+        if (!sv.active || cls.demoplayback)
+            return;
+    }
     /* Minimal hook: queue pickup to C# client; client manages delta and sync. */
     if (new_shells > old_shells) {
         q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
@@ -2274,6 +2303,7 @@ void OQuake_STAR_Console_f(void) {
         if (star_initialized() && runtime_user) {
             star_api_cleanup();
             g_star_initialized = 0;
+            g_star_beamed_in = 0;
         }
 
         if (runtime_user && runtime_pass && OQ_IsMockAnorakCredentials(runtime_user, runtime_pass)) {
@@ -2362,6 +2392,7 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
+            g_star_beamed_in = 1;
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
@@ -2384,6 +2415,7 @@ void OQuake_STAR_Console_f(void) {
         if (!star_initialized()) { Con_Printf("Not logged in. Use 'star beamin' to log in.\n"); return; }
         star_api_cleanup();
         g_star_initialized = 0;
+        g_star_beamed_in = 0;
         g_star_username[0] = 0;
         Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
         Con_Printf("Logged out (beamout). Use 'star beamin' to log in again.\n");

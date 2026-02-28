@@ -629,7 +629,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			if (idx < starCount && idx < starLines.Size())
 			{
 				String line = starLines[idx];
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_RED, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else
 			{

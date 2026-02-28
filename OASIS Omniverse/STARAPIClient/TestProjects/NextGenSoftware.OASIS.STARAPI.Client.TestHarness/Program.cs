@@ -167,6 +167,54 @@ internal static class Program
             Console.WriteLine("[FAIL] ConsumeLastMintResult => no mint result (pickup-with-mint may not have completed in time).");
         }
 
+        /* [NFT] prefix: add item with nftId, refetch inventory, assert NftId is set so Doom/Quake can show "[NFT] " + name */
+        var nftPrefixItemName = $"HarnessNftPrefix-{suffix}";
+        const string nftPrefixNftId = "harness-nft-prefix-001";
+        var addWithNft = await client.AddItemAsync(nftPrefixItemName, "Harness [NFT] prefix test", "Harness", "KeyItem", nftId: nftPrefixNftId);
+        if (!addWithNft.IsError)
+        {
+            client.InvalidateInventoryCache();
+            var invAfterNft = await client.GetInventoryAsync();
+            if (!invAfterNft.IsError && invAfterNft.Result is not null)
+            {
+                var nftItem = invAfterNft.Result.FirstOrDefault(x => string.Equals(x.Name, nftPrefixItemName, StringComparison.OrdinalIgnoreCase));
+                if (nftItem is not null && !string.IsNullOrEmpty(nftItem.NftId))
+                {
+                    var displayName = string.IsNullOrEmpty(nftItem.NftId) ? nftItem.Name : "[NFT] " + nftItem.Name;
+                    if (displayName == "[NFT] " + nftPrefixItemName)
+                    {
+                        _passed++;
+                        _results.Add(("[NFT] prefix (add with nftId, GET inventory)", true, $"NftId={nftItem.NftId}, display={displayName}"));
+                        Console.WriteLine($"[PASS] [NFT] prefix => item has NftId, display would be \"{displayName}\"");
+                    }
+                    else
+                    {
+                        _failed++;
+                        _results.Add(("[NFT] prefix (add with nftId, GET inventory)", false, $"Display expected [NFT] {nftPrefixItemName}, got {displayName}"));
+                        Console.WriteLine($"[FAIL] [NFT] prefix => display expected \"[NFT] {nftPrefixItemName}\", got \"{displayName}\"");
+                    }
+                }
+                else
+                {
+                    _failed++;
+                    _results.Add(("[NFT] prefix (add with nftId, GET inventory)", false, nftItem is null ? "Item not in inventory" : "NftId empty after GET (API may not return NFTId)"));
+                    Console.WriteLine("[FAIL] [NFT] prefix => item missing or NftId empty after GET inventory (real API must return NFTId).");
+                }
+            }
+            else
+            {
+                _failed++;
+                _results.Add(("[NFT] prefix (add with nftId, GET inventory)", false, invAfterNft.Message ?? "GetInventory failed"));
+                Console.WriteLine($"[FAIL] [NFT] prefix => GetInventory failed: {invAfterNft.Message}");
+            }
+        }
+        else
+        {
+            _failed++;
+            _results.Add(("[NFT] prefix (add with nftId)", false, addWithNft.Message ?? "AddItem failed"));
+            Console.WriteLine($"[FAIL] [NFT] prefix => AddItem failed: {addWithNft.Message}");
+        }
+
         /* Inventory tests (from test_inventory.c): invalidate cache, send-to-avatar, send-to-clan */
         client.InvalidateInventoryCache();
         Check("GetInventoryAsync (after invalidate)", await client.GetInventoryAsync());

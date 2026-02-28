@@ -305,5 +305,41 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         if (_useFakeServer && _web5Server is not null)
             Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 2);
     }
+
+    /// <summary>Display name for overlay: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
+    private static string DisplayNameWithNftPrefix(StarItem item)
+    {
+        return string.IsNullOrEmpty(item.NftId) ? item.Name : "[NFT] " + item.Name;
+    }
+
+    [Fact]
+    public async Task GetInventory_WhenItemHasNftIdInResponse_ItemHasNftIdSet_AndDisplayPrefixWouldBeNft()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        var username = _useFakeServer ? "integration-user" : GetEnv("STARAPI_USERNAME", "integration-user");
+        var password = _useFakeServer ? "integration-password" : GetEnv("STARAPI_PASSWORD", "integration-password");
+        await client.AuthenticateAsync(username, password);
+        if (_useFakeServer)
+            Assert.False(client.SetApiKey("local-api-key", "11111111-1111-1111-1111-111111111111").IsError);
+
+        const string nftId = "nft-test-prefix-001";
+        const string itemName = "Red Keycard";
+        var add = await client.AddItemAsync(itemName, "Collected in Doom", "Doom", "KeyItem", nftId: nftId);
+        Assert.False(add.IsError);
+
+        client.InvalidateInventoryCache();
+        var inventory = await client.GetInventoryAsync();
+        Assert.False(inventory.IsError);
+        var nftItem = inventory.Result!.FirstOrDefault(x => string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase));
+        Assert.NotNull(nftItem);
+        Assert.False(string.IsNullOrEmpty(nftItem.NftId), "Item added with nftId should have NftId set after GET inventory so [NFT] prefix can appear.");
+        Assert.Equal(nftId, nftItem.NftId);
+
+        var displayName = DisplayNameWithNftPrefix(nftItem);
+        Assert.StartsWith("[NFT] ", displayName);
+        Assert.Equal("[NFT] " + itemName, displayName);
+    }
+
 }
 

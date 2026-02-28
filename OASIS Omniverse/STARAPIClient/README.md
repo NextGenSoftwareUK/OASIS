@@ -203,9 +203,16 @@ test_inventory.exe http://localhost:5556 user pass "" "" other_user MyClan
 
 ## Unit + Integration + Harness (one click)
 
-The **test harness** (`TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness`) covers the same flows as the C **test_inventory** (init, auth, get avatar, get inventory, has_item, add_item, queue add, flush, use_item, quests, boss NFT, send-to-avatar, send-to-clan, invalidate cache) plus **NFT minting**: direct `MintInventoryItemNftAsync` (Id + Hash), pickup-with-mint via `EnqueuePickupWithMintJobOnly` + flush, and `ConsumeLastMintResult` for console display. **Unit tests** cover not-initialized paths, `ConsumeLastMintResult` when no mint, and WEB4-required mint. **Integration tests** cover full workflow, mint (Id + Hash), pickup-with-mint + consume, send-to-avatar, send-to-clan, and invalidate cache + refetch.
+The **test harness** (`TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness`) covers the same flows as the C **test_inventory** (init, auth, get avatar, get inventory, has_item, add_item, queue add, flush, use_item, quests, boss NFT, send-to-avatar, send-to-clan, invalidate cache) plus **NFT minting** and **[NFT] prefix**: direct `MintInventoryItemNftAsync` (Id + Hash), pickup-with-mint via `EnqueuePickupWithMintJobOnly` + flush, `ConsumeLastMintResult` for console display, and a **real-API [NFT] prefix** check (add item with `nftId`, GET inventory, assert item has `NftId` and display would be `[NFT] ...`). The harness defaults to **real APIs** (WEB5 localhost:5556, WEB4 localhost:5555); set `STARAPI_HARNESS_USE_FAKE_SERVER=true` or `STARAPI_HARNESS_MODE=fake` to use fake servers. **Unit tests** cover not-initialized paths, `ConsumeLastMintResult` when no mint, WEB4-required mint, and the **[NFT] prefix** contract (when `NftId` is set, display name is `"[NFT] " + Name` for Doom/Quake overlay). **Integration tests** run against **real APIs by default** (localhost:5556/5555); set `STARAPI_INTEGRATION_USE_FAKE=true` for in-process fake servers. They cover full workflow, mint (Id + Hash), pickup-with-mint + consume, send-to-avatar, send-to-clan, invalidate cache + refetch, and **GET inventory with NftId** (add item with `nftId`, GET inventory, assert item has `NftId` and display prefix `[NFT] ...`); this test passes with real APIs when the backend returns `NftId` on GET inventory.
 
-Run the full WEB5 STAR API client validation suite:
+**Batch scripts** (run from `OASIS Omniverse/STARAPIClient` or with full path):
+
+- **RUN_UNIT_TESTS.bat** – unit tests only
+- **RUN_INTEGRATION_TESTS.bat** – integration tests only (default: real APIs; set `STARAPI_INTEGRATION_USE_FAKE=true` for fake)
+- **RUN_TEST_HARNESS.bat** – test harness only (default: real APIs; set `STARAPI_HARNESS_USE_FAKE_SERVER=true` for fake)
+- **RUN_ALL_TESTS.bat** – unit, then integration, then harness (exits with 1 if any run fails)
+
+Run the full WEB5 STAR API client validation suite [PowerShell]:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1"
