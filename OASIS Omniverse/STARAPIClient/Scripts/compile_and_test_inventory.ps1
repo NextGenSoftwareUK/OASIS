@@ -15,10 +15,10 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$nativeDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/native"
-$publishDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/publish"
-$testSource = Join-Path $scriptDir "test_inventory.c"
-$testExe = Join-Path $scriptDir "test_inventory.exe"
+$nativeDir = Join-Path $scriptDir "../TestProjects/bin/Release/net8.0/$Runtime/native"
+$publishDir = Join-Path $scriptDir "../TestProjects/bin/Release/net8.0/$Runtime/publish"
+$testSource = Join-Path $scriptDir "../TestProjects/test_inventory.c"
+$testExe = Join-Path $scriptDir "../TestProjects/test_inventory.exe"
 
 # Prompt to rebuild client when not explicitly passed (default Y)
 if (-not $PSBoundParameters.ContainsKey('RebuildClient'))

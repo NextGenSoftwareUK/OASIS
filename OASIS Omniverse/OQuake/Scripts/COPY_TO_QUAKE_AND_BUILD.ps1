@@ -9,21 +9,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$OasisRoot = Split-Path -Parent $ScriptDir
-$STARAPIClientRoot = Join-Path $OasisRoot "STARAPIClient"
-$DoomFolder = Join-Path $OasisRoot "Doom"
+$OQuakeRoot = Split-Path -Parent $ScriptDir
+$OQuakeCode = Join-Path $OQuakeRoot "Code"
+$OQuakeDocs = Join-Path $OQuakeRoot "Docs"
+$STARAPIClientRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
 
 if (-not $QuakeSrc -or -not (Test-Path $QuakeSrc)) {
     Write-Host "Set QUAKE_SRC or pass -QuakeSrc (e.g. C:\Source\quake-rerelease-qc)"
     exit 1
 }
 
-# STAR DLL/LIB (use STARAPIClient only)
+# STAR DLL/LIB (prefer OQuake Code, then STARAPIClient publish)
 $StarDll = $null
 $StarLib = $null
-if (Test-Path (Join-Path $DoomFolder "star_api.dll")) {
-    $StarDll = Join-Path $DoomFolder "star_api.dll"
-    $StarLib = Join-Path $DoomFolder "star_api.lib"
+if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
+    $StarDll = Join-Path $OQuakeCode "star_api.dll"
+    $StarLib = Join-Path $OQuakeCode "star_api.lib"
 }
 $StarPublish = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
 if (-not $StarDll -and (Test-Path (Join-Path $StarPublish "star_api.dll"))) {
@@ -33,11 +34,11 @@ if (-not $StarDll -and (Test-Path (Join-Path $StarPublish "star_api.dll"))) {
 }
 
 $files = @(
-    @{ Src = Join-Path $ScriptDir "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
-    @{ Src = Join-Path $ScriptDir "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
-    @{ Src = Join-Path $ScriptDir "oquake_version.h"; Dest = "oquake_version.h" },
-    @{ Src = Join-Path $ScriptDir "engine_oquake_hooks.c.example"; Dest = "engine_oquake_hooks.c.example" },
-    @{ Src = Join-Path $ScriptDir "WINDOWS_INTEGRATION.md"; Dest = "WINDOWS_INTEGRATION.md" },
+    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
+    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
+    @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
+    @{ Src = Join-Path $OQuakeCode "engine_oquake_hooks.c.example"; Dest = "engine_oquake_hooks.c.example" },
+    @{ Src = Join-Path $OQuakeDocs "WINDOWS_INTEGRATION.md"; Dest = "WINDOWS_INTEGRATION.md" },
     @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" }
 )
 

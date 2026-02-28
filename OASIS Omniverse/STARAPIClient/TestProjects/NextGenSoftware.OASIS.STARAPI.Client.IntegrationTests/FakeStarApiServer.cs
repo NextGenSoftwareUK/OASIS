@@ -251,6 +251,45 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
 
             if (method == "POST" && path == "/api/quests/create")
             {
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new
+                    {
+                        Id = "quest-fake-001",
+                        Name = "Fake Quest",
+                        Description = "Fake quest with objectives",
+                        Status = "NotStarted",
+                        Objectives = new[]
+                        {
+                            new { Id = "obj-fake-1", Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
+                            new { Id = "obj-fake-2", Description = "Objective 2", GameSource = "Doom", ItemRequired = "BossKill", IsCompleted = false }
+                        }
+                    }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path.StartsWith("/api/quests/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/objectives", StringComparison.OrdinalIgnoreCase))
+            {
+                var id = "obj-fake-added-" + Guid.NewGuid().ToString("N")[..8];
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new
+                    {
+                        Id = id,
+                        Name = "Added Objective",
+                        Description = "Fake added objective",
+                        Status = "NotStarted",
+                        Objectives = Array.Empty<object>()
+                    }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "DELETE" && path.Contains("/objectives/", StringComparison.OrdinalIgnoreCase))
+            {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
             }

@@ -24,24 +24,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private COSMICManager _cosmicManager = null;
         private static readonly SemaphoreSlim _bootLock = new(1, 1);
+        private static readonly NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI _starAPI = new NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI(new NextGenSoftware.OASIS.STAR.DNA.STARDNA());
 
-        private IActionResult ValidateAvatarId<T>()
-        {
-            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
-            if (UseTestDataWhenLiveDataNotAvailable)
-                return null;
-                
-            if (AvatarId == Guid.Empty)
-            {
-                return BadRequest(new OASISResult<T>
-                {
-                    IsError = true,
-                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                });
-            }
-            return null;
-        }
-
+        protected override NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI GetStarAPI() => _starAPI;
 
         private async Task EnsureOASISBootedAsync()
         {

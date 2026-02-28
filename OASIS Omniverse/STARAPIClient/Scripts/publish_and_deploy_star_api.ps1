@@ -8,19 +8,20 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectPath = Join-Path $scriptDir "STARAPIClient.csproj"
-$publishDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/publish"
-$nativeDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/native"
+$projectDir = Join-Path $scriptDir ".."
+$projectPath = Join-Path $projectDir "STARAPIClient.csproj"
+$publishDir = Join-Path $projectDir "bin/Release/net8.0/$Runtime/publish"
+$nativeDir = Join-Path $projectDir "bin/Release/net8.0/$Runtime/native"
 $dllPath = Join-Path $publishDir "star_api.dll"
 $libPath = Join-Path $nativeDir "star_api.lib"
-$headerPath = Join-Path $scriptDir "star_api.h"
+$headerPath = Join-Path $projectDir "star_api.h"
 
-# Build only when: forced, or dll missing, or any source (.cs / .csproj) is newer than star_api.dll
+# Build only when: forced, or dll missing, or any project source (.cs / .csproj) under project root is newer than star_api.dll
 $needBuild = $ForceBuild
 if (!$needBuild -and (Test-Path $dllPath)) {
     $dllTime = (Get-Item $dllPath).LastWriteTimeUtc
-    $sources = @(Get-ChildItem -Path $scriptDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
-               @(Get-ChildItem -Path $scriptDir -Filter "*.csproj" -File -ErrorAction SilentlyContinue)
+    $sources = @(Get-ChildItem -Path $projectDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
+               @(Get-ChildItem -Path $projectDir -Filter "*.csproj" -Recurse -File -ErrorAction SilentlyContinue)
     foreach ($f in $sources) {
         if ($f.LastWriteTimeUtc -gt $dllTime) {
             $needBuild = $true
@@ -41,8 +42,8 @@ if (!(Test-Path $libPath)) { throw "Missing output: $libPath" }
 if (!(Test-Path $headerPath)) { throw "Missing header: $headerPath" }
 
 $targets = @(
-    (Join-Path $scriptDir "..\ODOOM"),
-    (Join-Path $scriptDir "..\OQuake"),
+    (Join-Path $scriptDir "..\..\ODOOM"),
+    (Join-Path $scriptDir "..\..\OQuake"),
     "C:\Source\UZDoom\src",
     "C:\Source\vkQuake\Quake"
 )
@@ -61,20 +62,20 @@ foreach ($target in $targets)
 
 if ($RunSmokeTest)
 {
-    $smokeSource = Join-Path $scriptDir "smoke_test.c"
-    $smokeExe = Join-Path $scriptDir "smoke_test.exe"
+    $smokeSource = Join-Path $projectDir "TestProjects\smoke_test.c"
+    $smokeExe = Join-Path $projectDir "TestProjects\smoke_test.exe"
 
     Write-Host "Compiling smoke test..."
-    Push-Location $scriptDir
+    Push-Location $projectDir
     try
     {
         if (Get-Command cl.exe -ErrorAction SilentlyContinue)
         {
-            & cl.exe /nologo /W3 /I"$scriptDir" "$smokeSource" /link /LIBPATH:"$nativeDir" star_api.lib /OUT:"$smokeExe"
+            & cl.exe /nologo /W3 /I"$projectDir" "$smokeSource" /link /LIBPATH:"$nativeDir" star_api.lib /OUT:"$smokeExe"
         }
         elseif (Get-Command gcc.exe -ErrorAction SilentlyContinue)
         {
-            & gcc.exe "$smokeSource" -I"$scriptDir" "$libPath" -o "$smokeExe"
+            & gcc.exe "$smokeSource" -I"$projectDir" "$libPath" -o "$smokeExe"
         }
         else
         {

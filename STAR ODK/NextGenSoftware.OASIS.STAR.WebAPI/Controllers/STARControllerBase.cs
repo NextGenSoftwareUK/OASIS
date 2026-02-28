@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core;
@@ -8,6 +9,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System.Text.Json;
@@ -15,8 +17,37 @@ using Microsoft.Extensions.Configuration;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
-    public class STARControllerBase : ControllerBase
+    public abstract class STARControllerBase : ControllerBase
     {
+        /// <summary>
+        /// Returns the STAR API instance for this controller (used for boot and avatar context).
+        /// </summary>
+        protected abstract STARAPI GetStarAPI();
+
+        /// <summary>
+        /// Ensures the STAR/OASIS runtime is booted so Web API calls work without prior CLI/desktop boot.
+        /// </summary>
+        protected virtual async Task EnsureStarApiBootedAsync()
+        {
+            var api = GetStarAPI();
+            if (api == null || api.IsOASISBooted)
+                return;
+            var boot = await api.BootOASISAsync("admin", "admin");
+            if (boot.IsError)
+                throw new OASISException(boot.Message ?? "Failed to boot OASIS for Web API.");
+        }
+
+        /// <summary>
+        /// Validates that AvatarId is set (required for STAR NET operations). Skip when using test data.
+        /// </summary>
+        protected virtual IActionResult ValidateAvatarId<T>()
+        {
+            if (UseTestDataWhenLiveDataNotAvailable)
+                return null;
+            if (AvatarId == Guid.Empty)
+                return BadRequest(new OASISResult<T> { IsError = true, Message = "AvatarId is required. Set X-Avatar-Id header or ensure user is authenticated." });
+            return null;
+        }
         public IAvatar Avatar
         {
             get

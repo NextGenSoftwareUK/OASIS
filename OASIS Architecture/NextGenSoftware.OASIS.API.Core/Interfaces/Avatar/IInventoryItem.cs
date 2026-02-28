@@ -18,6 +18,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string GameSource { get; set; }
         /// <summary>Category of item (e.g. Ammo, Armor, Weapon, KeyItem). Persisted on the holon.</summary>
         string ItemType { get; set; }
+        /// <summary>NFT ID when this item was minted (e.g. from WEB4 NFTHolon). Persisted so clients can show [NFT] prefix in overlays.</summary>
+        string NftId { get; set; }
         //InventoryItemType InventoryItemType { get; set; }
     }
 }

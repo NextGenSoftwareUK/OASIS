@@ -4,12 +4,12 @@ This guide is for integrating the OASIS STAR API into your Quake fork so that **
 
 ## Credits and license
 
-**OQuake is based on vkQuake.** Full credit goes to the [vkQuake](https://github.com/Novum/vkQuake) project (Novum). vkQuake is licensed under the GNU General Public License v2.0 (GPL-2.0). When you build or distribute OQuake, you must comply with vkQuake’s license and give appropriate credit. See **[CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md)** in this folder for details.
+**OQuake is based on vkQuake.** Full credit goes to the [vkQuake](https://github.com/Novum/vkQuake) project (Novum). vkQuake is licensed under the GNU General Public License v2.0 (GPL-2.0). When you build or distribute OQuake, you must comply with vkQuake’s license and give appropriate credit. See **[CREDITS_AND_LICENSE.md](CREDITS_AND_LICENSE.md)** in Docs for details.
 
-**Loading / splash screen:** OQuake shows an **OASIS / OQuake** text splash in the console at startup (like ODOOM). A graphic splash image (**`oasis_splash.png`**) is provided in this folder for use as a loading screen in vkQuake; see **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** section 7 for how to integrate it.
+**Loading / splash screen:** OQuake shows an **OASIS / OQuake** text splash in the console at startup (like ODOOM). A graphic splash image (**`Images/oasis_splash.png`**) is provided for use as a loading screen in vkQuake; see **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** section 7 for how to integrate it.
 
 **Quake source (QuakeC):** `C:\Source\quake-rerelease-qc`  
-**OQuake integration files:** This folder (`OASIS Omniverse\OQuake`).
+**OQuake integration files:** `OASIS Omniverse\OQuake` (Code/, Scripts/, Version/, Docs/, Images/, vkquake_oquake/).
 
 **One-click script (same as ODOOM/UZDoom):** From `C:\Source\OASIS-master` run:
 
@@ -75,7 +75,7 @@ Same as ODOOM (see `Doom\WINDOWS_INTEGRATION.md` Step 2). Use `STAR_USERNAME`/`S
 
 Run **BUILD_OQUAKE.bat** – it copies integration and star_api into `QUAKE_SRC` (quake-rerelease-qc) and, if **VKQUAKE_SRC** is set, into vkQuake's Quake folder and builds vkQuake. Run from **Developer Command Prompt for VS 2022** so MSBuild is in PATH.
 
-Or copy manually: see **COPY_TO_QUAKE_AND_BUILD.ps1** and **vkquake_oquake\apply_oquake_to_vkquake.ps1**.
+Or copy manually: see **Scripts/COPY_TO_QUAKE_AND_BUILD.ps1** and **vkquake_oquake\apply_oquake_to_vkquake.ps1**.
 
 ## Step 4: Engine Modifications (C Code)
 
@@ -85,7 +85,7 @@ QuakeC cannot call C functions directly. The **engine** must:
 2. When the player picks up a key: `OQuake_STAR_OnKeyPickup("silver_key")` or `"gold_key"`.
 3. When the player touches a key door and **does not** have the required key locally: `OQuake_STAR_CheckDoorAccess(door_targetname, "silver_key")` or `"gold_key"`. If it returns 1, open the door.
 
-Include in the engine (e.g. `host.c`): `#include "oquake_star_integration.h"`. See **engine_oquake_hooks.c.example** and **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** for vkQuake.
+Include in the engine (e.g. `host.c`): `#include "oquake_star_integration.h"`. See **Code/engine_oquake_hooks.c.example** and **vkquake_oquake\VKQUAKE_OQUAKE_INTEGRATION.md** for vkQuake.
 
 ## Step 5: QuakeC and engine builtins
 
@@ -120,4 +120,4 @@ Add `oquake_star_integration.c` and `pr_ext_oquake.c` to the engine project. Lin
 - **No cross-game keys:** Ensure STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID are set and init succeeds.
 - **gfx.wad / id1:** Use `-basedir` to point to your Steam Quake install or copy id1 and gfx.wad next to the exe.
 
-**Credits:** OQuake is based on [vkQuake](https://github.com/Novum/vkQuake) (Novum, GPL-2.0). See **CREDITS_AND_LICENSE.md** in this folder.
+**Credits:** OQuake is based on [vkQuake](https://github.com/Novum/vkQuake) (Novum, GPL-2.0). See **Docs/CREDITS_AND_LICENSE.md**.

@@ -7,7 +7,10 @@ param([string]$Root)
 $ErrorActionPreference = "Stop"
 if (-not $Root -or $Root.Trim() -eq '') { $Root = $PSScriptRoot }
 $Root = ($Root -replace '[\r\n\t]', '').Replace('"', '').Trim().TrimEnd('\', '/')
-$versionTxt = Join-Path $Root "oquake_version.txt"
+$versionDir = Join-Path $Root "Version"
+$codeDir = Join-Path $Root "Code"
+$versionTxt = Join-Path $versionDir "oquake_version.txt"
+if (-not (Test-Path -LiteralPath $versionDir)) { New-Item -Path $versionDir -ItemType Directory -Force | Out-Null }
 if (-not (Test-Path -LiteralPath $versionTxt)) {
     Set-Content -Path $versionTxt -Value "1.0`n1"
 }
@@ -17,7 +20,8 @@ $build   = if ($lines.Count -gt 1) { ($lines[1] -replace '\s+$', '').Trim() } el
 if (-not $version) { $version = "1.0" }
 if (-not $build)   { $build   = "1" }
 
-$hPath = Join-Path $Root "oquake_version.h"
+if (-not (Test-Path -LiteralPath $codeDir)) { New-Item -Path $codeDir -ItemType Directory -Force | Out-Null }
+$hPath = Join-Path $codeDir "oquake_version.h"
 $content = @"
 /**
  * OQuake version - generated from oquake_version.txt. Do not edit.
@@ -32,4 +36,4 @@ $content = @"
 #endif
 "@
 Set-Content -Path $hPath -Value $content.TrimEnd() -NoNewline
-Set-Content -Path (Join-Path $Root "version_display.txt") -Value "$version (Build $build)" -NoNewline
+Set-Content -Path (Join-Path $versionDir "version_display.txt") -Value "$version (Build $build)" -NoNewline

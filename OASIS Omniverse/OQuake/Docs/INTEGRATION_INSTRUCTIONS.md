@@ -8,7 +8,7 @@ From **OASIS Omniverse\OQuake** you need:
 
 - `oquake_star_integration.c`
 - `oquake_star_integration.h`
-- `oquake_version.h`
+- `Code/oquake_version.h`
 - `star_sync.c` and `star_sync.h` (generic async layer from **OASIS Omniverse\STARAPIClient**)
 - `star_api.h` (from **STARAPIClient**)
 - `star_api.lib` and `star_api.dll` (from STARAPIClient publish, or Doom folder if already built)
@@ -48,4 +48,4 @@ Add **pr_ext_oquake.c** (or equivalent) to the build and register these two buil
 
 Set **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID**, then run the engine with your Quake game data (e.g. `-basedir` to Steam Quake). Keys picked up in OQuake or ODOOM will then open doors in the other game when the STAR API is authenticated.
 
-For a full Windows walkthrough, see **WINDOWS_INTEGRATION.md**.
+For a full Windows walkthrough, see **Docs/WINDOWS_INTEGRATION.md**.
