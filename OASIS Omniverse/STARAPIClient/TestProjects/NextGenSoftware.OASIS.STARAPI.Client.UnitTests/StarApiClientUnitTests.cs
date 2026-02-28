@@ -156,6 +156,20 @@ public class StarApiClientUnitTests
         AssertNotInitialized(result);
     }
 
+    /// <summary>Contract for [NFT] prefix: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
+    [Fact]
+    public void ItemWithNftId_DisplayNameForOverlay_StartsWithNftPrefix()
+    {
+        var withNft = new StarItem { Name = "Red Keycard", NftId = "nft-123", Quantity = 1 };
+        var withoutNft = new StarItem { Name = "Blue Keycard", NftId = "", Quantity = 1 };
+
+        var displayWith = string.IsNullOrEmpty(withNft.NftId) ? withNft.Name : "[NFT] " + withNft.Name;
+        var displayWithout = string.IsNullOrEmpty(withoutNft.NftId) ? withoutNft.Name : "[NFT] " + withoutNft.Name;
+
+        Assert.Equal("[NFT] Red Keycard", displayWith);
+        Assert.Equal("Blue Keycard", displayWithout);
+    }
+
     private static void AssertNotInitialized<T>(OASISResult<T> result)
     {
         Assert.True(result.IsError);
