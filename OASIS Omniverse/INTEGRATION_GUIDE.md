@@ -4,6 +4,8 @@
 
 This guide describes how **ODOOM** and **OQuake** (and other games) integrate with the OASIS STAR API for cross-game item sharing, quests, and avatar/SSO. For setup (repos, tools, build, config), use **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
 
+**Architecture principle:** The **C# STARAPIClient does all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers) so integration is **generic** and **minimal**. Games only call a small C API (`star_api_*` and optionally `star_sync_*`); they do not implement API threads, sync logic, or inventory merging. This makes it quicker and easier to port other games. See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design, layer diagram, and porting checklist.
+
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
@@ -17,6 +19,8 @@ This guide describes how **ODOOM** and **OQuake** (and other games) integrate wi
 
 ## Architecture Overview
 
+Games call the C API; the **C# STARAPIClient** implements it and performs all HTTP, caching, and background work (add_item queue, pickup-with-mint, use_item, etc.). See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full client-centric design and minimal-hooks porting guide.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Game Engines (C/C++)                     │
@@ -29,9 +33,9 @@ This guide describes how **ODOOM** and **OQuake** (and other games) integrate wi
         └─────────────┴─────────────┴─────────────┘
                       │
         ┌─────────────▼─────────────┐
-        │   STARAPIClient           │
-        │   (star_api.dll / C ABI)  │
-        │   C# client → star_api_*  │
+        │   STARAPIClient (C#)      │
+        │   Cache, queues, workers │
+        │   Mint + add_item in C#   │
         └─────────────┬─────────────┘
                       │
          ┌────────────┴────────────┐
@@ -183,7 +187,7 @@ When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mi
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
 - **nft_provider** – Provider name (e.g. `SolanaOASIS`).
 
-The games call `star_api_mint_inventory_nft` (STARAPIClient C ABI) when mint is on for the item type; the mint is performed via the **WEB4 OASIS API** (not WEB5 STAR API), is synchronous, and the resulting NFT ID is stored with the item in STAR inventory. In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately.
+The **game** calls `star_api_queue_pickup_with_mint` when mint is on for the item type; the **C# client** performs the mint (WEB4 OASIS API) and add_item in the background (no blocking in the game). In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately. See [ARCHITECTURE.md](ARCHITECTURE.md) for the client-centric design.
 
 ## Future: NFT Boss Collection
 

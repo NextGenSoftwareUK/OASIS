@@ -197,9 +197,12 @@ Example (excerpt):
   "mint_armor": 0,
   "mint_powerups": 0,
   "mint_keys": 0,
-  "nft_provider": "SolanaOASIS"
+  "nft_provider": "SolanaOASIS",
+  "send_to_address_after_minting": ""
 }
 ```
+
+Optional: **`send_to_address_after_minting`** – wallet address to send the minted NFT to after minting (used by ODOOM and OQuake when minting inventory item NFTs via the STAR API).
 
 Summary:
 
@@ -226,6 +229,8 @@ Summary:
 
 ### More detail
 
+- **Architecture & porting:** `OASIS Omniverse\ARCHITECTURE.md` – client-centric design, minimal game hooks, how to port new games.
+- **Integration (items, quests, APIs):** `OASIS Omniverse\INTEGRATION_GUIDE.md`
 - **ODOOM:** `OASIS Omniverse\ODOOM\WINDOWS_INTEGRATION.md`, `ODOOM\README.md`
 - **OQuake:** `OASIS Omniverse\OQuake\WINDOWS_INTEGRATION.md`, `OQuake\README.md`
 - **APIs and scripts:** `Scripts\README.md`
