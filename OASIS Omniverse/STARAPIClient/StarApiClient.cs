@@ -737,8 +737,16 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Queue a pickup that may include mint (all work in background worker). Game calls this instead of mint+queue_add when do_mint is true; C# client mints then adds in ProcessAddItemJobsAsync.</summary>
     public void EnqueuePickupWithMintJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", bool doMint = false, string? provider = null, string? sendToAddressAfterMinting = null, int quantity = 1)
     {
-        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+        if (!IsInitialized())
+        {
+            StarApiExports.SetLastBackgroundError("STAR: Pickup not queued (client not initialized).");
             return;
+        }
+        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+        {
+            StarApiExports.SetLastBackgroundError("STAR: Pickup not queued (item name or game source empty).");
+            return;
+        }
         var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
         var qty = quantity < 1 ? 1 : quantity;
         _pendingPickupWithMint.Enqueue(new PendingPickupWithMintJob(itemName, description ?? string.Empty, gameSource, type, doMint, provider, sendToAddressAfterMinting, qty));
@@ -2168,12 +2176,15 @@ public sealed class StarApiClient : IDisposable
                     else if (mintResult.IsError)
                     {
                         StarApiExports.StarApiLog($"Mint failed for '{pickupJob.ItemName}': {mintResult.Message}");
+                        StarApiExports.SetLastBackgroundError($"STAR: Mint failed for '{pickupJob.ItemName}': {mintResult.Message}");
                     }
                 }
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    await AddItemCoreAsync(pickupJob.ItemName, pickupJob.Description, pickupJob.GameSource, pickupJob.ItemType, nftId, pickupJob.Quantity, true, cancellationToken).ConfigureAwait(false);
+                    var addResult = await AddItemCoreAsync(pickupJob.ItemName, pickupJob.Description, pickupJob.GameSource, pickupJob.ItemType, nftId, pickupJob.Quantity, true, cancellationToken).ConfigureAwait(false);
+                    if (addResult.IsError)
+                        StarApiExports.SetLastBackgroundError($"STAR: Add item failed for '{pickupJob.ItemName}': {addResult.Message}");
                 }
                 finally
                 {
@@ -2227,7 +2238,9 @@ public sealed class StarApiClient : IDisposable
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    await AddItemCoreAsync(entry.Name, entry.Description, entry.GameSource, entry.ItemType, null, entry.Quantity, true, cancellationToken).ConfigureAwait(false);
+                    var addResult = await AddItemCoreAsync(entry.Name, entry.Description, entry.GameSource, entry.ItemType, null, entry.Quantity, true, cancellationToken).ConfigureAwait(false);
+                    if (addResult.IsError)
+                        StarApiExports.SetLastBackgroundError($"STAR: Add item failed for '{entry.Name}': {addResult.Message}");
                 }
                 finally
                 {
@@ -2664,10 +2677,31 @@ public static unsafe class StarApiExports
 {
     private static readonly object Sync = new();
     private static readonly object NativeStateLock = new();
+    private static readonly object BackgroundErrorLock = new();
+    private static string? _lastBackgroundError;
     private static StarApiClient? _client;
     private static byte* _lastError;
     private static delegate* unmanaged[Cdecl]<int, void*, void> _callback;
     private static void* _callbackUserData;
+
+    /// <summary>Set the last background error (mint/add_item failure or pickup not queued). Consumed by star_api_consume_last_background_error for game console display.</summary>
+    public static void SetLastBackgroundError(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message)) return;
+        lock (BackgroundErrorLock)
+            _lastBackgroundError = message;
+    }
+
+    /// <summary>Return and clear the last background error. Used by star_api_consume_last_background_error.</summary>
+    public static string? TryConsumeLastBackgroundError()
+    {
+        lock (BackgroundErrorLock)
+        {
+            var msg = _lastBackgroundError;
+            _lastBackgroundError = null;
+            return msg;
+        }
+    }
 
     static StarApiExports()
     {
@@ -2877,7 +2911,10 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
+        {
+            SetLastBackgroundError("STAR: Pickup not queued (client not initialized).");
             return;
+        }
         var qty = quantity < 1 ? 1 : quantity;
         client.EnqueuePickupWithMintJobOnly(
             PtrToString(itemName) ?? string.Empty,
@@ -3115,6 +3152,17 @@ public static unsafe class StarApiExports
         if (isize > 0) WriteUtf8ToOutput(itemName ?? string.Empty, itemNameOut, isize);
         if (nsize > 0) WriteUtf8ToOutput(nftId ?? string.Empty, nftIdOut, nsize);
         if (hsize > 0) WriteUtf8ToOutput(hash ?? string.Empty, hashOut, hsize);
+        return 1;
+    }
+
+    /// <summary>Consume last background error (mint/add_item failure or pickup not queued). Writes message to buf (null-terminated). Returns 1 if an error was available, 0 otherwise. Call from game pump to show errors in console.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_consume_last_background_error", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiConsumeLastBackgroundError(sbyte* buf, nuint size)
+    {
+        var msg = TryConsumeLastBackgroundError();
+        if (msg is null || buf == null || size == 0) return 0;
+        var len = (int)Math.Min(size, int.MaxValue);
+        WriteUtf8ToOutput(msg, buf, len);
         return 1;
     }
 

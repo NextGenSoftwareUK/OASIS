@@ -530,6 +530,12 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		if (star_api_consume_last_mint_result(item_buf, sizeof(item_buf), nft_buf, sizeof(nft_buf), hash_buf, sizeof(hash_buf)))
 			Printf(PRINT_HIGH, "NFT minted: %s | ID: %s | Hash: %s\n", item_buf, nft_buf, hash_buf[0] ? hash_buf : "(none)");
 	}
+	/* Show any background errors (mint/add_item failure or pickup not queued) in console. */
+	{
+		char err_buf[512] = {};
+		if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
+			Printf(PRINT_HIGH, "%s\n", err_buf);
+	}
 
 	if (g_star_frames_since_beamin < STAR_DOOR_CONSUME_GRACE_FRAMES)
 		g_star_frames_since_beamin++;
