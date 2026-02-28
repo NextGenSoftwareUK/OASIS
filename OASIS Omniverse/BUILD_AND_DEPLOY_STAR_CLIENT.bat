@@ -13,7 +13,7 @@ echo OASIS STAR API - Build and Deploy
 echo ========================================
 echo.
 
-powershell -ExecutionPolicy Bypass -File "STARAPIClient\publish_and_deploy_star_api.ps1" %*
+powershell -ExecutionPolicy Bypass -File "STARAPIClient\Scripts\publish_and_deploy_star_api.ps1" %*
 set "EXIT_CODE=%ERRORLEVEL%"
 
 endlocal

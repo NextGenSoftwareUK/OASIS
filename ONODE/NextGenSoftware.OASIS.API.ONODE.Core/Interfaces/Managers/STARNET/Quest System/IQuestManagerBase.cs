@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<T1>> AddQuestAsync(Guid avatarId, Guid parentId, IQuest quest, ProviderType providerType = ProviderType.Default);
         OASISResult<IQuest> GetCurentQuest(Guid avatarId, Guid chapterId, int version = 0, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IQuest>> GetCurentQuestAsync(Guid avatarId, Guid chapterId, int version = 0, ProviderType providerType = ProviderType.Default);
-        OASISResult<T1> RemoveQuest(Guid avatarId, Guid parentChapterId, Guid questId, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<T1>> RemoveQuestAsync(Guid avatarId, Guid parentChapterId, Guid questId, ProviderType providerType = ProviderType.Default);
+        OASISResult<T1> RemoveQuest(Guid avatarId, Guid parentId, Guid questId, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<T1>> RemoveQuestAsync(Guid avatarId, Guid parentId, Guid questId, ProviderType providerType = ProviderType.Default);
     }
 }

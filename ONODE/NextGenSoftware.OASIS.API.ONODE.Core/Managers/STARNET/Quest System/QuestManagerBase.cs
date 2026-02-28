@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
@@ -102,26 +102,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<T1>> RemoveQuestAsync(Guid avatarId, Guid parentChapterId, Guid questId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<T1>> RemoveQuestAsync(Guid avatarId, Guid parentId, Guid questId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
             string errorMessage = "Error occured in QuestManagerBase.RemoveQuestAsync. Reason:";
 
             try
             {
-                OASISResult<T1> parentChapterResult = await LoadAsync(avatarId, questId, providerType: providerType);
+                OASISResult<T1> parentResult = await LoadAsync(avatarId, parentId, providerType: providerType);
 
-                if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    IQuest quest = parentChapterResult.Result.Quests.FirstOrDefault(x => x.Id == questId);
+                    IQuest quest = parentResult.Result.Quests.FirstOrDefault(x => x.Id == questId);
 
                     if (quest != null)
                     {
-                        parentChapterResult.Result.Quests.Remove(quest);
-                        OASISResult<T1> chapterResult = await UpdateAsync(avatarId, parentChapterResult.Result, providerType: providerType);
-                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
+                        parentResult.Result.Quests.Remove(quest);
+                        OASISResult<T1> updateResult = await UpdateAsync(avatarId, parentResult.Result, providerType: providerType);
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(updateResult, result);
 
-                        if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
+                        if (updateResult != null && updateResult.Result != null && !updateResult.IsError)
                         {
                             quest.ParentHolonId = avatarId;
                             OASISResult<T1> questSaveResult = quest.Save<T1>();
@@ -132,13 +132,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Quest.Save. Reason: {questSaveResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with QuestManagerBase.UpdateAsync. Reason: {chapterResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the parent with QuestManagerBase.UpdateAsync. Reason: {updateResult.Message}");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No quest could be found for the id {questId}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with QuestManagerBase.LoadChapterAsync. Reason: {parentChapterResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the parent. Reason: {parentResult.Message}");
             }
             catch (Exception ex)
             {
@@ -148,26 +148,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        public OASISResult<T1> RemoveQuest(Guid avatarId, Guid parentChapterId, Guid questId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<T1> RemoveQuest(Guid avatarId, Guid parentId, Guid questId, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            string errorMessage = "Error occured in QuestManagerBase.RemoveQuestFromChapter. Reason:";
+            string errorMessage = "Error occured in QuestManagerBase.RemoveQuest. Reason:";
 
             try
             {
-                OASISResult<T1> parentChapterResult = Load(avatarId, questId, providerType: providerType);
+                OASISResult<T1> parentResult = Load(avatarId, parentId, providerType: providerType);
 
-                if (parentChapterResult != null && parentChapterResult.Result != null && !parentChapterResult.IsError)
+                if (parentResult != null && parentResult.Result != null && !parentResult.IsError)
                 {
-                    IQuest quest = parentChapterResult.Result.Quests.FirstOrDefault(x => x.Id == questId);
+                    IQuest quest = parentResult.Result.Quests.FirstOrDefault(x => x.Id == questId);
 
                     if (quest != null)
                     {
-                        parentChapterResult.Result.Quests.Remove(quest);
-                        OASISResult<T1> chapterResult = Update(avatarId, parentChapterResult.Result, providerType: providerType);
-                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(chapterResult, result);
+                        parentResult.Result.Quests.Remove(quest);
+                        OASISResult<T1> updateResult = Update(avatarId, parentResult.Result, providerType: providerType);
+                        OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(updateResult, result);
 
-                        if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
+                        if (updateResult != null && updateResult.Result != null && !updateResult.IsError)
                         {
                             quest.ParentHolonId = avatarId;
                             OASISResult<T1> questSaveResult = quest.Save<T1>();
@@ -178,13 +178,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with Quest.Save. Reason: {questSaveResult.Message}");
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the chapter with QuestManagerBase.Update. Reason: {chapterResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the parent with QuestManagerBase.Update. Reason: {updateResult.Message}");
                     }
                     else
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} No quest could be found for the id {questId}");
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the chapter with QuestManagerBase.LoadChapter. Reason: {parentChapterResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured loading the parent. Reason: {parentResult.Message}");
             }
             catch (Exception ex)
             {

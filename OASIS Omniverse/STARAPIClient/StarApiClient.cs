@@ -130,6 +130,12 @@ public sealed class StarApiClient : IDisposable
     private Task? _useItemJobWorker;
     private CancellationTokenSource? _questObjectiveJobCts;
     private Task? _questObjectiveJobWorker;
+    /// <summary>Generic background queue for any async API call so UI/game thread never blocks. One worker processes jobs in order.</summary>
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _genericBackgroundQueue = new();
+    private readonly SemaphoreSlim _genericBackgroundSignal = new(0);
+    private CancellationTokenSource? _genericBackgroundCts;
+    private Task? _genericBackgroundWorker;
+    private readonly object _genericBackgroundLock = new();
 
     public int AddItemBatchSize { get; set; } = 32;
     public TimeSpan AddItemBatchWindow { get; set; } = TimeSpan.FromMilliseconds(75);
@@ -473,7 +479,8 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedInventory is not null)
             {
-                var hasItem = _cachedInventory.Any(x =>
+                var merged = MergeLocalPendingIntoInventory(_cachedInventory);
+                var hasItem = merged.Any(x =>
                     string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase) ||
                     string.Equals(x.Description, itemName, StringComparison.OrdinalIgnoreCase));
                 InvokeCallback(StarApiResultCode.Success);
@@ -585,7 +592,7 @@ public sealed class StarApiClient : IDisposable
                 Description = kv.Value.Description,
                 GameSource = kv.Value.GameSource,
                 ItemType = kv.Value.ItemType,
-                NftId = string.Empty,
+                NftId = kv.Value.NftId ?? string.Empty,
                 Quantity = Math.Max(1, kv.Value.Quantity)
             });
         }
@@ -843,6 +850,7 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteString("ItemType", string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType);
                 if (!string.IsNullOrWhiteSpace(nftId))
                 {
+                    writer.WriteString("NftId", nftId);
                     writer.WritePropertyName("MetaData");
                     writer.WriteStartObject();
                     writer.WriteString("NFTId", nftId);
@@ -867,8 +875,10 @@ public sealed class StarApiClient : IDisposable
             if (item is null)
                 return FailAndCallback<StarItem>("API did not return the created inventory item.", StarApiResultCode.ApiError);
 
+            /* Use NftId from response when API returns it; otherwise use the nftId we sent so [NFT] prefix shows on first display (Doom/Quake) even if API does not echo it yet. */
             var itemNftId = !string.IsNullOrWhiteSpace(item.NftId) ? item.NftId
-                : ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty;
+                : ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty)
+                ?? (!string.IsNullOrWhiteSpace(nftId) ? nftId : string.Empty);
             var mapped = new StarItem
             {
                 Id = item.Id,
@@ -1106,13 +1116,13 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
     }
 
-    public async Task<OASISResult<bool>> CreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarQuestInfo?>> CreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
-            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return FailAndCallback<StarQuestInfo?>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         if (string.IsNullOrWhiteSpace(questName) || string.IsNullOrWhiteSpace(description) || objectives is null || objectives.Count == 0)
-            return FailAndCallback<bool>("Quest name, description and at least one objective are required.", StarApiResultCode.InvalidParam);
+            return FailAndCallback<StarQuestInfo?>("Quest name, description and at least one objective are required.", StarApiResultCode.InvalidParam);
 
         var games = objectives
             .Select(o => string.IsNullOrWhiteSpace(o.GameSource) ? "Unknown" : o.GameSource)
@@ -1124,7 +1134,7 @@ public sealed class StarApiClient : IDisposable
             writer.WriteStartObject();
             writer.WriteString("Name", questName);
             writer.WriteString("Description", description);
-            writer.WriteNumber("HolonSubType", 7);
+            writer.WriteNumber("HolonSubType", 8); /* HolonType.Quest */
             writer.WriteString("SourceFolderPath", string.Empty);
             writer.WritePropertyName("CreateOptions");
             writer.WriteNullValue();
@@ -1138,15 +1148,86 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteStringValue(game);
             writer.WriteEndArray();
             writer.WriteEndObject();
+            writer.WritePropertyName("Objectives");
+            writer.WriteStartArray();
+            for (var i = 0; i < objectives.Count; i++)
+            {
+                var o = objectives[i];
+                writer.WriteStartObject();
+                writer.WriteString("Description", o.Description ?? string.Empty);
+                writer.WriteString("GameSource", o.GameSource ?? string.Empty);
+                writer.WriteString("ItemRequired", o.ItemRequired ?? string.Empty);
+                writer.WriteNumber("Order", i);
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
             writer.WriteEndObject();
         });
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/create", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+            return FailAndCallback<StarQuestInfo?>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        StarQuestInfo? created = null;
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (parseResult && resultElement.ValueKind == JsonValueKind.Object)
+            created = ParseSingleQuestInfo(resultElement);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(created, StarApiResultCode.Success, "Cross-game quest created successfully.");
+    }
+
+    /// <summary>Adds an objective (sub-quest) to an existing quest. Returns the created objective with its Id.</summary>
+    public async Task<OASISResult<StarQuestInfo?>> AddQuestObjectiveAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<StarQuestInfo?>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(questId))
+            return FailAndCallback<StarQuestInfo?>("Quest ID is required.", StarApiResultCode.InvalidParam);
+
+        if (string.IsNullOrWhiteSpace(description))
+            return FailAndCallback<StarQuestInfo?>("Description is required.", StarApiResultCode.InvalidParam);
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Name", name ?? string.Empty);
+            writer.WriteString("Description", description);
+            writer.WriteString("GameSource", gameSource ?? string.Empty);
+            writer.WriteString("ItemRequired", itemRequired ?? string.Empty);
+            writer.WriteNumber("Order", order);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/objectives", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<StarQuestInfo?>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        StarQuestInfo? created = null;
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (parseResult && resultElement.ValueKind == JsonValueKind.Object)
+            created = ParseSingleQuestInfo(resultElement);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(created, StarApiResultCode.Success, "Quest objective added successfully.");
+    }
+
+    /// <summary>Removes an objective (sub-quest) from a quest.</summary>
+    public async Task<OASISResult<bool>> RemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrWhiteSpace(objectiveId))
+            return FailAndCallback<bool>("Quest ID and objective ID are required.", StarApiResultCode.InvalidParam);
+
+        var response = await SendRawAsync(HttpMethod.Delete, $"{_baseApiUrl}/api/quests/{questId}/objectives/{objectiveId}", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
         InvokeCallback(StarApiResultCode.Success);
-        return Success(true, StarApiResultCode.Success, "Cross-game quest created successfully.");
+        return Success(true, StarApiResultCode.Success, "Quest objective removed successfully.");
     }
 
     public async Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default)
@@ -1758,8 +1839,8 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
             return null;
 
-        /* NftId: from root (API may put it there) or from MetaData so [NFT] prefix persists after reload / in Quake. */
-        var nftId = GetStringProperty(element, "NftId") ?? GetStringProperty(element, "NFTId") ?? GetStringProperty(element, "OASISNFTId")
+        /* NftId: from root (API may use PascalCase or camelCase) or from MetaData so [NFT] prefix persists after reload / in Quake. */
+        var nftId = GetStringProperty(element, "NftId") ?? GetStringProperty(element, "nftId") ?? GetStringProperty(element, "NFTId") ?? GetStringProperty(element, "OASISNFTId")
             ?? (metadata != null ? ExtractMeta(metadata, "NFTId", string.Empty) : null)
             ?? (metadata != null ? ExtractMeta(metadata, "OASISNFTId", string.Empty) : null);
         if (string.IsNullOrWhiteSpace(nftId)) nftId = null;
@@ -2128,7 +2209,8 @@ public sealed class StarApiClient : IDisposable
             {
                 cts.Cancel();
                 _addItemSignal.Release();
-                worker?.GetAwaiter().GetResult();
+                if (worker is not null)
+                    worker.GetAwaiter().GetResult();
             }
             catch
             {
@@ -2140,7 +2222,7 @@ public sealed class StarApiClient : IDisposable
         }
 
         while (_pendingAddItemJobs.TryDequeue(out var pending))
-            pending.Completion.TrySetResult(Fail<StarItem>("Add-item queue stopped.", StarApiResultCode.NotInitialized));
+            pending.Completion?.TrySetResult(Fail<StarItem>("Add-item queue stopped.", StarApiResultCode.NotInitialized));
     }
 
     private void StartUseItemWorker()
@@ -2173,7 +2255,8 @@ public sealed class StarApiClient : IDisposable
             {
                 cts.Cancel();
                 _useItemSignal.Release();
-                worker?.GetAwaiter().GetResult();
+                if (worker is not null)
+                    worker.GetAwaiter().GetResult();
             }
             catch
             {
@@ -2185,7 +2268,7 @@ public sealed class StarApiClient : IDisposable
         }
 
         while (_pendingUseItemJobs.TryDequeue(out var pending))
-            pending.Completion.TrySetResult(Fail<bool>("Use-item queue stopped.", StarApiResultCode.NotInitialized));
+            pending.Completion?.TrySetResult(Fail<bool>("Use-item queue stopped.", StarApiResultCode.NotInitialized));
     }
 
     private void StartQuestObjectiveWorker()
@@ -2218,7 +2301,8 @@ public sealed class StarApiClient : IDisposable
             {
                 cts.Cancel();
                 _questObjectiveSignal.Release();
-                worker?.GetAwaiter().GetResult();
+                if (worker is not null)
+                    worker.GetAwaiter().GetResult();
             }
             catch
             {
@@ -2273,6 +2357,12 @@ public sealed class StarApiClient : IDisposable
                             _lastMintNftId = id;
                             _lastMintHash = string.IsNullOrWhiteSpace(hash) ? null : hash;
                         }
+                        /* So overlay shows [NFT] before add completes: set NftId on pending entry. */
+                        lock (_localPendingLock)
+                        {
+                            if (_localPending.TryGetValue(pickupJob.ItemName, out var pending))
+                                pending.NftId = id;
+                        }
                     }
                     else if (mintResult.IsError)
                     {
@@ -2306,6 +2396,10 @@ public sealed class StarApiClient : IDisposable
                 _localPending.Clear();
             }
 
+            /* Ensure FlushAddItemJobsAsync does not return until all items are processed (avoids race where HasItemAsync runs with cache not yet updated). */
+            var snapshotCount = snapshot.Count;
+            Interlocked.Add(ref _activeAddItemJobs, snapshotCount);
+
             if (AddItemBatchWindow > TimeSpan.Zero)
             {
                 try
@@ -2334,10 +2428,10 @@ public sealed class StarApiClient : IDisposable
                         else
                             _localPending[kv.Key] = kv.Value;
                     }
+                    Interlocked.Decrement(ref _activeAddItemJobs);
                     continue;
                 }
                 var entry = kv.Value;
-                Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
                     var addResult = await AddItemCoreAsync(entry.Name, entry.Description, entry.GameSource, entry.ItemType, null, entry.Quantity, true, cancellationToken).ConfigureAwait(false);
@@ -2531,6 +2625,53 @@ public sealed class StarApiClient : IDisposable
         return quests;
     }
 
+    private static StarQuestInfo? ParseSingleQuestInfo(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+            return null;
+
+        var objectives = new List<StarQuestObjective>();
+        if (TryGetProperty(element, "Objectives", out var objElement) && objElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var objective in objElement.EnumerateArray())
+            {
+                if (objective.ValueKind != JsonValueKind.Object) continue;
+                objectives.Add(new StarQuestObjective
+                {
+                    Id = GetStringProperty(objective, "Id") ?? string.Empty,
+                    Description = GetStringProperty(objective, "Description") ?? string.Empty,
+                    GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
+                    ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
+                    IsCompleted = GetBoolProperty(objective, "IsCompleted")
+                });
+            }
+        }
+        else if (TryGetProperty(element, "Quests", out var questsElement) && questsElement.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var sub in questsElement.EnumerateArray())
+            {
+                if (sub.ValueKind != JsonValueKind.Object) continue;
+                objectives.Add(new StarQuestObjective
+                {
+                    Id = GetStringProperty(sub, "Id") ?? string.Empty,
+                    Description = GetStringProperty(sub, "Description") ?? string.Empty,
+                    GameSource = GetStringProperty(sub, "GameSource") ?? string.Empty,
+                    ItemRequired = GetStringProperty(sub, "ItemRequired") ?? string.Empty,
+                    IsCompleted = GetBoolProperty(sub, "IsCompleted")
+                });
+            }
+        }
+
+        return new StarQuestInfo
+        {
+            Id = GetStringProperty(element, "Id") ?? string.Empty,
+            Name = GetStringProperty(element, "Name") ?? string.Empty,
+            Description = GetStringProperty(element, "Description") ?? string.Empty,
+            Status = GetStringProperty(element, "Status") ?? string.Empty,
+            Objectives = objectives
+        };
+    }
+
     private static List<StarNftInfo> ParseNftInfos(JsonElement element)
     {
         var nfts = new List<StarNftInfo>();
@@ -2661,6 +2802,8 @@ public sealed class StarApiClient : IDisposable
         public string GameSource { get; set; } = string.Empty;
         public string ItemType { get; set; } = "KeyItem";
         public int Quantity { get; set; }
+        /// <summary>Set when mint completes (pickup-with-mint) so merge shows [NFT] prefix in Quake/Doom overlay.</summary>
+        public string? NftId { get; set; }
     }
 
     private sealed class PendingPickupWithMintJob

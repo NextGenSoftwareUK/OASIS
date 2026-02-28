@@ -2,7 +2,7 @@
 
 This folder contains files and instructions to build **OQuake**: vkQuake with OASIS STAR API so keys from ODOOM can open doors in Quake and vice versa.
 
-**OQuake is based on vkQuake.** Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum). vkQuake is licensed under GPL-2.0. When building or distributing OQuake, comply with vkQuake's license and give appropriate credit. See **../CREDITS_AND_LICENSE.md** for details.
+**OQuake is based on vkQuake.** Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum). vkQuake is licensed under GPL-2.0. When building or distributing OQuake, comply with vkQuake's license and give appropriate credit. See **../Docs/CREDITS_AND_LICENSE.md** for details.
 
 ## Overview
 
@@ -21,9 +21,9 @@ Copy these into `VKQUAKE_SRC/Quake/` (from OASIS Omniverse):
 
 | File | Source |
 |------|--------|
-| `oquake_star_integration.c` | `OQuake/oquake_star_integration.c` |
-| `oquake_star_integration.h` | `OQuake/oquake_star_integration.h` |
-| `oquake_version.h` | `OQuake/oquake_version.h` (generated from **`OQuake/oquake_version.txt`** – OQuake's version source; run build or `generate_oquake_version.ps1` to regenerate) |
+| `oquake_star_integration.c` | `OQuake/Code/oquake_star_integration.c` |
+| `oquake_star_integration.h` | `OQuake/Code/oquake_star_integration.h` |
+| `oquake_version.h` | `OQuake/Code/oquake_version.h` (generated from **`OQuake/Version/oquake_version.txt`** – run build or `Scripts/generate_oquake_version.ps1` to regenerate) |
 | `star_api.h` | `STARAPIClient/` (use STARAPIClient only) |
 | `pr_ext_oquake.c` | `OQuake/vkquake_oquake/pr_ext_oquake.c` |
 
@@ -124,7 +124,7 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 ## 5. One-shot script (optional)
 
-From `OASIS Omniverse\OQuake`, run:
+From `OASIS Omniverse\OQuake` (OQuake root), run:
 
 ```powershell
 .\vkquake_oquake\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
@@ -177,7 +177,7 @@ OQuake shows an **OASIS / OQuake** text splash in the console at startup (from `
    - **Option B:** If the engine has a “splash image” path or convar, point it to `oasis_splash.png` so it appears at startup or during load.
 
 4. **Build script**  
-   `BUILD_OQUAKE.bat` does not copy the splash into vkQuake automatically (vkQuake has no wad/pk3 like UZDoom). Copy `oasis_splash.png` into your vkQuake data or binary folder and load it from there in your patched loading-screen code.
+   `BUILD_OQUAKE.bat` does not copy the splash into vkQuake automatically (vkQuake has no wad/pk3 like UZDoom). Copy `OQuake/Images/oasis_splash.png` into your vkQuake data or binary folder and load it from there in your patched loading-screen code.
 
 Once integrated, the OASIS splash will appear during loading and match the professional look of ODOOM.
 
@@ -201,7 +201,7 @@ All of the **logic** for these features lives in **OASIS**, in `OQuake/oquake_st
 
 | Feature | Where the logic lives (OASIS) | What vkQuake must do |
 |--------|------------------------------|------------------------|
-| **I key** for inventory | `OQuake_STAR_Init()` binds `oasis_inventory_toggle` to key **I** if unbound (see around line 1582 in oquake_star_integration.c). | Nothing extra: once host.c calls `OQuake_STAR_Init()`, the binding is registered. |
+| **I key** for inventory | `OQuake_STAR_Init()` binds `oasis_inventory_toggle` to key **I** if unbound (see oquake_star_integration.c in OQuake/Code/). | Nothing extra: once host.c calls `OQuake_STAR_Init()`, the binding is registered. |
 | **Inventory popup** (tabs, list, status) | `OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx)` | Somewhere in the 2D HUD path (e.g. **gl_screen.c** or **r_screen.c**), call `OQuake_STAR_DrawInventoryOverlay(cbx)` so the overlay and **Send to Avatar / Send to Clan** popups are drawn. |
 | **Send to Avatar / Send to Clan** | Same overlay: Z=Send Avatar, X=Send Clan; popup uses `g_inventory_send_popup` and `star_sync` send-item API. | Same as above: drawing the inventory overlay draws the send popups. |
 | **Beamed In: &lt;username&gt;** text | `OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx)` | In the same 2D HUD path, call `OQuake_STAR_DrawBeamedInStatus(cbx)` (e.g. once per frame when in game). |
@@ -236,7 +236,7 @@ So: **the code is not missing from OASIS** — it is all in `oquake_star_integra
    ```
    Then the normal `Sbar_DrawPic (cbx, x, y, sb_faces[f][anim]);` runs when not beamed in.
 
-The apply script copies **face_anorak.png** into the Quake install dir (`id1/gfx/`). Your engine must load it (e.g. from that path or from a WAD that includes it) for the anorak face to show.
+The apply script copies **OQuake/Images/face_anorak.png** into the Quake install dir (`id1/gfx/`). Your engine must load it (e.g. from that path or from a WAD that includes it) for the anorak face to show.
 
 ### 9b. gl_screen.c (or equivalent) – inventory overlay and Beamed In text
 
@@ -253,7 +253,7 @@ You need a **cb_context_t** and the same drawing API the status bar uses (`Draw_
    ```
    Order depends on desired layering; typically draw Beamed In first, then the overlay so the overlay can sit on top.
 
-After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/oquake_star_integration.c**.
+After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/Code/oquake_star_integration.c**.
 
 ---
 

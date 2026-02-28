@@ -48,6 +48,8 @@ public class StarApiClientUnitTests
         var flushObjective = await client.FlushQuestObjectiveJobsAsync();
         var completeQuest = await client.CompleteQuestAsync("quest");
         var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", ItemRequired = "i" }]);
+        var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
+        var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var activeQuests = await client.GetActiveQuestsAsync();
         var createBossNft = await client.CreateBossNftAsync("boss", "desc", "game", "{}");
         var deployBossNft = await client.DeployBossNftAsync("nft", "game");
@@ -72,6 +74,8 @@ public class StarApiClientUnitTests
         AssertNotInitialized(flushObjective);
         AssertNotInitialized(completeQuest);
         AssertNotInitialized(createQuest);
+        AssertNotInitialized(addObjective);
+        AssertNotInitialized(removeObjective);
         AssertNotInitialized(activeQuests);
         AssertNotInitialized(createBossNft);
         AssertNotInitialized(deployBossNft);
@@ -154,6 +158,26 @@ public class StarApiClientUnitTests
         using var client = new StarApiClient();
         var result = await client.SendItemToClanAsync("clan", "item", 1);
         AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task AddQuestObjectiveAsync_WhenQuestIdEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        var result = await client.AddQuestObjectiveAsync("", "Objective description");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task RemoveQuestObjectiveAsync_WhenQuestIdOrObjectiveIdEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        var result = await client.RemoveQuestObjectiveAsync("quest-id", "");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
     }
 
     /// <summary>Contract for [NFT] prefix: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>

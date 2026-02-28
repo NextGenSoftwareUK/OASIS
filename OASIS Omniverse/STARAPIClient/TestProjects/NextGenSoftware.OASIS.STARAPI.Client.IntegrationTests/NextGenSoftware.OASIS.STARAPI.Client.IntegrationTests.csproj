@@ -23,5 +23,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\STARAPIClient.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\StarApiTestDefaults.cs" Link="StarApiTestDefaults.cs" />
+  </ItemGroup>
 
 </Project>

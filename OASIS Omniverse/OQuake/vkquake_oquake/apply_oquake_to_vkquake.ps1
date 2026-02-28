@@ -42,19 +42,23 @@ if (-not (Test-Path $QuakeDir)) {
     exit 1
 }
 
-if (Test-Path (Join-Path $OQuakeRoot "generate_oquake_version.ps1")) {
-    & (Join-Path $OQuakeRoot "generate_oquake_version.ps1") -Root $OQuakeRoot
+$OQuakeScripts = Join-Path $OQuakeRoot "Scripts"
+$OQuakeCode = Join-Path $OQuakeRoot "Code"
+$OQuakeVersion = Join-Path $OQuakeRoot "Version"
+$OQuakeImages = Join-Path $OQuakeRoot "Images"
+if (Test-Path (Join-Path $OQuakeScripts "generate_oquake_version.ps1")) {
+    & (Join-Path $OQuakeScripts "generate_oquake_version.ps1") -Root $OQuakeRoot
 }
 $versionDisplay = "1.0 (Build 1)"
-$versionDisplayPath = Join-Path $OQuakeRoot "version_display.txt"
+$versionDisplayPath = Join-Path $OQuakeVersion "version_display.txt"
 if (Test-Path $versionDisplayPath) { $versionDisplay = (Get-Content $versionDisplayPath -Raw).Trim() }
 
-# STAR DLL/LIB (prefer OQuake folder, then STARAPIClient publish)
+# STAR DLL/LIB (prefer OQuake Code, then STARAPIClient publish)
 $StarDll = $null
 $StarLib = $null
-if (Test-Path (Join-Path $OQuakeRoot "star_api.dll")) {
-    $StarDll = Join-Path $OQuakeRoot "star_api.dll"
-    $StarLib = Join-Path $OQuakeRoot "star_api.lib"
+if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
+    $StarDll = Join-Path $OQuakeCode "star_api.dll"
+    $StarLib = Join-Path $OQuakeCode "star_api.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 $StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
@@ -65,16 +69,16 @@ if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
-# star_sync: always use OQuake copy so OQuake-specific sync behaviour (sync add_item) is used. Fallback to STARAPIClient only if missing.
-$starSyncRoot = $OQuakeRoot
-if (-not (Test-Path (Join-Path $OQuakeRoot "star_sync.c"))) {
+# star_sync: always use OQuake Code copy so OQuake-specific sync behaviour is used. Fallback to STARAPIClient only if missing.
+$starSyncRoot = $OQuakeCode
+if (-not (Test-Path (Join-Path $OQuakeCode "star_sync.c"))) {
     $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
-    Write-Warning "[OQuake] OQuake\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake to avoid overwriting with STARAPIClient version on next apply."
+    Write-Warning "[OQuake] OQuake\Code\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake\Code to avoid overwriting on next apply."
 }
 $files = @(
-    @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
-    @{ Src = Join-Path $OQuakeRoot "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
-    @{ Src = Join-Path $OQuakeRoot "oquake_version.h"; Dest = "oquake_version.h" },
+    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
+    @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
+    @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
     @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" },
     @{ Src = Join-Path $starSyncRoot "star_sync.c"; Dest = "star_sync.c" },
@@ -99,12 +103,11 @@ if ($StarDll) {
 # Copy custom face image into Quake install dir so HUD can load gfx/face_anorak.
 # For anorak face when beamed in, inventory overlay (I key), and Send to Avatar/Clan popups,
 # you must patch vkQuake's sbar.c and gl_screen.c (or equivalent) as described in VKQUAKE_OQUAKE_INTEGRATION.md section 9.
-$faceSource = Join-Path $OQuakeRoot "face_anorak.png"
+$faceSource = Join-Path $OQuakeImages "face_anorak.png"
 if (-not (Test-Path $faceSource)) {
-    $altFaceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png"
-    if (Test-Path $altFaceSource) {
-        $faceSource = $altFaceSource
-    }
+    $altFaceSource = Join-Path $OQuakeRoot "face_anorak.png"
+    if (Test-Path $altFaceSource) { $faceSource = $altFaceSource }
+    elseif (Test-Path (Join-Path $OQuakeRoot "gfx\face_anorak.png")) { $faceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png" }
 }
 if (Test-Path $faceSource) {
     try {
@@ -116,7 +119,7 @@ if (Test-Path $faceSource) {
         Write-Warning "[OQuake] Failed to copy face_anorak.png to '$QuakeInstallDir\id1\gfx': $($_.Exception.Message)"
     }
 } else {
-    Write-Warning "[OQuake] face_anorak.png not found in OQuake root. Expected: $faceSource"
+    Write-Warning "[OQuake] face_anorak.png not found. Expected: OQuake\Images\face_anorak.png or OQuake\face_anorak.png"
 }
 
 # Patch host.c (OQuake version in bottom-right)

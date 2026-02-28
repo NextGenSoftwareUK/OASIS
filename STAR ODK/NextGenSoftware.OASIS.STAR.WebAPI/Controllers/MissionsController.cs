@@ -24,45 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class MissionsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private IActionResult ValidateAvatarId<T>()
-        {
-            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
-            if (UseTestDataWhenLiveDataNotAvailable)
-                return null;
-                
-            if (AvatarId == Guid.Empty)
-            {
-                return BadRequest(new OASISResult<T>
-                {
-                    IsError = true,
-                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                });
-            }
-            return null;
-        }
-
-        private static async Task EnsureStarApiBootedAsync()
-        {
-            if (_starAPI.IsOASISBooted)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                if (_starAPI.IsOASISBooted)
-                    return;
-
-                var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                if (boot.IsError)
-                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all missions in the system.
@@ -479,8 +442,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             var validationError = ValidateCreateRequest(request.Name, request.Description);
             if (validationError != null)
                 return validationError;
+            var avatarCheck = ValidateAvatarId<Mission>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Missions.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null

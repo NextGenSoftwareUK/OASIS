@@ -26,37 +26,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class NFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private async Task EnsureStarApiBootedAsync()
-        {
-            // Check if already booted and avatar is set
-            if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-                Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                // Double-check after acquiring lock
-                if (_starAPI.IsOASISBooted && AvatarManager.LoggedInAvatar != null && 
-                    Avatar != null && AvatarManager.LoggedInAvatar.Id == Avatar.Id)
-                    return;
-
-                // Boot OASIS if not already booted
-                if (!_starAPI.IsOASISBooted)
-                {
-                    var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                    if (boot.IsError)
-                        throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-                }
-
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all NFTs in the system.
@@ -202,8 +173,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             var validationError = ValidateCreateRequest(request.Name, request.Description);
             if (validationError != null)
                 return validationError;
+            var avatarCheck = ValidateAvatarId<STARNFT>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.NFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }

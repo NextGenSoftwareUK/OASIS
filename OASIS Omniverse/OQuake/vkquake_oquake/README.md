@@ -6,7 +6,7 @@ Files here let you build **OQuake**: vkQuake with OASIS STAR API so cross-game k
 |------|--------|
 | **pr_ext_oquake.c** | PF_ wrappers for `ex_OQuake_OnKeyPickup` and `ex_OQuake_CheckDoorAccess`. Add to vkQuake's Quake target. |
 | **VKQUAKE_OQUAKE_INTEGRATION.md** | Step-by-step: copy files, edit host.c and pr_ext.c, add sources and link star_api. |
-| **apply_oquake_to_vkquake.ps1** | Copies OQuake + STAR files into a vkQuake `Quake/` folder. Run from OQuake root or with `-VkQuakeSrc`. |
+| **apply_oquake_to_vkquake.ps1** | Copies OQuake Code + STAR files into a vkQuake `Quake/` folder. Run from OQuake root or with `-VkQuakeSrc`. |
 
 **Quick start**
 
