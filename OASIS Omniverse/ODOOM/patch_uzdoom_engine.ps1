@@ -251,6 +251,40 @@ bool wasgibbed = (health < GetGibHealth());
     }
 }
 
+# 3c2. a_keys.cpp: call UZDoom_STAR_CheckDoorAccess only when the player actually tries to open a door (E key).
+#      P_CheckKeys(..., quiet): quiet==true = probe (status bar, automap, map load); quiet==false = player use.
+#      We must only invoke STAR when !quiet so we never touch inventory on map load or other probes.
+$aKeysCpp = "$src\src\gamedata\a_keys.cpp"
+if (Test-Path $aKeysCpp) {
+    $akContent = Get-Content $aKeysCpp -Raw
+    $akChanged = $false
+    if ($akContent -notmatch 'uzdoom_star_integration\.h') {
+        $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $akChanged = $true
+    }
+    # Insert STAR check only when !quiet (player use). Match the block after lock->check(owner) and before if (quiet) return false.
+    if ($akContent -notmatch '!quiet && UZDoom_STAR_CheckDoorAccess') {
+        # Remove any existing unconditional STAR check so we replace with the correct guarded one.
+        $akContent = $akContent -replace '\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\([^)]+\)\) return true;\r?\n\s*#endif', ''
+        $oldBlock = 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;'
+        $newBlock = @'
+if (lock->check(owner)) return true;
+#ifdef OASIS_STAR_API
+	if (!quiet && UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+#endif
+	if (quiet) return false;
+'@
+        if ($akContent -match $oldBlock) {
+            $akContent = $akContent -replace $oldBlock, $newBlock
+            $akChanged = $true
+        }
+    }
+    if ($akChanged) {
+        Set-Content $aKeysCpp $akContent -NoNewline
+        $changes += "a_keys (STAR door check only on player use)"
+    }
+}
+
 # 3d. CVARINFO: add ODOOM inventory CVars (odoom_inventory_open, odoom_key_*) for ZScript/C++ coordination
 if (Test-Path $odoomCvarinfo) {
     $cvarContent = Get-Content $odoomCvarinfo -Raw

@@ -136,9 +136,9 @@ static int g_odoom_reapply_json_frames = -1;
 /** When init (e.g. star_api_init) has failed, we skip retrying until user runs beamin again to avoid spamming "couldn't find the host". */
 static bool g_star_init_failed_this_session = false;
 
-/** Frames since beam-in (or STAR became initialized). Used to avoid consuming keycards when the engine probes door access on load/beamin. */
+/** Frames since beam-in (or STAR became initialized). Used to avoid consuming key when opening door for a short time after beam-in. */
 static int g_star_frames_since_beamin = 99999;
-/** Grace period in frames (~5 s at 60 fps): do not consume key when opening door during this time so keys are not lost on boot/beamin. */
+/** Do not consume key when opening door for this many frames (~5 s) after beam-in. */
 static const int STAR_DOOR_CONSUME_GRACE_FRAMES = 300;
 
 /* Inventory overlay: when open, temporarily clear key bindings (OQuake-style) so arrows/keys only drive the popup.
@@ -1382,6 +1382,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!owner || keynum <= 0) return 0;
+	/* Only called from P_CheckKeys when the player actually tries to open a door (quiet==false); engine patch ensures we are not called on map load or other probes. */
 	if (!StarTryInitializeAndAuthenticate(false)) {
 		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
 		return 0;
@@ -1391,8 +1392,7 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!keyname) return 0;
 
 	if (star_api_has_item(keyname)) {
-		/* Consume the keycard only when the player actually opens the door. During the grace period after
-		 * beam-in or game start, the engine may probe door access (e.g. on map load); do not consume then. */
+		/* Consume the keycard only when the player actually opens the door (past consume grace period). */
 		if (g_star_frames_since_beamin >= STAR_DOOR_CONSUME_GRACE_FRAMES)
 			star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
 		return 1;

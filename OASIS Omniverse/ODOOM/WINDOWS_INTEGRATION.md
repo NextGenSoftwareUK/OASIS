@@ -56,6 +56,7 @@ The script patches your UZDoom source tree so a normal UZDoom build produces ODO
 | 3a2 | `src/g_game.cpp` | Same inventory capture at the start of `RunTic()` as a fallback. |
 | 3b | `src/g_statusbar/sbar_mugshot.cpp` | When “anorak face” is on, uses OASIS face (OASFACE) for the status bar mug shot; cleans up older face logic. |
 | 3c | `src/playsim/p_interaction.cpp` | In `AActor::Die()`, calls `UZDoom_STAR_OnBossKilled(...)` for Cyberdemon, SpiderMastermind, and BaronOfHell so boss kills can trigger boss NFT minting. |
+| 3c2 | `src/gamedata/a_keys.cpp` | In `P_CheckKeys`, calls `UZDoom_STAR_CheckDoorAccess` **only when the player actually tries to open a door** (E key). The engine passes `quiet==true` for probes (map load, status bar, automap); we only invoke STAR when `!quiet` so inventory is never touched on map start. |
 | 3d | `wadsrc/static/cvarinfo.txt` | Appends ODOOM inventory CVars (`odoom_inventory_open`, `odoom_key_*`) for ZScript/C++ coordination. |
 | 4 | `wadsrc/static/about.txt` | Updates release notes (ODOOM entry, UZDoom wording). |
 | 4b | `CMakeLists.txt` | Ensures `star_sync.c` is in the build when `OASIS_STAR_API` is on. |
