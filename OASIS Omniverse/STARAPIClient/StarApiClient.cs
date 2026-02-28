@@ -526,7 +526,16 @@ public sealed class StarApiClient : IDisposable
         {
             _inventoryFetchTask = null;
             if (result.Result is not null)
-                _cachedInventory = new List<StarItem>(result.Result);
+            {
+                var fetched = result.Result;
+                /* Don't replace a non-empty cache with an empty fetch: avoids keys/items vanishing when a refetch (e.g. after sync) returns empty due to timing or API. */
+                if (fetched.Count == 0 && _cachedInventory is not null && _cachedInventory.Count > 0)
+                {
+                    var merged = MergeLocalPendingIntoInventory(_cachedInventory);
+                    return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending, kept prior cache).");
+                }
+                _cachedInventory = new List<StarItem>(fetched);
+            }
         }
         if (result.Result is not null)
         {
@@ -750,6 +759,14 @@ public sealed class StarApiClient : IDisposable
         var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
         var qty = quantity < 1 ? 1 : quantity;
         _pendingPickupWithMint.Enqueue(new PendingPickupWithMintJob(itemName, description ?? string.Empty, gameSource, type, doMint, provider, sendToAddressAfterMinting, qty));
+        /* Show in overlay immediately: merge in GetInventoryAsync uses _localPending, so add here; worker will deduct when add completes. */
+        lock (_localPendingLock)
+        {
+            if (_localPending.TryGetValue(itemName, out var existing))
+                existing.Quantity += qty;
+            else
+                _localPending[itemName] = new LocalPendingEntry { Name = itemName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
+        }
         _addItemSignal.Release();
     }
 
@@ -771,6 +788,19 @@ public sealed class StarApiClient : IDisposable
     {
         lock (_localPendingLock)
             return _localPending.Count;
+    }
+
+    /// <summary>Subtract quantity from _localPending for itemName (after pickup-with-mint add succeeds so we don't double-count in merge).</summary>
+    private void DeductLocalPending(string itemName, int quantity)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || quantity <= 0) return;
+        lock (_localPendingLock)
+        {
+            if (!_localPending.TryGetValue(itemName, out var entry)) return;
+            entry.Quantity -= quantity;
+            if (entry.Quantity <= 0)
+                _localPending.Remove(itemName);
+        }
     }
 
     private async Task<OASISResult<StarItem>> AddItemCoreAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
@@ -1318,10 +1348,7 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(nftId))
             return FailAndCallback<(string NftId, string? Hash)>("API did not return an NFT ID.", StarApiResultCode.ApiError);
 
-        var hash = GetStringProperty(resultElement, "Hash")
-            ?? GetStringProperty(resultElement, "TransactionHash")
-            ?? GetStringProperty(resultElement, "Signature")
-            ?? GetStringProperty(resultElement, "TxHash");
+        var hash = GetMintResponseHash(resultElement, response.Result);
 
         InvokeCallback(StarApiResultCode.Success);
         return Success((nftId, string.IsNullOrWhiteSpace(hash) ? null : hash), StarApiResultCode.Success, "Inventory item NFT minted successfully.");
@@ -1952,6 +1979,71 @@ public sealed class StarApiClient : IDisposable
         return bool.TryParse(text, out var value) && value;
     }
 
+    /// <summary>Try common WEB4/OASIS mint response property names for tx hash. Also checks Result.Web3NFTs[0].MintTransactionHash (WEB4 mint returns hash on the Web3NFT).</summary>
+    private static string? GetMintResponseHash(JsonElement resultElement, string? rawResponseBody)
+    {
+        var hashKeys = new[] { "Hash", "TransactionHash", "Signature", "TxHash", "MintTransactionHash", "TransactionResult", "transactionHash", "mintTransactionHash", "transactionResult" };
+        foreach (var key in hashKeys)
+        {
+            var v = GetStringProperty(resultElement, key);
+            if (!string.IsNullOrWhiteSpace(v))
+                return v;
+        }
+        var fromWeb3Nfts = GetHashFromWeb3NFTsCollection(resultElement);
+        if (!string.IsNullOrWhiteSpace(fromWeb3Nfts))
+            return fromWeb3Nfts;
+        if (string.IsNullOrWhiteSpace(rawResponseBody))
+            return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(rawResponseBody);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+                return null;
+            foreach (var key in hashKeys)
+            {
+                var v = GetStringProperty(root, key);
+                if (!string.IsNullOrWhiteSpace(v))
+                    return v;
+            }
+            fromWeb3Nfts = GetHashFromWeb3NFTsCollection(root);
+            if (!string.IsNullOrWhiteSpace(fromWeb3Nfts))
+                return fromWeb3Nfts;
+            if (TryGetProperty(root, "Result", out var resultProp))
+                fromWeb3Nfts = GetHashFromWeb3NFTsCollection(resultProp);
+            if (!string.IsNullOrWhiteSpace(fromWeb3Nfts))
+                return fromWeb3Nfts;
+        }
+        catch
+        {
+            /* ignore parse errors */
+        }
+        return null;
+    }
+
+    /// <summary>Extract MintTransactionHash from first Web3NFT in Web3NFTs array (WEB4 mint response shape).</summary>
+    private static string? GetHashFromWeb3NFTsCollection(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+            return null;
+        if (!TryGetProperty(element, "Web3NFTs", out var web3NftsProp) && !TryGetProperty(element, "web3NFTs", out web3NftsProp))
+            return null;
+        if (web3NftsProp.ValueKind != JsonValueKind.Array)
+            return null;
+        var i = 0;
+        foreach (var item in web3NftsProp.EnumerateArray())
+        {
+            if (i++ > 0) break;
+            var hash = GetStringProperty(item, "MintTransactionHash")
+                ?? GetStringProperty(item, "MintHash")
+                ?? GetStringProperty(item, "mintTransactionHash")
+                ?? GetStringProperty(item, "mintHash");
+            if (!string.IsNullOrWhiteSpace(hash))
+                return hash;
+        }
+        return null;
+    }
+
     private static bool TryGetProperty(JsonElement element, string name, out JsonElement value)
     {
         if (element.ValueKind == JsonValueKind.Object)
@@ -2185,6 +2277,8 @@ public sealed class StarApiClient : IDisposable
                     var addResult = await AddItemCoreAsync(pickupJob.ItemName, pickupJob.Description, pickupJob.GameSource, pickupJob.ItemType, nftId, pickupJob.Quantity, true, cancellationToken).ConfigureAwait(false);
                     if (addResult.IsError)
                         StarApiExports.SetLastBackgroundError($"STAR: Add item failed for '{pickupJob.ItemName}': {addResult.Message}");
+                    else
+                        DeductLocalPending(pickupJob.ItemName, pickupJob.Quantity);
                 }
                 finally
                 {
@@ -2192,8 +2286,7 @@ public sealed class StarApiClient : IDisposable
                 }
             }
 
-            if (hadPickupJobs)
-                InvalidateInventoryCache();
+            /* Do not invalidate cache here: AddItemCoreAsync already updates _cachedInventory when add succeeds. Invalidating caused a refetch that could return stale data (keys vanished in overlay). */
 
             Dictionary<string, LocalPendingEntry> snapshot;
             lock (_localPendingLock)
@@ -2248,7 +2341,7 @@ public sealed class StarApiClient : IDisposable
                 }
             }
 
-            InvalidateInventoryCache();
+            /* Do not invalidate cache: AddItemCoreAsync already updated _cachedInventory for each added item. */
         }
     }
 
