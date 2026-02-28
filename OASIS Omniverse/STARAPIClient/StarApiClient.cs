@@ -110,6 +110,7 @@ public sealed class StarApiClient : IDisposable
     private StarApiCallback? _callback;
     private object? _callbackUserData;
     private readonly ConcurrentQueue<PendingAddItemJob> _pendingAddItemJobs = new();
+    private readonly ConcurrentQueue<PendingPickupWithMintJob> _pendingPickupWithMint = new();
     private readonly ConcurrentQueue<PendingUseItemJob> _pendingUseItemJobs = new();
     private readonly ConcurrentQueue<PendingQuestObjectiveJob> _pendingQuestObjectiveJobs = new();
     private readonly SemaphoreSlim _addItemSignal = new(0);
@@ -117,6 +118,10 @@ public sealed class StarApiClient : IDisposable
     private readonly SemaphoreSlim _questObjectiveSignal = new(0);
     private readonly object _jobLock = new();
     private int _activeAddItemJobs;
+    private readonly object _lastMintLock = new();
+    private string? _lastMintItemName;
+    private string? _lastMintNftId;
+    private string? _lastMintHash;
     private int _activeUseItemJobs;
     private int _activeQuestObjectiveJobs;
     private CancellationTokenSource? _jobCts;
@@ -716,6 +721,30 @@ public sealed class StarApiClient : IDisposable
         _addItemSignal.Release();
     }
 
+    /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
+    public bool ConsumeLastMintResult(out string? itemName, out string? nftId, out string? hash)
+    {
+        lock (_lastMintLock)
+        {
+            itemName = _lastMintItemName;
+            nftId = _lastMintNftId;
+            hash = _lastMintHash;
+            _lastMintItemName = _lastMintNftId = _lastMintHash = null;
+        }
+        return itemName is not null || nftId is not null;
+    }
+
+    /// <summary>Queue a pickup that may include mint (all work in background worker). Game calls this instead of mint+queue_add when do_mint is true; C# client mints then adds in ProcessAddItemJobsAsync.</summary>
+    public void EnqueuePickupWithMintJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", bool doMint = false, string? provider = null, string? sendToAddressAfterMinting = null, int quantity = 1)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
+            return;
+        var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
+        var qty = quantity < 1 ? 1 : quantity;
+        _pendingPickupWithMint.Enqueue(new PendingPickupWithMintJob(itemName, description ?? string.Empty, gameSource, type, doMint, provider, sendToAddressAfterMinting, qty));
+        _addItemSignal.Release();
+    }
+
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1203,8 +1232,8 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
-    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS. Same as nft_provider in oasisstar.json.</summary>
-    public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, CancellationToken cancellationToken = default)
+    /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS. Same as nft_provider in oasisstar.json. sendToAddressAfterMinting: optional wallet address to send the minted NFT to (from oasisstar.json SendToAddressAfterMinting).</summary>
+    public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, string? sendToAddressAfterMinting = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<(string NftId, string? Hash)>("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -1245,6 +1274,8 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("nftStandardType", string.Equals(onChainProvider, "SolanaOASIS", StringComparison.OrdinalIgnoreCase) ? "SPL" : "ERC1155");
             if (!string.IsNullOrWhiteSpace(sendToAvatarAfterMintingId))
                 writer.WriteString("sendToAvatarAfterMintingId", sendToAvatarAfterMintingId);
+            if (!string.IsNullOrWhiteSpace(sendToAddressAfterMinting))
+                writer.WriteString("sendToAddressAfterMinting", sendToAddressAfterMinting);
             writer.WritePropertyName("metaData");
             writer.WriteStartObject();
             writer.WriteString("GameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
@@ -2091,7 +2122,7 @@ public sealed class StarApiClient : IDisposable
             pending.Completion.TrySetResult(Fail<bool>("Quest objective queue stopped.", StarApiResultCode.NotInitialized));
     }
 
-    /// <summary>Background worker: flush local pending to API (one add_item per type), then invalidate cache. Games only call EnqueueAddItemJobOnly; this does the heavy lifting.</summary>
+    /// <summary>Background worker: flush local pending to API (one add_item per type), then invalidate cache. Games only call EnqueueAddItemJobOnly or EnqueuePickupWithMintJobOnly; this does the heavy lifting.</summary>
     private async Task ProcessAddItemJobsAsync(CancellationToken cancellationToken)
     {
         while (!cancellationToken.IsCancellationRequested)
@@ -2104,6 +2135,54 @@ public sealed class StarApiClient : IDisposable
             {
                 break;
             }
+
+            // Process pickup-with-mint jobs first (mint then add_item; all in C# background).
+            var hadPickupJobs = false;
+            while (_pendingPickupWithMint.TryDequeue(out var pickupJob))
+            {
+                hadPickupJobs = true;
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+                string? nftId = null;
+                if (pickupJob.DoMint)
+                {
+                    var mintResult = await MintInventoryItemNftAsync(
+                        pickupJob.ItemName,
+                        pickupJob.Description,
+                        pickupJob.GameSource,
+                        pickupJob.ItemType,
+                        pickupJob.Provider,
+                        pickupJob.SendToAddressAfterMinting,
+                        cancellationToken).ConfigureAwait(false);
+                    if (!mintResult.IsError && mintResult.Result.NftId is { } id)
+                    {
+                        nftId = id;
+                        var hash = mintResult.Result.Hash;
+                        lock (_lastMintLock)
+                        {
+                            _lastMintItemName = pickupJob.ItemName;
+                            _lastMintNftId = id;
+                            _lastMintHash = string.IsNullOrWhiteSpace(hash) ? null : hash;
+                        }
+                    }
+                    else if (mintResult.IsError)
+                    {
+                        StarApiExports.StarApiLog($"Mint failed for '{pickupJob.ItemName}': {mintResult.Message}");
+                    }
+                }
+                Interlocked.Increment(ref _activeAddItemJobs);
+                try
+                {
+                    await AddItemCoreAsync(pickupJob.ItemName, pickupJob.Description, pickupJob.GameSource, pickupJob.ItemType, nftId, pickupJob.Quantity, true, cancellationToken).ConfigureAwait(false);
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeAddItemJobs);
+                }
+            }
+
+            if (hadPickupJobs)
+                InvalidateInventoryCache();
 
             Dictionary<string, LocalPendingEntry> snapshot;
             lock (_localPendingLock)
@@ -2467,6 +2546,30 @@ public sealed class StarApiClient : IDisposable
         public int Quantity { get; set; }
     }
 
+    private sealed class PendingPickupWithMintJob
+    {
+        public PendingPickupWithMintJob(string itemName, string description, string gameSource, string itemType, bool doMint, string? provider, string? sendToAddressAfterMinting, int quantity)
+        {
+            ItemName = itemName;
+            Description = description;
+            GameSource = gameSource;
+            ItemType = itemType;
+            DoMint = doMint;
+            Provider = provider;
+            SendToAddressAfterMinting = sendToAddressAfterMinting;
+            Quantity = quantity < 1 ? 1 : quantity;
+        }
+
+        public string ItemName { get; }
+        public string Description { get; }
+        public string GameSource { get; }
+        public string ItemType { get; }
+        public bool DoMint { get; }
+        public string? Provider { get; }
+        public string? SendToAddressAfterMinting { get; }
+        public int Quantity { get; }
+    }
+
     private sealed class PendingAddItemJob
     {
         public PendingAddItemJob(string itemName, string description, string gameSource, string itemType, string? nftId, int quantity, bool stack, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<StarItem>>? completion)
@@ -2768,6 +2871,25 @@ public static unsafe class StarApiExports
             doStack);
     }
 
+    /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_pickup_with_mint", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueuePickupWithMint(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, int doMint, sbyte* provider, sbyte* sendToAddressAfterMinting, int quantity)
+    {
+        var client = GetClient();
+        if (client is null)
+            return;
+        var qty = quantity < 1 ? 1 : quantity;
+        client.EnqueuePickupWithMintJobOnly(
+            PtrToString(itemName) ?? string.Empty,
+            PtrToString(description) ?? string.Empty,
+            PtrToString(gameSource) ?? string.Empty,
+            PtrToString(itemType) ?? "KeyItem",
+            doMint != 0,
+            PtrToString(provider),
+            PtrToString(sendToAddressAfterMinting),
+            qty);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_flush_add_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiFlushAddItemJobs()
     {
@@ -2780,7 +2902,7 @@ public static unsafe class StarApiExports
 
     /// <summary>Mint an NFT for an inventory item via WEB4 OASIS API (NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_mint_inventory_nft", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut, sbyte* hashOut)
+    public static int StarApiMintInventoryNft(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, sbyte* provider, sbyte* nftIdOut, sbyte* hashOut, sbyte* sendToAddressAfterMinting)
     {
         var client = GetClient();
         if (client is null)
@@ -2793,7 +2915,8 @@ public static unsafe class StarApiExports
             PtrToString(description),
             PtrToString(gameSource) ?? string.Empty,
             PtrToString(itemType) ?? "KeyItem",
-            PtrToString(provider)).GetAwaiter().GetResult();
+            PtrToString(provider),
+            PtrToString(sendToAddressAfterMinting)).GetAwaiter().GetResult();
 
         if (result.IsError)
         {
@@ -2975,6 +3098,24 @@ public static unsafe class StarApiExports
     {
         lock (NativeStateLock)
             return (sbyte*)_lastError;
+    }
+
+    /// <summary>Consume last mint result (from background pickup-with-mint). Returns 1 if result was available and written to buffers, 0 otherwise. Buffers are null-terminated. Use from game pump/frame to show NFT ID and hash in console.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_consume_last_mint_result", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiConsumeLastMintResult(sbyte* itemNameOut, nuint itemNameSize, sbyte* nftIdOut, nuint nftIdSize, sbyte* hashOut, nuint hashSize)
+    {
+        var client = GetClient();
+        if (client is null || itemNameOut is null || nftIdOut is null || hashOut is null)
+            return 0;
+        if (!client.ConsumeLastMintResult(out var itemName, out var nftId, out var hash))
+            return 0;
+        var isize = (int)Math.Min(itemNameSize, int.MaxValue);
+        var nsize = (int)Math.Min(nftIdSize, int.MaxValue);
+        var hsize = (int)Math.Min(hashSize, int.MaxValue);
+        if (isize > 0) WriteUtf8ToOutput(itemName ?? string.Empty, itemNameOut, isize);
+        if (nsize > 0) WriteUtf8ToOutput(nftId ?? string.Empty, nftIdOut, nsize);
+        if (hsize > 0) WriteUtf8ToOutput(hash ?? string.Empty, hashOut, hsize);
+        return 1;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_set_callback", CallConvs = [typeof(CallConvCdecl)])]

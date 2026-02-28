@@ -50,11 +50,13 @@ set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
+REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
+set "BUILD_STAR_CLIENT=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
 if /i not "%~1"=="run" (
     echo.
-    set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
+    set /p "BUILD_CHOICE=  Full clean/rebuild [C] or incremental build [I]? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
@@ -62,7 +64,7 @@ if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
     echo.
-    set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build (Y/N)? [Y]: "
+    set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build [Y/N]? [Y]: "
     if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
     if /i "%SPRITE_CHOICE%"=="N" set "DO_SPRITE_REGEN=0"
     if /i "%SPRITE_CHOICE%"=="NO" set "DO_SPRITE_REGEN=0"
@@ -81,13 +83,14 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
     pause
     exit /b 1
 )
-if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
-    if exist "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
-        echo [ODOOM] star_api not found. Building and deploying STARAPIClient...
-        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-        if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
-    )
+REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+echo [ODOOM] Checking STARAPIClient - build if changed, deploy...
+if "%BUILD_STAR_CLIENT%"=="1" (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
+) else (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
 )
+if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
 if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
     echo star_api not found: %ODOOM_INTEGRATION%
     echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy star_api.dll and star_api.lib into the ODOOM folder.

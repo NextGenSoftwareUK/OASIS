@@ -64,10 +64,13 @@ void star_api_free_item_list(star_item_list_t* item_list);
 /** quantity: amount to add (or initial if new). stack: 1 = if item exists increment quantity; 0 = if exists return error "item already exists". */
 star_api_result_t star_api_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* nft_id, int quantity, int stack);
 /** Mint an NFT for an inventory item (WEB4 NFTHolon). Returns NFT ID; pass to star_api_add_item as nft_id. provider may be NULL (default SolanaOASIS). nft_id_out must be at least 128 bytes. hash_out optional (128 bytes) for tx hash/signature; pass NULL to omit. */
-star_api_result_t star_api_mint_inventory_nft(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* provider, char* nft_id_out, char* hash_out);
+star_api_result_t star_api_mint_inventory_nft(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* provider, char* nft_id_out, char* hash_out, const char* send_to_address_after_minting);
 bool star_api_use_item(const char* item_name, const char* context);
 /** Queue one add-item job (batching). nft_id may be NULL. quantity and stack: same as star_api_add_item (default 1, 1). */
 void star_api_queue_add_item(const char* item_name, const char* description, const char* game_source, const char* item_type, const char* nft_id, int quantity, int stack);
+/** Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item. */
+#define STAR_API_HAS_QUEUE_PICKUP_WITH_MINT 1
+void star_api_queue_pickup_with_mint(const char* item_name, const char* description, const char* game_source, const char* item_type, int do_mint, const char* provider, const char* send_to_address_after_minting, int quantity);
 star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
@@ -85,6 +88,8 @@ star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_av
 /** Send item from current avatar's inventory to a clan. Target = clan name (or username). item_id optional (NULL or empty = match by name). */
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 const char* star_api_get_last_error(void);
+/** Consume last mint result from background pickup-with-mint. Writes item name, NFT ID, and hash to buffers (null-terminated). Returns 1 if a result was available, 0 otherwise. */
+int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size, char* nft_id_out, size_t nft_id_size, char* hash_out, size_t hash_size);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus

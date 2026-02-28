@@ -12,6 +12,8 @@ set "QUAKE_ENGINE_EXE="
 set "HERE=%~dp0"
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "OQUAKE_INTEGRATION=%HERE%"
+REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
+set "BUILD_STAR_CLIENT=0"
 
 REM Generate OQuake version from OQuake/oquake_version.txt
 if exist "%OQUAKE_INTEGRATION%generate_oquake_version.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%OQUAKE_INTEGRATION%generate_oquake_version.ps1" -Root "%OQUAKE_INTEGRATION%"
@@ -20,46 +22,34 @@ if exist "%OQUAKE_INTEGRATION%version_display.txt" for /f "usebackq delims=" %%a
 
 call "%HERE%..\run_oasis_header.bat" OQUAKE
 
-if /i not "%~1"=="run" if /i not "%~1"=="batch" (
-    echo.
-    set /p "DEPLOY_STAR=  Build and deploy STARAPIClient first? [y/N]: "
-    if /i "!DEPLOY_STAR!"=="Y" (
-        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-        if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
-    )
-    if /i "!DEPLOY_STAR!"=="YES" (
-        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
-        if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
-    )
+REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+echo [OQuake] Checking STARAPIClient - build if changed, deploy...
+if "%BUILD_STAR_CLIENT%"=="1" (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
+) else (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
 )
+if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
 
 set "DO_FULL_CLEAN=0"
 if /i not "%~1"=="run" if /i not "%~1"=="batch" (
     echo.
-    set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
+    set /p "BUILD_CHOICE=  Full clean/rebuild [C] or incremental build [I]? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 
-REM --- STAR API ---
+REM --- STAR API (deploy already ran above; set paths for copy step) ---
 set "STAR_DLL="
 set "STAR_LIB="
 if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
 set "STAR_PUBLISH=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish"
 set "STAR_NATIVE=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native"
 if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" (set "STAR_LIB=%STAR_NATIVE%\star_api.lib") else (set "STAR_LIB=")
-
 if not defined STAR_DLL (
-    echo [STAR API] Building STARAPIClient...
-    if not exist "%STARAPICLIENT%\STARAPIClient.csproj" (echo STARAPIClient not found: %STARAPICLIENT% & pause & exit /b 1)
-    cd /d "%HERE%.."
-    call BUILD_AND_DEPLOY_STAR_CLIENT.bat
-    if errorlevel 1 (cd /d "%~dp0" & echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
-    cd /d "%~dp0"
-    if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
-    if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" set "STAR_LIB=%STAR_NATIVE%\star_api.lib"
-    if not exist "%STAR_DLL%" (echo star_api.dll missing after build. & pause & exit /b 1)
-    echo [STAR API] Ready.
+    echo star_api.dll missing after deploy. Check STARAPIClient build.
+    pause
+    exit /b 1
 )
 
 if not exist "%STARAPICLIENT%\star_api.h" (echo star_api.h not found: %STARAPICLIENT% & pause & exit /b 1)

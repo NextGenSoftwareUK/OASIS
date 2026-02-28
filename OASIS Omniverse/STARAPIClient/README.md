@@ -2,6 +2,8 @@
 
 This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games. ODOOM and OQuake use **STARAPIClient only**—do not use NativeWrapper. This C# client implements the C ABI entry points (`star_api_*`) used by game integrations.
 
+**Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../ARCHITECTURE.md)** in the OASIS Omniverse folder for the full architecture and porting checklist.
+
 ## STARAPIClient vs star_sync (why both?)
 
 **STARAPIClient** (this project)
@@ -118,6 +120,16 @@ Outputs:
 - `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
 
 Drop `star_api.dll` (and `star_api.lib`) next to the game exe. Use `star_api.h` from this folder. ODOOM and OQuake use STARAPIClient only.
+
+## When the client is built and deployed
+
+ODOOM and OQuake build scripts (**BUILD ODOOM.bat**, **BUILD_OQUAKE.bat**) **always** call the deploy script (**BUILD_AND_DEPLOY_STAR_CLIENT.bat**), which runs **publish_and_deploy_star_api.ps1**. So every time you build DOOM or Quake, the client is checked.
+
+**What the deploy script does each run:** It compares the built `star_api.dll` (in the publish folder) with the timestamps of all `.cs` and `.csproj` files in STARAPIClient. If the DLL is missing or any source file is newer than the DLL, it runs a full build (`dotnet publish`). If the DLL is up to date, it skips the build and prints “STARAPIClient unchanged (star_api.dll is up to date), skipping build.” Either way, it then **deploys** (copies `star_api.dll`, `star_api.lib`, `star_api.h`) into the ODOOM, OQuake, UZDoom, and vkQuake folders. So the compile only runs when the client has changed; the copy runs every time.
+
+**BUILD_STAR_CLIENT:** At the top of **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat** you can set `BUILD_STAR_CLIENT=1`. When set to 1, the deploy script is called with **-ForceBuild**, so it always runs a full build and then deploys. When 0 (default), the script uses the timestamp check above.
+
+**Summary:** Run a game build → deploy script always runs → build (compile) only if client changed or forced → deploy (copy) always.
 
 ## Diagnostic logging
 
