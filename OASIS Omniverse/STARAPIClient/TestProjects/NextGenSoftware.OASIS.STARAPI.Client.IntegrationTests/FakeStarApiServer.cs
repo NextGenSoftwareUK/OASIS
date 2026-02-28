@@ -139,17 +139,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 lock (_sync)
                 {
                     snapshot = _inventory
-                        .Select(x => (object)new
-                        {
-                            Id = x.Id,
-                            Name = x.Name,
-                            Description = x.Description,
-                            MetaData = new Dictionary<string, string>
-                            {
-                                ["GameSource"] = x.GameSource,
-                                ["ItemType"] = x.ItemType
-                            }
-                        }).ToList();
+                        .Select(x => BuildInventoryItemResponse(x))
+                        .ToList();
                 }
 
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
@@ -162,17 +153,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 lock (_sync)
                 {
                     snapshot = _inventory
-                        .Select(x => (object)new
-                        {
-                            Id = x.Id,
-                            Name = x.Name,
-                            Description = x.Description,
-                            MetaData = new Dictionary<string, string>
-                            {
-                                ["GameSource"] = x.GameSource,
-                                ["ItemType"] = x.ItemType
-                            }
-                        }).ToList();
+                        .Select(x => BuildInventoryItemResponse(x))
+                        .ToList();
                 }
 
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
@@ -187,29 +169,18 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 var itemId = Guid.NewGuid();
                 var name = GetProperty(root, "Name")?.GetString() ?? "Unnamed";
                 var description = GetProperty(root, "Description")?.GetString() ?? string.Empty;
-                var gameSource = GetProperty(GetProperty(root, "MetaData"), "GameSource")?.GetString() ?? "Unknown";
-                var itemType = GetProperty(GetProperty(root, "MetaData"), "ItemType")?.GetString() ?? "KeyItem";
+                var meta = GetProperty(root, "MetaData");
+                var gameSource = GetProperty(meta, "GameSource")?.GetString() ?? "Unknown";
+                var itemType = GetProperty(meta, "ItemType")?.GetString() ?? "KeyItem";
+                var nftId = GetProperty(meta, "NFTId")?.GetString();
 
                 lock (_sync)
                 {
-                    _inventory.Add(new InventoryItemRecord(itemId, name, description, gameSource, itemType));
+                    _inventory.Add(new InventoryItemRecord(itemId, name, description, gameSource, itemType, nftId));
                 }
 
-                await WriteJsonAsync(response, 200, new
-                {
-                    IsError = false,
-                    Result = new
-                    {
-                        Id = itemId,
-                        Name = name,
-                        Description = description,
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["GameSource"] = gameSource,
-                            ["ItemType"] = itemType
-                        }
-                    }
-                }).ConfigureAwait(false);
+                var record = new InventoryItemRecord(itemId, name, description, gameSource, itemType, nftId);
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = BuildInventoryItemResponse(record) }).ConfigureAwait(false);
                 return;
             }
 
@@ -224,24 +195,11 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
 
                 lock (_sync)
                 {
-                    _inventory.Add(new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem"));
+                    _inventory.Add(new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem", null));
                 }
 
-                await WriteJsonAsync(response, 200, new
-                {
-                    IsError = false,
-                    Result = new
-                    {
-                        Id = itemId,
-                        Name = name,
-                        Description = description,
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["GameSource"] = "Unknown",
-                            ["ItemType"] = "KeyItem"
-                        }
-                    }
-                }).ConfigureAwait(false);
+                var createRecord = new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem", null);
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = BuildInventoryItemResponse(createRecord) }).ConfigureAwait(false);
                 return;
             }
 
@@ -440,6 +398,25 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
         return null;
     }
 
-    private readonly record struct InventoryItemRecord(Guid Id, string Name, string Description, string GameSource, string ItemType);
+    private static object BuildInventoryItemResponse(InventoryItemRecord x)
+    {
+        var meta = new Dictionary<string, string>
+        {
+            ["GameSource"] = x.GameSource,
+            ["ItemType"] = x.ItemType
+        };
+        if (!string.IsNullOrWhiteSpace(x.NftId))
+            meta["NFTId"] = x.NftId!;
+        return new
+        {
+            x.Id,
+            x.Name,
+            x.Description,
+            MetaData = meta,
+            NftId = x.NftId
+        };
+    }
+
+    private readonly record struct InventoryItemRecord(Guid Id, string Name, string Description, string GameSource, string ItemType, string? NftId);
 }
 

@@ -867,6 +867,8 @@ public sealed class StarApiClient : IDisposable
             if (item is null)
                 return FailAndCallback<StarItem>("API did not return the created inventory item.", StarApiResultCode.ApiError);
 
+            var itemNftId = !string.IsNullOrWhiteSpace(item.NftId) ? item.NftId
+                : ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty;
             var mapped = new StarItem
             {
                 Id = item.Id,
@@ -874,7 +876,7 @@ public sealed class StarApiClient : IDisposable
                 Description = item.Description ?? description,
                 GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : gameSource,
                 ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : (string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType),
-                NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
+                NftId = itemNftId,
                 Quantity = item.Quantity
             };
 
@@ -1688,6 +1690,8 @@ public sealed class StarApiClient : IDisposable
                 if (item is null)
                     continue;
 
+                var nftId = !string.IsNullOrWhiteSpace(item.NftId) ? item.NftId
+                    : ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty;
                 items.Add(new StarItem
                 {
                     Id = item.Id,
@@ -1695,7 +1699,7 @@ public sealed class StarApiClient : IDisposable
                     Description = item.Description ?? string.Empty,
                     GameSource = !string.IsNullOrWhiteSpace(item.GameSource) ? item.GameSource : "n/a",
                     ItemType = !string.IsNullOrWhiteSpace(item.ItemType) ? item.ItemType : "Miscellaneous",
-                    NftId = ExtractMeta(item.MetaData, "NFTId", string.Empty) ?? ExtractMeta(item.MetaData, "OASISNFTId", string.Empty) ?? string.Empty,
+                    NftId = nftId,
                     Quantity = item.Quantity
                 });
             }
@@ -1754,6 +1758,12 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
             return null;
 
+        /* NftId: from root (API may put it there) or from MetaData so [NFT] prefix persists after reload / in Quake. */
+        var nftId = GetStringProperty(element, "NftId") ?? GetStringProperty(element, "NFTId") ?? GetStringProperty(element, "OASISNFTId")
+            ?? (metadata != null ? ExtractMeta(metadata, "NFTId", string.Empty) : null)
+            ?? (metadata != null ? ExtractMeta(metadata, "OASISNFTId", string.Empty) : null);
+        if (string.IsNullOrWhiteSpace(nftId)) nftId = null;
+
         return new InventoryItemResponse
         {
             Id = parsedGuid,
@@ -1762,7 +1772,8 @@ public sealed class StarApiClient : IDisposable
             GameSource = gameSource,
             ItemType = itemType,
             MetaData = metadata,
-            Quantity = quantity
+            Quantity = quantity,
+            NftId = nftId
         };
     }
 
@@ -2136,7 +2147,7 @@ public sealed class StarApiClient : IDisposable
     {
         lock (_jobLock)
         {
-            if (_useItemJobWorker is { IsCompleted: false })
+            if (_useItemJobWorker is not null && !_useItemJobWorker.IsCompleted)
                 return;
 
             _useItemJobCts = new CancellationTokenSource();
@@ -2181,7 +2192,7 @@ public sealed class StarApiClient : IDisposable
     {
         lock (_jobLock)
         {
-            if (_questObjectiveJobWorker is { IsCompleted: false })
+            if (_questObjectiveJobWorker is not null && !_questObjectiveJobWorker.IsCompleted)
                 return;
 
             _questObjectiveJobCts = new CancellationTokenSource();
@@ -2237,10 +2248,8 @@ public sealed class StarApiClient : IDisposable
             }
 
             // Process pickup-with-mint jobs first (mint then add_item; all in C# background).
-            var hadPickupJobs = false;
             while (_pendingPickupWithMint.TryDequeue(out var pickupJob))
             {
-                hadPickupJobs = true;
                 if (cancellationToken.IsCancellationRequested)
                     break;
                 string? nftId = null;
@@ -2640,6 +2649,8 @@ public sealed class StarApiClient : IDisposable
         public string? GameSource { get; set; }
         /// <summary>From API / InventoryItem holon.</summary>
         public string? ItemType { get; set; }
+        /// <summary>NFT ID when item is linked to NFTHolon (from MetaData or root). Persists so [NFT] prefix shows in Quake/Doom after reload.</summary>
+        public string? NftId { get; set; }
     }
 
     /// <summary>One row per item type: accumulated delta until flushed to API. Used by GetInventory merge and background flush.</summary>
