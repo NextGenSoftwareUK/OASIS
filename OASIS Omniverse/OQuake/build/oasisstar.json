@@ -13,4 +13,5 @@
   "mint_powerups": 1,
   "mint_keys": 1,
   "nft_provider": "SolanaOASIS"
+  "send_to_address_after_minting": ""
 }

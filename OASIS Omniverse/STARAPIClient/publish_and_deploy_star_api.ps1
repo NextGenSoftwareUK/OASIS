@@ -1,6 +1,7 @@
 param(
     [string]$Runtime = "win-x64",
-    [switch]$RunSmokeTest
+    [switch]$RunSmokeTest,
+    [switch]$ForceBuild
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,8 +15,26 @@ $dllPath = Join-Path $publishDir "star_api.dll"
 $libPath = Join-Path $nativeDir "star_api.lib"
 $headerPath = Join-Path $scriptDir "star_api.h"
 
-Write-Host "Publishing NativeAOT WEB5 STAR API wrapper..."
-dotnet publish $projectPath -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+# Build only when: forced, or dll missing, or any source (.cs / .csproj) is newer than star_api.dll
+$needBuild = $ForceBuild
+if (!$needBuild -and (Test-Path $dllPath)) {
+    $dllTime = (Get-Item $dllPath).LastWriteTimeUtc
+    $sources = @(Get-ChildItem -Path $scriptDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
+               @(Get-ChildItem -Path $scriptDir -Filter "*.csproj" -File -ErrorAction SilentlyContinue)
+    foreach ($f in $sources) {
+        if ($f.LastWriteTimeUtc -gt $dllTime) {
+            $needBuild = $true
+            break
+        }
+    }
+}
+if (!$needBuild -and (Test-Path $dllPath)) {
+    Write-Host "STARAPIClient unchanged (star_api.dll is up to date), skipping build."
+} else {
+    if (!(Test-Path $dllPath)) { Write-Host "STARAPIClient not built yet or output missing; building..." }
+    Write-Host "Publishing NativeAOT WEB5 STAR API wrapper..."
+    dotnet publish $projectPath -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+}
 
 if (!(Test-Path $dllPath)) { throw "Missing output: $dllPath" }
 if (!(Test-Path $libPath)) { throw "Missing output: $libPath" }
