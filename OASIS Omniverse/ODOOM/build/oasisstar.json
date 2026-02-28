@@ -10,5 +10,6 @@
   "mint_armor": 0,
   "mint_powerups": 0,
   "mint_keys": 1,
-  "nft_provider": "SolanaOASIS"
+  "nft_provider": "SolanaOASIS",
+  "send_to_address_after_minting": ""
 }
