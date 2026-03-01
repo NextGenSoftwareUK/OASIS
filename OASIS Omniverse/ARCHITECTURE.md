@@ -37,9 +37,10 @@ This document describes how the STAR integration is designed so that **the C# cl
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  LAYER 3: C# STARAPIClient (all heavy lifting)                              │
 │  • Single inventory cache (get/has/use are cache-first)                     │
-│  • Background workers: add_item queue, pickup-with-mint queue, use_item,     │
-│    quest objectives                                                          │
-│  • Mint + add_item: EnqueuePickupWithMintJobOnly → worker mints then adds    │
+│  • Dedicated queues: add_item (merge by type, pickup-with-mint), use_item,   │
+│    quest objectives; each has its own worker and flush-by-category           │
+│  • Generic background queue: auth, get avatar, get inventory, quests, NFTs,  │
+│    send item; one worker for all one-off operations (Queue* for each)       │
 │  • HTTP to WEB5 STAR API and WEB4 OASIS API                                 │
 │  • No game-specific code                                                    │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -66,6 +67,24 @@ The game never implements:
 - Background threads for mint or add_item
 - Sync/merge logic for “pending” vs “API” inventory
 - Retry or batching logic for API calls
+
+---
+
+## Queue and background design (non-blocking UI/game thread)
+
+The C# client uses two kinds of queues so the UI/game thread never has to block on network calls.
+
+**Dedicated queues (add-item, use-item, quest-objective)**  
+These have their own worker and queue because they are high-frequency and benefit from batching and merging. The add-item worker merges by item type (e.g. many “+1 shell” into one or a few API calls), uses a batch window, and handles pickup-with-mint (mint then add) in one flow. Use-item and quest-objective can batch in a time window. You also get flush-by-category: `FlushAddItemJobsAsync()` means “wait until all pending add-item work is done” (e.g. before a checkpoint), without waiting on get-avatar or get-inventory. Separate workers mean a flood of add-item does not block other API calls.
+
+**Generic background queue (everything else)**  
+One shared worker runs all other operations: auth, get current avatar, get inventory, has item, start/complete quest, create quest, add/remove quest objective, get active quests, create/mint/deploy NFT, get NFT collection, send item to avatar/clan. These are low-frequency and do not need batching or merge-by-type; the goal is only “run off the calling thread and return one result per call.” One generic queue is enough for that. Each of these methods has a `Queue*` overload (e.g. `QueueAuthenticateAsync`, `QueueGetCurrentAvatarAsync`) that enqueues the work and returns a `Task` that completes when the operation finishes.
+
+**Why keep both**  
+Dedicated queues give you batching, merging, and flush-by-category for gameplay-critical, high-volume operations. The generic queue gives you a consistent non-blocking API for every other method without adding a separate queue per operation. Migrating everything into one generic queue would lose batching and flush semantics; migrating the generic operations into the add-item worker would mix unrelated work and complicate flush and ordering.
+
+**Why not a dedicated queue per generic operation**  
+Giving each of the generic operations (auth, get avatar, get inventory, etc.) its own dedicated queue and worker would be overkill. Those calls are low-frequency (you do not call get-avatar or authenticate in a tight loop), so there is no throughput or batching benefit. One generic worker is enough to keep the caller from blocking. Extra queues and workers would add complexity with no real gain.
 
 ---
 

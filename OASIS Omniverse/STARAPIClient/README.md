@@ -100,6 +100,23 @@ Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **min
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
   - use item (`QueueUseItemAsync`, `FlushUseItemJobsAsync`)
   - quest objective updates (`QueueCompleteQuestObjectiveAsync`, `FlushQuestObjectiveJobsAsync`)
+- **Every network API method has a queue/background variant** so the UI/game thread never blocks: in addition to the queues above, a generic background worker runs one-off operations (auth, get avatar, get inventory, quests, NFTs, send item). Use the `Queue*` overload for each operation (e.g. `QueueAuthenticateAsync`, `QueueGetCurrentAvatarAsync`, `QueueGetInventoryAsync`, `QueueStartQuestAsync`, `QueueGetActiveQuestsAsync`, `QueueCreateBossNftAsync`, `QueueSendItemToAvatarAsync`, etc.). Await the returned `Task` when you need the result; the work runs off the calling thread.
+
+## Queue and background design (non-blocking UI/game thread)
+
+The client uses two kinds of queues so the UI/game thread never has to block on network calls.
+
+**Dedicated queues (add-item, use-item, quest-objective)**  
+These have their own worker and queue because they are high-frequency and benefit from batching and merging. The add-item worker merges by item type (e.g. many “+1 shell” into one or a few API calls), uses a batch window, and handles pickup-with-mint (mint then add) in one flow. Use-item and quest-objective can batch in a time window. You also get flush-by-category: `FlushAddItemJobsAsync()` means “wait until all pending add-item work is done” (e.g. before a checkpoint), without waiting on get-avatar or get-inventory. Separate workers mean a flood of add-item does not block other API calls.
+
+**Generic background queue (everything else)**  
+One shared worker runs all other operations: auth, get current avatar, get inventory, has item, start/complete quest, create quest, add/remove quest objective, get active quests, create/mint/deploy NFT, get NFT collection, send item to avatar/clan. These are low-frequency and do not need batching or merge-by-type; the goal is only “run off the calling thread and return one result per call.” One generic queue is enough for that. Each of these methods has a `Queue*` overload (e.g. `QueueAuthenticateAsync`, `QueueGetCurrentAvatarAsync`) that enqueues the work and returns a `Task` that completes when the operation finishes.
+
+**Why keep both**  
+Dedicated queues give you batching, merging, and flush-by-category for gameplay-critical, high-volume operations. The generic queue gives you a consistent non-blocking API for every other method without adding a separate queue per operation. Migrating everything into one generic queue would lose batching and flush semantics; migrating the generic operations into the add-item worker would mix unrelated work and complicate flush and ordering.
+
+**Why not a dedicated queue per generic operation**  
+Giving each of the generic operations (auth, get avatar, get inventory, etc.) its own dedicated queue and worker would be overkill. Those calls are low-frequency (you do not call get-avatar or authenticate in a tight loop), so there is no throughput or batching benefit. One generic worker is enough to keep the caller from blocking. Extra queues and workers would add complexity with no real gain.
 
 ## Build (Native DLL + Import Library)
 
