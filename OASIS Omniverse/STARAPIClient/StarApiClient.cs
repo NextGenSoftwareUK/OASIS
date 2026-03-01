@@ -905,12 +905,16 @@ public sealed class StarApiClient : IDisposable
     }
 
     /// <summary>Queue a monster kill (XP + optional mint + add to inventory). All work runs on the add-item background worker; never blocks.</summary>
-    public void EnqueueMonsterKillJobOnly(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider)
+    public void EnqueueMonsterKillJobOnly(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider, string? gameSource = null)
     {
         if (string.IsNullOrWhiteSpace(engineName) || string.IsNullOrWhiteSpace(displayName))
             return;
+        var xpVal = xp < 0 ? 0 : xp;
+        /* Optimistic XP update so HUD shows new XP immediately without waiting for background worker. */
+        if (xpVal > 0)
+            Volatile.Write(ref _cachedAvatarXp, Volatile.Read(ref _cachedAvatarXp) + xpVal);
         StartAddItemWorker();
-        _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xp < 0 ? 0 : xp, isBoss, doMint, provider ?? "SolanaOASIS"));
+        _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xpVal, isBoss, doMint, provider ?? "SolanaOASIS", gameSource ?? "ODOOM"));
         _addItemSignal.Release();
     }
 
@@ -2652,8 +2656,9 @@ public sealed class StarApiClient : IDisposable
                 Interlocked.Add(ref _pendingXp, monsterJob.Xp);
                 if (!monsterJob.DoMint)
                     continue;
-                var desc = $"Monster defeated in ODOOM: {monsterJob.DisplayName}";
-                var mintResult = await CreateMonsterNftAsync(monsterJob.EngineName, desc, "ODOOM", "{}", monsterJob.Provider, cancellationToken).ConfigureAwait(false);
+                var gameSource = string.IsNullOrWhiteSpace(monsterJob.GameSource) ? "ODOOM" : monsterJob.GameSource;
+                var desc = $"Monster defeated in {gameSource}: {monsterJob.DisplayName}";
+                var mintResult = await CreateMonsterNftAsync(monsterJob.EngineName, desc, gameSource, "{}", monsterJob.Provider, cancellationToken).ConfigureAwait(false);
                 if (mintResult.IsError || string.IsNullOrWhiteSpace(mintResult.Result.NftId))
                 {
                     StarApiExports.SetLastBackgroundError($"STAR: Monster NFT mint failed for '{monsterJob.DisplayName}': {mintResult.Message}");
@@ -2664,7 +2669,7 @@ public sealed class StarApiClient : IDisposable
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var addResult = await AddItemCoreAsync(itemName, desc, "ODOOM", "Monster", mintResult.Result.NftId, 1, true, cancellationToken).ConfigureAwait(false);
+                    var addResult = await AddItemCoreAsync(itemName, desc, gameSource, "Monster", mintResult.Result.NftId, 1, true, cancellationToken).ConfigureAwait(false);
                     if (addResult.IsError)
                         StarApiExports.SetLastBackgroundError($"STAR: Add monster item failed for '{itemName}': {addResult.Message}");
                     else
@@ -2933,9 +2938,12 @@ public sealed class StarApiClient : IDisposable
             return null;
 
         Guid.TryParse(GetStringProperty(element, "Id"), out var id);
-        var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp");
+        var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp")
+            ?? GetIntProperty(element, "TotalXP") ?? GetIntProperty(element, "totalXp");
         if (xp is null && TryGetProperty(element, "AvatarDetail", out var detailEl))
             xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
+        if (xp is null && TryGetProperty(element, "avatarDetail", out var detailEl2))
+            xp = GetIntProperty(detailEl2, "XP") ?? GetIntProperty(detailEl2, "xp");
         return new StarAvatarProfile
         {
             Id = id,
@@ -3197,7 +3205,7 @@ public sealed class StarApiClient : IDisposable
 
     private sealed class PendingMonsterKillJob
     {
-        public PendingMonsterKillJob(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider)
+        public PendingMonsterKillJob(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider, string gameSource)
         {
             EngineName = engineName;
             DisplayName = displayName;
@@ -3205,6 +3213,7 @@ public sealed class StarApiClient : IDisposable
             IsBoss = isBoss;
             DoMint = doMint;
             Provider = provider ?? "SolanaOASIS";
+            GameSource = gameSource ?? "ODOOM";
         }
 
         public string EngineName { get; }
@@ -3213,6 +3222,7 @@ public sealed class StarApiClient : IDisposable
         public bool IsBoss { get; }
         public bool DoMint { get; }
         public string Provider { get; }
+        public string GameSource { get; }
     }
 
     private sealed class PendingAddItemJob
@@ -3546,7 +3556,7 @@ public static unsafe class StarApiExports
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_monster_kill", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiQueueMonsterKill(sbyte* engineName, sbyte* displayName, int xp, int isBoss, int doMint, sbyte* provider)
+    public static void StarApiQueueMonsterKill(sbyte* engineName, sbyte* displayName, int xp, int isBoss, int doMint, sbyte* provider, sbyte* gameSource)
     {
         var client = GetClient();
         if (client is null) return;
@@ -3556,7 +3566,8 @@ public static unsafe class StarApiExports
             xp,
             isBoss != 0,
             doMint != 0,
-            PtrToString(provider));
+            PtrToString(provider),
+            PtrToString(gameSource));
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]

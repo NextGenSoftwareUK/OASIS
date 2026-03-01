@@ -280,6 +280,40 @@ if (Test-Path $SbarC) {
     }
 }
 
+# --- pr_cx.c: call OQuake_STAR_OnMonsterKilled when a monster entity is removed (so XP/NFT work without QuakeC changes) ---
+$PrCxC = Join-Path $QuakeDir "pr_cx.c"
+if (Test-Path $PrCxC) {
+    $content = Get-Content $PrCxC -Raw
+    $prCxPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $prCxPatched = $true
+        Write-Host "[OQuake] Patched pr_cx.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    # Before ED_Free(ed) in PF_remove, notify OQuake so monster kills grant XP and can mint NFTs (no QuakeC changes needed)
+    if ($content -notmatch 'OQuake_STAR_OnMonsterKilled') {
+        $hook = @'
+
+	{
+		const char *cls = PR_GetString(ed->v.classname);
+		if (cls && strncmp(cls, "monster_", 8) == 0)
+			OQuake_STAR_OnMonsterKilled(cls);
+	}
+'@
+        if ($content -match '(\s+)(ED_Free\s*\(\s*ed\s*\)\s*;)') {
+            $content = $content -replace '(\s+)(ED_Free\s*\(\s*ed\s*\)\s*;)', "$hook`r`n`$1`$2"
+            $prCxPatched = $true
+            Write-Host "[OQuake] Patched pr_cx.c: monster death hook before ED_Free (XP + NFT without QuakeC)" -ForegroundColor Green
+        }
+    }
+    if ($prCxPatched) {
+        Set-Content $PrCxC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (pr_cx.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
 # --- gl_screen.c: OQuake HUD (Beamed In, XP, version, inventory overlay) ---
 $GlScreenC = Join-Path $QuakeDir "gl_screen.c"
 if (Test-Path $GlScreenC) {

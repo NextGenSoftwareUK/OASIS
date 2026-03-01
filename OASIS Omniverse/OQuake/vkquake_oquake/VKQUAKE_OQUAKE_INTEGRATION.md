@@ -272,3 +272,5 @@ Already done if you use the provided defs/items/doors:
 - `doors.qc`: if player lacks local key, call `OQuake_CheckDoorAccess(..., "silver_key")` or `"gold_key"`; if it returns 1, open the door.
 
 No changes needed there once the engine builtins are registered.
+
+**Monster kills (XP + NFT):** The apply script patches **pr_cx.c** so that when the engine removes an entity whose classname starts with `monster_`, it calls `OQuake_STAR_OnMonsterKilled(classname)`. That gives you XP and optional mint/inventory without changing QuakeC. If your vkQuake build does not have `pr_cx.c` in the Quake folder or the patch fails, your QuakeC progs must call `OQuake_OnMonsterKilled(monster_classname)` when a monster dies (e.g. in world `Killed()` or the monster's death handler). Stock id1 progs do not call this.

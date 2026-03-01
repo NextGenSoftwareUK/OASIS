@@ -80,8 +80,8 @@ star_api_result_t star_api_complete_quest(const char* quest_id);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
-/** Queue monster kill (XP + optional mint + add to inventory). Runs on C# background thread. */
-void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider);
+/** Queue monster kill (XP + optional mint + add to inventory). Runs on C# background thread. game_source NULL/empty = ODOOM. */
+void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
 /** Get cached avatar XP (from last get-current-avatar or add-xp). Returns 1 on success, 0 otherwise. */
 int star_api_get_avatar_xp(int* xp_out);
 /** Trigger background refresh of avatar XP (e.g. after beam-in). */
