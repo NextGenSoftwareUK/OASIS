@@ -439,8 +439,8 @@ static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
 /** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
 static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
 
-/** Tab indices matching ZScript TAB_KEYS etc. Used to filter items per tab. */
-static const int ODOOM_TAB_KEYS = 0, ODOOM_TAB_POWERUPS = 1, ODOOM_TAB_WEAPONS = 2, ODOOM_TAB_AMMO = 3, ODOOM_TAB_ARMOR = 4, ODOOM_TAB_MONSTERS = 5, ODOOM_TAB_ITEMS = 6;
+/** Tab indices matching ZScript TAB_KEYS etc. Used to filter items per tab. Items=5, Monsters=6 (last). */
+static const int ODOOM_TAB_KEYS = 0, ODOOM_TAB_POWERUPS = 1, ODOOM_TAB_WEAPONS = 2, ODOOM_TAB_AMMO = 3, ODOOM_TAB_ARMOR = 4, ODOOM_TAB_ITEMS = 5, ODOOM_TAB_MONSTERS = 6;
 
 /** Return true if item matches the given tab (same logic as ZScript IsStarItemInTab). */
 static bool ODOOM_ItemMatchesTab(const char* item_type, const char* name, int tab) {
@@ -491,7 +491,7 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	if (tabVar && tabVar->GetRealType() == CVAR_Int)
 		tab = tabVar->GetGenericRep(CVAR_Int).Int;
 	if (scrollOffset < 0) scrollOffset = 0;
-	if (tab < 0 || tab > ODOOM_TAB_ITEMS) tab = ODOOM_TAB_KEYS;
+	if (tab < 0 || tab > ODOOM_TAB_MONSTERS) tab = ODOOM_TAB_KEYS;
 
 	size_t n = list->count;
 	size_t filteredCount = 0;
@@ -1774,7 +1774,7 @@ void UZDoom_STAR_OnMonsterKilled(const char* monster_name) {
 	const char* prov = (const char*)odoom_star_nft_provider;
 	if (!prov || !prov[0]) prov = "SolanaOASIS";
 	/* All work (XP, mint, add item) runs on C# background thread; never blocks the game. */
-	star_api_queue_monster_kill(e->engineName, e->displayName, e->xp, e->isBoss ? 1 : 0, do_mint, prov);
+	star_api_queue_monster_kill(e->engineName, e->displayName, e->xp, e->isBoss ? 1 : 0, do_mint, prov, "ODOOM");
 }
 
 //-----------------------------------------------------------------------------

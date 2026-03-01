@@ -424,24 +424,50 @@ if (lock->check(owner)) return true;
 
 # 3c3. a_doors.cpp: diagnostic log when EV_DoDoor is about to check keys (confirms door path is reached when pressing E).
 #      Classic Doom locked doors use EV_DoDoor(..., lock=arg3); the key check is here, not in P_ActivateLine (line->locknumber is often 0).
+#      Preprocessor (#ifdef/#endif) must start in column 0 for MSVC (C2014/C1020).
 $aDoorsCpp = "$src\src\playsim\mapthinkers\a_doors.cpp"
 if (Test-Path $aDoorsCpp) {
     $adContent = Get-Content $aDoorsCpp -Raw
     $adChanged = $false
+    # Repair: normalize STAR door block so #ifdef/#endif are at column 0 (fixes C2014) and remove duplicate #endif (fixes C1020)
+    if ($adContent -match 'ODOOM_STAR_LogEvDoDoorLock') {
+        # Replace the entire STAR door block (any leading/trailing whitespace on # lines) with canonical form
+        $starDoorBlockPattern = '\s*#ifdef\s+OASIS_STAR_API\s*\r?\n\s*ODOOM_STAR_LogEvDoDoorLock\s*\(\s*lock\s*\)\s*;\s*\r?\n\s*#endif'
+        $starDoorBlockCanon = "`r`n#ifdef OASIS_STAR_API`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif"
+        if ($adContent -match $starDoorBlockPattern) {
+            $adContent = $adContent -replace $starDoorBlockPattern, $starDoorBlockCanon
+            Write-Host "[ODOOM] a_doors.cpp: normalized STAR door block (preprocessor at column 0)" -ForegroundColor Yellow
+            $adChanged = $true
+        }
+        # Also fix any other STAR preprocessor lines that have leading whitespace (e.g. include block)
+        if ($adContent -match '[\r\n]\s+#(ifdef|endif)') {
+            $adContent = $adContent -replace '(\r?\n)\s+(#ifdef OASIS_STAR_API)', "`$1`$2"
+            $adContent = $adContent -replace '(\r?\n)\s+(#endif)(?=\r?\n)', "`$1`$2"
+            Write-Host "[ODOOM] a_doors.cpp: repaired preprocessor (column 0)" -ForegroundColor Yellow
+            $adChanged = $true
+        }
+        # Remove duplicate consecutive #endif
+        if ($adContent -match '#endif\s*\r?\n\s*#endif') {
+            $adContent = $adContent -replace '(#endif)(\r?\n)(\s*)(#endif)(\r?\n)', "`$1`$2"
+            Write-Host "[ODOOM] a_doors.cpp: removed duplicate #endif" -ForegroundColor Yellow
+            $adChanged = $true
+        }
+    }
     if ($adContent -notmatch 'uzdoom_star_integration\.h') {
         $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
         $adChanged = $true
     }
     if ($adContent -notmatch 'ODOOM_STAR_LogEvDoDoorLock') {
         $patched = $false
-        # Capture leading whitespace + "if (lock..." so we can prepend the diagnostic block
+        # Block must have #ifdef/#endif in column 0 (no leading space) for MSVC
+        $starBlock = "`r`n#ifdef OASIS_STAR_API`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n"
         if ($adContent -match '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))') {
-            $adContent = $adContent -replace '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "#ifdef OASIS_STAR_API`r`n`tODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n`$1`$2"
+            $adContent = $adContent -replace '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "$starBlock`$1`$2"
             $adChanged = $true
             $patched = $true
         }
         if (-not $patched -and $adContent -match 'if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\)\)') {
-            $adContent = $adContent -replace '(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "#ifdef OASIS_STAR_API`r`n`tODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n`t`$1"
+            $adContent = $adContent -replace '(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "${starBlock}`t`$1"
             $adChanged = $true
         }
     }
