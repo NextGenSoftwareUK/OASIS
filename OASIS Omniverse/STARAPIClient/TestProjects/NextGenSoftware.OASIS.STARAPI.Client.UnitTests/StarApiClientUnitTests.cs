@@ -33,9 +33,12 @@ public class StarApiClientUnitTests
         using var client = new StarApiClient();
 
         var auth = await client.AuthenticateAsync("user", "pass");
+        var queueAuth = await client.QueueAuthenticateAsync("user", "pass");
         var getCurrentAvatar = await client.GetCurrentAvatarAsync();
+        var queueGetAvatar = await client.QueueGetCurrentAvatarAsync();
         var hasItem = await client.HasItemAsync("item");
         var getInventory = await client.GetInventoryAsync();
+        var queueGetInventory = await client.QueueGetInventoryAsync();
         var addItem = await client.AddItemAsync("item", "desc", "game");
         var queueAddItem = await client.QueueAddItemAsync("item", "desc", "game");
         var flushAdd = await client.FlushAddItemJobsAsync();
@@ -51,6 +54,7 @@ public class StarApiClientUnitTests
         var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
         var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var activeQuests = await client.GetActiveQuestsAsync();
+        var queueGetQuests = await client.QueueGetActiveQuestsAsync();
         var createBossNft = await client.CreateBossNftAsync("boss", "desc", "game", "{}");
         var deployBossNft = await client.DeployBossNftAsync("nft", "game");
         var nftCollection = await client.GetNftCollectionAsync();
@@ -59,9 +63,12 @@ public class StarApiClientUnitTests
         var setWeb5 = client.SetWeb5StarApiBaseUrl("https://web5.example.com");
 
         AssertNotInitialized(auth);
+        AssertNotInitialized(queueAuth);
         AssertNotInitialized(getCurrentAvatar);
+        AssertNotInitialized(queueGetAvatar);
         AssertNotInitialized(hasItem);
         AssertNotInitialized(getInventory);
+        AssertNotInitialized(queueGetInventory);
         AssertNotInitialized(addItem);
         AssertNotInitialized(queueAddItem);
         AssertNotInitialized(flushAdd);
@@ -77,6 +84,7 @@ public class StarApiClientUnitTests
         AssertNotInitialized(addObjective);
         AssertNotInitialized(removeObjective);
         AssertNotInitialized(activeQuests);
+        AssertNotInitialized(queueGetQuests);
         AssertNotInitialized(createBossNft);
         AssertNotInitialized(deployBossNft);
         AssertNotInitialized(nftCollection);
