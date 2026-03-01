@@ -218,7 +218,7 @@ if (Test-Path $sbarMugshotCpp) {
     }
 }
 
-# 3c. p_interaction.cpp: call UZDoom_STAR_OnBossKilled when a boss monster dies (Cyberdemon, SpiderMastermind, BaronOfHell)
+# 3c. p_interaction.cpp: call UZDoom_STAR_OnMonsterKilled when any monster dies (mint per monster from oasisstar.json mint_monsters); OnBossKilled still used for legacy boss NFT
 $pInteractionCpp = "$src\src\playsim\p_interaction.cpp"
 if (Test-Path $pInteractionCpp) {
     $piContent = Get-Content $pInteractionCpp -Raw
@@ -227,27 +227,41 @@ if (Test-Path $pInteractionCpp) {
         $piContent = $piContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
         $piChanged = $true
     }
-    if ($piContent -notmatch 'UZDoom_STAR_OnBossKilled') {
-        $oldDie = 'bool wasgibbed = \(health < GetGibHealth\(\)\);\r?\n\r?\n(\t// Check to see if unmorph[^\r\n]*)'
-        $newDie = @"
-bool wasgibbed = (health < GetGibHealth());
-
-	// OASIS STAR: notify when a boss monster is killed (for boss NFT minting)
-	if (player == nullptr && (flags3 & MF3_ISMONSTER))
+    # Prefer OnMonsterKilled (mint + add to inventory per mint_monsters); fallback to OnBossKilled block if only that exists
+    if ($piContent -notmatch 'UZDoom_STAR_OnMonsterKilled') {
+        if ($piContent -match 'UZDoom_STAR_OnBossKilled') {
+            $oldBoss = 'if \(player == nullptr && \(flags3 & MF3_ISMONSTER\)\)\r?\n\s*\{\r?\n\s*FName tn = GetClass\(\)->TypeName;\r?\n\s*if \(tn == NAME_Cyberdemon \|\| tn == NAME_SpiderMastermind \|\| tn == NAME_BaronOfHell\)\r?\n\s*UZDoom_STAR_OnBossKilled\(tn\.GetChars\(\)\);\r?\n\s*\}'
+            $newMonster = @'
+if (player == nullptr && (flags3 & MF3_ISMONSTER))
 	{
 		FName tn = GetClass()->TypeName;
-		if (tn == NAME_Cyberdemon || tn == NAME_SpiderMastermind || tn == NAME_BaronOfHell)
-			UZDoom_STAR_OnBossKilled(tn.GetChars());
+		UZDoom_STAR_OnMonsterKilled(tn.GetChars());
 	}
+'@
+            if ($piContent -match $oldBoss) {
+                $piContent = $piContent -replace $oldBoss, $newMonster
+                $piChanged = $true
+            }
+        } else {
+            $oldDie = 'bool wasgibbed = \(health < GetGibHealth\(\)\);\r?\n\r?\n(\t// Check to see if unmorph[^\r\n]*)'
+            $newDie = @"
+bool wasgibbed = (health < GetGibHealth());
+
+	// OASIS STAR: when any monster is killed, check mint_monsters in oasisstar.json; mint NFT and add to inventory (Monsters tab) if enabled
+	if (player == nullptr && (flags3 & MF3_ISMONSTER))
+		UZDoom_STAR_OnMonsterKilled(GetClass()->TypeName.GetChars());
 
 	`$1
 "@
-        $piContent = $piContent -replace $oldDie, $newDie
-        $piChanged = $true
+            if ($piContent -match $oldDie) {
+                $piContent = $piContent -replace $oldDie, $newDie
+                $piChanged = $true
+            }
+        }
     }
     if ($piChanged) {
         Set-Content $pInteractionCpp $piContent -NoNewline
-        $changes += "p_interaction (boss kill)"
+        $changes += "p_interaction (monster kill mint)"
     }
 }
 
