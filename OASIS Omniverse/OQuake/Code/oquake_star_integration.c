@@ -1929,7 +1929,7 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     idx = (int)(e - OQUAKE_MONSTERS);
     do_mint = OQ_ShouldMintMonster(idx) ? 1 : 0;
     prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS";
-    star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov);
+    star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov, "OQUAKE");
 }
 
 void OQuake_STAR_OnBossKilled(const char* boss_name) {
@@ -2097,6 +2097,20 @@ void OQuake_STAR_PollItems(void) {
         }
     } else if (g_oq_reapply_json_frames > 0) {
         g_oq_reapply_json_frames--;
+    }
+
+    /* One-time delayed XP refresh ~3s after beam-in so HUD shows correct XP if API was slow or format differs. */
+    {
+        static int xp_refresh_delay = 0;
+        static int xp_refresh_done = 0;
+        if (g_star_beamed_in && !xp_refresh_done) {
+            if (xp_refresh_delay < 180)  /* ~3 sec at 60 fps */
+                xp_refresh_delay++;
+            else {
+                star_api_refresh_avatar_xp();
+                xp_refresh_done = 1;
+            }
+        }
     }
 
     if (!sv.active || cls.demoplayback) {

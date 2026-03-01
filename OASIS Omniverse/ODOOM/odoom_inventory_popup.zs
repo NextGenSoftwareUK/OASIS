@@ -55,8 +55,8 @@ class OASISInventoryOverlayHandler : EventHandler
 	const TAB_WEAPONS = 2;
 	const TAB_AMMO = 3;
 	const TAB_ARMOR = 4;
-	const TAB_MONSTERS = 5;
-	const TAB_ITEMS = 6;
+	const TAB_ITEMS = 5;
+	const TAB_MONSTERS = 6;
 	const TAB_COUNT = 7;
 	const MAX_VISIBLE_ROWS = 6;
 	// Cap STAR list size so we never overflow engine CVar or ZScript string buffers ("attempted to write past end of stream").
@@ -696,8 +696,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		String tab2 = "Weapons";
 		String tab3 = "Ammo";
 		String tab4 = "Armor";
-		String tab5 = "Monsters";
-		String tab6 = "Items";
+		String tab5 = "Items";
+		String tab6 = "Monsters";
 		int tab0X = tabX;
 		int tab1X = tab0X + f.StringWidth(tab0) + tabGap;
 		int tab2X = tab1X + f.StringWidth(tab1) + tabGap;
@@ -710,8 +710,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		screen.DrawText(f, activeTab == TAB_WEAPONS ? Font.CR_GREEN : Font.CR_GRAY, tab2X, 33, tab2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_AMMO ? Font.CR_GREEN : Font.CR_GRAY, tab3X, 33, tab3, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_ARMOR ? Font.CR_GREEN : Font.CR_GRAY, tab4X, 33, tab4, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, activeTab == TAB_MONSTERS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab6X, 33, tab6, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, activeTab == TAB_MONSTERS ? Font.CR_GREEN : Font.CR_GRAY, tab6X, 33, tab6, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		screen.DrawText(f, Font.CR_DARKGRAY, -16, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
