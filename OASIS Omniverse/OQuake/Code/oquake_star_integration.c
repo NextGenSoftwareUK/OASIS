@@ -645,11 +645,11 @@ static void OQ_OnAuthDone(void* user_data) {
             Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
         OQ_ApplyBeamFacePreference();
+        /* Refresh XP via same add-xp path as monster kill (async; cache updates when response returns). */
+        star_api_refresh_avatar_xp();
         g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
         g_inventory_last_refresh = 0.0;
-        star_api_refresh_avatar_xp();
-        /* C# client flushes queued add_item jobs in background; just refresh overlay when user opens inventory. */
     } else {
         Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
     }
@@ -1919,8 +1919,14 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     int do_mint;
     const char* prov;
     int idx;
-    if (!monster_name || !monster_name[0] || !g_star_initialized)
+    if (!monster_name || !monster_name[0]) {
+        Con_Printf("OQuake STAR: OnMonsterKilled called with empty name (hook may be mis-installed)\n");
         return;
+    }
+    if (!g_star_initialized) {
+        Con_Printf("OQuake STAR: monster \"%s\" killed but not beamed in (no XP/mint)\n", monster_name);
+        return;
+    }
     e = OQ_FindMonsterByEngineName(monster_name);
     if (!e) {
         Con_Printf("OQuake STAR: unknown monster \"%s\" (no XP/mint)\n", monster_name);
@@ -1929,6 +1935,7 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     idx = (int)(e - OQUAKE_MONSTERS);
     do_mint = OQ_ShouldMintMonster(idx) ? 1 : 0;
     prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS";
+    Con_Printf("OQuake STAR: monster kill queued: %s (%d XP, mint=%d)\n", e->display_name, e->xp, do_mint);
     star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov, "OQUAKE");
 }
 
@@ -2506,8 +2513,8 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
+            star_api_refresh_avatar_xp();  /* Same add-xp(0) path as monster kill (async). */
             g_star_beamed_in = 1;
-            star_api_refresh_avatar_xp();
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));

@@ -280,38 +280,61 @@ if (Test-Path $SbarC) {
     }
 }
 
-# --- pr_cx.c: call OQuake_STAR_OnMonsterKilled when a monster entity is removed (so XP/NFT work without QuakeC changes) ---
-$PrCxC = Join-Path $QuakeDir "pr_cx.c"
-if (Test-Path $PrCxC) {
-    $content = Get-Content $PrCxC -Raw
-    $prCxPatched = $false
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
-        $prCxPatched = $true
-        Write-Host "[OQuake] Patched pr_cx.c: added #include oquake_star_integration.h" -ForegroundColor Green
-    }
-    # Before ED_Free(ed) in PF_remove, notify OQuake so monster kills grant XP and can mint NFTs (no QuakeC changes needed)
-    if ($content -notmatch 'OQuake_STAR_OnMonsterKilled') {
-        $hook = @'
+# --- Monster kill hook: call OQuake_STAR_OnMonsterKilled when an entity is ED_Free'd (so XP/NFT work without QuakeC). vkQuake uses ED_Free(ent) not ED_Free(ed), so we match any variable name. ---
+$monsterHookAdded = $false
+# Regex: capture (whitespace)(ED_Free \()(variable name)(\) ;). Replacement uses $3 so hook works for ed, ent, new_edict, etc.
+$edFreePattern = '(\s+)(ED_Free\s*\(\s*)(\w+)(\s*\)\s*;)'
+# Replacement: hook block (use $3 for entity var name) then original line ($1$2$3$4). Single-quoted here-string so "monster_" and $1 $2 $3 $4 stay literal for -replace.
+$edFreeReplacement = @'
 
 	{
-		const char *cls = PR_GetString(ed->v.classname);
+		const char *cls = PR_GetString($3->v.classname);
 		if (cls && strncmp(cls, "monster_", 8) == 0)
 			OQuake_STAR_OnMonsterKilled(cls);
 	}
+$1$2$3$4
 '@
-        if ($content -match '(\s+)(ED_Free\s*\(\s*ed\s*\)\s*;)') {
-            $content = $content -replace '(\s+)(ED_Free\s*\(\s*ed\s*\)\s*;)', "$hook`r`n`$1`$2"
-            $prCxPatched = $true
-            Write-Host "[OQuake] Patched pr_cx.c: monster death hook before ED_Free (XP + NFT without QuakeC)" -ForegroundColor Green
+
+function Add-MonsterHookToFile {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'OQuake_STAR_OnMonsterKilled') { return $true }
+    if ($content -notmatch $edFreePattern) { return $false }
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    }
+    $content = $content -replace $edFreePattern, $edFreeReplacement
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched ${FileLabel}: monster death hook before ED_Free (XP + NFT)" -ForegroundColor Green
+    foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+        if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (${FileLabel} patched)" -ForegroundColor Yellow; break }
+    }
+    return $true
+}
+
+# Try pr_cx.c first, then pr_edict.c (vkQuake and many engines use ED_Free(ent) in pr_edict.c)
+foreach ($tryFile in @("pr_cx.c", "pr_edict.c")) {
+    $path = Join-Path $QuakeDir $tryFile
+    if (Add-MonsterHookToFile -FilePath $path -FileLabel $tryFile) {
+        $monsterHookAdded = $true
+        break
+    }
+}
+
+# Last resort: scan all .c files in Quake dir for ED_Free and patch the first that has it (covers different engine layouts)
+if (-not $monsterHookAdded) {
+    Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
+        if ($monsterHookAdded) { return }
+        $name = $_.Name
+        if (Add-MonsterHookToFile -FilePath $_.FullName -FileLabel $name) {
+            $monsterHookAdded = $true
         }
     }
-    if ($prCxPatched) {
-        Set-Content $PrCxC $content -NoNewline
-        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (pr_cx.c patched)" -ForegroundColor Yellow; break }
-        }
-    }
+}
+
+if (-not $monsterHookAdded) {
+    Write-Host "[OQuake] No ED_Free(...) found in any Quake/*.c; monster XP/NFT will only work if QuakeC calls OQuake_OnMonsterKilled(monster_classname)." -ForegroundColor Yellow
 }
 
 # --- gl_screen.c: OQuake HUD (Beamed In, XP, version, inventory overlay) ---
