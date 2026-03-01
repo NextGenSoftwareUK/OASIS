@@ -494,10 +494,33 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	listVar->SetGenericRep(v, CVAR_String);
 }
 
+/** Set odoom_star_has_gold_key / odoom_star_has_silver_key from inventory list so ZScript can give OQ keys for HUD. */
+static void ODOOM_UpdateStarKeyHudCVars(const star_item_list_t* list) {
+	int hasGold = 0, hasSilver = 0;
+	if (list && list->items) {
+		for (size_t i = 0; i < list->count; i++) {
+			const char* n = list->items[i].name;
+			if (!n) continue;
+			std::string lower;
+			for (const char* p = n; *p; ++p)
+				lower.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*p == '_' ? ' ' : *p))));
+			if (lower.find("gold") != std::string::npos && (lower.find("key") != std::string::npos || lower.find("keycard") != std::string::npos))
+				hasGold = 1;
+			if (lower.find("silver") != std::string::npos && (lower.find("key") != std::string::npos || lower.find("keycard") != std::string::npos))
+				hasSilver = 1;
+		}
+	}
+	FBaseCVar* g = FindCVar("odoom_star_has_gold_key", nullptr);
+	FBaseCVar* s = FindCVar("odoom_star_has_silver_key", nullptr);
+	if (g && g->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = hasGold; g->SetGenericRep(u, CVAR_Int); }
+	if (s && s->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = hasSilver; s->SetGenericRep(u, CVAR_Int); }
+}
+
 /** Refresh overlay from client (get_inventory returns API + pending merged in C#). Call after send/use or when overlay is open so list stays in sync. */
 static void ODOOM_RefreshOverlayFromClient(void) {
 	star_item_list_t* list = nullptr;
 	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return;
+	ODOOM_UpdateStarKeyHudCVars(list);
 	ODOOM_PushInventoryToCVars(list);
 	star_api_free_item_list(list);
 }
@@ -617,8 +640,20 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
 
 	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). */
-	if (open)
+	if (open) {
 		ODOOM_RefreshOverlayFromClient();
+	} else if (g_star_initialized) {
+		/* When overlay closed, periodically refresh gold/silver key CVars so HUD shows OQuake keys after load. */
+		static int s_key_hud_frames = 0;
+		if (++s_key_hud_frames >= 70) {
+			s_key_hud_frames = 0;
+			star_item_list_t* list = nullptr;
+			if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+				ODOOM_UpdateStarKeyHudCVars(list);
+				star_api_free_item_list(list);
+			}
+		}
+	}
 
 	if (open && !g_odoom_inventory_bindings_captured)
 	{
@@ -1268,6 +1303,76 @@ static const char* GetKeycardName(int keynum) {
 	}
 }
 
+/** Name variants that the API or other games might store (e.g. "red_keycard"). Used so door check and HUD find keys regardless of name format. */
+static const char* const* GetKeycardNameVariants(int keynum, int* outCount) {
+	static const char* red[] = { "Red Keycard", "red_keycard", "Red keycard" };
+	static const char* blue[] = { "Blue Keycard", "blue_keycard", "Blue keycard" };
+	static const char* yellow[] = { "Yellow Keycard", "yellow_keycard", "Yellow keycard" };
+	static const char* skull[] = { "Skull Key", "skull_key", "Skull key" };
+	*outCount = 3;
+	switch (keynum) {
+		case 1: return red;
+		case 2: return blue;
+		case 3: return yellow;
+		case 4: return skull;
+		default: *outCount = 0; return nullptr;
+	}
+}
+
+/** Substrings (lowercase) that must appear in item name for each key. Fallback when variant has_item fails (e.g. API name differs). */
+static bool KeyNameContainsKeycard(int keynum, const char* itemName) {
+	if (!itemName || !itemName[0]) return false;
+	std::string lower;
+	for (const char* p = itemName; *p; ++p) {
+		char c = *p;
+		lower.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(c == '_' ? ' ' : c))));
+	}
+	auto has = [&lower](const char* sub) {
+		std::string s(sub);
+		for (auto& c : s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+		return lower.find(s) != std::string::npos;
+	};
+	switch (keynum) {
+		case 1: return has("red") && (has("key") || has("keycard"));
+		case 2: return has("blue") && (has("key") || has("keycard"));
+		case 3: return has("yellow") && (has("key") || has("keycard"));
+		case 4: return has("skull") && has("key");
+		default: return false;
+	}
+}
+
+/** Returns true if STAR inventory has this key (any name variant). If outName is non-null, set to the first matching variant for use_item. Fallback: scan get_inventory when variants fail. */
+static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
+	int n = 0;
+	const char* const* names = GetKeycardNameVariants(keynum, &n);
+	if (names && n > 0) {
+		for (int i = 0; i < n; i++) {
+			if (star_api_has_item(names[i])) {
+				if (outName) *outName = names[i];
+				return true;
+			}
+		}
+	}
+	/* Fallback: get full inventory and match by name content (handles "Red Keycard (ODOOM)" etc.) */
+	star_item_list_t* list = nullptr;
+	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items) return false;
+	static char matched_name[256];
+	matched_name[0] = '\0';
+	bool found = false;
+	for (size_t i = 0; i < list->count; i++) {
+		const star_item_t* it = &list->items[i];
+		if (KeyNameContainsKeycard(keynum, it->name)) {
+			std::strncpy(matched_name, it->name, sizeof(matched_name) - 1);
+			matched_name[sizeof(matched_name) - 1] = '\0';
+			found = true;
+			break;
+		}
+	}
+	star_api_free_item_list(list);
+	if (found && outName) *outName = matched_name;
+	return found;
+}
+
 static const char* GetKeycardDescription(int keynum) {
 	switch (keynum) {
 		case 1: return "Red Keycard - Opens red doors";
@@ -1470,20 +1575,20 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 		return 0;
 	}
 
-	const char* keyname = GetKeycardName(keynum);
-	if (!keyname) return 0;
+	const char* keyname = nullptr;
+	if (!ODOOM_STAR_HasKeycard(keynum, &keyname)) return 0;
 
-	if (star_api_has_item(keyname)) {
-		/* Consume the keycard only when the player actually opens the door (past consume grace period). */
-		if (g_star_frames_since_beamin >= STAR_DOOR_CONSUME_GRACE_FRAMES)
-			star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
-		return 1;
-	}
+	/* Use the name variant that matched the API for consume. */
+	if (keyname && g_star_frames_since_beamin >= STAR_DOOR_CONSUME_GRACE_FRAMES)
+		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
+	return 1;
+}
 
-	// IMPORTANT: OQuake keys are intentionally NOT valid for ODOOM doors.
-	// Gold/silver keys only open their matching doors in OQuake.
-
-	return 0;
+/** Read-only check for HUD/status bar: returns true if STAR has this key (so key icon can be drawn). Call when quiet==true in P_CheckKeys. */
+int UZDoom_STAR_PlayerHasKey(int keynum) {
+	if (keynum <= 0 || keynum > 4) return 0;
+	if (!StarTryInitializeAndAuthenticate(false)) return 0;
+	return ODOOM_STAR_HasKeycard(keynum, nullptr) ? 1 : 0;
 }
 
 void UZDoom_STAR_OnBossKilled(const char* boss_name) {

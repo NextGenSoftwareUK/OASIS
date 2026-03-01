@@ -47,6 +47,12 @@ void UZDoom_STAR_OnBossKilled(const char* boss_name);
  */
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote);
 
+/**
+ * Read-only check for HUD/status bar: returns 1 if STAR has this key (keynum 1-4).
+ * Call from P_CheckKeys when quiet==true so key icons show for keys from STAR inventory after load.
+ */
+int UZDoom_STAR_PlayerHasKey(int keynum);
+
 /** Call every frame from status bar (when OASIS_STAR_API): polls async auth/inventory and when inventory open, clear key bindings (OQuake-style). */
 void ODOOM_InventoryInputCaptureFrame(void);
 
