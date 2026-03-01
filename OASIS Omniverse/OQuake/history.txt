@@ -58,3 +58,5 @@ star beamin dellams test!
 star
 star config
 star beamin dellams test!
+star inventory
+star beamin dellams test!
