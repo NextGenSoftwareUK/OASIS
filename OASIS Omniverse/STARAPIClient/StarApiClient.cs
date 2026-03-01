@@ -2234,7 +2234,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         StartUseItemWorker();
         StartQuestObjectiveWorker();
-        StartGenericBackgroundWorker();
+        // Generic background worker is started lazily when the first Queue* (non–add-item/use-item/quest-objective) method is used. Do not start here so games that only use direct/blocking APIs (e.g. star_api_get_inventory) do not get an extra worker thread that can contribute to freezes or thread-pool pressure.
     }
 
     private void StopWorkers()
