@@ -262,21 +262,40 @@ if (Test-Path $aKeysCpp) {
         $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
         $akChanged = $true
     }
-    # Insert STAR check only when !quiet (player use). Match the block after lock->check(owner) and before if (quiet) return false.
-    if ($akContent -notmatch '!quiet && UZDoom_STAR_CheckDoorAccess') {
-        # Remove any existing unconditional STAR check so we replace with the correct guarded one.
-        $akContent = $akContent -replace '\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\([^)]+\)\) return true;\r?\n\s*#endif', ''
-        $oldBlock = 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;'
-        $newBlock = @'
+    # Insert STAR check: when quiet (status bar/HUD probe) use PlayerHasKey so keys from STAR show; when !quiet use CheckDoorAccess for door open + use.
+    $starBlockOld = '\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(!quiet && UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*#endif'
+    $starBlockNew = @'
+
+#ifdef OASIS_STAR_API
+	if (quiet) {
+		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
+	} else {
+		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+	}
+#endif
+'@
+    if ($akContent -notmatch 'UZDoom_STAR_PlayerHasKey') {
+        # Replace existing STAR block with extended one (door + HUD), or insert if missing.
+        if ($akContent -match $starBlockOld) {
+            $akContent = $akContent -replace $starBlockOld, $starBlockNew
+            $akChanged = $true
+        } else {
+            $oldBlock = 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;'
+            $newBlock = @'
 if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
-	if (!quiet && UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+	if (quiet) {
+		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
+	} else {
+		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+	}
 #endif
 	if (quiet) return false;
 '@
-        if ($akContent -match $oldBlock) {
-            $akContent = $akContent -replace $oldBlock, $newBlock
-            $akChanged = $true
+            if ($akContent -match $oldBlock) {
+                $akContent = $akContent -replace $oldBlock, $newBlock
+                $akChanged = $true
+            }
         }
     }
     if ($akChanged) {

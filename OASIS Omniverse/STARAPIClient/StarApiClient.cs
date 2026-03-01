@@ -483,16 +483,51 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<bool>("Item name is required.", StarApiResultCode.InvalidParam);
 
+        static string NormalizeKeyName(string s) =>
+            string.IsNullOrWhiteSpace(s) ? string.Empty : s.Replace('_', ' ').Trim();
+
+        var matches = (string a, string b) =>
+        {
+            if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+            var na = NormalizeKeyName(a);
+            var nb = NormalizeKeyName(b);
+            return string.Equals(na, nb, StringComparison.OrdinalIgnoreCase);
+        };
+
+        // Fuzzy match for keycards: e.g. "Red Keycard" matches any item whose name contains "red" and "key"
+        static bool FuzzyKeycardMatch(string itemNameQuery, string inventoryName)
+        {
+            if (string.IsNullOrWhiteSpace(inventoryName)) return false;
+            var n = NormalizeKeyName(inventoryName);
+            var q = NormalizeKeyName(itemNameQuery);
+            var ni = n.ToLowerInvariant();
+            var qi = q.ToLowerInvariant();
+            if (qi.Contains("red") && (qi.Contains("key") || qi.Contains("keycard")))
+                return ni.Contains("red") && (ni.Contains("key") || ni.Contains("keycard"));
+            if (qi.Contains("blue") && (qi.Contains("key") || qi.Contains("keycard")))
+                return ni.Contains("blue") && (ni.Contains("key") || ni.Contains("keycard"));
+            if (qi.Contains("yellow") && (qi.Contains("key") || qi.Contains("keycard")))
+                return ni.Contains("yellow") && (ni.Contains("key") || ni.Contains("keycard"));
+            if (qi.Contains("skull") && qi.Contains("key"))
+                return ni.Contains("skull") && ni.Contains("key");
+            if (qi.Contains("gold") && qi.Contains("key"))
+                return ni.Contains("gold") && (ni.Contains("key") || ni.Contains("keycard"));
+            if (qi.Contains("silver") && qi.Contains("key"))
+                return ni.Contains("silver") && (ni.Contains("key") || ni.Contains("keycard"));
+            return false;
+        }
+
+        bool hasItem(IEnumerable<StarItem> items) =>
+            items.Any(x => matches(x.Name, itemName) || matches(x.Description, itemName) || FuzzyKeycardMatch(itemName, x.Name) || FuzzyKeycardMatch(itemName, x.Description));
+
         lock (_inventoryCacheLock)
         {
             if (_cachedInventory is not null)
             {
                 var merged = MergeLocalPendingIntoInventory(_cachedInventory);
-                var hasItem = merged.Any(x =>
-                    string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase) ||
-                    string.Equals(x.Description, itemName, StringComparison.OrdinalIgnoreCase));
+                var hasItemResult = hasItem(merged);
                 InvokeCallback(StarApiResultCode.Success);
-                return Success(hasItem, StarApiResultCode.Success, hasItem ? "Item found in inventory (cached)." : "Item not found in inventory.");
+                return Success(hasItemResult, StarApiResultCode.Success, hasItemResult ? "Item found in inventory (cached)." : "Item not found in inventory.");
             }
         }
 
@@ -508,9 +543,7 @@ public sealed class StarApiClient : IDisposable
             };
         }
 
-        var found = inventory.Result!.Any(x =>
-            string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(x.Description, itemName, StringComparison.OrdinalIgnoreCase));
+        var found = hasItem(inventory.Result!);
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
