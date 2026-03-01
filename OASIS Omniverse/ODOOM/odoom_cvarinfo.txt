@@ -40,6 +40,8 @@ server int odoom_star_inventory_count = 0;
 server string odoom_star_inventory_list = "";
 server int odoom_star_inventory_scroll_offset = 0;
 server int odoom_star_inventory_tab = 0;
-// STAR has Gold/Silver key (OQuake): 1 = has, 0 = no. ZScript gives OQGoldKey/OQSilverKey so HUD shows them.
+// 1 = beamed in (STAR authenticated). ZScript only gives/shows OQuake keys when this is 1.
+server int odoom_star_beamed_in = 0;
+// STAR has Gold/Silver key (OQuake): 1 = has, 0 = no. Only meaningful when odoom_star_beamed_in=1.
 server int odoom_star_has_gold_key = 0;
 server int odoom_star_has_silver_key = 0;

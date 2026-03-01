@@ -280,8 +280,9 @@ if (Test-Path $aKeysCpp) {
             $akContent = $akContent -replace $starBlockOld, $starBlockNew
             $akChanged = $true
         } else {
-            $oldBlock = 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;'
-            $newBlock = @'
+            # STAR block must sit between "if (lock->check(owner)) return true;" and "if (quiet) return false;" so E on door runs CheckDoorAccess.
+            # Try multiple patterns: with/without leading space (UZDoom uses one space before both lines), tabs, \r\n.
+            $newBlockNoLead = @'
 if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
 	if (quiet) {
@@ -292,15 +293,78 @@ if (lock->check(owner)) return true;
 #endif
 	if (quiet) return false;
 '@
-            if ($akContent -match $oldBlock) {
-                $akContent = $akContent -replace $oldBlock, $newBlock
+            $newBlockWithLead = @'
+ if (lock->check(owner)) return true;
+#ifdef OASIS_STAR_API
+	if (quiet) {
+		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
+	} else {
+		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+	}
+#endif
+	if (quiet) return false;
+'@
+            $patched = $false
+            # Pattern 1: no leading space (GZDoom style)
+            if ($akContent -match 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;') {
+                $akContent = $akContent -replace 'if \(lock->check\(owner\)\) return true;\r?\n(\s+)if \(quiet\) return false;', $newBlockNoLead
+                $akChanged = $true; $patched = $true
+            }
+            # Pattern 2: one space before both lines (UZDoom style: " if (lock->check..." and " if (quiet)...")
+            if (-not $patched -and $akContent -match ' if \(lock->check\(owner\)\) return true;\r?\n if \(quiet\) return false;') {
+                $akContent = $akContent -replace ' if \(lock->check\(owner\)\) return true;\r?\n if \(quiet\) return false;', $newBlockWithLead
+                $akChanged = $true; $patched = $true
+            }
+            # Pattern 3: any whitespace before first line, then newline, then any whitespace before second line
+            if (-not $patched -and $akContent -match '\s+if \(lock->check\(owner\)\) return true;[\r\n]+\s+if \(quiet\) return false;') {
+                $akContent = $akContent -replace '\s+if \(lock->check\(owner\)\) return true;[\r\n]+\s+if \(quiet\) return false;', $newBlockWithLead
+                $akChanged = $true; $patched = $true
+            }
+            # Fallback: single replace that captures indentation so we preserve it
+            if (-not $patched -and $akContent -match '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;') {
+                $akContent = $akContent -replace '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;', "`$1if (lock->check(owner)) return true;`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3if (quiet) return false;"
+                $akChanged = $true; $patched = $true
+            }
+            if (-not $patched -and $akContent -match 'lock->check\(owner\)' -and $akContent -notmatch 'UZDoom_STAR') {
+                # Last resort: insert STAR block on line after lock->check (match any line endings)
+                $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', "`$1`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
                 $akChanged = $true
+            }
+            # Literal replace (UZDoom trunk exact): no regex - exact two lines so patch always applies
+            if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
+                $literalOld = " if (lock->check(owner)) return true;`n if (quiet) return false;"
+                $literalOldCrLf = " if (lock->check(owner)) return true;`r`n if (quiet) return false;"
+                $literalNew = @"
+ if (lock->check(owner)) return true;
+#ifdef OASIS_STAR_API
+	if (quiet) {
+		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
+	} else {
+		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+	}
+#endif
+	if (quiet) return false;
+"@
+                if ($akContent.Contains($literalOld)) {
+                    $akContent = $akContent.Replace($literalOld, $literalNew)
+                    $akChanged = $true; $patched = $true
+                } elseif ($akContent.Contains($literalOldCrLf)) {
+                    $akContent = $akContent.Replace($literalOldCrLf, $literalNew)
+                    $akChanged = $true; $patched = $true
+                }
             }
         }
     }
     if ($akChanged) {
         Set-Content $aKeysCpp $akContent -NoNewline
         $changes += "a_keys (STAR door check only on player use)"
+    }
+    # Warn if a_keys still has no STAR block (patch patterns did not match)
+    if (Test-Path $aKeysCpp) {
+        $akFinal = Get-Content $aKeysCpp -Raw
+        if ($akFinal -notmatch 'UZDoom_STAR_CheckDoorAccess') {
+            Write-Host "[ODOOM] WARNING: a_keys.cpp has no STAR block (E on door will not check STAR). Re-run patch after confirming P_CheckKeys in a_keys.cpp contains: if (lock->check(owner)) return true; then if (quiet) return false;"
+        }
     }
 }
 
