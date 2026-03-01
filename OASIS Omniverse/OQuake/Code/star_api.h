@@ -86,6 +86,8 @@ void star_api_queue_monster_kill(const char* engine_name, const char* display_na
 int star_api_get_avatar_xp(int* xp_out);
 /** Trigger background refresh of avatar XP (e.g. after beam-in). */
 void star_api_refresh_avatar_xp(void);
+/** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
+void star_api_refresh_avatar_xp_blocking(void);
 star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 /** Set avatar ID on the client (e.g. after SSO from C++ auth result). Does not change JWT. */
 star_api_result_t star_api_set_avatar_id(const char* avatar_id);
@@ -100,6 +102,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 /** Consume last background error (mint/add_item failure or pickup not queued). Writes message to buf (null-terminated). Returns 1 if an error was available, 0 otherwise. Call from game pump to show in console. */
 #define STAR_API_HAS_CONSUME_LAST_BACKGROUND_ERROR 1
 int star_api_consume_last_background_error(char* buf, size_t size);
+/** Consume one STAR log message for the game console. Returns 1 if a message was copied to buf, 0 otherwise. Call from game pump each frame. */
+int star_api_consume_console_log(char* buf, size_t size);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus
