@@ -280,61 +280,75 @@ if (Test-Path $SbarC) {
     }
 }
 
-# --- Monster kill hook: call OQuake_STAR_OnMonsterKilled when an entity is ED_Free'd (so XP/NFT work without QuakeC). vkQuake uses ED_Free(ent) not ED_Free(ed), so we match any variable name. ---
-$monsterHookAdded = $false
-# Regex: capture (whitespace)(ED_Free \()(variable name)(\) ;). Replacement uses $3 so hook works for ed, ent, new_edict, etc.
-$edFreePattern = '(\s+)(ED_Free\s*\(\s*)(\w+)(\s*\)\s*;)'
-# Replacement: hook block (use $3 for entity var name) then original line ($1$2$3$4). Single-quoted here-string so "monster_" and $1 $2 $3 $4 stay literal for -replace.
-$edFreeReplacement = @'
-
-	{
-		const char *cls = PR_GetString($3->v.classname);
-		if (cls && strncmp(cls, "monster_", 8) == 0)
-			OQuake_STAR_OnMonsterKilled(cls);
-	}
-$1$2$3$4
-'@
-
-function Add-MonsterHookToFile {
+# --- Monster kill hook REMOVED (reverted to last good build). Strip any existing hook from vkQuake so no host/program error on new game. ---
+function Remove-MonsterHookFromFile {
     param([string]$FilePath, [string]$FileLabel)
     if (-not (Test-Path $FilePath)) { return $false }
+    # Only strip from engine files that have the ED_Free hook; never touch oquake_star_integration.c (it contains OQuake_STAR_On* in normal code).
+    if ($FileLabel -ne 'pr_edict.c' -and $FileLabel -ne 'pr_cx.c') { return $false }
     $content = Get-Content $FilePath -Raw
-    if ($content -match 'OQuake_STAR_OnMonsterKilled') { return $true }
-    if ($content -notmatch $edFreePattern) { return $false }
-    if ($content -notmatch 'oquake_star_integration\.h') {
-        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    if ($content -notmatch 'OQuake_STAR_OnMonsterKilled|OQuake_STAR_OnEntityFreed') { return $false }
+    $orig = $content
+    # Strip patterns (avoid [^)] in regex - use [^\)]+ so .NET accepts). Run each in try/catch in case engine differs.
+    $stripPatterns = @(
+        @{ re = '(?ms)\s*\{\s*\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*\w+\s*\)\s*;\s*\r?\n\s*\}\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' },
+        @{ re = '(?ms)\s*\{\s*\r?\n\s*const\s+char\s+\*cls\s*=\s*PR_GetString\s*\(\s*\w+->v\.classname\s*\)\s*;\s*\r?\n\s*if\s*\(\s*cls\s*&&\s*strncmp\s*\(\s*cls\s*,\s*"monster_"\s*,\s*8\s*\)\s*==\s*0\s*\)\s*\r?\n\s*OQuake_STAR_OnMonsterKilled\s*\(\s*cls\s*\)\s*;\s*\r?\n\s*\}\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' }
+    )
+    foreach ($p in $stripPatterns) {
+        try {
+            $content = $content -replace $p.re, $p.repl
+        } catch {
+            # Pattern invalid in this PowerShell/.NET version; fallback will run below
+        }
     }
-    $content = $content -replace $edFreePattern, $edFreeReplacement
-    Set-Content $FilePath $content -NoNewline
-    Write-Host "[OQuake] Patched ${FileLabel}: monster death hook before ED_Free (XP + NFT)" -ForegroundColor Green
-    foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-        if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (${FileLabel} patched)" -ForegroundColor Yellow; break }
+    # Fallback: remove block line-by-line (match lines that are only the hook and leave ED_Free)
+    if ($content -match 'OQuake_STAR_OnMonsterKilled|OQuake_STAR_OnEntityFreed') {
+        $lines = $content -split '\r?\n'
+        $out = New-Object System.Collections.Generic.List[string]
+        $i = 0
+        while ($i -lt $lines.Count) {
+            $line = $lines[$i]
+            if ($line -match '^\s*\{\s*$' -and ($i + 1) -lt $lines.Count -and $lines[$i + 1] -match 'OQuake_STAR_On|PR_GetString.*classname') {
+                $braceCount = 1
+                $i++
+                while ($i -lt $lines.Count -and $braceCount -gt 0) {
+                    if ($lines[$i] -match '\{') { $braceCount++ }
+                    if ($lines[$i] -match '\}') { $braceCount-- }
+                    $i++
+                }
+                if ($i -lt $lines.Count -and $lines[$i] -match '^\s*ED_Free\s*\(') {
+                    $out.Add($lines[$i])
+                    $i++
+                }
+                continue
+            }
+            $out.Add($line)
+            $i++
+        }
+        $content = $out -join "`r`n"
     }
-    return $true
+    if ($content -ne $orig) {
+        Set-Content $FilePath $content -NoNewline
+        Write-Host "[OQuake] Reverted ${FileLabel}: removed ED_Free monster hook (back to last good build)" -ForegroundColor Green
+        return $true
+    }
+    Write-Host "[OQuake] WARNING: ${FileLabel} still contains OQuake_STAR monster hook - strip did not match. Restore from vkQuake repo: git checkout Quake/${FileLabel}" -ForegroundColor Yellow
+    return $false
 }
-
-# Try pr_cx.c first, then pr_edict.c (vkQuake and many engines use ED_Free(ent) in pr_edict.c)
-foreach ($tryFile in @("pr_cx.c", "pr_edict.c")) {
-    $path = Join-Path $QuakeDir $tryFile
-    if (Add-MonsterHookToFile -FilePath $path -FileLabel $tryFile) {
-        $monsterHookAdded = $true
-        break
-    }
-}
-
-# Last resort: scan all .c files in Quake dir for ED_Free and patch the first that has it (covers different engine layouts)
-if (-not $monsterHookAdded) {
-    Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
-        if ($monsterHookAdded) { return }
-        $name = $_.Name
-        if (Add-MonsterHookToFile -FilePath $_.FullName -FileLabel $name) {
-            $monsterHookAdded = $true
+foreach ($cFile in @("pr_cx.c", "pr_edict.c")) {
+    $path = Join-Path $QuakeDir $cFile
+    if (Remove-MonsterHookFromFile -FilePath $path -FileLabel $cFile) {
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
 }
-
-if (-not $monsterHookAdded) {
-    Write-Host "[OQuake] No ED_Free(...) found in any Quake/*.c; monster XP/NFT will only work if QuakeC calls OQuake_OnMonsterKilled(monster_classname)." -ForegroundColor Yellow
+Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
+    if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+        }
+    }
 }
 
 # --- gl_screen.c: OQuake HUD (Beamed In, XP, version, inventory overlay) ---
