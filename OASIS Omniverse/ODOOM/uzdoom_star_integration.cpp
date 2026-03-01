@@ -379,14 +379,42 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 
 /** Max bytes to pass to the inventory list CVar. Engine string CVars can have a small fixed buffer; exceeding it causes "attempted to write past end of stream". Use 1K to stay under typical limits. */
 static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
+/** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
+static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
+
+/** Tab indices matching ZScript TAB_KEYS etc. Used to filter items per tab. */
+static const int ODOOM_TAB_KEYS = 0, ODOOM_TAB_POWERUPS = 1, ODOOM_TAB_WEAPONS = 2, ODOOM_TAB_AMMO = 3, ODOOM_TAB_ARMOR = 4, ODOOM_TAB_ITEMS = 5;
+
+/** Return true if item matches the given tab (same logic as ZScript IsStarItemInTab). */
+static bool ODOOM_ItemMatchesTab(const char* item_type, const char* name, int tab) {
+	auto contains = [](const char* haystack, const char* needle) {
+		return haystack && needle && std::strstr(haystack, needle) != nullptr;
+	};
+	auto containsKey = [&](const char* s) {
+		return contains(s, "Key") || contains(s, "key");
+	};
+	if (tab == ODOOM_TAB_KEYS) return containsKey(item_type) || containsKey(name);
+	if (tab == ODOOM_TAB_POWERUPS) return contains(item_type, "Powerup");
+	if (tab == ODOOM_TAB_WEAPONS) return contains(item_type, "Weapon");
+	if (tab == ODOOM_TAB_AMMO) return contains(item_type, "Ammo");
+	if (tab == ODOOM_TAB_ARMOR) return contains(item_type, "Armor");
+	if (tab == ODOOM_TAB_ITEMS) {
+		return !containsKey(item_type) && !containsKey(name)
+			&& !contains(item_type, "Powerup") && !contains(item_type, "Weapon")
+			&& !contains(item_type, "Ammo") && !contains(item_type, "Armor");
+	}
+	return true; /* unknown tab: show all */
+}
 
 /** Push inventory list to CVars for ZScript overlay. list may be null (clears overlay). Caller keeps ownership.
- * Items with nft_id set get "[NFT] " prefix in the name so overlay shows [NFT] and groups by "[NFT] Name" vs "Name".
- * List is capped so we never exceed ODOOM_INVENTORY_CVAR_MAX_BYTES; ZScript overlay already has scroll (MAX_VISIBLE_ROWS) so extra items are reachable by scrolling. */
+ * Filters by current tab (odoom_star_inventory_tab), then sends total filtered count and a window [scroll_offset, scroll_offset+N)
+ * so all items in that tab are reachable by scrolling. ZScript sets scroll_offset and tab each frame. */
 static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	static char listBuf[ODOOM_INVENTORY_CVAR_MAX_BYTES];
 	FBaseCVar* countVar = FindCVar("odoom_star_inventory_count", nullptr);
 	FBaseCVar* listVar = FindCVar("odoom_star_inventory_list", nullptr);
+	FBaseCVar* scrollVar = FindCVar("odoom_star_inventory_scroll_offset", nullptr);
+	FBaseCVar* tabVar = FindCVar("odoom_star_inventory_tab", nullptr);
 	if (!countVar || !listVar) return;
 
 	if (!list || !list->items || list->count == 0) {
@@ -397,12 +425,31 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		return;
 	}
 
+	int scrollOffset = 0;
+	int tab = ODOOM_TAB_KEYS;
+	if (scrollVar && scrollVar->GetRealType() == CVAR_Int)
+		scrollOffset = scrollVar->GetGenericRep(CVAR_Int).Int;
+	if (tabVar && tabVar->GetRealType() == CVAR_Int)
+		tab = tabVar->GetGenericRep(CVAR_Int).Int;
+	if (scrollOffset < 0) scrollOffset = 0;
+	if (tab < 0 || tab > ODOOM_TAB_ITEMS) tab = ODOOM_TAB_KEYS;
+
 	size_t n = list->count;
+	size_t filteredCount = 0;
+	for (size_t i = 0; i < n; i++) {
+		const star_item_t* it = &list->items[i];
+		if (ODOOM_ItemMatchesTab(it->item_type, it->name, tab))
+			filteredCount++;
+	}
+
+	UCVarValue u; u.Int = (int)filteredCount;
+	countVar->SetGenericRep(u, CVAR_Int);
+
 	size_t off = 0;
-	size_t maxOff = sizeof(listBuf) - 320;  /* leave room for one full line so we never write past listBuf */
+	size_t maxOff = sizeof(listBuf) - 320;
 	if (maxOff > ODOOM_INVENTORY_CVAR_MAX_BYTES - 1)
 		maxOff = ODOOM_INVENTORY_CVAR_MAX_BYTES - 1;
-	size_t itemsWritten = 0;
+
 	auto copySafe = [](char* dst, const char* src, int maxLen) {
 		int j = 0;
 		while (src[j] && j < maxLen - 1) {
@@ -412,13 +459,22 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		}
 		dst[j] = '\0';
 	};
+
+	size_t filteredIndex = 0;
 	for (size_t i = 0; i < n && off < maxOff; i++) {
 		const star_item_t* it = &list->items[i];
+		if (!ODOOM_ItemMatchesTab(it->item_type, it->name, tab)) continue;
+		if (filteredIndex < (size_t)scrollOffset) {
+			filteredIndex++;
+			continue;
+		}
+		if ((filteredIndex - (size_t)scrollOffset) >= ODOOM_INVENTORY_WINDOW_ITEMS) break;
+
 		char name[320], desc[256], type[64], game[64];
 		bool isNft = (it->nft_id[0] != '\0');
 		if (isNft) {
 			snprintf(name, sizeof(name), "[NFT] %s", it->name);
-			copySafe(name, name, 320);  /* sanitize tabs/newlines for CVar list */
+			copySafe(name, name, 320);
 		} else {
 			copySafe(name, it->name, 256);
 		}
@@ -427,15 +483,13 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		copySafe(game, it->game_source, 64);
 		int qty = (it->quantity > 0) ? it->quantity : 1;
 		int wr = snprintf(listBuf + off, (size_t)(sizeof(listBuf) - off), "%s\t%s\t%s\t%s\t%d\n", name, desc, type, game, qty);
-		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off) {
+		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off)
 			off += (size_t)wr;
-			itemsWritten++;
-		} else
+		else
 			break;
+		filteredIndex++;
 	}
 	listBuf[off] = '\0';
-	UCVarValue u; u.Int = (int)itemsWritten;
-	countVar->SetGenericRep(u, CVAR_Int);
 	UCVarValue v; v.String = listBuf;
 	listVar->SetGenericRep(v, CVAR_String);
 }
