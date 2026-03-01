@@ -29,6 +29,10 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyODown;
 	private bool wasKeyPDown;
 	private bool wasKeyEnterDown;
+	private bool wasKeyPgUpDown;
+	private bool wasKeyPgDownDown;
+	private bool wasKeyHomeDown;
+	private bool wasKeyEndDown;
 
 	// Send popup (OQuake-style)
 	private int sendPopupMode;   // 0=none, 1=avatar, 2=clan
@@ -103,11 +107,16 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		// Keys captured by C++ when inventory open (odoom_key_* CVars). Read every frame so wasKey* stay in sync when closed.
 		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyEnter = 0;
+		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0;
 		CVar v;
 		v = CVar.FindCVar("odoom_key_up"); if (v != null) keyUp = v.GetInt();
 		v = CVar.FindCVar("odoom_key_down"); if (v != null) keyDown = v.GetInt();
 		v = CVar.FindCVar("odoom_key_left"); if (v != null) keyLeft = v.GetInt();
 		v = CVar.FindCVar("odoom_key_right"); if (v != null) keyRight = v.GetInt();
+		v = CVar.FindCVar("odoom_key_pgup"); if (v != null) keyPgUp = v.GetInt();
+		v = CVar.FindCVar("odoom_key_pgdown"); if (v != null) keyPgDown = v.GetInt();
+		v = CVar.FindCVar("odoom_key_home"); if (v != null) keyHome = v.GetInt();
+		v = CVar.FindCVar("odoom_key_end"); if (v != null) keyEnd = v.GetInt();
 		v = CVar.FindCVar("odoom_key_use"); if (v != null) keyUse = v.GetInt();
 		v = CVar.FindCVar("odoom_key_a"); if (v != null) keyA = v.GetInt();
 		v = CVar.FindCVar("odoom_key_c"); if (v != null) keyC = v.GetInt();
@@ -118,6 +127,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		v = CVar.FindCVar("odoom_key_p"); if (v != null) keyP = v.GetInt();
 		v = CVar.FindCVar("odoom_key_enter"); if (v != null) keyEnter = v.GetInt();
 		bool keyUpPressed = (keyUp != 0) && !wasKeyUpDown;
+		bool keyPgUpPressed = (keyPgUp != 0) && !wasKeyPgUpDown;
+		bool keyPgDownPressed = (keyPgDown != 0) && !wasKeyPgDownDown;
+		bool keyHomePressed = (keyHome != 0) && !wasKeyHomeDown;
+		bool keyEndPressed = (keyEnd != 0) && !wasKeyEndDown;
 		bool keyDownPressed = (keyDown != 0) && !wasKeyDownDown;
 		bool keyLeftPressed = (keyLeft != 0) && !wasKeyLeftDown;
 		bool keyRightPressed = (keyRight != 0) && !wasKeyRightDown;
@@ -143,6 +156,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyODown = (keyO != 0);
 		wasKeyPDown = (keyP != 0);
 		wasKeyEnterDown = (keyEnter != 0);
+		wasKeyPgUpDown = (keyPgUp != 0);
+		wasKeyPgDownDown = (keyPgDown != 0);
+		wasKeyHomeDown = (keyHome != 0);
+		wasKeyEndDown = (keyEnd != 0);
 
 		if ((user1Down && !wasUser1Down) || keyIPressed)
 		{
@@ -255,6 +272,35 @@ class OASISInventoryOverlayHandler : EventHandler
 				scrollOffset = selectedAbsolute - MAX_VISIBLE_ROWS + 1;
 				if (scrollOffset < 0) scrollOffset = 0;
 				if (scrollOffset > maxOffset) scrollOffset = maxOffset;
+			}
+
+			// PgUp / PgDn / Home / End with bounds checks so we never scroll out of range
+			if (keyPgUpPressed)
+			{
+				scrollOffset -= MAX_VISIBLE_ROWS;
+				if (scrollOffset < 0) scrollOffset = 0;
+				selectedAbsolute = scrollOffset;
+				if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
+			}
+			if (keyPgDownPressed)
+			{
+				scrollOffset += MAX_VISIBLE_ROWS;
+				if (scrollOffset > maxOffset) scrollOffset = maxOffset;
+				selectedAbsolute = scrollOffset + MAX_VISIBLE_ROWS - 1;
+				if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
+				if (selectedAbsolute < 0) selectedAbsolute = 0;
+			}
+			if (keyHomePressed)
+			{
+				scrollOffset = 0;
+				selectedAbsolute = 0;
+			}
+			if (keyEndPressed)
+			{
+				scrollOffset = maxOffset;
+				if (scrollOffset < 0) scrollOffset = 0;
+				selectedAbsolute = listCount - 1;
+				if (selectedAbsolute < 0) selectedAbsolute = 0;
 			}
 
 			if ((useDown && !wasUseDown) || keyUsePressed)
@@ -661,6 +707,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			y += 16;
 		}
+
+		screen.DrawText(f, Font.CR_DARKGRAY, -16, 182, "PgUp/PgDn=Page Home=Top End=Bottom", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
 		// Send popup overlay (OQuake-style): show Sending... / Item sent. / Send failed like Quake
