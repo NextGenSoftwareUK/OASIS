@@ -802,10 +802,11 @@ public sealed class StarApiClient : IDisposable
         _addItemSignal.Release();
     }
 
-    /// <summary>Queue XP to add to the beamed-in avatar (e.g. on monster kill). Flushed with add-item worker. Amount must be positive.</summary>
+    /// <summary>Queue XP to add to the beamed-in avatar (e.g. on monster kill). Flushed with add-item worker. Amount 0 allowed (temp) for refresh / get newTotal from server.</summary>
     public void EnqueueAddXpJobOnly(int amount)
     {
-        if (!IsInitialized() || amount <= 0) return;
+        if (!IsInitialized()) return;
+        if (amount < 0) return;
         Interlocked.Add(ref _pendingXp, amount);
         _addItemSignal.Release();
     }
@@ -890,7 +891,7 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
-    /// <summary>Refresh XP cache from API using the same add-xp endpoint that runs on monster kill (POST add-xp with amount 0). Non-blocking; cache updates when response returns.</summary>
+    /// <summary>Refresh XP cache from API. Temp: use add-xp(0) (same path as monster kill; client check removed so server may accept). GET avatar/current path commented out for now.</summary>
     public void RefreshAvatarXp()
     {
         if (!IsInitialized())
@@ -898,8 +899,19 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.StarApiLog("XP refresh: skipped (not initialized)");
             return;
         }
+        // Temp: add-xp(0) so Quake XP shows after beam-in (refresh path was staying 0)
         StarApiExports.StarApiLog("XP refresh: queuing add-xp(0) on background");
         _ = RunOnBackgroundAsync(ct => AddXpAsync(0, ct), CancellationToken.None);
+
+        // GET avatar/current path (commented out until refresh path is fixed):
+        // StarApiExports.StarApiLog("XP refresh: queuing GET avatar/current on background");
+        // _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
+        // {
+        //     var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
+        //     if (!result.IsError && result.Result != null)
+        //         StarApiExports.StarApiLog($"XP refresh: cache updated to {GetCachedAvatarXp()} from avatar/current");
+        //     return result;
+        // }, CancellationToken.None);
     }
 
     /// <summary>Load avatar XP from API and update cache. Blocks until the request completes. Uses add-xp(0) so same code path as monster kill.</summary>
@@ -3632,7 +3644,8 @@ public static unsafe class StarApiExports
     public static void StarApiQueueAddXp(int amount)
     {
         var client = GetClient();
-        if (client is null || amount <= 0) return;
+        if (client is null) return;
+        if (amount < 0) return;
         client.EnqueueAddXpJobOnly(amount);
     }
 
