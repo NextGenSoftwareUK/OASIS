@@ -714,6 +714,15 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
 			Printf(PRINT_HIGH, "%s\n", err_buf);
 	}
+	/* Show STAR log messages in console (XP refresh, monster kill, etc.). */
+	{
+		char log_buf[512] = {};
+		for (int i = 0; i < 5; i++) {
+			if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
+				break;
+			Printf(PRINT_HIGH, "[STAR] %s\n", log_buf);
+		}
+	}
 
 	if (g_star_frames_since_beamin < STAR_DOOR_CONSUME_GRACE_FRAMES)
 		g_star_frames_since_beamin++;
