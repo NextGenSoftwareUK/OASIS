@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Copies OQuake + STAR files into vkQuake and patches host.c for console version string.
+  Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, and the build (like ODOOM: full automation).
   Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
 #>
 param(
@@ -198,7 +198,117 @@ if (Test-Path $HostC) {
     }
 }
 
-# Patch vkQuake Visual Studio project to include star_sync.c (fixes LNK2001 unresolved star_sync_*)
+# --- pr_ext.c: OQuake builtins (externs + extension table) ---
+$PrExtC = Join-Path $QuakeDir "pr_ext.c"
+if (Test-Path $PrExtC) {
+    $content = Get-Content $PrExtC -Raw
+    $prExtPatched = $false
+    # Externs: add after PF_sv_localsound (or last PF_ extern before static)
+    if ($content -notmatch 'PF_OQuake_OnKeyPickup') {
+        if ($content -match '(extern void PF_sv_localsound \(void\);)(\r?\n)') {
+            $add = @"
+
+extern void PF_OQuake_OnKeyPickup (void);
+extern void PF_OQuake_CheckDoorAccess (void);
+extern void PF_OQuake_OnBossKilled (void);
+extern void PF_OQuake_OnMonsterKilled (void);
+"@
+            $content = $content -replace [regex]::Escape($Matches[1]) + "(\r?\n)", "$Matches[1]$add`$2"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added OQuake builtin externs" -ForegroundColor Green
+        }
+    }
+    # Extension table: add four OQuake entries before the closing }; of extensionbuiltins
+    if ($content -notmatch 'ex_OQuake_OnMonsterKilled') {
+        $insert = @'
+
+ {"ex_OQuake_OnKeyPickup", PF_OQuake_OnKeyPickup, PF_NoCSQC, 0, "void(string keyname)"},
+ {"ex_OQuake_CheckDoorAccess", PF_OQuake_CheckDoorAccess, PF_NoCSQC, 0, "float(string doorname, string requiredkey)"},
+ {"ex_OQuake_OnBossKilled", PF_OQuake_OnBossKilled, PF_NoCSQC, 0, "void(string bossname)"},
+ {"ex_OQuake_OnMonsterKilled", PF_OQuake_OnMonsterKilled, PF_NoCSQC, 0, "void(string monster_classname)"},
+'@
+        if ($content -match '"ex_bot_followentity"') {
+            $content = $content -replace '(\{\s*"ex_bot_followentity",\s*PF_Fixme,\s*PF_NoCSQC,\s*0,\s*"float\(entity bot, entity goal\)"\s*\},)(\r?\n)(\s*\}\s*;)', "`$1$insert`$2`$3"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added OQuake extension builtin entries" -ForegroundColor Green
+        }
+    }
+    if ($prExtPatched) {
+        Set-Content $PrExtC $content -NoNewline
+        $buildDirs = @(
+            (Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"),
+            (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"),
+            (Join-Path $VkQuakeSrc "build")
+        )
+        foreach ($dir in $buildDirs) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (pr_ext.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# --- sbar.c: anorak face + OQuake include ---
+$SbarC = Join-Path $QuakeDir "sbar.c"
+if (Test-Path $SbarC) {
+    $content = Get-Content $SbarC -Raw
+    $sbarPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $sbarPatched = $true
+        Write-Host "[OQuake] Patched sbar.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    if ($content -notmatch 'sb_face_anorak') {
+        $content = $content -replace '(static qpic_t \*sb_face_invis_invuln\;)(\r?\n)', "`$1`$2static qpic_t *sb_face_anorak;`$2"
+        $sbarPatched = $true
+        Write-Host "[OQuake] Patched sbar.c: added sb_face_anorak" -ForegroundColor Green
+    }
+    if ($content -notmatch 'sb_face_anorak\s*=') {
+        $content = $content -replace '(sb_face_quad = Draw_PicFromWad \("face_quad"\);)(\r?\n)', "`$1`$2	sb_face_anorak = Sbar_CheckPicFromWad (`"face_anorak`");`$2"
+        $sbarPatched = $true
+        Write-Host "[OQuake] Patched sbar.c: load face_anorak in Sbar_LoadPics" -ForegroundColor Green
+    }
+    if ($content -notmatch 'OQuake_STAR_ShouldUseAnorakFace') {
+        # Insert anorak check before "Sbar_DrawPic (cbx, x, y, sb_faces[f][anim]);"
+        $content = $content -replace '(\s+)(Sbar_DrawPic \(cbx, x, y, sb_faces\[f\]\[anim\]\);)', "`$1if (OQuake_STAR_ShouldUseAnorakFace () && sb_face_anorak)`r`n`$1{`r`n`$1	Sbar_DrawPic (cbx, x, y, sb_face_anorak);`r`n`$1	return;`r`n`$1}`r`n`$1`$2"
+        $sbarPatched = $true
+        Write-Host "[OQuake] Patched sbar.c: anorak face when beamed in" -ForegroundColor Green
+    }
+    if ($sbarPatched) {
+        Set-Content $SbarC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (sbar.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# --- gl_screen.c: OQuake HUD (Beamed In, XP, version, inventory overlay) ---
+$GlScreenC = Join-Path $QuakeDir "gl_screen.c"
+if (Test-Path $GlScreenC) {
+    $content = Get-Content $GlScreenC -Raw
+    $glPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $glPatched = $true
+        Write-Host "[OQuake] Patched gl_screen.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    if ($content -notmatch 'OQuake_STAR_DrawBeamedInStatus') {
+        # After SCR_DrawClock (cbx); in the normal game HUD block add the four OQuake draw calls
+        $pattern = '(SCR_DrawClock \(cbx\);\s*(?://[^\r\n]*)?)(\r?\n)(\s+SCR_DrawConsole)'
+        $replacement = "`$1`$2	OQuake_STAR_DrawBeamedInStatus (cbx);`r`n	OQuake_STAR_DrawXpStatus (cbx);`r`n	OQuake_STAR_DrawVersionStatus (cbx);`r`n	OQuake_STAR_DrawInventoryOverlay (cbx);`r`n`$3"
+        if ($content -match $pattern) {
+            $content = $content -replace $pattern, $replacement
+            $glPatched = $true
+            Write-Host "[OQuake] Patched gl_screen.c: OQuake HUD (Beamed In, XP, version, inventory)" -ForegroundColor Green
+        }
+    }
+    if ($glPatched) {
+        Set-Content $GlScreenC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (gl_screen.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# Patch vkQuake Visual Studio project: add OQuake sources (integration, pr_ext_oquake, star_sync) + star_api.lib
 $vcxprojPaths = @(
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\vkquake.vcxproj"),
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\Quake\Quake.vcxproj")
@@ -206,19 +316,52 @@ $vcxprojPaths = @(
 foreach ($vcxproj in $vcxprojPaths) {
     if (-not (Test-Path $vcxproj)) { continue }
     $projContent = Get-Content $vcxproj -Raw
-    if ($projContent -notmatch 'oquake_star_integration\.c') { continue }
-    if ($projContent -match 'star_sync\.c') { continue }
-    # Add star_sync.c: same path style as oquake_star_integration.c, with PCH disabled (star_sync.c has no quakedef.h)
-    if ($projContent -match '<ClCompile\s+Include="([^"]*?)oquake_star_integration\.c"') {
-        $pathPrefix = $Matches[1]   # e.g. "..\..\Quake\" or "Quake\"
-        $newBlock = @"
+    # Find path prefix from pr_ext.c so we can add OQuake sources to the same ItemGroup
+    $pathPrefix = $null
+    if ($projContent -match '<ClCompile\s+Include="([^"]*?)pr_ext\.c"') { $pathPrefix = $Matches[1] }
+    if (-not $pathPrefix -and $projContent -match '<ClCompile\s+Include="([^"]*?)oquake_star_integration\.c"') { $pathPrefix = $Matches[1] }
+    if (-not $pathPrefix) { continue }
+
+    $vcxprojChanged = $false
+    $blockIntegration = @"
+    <ClCompile Include="$pathPrefix`oquake_star_integration.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+"@
+    $blockPrExtOquake = @"
+    <ClCompile Include="$pathPrefix`pr_ext_oquake.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+"@
+    $blockStarSync = @"
     <ClCompile Include="$pathPrefix`star_sync.c">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
 "@
-        $projContent = $projContent -replace '(<ClCompile\s+Include="[^"]*oquake_star_integration\.c"\s*/>)', "`$1`r`n$newBlock"
-        Set-Content -Path $vcxproj -Value $projContent -NoNewline
-        Write-Host "[OQuake] Added star_sync.c to project $(Split-Path -Leaf $vcxproj) (PCH disabled)" -ForegroundColor Green
-        break
+    if ($projContent -notmatch 'oquake_star_integration\.c') {
+        $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*pr_ext\.c`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockIntegration`r`n"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added oquake_star_integration.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
+    if ($projContent -notmatch 'pr_ext_oquake\.c') {
+        $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext\.c' }
+        $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockPrExtOquake`r`n"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added pr_ext_oquake.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
+    if ($projContent -notmatch 'star_sync\.c') {
+        $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext_oquake\.c' }
+        if (-not $anchor) { $anchor = 'pr_ext\.c' }
+        $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockStarSync`r`n"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added star_sync.c to project $(Split-Path -Leaf $vcxproj) (PCH disabled)" -ForegroundColor Green
+    }
+    if ($projContent -notmatch 'star_api\.lib') {
+        if ($projContent -match '<AdditionalDependencies>([^<]*)</AdditionalDependencies>') {
+            $projContent = $projContent -replace '(<AdditionalDependencies>)([^<]*)(</AdditionalDependencies>)', "`$1`$2;star_api.lib`$3"
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Added star_api.lib to linker in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+        }
+    }
+    if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }

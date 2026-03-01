@@ -97,8 +97,41 @@ enum {
     OQ_TAB_AMMO = 3,
     OQ_TAB_ARMOR = 4,
     OQ_TAB_ITEMS = 5,
-    OQ_TAB_COUNT = 6
+    OQ_TAB_MONSTERS = 6,
+    OQ_TAB_COUNT = 7
 };
+
+/* Quake monster table: engine name(s), config key, display name, XP, isBoss. Config key used for mint_monster_oquake_* in oasisstar.json. */
+typedef struct oquake_monster_entry_s {
+    const char* engine_name;  /* primary engine/class name */
+    const char* config_key;
+    const char* display_name;
+    int xp;
+    int is_boss;
+} oquake_monster_entry_t;
+
+static const oquake_monster_entry_t OQUAKE_MONSTERS[] = {
+    { "monster_dog",       "oquake_dog",       "Dog",        15, 0 },
+    { "monster_zombie",    "oquake_zombie",    "Zombie",     20, 0 },
+    { "monster_fish",      "oquake_fish",      "Fish",       30, 0 },
+    { "monster_grunt",     "oquake_grunt",     "Grunt",      25, 0 },
+    { "monster_ogre",      "oquake_ogre",      "Ogre",       70, 0 },
+    { "monster_enforcer",  "oquake_enforcer",  "Enforcer",   60, 0 },
+    { "monster_demon",     "oquake_demon",     "Demon",      40, 0 },
+    { "monster_fiend",     "oquake_demon",     "Demon",      40, 0 },
+    { "monster_shambler",  "oquake_shambler",  "Shambler",  200, 1 },
+    { "monster_spawn",     "oquake_spawn",     "Spawn",     100, 0 },
+    { "monster_knight",    "oquake_knight",    "Knight",     80, 0 },
+    { "monster_shub",      "oquake_shub",      "Shub-Niggurath", 500, 1 },
+    { "shub_niggurath",    "oquake_shub",      "Shub-Niggurath", 500, 1 },
+    { NULL, NULL, NULL, 0, 0 }
+};
+
+#define OQ_MONSTER_COUNT ((int)(sizeof(OQUAKE_MONSTERS) / sizeof(OQUAKE_MONSTERS[0])) - 1)
+
+/* Per-monster mint flag: 1 = mint NFT when killed. Index = OQUAKE_MONSTERS index. Default 1. */
+static int g_oq_mint_monster_flags[32];
+#define OQ_MONSTER_FLAGS_MAX ((int)(sizeof(g_oq_mint_monster_flags) / sizeof(g_oq_mint_monster_flags[0])))
 
 #define OQ_MAX_INVENTORY_ITEMS 256
 #define OQ_MAX_OVERLAY_ROWS 8
@@ -527,6 +560,8 @@ static const char* OQ_TabShortName(int tab) {
         case OQ_TAB_WEAPONS: return "Weapons";
         case OQ_TAB_AMMO: return "Ammo";
         case OQ_TAB_ARMOR: return "Armor";
+        case OQ_TAB_ITEMS: return "Items";
+        case OQ_TAB_MONSTERS: return "Monsters";
         default: return "Items";
     }
 }
@@ -560,6 +595,7 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     int is_weapon = OQ_ContainsNoCase(type, "weapon") || (name && (OQ_ContainsNoCase(name, "Shotgun") || OQ_ContainsNoCase(name, "Nailgun") || OQ_ContainsNoCase(name, "Launcher") || OQ_ContainsNoCase(name, "Lightning")));
     int is_ammo = OQ_ContainsNoCase(type, "ammo") || (name && (OQ_ContainsNoCase(name, "Shells") || OQ_ContainsNoCase(name, "Nails") || OQ_ContainsNoCase(name, "Rockets") || OQ_ContainsNoCase(name, "Cells")));
     int is_armor = OQ_ContainsNoCase(type, "armor") || (name && OQ_ContainsNoCase(name, "Armor"));
+    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
 
     switch (tab) {
         case OQ_TAB_KEYS: return is_key;
@@ -567,7 +603,9 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
         case OQ_TAB_WEAPONS: return is_weapon;
         case OQ_TAB_AMMO: return is_ammo;
         case OQ_TAB_ARMOR: return is_armor;
-        default: return !is_key && !is_powerup && !is_weapon && !is_ammo && !is_armor;
+        case OQ_TAB_ITEMS: return !is_key && !is_powerup && !is_weapon && !is_ammo && !is_armor && !is_monster;
+        case OQ_TAB_MONSTERS: return is_monster;
+        default: return !is_key && !is_powerup && !is_weapon && !is_ammo && !is_armor && !is_monster;
     }
 }
 
@@ -610,6 +648,7 @@ static void OQ_OnAuthDone(void* user_data) {
         g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
         g_inventory_last_refresh = 0.0;
+        star_api_refresh_avatar_xp();
         /* C# client flushes queued add_item jobs in background; just refresh overlay when user opens inventory. */
     } else {
         Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
@@ -634,10 +673,14 @@ static void OQ_OnSendItemDone(void* user_data) {
 }
 
 static void OQ_CheckAuthenticationComplete(void) {
+    if (!g_star_initialized)
+        return;
     star_sync_pump();
 }
 
 static void OQ_CheckInventoryRefreshComplete(void) {
+    if (!g_star_initialized)
+        return;
     star_sync_pump();
 }
 
@@ -1041,7 +1084,21 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_send_to_address_after_minting", value);
         loaded = 1;
     }
-    
+    /* Per-monster mint: mint_monster_oquake_dog, etc. Default 1 if key missing. */
+    {
+        int i, j;
+        for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++) {
+            char key[128];
+            int v = 1;
+            q_snprintf(key, sizeof(key), "mint_monster_%s", OQUAKE_MONSTERS[i].config_key);
+            if (OQ_ExtractJsonValue(json, key, value, sizeof(value)))
+                v = (atoi(value) != 0) ? 1 : 0;
+            for (j = 0; j < OQ_MONSTER_COUNT && j < OQ_MONSTER_FLAGS_MAX; j++)
+                if (strcmp(OQUAKE_MONSTERS[j].config_key, OQUAKE_MONSTERS[i].config_key) == 0)
+                    g_oq_mint_monster_flags[j] = v;
+            loaded = 1;
+        }
+    }
     return loaded;
 }
 
@@ -1090,7 +1147,7 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     } else {
         fprintf(f, "SolanaOASIS");
     }
-    fprintf(f, "\"\n");
+    fprintf(f, "\",\n");
     fprintf(f, "  \"send_to_address_after_minting\": \"");
     if (send_addr && send_addr[0]) {
         const char* p;
@@ -1099,8 +1156,19 @@ static int OQ_SaveJsonConfig(const char *json_path) {
             fputc((unsigned char)*p, f);
         }
     }
-    fprintf(f, "\"\n");
-    fprintf(f, "}\n");
+    fprintf(f, "\"");
+    /* mint_monster_oquake_* (unique config_keys only) */
+    {
+        int i, j;
+        for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++) {
+            int already = 0;
+            for (j = 0; j < i; j++)
+                if (strcmp(OQUAKE_MONSTERS[j].config_key, OQUAKE_MONSTERS[i].config_key) == 0) { already = 1; break; }
+            if (already) continue;
+            fprintf(f, ",\n  \"mint_monster_%s\": %d", OQUAKE_MONSTERS[i].config_key, g_oq_mint_monster_flags[i] ? 1 : 0);
+        }
+    }
+    fprintf(f, "\n}\n");
     
     fclose(f);
     return 1;
@@ -1285,6 +1353,13 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_nft_provider);
     Cvar_RegisterVariable(&oquake_star_send_to_address_after_minting);
 
+    /* Default all monster mint flags to 1 (load from JSON may override) */
+    {
+        int i;
+        for (i = 0; i < OQ_MONSTER_FLAGS_MAX; i++)
+            g_oq_mint_monster_flags[i] = 1;
+    }
+
     if (!g_star_console_registered) {
         Cmd_AddCommand("star", OQuake_STAR_Console_f);
         Cmd_AddCommand("oasis_inventory_toggle", OQ_InventoryToggle_f);
@@ -1295,7 +1370,7 @@ void OQuake_STAR_Init(void) {
         /* Default: I key opens OASIS inventory if not already bound */
         {
             int kn = Key_StringToKeynum("i");
-            if (kn >= 0 && (!keybindings[kn] || !keybindings[kn][0]))
+            if (kn >= 0 && kn < MAX_KEYS && (!keybindings[kn] || !keybindings[kn][0]))
                 Key_SetBinding(kn, "oasis_inventory_toggle");
         }
     }
@@ -1824,18 +1899,42 @@ void OQuake_STAR_OnKeyPickup(const char* key_name) {
     OQ_StartInventorySyncIfNeeded();
 }
 
-void OQuake_STAR_OnBossKilled(const char* boss_name) {
-    if (!boss_name || !boss_name[0] || !g_star_initialized)
+static const oquake_monster_entry_t* OQ_FindMonsterByEngineName(const char* engine_name) {
+    int i;
+    if (!engine_name || !engine_name[0]) return NULL;
+    for (i = 0; i < OQ_MONSTER_COUNT; i++) {
+        if (OQUAKE_MONSTERS[i].engine_name && q_strcasecmp(OQUAKE_MONSTERS[i].engine_name, engine_name) == 0)
+            return &OQUAKE_MONSTERS[i];
+    }
+    return NULL;
+}
+
+static int OQ_ShouldMintMonster(int monster_index) {
+    if (monster_index < 0 || monster_index >= OQ_MONSTER_FLAGS_MAX) return 1;
+    return g_oq_mint_monster_flags[monster_index] != 0;
+}
+
+void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
+    const oquake_monster_entry_t* e;
+    int do_mint;
+    const char* prov;
+    int idx;
+    if (!monster_name || !monster_name[0] || !g_star_initialized)
         return;
-    char nft_id[128] = {0};
-    char desc[256];
-    q_snprintf(desc, sizeof(desc), "Boss defeated in OQuake: %s", boss_name);
-    const char* prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : NULL;
-    star_api_result_t r = star_api_create_monster_nft(boss_name, desc, "Quake", "{}", prov, nft_id);
-    if (r == STAR_API_SUCCESS && nft_id[0])
-        Con_Printf("WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
-    else if (r != STAR_API_SUCCESS)
-        Con_Printf("WEB4 OASIS API: Boss NFT failed for \"%s\": %s\n", boss_name, star_api_get_last_error() ? star_api_get_last_error() : "unknown");
+    e = OQ_FindMonsterByEngineName(monster_name);
+    if (!e) {
+        Con_Printf("OQuake STAR: unknown monster \"%s\" (no XP/mint)\n", monster_name);
+        return;
+    }
+    idx = (int)(e - OQUAKE_MONSTERS);
+    do_mint = OQ_ShouldMintMonster(idx) ? 1 : 0;
+    prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS";
+    star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov);
+}
+
+void OQuake_STAR_OnBossKilled(const char* boss_name) {
+    /* Use same path as any monster: XP + optional mint + add to inventory (all async). */
+    OQuake_STAR_OnMonsterKilled(boss_name);
 }
 
 void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game)
@@ -2113,6 +2212,7 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star config save   - Write config to files now (also saved on exit)\n");
         Con_Printf("  star stack <armor|weapons|powerups|keys|sigils> <0|1> - Stack (1) or unlock (0)\n");
         Con_Printf("  star mint <armor|weapons|powerups|keys> <0|1> - Mint NFT when collecting (1=on, 0=off)\n");
+        Con_Printf("  star mint monster <name> <0|1> - Mint NFT when killing monster (e.g. oquake_ogre)\n");
         Con_Printf("  star nftprovider <name> - Set NFT mint provider (e.g. SolanaOASIS)\n");
         Con_Printf("  star seturl <url>       - Set STAR API URL (saved to config)\n");
         Con_Printf("  star setoasisurl <url>  - Set OASIS API URL (saved to config)\n");
@@ -2393,6 +2493,7 @@ void OQuake_STAR_Console_f(void) {
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
             g_star_beamed_in = 1;
+            star_api_refresh_avatar_xp();
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
@@ -2491,11 +2592,23 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("    mint_armor:     %s\n", atoi(oquake_star_mint_armor.string) ? "1" : "0");
         Con_Printf("    mint_powerups:  %s\n", atoi(oquake_star_mint_powerups.string) ? "1" : "0");
         Con_Printf("    mint_keys:      %s\n", atoi(oquake_star_mint_keys.string) ? "1" : "0");
+        Con_Printf("  Mint NFT when killing monster (1=on, 0=off). Set: star mint monster <name> <0|1>\n");
+        {
+            int i, j;
+            for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++) {
+                int already = 0;
+                for (j = 0; j < i; j++)
+                    if (strcmp(OQUAKE_MONSTERS[j].config_key, OQUAKE_MONSTERS[i].config_key) == 0) { already = 1; break; }
+                if (already) continue;
+                Con_Printf("    %s  mint_monster_%s: %s\n", OQUAKE_MONSTERS[i].display_name, OQUAKE_MONSTERS[i].config_key, g_oq_mint_monster_flags[i] ? "1" : "0");
+            }
+        }
         Con_Printf("  NFT mint provider: %s\n", oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS");
         Con_Printf("  Send to address after minting: %s\n", oquake_star_send_to_address_after_minting.string && oquake_star_send_to_address_after_minting.string[0] ? oquake_star_send_to_address_after_minting.string : "(none)");
         Con_Printf("\n");
         Con_Printf("To set: star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
         Con_Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
+        Con_Printf("        star mint monster <name> <0|1>  (e.g. star mint monster oquake_ogre 0)\n");
         Con_Printf("        star nftprovider <name>\n");
         Con_Printf("URLs: star seturl <url>   star setoasisurl <url>\n");
         Con_Printf("Config file: star configfile json|cfg\n");
@@ -2529,9 +2642,33 @@ void OQuake_STAR_Console_f(void) {
         return;
     }
     if (strcmp(sub, "mint") == 0) {
+        if (argc >= 5 && strcmp(Cmd_Argv(2), "monster") == 0) {
+            const char* name_arg = Cmd_Argv(3);
+            const char* val = Cmd_Argv(4);
+            int on = (val[0] == '1' && val[1] == '\0') ? 1 : 0;
+            int i;
+            const oquake_monster_entry_t* chosen = NULL;
+            int chosen_idx = -1;
+            for (i = 0; i < OQ_MONSTER_COUNT; i++) {
+                if (q_strcasecmp(OQUAKE_MONSTERS[i].config_key, name_arg) == 0) { chosen = &OQUAKE_MONSTERS[i]; chosen_idx = i; break; }
+                if (q_strcasecmp(OQUAKE_MONSTERS[i].display_name, name_arg) == 0) { chosen = &OQUAKE_MONSTERS[i]; chosen_idx = i; break; }
+                if (OQUAKE_MONSTERS[i].engine_name && q_strcasecmp(OQUAKE_MONSTERS[i].engine_name, name_arg) == 0) { chosen = &OQUAKE_MONSTERS[i]; chosen_idx = i; break; }
+            }
+            if (!chosen || chosen_idx < 0 || chosen_idx >= OQ_MONSTER_FLAGS_MAX) {
+                Con_Printf("Unknown monster: %s. Use star config to see list (e.g. oquake_ogre, Shambler).\n", name_arg);
+                return;
+            }
+            for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++)
+                if (strcmp(OQUAKE_MONSTERS[i].config_key, chosen->config_key) == 0)
+                    g_oq_mint_monster_flags[i] = on ? 1 : 0;
+            OQ_SaveStarConfigToFiles();
+            Con_Printf("Mint NFT for %s (mint_monster_%s) set to %s. Config saved.\n", chosen->display_name, chosen->config_key, on ? "on" : "off");
+            return;
+        }
         if (argc < 4) {
             Con_Printf("Usage: star mint <armor|weapons|powerups|keys> <0|1>\n");
-            Con_Printf("  1 = mint NFT when collecting that category, 0 = off.\n");
+            Con_Printf("       star mint monster <name> <0|1>\n");
+            Con_Printf("  1 = mint NFT when collecting/killing that category, 0 = off.\n");
             return;
         }
         const char* cat = Cmd_Argv(2);
@@ -2543,7 +2680,7 @@ void OQuake_STAR_Console_f(void) {
         else if (strcmp(cat, "powerups") == 0) cvar = "oquake_star_mint_powerups";
         else if (strcmp(cat, "keys") == 0) cvar = "oquake_star_mint_keys";
         if (!cvar) {
-            Con_Printf("Unknown category: %s. Use armor|weapons|powerups|keys\n", cat);
+            Con_Printf("Unknown category: %s. Use armor|weapons|powerups|keys or star mint monster <name> <0|1>.\n", cat);
             return;
         }
         Cvar_Set(cvar, on ? "1" : "0");
@@ -2643,13 +2780,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     int visible_end;
     char line[512];
 
+    if (!g_star_initialized || !cbx)
+        return;
     /* Check if background operations completed */
     OQ_CheckAuthenticationComplete();
     OQ_CheckInventoryRefreshComplete();
     
     OQ_PollInventoryHotkeys();
 
-    if (!g_inventory_open || !cbx)
+    if (!g_inventory_open)
         return;
 
     /* Refresh list from client every frame while overlay is open (merge is in-memory, so pickups show immediately). */
@@ -2765,6 +2904,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     extern int glheight;
 
+    if (!g_star_initialized)
+        return;
     /* Poll for async beam-in completion every frame so login state and "Beamed In" update
      * even when the inventory overlay is never opened. Face is correct because
      * OQuake_STAR_ShouldUseAnorakFace() returns the live value. */
@@ -2805,6 +2946,26 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
     if (y < 8)
         y = 8;
     Draw_String(cbx, x, y, text);
+}
+
+void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
+    extern int glwidth, glheight;
+    int xp = 0;
+    char buf[64];
+    int x, y;
+
+    if (!cbx || glwidth <= 0 || glheight <= 0)
+        return;
+    if (!g_star_initialized || !g_star_beamed_in)
+        return;
+    if (!star_api_get_avatar_xp(&xp))
+        return;
+    q_snprintf(buf, sizeof(buf), "XP: %d", xp);
+    /* Top right: same horizontal alignment as version, a bit below top edge */
+    x = glwidth - (int)strlen(buf) * 8 - 8;
+    y = 12;
+    if (x < 8) x = 8;
+    Draw_String(cbx, x, y, buf);
 }
 
 int OQuake_STAR_ShouldUseAnorakFace(void) {
