@@ -342,6 +342,10 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Run authentication on the background worker so the calling thread does not block. Await the returned task for the result.</summary>
+    public Task<OASISResult<bool>> QueueAuthenticateAsync(string username, string password, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => AuthenticateAsync(username, password, ct), cancellationToken);
+
     public OASISResult<bool> SetApiKey(string apiKey, string avatarId)
     {
         if (!IsInitialized())
@@ -448,6 +452,10 @@ public sealed class StarApiClient : IDisposable
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
 
+    /// <summary>Run get-current-avatar on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<StarAvatarProfile>> QueueGetCurrentAvatarAsync(CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => GetCurrentAvatarAsync(ct), cancellationToken);
+
     public OASISResult<bool> Cleanup()
     {
         StopWorkers();
@@ -508,6 +516,10 @@ public sealed class StarApiClient : IDisposable
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
+    /// <summary>Run has-item on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueHasItemAsync(string itemName, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => HasItemAsync(itemName, ct), cancellationToken);
+
     /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
@@ -551,6 +563,10 @@ public sealed class StarApiClient : IDisposable
         }
         return result;
     }
+
+    /// <summary>Run get-inventory on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<List<StarItem>>> QueueGetInventoryAsync(CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => GetInventoryAsync(ct), cancellationToken);
 
     /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
     private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
@@ -1043,6 +1059,10 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
 
+    /// <summary>Run start-quest on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueStartQuestAsync(string questId, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => StartQuestAsync(questId, ct), cancellationToken);
+
     public async Task<OASISResult<bool>> CompleteQuestObjectiveAsync(string questId, string objectiveId, string? gameSource = null, CancellationToken cancellationToken = default)
     {
         return await CompleteQuestObjectiveCoreAsync(questId, objectiveId, gameSource, cancellationToken).ConfigureAwait(false);
@@ -1116,6 +1136,10 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
     }
 
+    /// <summary>Run complete-quest on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueCompleteQuestAsync(string questId, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => CompleteQuestAsync(questId, ct), cancellationToken);
+
     public async Task<OASISResult<StarQuestInfo?>> CreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1177,6 +1201,10 @@ public sealed class StarApiClient : IDisposable
         return Success(created, StarApiResultCode.Success, "Cross-game quest created successfully.");
     }
 
+    /// <summary>Run create-cross-game-quest on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<StarQuestInfo?>> QueueCreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => CreateCrossGameQuestAsync(questName, description, objectives, ct), cancellationToken);
+
     /// <summary>Adds an objective (sub-quest) to an existing quest. Returns the created objective with its Id.</summary>
     public async Task<OASISResult<StarQuestInfo?>> AddQuestObjectiveAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default)
     {
@@ -1213,6 +1241,10 @@ public sealed class StarApiClient : IDisposable
         return Success(created, StarApiResultCode.Success, "Quest objective added successfully.");
     }
 
+    /// <summary>Run add-quest-objective on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<StarQuestInfo?>> QueueAddQuestObjectiveAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => AddQuestObjectiveAsync(questId, description, name, gameSource, itemRequired, order, ct), cancellationToken);
+
     /// <summary>Removes an objective (sub-quest) from a quest.</summary>
     public async Task<OASISResult<bool>> RemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default)
     {
@@ -1229,6 +1261,10 @@ public sealed class StarApiClient : IDisposable
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest objective removed successfully.");
     }
+
+    /// <summary>Run remove-quest-objective on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
 
     public async Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default)
     {
@@ -1247,6 +1283,10 @@ public sealed class StarApiClient : IDisposable
         InvokeCallback(StarApiResultCode.Success);
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} active quest(s).");
     }
+
+    /// <summary>Run get-active-quests on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
 
     /// <summary>Mint an NFT for a boss kill via WEB4 OASIS API. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
     public async Task<OASISResult<string>> CreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, string? provider = null, CancellationToken cancellationToken = default)
@@ -1353,6 +1393,10 @@ public sealed class StarApiClient : IDisposable
         return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
     }
 
+    /// <summary>Run create-boss-NFT on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<string>> QueueCreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, string? provider = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => CreateBossNftAsync(bossName, description, gameSource, bossStatsJson, provider, ct), cancellationToken);
+
     /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS. Same as nft_provider in oasisstar.json. sendToAddressAfterMinting: optional wallet address to send the minted NFT to (from oasisstar.json SendToAddressAfterMinting).</summary>
     public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, string? sendToAddressAfterMinting = null, CancellationToken cancellationToken = default)
     {
@@ -1437,6 +1481,10 @@ public sealed class StarApiClient : IDisposable
         return Success((nftId, string.IsNullOrWhiteSpace(hash) ? null : hash), StarApiResultCode.Success, "Inventory item NFT minted successfully.");
     }
 
+    /// <summary>Run mint-inventory-item-NFT on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<(string NftId, string? Hash)>> QueueMintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, string? sendToAddressAfterMinting = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => MintInventoryItemNftAsync(itemName, description, gameSource, itemType, provider, sendToAddressAfterMinting, ct), cancellationToken);
+
     public async Task<OASISResult<bool>> DeployBossNftAsync(string nftId, string targetGame, string? location = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1463,6 +1511,10 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Boss NFT deployed successfully.");
     }
 
+    /// <summary>Run deploy-boss-NFT on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueDeployBossNftAsync(string nftId, string targetGame, string? location = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => DeployBossNftAsync(nftId, targetGame, location, ct), cancellationToken);
+
     public async Task<OASISResult<List<StarNftInfo>>> GetNftCollectionAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1484,6 +1536,10 @@ public sealed class StarApiClient : IDisposable
         InvokeCallback(StarApiResultCode.Success);
         return Success(nfts, StarApiResultCode.Success, $"Loaded {nfts.Count} NFT(s).");
     }
+
+    /// <summary>Run get-NFT-collection on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<List<StarNftInfo>>> QueueGetNftCollectionAsync(CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => GetNftCollectionAsync(ct), cancellationToken);
 
     /// <summary>Sends an item from the current avatar's inventory to another avatar. Target is username or avatar Id. Optionally pass itemId (Guid) to send that specific item. Works for all items (STAR and local).</summary>
     public async Task<OASISResult<bool>> SendItemToAvatarAsync(string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default)
@@ -1517,6 +1573,10 @@ public sealed class StarApiClient : IDisposable
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Item sent to avatar.");
     }
+
+    /// <summary>Run send-item-to-avatar on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueSendItemToAvatarAsync(string targetUsernameOrAvatarId, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => SendItemToAvatarAsync(targetUsernameOrAvatarId, itemName, quantity, itemId, ct), cancellationToken);
 
     /// <summary>Sends an item from the current avatar's inventory to a clan. Target is clan name (or username). Optionally pass itemId (Guid) to send that specific item. Works for all items (STAR and local).</summary>
     public async Task<OASISResult<bool>> SendItemToClanAsync(string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default)
@@ -1560,6 +1620,10 @@ public sealed class StarApiClient : IDisposable
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Item sent to clan.");
     }
+
+    /// <summary>Run send-item-to-clan on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueSendItemToClanAsync(string clanNameOrTargetUsername, string itemName, int quantity = 1, Guid? itemId = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => SendItemToClanAsync(clanNameOrTargetUsername, itemName, quantity, itemId, ct), cancellationToken);
 
     public OASISResult<string> GetLastError()
     {
@@ -2170,6 +2234,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         StartUseItemWorker();
         StartQuestObjectiveWorker();
+        StartGenericBackgroundWorker();
     }
 
     private void StopWorkers()
@@ -2177,6 +2242,113 @@ public sealed class StarApiClient : IDisposable
         StopAddItemWorker();
         StopUseItemWorker();
         StopQuestObjectiveWorker();
+        StopGenericBackgroundWorker();
+    }
+
+    private void StartGenericBackgroundWorker()
+    {
+        lock (_genericBackgroundLock)
+        {
+            if (_genericBackgroundWorker is { IsCompleted: false })
+                return;
+            _genericBackgroundCts = new CancellationTokenSource();
+            _genericBackgroundWorker = Task.Run(() => ProcessGenericBackgroundJobsAsync(_genericBackgroundCts.Token));
+        }
+    }
+
+    private void StopGenericBackgroundWorker()
+    {
+        CancellationTokenSource? cts;
+        Task? worker;
+        lock (_genericBackgroundLock)
+        {
+            cts = _genericBackgroundCts;
+            worker = _genericBackgroundWorker;
+            _genericBackgroundCts = null;
+            _genericBackgroundWorker = null;
+        }
+        if (cts is not null)
+        {
+            try
+            {
+                cts.Cancel();
+                _genericBackgroundSignal.Release();
+                worker?.GetAwaiter().GetResult();
+            }
+            catch { }
+            finally { cts.Dispose(); }
+        }
+        while (_genericBackgroundQueue.TryDequeue(out _)) { }
+    }
+
+    private async Task ProcessGenericBackgroundJobsAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await _genericBackgroundSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            while (_genericBackgroundQueue.TryDequeue(out var job))
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+                try
+                {
+                    await job(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch
+                {
+                    /* Job already set result/exception on its TCS; continue to next job. */
+                }
+            }
+        }
+    }
+
+    /// <summary>Run an async operation on the generic background worker so the caller's thread (e.g. UI/game) never blocks. Returns a Task that completes when the operation finishes.</summary>
+    private Task<OASISResult<T>> RunOnBackgroundAsync<T>(Func<CancellationToken, Task<OASISResult<T>>> operation, CancellationToken cancellationToken)
+    {
+        if (!IsInitialized())
+            return Task.FromResult(FailAndCallback<T>("Client is not initialized.", StarApiResultCode.NotInitialized));
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<OASISResult<T>>(cancellationToken);
+
+        var tcs = new TaskCompletionSource<OASISResult<T>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (cancellationToken.CanBeCanceled)
+        {
+            cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+        }
+
+        var run = async (CancellationToken workerCt) =>
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(workerCt, cancellationToken);
+            try
+            {
+                var result = await operation(linked.Token).ConfigureAwait(false);
+                tcs.TrySetResult(result);
+            }
+            catch (OperationCanceledException)
+            {
+                tcs.TrySetCanceled();
+            }
+            catch (Exception ex)
+            {
+                tcs.TrySetResult(Fail<T>(ex.Message, StarApiResultCode.Network, ex));
+            }
+        };
+
+        _genericBackgroundQueue.Enqueue(run);
+        _genericBackgroundSignal.Release();
+        StartGenericBackgroundWorker();
+        return tcs.Task;
     }
 
     private void StartAddItemWorker()
