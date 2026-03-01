@@ -641,6 +641,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind P \"\"");
 		C_DoCommand("bind enter \"\"");
 		C_DoCommand("bind \"KP-Enter\" \"\"");
+		C_DoCommand("bind pgup \"\"");
+		C_DoCommand("bind pgdn \"\"");
+		C_DoCommand("bind home \"\"");
+		C_DoCommand("bind end \"\"");
 		g_odoom_inventory_bindings_captured = true;
 	}
 	else if (!open && g_odoom_inventory_bindings_captured)
@@ -664,6 +668,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind P \"+user3\"");
 		C_DoCommand("bind enter \"+use\"");
 		C_DoCommand("bind \"KP-Enter\" \"+use\"");
+		C_DoCommand("bind pgup \"\"");
+		C_DoCommand("bind pgdn \"\"");
+		C_DoCommand("bind home \"\"");
+		C_DoCommand("bind end \"\"");
 		g_odoom_inventory_bindings_captured = false;
 	}
 
@@ -682,9 +690,13 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int o    = ODOOM_GetRawKeyDown('O');
 		int p    = ODOOM_GetRawKeyDown('P');
 		int enter= ODOOM_GetRawKeyDown(VK_RETURN);
+		int pgup  = ODOOM_GetRawKeyDown(VK_PRIOR);
+		int pgdown= ODOOM_GetRawKeyDown(VK_NEXT);
+		int home  = ODOOM_GetRawKeyDown(VK_HOME);
+		int endkey= ODOOM_GetRawKeyDown(VK_END);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, enter);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, enter, pgup, pgdown, home, endkey);
 	}
 
 	/* Send popup: text input buffer (OQuake-style) and execute send when ZScript requests */
@@ -885,7 +897,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int enter)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int enter, int pgup, int pgdown, int home, int endkey)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -894,6 +906,10 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_down", down);
 	SET_KEY_CVAR("odoom_key_left", left);
 	SET_KEY_CVAR("odoom_key_right", right);
+	SET_KEY_CVAR("odoom_key_pgup", pgup);
+	SET_KEY_CVAR("odoom_key_pgdown", pgdown);
+	SET_KEY_CVAR("odoom_key_home", home);
+	SET_KEY_CVAR("odoom_key_end", endkey);
 	SET_KEY_CVAR("odoom_key_use", use);
 	SET_KEY_CVAR("odoom_key_a", a);
 	SET_KEY_CVAR("odoom_key_c", c);
@@ -951,11 +967,13 @@ static int GetHardcodedAmmoAmount(const char* className) {
 static std::string ToStarItemName(const char* className) {
 	if (!className || !className[0]) return "Item";
 	const char* c = className;
-	/* Ammo */
+	/* Ammo (check weapons first so "RocketLauncher" is not matched as "Rockets") */
 	if (strstr(c, "Clip") || strstr(c, "Bullet")) return "Bullets";
 	if (strstr(c, "Shell") && !strstr(c, "Shotgun")) return "Shells";
 	if (strstr(c, "Cell")) return "Cells";
-	if (strstr(c, "Rocket")) return "Rockets";
+	/* Weapons before ammo so RocketLauncher -> Rocket Launcher, not Rockets */
+	if (strstr(c, "RocketLauncher")) return "Rocket Launcher";
+	if (strstr(c, "Rocket") && !strstr(c, "Launcher")) return "Rockets";
 	/* Armor */
 	if (strstr(c, "GreenArmor")) return "Green Armor";
 	if (strstr(c, "BlueArmor") || strstr(c, "BlueSphere")) return "Blue Armor";
@@ -974,7 +992,7 @@ static std::string ToStarItemName(const char* className) {
 	if (strstr(c, "Pistol")) return "Pistol";
 	if (strstr(c, "Shotgun")) return "Shotgun";
 	if (strstr(c, "Chaingun")) return "Chaingun";
-	if (strstr(c, "RocketLauncher")) return "Rocket Launcher";
+	/* RocketLauncher already handled above (before generic Rocket) */
 	if (strstr(c, "PlasmaRifle")) return "Plasma Rifle";
 	if (strstr(c, "BFG")) return "BFG9000";
 	if (strstr(c, "Chainsaw")) return "Chainsaw";
