@@ -37,9 +37,15 @@ void UZDoom_STAR_PostTouchSpecial(int keynum);
 /**
  * Call from engine when a boss monster is killed to mint a boss NFT (WEB4).
  * Pass the boss name (e.g. "Cyberdemon", "SpiderMastermind"). No-op if not initialized.
- * The engine should call this from actor death handling when the dying actor is a boss type.
  */
 void UZDoom_STAR_OnBossKilled(const char* boss_name);
+
+/**
+ * Call from engine when any monster is killed. If that monster has mint=1 in oasisstar.json
+ * (mint_monsters list), mints an NFT and adds "[NFT] MonsterName" to STAR inventory as type "Monster".
+ * Call from actor death handling when the dying actor is a monster (e.g. flags3 & MF3_ISMONSTER).
+ */
+void UZDoom_STAR_OnMonsterKilled(const char* monster_name);
 
 /**
  * If local key check failed, try cross-game inventory. Returns true if door/lock
