@@ -140,6 +140,8 @@ static bool g_star_init_failed_this_session = false;
 static int g_star_frames_since_beamin = 99999;
 /** Do not consume key when opening door for this many frames (~5 s) after beam-in. */
 static const int STAR_DOOR_CONSUME_GRACE_FRAMES = 300;
+/** Set true in OnAuthDone when beam-in succeeds; next frame we refresh gold/silver key CVars once so they appear with Doom keycards. */
+static bool g_star_just_beamed_in = false;
 
 /* Inventory overlay: when open, temporarily clear key bindings (OQuake-style) so arrows/keys only drive the popup.
  * We read raw key state here and set odoom_key_* CVars so ZScript can drive selection/use/send/tabs. */
@@ -494,10 +496,17 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	listVar->SetGenericRep(v, CVAR_String);
 }
 
-/** Set odoom_star_has_gold_key / odoom_star_has_silver_key from inventory list so ZScript can give OQ keys for HUD. */
+/** Set odoom_star_has_gold_key / odoom_star_has_silver_key from inventory list so ZScript can give OQ keys for HUD. When !initialized or list==null, clear to 0. */
 static void ODOOM_UpdateStarKeyHudCVars(const star_item_list_t* list) {
+	if (!g_star_initialized || !list) {
+		FBaseCVar* g = FindCVar("odoom_star_has_gold_key", nullptr);
+		FBaseCVar* s = FindCVar("odoom_star_has_silver_key", nullptr);
+		if (g && g->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = 0; g->SetGenericRep(u, CVAR_Int); }
+		if (s && s->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = 0; s->SetGenericRep(u, CVAR_Int); }
+		return;
+	}
 	int hasGold = 0, hasSilver = 0;
-	if (list && list->items) {
+	if (list->items) {
 		for (size_t i = 0; i < list->count; i++) {
 			const char* n = list->items[i].name;
 			if (!n) continue;
@@ -516,8 +525,13 @@ static void ODOOM_UpdateStarKeyHudCVars(const star_item_list_t* list) {
 	if (s && s->GetRealType() == CVAR_Int) { UCVarValue u; u.Int = hasSilver; s->SetGenericRep(u, CVAR_Int); }
 }
 
-/** Refresh overlay from client (get_inventory returns API + pending merged in C#). Call after send/use or when overlay is open so list stays in sync. */
+/** Refresh overlay from client (get_inventory returns API + pending merged in C#). When not beamed in, push empty so no phantom inventory/keys. */
 static void ODOOM_RefreshOverlayFromClient(void) {
+	if (!g_star_initialized) {
+		ODOOM_UpdateStarKeyHudCVars(nullptr);  /* clears gold/silver CVars */
+		ODOOM_PushInventoryToCVars(nullptr);  /* empty list, count 0 */
+		return;
+	}
 	star_item_list_t* list = nullptr;
 	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return;
 	ODOOM_UpdateStarKeyHudCVars(list);
@@ -550,6 +564,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 	if (success) {
 		g_star_initialized = true;
 		g_star_frames_since_beamin = 0;  /* Grace period: don't consume keys on door checks for a few seconds after beamin. */
+		g_star_just_beamed_in = true;    /* Next frame: refresh gold/silver key CVars so OQ keys appear with Doom keycards. */
 		g_star_logged_runtime_auth_failure = false;
 		g_star_logged_missing_auth_config = false;
 		g_star_effective_username = username_buf;
@@ -636,16 +651,35 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		g_odoom_reapply_json_frames--;
 	}
 
+	/* ZScript reads this so it only gives/shows OQuake keys when beamed in. */
+	{
+		FBaseCVar* beamedVar = FindCVar("odoom_star_beamed_in", nullptr);
+		if (beamedVar && beamedVar->GetRealType() == CVAR_Int) {
+			UCVarValue u; u.Int = g_star_initialized ? 1 : 0;
+			beamedVar->SetGenericRep(u, CVAR_Int);
+		}
+	}
+
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
 
-	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). */
+	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). When not beamed in we push empty. */
 	if (open) {
 		ODOOM_RefreshOverlayFromClient();
 	} else if (g_star_initialized) {
-		/* When overlay closed, periodically refresh gold/silver key CVars so HUD shows OQuake keys after load. */
+		/* First frame after beam-in: refresh gold/silver key CVars immediately so OQ keys appear with Doom keycards (no wait for console close). */
+		if (g_star_just_beamed_in) {
+			g_star_just_beamed_in = false;
+			star_item_list_t* list = nullptr;
+			if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+				ODOOM_UpdateStarKeyHudCVars(list);
+				star_api_free_item_list(list);
+			}
+		}
+		/* When overlay closed, periodically refresh gold/silver key CVars so HUD shows OQuake keys after load.
+		 * Use 10 frames (~0.3 s) so keys appear soon after beam-in; C# client serves from cache. */
 		static int s_key_hud_frames = 0;
-		if (++s_key_hud_frames >= 70) {
+		if (++s_key_hud_frames >= 10) {
 			s_key_hud_frames = 0;
 			star_item_list_t* list = nullptr;
 			if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
@@ -1341,7 +1375,7 @@ static bool KeyNameContainsKeycard(int keynum, const char* itemName) {
 	}
 }
 
-/** Returns true if STAR inventory has this key (any name variant). If outName is non-null, set to the first matching variant for use_item. Fallback: scan get_inventory when variants fail. */
+/** Returns true if STAR inventory has this key (any name variant). If outName is non-null, set to the first matching variant for use_item. Fallback: scan get_inventory when variants fail. No logging here (called every frame for HUD). */
 static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
 	int n = 0;
 	const char* const* names = GetKeycardNameVariants(keynum, &n);
@@ -1355,7 +1389,8 @@ static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
 	}
 	/* Fallback: get full inventory and match by name content (handles "Red Keycard (ODOOM)" etc.) */
 	star_item_list_t* list = nullptr;
-	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items) return false;
+	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items)
+		return false;
 	static char matched_name[256];
 	matched_name[0] = '\0';
 	bool found = false;
@@ -1569,18 +1604,28 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!owner || keynum <= 0) return 0;
-	/* Only called from P_CheckKeys when the player actually tries to open a door (quiet==false); engine patch ensures we are not called on map load or other probes. */
+	/* Only Doom keycard doors (1-4). Engine may call with many keynums; only handle 1-4 (no log for >4 to avoid spam). */
+	if (keynum > 4) return 0;
+
 	if (!StarTryInitializeAndAuthenticate(false)) {
+		if (g_star_debug_logging)
+			StarLogInfo("Door check: init/auth failed: %s", star_api_get_last_error());
 		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
 		return 0;
 	}
 
 	const char* keyname = nullptr;
-	if (!ODOOM_STAR_HasKeycard(keynum, &keyname)) return 0;
+	if (!ODOOM_STAR_HasKeycard(keynum, &keyname)) {
+		if (g_star_debug_logging)
+			StarLogInfo("Door check: no key in STAR for keynum=%d", keynum);
+		return 0;
+	}
 
 	/* Use the name variant that matched the API for consume. */
 	if (keyname && g_star_frames_since_beamin >= STAR_DOOR_CONSUME_GRACE_FRAMES)
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
+	if (g_star_debug_logging)
+		StarLogInfo("Door check: OPENED keynum=%d with \"%s\"", keynum, keyname ? keyname : "(null)");
 	return 1;
 }
 

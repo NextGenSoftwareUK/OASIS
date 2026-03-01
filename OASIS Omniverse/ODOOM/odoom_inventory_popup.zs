@@ -91,13 +91,25 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (sendOpenVar != null)
 			sendOpenVar.SetInt(sendPopupMode != 0 ? 1 : 0);
 
-		// When STAR has OQuake keys, give the player the key actors so the HUD shows them (left side)
-		CVar hasGoldVar = CVar.FindCVar("odoom_star_has_gold_key");
-		CVar hasSilverVar = CVar.FindCVar("odoom_star_has_silver_key");
-		if (hasGoldVar != null && hasGoldVar.GetInt() != 0 && p.mo.FindInventory("OQGoldKey") == null)
-			p.mo.GiveInventory("OQGoldKey", 1);
-		if (hasSilverVar != null && hasSilverVar.GetInt() != 0 && p.mo.FindInventory("OQSilverKey") == null)
-			p.mo.GiveInventory("OQSilverKey", 1);
+		// Only when beamed in: give OQuake key actors so HUD shows them (left). When not beamed in, remove them.
+		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
+		int beamedIn = (beamedVar != null) ? beamedVar.GetInt() : 0;
+		if (beamedIn != 0)
+		{
+			CVar hasGoldVar = CVar.FindCVar("odoom_star_has_gold_key");
+			CVar hasSilverVar = CVar.FindCVar("odoom_star_has_silver_key");
+			if (hasGoldVar != null && hasGoldVar.GetInt() != 0 && p.mo.FindInventory("OQGoldKey") == null)
+				p.mo.GiveInventory("OQGoldKey", 1);
+			if (hasSilverVar != null && hasSilverVar.GetInt() != 0 && p.mo.FindInventory("OQSilverKey") == null)
+				p.mo.GiveInventory("OQSilverKey", 1);
+		}
+		else
+		{
+			Inventory oqGold = p.mo.FindInventory("OQGoldKey");
+			if (oqGold != null) p.mo.RemoveInventory(oqGold);
+			Inventory oqSilver = p.mo.FindInventory("OQSilverKey");
+			if (oqSilver != null) p.mo.RemoveInventory(oqSilver);
+		}
 
 		int buttons = p.cmd.buttons;
 		bool user1Down = (buttons & BT_USER1) != 0;
