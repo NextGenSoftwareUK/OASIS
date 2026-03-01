@@ -39,13 +39,17 @@ if /i not "%~1"=="run" if /i not "%~1"=="batch" (
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
 if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 
-REM --- STAR API (deploy already ran above; set paths for copy step) ---
+REM --- STAR API (deploy already ran above; prefer freshly built client so vkQuake links current exports) ---
 set "STAR_DLL="
 set "STAR_LIB="
-if exist "%OQUAKE_INTEGRATION%Code\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\star_api.lib"
-if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
 set "STAR_PUBLISH=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish"
 set "STAR_NATIVE=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native"
+if exist "%STAR_PUBLISH%\star_api.dll" if exist "%STAR_NATIVE%\star_api.lib" (
+    set "STAR_DLL=%STAR_PUBLISH%\star_api.dll"
+    set "STAR_LIB=%STAR_NATIVE%\star_api.lib"
+)
+if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%Code\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\star_api.lib"
+if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
 if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" (set "STAR_LIB=%STAR_NATIVE%\star_api.lib") else (set "STAR_LIB=")
 if not defined STAR_DLL (
     echo star_api.dll missing after deploy. Check STARAPIClient build.
