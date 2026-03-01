@@ -650,7 +650,7 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
-		// XP in top-right when beamed in (always visible during play)
+		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
 		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
 		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null)
@@ -658,8 +658,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			int xp = xpVar.GetInt();
 			String xpText = String.Format("XP: %d", xp);
 			int xpW = f.StringWidth(xpText);
-			int xpX = 320 - xpW - 8;
-			screen.DrawText(f, Font.CR_GOLD, xpX, 4, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int xpX = 320 - xpW - 2;
+			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
 		if (!popupOpen) return;
@@ -689,8 +689,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		int headerX = 160 - (f.StringWidth("OASIS Inventory") / 2);
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
-		int tabGap = 4;
-		int tabX = 0;
+		int tabGap = 7;
+		int tabX = -12;
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";

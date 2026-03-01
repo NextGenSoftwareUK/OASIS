@@ -194,14 +194,14 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         }
         // When running against real API, activeQuests may be empty (e.g. after completing the only quest)
 
-        var bossNft = await client.CreateBossNftAsync("CyberDemon", "Boss drop", "Doom", "{\"hp\":1000}");
+        var bossNft = await client.CreateMonsterNftAsync("CyberDemon", "Boss drop", "Doom", "{\"hp\":1000}");
         Assert.False(bossNft.IsError);
         if (_useFakeServer)
-            Assert.Equal("nft-001", bossNft.Result);
+            Assert.Equal("nft-001", bossNft.Result.NftId);
         else
-            Assert.False(string.IsNullOrWhiteSpace(bossNft.Result));
+            Assert.False(string.IsNullOrWhiteSpace(bossNft.Result.NftId));
 
-        var deploy = await client.DeployBossNftAsync(bossNft.Result!, "Doom", "spawn_001");
+        var deploy = await client.DeployBossNftAsync(bossNft.Result.NftId, "Doom", "spawn_001");
         Assert.False(deploy.IsError);
 
         var nftCollection = await client.GetNftCollectionAsync();

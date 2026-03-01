@@ -129,36 +129,36 @@ CVAR(String, odoom_star_send_to_address_after_minting, "", CVAR_GLOBALCONFIG)
 /** Per-monster mint flag: 1 = mint NFT when killed, 0 = off. Keys = normalized config key (e.g. odoom_zombieman, oquake_ogre). */
 static std::map<std::string, int> g_odoom_mint_monster_flags;
 struct ODOOM_MonsterEntry { const char* engineName; const char* configKey; const char* displayName; int xp; int isBoss; };
-/** Engine class name, config key, display name, XP on kill, isBoss (1 = show [BOSSNFT] in inventory). See Docs/MONSTER_XP_TABLE.md. */
+/** Engine class name, config key, display name (no (ODOOM) prefix; shown elsewhere), XP on kill, isBoss. See Docs/MONSTER_XP_TABLE.md. */
 static const ODOOM_MonsterEntry ODOOM_MONSTERS[] = {
-	{ "ZombieMan",           "odoom_zombieman",           "(ODOOM) ZombieMan",        10, 0 },
-	{ "ShotgunGuy",          "odoom_shotgunguy",         "(ODOOM) ShotgunGuy",       15, 0 },
-	{ "ChaingunGuy",         "odoom_chaingunguy",        "(ODOOM) ChaingunGuy",      15, 0 },
-	{ "Demon",               "odoom_demon",              "(ODOOM) Demon",           25, 0 },
-	{ "Spectre",             "odoom_spectre",            "(ODOOM) Spectre",         30, 0 },
-	{ "DoomImp",             "odoom_doomimp",            "(ODOOM) DoomImp",         20, 0 },
-	{ "Imp",                 "odoom_imp",                "(ODOOM) Imp",             20, 0 },
-	{ "Cacodemon",           "odoom_cacodemon",          "(ODOOM) Cacodemon",       50, 0 },
-	{ "BaronOfHell",         "odoom_baronofhell",        "(ODOOM) BaronOfHell",     150, 1 },
-	{ "HellKnight",          "odoom_hellknight",         "(ODOOM) HellKnight",       80, 0 },
-	{ "LostSoul",            "odoom_lostsoul",           "(ODOOM) LostSoul",        10, 0 },
-	{ "PainElemental",       "odoom_painelemental",      "(ODOOM) PainElemental",   45, 0 },
-	{ "Revenant",            "odoom_revenant",           "(ODOOM) Revenant",        60, 0 },
-	{ "Mancubus",            "odoom_mancubus",           "(ODOOM) Mancubus",        90, 0 },
-	{ "Arachnotron",         "odoom_arachnotron",        "(ODOOM) Arachnotron",      80, 0 },
-	{ "Archvile",            "odoom_archvile",           "(ODOOM) Archvile",       120, 0 },
-	{ "SpiderMastermind",    "odoom_spidermastermind",   "(ODOOM) SpiderMastermind", 800, 1 },
-	{ "Cyberdemon",          "odoom_cyberdemon",         "(ODOOM) Cyberdemon",     1000, 1 },
-	{ "OQMonsterDog",        "oquake_dog",                "(OQUAKE) Dog",             15, 0 },
-	{ "OQMonsterZombie",     "oquake_zombie",            "(OQUAKE) Zombie",          20, 0 },
-	{ "OQMonsterDemon",      "oquake_demon",             "(OQUAKE) Demon",          40, 0 },
-	{ "OQMonsterShambler",   "oquake_shambler",          "(OQUAKE) Shambler",       200, 1 },
-	{ "OQMonsterGrunt",      "oquake_grunt",             "(OQUAKE) Grunt",           25, 0 },
-	{ "OQMonsterFish",       "oquake_fish",              "(OQUAKE) Fish",            30, 0 },
-	{ "OQMonsterOgre",       "oquake_ogre",              "(OQUAKE) Ogre",            70, 0 },
-	{ "OQMonsterEnforcer",   "oquake_enforcer",          "(OQUAKE) Enforcer",        60, 0 },
-	{ "OQMonsterSpawn",      "oquake_spawn",             "(OQUAKE) Spawn",          100, 0 },
-	{ "OQMonsterKnight",     "oquake_knight",            "(OQUAKE) Knight",          80, 0 },
+	{ "ZombieMan",           "odoom_zombieman",           "ZombieMan",        10, 0 },
+	{ "ShotgunGuy",          "odoom_shotgunguy",          "ShotgunGuy",       15, 0 },
+	{ "ChaingunGuy",         "odoom_chaingunguy",         "ChaingunGuy",      15, 0 },
+	{ "Demon",               "odoom_demon",               "Demon",           25, 0 },
+	{ "Spectre",             "odoom_spectre",             "Spectre",         30, 0 },
+	{ "DoomImp",             "odoom_doomimp",             "DoomImp",        20, 0 },
+	{ "Imp",                 "odoom_imp",                 "Imp",            20, 0 },
+	{ "Cacodemon",           "odoom_cacodemon",           "Cacodemon",      50, 0 },
+	{ "BaronOfHell",         "odoom_baronofhell",         "BaronOfHell",    150, 1 },
+	{ "HellKnight",          "odoom_hellknight",          "HellKnight",     80, 0 },
+	{ "LostSoul",            "odoom_lostsoul",             "LostSoul",       10, 0 },
+	{ "PainElemental",       "odoom_painelemental",       "PainElemental",  45, 0 },
+	{ "Revenant",            "odoom_revenant",            "Revenant",      60, 0 },
+	{ "Mancubus",            "odoom_mancubus",            "Mancubus",      90, 0 },
+	{ "Arachnotron",         "odoom_arachnotron",         "Arachnotron",     80, 0 },
+	{ "Archvile",            "odoom_archvile",             "Archvile",     120, 0 },
+	{ "SpiderMastermind",    "odoom_spidermastermind",    "SpiderMastermind", 800, 1 },
+	{ "Cyberdemon",          "odoom_cyberdemon",          "Cyberdemon",   1000, 1 },
+	{ "OQMonsterDog",        "oquake_dog",                "Dog",             15, 0 },
+	{ "OQMonsterZombie",     "oquake_zombie",             "Zombie",         20, 0 },
+	{ "OQMonsterDemon",      "oquake_demon",              "Demon",          40, 0 },
+	{ "OQMonsterShambler",   "oquake_shambler",           "Shambler",      200, 1 },
+	{ "OQMonsterGrunt",      "oquake_grunt",              "Grunt",          25, 0 },
+	{ "OQMonsterFish",       "oquake_fish",               "Fish",           30, 0 },
+	{ "OQMonsterOgre",       "oquake_ogre",               "Ogre",           70, 0 },
+	{ "OQMonsterEnforcer",   "oquake_enforcer",           "Enforcer",       60, 0 },
+	{ "OQMonsterSpawn",      "oquake_spawn",              "Spawn",         100, 0 },
+	{ "OQMonsterKnight",     "oquake_knight",             "Knight",         80, 0 },
 	{ nullptr, nullptr, nullptr, 0, 0 }
 };
 
@@ -637,6 +637,8 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
+		/* Refresh avatar profile (including XP) so HUD shows correct XP immediately instead of 0 until first kill. */
+		star_api_refresh_avatar_xp();
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
@@ -690,6 +692,15 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 void ODOOM_InventoryInputCaptureFrame(void)
 {
 	star_sync_pump();
+
+	/* One-time message so you can confirm this build has the door-check code (E on door logs "[ODOOM STAR door v2]"). */
+	{
+		static bool door_v2_printed = false;
+		if (g_star_initialized && !door_v2_printed) {
+			door_v2_printed = true;
+			Printf(PRINT_HIGH, "[ODOOM STAR] door check v2 active (E on locked door will log)\n");
+		}
+	}
 
 	/* Show mint result in console when background pickup-with-mint completes (NFT ID + Hash). */
 	{
@@ -1402,18 +1413,17 @@ static const char* GetKeycardName(int keynum) {
 	}
 }
 
-/** Name variants that the API or other games might store (e.g. "red_keycard"). Used so door check and HUD find keys regardless of name format. */
+/** Name variants that the API or other games might store. Used so door check and HUD find keys regardless of name format. */
 static const char* const* GetKeycardNameVariants(int keynum, int* outCount) {
-	static const char* red[] = { "Red Keycard", "red_keycard", "Red keycard" };
-	static const char* blue[] = { "Blue Keycard", "blue_keycard", "Blue keycard" };
-	static const char* yellow[] = { "Yellow Keycard", "yellow_keycard", "Yellow keycard" };
+	static const char* red[] = { "Red Keycard", "red_keycard", "Red keycard", "Red Key Card", "Red Key" };
+	static const char* blue[] = { "Blue Keycard", "blue_keycard", "Blue keycard", "Blue Key Card", "Blue Key" };
+	static const char* yellow[] = { "Yellow Keycard", "yellow_keycard", "Yellow keycard", "Yellow Key Card", "Yellow Key" };
 	static const char* skull[] = { "Skull Key", "skull_key", "Skull key" };
-	*outCount = 3;
 	switch (keynum) {
-		case 1: return red;
-		case 2: return blue;
-		case 3: return yellow;
-		case 4: return skull;
+		case 1: *outCount = 5; return red;
+		case 2: *outCount = 5; return blue;
+		case 3: *outCount = 5; return yellow;
+		case 4: *outCount = 3; return skull;
 		default: *outCount = 0; return nullptr;
 	}
 }
@@ -1673,7 +1683,7 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (keynum > 4) return 0;
 
 	/* Unconditional log when E is pressed on a door so we can confirm this code path is in the binary and being called. */
-	Printf(PRINT_HIGH, "ODOOM STAR: door check keynum=%d (E pressed)\n", keynum);
+	Printf(PRINT_HIGH, "[ODOOM STAR door v2] E on door keynum=%d\n", keynum);
 
 	if (!StarTryInitializeAndAuthenticate(false)) {
 		if (g_star_debug_logging)
@@ -1704,6 +1714,11 @@ int UZDoom_STAR_PlayerHasKey(int keynum) {
 	return ODOOM_STAR_HasKeycard(keynum, nullptr) ? 1 : 0;
 }
 
+void ODOOM_STAR_LogEvDoDoorLock(int lock) {
+	if (lock != 0)
+		Printf(PRINT_HIGH, "[ODOOM STAR] EV_DoDoor lock=%d (before P_CheckKeys)\n", lock);
+}
+
 void UZDoom_STAR_OnBossKilled(const char* boss_name) {
 	if (!boss_name || !boss_name[0] || !g_star_initialized) return;
 	if (!StarTryInitializeAndAuthenticate(false)) return;
@@ -1711,7 +1726,7 @@ void UZDoom_STAR_OnBossKilled(const char* boss_name) {
 	char desc[256];
 	std::snprintf(desc, sizeof(desc), "Boss defeated in ODOOM: %s", boss_name);
 	const char* prov = (const char*)odoom_star_nft_provider;
-	star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
+	star_api_result_t r = star_api_create_monster_nft(boss_name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
 	if (r == STAR_API_SUCCESS && nft_id[0])
 		Printf(PRINT_HIGH, "WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
 	else if (r != STAR_API_SUCCESS) {
@@ -1720,12 +1735,22 @@ void UZDoom_STAR_OnBossKilled(const char* boss_name) {
 	}
 }
 
+static bool ODOOM_StrEqNoCase(const char* a, const char* b) {
+	if (!a || !b) return (a == b);
+	while (*a && *b) {
+		if (std::tolower(static_cast<unsigned char>(*a)) != std::tolower(static_cast<unsigned char>(*b))) return false;
+		++a; ++b;
+	}
+	return (*a == *b);
+}
+
 static const ODOOM_MonsterEntry* ODOOM_FindMonsterByEngineName(const char* engine_name) {
 	if (!engine_name || !engine_name[0]) return nullptr;
-	/* Doom may report the zombie as "FormerHuman" instead of "ZombieMan". */
-	if (strcmp(engine_name, "FormerHuman") == 0) engine_name = "ZombieMan";
+	/* Map common engine names to table entries (UZDoom/GZDoom may use different class names). */
+	if (ODOOM_StrEqNoCase(engine_name, "FormerHuman") || ODOOM_StrEqNoCase(engine_name, "FormerHumanTrooper")) engine_name = "ZombieMan";
+	if (ODOOM_StrEqNoCase(engine_name, "FormerHumanSergeant")) engine_name = "ShotgunGuy";
 	for (int i = 0; ODOOM_MONSTERS[i].engineName; i++)
-		if (strcmp(ODOOM_MONSTERS[i].engineName, engine_name) == 0) return &ODOOM_MONSTERS[i];
+		if (ODOOM_StrEqNoCase(ODOOM_MONSTERS[i].engineName, engine_name)) return &ODOOM_MONSTERS[i];
 	return nullptr;
 }
 static bool ODOOM_ShouldMintMonster(const char* monster_name) {
@@ -1740,7 +1765,10 @@ static bool ODOOM_ShouldMintMonster(const char* monster_name) {
 void UZDoom_STAR_OnMonsterKilled(const char* monster_name) {
 	if (!monster_name || !monster_name[0] || !g_star_initialized) return;
 	const ODOOM_MonsterEntry* e = ODOOM_FindMonsterByEngineName(monster_name);
-	if (!e) return;
+	if (!e) {
+		Printf(PRINT_HIGH, "ODOOM STAR: unknown monster \"%s\" (no XP/mint)\n", monster_name);
+		return;
+	}
 	if (!StarTryInitializeAndAuthenticate(false)) return;
 	int do_mint = ODOOM_ShouldMintMonster(monster_name) ? 1 : 0;
 	const char* prov = (const char*)odoom_star_nft_provider;
@@ -1988,7 +2016,7 @@ CCMD(star)
 		const char* desc = argv.argc() > 3 ? argv[3] : "Boss from UZDoom";
 		char nft_id[64] = {};
 		const char* prov = (const char*)odoom_star_nft_provider;
-		star_api_result_t r = star_api_create_boss_nft(name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
+		star_api_result_t r = star_api_create_monster_nft(name, desc, "ODOOM", "{}", prov && prov[0] ? prov : nullptr, nft_id);
 		if (r == STAR_API_SUCCESS) Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
 		else Printf("Failed: %s\n", star_api_get_last_error());
 		return;

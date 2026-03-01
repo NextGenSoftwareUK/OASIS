@@ -1831,7 +1831,7 @@ void OQuake_STAR_OnBossKilled(const char* boss_name) {
     char desc[256];
     q_snprintf(desc, sizeof(desc), "Boss defeated in OQuake: %s", boss_name);
     const char* prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : NULL;
-    star_api_result_t r = star_api_create_boss_nft(boss_name, desc, "Quake", "{}", prov, nft_id);
+    star_api_result_t r = star_api_create_monster_nft(boss_name, desc, "Quake", "{}", prov, nft_id);
     if (r == STAR_API_SUCCESS && nft_id[0])
         Con_Printf("WEB4 OASIS API: Boss NFT created for \"%s\". ID: %s\n", boss_name, nft_id);
     else if (r != STAR_API_SUCCESS)
@@ -2257,7 +2257,7 @@ void OQuake_STAR_Console_f(void) {
         const char* desc = argc > 3 ? Cmd_Argv(3) : "Boss from OQuake";
         char nft_id[64] = {0};
         const char* prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : NULL;
-        star_api_result_t r = star_api_create_boss_nft(name, desc, "Quake", "{}", prov, nft_id);
+        star_api_result_t r = star_api_create_monster_nft(name, desc, "Quake", "{}", prov, nft_id);
         if (r == STAR_API_SUCCESS) Con_Printf("Boss NFT created. ID: %s\n", nft_id[0] ? nft_id : "(none)");
         else Con_Printf("Failed: %s\n", star_api_get_last_error());
         return;

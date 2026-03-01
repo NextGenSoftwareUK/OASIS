@@ -150,16 +150,16 @@ internal static class Program
             }
         }
 
-        var createBossNft = await client.CreateBossNftAsync(
+        var createMonsterNft = await client.CreateMonsterNftAsync(
             $"HarnessBoss-{suffix}",
-            "Boss NFT from harness",
+            "Monster NFT from harness",
             "Harness",
             "{\"level\":10,\"hp\":5000}");
-        Check("CreateBossNftAsync", createBossNft);
-        if (!createBossNft.IsError && !string.IsNullOrWhiteSpace(createBossNft.Result))
-            Check("DeployBossNftAsync", await client.DeployBossNftAsync(createBossNft.Result, "Harness", "arena_01"));
+        Check("CreateMonsterNftAsync", createMonsterNft);
+        if (!createMonsterNft.IsError && !string.IsNullOrWhiteSpace(createMonsterNft.Result.NftId))
+            Check("DeployBossNftAsync", await client.DeployBossNftAsync(createMonsterNft.Result.NftId, "Harness", "arena_01"));
         else
-            Console.WriteLine("DeployBossNftAsync skipped because CreateBossNftAsync did not return an NFT id.");
+            Console.WriteLine("DeployBossNftAsync skipped because CreateMonsterNftAsync did not return an NFT id.");
 
         /* NFT minting tests (inventory item mint: Id + Hash) */
         var mintItemName = $"HarnessMintKey-{suffix}";

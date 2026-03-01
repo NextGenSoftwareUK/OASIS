@@ -100,7 +100,7 @@ Config options (e.g. in **oasisstar.json** or game ini): **mint_weapons**, **min
   - add item (`QueueAddItemAsync`, `QueueAddItemsAsync`, `FlushAddItemJobsAsync`)
   - use item (`QueueUseItemAsync`, `FlushUseItemJobsAsync`)
   - quest objective updates (`QueueCompleteQuestObjectiveAsync`, `FlushQuestObjectiveJobsAsync`)
-- **Every network API method has a queue/background variant** so the UI/game thread never blocks: in addition to the queues above, a generic background worker runs one-off operations (auth, get avatar, get inventory, quests, NFTs, send item). Use the `Queue*` overload for each operation (e.g. `QueueAuthenticateAsync`, `QueueGetCurrentAvatarAsync`, `QueueGetInventoryAsync`, `QueueStartQuestAsync`, `QueueGetActiveQuestsAsync`, `QueueCreateBossNftAsync`, `QueueSendItemToAvatarAsync`, etc.). Await the returned `Task` when you need the result; the work runs off the calling thread.
+- **Every network API method has a queue/background variant** so the UI/game thread never blocks: in addition to the queues above, a generic background worker runs one-off operations (auth, get avatar, get inventory, quests, NFTs, send item). Use the `Queue*` overload for each operation (e.g. `QueueAuthenticateAsync`, `QueueGetCurrentAvatarAsync`, `QueueGetInventoryAsync`, `QueueStartQuestAsync`, `QueueGetActiveQuestsAsync`, `QueueCreateMonsterNftAsync`, `QueueSendItemToAvatarAsync`, etc.). Await the returned `Task` when you need the result; the work runs off the calling thread.
 
 ## Queue and background design (non-blocking UI/game thread)
 

@@ -86,7 +86,7 @@ if (Test-Path $sharedSbarCpp) {
 	ODOOM_InventoryInputCaptureFrame();
 	{
 		FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;
-		double yVersion = twod->GetHeight() - 14;
+		double yVersion = twod->GetHeight() - 18;
 		double xVersion = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
 		DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
@@ -119,11 +119,17 @@ if (Test-Path $sharedSbarCpp) {
         $content = $content -replace '(#ifdef OASIS_STAR_API)', "#include `"uzdoom_star_integration.h`"`r`n`$1"
         $sbarChanged = $true
     }
-    # Move version string from top-right (y=2) to just above HUD on the right
-    if ($content -match 'OASIS_STAR_API.*verText' -and $content -match 'double y = 2;') {
-        $content = $content -replace 'double y = 2;\r?\n\s+double xVersion', 'double yVersion = twod->GetHeight() - 14;' + "`r`n`t`t" + 'double xVersion'
-        $content = $content -replace 'DrawText\(twod, SmallFont, CR_TAN, xVersion, y, verText\.GetChars\(\)', 'DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars()'
-        $sbarChanged = $true
+    # Move version string from top-right (y=2) to just above HUD on the right (same x, only y changes)
+    if ($content -match 'OASIS_STAR_API.*verText') {
+        if ($content -match 'double y = 2;') {
+            $content = $content -replace 'double y = 2;(\r?\n)(\s+)double xVersion', 'double yVersion = twod->GetHeight() - 18;$1$2double xVersion'
+            $content = $content -replace 'DrawText\(twod, SmallFont, CR_TAN, xVersion, y, verText\.GetChars\(\)', 'DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars()'
+            $sbarChanged = $true
+        }
+        if ($content -match 'xVersion, y,' -and $content -notmatch 'xVersion, yVersion,') {
+            $content = $content -replace 'xVersion, y, verText', 'xVersion, yVersion, verText'
+            $sbarChanged = $true
+        }
     }
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
 }
@@ -350,7 +356,7 @@ if (lock->check(owner)) return true;
                 $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', "`$1`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
                 $akChanged = $true
             }
-            # Literal replace: shared STAR block used for both tab- and space-indent sources
+            # Literal replace: shared STAR block used for both tab- and space-indent sources (define before flexible/literal use)
             $literalNew = @"
  if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
@@ -362,16 +368,31 @@ if (lock->check(owner)) return true;
 #endif
 	if (quiet) return false;
 "@
-            # Literal replace: GZDoom uses tab before "if" (no leading space)
+            # Flexible: any whitespace before both if lines (catches 2 tabs, 3 spaces, etc.)
             if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
-                $literalTabLf = "`tif (lock->check(owner)) return true;`n`tif (quiet) return false;"
-                $literalTabCrLf = "`tif (lock->check(owner)) return true;`r`n`tif (quiet) return false;"
-                if ($akContent.Contains($literalTabLf)) {
-                    $akContent = $akContent.Replace($literalTabLf, $literalNew)
-                    $akChanged = $true; $patched = $true
-                } elseif ($akContent.Contains($literalTabCrLf)) {
-                    $akContent = $akContent.Replace($literalTabCrLf, $literalNew)
-                    $akChanged = $true; $patched = $true
+                if ($akContent -match '\s+if \(lock->check\(owner\)\) return true;\r?\n\s+if \(quiet\) return false;') {
+                    $akContent = $akContent -replace '\s+if \(lock->check\(owner\)\) return true;\r?\n\s+if \(quiet\) return false;', $literalNew
+                    $akChanged = $true
+                    $patched = $true
+                }
+            }
+            # Literal replace: GZDoom uses one or two tabs before "if"
+            if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
+                $tab1Lf = "`tif (lock->check(owner)) return true;`n`tif (quiet) return false;"
+                $tab1CrLf = "`tif (lock->check(owner)) return true;`r`n`tif (quiet) return false;"
+                $tab2Lf = "`t`tif (lock->check(owner)) return true;`n`t`tif (quiet) return false;"
+                $tab2CrLf = "`t`tif (lock->check(owner)) return true;`r`n`t`tif (quiet) return false;"
+                foreach ($pair in @(
+                    @($tab2Lf, $literalNew),
+                    @($tab2CrLf, $literalNew),
+                    @($tab1Lf, $literalNew),
+                    @($tab1CrLf, $literalNew)
+                )) {
+                    if ($akContent.Contains($pair[0])) {
+                        $akContent = $akContent.Replace($pair[0], $pair[1])
+                        $akChanged = $true; $patched = $true
+                        break
+                    }
                 }
             }
             # Literal replace (UZDoom trunk exact): one space before both lines
@@ -398,6 +419,35 @@ if (lock->check(owner)) return true;
         if ($akFinal -notmatch 'UZDoom_STAR_CheckDoorAccess') {
             Write-Host "[ODOOM] WARNING: a_keys.cpp has no STAR block (E on door will not check STAR). Re-run patch after confirming P_CheckKeys in a_keys.cpp contains: if (lock->check(owner)) return true; then if (quiet) return false;"
         }
+    }
+}
+
+# 3c3. a_doors.cpp: diagnostic log when EV_DoDoor is about to check keys (confirms door path is reached when pressing E).
+#      Classic Doom locked doors use EV_DoDoor(..., lock=arg3); the key check is here, not in P_ActivateLine (line->locknumber is often 0).
+$aDoorsCpp = "$src\src\playsim\mapthinkers\a_doors.cpp"
+if (Test-Path $aDoorsCpp) {
+    $adContent = Get-Content $aDoorsCpp -Raw
+    $adChanged = $false
+    if ($adContent -notmatch 'uzdoom_star_integration\.h') {
+        $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $adChanged = $true
+    }
+    if ($adContent -notmatch 'ODOOM_STAR_LogEvDoDoorLock') {
+        $patched = $false
+        # Capture leading whitespace + "if (lock..." so we can prepend the diagnostic block
+        if ($adContent -match '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))') {
+            $adContent = $adContent -replace '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "#ifdef OASIS_STAR_API`r`n`tODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n`$1`$2"
+            $adChanged = $true
+            $patched = $true
+        }
+        if (-not $patched -and $adContent -match 'if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\)\)') {
+            $adContent = $adContent -replace '(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "#ifdef OASIS_STAR_API`r`n`tODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n`t`$1"
+            $adChanged = $true
+        }
+    }
+    if ($adChanged) {
+        Set-Content $aDoorsCpp $adContent -NoNewline
+        $changes += "a_doors (STAR door diagnostic log)"
     }
 }
 
