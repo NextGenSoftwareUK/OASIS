@@ -55,8 +55,9 @@ class OASISInventoryOverlayHandler : EventHandler
 	const TAB_WEAPONS = 2;
 	const TAB_AMMO = 3;
 	const TAB_ARMOR = 4;
-	const TAB_ITEMS = 5;
-	const TAB_COUNT = 6;
+	const TAB_MONSTERS = 5;
+	const TAB_ITEMS = 6;
+	const TAB_COUNT = 7;
 	const MAX_VISIBLE_ROWS = 6;
 	// Cap STAR list size so we never overflow engine CVar or ZScript string buffers ("attempted to write past end of stream").
 	const MAX_STAR_ITEMS_TO_PARSE = 32;
@@ -509,6 +510,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		case TAB_WEAPONS: return "Weapons";
 		case TAB_AMMO: return "Ammo";
 		case TAB_ARMOR: return "Armor";
+		case TAB_MONSTERS: return "Monsters";
 		default: return "Items";
 		}
 	}
@@ -521,6 +523,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return item is "Weapon";
 		if (tabIndex == TAB_AMMO) return item is "Ammo";
 		if (tabIndex == TAB_ARMOR) return item is "Armor";
+		if (tabIndex == TAB_MONSTERS) return false;  // Monster NFTs are STAR-only, no local actor
 		return !(item is "Key") && !(item is "Powerup") && !(item is "Weapon") && !(item is "Armor") && !(item is "Ammo");
 	}
 
@@ -534,9 +537,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
-		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, or Armor
+		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0;
+		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, Armor, or Monsters
 		if (tabIndex == TAB_ITEMS)
-			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor");
+			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor") && (t != "Monster" && t.IndexOf("Monster") < 0);
 		return true;
 	}
 
@@ -679,19 +683,22 @@ class OASISInventoryOverlayHandler : EventHandler
 		String tab2 = "Weapons";
 		String tab3 = "Ammo";
 		String tab4 = "Armor";
-		String tab5 = "Items";
+		String tab5 = "Monsters";
+		String tab6 = "Items";
 		int tab0X = tabX;
 		int tab1X = tab0X + f.StringWidth(tab0) + tabGap;
 		int tab2X = tab1X + f.StringWidth(tab1) + tabGap;
 		int tab3X = tab2X + f.StringWidth(tab2) + tabGap;
 		int tab4X = tab3X + f.StringWidth(tab3) + tabGap;
 		int tab5X = tab4X + f.StringWidth(tab4) + tabGap;
+		int tab6X = tab5X + f.StringWidth(tab5) + tabGap;
 		screen.DrawText(f, activeTab == TAB_KEYS ? Font.CR_GREEN : Font.CR_GRAY, tab0X, 33, tab0, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_POWERUPS ? Font.CR_GREEN : Font.CR_GRAY, tab1X, 33, tab1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_WEAPONS ? Font.CR_GREEN : Font.CR_GRAY, tab2X, 33, tab2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_AMMO ? Font.CR_GREEN : Font.CR_GRAY, tab3X, 33, tab3, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_ARMOR ? Font.CR_GREEN : Font.CR_GRAY, tab4X, 33, tab4, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, activeTab == TAB_MONSTERS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab6X, 33, tab6, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		screen.DrawText(f, Font.CR_DARKGRAY, -16, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
