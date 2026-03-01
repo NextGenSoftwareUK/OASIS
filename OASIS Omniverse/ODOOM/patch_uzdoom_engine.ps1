@@ -86,13 +86,13 @@ if (Test-Path $sharedSbarCpp) {
 	ODOOM_InventoryInputCaptureFrame();
 	{
 		FString verText = GAMENAME " " ODOOM_FULL_VERSION_STR;
-		double y = 2;
+		double yVersion = twod->GetHeight() - 14;
 		double xVersion = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
-		DrawText(twod, SmallFont, CR_TAN, xVersion, y, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
-		DrawText(twod, SmallFont, CR_TAN, 4, y, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
 	}
 #endif
 
@@ -117,6 +117,12 @@ if (Test-Path $sharedSbarCpp) {
     }
     if ($content -match 'ODOOM_InventoryInputCaptureFrame' -and $content -notmatch 'uzdoom_star_integration\.h') {
         $content = $content -replace '(#ifdef OASIS_STAR_API)', "#include `"uzdoom_star_integration.h`"`r`n`$1"
+        $sbarChanged = $true
+    }
+    # Move version string from top-right (y=2) to just above HUD on the right
+    if ($content -match 'OASIS_STAR_API.*verText' -and $content -match 'double y = 2;') {
+        $content = $content -replace 'double y = 2;\r?\n\s+double xVersion', 'double yVersion = twod->GetHeight() - 14;' + "`r`n`t`t" + 'double xVersion'
+        $content = $content -replace 'DrawText\(twod, SmallFont, CR_TAN, xVersion, y, verText\.GetChars\(\)', 'DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars()'
         $sbarChanged = $true
     }
     if ($sbarChanged) { Set-Content $sharedSbarCpp $content -NoNewline; $changes += "shared_sbar" }
@@ -344,11 +350,8 @@ if (lock->check(owner)) return true;
                 $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', "`$1`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
                 $akChanged = $true
             }
-            # Literal replace (UZDoom trunk exact): no regex - exact two lines so patch always applies
-            if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
-                $literalOld = " if (lock->check(owner)) return true;`n if (quiet) return false;"
-                $literalOldCrLf = " if (lock->check(owner)) return true;`r`n if (quiet) return false;"
-                $literalNew = @"
+            # Literal replace: shared STAR block used for both tab- and space-indent sources
+            $literalNew = @"
  if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
 	if (quiet) {
@@ -359,6 +362,22 @@ if (lock->check(owner)) return true;
 #endif
 	if (quiet) return false;
 "@
+            # Literal replace: GZDoom uses tab before "if" (no leading space)
+            if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
+                $literalTabLf = "`tif (lock->check(owner)) return true;`n`tif (quiet) return false;"
+                $literalTabCrLf = "`tif (lock->check(owner)) return true;`r`n`tif (quiet) return false;"
+                if ($akContent.Contains($literalTabLf)) {
+                    $akContent = $akContent.Replace($literalTabLf, $literalNew)
+                    $akChanged = $true; $patched = $true
+                } elseif ($akContent.Contains($literalTabCrLf)) {
+                    $akContent = $akContent.Replace($literalTabCrLf, $literalNew)
+                    $akChanged = $true; $patched = $true
+                }
+            }
+            # Literal replace (UZDoom trunk exact): one space before both lines
+            if (-not $patched -and $akContent -notmatch 'UZDoom_STAR_CheckDoorAccess') {
+                $literalOld = " if (lock->check(owner)) return true;`n if (quiet) return false;"
+                $literalOldCrLf = " if (lock->check(owner)) return true;`r`n if (quiet) return false;"
                 if ($akContent.Contains($literalOld)) {
                     $akContent = $akContent.Replace($literalOld, $literalNew)
                     $akChanged = $true; $patched = $true

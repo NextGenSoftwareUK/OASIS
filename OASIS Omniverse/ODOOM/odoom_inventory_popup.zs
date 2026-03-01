@@ -537,7 +537,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
-		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0;
+		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0;
 		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, Armor, or Monsters
 		if (tabIndex == TAB_ITEMS)
 			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor") && (t != "Monster" && t.IndexOf("Monster") < 0);
@@ -645,11 +645,24 @@ class OASISInventoryOverlayHandler : EventHandler
 
 	override void RenderOverlay(RenderEvent e)
 	{
-		if (!popupOpen) return;
 		let p = players[consoleplayer];
 		if (!p || !p.mo) return;
 
 		Font f = "SmallFont";
+
+		// XP in top-right when beamed in (always visible during play)
+		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
+		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
+		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null)
+		{
+			int xp = xpVar.GetInt();
+			String xpText = String.Format("XP: %d", xp);
+			int xpW = f.StringWidth(xpText);
+			int xpX = 320 - xpW - 8;
+			screen.DrawText(f, Font.CR_GOLD, xpX, 4, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		}
+
+		if (!popupOpen) return;
 
 		// When send popup is open, draw only the send popup (no inventory list behind it)
 		if (sendPopupMode != 0)
@@ -676,8 +689,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		int headerX = 160 - (f.StringWidth("OASIS Inventory") / 2);
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
-		int tabGap = 10;
-		int tabX = 6;
+		int tabGap = 4;
+		int tabX = 0;
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";

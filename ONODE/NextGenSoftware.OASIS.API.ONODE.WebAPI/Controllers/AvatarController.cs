@@ -1748,7 +1748,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await GetLoggedInAvatar();
         }
 
+        /// <summary>
+        /// Add experience points to the logged-in avatar (e.g. from game actions like killing monsters). Only works for logged-in users.
+        /// </summary>
+        /// <param name="request">Body with amount (positive integer).</param>
+        /// <returns>New total XP after adding.</returns>
+        [Authorize]
+        [HttpPost("add-xp")]
+        public async Task<OASISHttpResponseMessage<AddXpResponse>> AddXp([FromBody] AddXpRequest request)
+        {
+            if (request == null || request.Amount <= 0)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Amount must be a positive integer." }, HttpStatusCode.BadRequest);
 
+            var avatarId = Avatar?.Id ?? Guid.Empty;
+            if (avatarId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+
+            var loadResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (loadResult.IsError || loadResult.Result == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = loadResult.Message ?? "Failed to load avatar detail." }, HttpStatusCode.BadRequest);
+
+            var detail = loadResult.Result;
+            detail.XP = detail.XP + request.Amount;
+            if (detail.XP < 0)
+                detail.XP = 0;
+
+            var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
+            if (updateResult.IsError)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = updateResult.Message ?? "Failed to update avatar XP." }, HttpStatusCode.BadRequest);
+
+            var newTotal = (updateResult.Result?.XP ?? detail.XP);
+            return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { Result = new AddXpResponse { NewTotal = newTotal }, IsError = false });
+        }
 
         ///// <summary>
         /////     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).

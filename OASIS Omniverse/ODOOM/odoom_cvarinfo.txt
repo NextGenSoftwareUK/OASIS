@@ -45,3 +45,5 @@ server int odoom_star_beamed_in = 0;
 // STAR has Gold/Silver key (OQuake): 1 = has, 0 = no. Only meaningful when odoom_star_beamed_in=1.
 server int odoom_star_has_gold_key = 0;
 server int odoom_star_has_silver_key = 0;
+// Avatar XP (experience points). Updated from STAR API; shown in top-right when beamed in.
+server int odoom_star_avatar_xp = 0;
