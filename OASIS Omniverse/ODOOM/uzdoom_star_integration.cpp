@@ -637,7 +637,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
-		/* Refresh avatar profile (including XP) so HUD shows correct XP immediately instead of 0 until first kill. */
+		/* Refresh XP via same add-xp path as monster kill (async; cache updates when response returns). */
 		star_api_refresh_avatar_xp();
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
