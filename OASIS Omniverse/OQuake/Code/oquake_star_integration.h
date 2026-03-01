@@ -49,7 +49,11 @@ int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
-/** Call from engine or QuakeC when a boss is killed to mint a boss NFT (WEB4). Pass boss name (e.g. "Shub-Niggurath"). */
+/** Draw avatar XP in top-right (when beamed in). Call from same HUD path as DrawVersionStatus. */
+void OQuake_STAR_DrawXpStatus(cb_context_t* cbx);
+/** Call from engine or QuakeC when a monster is killed: queues XP + optional mint + add to inventory (async). */
+void OQuake_STAR_OnMonsterKilled(const char* monster_name);
+/** Call from engine or QuakeC when a boss is killed (same as OnMonsterKilled; kept for backward compat). */
 void OQuake_STAR_OnBossKilled(const char* boss_name);
 
 #ifdef __cplusplus

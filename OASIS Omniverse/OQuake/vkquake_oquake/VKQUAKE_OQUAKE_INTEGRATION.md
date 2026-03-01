@@ -6,12 +6,9 @@ This folder contains files and instructions to build **OQuake**: vkQuake with OA
 
 ## Overview
 
-1. **Copy** OQuake + STAR files into vkQuake's `Quake/` directory.
-2. **Add** `pr_ext_oquake.c` to the build and **register** the three OQuake builtins in the engine's extension table.
-3. **Call** `OQuake_STAR_Init()` at startup and `OQuake_STAR_Cleanup()` at shutdown.
-4. **Link** `star_api.lib` and ship `star_api.dll` next to the exe.
+**BUILD_OQUAKE.bat** (and **apply_oquake_to_vkquake.ps1**) do **everything automatically** (like ODOOM): copy OQuake + STAR files into vkQuake and patch **host.c**, **pr_ext.c**, **sbar.c**, **gl_screen.c**, and the Visual Studio project (sources + star_api.lib). No manual one-time edits are required.
 
-After this, the QuakeC in quake-rerelease-qc (which declares `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, and `OQuake_OnBossKilled` as `#0:ex_OQuake_*`) will call into the STAR API.
+After running the script on a fresh vkQuake tree, QuakeC (e.g. quake-rerelease-qc) can use `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, and `OQuake_OnMonsterKilled` via the extension builtins, and the HUD shows Beamed In, XP, version, inventory overlay, and the anorak face when beamed in.
 
 ---
 
@@ -62,17 +59,19 @@ OQuake_STAR_Cleanup ();
 extern void PF_OQuake_OnKeyPickup (void);
 extern void PF_OQuake_CheckDoorAccess (void);
 extern void PF_OQuake_OnBossKilled (void);
+extern void PF_OQuake_OnMonsterKilled (void);
 ```
 
-**Extension builtin table**: vkQuake maps QC extension function **names** to builtin function pointers when progs are loaded. You need to add the three OQuake names to that table.
+**Extension builtin table**: vkQuake maps QC extension function **names** to builtin function pointers when progs are loaded. Add the four OQuake names to that table.
 
 - Search in `pr_ext.c` for where extension builtins are registered (e.g. a table of `{ "ex_bprint", PF_bprint }` or a block that calls something like `PR_RegisterExtBuiltin("ex_...", PF_...)`).
-- Add three entries so that:
+- Add four entries so that:
   - `"ex_OQuake_OnKeyPickup"` → `PF_OQuake_OnKeyPickup`
   - `"ex_OQuake_CheckDoorAccess"` → `PF_OQuake_CheckDoorAccess`
   - `"ex_OQuake_OnBossKilled"` → `PF_OQuake_OnBossKilled`
+  - `"ex_OQuake_OnMonsterKilled"` → `PF_OQuake_OnMonsterKilled`
 
-Exact location and format depend on the vkQuake version; look for `ex_` or `PR_EnableExtensions` / `PR_FindExtFunction` and add the OQuake pair in the same way as existing extension builtins.
+Exact location and format depend on the vkQuake version; look for `ex_` or `PR_EnableExtensions` / `PR_FindExtFunction` and add the OQuake pairs in the same way as existing extension builtins.
 
 ---
 
@@ -122,15 +121,18 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 ---
 
-## 5. One-shot script (optional)
+## 5. What the build script does (BUILD_OQUAKE.bat / apply_oquake_to_vkquake.ps1)
 
-From `OASIS Omniverse\OQuake` (OQuake root), run:
+When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatically** does everything (like ODOOM):
 
-```powershell
-.\vkquake_oquake\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
-```
+1. **Copies** into `VkQuakeSrc\Quake\`: `oquake_star_integration.c/h`, `oquake_version.h`, `pr_ext_oquake.c`, `star_sync.c/h`, `star_api.h`, `star_api.dll`, `star_api.lib`.
+2. **Patches host.c**: adds `#include "oquake_version.h"` and `#include "oquake_star_integration.h"`, calls **OQuake_STAR_Init()** after PR_Init, **OQuake_STAR_Cleanup()** at shutdown, **OQuake_STAR_PollItems()** after CL_ReadFromServer, and the **pr_engine** version string (OQuake 1.0 (Build 1) (vkQuake …)).
+3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
+4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
+5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
+6. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
 
-This copies the required files into `VkQuakeSrc\Quake\`. You still need to **edit host.c and pr_ext.c** and **add the sources + link star_api** in your build system (steps 2–4). The script does not modify host.c or pr_ext.c automatically so you can apply those edits once and keep them.
+No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
 
 ---
 
@@ -249,9 +251,11 @@ You need a **cb_context_t** and the same drawing API the status bar uses (`Draw_
 2. Where you have `cbx` and are drawing the HUD (e.g. after `Sbar_Draw` or in the same function that draws the sbar):
    ```c
    OQuake_STAR_DrawBeamedInStatus (cbx);   /* "Beamed In: <username>" at bottom-left */
+   OQuake_STAR_DrawXpStatus (cbx);         /* "XP: <value>" top-right when beamed in */
+   OQuake_STAR_DrawVersionStatus (cbx);    /* "OQUAKE ..." version at bottom-right */
    OQuake_STAR_DrawInventoryOverlay (cbx); /* inventory panel + Send to Avatar/Clan popups */
    ```
-   Order depends on desired layering; typically draw Beamed In first, then the overlay so the overlay can sit on top.
+   Order depends on desired layering; typically draw Beamed In first, then XP/version, then the overlay so the overlay can sit on top.
 
 After rebuilding vkQuake with these changes, the anorak face when beamed in, the I key inventory, and the Send to Avatar / Send to Clan popups from the inventory will work, using the logic already in **OASIS Omniverse/OQuake/Code/oquake_star_integration.c**.
 
@@ -261,9 +265,10 @@ After rebuilding vkQuake with these changes, the anorak face when beamed in, the
 
 Already done if you use the provided defs/items/doors:
 
-- `defs.qc`: `OQuake_OnKeyPickup = #0:ex_OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess`, `OQuake_OnBossKilled = #0:ex_OQuake_OnBossKilled`
+- `defs.qc`: `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, `OQuake_OnMonsterKilled` (register builtins from pr_ext_oquake.c).
 - `items.qc`: after giving key, call `OQuake_OnKeyPickup("silver_key")` or `"gold_key"`.
-- When a boss is killed (e.g. in map script or monster death): call `OQuake_OnBossKilled("Shub-Niggurath")` or the boss name to mint a boss NFT.
+- When a boss is killed: call `OQuake_OnBossKilled("Shub-Niggurath")` (or use `OQuake_OnMonsterKilled` with class name).
+- When any monster is killed: call `OQuake_OnMonsterKilled("monster_ogre")` (engine class name). Grants XP and optionally mints NFT (see star config / star mint monster).
 - `doors.qc`: if player lacks local key, call `OQuake_CheckDoorAccess(..., "silver_key")` or `"gold_key"`; if it returns 1, open the door.
 
 No changes needed there once the engine builtins are registered.

@@ -2,13 +2,14 @@
  * OQuake extension builtins
  *
  * Provides PF_ wrappers for OQuake STAR API so QuakeC can call
- * OQuake_OnKeyPickup, OQuake_CheckDoorAccess, OQuake_OnBossKilled.
+ * OQuake_OnKeyPickup, OQuake_CheckDoorAccess, OQuake_OnBossKilled, OQuake_OnMonsterKilled.
  * Add this file to the OQuake build and register these builtins in pr_ext.c's extension table.
  *
  * QuakeC (defs.qc):
  *   void(string keyname) OQuake_OnKeyPickup = #0:ex_OQuake_OnKeyPickup;
  *   float(string doorname, string requiredkey) OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess;
  *   void(string bossname) OQuake_OnBossKilled = #0:ex_OQuake_OnBossKilled;
+ *   void(string monster_classname) OQuake_OnMonsterKilled = #0:ex_OQuake_OnMonsterKilled;
  */
 
 #include "quakedef.h"
@@ -33,10 +34,18 @@ void PF_OQuake_CheckDoorAccess (void)
 	G_FLOAT (OFS_RETURN) = r;
 }
 
-/* OQuake builtin: void(string bossname) - report boss kill to STAR (mint boss NFT) */
+/* OQuake builtin: void(string bossname) - report boss kill to STAR (XP + optional mint + add to inventory) */
 void PF_OQuake_OnBossKilled (void)
 {
 	const char *bossname = G_STRING (OFS_PARM0);
 	if (bossname)
 		OQuake_STAR_OnBossKilled (bossname);
+}
+
+/* OQuake builtin: void(string monster_classname) - report monster kill (XP + optional mint + add to inventory). Use engine class name e.g. monster_ogre, monster_shambler. */
+void PF_OQuake_OnMonsterKilled (void)
+{
+	const char *monster = G_STRING (OFS_PARM0);
+	if (monster)
+		OQuake_STAR_OnMonsterKilled (monster);
 }
