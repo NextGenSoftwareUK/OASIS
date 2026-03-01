@@ -40,7 +40,8 @@ class OASISInventoryOverlayHandler : EventHandler
 	private String sendInputLine;  // name built from odoom_send_last_char (C++ sets one char per frame)
 
 	// Cached list for RenderOverlay (ui cannot call play-context; no array members in this ZScript build)
-	private int cachedStarCount;
+	private int cachedStarCount;       // number of rows in current window (from C++)
+	private int cachedStarTotalCount;  // total STAR item count (for scroll math; C++ sends window + total)
 	private String cachedStarListForTab;   // "name\tdesc\tgame\n" per STAR item in current tab
 	private int cachedLocalCount;
 	private String cachedLocalListForTab;  // "displayName\tamount\n" per actor item in current tab
@@ -73,6 +74,14 @@ class OASISInventoryOverlayHandler : EventHandler
 		CVar openVar = CVar.FindCVar("odoom_inventory_open");
 		if (openVar != null)
 			openVar.SetInt(popupOpen ? 1 : 0);
+		// Tell C++ which scroll offset and tab we want so it sends the right window of items (avoids CVar overflow)
+		if (popupOpen)
+		{
+			CVar scrollCv = CVar.FindCVar("odoom_star_inventory_scroll_offset");
+			if (scrollCv != null) scrollCv.SetInt(scrollOffset);
+			CVar tabCv = CVar.FindCVar("odoom_star_inventory_tab");
+			if (tabCv != null) tabCv.SetInt(activeTab);
+		}
 		// Tell C++ whether send popup is open every frame so it can capture name typing
 		CVar sendOpenVar = CVar.FindCVar("odoom_send_popup_open");
 		if (sendOpenVar != null)
@@ -166,10 +175,16 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<String> starNames, starDescs, starTypes, starGames;
 			array<int> starQuantities;
 			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames, starQuantities);
+			// Total count from C++ (so we can scroll through all items; list CVar only has current window)
+			cachedStarTotalCount = 0;
+			CVar countCv = CVar.FindCVar("odoom_star_inventory_count");
+			if (countCv != null) cachedStarTotalCount = countCv.GetInt();
+			if (cachedStarTotalCount < 0) cachedStarTotalCount = 0;
+
 			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
 
-			// Group STAR by short label (like OQuake): same label = one row, sum quantity; keep first raw name per group for send
+			// One row per item in the window (no grouping) so scroll/selection indices match full list
 			array<String> starGroupLabels;
 			array<int> starGroupCounts;
 			array<String> starGroupFirstNames;
@@ -177,17 +192,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			{
 				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
 				String label = StarItemShortLabel(starNames[i], starGames[i]);
-				int r = 0;
-				for (r = 0; r < starGroupLabels.Size(); r++)
-					if (starGroupLabels[r] == label) break;
-				if (r >= starGroupLabels.Size())
-				{
-					starGroupLabels.Push(label);
-					starGroupCounts.Push(qty);
-					starGroupFirstNames.Push(starNames[i]);
-				}
-				else
-					starGroupCounts[r] += qty;
+				starGroupLabels.Push(String.Format("%s x%d", label, qty));
+				starGroupCounts.Push(qty);
+				starGroupFirstNames.Push(starNames[i]);
 			}
 			int starGroupCount = starGroupLabels.Size();
 			if (starGroupCount > MAX_STAR_GROUPS_TO_CACHE) starGroupCount = MAX_STAR_GROUPS_TO_CACHE;
@@ -195,10 +202,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			cachedStarListForTab = "";
 			for (int i = 0; i < starGroupCount; i++)
 			{
-				// Always show QTY in list like OQuake (e.g. "Shells (OQUAKE) x50" or "Silver Key x1")
-				int qty = starGroupCounts[i] > 0 ? starGroupCounts[i] : 1;
-				String line = String.Format("%s x%d", starGroupLabels[i], qty);
-				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, line);
+				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, starGroupLabels[i]);
 			}
 
 			// Show only shared (STAR/ODOOM) inventory; do not show local Doom actor items to avoid duplicates.
@@ -210,16 +214,22 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<int> localGroupAmount;
 			array<int> localGroupRepIdx;
 
-			int listCount = starGroupCount + localGroupCount;
+			// listCount = total STAR items (so scroll covers all) + local
+			int listCount = cachedStarTotalCount + localGroupCount;
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
 			if (maxOffset < 0) maxOffset = 0;
 			if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
 			if (selectedAbsolute < 0) selectedAbsolute = 0;
+			// Keep selection inside current window so use/send can resolve starGroupFirstNames[selectedAbsolute - scrollOffset]
+			if (cachedStarTotalCount > 0 && selectedAbsolute < scrollOffset) selectedAbsolute = scrollOffset;
+			if (cachedStarTotalCount > 0 && starGroupCount > 0 && selectedAbsolute >= scrollOffset + starGroupCount)
+				selectedAbsolute = scrollOffset + starGroupCount - 1;
 			Inventory selectedItem = null;
 			int groupAmountForSend = 0;
-			if (selectedAbsolute >= starGroupCount && selectedAbsolute - starGroupCount < localGroupCount)
+			int starWindowIdx = (cachedStarTotalCount > 0) ? (selectedAbsolute - scrollOffset) : selectedAbsolute;
+			if (selectedAbsolute >= (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && selectedAbsolute - (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) < localGroupCount)
 			{
-				int gidx = selectedAbsolute - starGroupCount;
+				int gidx = selectedAbsolute - (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount);
 				selectedItem = tabItems[localGroupRepIdx[gidx]];
 				groupAmountForSend = localGroupAmount[gidx];
 			}
@@ -258,16 +268,16 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 
 			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup for STAR or local items
-			bool canSendStar = (selectedAbsolute < starGroupCount && starGroupCount > 0 && starGroupCounts[selectedAbsolute] > 0);
+			bool canSendStar = (selectedAbsolute < (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && starGroupCount > 0 && starWindowIdx >= 0 && starWindowIdx < starGroupCount && starGroupCounts[starWindowIdx] > 0);
 			bool canSendLocal = (selectedItem != null && (selectedItem.Amount > 0 || groupAmountForSend > 0));
 			if ((keyAPressed || keyZPressed) && (canSendStar || canSendLocal))
 			{
 				sendPopupMode = 1;
 				if (canSendStar)
 				{
-					sendMaxQty = starGroupCounts[selectedAbsolute];
-					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
-					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+					sendMaxQty = starGroupCounts[starWindowIdx];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[starWindowIdx]);
+					sendItemDisplayLabel = (starGroupCounts[starWindowIdx] > 1) ? String.Format("%s x%d", starGroupLabels[starWindowIdx], starGroupCounts[starWindowIdx]) : starGroupLabels[starWindowIdx];
 				}
 				else
 				{
@@ -290,9 +300,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				sendPopupMode = 2;
 				if (canSendStar)
 				{
-					sendMaxQty = starGroupCounts[selectedAbsolute];
-					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
-					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+					sendMaxQty = starGroupCounts[starWindowIdx];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[starWindowIdx]);
+					sendItemDisplayLabel = (starGroupCounts[starWindowIdx] > 1) ? String.Format("%s x%d", starGroupLabels[starWindowIdx], starGroupCounts[starWindowIdx]) : starGroupLabels[starWindowIdx];
 				}
 				else
 				{
@@ -579,9 +589,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		else
 		{
 		// Use cached list from WorldTick (ui cannot call play-context; cache is string-based)
-		int starCount = cachedStarCount;
+		int starCount = cachedStarCount;       // window size
+		int starTotal = cachedStarTotalCount;  // total for scroll math
 		int tabSize = cachedLocalCount;
-		int listCount = starCount + tabSize;
+		int listCount = (starTotal > 0) ? (starTotal + tabSize) : (starCount + tabSize);
 		int maxOffset = listCount - MAX_VISIBLE_ROWS;
 		if (maxOffset < 0) maxOffset = 0;
 		int drawOffset = scrollOffset;
@@ -632,14 +643,16 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			bool selected = (i == selectedRow);
 
-			if (idx < starCount && idx < starLines.Size())
+			// In windowed mode cache holds [scrollOffset..scrollOffset+N); row i = cache index i. Else full list = cache, row i = drawOffset+i.
+			int starLineIdx = (starTotal > 0) ? i : idx;
+			if (idx < (starTotal > 0 ? starTotal : starCount) && starLineIdx < starLines.Size())
 			{
-				String line = starLines[idx];
+				String line = starLines[starLineIdx];
 				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_RED, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else
 			{
-				int localIdx = idx - starCount;
+				int localIdx = idx - (starTotal > 0 ? starTotal : starCount);
 				if (localIdx >= 0 && localIdx < localLines.Size())
 				{
 					String line = localLines[localIdx];
