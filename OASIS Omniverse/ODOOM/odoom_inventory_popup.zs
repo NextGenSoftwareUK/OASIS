@@ -57,7 +57,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	const TAB_ARMOR = 4;
 	const TAB_ITEMS = 5;
 	const TAB_COUNT = 6;
-	const MAX_VISIBLE_ROWS = 7;
+	const MAX_VISIBLE_ROWS = 6;
 	// Cap STAR list size so we never overflow engine CVar or ZScript string buffers ("attempted to write past end of stream").
 	const MAX_STAR_ITEMS_TO_PARSE = 32;
 	const MAX_STAR_GROUPS_TO_CACHE = 32;
@@ -708,7 +708,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			y += 16;
 		}
 
-		screen.DrawText(f, Font.CR_DARKGRAY, -16, 182, "PgUp/PgDn=Page Home=Top End=Bottom", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		String keyLine2 = "PgUp/PgDn=Page Home=Top End=Bottom";
+		int keyLine2X = 160 - (f.StringWidth(keyLine2) / 2);
+		screen.DrawText(f, Font.CR_DARKGRAY, keyLine2X, 156, keyLine2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
 		// Send popup overlay (OQuake-style): show Sending... / Item sent. / Send failed like Quake
