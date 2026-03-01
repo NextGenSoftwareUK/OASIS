@@ -197,14 +197,14 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
 
 ### Concept
 
-1. **Boss Collection:**
+1. **Monster/Boss Collection:**
    ```c
-   // Player defeats boss in Doom
-   star_api_create_boss_nft(
+   // Player defeats monster/boss in Doom
+   star_api_create_monster_nft(
        "cyberdemon",
        "Cyberdemon from Doom",
-       boss_stats,
-       boss_model_data
+       monster_stats,
+       monster_model_data
    );
    ```
 

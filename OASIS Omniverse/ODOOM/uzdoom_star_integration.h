@@ -59,6 +59,13 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote);
  */
 int UZDoom_STAR_PlayerHasKey(int keynum);
 
+/**
+ * Diagnostic: log when EV_DoDoor is about to check keys (lock != 0).
+ * Call from a_doors.cpp EV_DoDoor() when OASIS_STAR_API is defined, before P_CheckKeys.
+ * Used to verify the door path is reached when pressing E on a locked door.
+ */
+void ODOOM_STAR_LogEvDoDoorLock(int lock);
+
 /** Call every frame from status bar (when OASIS_STAR_API): polls async auth/inventory and when inventory open, clear key bindings (OQuake-style). */
 void ODOOM_InventoryInputCaptureFrame(void);
 

@@ -55,7 +55,7 @@ public class StarApiClientUnitTests
         var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var activeQuests = await client.GetActiveQuestsAsync();
         var queueGetQuests = await client.QueueGetActiveQuestsAsync();
-        var createBossNft = await client.CreateBossNftAsync("boss", "desc", "game", "{}");
+        var createMonsterNft = await client.CreateMonsterNftAsync("boss", "desc", "game", "{}");
         var deployBossNft = await client.DeployBossNftAsync("nft", "game");
         var nftCollection = await client.GetNftCollectionAsync();
         var setApiKey = client.SetApiKey("key", "avatar");

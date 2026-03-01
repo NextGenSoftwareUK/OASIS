@@ -548,26 +548,26 @@ star_api_result_t star_api_complete_quest(const char* quest_id) {
     return STAR_API_SUCCESS;
 }
 
-star_api_result_t star_api_create_boss_nft(
-    const char* boss_name,
+star_api_result_t star_api_create_monster_nft(
+    const char* monster_name,
     const char* description,
     const char* game_source,
-    const char* boss_stats,
+    const char* monster_stats,
     const char* provider,
     char* nft_id_out
 ) {
-    if (!g_state.initialized || !boss_name || !nft_id_out) {
+    if (!g_state.initialized || !monster_name || !nft_id_out) {
         set_error("Not initialized or invalid parameter");
         return STAR_API_ERROR_INVALID_PARAM;
     }
     
     std::string json = "{";
-    json += "\"Name\":\"" + std::string(boss_name) + "\",";
-    json += "\"Description\":\"" + std::string(description ? description : "Boss from game") + "\",";
+    json += "\"Name\":\"" + std::string(monster_name) + "\",";
+    json += "\"Description\":\"" + std::string(description ? description : "Monster from game") + "\",";
     json += "\"Type\":\"Boss\",";
     json += "\"MetaData\":{";
     json += "\"GameSource\":\"" + std::string(game_source ? game_source : "Unknown") + "\",";
-    json += "\"BossStats\":" + std::string(boss_stats ? boss_stats : "{}") + ",";
+    json += "\"BossStats\":" + std::string(monster_stats ? monster_stats : "{}") + ",";
     json += "\"DefeatedAt\":\"" + std::string(__DATE__) + "\",";
     json += "\"Deployable\":true";
     json += "}";

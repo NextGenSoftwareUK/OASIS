@@ -857,6 +857,13 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
+    /// <summary>Refresh avatar profile (including XP) from API. Call after beam-in so HUD shows correct XP immediately. Non-blocking (queued).</summary>
+    public void RefreshAvatarXp()
+    {
+        if (!IsInitialized()) return;
+        _ = QueueGetCurrentAvatarAsync();
+    }
+
     /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
     public bool ConsumeLastMintResult(out string? itemName, out string? nftId, out string? hash)
     {
@@ -902,6 +909,7 @@ public sealed class StarApiClient : IDisposable
     {
         if (string.IsNullOrWhiteSpace(engineName) || string.IsNullOrWhiteSpace(displayName))
             return;
+        StartAddItemWorker();
         _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xp < 0 ? 0 : xp, isBoss, doMint, provider ?? "SolanaOASIS"));
         _addItemSignal.Release();
     }
@@ -1401,30 +1409,30 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
 
-    /// <summary>Mint an NFT for a boss kill via WEB4 OASIS API. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
-    public async Task<OASISResult<string>> CreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, string? provider = null, CancellationToken cancellationToken = default)
+    /// <summary>Mint an NFT for a monster kill (any monster, including bosses) via WEB4 OASIS API. Returns NFT ID and optional tx hash. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
+    public async Task<OASISResult<(string NftId, string? Hash)>> CreateMonsterNftAsync(string monsterName, string? description, string? gameSource, string? monsterStatsJson, string? provider = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
-            return FailAndCallback<string>("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return FailAndCallback<(string NftId, string? Hash)>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         string oasisUrl;
         lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
         if (string.IsNullOrWhiteSpace(oasisUrl))
-            return FailAndCallback<string>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
+            return FailAndCallback<(string NftId, string? Hash)>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
 
-        if (string.IsNullOrWhiteSpace(bossName))
-            return FailAndCallback<string>("Boss name is required.", StarApiResultCode.InvalidParam);
+        if (string.IsNullOrWhiteSpace(monsterName))
+            return FailAndCallback<(string NftId, string? Hash)>("Monster name is required.", StarApiResultCode.InvalidParam);
 
-        JsonElement bossStatsElement;
+        JsonElement monsterStatsElement;
         try
         {
-            var statsJson = string.IsNullOrWhiteSpace(bossStatsJson) ? "{}" : bossStatsJson;
+            var statsJson = string.IsNullOrWhiteSpace(monsterStatsJson) ? "{}" : monsterStatsJson;
             using var statsDoc = JsonDocument.Parse(statsJson);
-            bossStatsElement = statsDoc.RootElement.Clone();
+            monsterStatsElement = statsDoc.RootElement.Clone();
         }
         catch (Exception ex)
         {
-            return FailAndCallback<string>($"bossStatsJson is not valid JSON: {ex.Message}", StarApiResultCode.InvalidParam, ex);
+            return FailAndCallback<(string NftId, string? Hash)>($"monsterStatsJson is not valid JSON: {ex.Message}", StarApiResultCode.InvalidParam, ex);
         }
 
         string? sendToAvatarAfterMintingId = null;
@@ -1440,8 +1448,8 @@ public sealed class StarApiClient : IDisposable
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
-            writer.WriteString("title", bossName);
-            writer.WriteString("description", string.IsNullOrWhiteSpace(description) ? "Boss from game" : description);
+            writer.WriteString("title", monsterName);
+            writer.WriteString("description", string.IsNullOrWhiteSpace(description) ? "Monster from game" : description);
             writer.WriteString("symbol", "BOSS");
             writer.WriteString("image", "AQ==");
             writer.WriteString("imageUrl", "https://oasisweb4.one/images/star/default-boss.png");
@@ -1461,7 +1469,7 @@ public sealed class StarApiClient : IDisposable
             writer.WriteStartObject();
             writer.WriteString("GameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
             writer.WritePropertyName("BossStats");
-            bossStatsElement.WriteTo(writer);
+            monsterStatsElement.WriteTo(writer);
             writer.WriteString("DefeatedAt", DateTime.UtcNow.ToString("O"));
             writer.WriteBoolean("Deployable", true);
             writer.WriteEndObject();
@@ -1480,10 +1488,10 @@ public sealed class StarApiClient : IDisposable
             if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
             {
                 InvokeCallback(StarApiResultCode.Success);
-                return Success(warningMintId!, StarApiResultCode.Success, $"Boss NFT created with warnings: {response.Message}");
+                return Success((warningMintId!, (string?)null), StarApiResultCode.Success, $"Boss NFT created with warnings: {response.Message}");
             }
 
-            return FailAndCallback<string>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            return FailAndCallback<(string NftId, string? Hash)>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
@@ -1492,23 +1500,24 @@ public sealed class StarApiClient : IDisposable
             if (TryExtractTopLevelResultId(response.Result, out var warningMintId))
             {
                 InvokeCallback(StarApiResultCode.Success);
-                return Success(warningMintId!, StarApiResultCode.Success, $"Boss NFT created with warnings: {parseErrorMessage}");
+                return Success((warningMintId!, (string?)null), StarApiResultCode.Success, $"Boss NFT created with warnings: {parseErrorMessage}");
             }
 
-            return FailAndCallback<string>(parseErrorMessage, parseErrorCode);
+            return FailAndCallback<(string NftId, string? Hash)>(parseErrorMessage, parseErrorCode);
         }
 
         var nftId = ParseIdAsString(resultElement);
         if (string.IsNullOrWhiteSpace(nftId))
-            return FailAndCallback<string>("API did not return an NFT ID.", StarApiResultCode.ApiError);
+            return FailAndCallback<(string NftId, string? Hash)>("API did not return an NFT ID.", StarApiResultCode.ApiError);
 
+        var hash = GetMintResponseHash(resultElement, response.Result);
         InvokeCallback(StarApiResultCode.Success);
-        return Success(nftId, StarApiResultCode.Success, "Boss NFT created successfully.");
+        return Success((nftId, string.IsNullOrWhiteSpace(hash) ? null : hash), StarApiResultCode.Success, "Monster NFT created successfully.");
     }
 
-    /// <summary>Run create-boss-NFT on the background worker so the calling thread does not block.</summary>
-    public Task<OASISResult<string>> QueueCreateBossNftAsync(string bossName, string? description, string? gameSource, string? bossStatsJson, string? provider = null, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => CreateBossNftAsync(bossName, description, gameSource, bossStatsJson, provider, ct), cancellationToken);
+    /// <summary>Run create-monster-NFT on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<(string NftId, string? Hash)>> QueueCreateMonsterNftAsync(string monsterName, string? description, string? gameSource, string? monsterStatsJson, string? provider = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => CreateMonsterNftAsync(monsterName, description, gameSource, monsterStatsJson, provider, ct), cancellationToken);
 
     /// <summary>Mint an NFT for an inventory item (creates NFTHolon on WEB4). Returns NFT ID and optional hash (tx/signature). Default provider: SolanaOASIS. Same as nft_provider in oasisstar.json. sendToAddressAfterMinting: optional wallet address to send the minted NFT to (from oasisstar.json SendToAddressAfterMinting).</summary>
     public async Task<OASISResult<(string NftId, string? Hash)>> MintInventoryItemNftAsync(string itemName, string? description, string gameSource, string itemType = "KeyItem", string? provider = null, string? sendToAddressAfterMinting = null, CancellationToken cancellationToken = default)
@@ -2635,7 +2644,7 @@ public sealed class StarApiClient : IDisposable
                     StarApiExports.SetLastBackgroundError($"STAR: Add XP failed: {addXpResult.Message}");
             }
 
-            /* Process monster kill jobs: add XP (next flush) and optionally mint + add item. All non-blocking. */
+            /* Process monster kill jobs: add XP and optionally mint + add item. Flush XP immediately after so it shows up as soon as you kill. */
             while (_pendingMonsterKill.TryDequeue(out var monsterJob))
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -2644,25 +2653,43 @@ public sealed class StarApiClient : IDisposable
                 if (!monsterJob.DoMint)
                     continue;
                 var desc = $"Monster defeated in ODOOM: {monsterJob.DisplayName}";
-                var mintResult = await CreateBossNftAsync(monsterJob.EngineName, desc, "ODOOM", "{}", monsterJob.Provider, cancellationToken).ConfigureAwait(false);
-                if (mintResult.IsError || string.IsNullOrWhiteSpace(mintResult.Result))
+                var mintResult = await CreateMonsterNftAsync(monsterJob.EngineName, desc, "ODOOM", "{}", monsterJob.Provider, cancellationToken).ConfigureAwait(false);
+                if (mintResult.IsError || string.IsNullOrWhiteSpace(mintResult.Result.NftId))
                 {
                     StarApiExports.SetLastBackgroundError($"STAR: Monster NFT mint failed for '{monsterJob.DisplayName}': {mintResult.Message}");
                     continue;
                 }
-                var prefix = monsterJob.IsBoss ? "[BOSSNFT] " : "[NFT] ";
-                var displayNameWithPrefix = prefix + monsterJob.DisplayName;
+                /* Store item name without [NFT] prefix (popup adds it). Add [BOSS] for boss monsters only. */
+                var itemName = monsterJob.IsBoss ? "[BOSS] " + monsterJob.DisplayName : monsterJob.DisplayName;
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
-                    var addResult = await AddItemCoreAsync(displayNameWithPrefix, desc, "ODOOM", "Monster", mintResult.Result, 1, true, cancellationToken).ConfigureAwait(false);
+                    var addResult = await AddItemCoreAsync(itemName, desc, "ODOOM", "Monster", mintResult.Result.NftId, 1, true, cancellationToken).ConfigureAwait(false);
                     if (addResult.IsError)
-                        StarApiExports.SetLastBackgroundError($"STAR: Add monster item failed for '{displayNameWithPrefix}': {addResult.Message}");
+                        StarApiExports.SetLastBackgroundError($"STAR: Add monster item failed for '{itemName}': {addResult.Message}");
+                    else
+                    {
+                        lock (_lastMintLock)
+                        {
+                            _lastMintItemName = itemName;
+                            _lastMintNftId = mintResult.Result.NftId;
+                            _lastMintHash = mintResult.Result.Hash;
+                        }
+                    }
                 }
                 finally
                 {
                     Interlocked.Decrement(ref _activeAddItemJobs);
                 }
+            }
+
+            /* Flush XP from monster kills (and any other pending) so HUD updates as soon as you kill, not on next worker wake. */
+            var monsterXp = Interlocked.Exchange(ref _pendingXp, 0);
+            if (monsterXp > 0)
+            {
+                var addXpResult = await AddXpAsync(monsterXp, cancellationToken).ConfigureAwait(false);
+                if (addXpResult.IsError)
+                    StarApiExports.SetLastBackgroundError($"STAR: Add XP failed: {addXpResult.Message}");
             }
 
             // Process pickup-with-mint jobs first (mint then add_item; all in C# background).
@@ -3542,6 +3569,14 @@ public static unsafe class StarApiExports
         return 1;
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRefreshAvatarXp()
+    {
+        var client = GetClient();
+        if (client is null) return;
+        client.RefreshAvatarXp();
+    }
+
     /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_pickup_with_mint", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiQueuePickupWithMint(sbyte* itemName, sbyte* description, sbyte* gameSource, sbyte* itemType, int doMint, sbyte* provider, sbyte* sendToAddressAfterMinting, int quantity)
@@ -3680,8 +3715,8 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result);
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_create_boss_nft", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiCreateBossNft(sbyte* bossName, sbyte* description, sbyte* gameSource, sbyte* bossStats, sbyte* provider, sbyte* nftIdOut)
+    [UnmanagedCallersOnly(EntryPoint = "star_api_create_monster_nft", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiCreateMonsterNft(sbyte* monsterName, sbyte* description, sbyte* gameSource, sbyte* monsterStats, sbyte* provider, sbyte* nftIdOut)
     {
         if (nftIdOut is null)
             return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
@@ -3690,16 +3725,16 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var result = client.CreateBossNftAsync(
-            PtrToString(bossName) ?? string.Empty,
+        var result = client.CreateMonsterNftAsync(
+            PtrToString(monsterName) ?? string.Empty,
             PtrToString(description),
             PtrToString(gameSource),
-            PtrToString(bossStats),
+            PtrToString(monsterStats),
             PtrToString(provider)).GetAwaiter().GetResult();
 
         var code = FinalizeResult(result);
-        if (code == StarApiResultCode.Success && !string.IsNullOrWhiteSpace(result.Result))
-            WriteUtf8ToOutput(result.Result!, nftIdOut, 64);
+        if (code == StarApiResultCode.Success && !string.IsNullOrWhiteSpace(result.Result.NftId))
+            WriteUtf8ToOutput(result.Result.NftId, nftIdOut, 64);
         else
             WriteUtf8ToOutput(string.Empty, nftIdOut, 64);
 
