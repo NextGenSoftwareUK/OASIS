@@ -52,6 +52,8 @@ public sealed class StarAvatarProfile
     public string Email { get; init; } = string.Empty;
     public string FirstName { get; init; } = string.Empty;
     public string LastName { get; init; } = string.Empty;
+    /// <summary>Experience points (from avatar detail). Updated by get-current-avatar and add-xp responses.</summary>
+    public int XP { get; init; }
 }
 
 public sealed class StarQuestObjective
@@ -111,6 +113,7 @@ public sealed class StarApiClient : IDisposable
     private object? _callbackUserData;
     private readonly ConcurrentQueue<PendingAddItemJob> _pendingAddItemJobs = new();
     private readonly ConcurrentQueue<PendingPickupWithMintJob> _pendingPickupWithMint = new();
+    private readonly ConcurrentQueue<PendingMonsterKillJob> _pendingMonsterKill = new();
     private readonly ConcurrentQueue<PendingUseItemJob> _pendingUseItemJobs = new();
     private readonly ConcurrentQueue<PendingQuestObjectiveJob> _pendingQuestObjectiveJobs = new();
     private readonly SemaphoreSlim _addItemSignal = new(0);
@@ -124,6 +127,10 @@ public sealed class StarApiClient : IDisposable
     private string? _lastMintHash;
     private int _activeUseItemJobs;
     private int _activeQuestObjectiveJobs;
+    /// <summary>Last known avatar XP (from get-current-avatar or add-xp response). Used by star_api_get_avatar_xp.</summary>
+    private int _cachedAvatarXp;
+    /// <summary>Pending XP to add (queued by star_api_queue_add_xp). Flushed with add-item worker.</summary>
+    private int _pendingXp;
     private CancellationTokenSource? _jobCts;
     private Task? _jobWorker;
     private CancellationTokenSource? _useItemJobCts;
@@ -446,7 +453,10 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
 
         lock (_stateLock)
+        {
             _avatarId = avatar.Id.ToString();
+            _cachedAvatarXp = avatar.XP;
+        }
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
@@ -786,6 +796,67 @@ public sealed class StarApiClient : IDisposable
         _addItemSignal.Release();
     }
 
+    /// <summary>Queue XP to add to the beamed-in avatar (e.g. on monster kill). Flushed with add-item worker. Amount must be positive.</summary>
+    public void EnqueueAddXpJobOnly(int amount)
+    {
+        if (!IsInitialized() || amount <= 0) return;
+        Interlocked.Add(ref _pendingXp, amount);
+        _addItemSignal.Release();
+    }
+
+    /// <summary>Send pending XP to the API (POST add-xp). Returns new total on success. Used by background worker and flush.</summary>
+    public async Task<OASISResult<int>> AddXpAsync(int amount, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<int>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (amount <= 0)
+            return FailAndCallback<int>("XP amount must be positive.", StarApiResultCode.InvalidParam);
+        string? avatarId;
+        lock (_stateLock)
+            avatarId = _avatarId;
+        if (string.IsNullOrWhiteSpace(avatarId))
+            return FailAndCallback<int>("Avatar ID not set. Beam in first.", StarApiResultCode.NotInitialized);
+
+        var url = $"{_baseApiUrl}/api/avatar/add-xp";
+        try
+        {
+            var payload = BuildJson(writer =>
+            {
+                writer.WriteStartObject();
+                writer.WriteNumber("amount", amount);
+                writer.WriteEndObject();
+            });
+            var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
+            if (response.IsError)
+                return FailAndCallback<int>(response.Message ?? "Add XP failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+            var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+            if (!parseResult)
+                return FailAndCallback<int>(parseErrorMessage, parseErrorCode);
+
+            var newTotal = GetIntProperty(resultElement, "newTotal") ?? GetIntProperty(resultElement, "NewTotal")
+                ?? GetIntProperty(resultElement, "xp") ?? GetIntProperty(resultElement, "XP");
+            if (newTotal.HasValue && newTotal.Value >= 0)
+            {
+                Volatile.Write(ref _cachedAvatarXp, newTotal.Value);
+                InvokeCallback(StarApiResultCode.Success);
+                return Success(newTotal.Value, StarApiResultCode.Success, "XP added.");
+            }
+            /* No newTotal in response: assume current + amount */
+            var updated = Volatile.Read(ref _cachedAvatarXp) + amount;
+            Volatile.Write(ref _cachedAvatarXp, updated);
+            InvokeCallback(StarApiResultCode.Success);
+            return Success(updated, StarApiResultCode.Success, "XP added.");
+        }
+        catch (Exception ex)
+        {
+            return FailAndCallback<int>($"Add XP failed: {ex.Message}", StarApiResultCode.Network, ex);
+        }
+    }
+
+    /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
+    public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
+
     /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
     public bool ConsumeLastMintResult(out string? itemName, out string? nftId, out string? hash)
     {
@@ -823,6 +894,15 @@ public sealed class StarApiClient : IDisposable
             else
                 _localPending[itemName] = new LocalPendingEntry { Name = itemName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
         }
+        _addItemSignal.Release();
+    }
+
+    /// <summary>Queue a monster kill (XP + optional mint + add to inventory). All work runs on the add-item background worker; never blocks.</summary>
+    public void EnqueueMonsterKillJobOnly(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider)
+    {
+        if (string.IsNullOrWhiteSpace(engineName) || string.IsNullOrWhiteSpace(displayName))
+            return;
+        _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xp < 0 ? 0 : xp, isBoss, doMint, provider ?? "SolanaOASIS"));
         _addItemSignal.Release();
     }
 
@@ -2168,6 +2248,16 @@ public sealed class StarApiClient : IDisposable
         return bool.TryParse(text, out var value) && value;
     }
 
+    private static int? GetIntProperty(JsonElement element, string name)
+    {
+        if (!TryGetProperty(element, name, out var prop))
+            return null;
+        if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt32(out var n))
+            return n;
+        var text = GetStringProperty(element, name);
+        return int.TryParse(text, out var parsed) ? parsed : null;
+    }
+
     /// <summary>Try common WEB4/OASIS mint response property names for tx hash. Also checks Result.Web3NFTs[0].MintTransactionHash (WEB4 mint returns hash on the Web3NFT).</summary>
     private static string? GetMintResponseHash(JsonElement resultElement, string? rawResponseBody)
     {
@@ -2536,6 +2626,45 @@ public sealed class StarApiClient : IDisposable
                 break;
             }
 
+            /* Flush pending XP (queued by star_api_queue_add_xp or monster kill jobs). */
+            var pendingXp = Interlocked.Exchange(ref _pendingXp, 0);
+            if (pendingXp > 0)
+            {
+                var addXpResult = await AddXpAsync(pendingXp, cancellationToken).ConfigureAwait(false);
+                if (addXpResult.IsError)
+                    StarApiExports.SetLastBackgroundError($"STAR: Add XP failed: {addXpResult.Message}");
+            }
+
+            /* Process monster kill jobs: add XP (next flush) and optionally mint + add item. All non-blocking. */
+            while (_pendingMonsterKill.TryDequeue(out var monsterJob))
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+                Interlocked.Add(ref _pendingXp, monsterJob.Xp);
+                if (!monsterJob.DoMint)
+                    continue;
+                var desc = $"Monster defeated in ODOOM: {monsterJob.DisplayName}";
+                var mintResult = await CreateBossNftAsync(monsterJob.EngineName, desc, "ODOOM", "{}", monsterJob.Provider, cancellationToken).ConfigureAwait(false);
+                if (mintResult.IsError || string.IsNullOrWhiteSpace(mintResult.Result))
+                {
+                    StarApiExports.SetLastBackgroundError($"STAR: Monster NFT mint failed for '{monsterJob.DisplayName}': {mintResult.Message}");
+                    continue;
+                }
+                var prefix = monsterJob.IsBoss ? "[BOSSNFT] " : "[NFT] ";
+                var displayNameWithPrefix = prefix + monsterJob.DisplayName;
+                Interlocked.Increment(ref _activeAddItemJobs);
+                try
+                {
+                    var addResult = await AddItemCoreAsync(displayNameWithPrefix, desc, "ODOOM", "Monster", mintResult.Result, 1, true, cancellationToken).ConfigureAwait(false);
+                    if (addResult.IsError)
+                        StarApiExports.SetLastBackgroundError($"STAR: Add monster item failed for '{displayNameWithPrefix}': {addResult.Message}");
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _activeAddItemJobs);
+                }
+            }
+
             // Process pickup-with-mint jobs first (mint then add_item; all in C# background).
             while (_pendingPickupWithMint.TryDequeue(out var pickupJob))
             {
@@ -2777,13 +2906,17 @@ public sealed class StarApiClient : IDisposable
             return null;
 
         Guid.TryParse(GetStringProperty(element, "Id"), out var id);
+        var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp");
+        if (xp is null && TryGetProperty(element, "AvatarDetail", out var detailEl))
+            xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
         return new StarAvatarProfile
         {
             Id = id,
             Username = GetStringProperty(element, "Username") ?? string.Empty,
             Email = GetStringProperty(element, "Email") ?? string.Empty,
             FirstName = GetStringProperty(element, "FirstName") ?? string.Empty,
-            LastName = GetStringProperty(element, "LastName") ?? string.Empty
+            LastName = GetStringProperty(element, "LastName") ?? string.Empty,
+            XP = xp ?? 0
         };
     }
 
@@ -3033,6 +3166,26 @@ public sealed class StarApiClient : IDisposable
         public string? Provider { get; }
         public string? SendToAddressAfterMinting { get; }
         public int Quantity { get; }
+    }
+
+    private sealed class PendingMonsterKillJob
+    {
+        public PendingMonsterKillJob(string engineName, string displayName, int xp, bool isBoss, bool doMint, string? provider)
+        {
+            EngineName = engineName;
+            DisplayName = displayName;
+            Xp = xp;
+            IsBoss = isBoss;
+            DoMint = doMint;
+            Provider = provider ?? "SolanaOASIS";
+        }
+
+        public string EngineName { get; }
+        public string DisplayName { get; }
+        public int Xp { get; }
+        public bool IsBoss { get; }
+        public bool DoMint { get; }
+        public string Provider { get; }
     }
 
     private sealed class PendingAddItemJob
@@ -3355,6 +3508,38 @@ public static unsafe class StarApiExports
             string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr,
             qty,
             doStack);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_xp", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueAddXp(int amount)
+    {
+        var client = GetClient();
+        if (client is null || amount <= 0) return;
+        client.EnqueueAddXpJobOnly(amount);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_monster_kill", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueMonsterKill(sbyte* engineName, sbyte* displayName, int xp, int isBoss, int doMint, sbyte* provider)
+    {
+        var client = GetClient();
+        if (client is null) return;
+        client.EnqueueMonsterKillJobOnly(
+            PtrToString(engineName) ?? string.Empty,
+            PtrToString(displayName) ?? string.Empty,
+            xp,
+            isBoss != 0,
+            doMint != 0,
+            PtrToString(provider));
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetAvatarXp(int* xpOut)
+    {
+        var client = GetClient();
+        if (client is null) return 0;
+        if (xpOut is not null)
+            *xpOut = client.GetCachedAvatarXp();
+        return 1;
     }
 
     /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
