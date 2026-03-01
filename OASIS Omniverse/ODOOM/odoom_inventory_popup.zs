@@ -53,6 +53,9 @@ class OASISInventoryOverlayHandler : EventHandler
 	const TAB_ITEMS = 5;
 	const TAB_COUNT = 6;
 	const MAX_VISIBLE_ROWS = 7;
+	// Cap STAR list size so we never overflow engine CVar or ZScript string buffers ("attempted to write past end of stream").
+	const MAX_STAR_ITEMS_TO_PARSE = 32;
+	const MAX_STAR_GROUPS_TO_CACHE = 32;
 
 	override void OnRegister()
 	{
@@ -187,6 +190,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					starGroupCounts[r] += qty;
 			}
 			int starGroupCount = starGroupLabels.Size();
+			if (starGroupCount > MAX_STAR_GROUPS_TO_CACHE) starGroupCount = MAX_STAR_GROUPS_TO_CACHE;
 			cachedStarCount = starGroupCount;
 			cachedStarListForTab = "";
 			for (int i = 0; i < starGroupCount; i++)
@@ -511,7 +515,9 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (listStr.Length() == 0) return 0;
 		array<String> lines;
 		listStr.Split(lines, "\n", false);
-		for (int i = 0; i < lines.Size(); i++)
+		int maxLines = lines.Size();
+		if (maxLines > MAX_STAR_ITEMS_TO_PARSE) maxLines = MAX_STAR_ITEMS_TO_PARSE;
+		for (int i = 0; i < maxLines; i++)
 		{
 			array<String> parts;
 			lines[i].Split(parts, "\t", false);

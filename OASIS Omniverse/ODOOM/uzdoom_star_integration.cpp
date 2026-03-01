@@ -377,10 +377,14 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #endif
 }
 
+/** Max bytes to pass to the inventory list CVar. Engine string CVars can have a small fixed buffer; exceeding it causes "attempted to write past end of stream". Use 1K to stay under typical limits. */
+static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
+
 /** Push inventory list to CVars for ZScript overlay. list may be null (clears overlay). Caller keeps ownership.
- * Items with nft_id set get "[NFT] " prefix in the name so overlay shows [NFT] and groups by "[NFT] Name" vs "Name". */
+ * Items with nft_id set get "[NFT] " prefix in the name so overlay shows [NFT] and groups by "[NFT] Name" vs "Name".
+ * List is capped so we never exceed ODOOM_INVENTORY_CVAR_MAX_BYTES; ZScript overlay already has scroll (MAX_VISIBLE_ROWS) so extra items are reachable by scrolling. */
 static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
-	static char listBuf[24576];
+	static char listBuf[ODOOM_INVENTORY_CVAR_MAX_BYTES];
 	FBaseCVar* countVar = FindCVar("odoom_star_inventory_count", nullptr);
 	FBaseCVar* listVar = FindCVar("odoom_star_inventory_list", nullptr);
 	if (!countVar || !listVar) return;
@@ -394,8 +398,11 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 	}
 
 	size_t n = list->count;
-	if (n > 64) n = 64;
 	size_t off = 0;
+	size_t maxOff = sizeof(listBuf) - 320;  /* leave room for one full line so we never write past listBuf */
+	if (maxOff > ODOOM_INVENTORY_CVAR_MAX_BYTES - 1)
+		maxOff = ODOOM_INVENTORY_CVAR_MAX_BYTES - 1;
+	size_t itemsWritten = 0;
 	auto copySafe = [](char* dst, const char* src, int maxLen) {
 		int j = 0;
 		while (src[j] && j < maxLen - 1) {
@@ -405,7 +412,7 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		}
 		dst[j] = '\0';
 	};
-	for (size_t i = 0; i < n && off < sizeof(listBuf) - 320; i++) {
+	for (size_t i = 0; i < n && off < maxOff; i++) {
 		const star_item_t* it = &list->items[i];
 		char name[320], desc[256], type[64], game[64];
 		bool isNft = (it->nft_id[0] != '\0');
@@ -420,11 +427,14 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 		copySafe(game, it->game_source, 64);
 		int qty = (it->quantity > 0) ? it->quantity : 1;
 		int wr = snprintf(listBuf + off, (size_t)(sizeof(listBuf) - off), "%s\t%s\t%s\t%s\t%d\n", name, desc, type, game, qty);
-		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off) off += (size_t)wr;
-		else break;
+		if (wr > 0 && (size_t)wr < sizeof(listBuf) - off) {
+			off += (size_t)wr;
+			itemsWritten++;
+		} else
+			break;
 	}
 	listBuf[off] = '\0';
-	UCVarValue u; u.Int = (int)n;
+	UCVarValue u; u.Int = (int)itemsWritten;
 	countVar->SetGenericRep(u, CVAR_Int);
 	UCVarValue v; v.String = listBuf;
 	listVar->SetGenericRep(v, CVAR_String);
