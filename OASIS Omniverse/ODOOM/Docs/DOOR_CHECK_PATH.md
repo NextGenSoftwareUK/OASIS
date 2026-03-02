@@ -22,10 +22,9 @@ This doc describes **exactly** where the engine checks keys for locked doors and
    So for a **red door**, `lock == 1` and `P_CheckKeys(thing, 1, ...)` is called here.
 
 5. **Inside P_CheckKeys** (`a_keys.cpp`)  
-   - If the player already has the key in **engine** inventory, `lock->check(owner)` is true and the function returns true (door opens).  
-   - Otherwise we hit the **STAR** block (when `OASIS_STAR_API` is defined):
-     - If `quiet` → `UZDoom_STAR_PlayerHasKey(keynum)` (HUD probe).
-     - If **!quiet** (player pressed E) → **`UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)`** (door open + optional key consume).
+   The **STAR** block (when `OASIS_STAR_API` is defined) runs first when **!quiet** (player pressed E), so you always get a log and STAR can open the door; then the engine key is checked. When **quiet** (HUD probe), engine key then `UZDoom_STAR_PlayerHasKey`:
+   - If **!quiet** (player pressed E) → **`UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)`** first (logs and can open via STAR), then `lock->check(owner)`.
+   - If **quiet** → `lock->check(owner)` then `UZDoom_STAR_PlayerHasKey(keynum)` (HUD/key icon).
 
 So the **correct path** for “E on red door” is:  
 **P_ActivateLine → P_ExecuteSpecial → EV_DoDoor → P_CheckKeys → UZDoom_STAR_CheckDoorAccess**.
@@ -48,9 +47,7 @@ After a **full clean build** (patch applied, then build):
    - Run **`.\Scripts\verify_a_keys_patch.ps1 -UZDOOM_SRC "C:\Source\UZDoom"`** (or your UZDoom path) to confirm `a_keys.cpp` contains the STAR block.
 
 4. **If you see EV_DoDoor log but not door v2**
-   - The door path is correct, but either:
-     - `a_keys.cpp` was not patched or not recompiled (no STAR block), or  
-     - The engine thinks the player **has** the key (`lock->check(owner)` true), so it returns before the STAR block (e.g. you already picked up the red key in that map).
+   - The door path is correct, but `a_keys.cpp` was not patched or not recompiled (no STAR block), or the build is using an old patch order. Re-run **BUILD ODOOM.bat** (patch applies the “STAR first when !quiet” order so E on door always hits CheckDoorAccess), then do a **full rebuild** so `a_keys.cpp` is recompiled.
 
 5. **If you see both logs but the door still doesn’t open**
    - STAR is being asked; the remaining issue is STAR logic (e.g. key name matching, auth, or consume). Check `g_star_debug_logging` and API/backend.
