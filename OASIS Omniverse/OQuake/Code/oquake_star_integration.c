@@ -645,7 +645,6 @@ static void OQ_OnAuthDone(void* user_data) {
             Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
         OQ_ApplyBeamFacePreference();
-        /* Refresh XP via same add-xp path as monster kill (async; cache updates when response returns). */
         star_api_refresh_avatar_xp();
         g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
@@ -2093,6 +2092,20 @@ void OQuake_STAR_PollItems(void) {
         if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
             Con_Printf("%s\n", err_buf);
     }
+    /* Show STAR log messages in console only when star debug is on (XP refresh, monster kill, etc.). */
+    {
+        char log_buf[512] = {0};
+        if (g_star_debug_logging) {
+            int i;
+            for (i = 0; i < 5; i++) {
+                if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
+                    break;
+                Con_Printf("[STAR] %s\n", log_buf);
+            }
+        } else {
+            while (star_api_consume_console_log(log_buf, sizeof(log_buf))) {}
+        }
+    }
 
     /* Re-apply oasisstar.json after a short delay so mint/stack from JSON override any config.cfg load. */
     if (g_oq_reapply_json_frames == 0) {
@@ -2513,7 +2526,7 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            star_api_refresh_avatar_xp();  /* Same add-xp(0) path as monster kill (async). */
+            star_api_refresh_avatar_xp();
             g_star_beamed_in = 1;
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
