@@ -64,6 +64,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 static star_api_config_t g_star_config;
 static bool g_star_initialized = false;
 static bool g_star_client_ready = false;
+/** When true, user explicitly beamed out; do not auto re-auth on door/touch until they run "star beamin" again. */
+static bool g_star_user_beamed_out = false;
 static bool g_star_debug_logging = true;
 static bool g_star_logged_runtime_auth_failure = false;
 static bool g_star_logged_missing_auth_config = false;
@@ -637,7 +639,6 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
-		/* Refresh XP via same add-xp path as monster kill (async; cache updates when response returns). */
 		star_api_refresh_avatar_xp();
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
@@ -714,14 +715,18 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
 			Printf(PRINT_HIGH, "%s\n", err_buf);
 	}
-	/* Show STAR log messages in console (XP refresh, monster kill, etc.). */
-	{
+	/* Show STAR log messages in console only when star debug is on (XP refresh, monster kill, etc.). */
+	if (g_star_debug_logging) {
 		char log_buf[512] = {};
 		for (int i = 0; i < 5; i++) {
 			if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
 				break;
 			Printf(PRINT_HIGH, "[STAR] %s\n", log_buf);
 		}
+	} else {
+		/* Drain queue so it doesn't grow when debug is off */
+		char log_buf[512] = {};
+		while (star_api_consume_console_log(log_buf, sizeof(log_buf))) {}
 	}
 
 	if (g_star_frames_since_beamin < STAR_DOOR_CONSUME_GRACE_FRAMES)
@@ -1309,6 +1314,10 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	const bool logVerbose = verbose;
 	if (g_star_initialized)
 		return true;
+	/* After explicit beam out, do not auto re-auth on door/touch; only "star beamin" or startup can auth again. */
+	if (!logVerbose && g_star_user_beamed_out) {
+		return false;
+	}
 	/* Avoid retrying init every touch/door when host is unreachable - only retry when user explicitly runs beamin. */
 	if (!logVerbose && g_star_init_failed_this_session && !g_star_client_ready) {
 		return false;
@@ -2039,6 +2048,7 @@ CCMD(star)
 	}
 	if (strcmp(sub, "beamin") == 0) {
 		Printf("\n");
+		g_star_user_beamed_out = false;  /* User explicitly beaming in; allow auth. */
 		bool hasRuntimeCredentials = false;
 		bool usingJwt = false;
 		bool noFaceThisLogin = false;
@@ -2153,10 +2163,12 @@ CCMD(star)
 		}
 		g_star_client_ready = false;
 		g_star_initialized = false;
+		g_star_user_beamed_out = true;  /* Stay logged out until user runs "star beamin" again. */
 		g_star_init_failed_this_session = false;
 		g_star_async_auth_pending = false;
 		g_star_face_suppressed_for_session = false;
 		g_star_effective_username.clear();
+		g_star_effective_password.clear();
 		g_star_show_anorak_face = false;
 		oasis_star_anorak_face = false;
 		odoom_star_username = "";

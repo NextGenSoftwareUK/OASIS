@@ -1733,6 +1733,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Gets the logged-in avatar with XP (AvatarDetail). Used by STAR API GET /api/avatar/current so clients can refresh XP after beam-in.
+        /// </summary>
+        [Authorize]
+        [HttpGet("get-logged-in-avatar-with-xp")]
+        public async Task<OASISHttpResponseMessage<LoggedInAvatarResponse>> GetLoggedInAvatarWithXp()
+        {
+            var avatar = AvatarManager.LoggedInAvatar;
+            if (avatar == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatar.Id);
+            var xp = (detailResult.Result != null && !detailResult.IsError) ? detailResult.Result.XP : 0;
+            var response = new LoggedInAvatarResponse
+            {
+                Id = avatar.Id,
+                Username = avatar.Username ?? string.Empty,
+                Email = avatar.Email ?? string.Empty,
+                FirstName = avatar.FirstName ?? string.Empty,
+                LastName = avatar.LastName ?? string.Empty,
+                XP = xp
+            };
+            return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { Result = response });
+        }
+
+        /// <summary>
         /// Get's the logged in avatar.
         /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
         /// Pass in the provider you wish to use.Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.

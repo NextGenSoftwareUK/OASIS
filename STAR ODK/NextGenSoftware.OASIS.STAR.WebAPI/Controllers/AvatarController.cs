@@ -326,17 +326,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the current authenticated avatar. Delegates to WEB4 OASIS API.
+        /// Gets the current authenticated avatar with XP (for STAR client refresh). Delegates to WEB4 get-logged-in-avatar-with-xp so response includes AvatarDetail.XP.
         /// </summary>
-        /// <returns>
-        /// 200 OK with <see cref="IAvatar"/> when authenticated; 401 Unauthorized if no JWT present.
-        /// </returns>
         [HttpGet("current")]
-        [ProducesResponseType(typeof(OASISResult<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCurrentAvatar()
         {
-            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/get-logged-in-avatar");
+            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/get-logged-in-avatar-with-xp");
         }
 
         #region Avatar Inventory Management
