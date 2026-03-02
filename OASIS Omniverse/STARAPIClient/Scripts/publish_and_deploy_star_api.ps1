@@ -16,12 +16,13 @@ $dllPath = Join-Path $publishDir "star_api.dll"
 $libPath = Join-Path $nativeDir "star_api.lib"
 $headerPath = Join-Path $projectDir "star_api.h"
 
-# Build only when: forced, or dll missing, or any project source (.cs / .csproj) under project root is newer than star_api.dll
+# Build only when: forced, or dll missing, or any project source (.cs / .csproj) or star_api.h is newer than star_api.dll
 $needBuild = $ForceBuild
 if (!$needBuild -and (Test-Path $dllPath)) {
     $dllTime = (Get-Item $dllPath).LastWriteTimeUtc
     $sources = @(Get-ChildItem -Path $projectDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
                @(Get-ChildItem -Path $projectDir -Filter "*.csproj" -Recurse -File -ErrorAction SilentlyContinue)
+    if (Test-Path $headerPath) { $sources += Get-Item $headerPath }
     foreach ($f in $sources) {
         if ($f.LastWriteTimeUtc -gt $dllTime) {
             $needBuild = $true
