@@ -1943,6 +1943,20 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov, "OQUAKE");
 }
 
+/* Safe ED_Free hook: only run when in a real game so we avoid VM/state issues (program error on new game / load). */
+void OQuake_STAR_OnEntityFreed(void* ed) {
+    const char* ed_classname;
+    if (!ed)
+        return;
+    /* Only during active game; skip during demo playback, map load, or menu. */
+    if (!sv.active || cls.demoplayback)
+        return;
+    ed_classname = PR_GetString(((edict_t*)ed)->v.classname);
+    if (!ed_classname || strncmp(ed_classname, "monster_", 8) != 0)
+        return;
+    OQuake_STAR_OnMonsterKilled(ed_classname);
+}
+
 void OQuake_STAR_OnBossKilled(const char* boss_name) {
     /* Use same path as any monster: XP + optional mint + add to inventory (all async). */
     OQuake_STAR_OnMonsterKilled(boss_name);
