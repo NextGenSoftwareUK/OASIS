@@ -548,6 +548,22 @@ if (Test-Path $aboutPath) {
     }
 }
 
+# 4a. CMake: ensure OASIS_STAR_API is passed to compiler when -DOASIS_STAR_API=ON (otherwise a_keys.cpp, a_doors.cpp STAR blocks are compiled out)
+$cmakeRoot = "$src\CMakeLists.txt"
+if (Test-Path $cmakeRoot) {
+    $cmakeContent = Get-Content $cmakeRoot -Raw
+    if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)') {
+        if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*STAR_API_DIR') {
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API)`r`n`$2`$3"
+            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
+            $changes += "cmake(OASIS_STAR_API define)"
+        } elseif ($cmakeContent -match '(\r?\n)(add_subdirectory\s*\()') {
+            $cmakeContent = $cmakeContent -replace '(\r?\n)(add_subdirectory\s*\()', "`r`nif(OASIS_STAR_API)`r`n  add_compile_definitions(OASIS_STAR_API)`r`nendif()`r`n`$1`$2"
+            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
+            $changes += "cmake(OASIS_STAR_API define)"
+        }
+    }
+}
 # 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used (same list as uzdoom_star_integration.cpp)
 $cmakeFiles = @()
 if (Test-Path "$src\CMakeLists.txt") { $cmakeFiles += "$src\CMakeLists.txt" }
