@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public IOASISStorageProvider CurrentStorageProvider { get; private set; } //TODO: Need to work this out because in future there can be more than one provider active at a time.
 
         public bool OverrideProviderType { get; set; } = false;
-        public bool SupressConsoleLoggingWhenSwitchingProviders { get; set; } = false;
+       // public bool SupressLoggingWhenSwitchingProviders { get; set; } = false;
 
 
         //public delegate void StorageProviderError(object sender, AvatarManagerErrorEventArgs e);
@@ -216,10 +216,57 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
 
-            foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
-                blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                foreach (ProviderCategory category in provider.ProviderCategories.Select(x => x.Value).ToList())
+                {
+                    if (category == ProviderCategory.Blockchain)
+                        blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+                }
+            }
+
+            //foreach (IOASISProvider provider in _registeredProviders.Where(x => x.ProviderCategories.Contains(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain))))
+            //    blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
 
             return blockchainProviders;
+        }
+
+        public List<IOASISBlockchainStorageProvider> GetAllEVMBlockchainProviders()
+        {
+            List<IOASISBlockchainStorageProvider> blockchainProviders = new List<IOASISBlockchainStorageProvider>();
+
+            foreach (IOASISProvider provider in _registeredProviders)
+            {
+                foreach (ProviderCategory category in provider.ProviderCategories.Select(x => x.Value).ToList())
+                {
+                    if (category == ProviderCategory.EVMBlockchain)
+                        blockchainProviders.Add((IOASISBlockchainStorageProvider)provider);
+                }
+            }
+
+            return blockchainProviders;
+        }
+
+        public bool IsProviderEVMBlockchain(ProviderType providerType)
+        {
+            foreach (IOASISBlockchainStorageProvider provider in GetAllEVMBlockchainProviders())
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public bool IsProviderBlockchain(ProviderType providerType)
+        {
+            foreach (IOASISBlockchainStorageProvider provider in GetAllBlockchainProviders())
+            {
+                if (provider.ProviderType.Value == providerType)
+                    return true;
+            }
+
+            return false;
         }
 
         public List<ProviderType> GetNetworkProviderTypes()
@@ -428,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling DeActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
 
-                        else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                        else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully.", Logging.LogType.Info);
                     }
 
@@ -441,7 +488,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProvider Calling ActivateProvider For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
                     
-                    else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully.", Logging.LogType.Info);
 
                     if (setGlobally)
@@ -485,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         if ((deactivateProviderResult != null && (deactivateProviderResult.IsError || !deactivateProviderResult.Result)) || deactivateProviderResult == null)
                             OASISErrorHandling.HandleWarning(ref result, deactivateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling DeActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {deactivateProviderResult.Message}" : "Unknown error (deactivateProviderResult was null!)");
 
-                        else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                        else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                             LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider DeActivated Successfully (Async).", Logging.LogType.Info);
                     }
 
@@ -498,7 +545,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     if ((activateProviderResult != null && (activateProviderResult.IsError || !activateProviderResult.Result)) || activateProviderResult == null)
                         OASISErrorHandling.HandleError(ref result, activateProviderResult != null ? $"Error Occured In ProviderManager.SetAndActivateCurrentStorageProviderAsync Calling ActivateProviderAsync For Provider {CurrentStorageProviderType.Name}. Reason: {activateProviderResult.Message}" : "Unknown error (activateProviderResult was null!)");
 
-                    else if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    else if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"{CurrentStorageProviderType.Name} Provider Activated Successfully (Async).", Logging.LogType.Info);
 
                     if (setGlobally)
@@ -524,7 +571,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
 
                     var task = provider.ActivateProviderAsync();
@@ -559,7 +606,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Activate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
 
                     result = Task.Run(() => provider.ActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.ActivateProviderTimeOutSeconds)).Result;
@@ -593,7 +640,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider...", Logging.LogType.Info, true);
                     
                     result = Task.Run(() => provider.DeActivateProvider()).WaitAsync(TimeSpan.FromSeconds(OASISDNA.OASIS.StorageProviders.DectivateProviderTimeOutSeconds)).Result;
@@ -627,7 +674,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 try
                 {
-                    if (!SupressConsoleLoggingWhenSwitchingProviders)
+                    if (OASISDNA.OASIS.StorageProviders.LogSwitchingProviders)
                         LoggingManager.Log($"Attempting To Deactivate {provider.ProviderType.Name} Provider (Async)...", Logging.LogType.Info, true);
 
                     var task = provider.DeActivateProviderAsync();

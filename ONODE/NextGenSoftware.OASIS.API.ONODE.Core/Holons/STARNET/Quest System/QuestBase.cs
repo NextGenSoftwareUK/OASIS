@@ -63,6 +63,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 
 
         [CustomOASISProperty()]
-        public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.
+        public IList<IQuest> Quests { get; set; } = new List<IQuest>(); //TODO: Dont think is needed now because it is stored in the Dependencies.
     }
 }

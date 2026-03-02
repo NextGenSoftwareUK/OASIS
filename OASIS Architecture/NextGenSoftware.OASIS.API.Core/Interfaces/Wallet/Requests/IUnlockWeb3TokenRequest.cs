@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.Utilities;
 

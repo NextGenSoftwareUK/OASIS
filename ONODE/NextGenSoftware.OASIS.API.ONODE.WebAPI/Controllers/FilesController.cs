@@ -140,8 +140,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         [Authorize]
         [HttpPost("upload-file")]
-        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, byte[] fileData, string contentType, Dictionary<string, object> metadata = null)
+        public async Task<OASISResult<StoredFile>> UploadFile(string fileName, [FromBody] byte[] fileData, string contentType, [FromForm] Dictionary<string, object> metadata = null)
         {
+            if (fileData == null || fileData.Length == 0)
+                return new OASISResult<StoredFile> { IsError = true, Message = "The request body is required. Please provide the file data (byte array)." };
             return await FilesManager.Instance.UploadFileAsync(AvatarId, fileName, fileData, contentType, metadata);
         }
 
@@ -182,6 +184,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("update-file-metadata/{fileId}")]
         public async Task<OASISResult<bool>> UpdateFileMetadata(Guid fileId, [FromBody] Dictionary<string, object> metadata)
         {
+            if (metadata == null)
+                return new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON object with metadata key-value pairs." };
             return await FilesManager.Instance.UpdateFileMetadataAsync(AvatarId, fileId, metadata);
         }
     }

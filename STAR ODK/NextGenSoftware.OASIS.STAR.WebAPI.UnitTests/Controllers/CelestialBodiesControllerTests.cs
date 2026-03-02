@@ -1,27 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class CelestialBodiesControllerTests
     {
-        private readonly Mock<ILogger<CelestialBodiesController>> _mockLogger;
         private readonly CelestialBodiesController _controller;
 
         public CelestialBodiesControllerTests()
         {
-            _mockLogger = new Mock<ILogger<CelestialBodiesController>>();
             _controller = new CelestialBodiesController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -32,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -46,23 +38,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
         public async Task CreateCelestialBody_WithValidBody_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockBody = new Mock<ICelestialBody>();
-            mockBody.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockBody.Setup(x => x.Name).Returns("Test Celestial Body");
+            var body = new STARCelestialBody { Id = Guid.NewGuid(), Name = "Test Celestial Body" };
 
             // Act
-            var result = await _controller.CreateCelestialBody(mockBody.Object);
+            var result = await _controller.CreateCelestialBody(body);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -70,16 +60,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockBody = new Mock<ICelestialBody>();
-            mockBody.Setup(x => x.Id).Returns(id);
-            mockBody.Setup(x => x.Name).Returns("Updated Celestial Body");
+            var body = new STARCelestialBody { Id = id, Name = "Updated Celestial Body" };
 
             // Act
-            var result = await _controller.UpdateCelestialBody(id, mockBody.Object);
+            var result = await _controller.UpdateCelestialBody(id, body);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -93,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -107,7 +95,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -121,7 +109,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

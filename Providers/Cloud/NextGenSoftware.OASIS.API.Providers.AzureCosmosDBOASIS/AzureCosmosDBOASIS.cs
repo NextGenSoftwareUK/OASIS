@@ -1,6 +1,4 @@
-﻿using Microsoft.Azure.Documents.Client;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Microsoft.Azure.Cosmos;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -51,16 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (dbClientFactory == null)
                 {
-                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DefaultValueHandling = DefaultValueHandling.Ignore,
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    });
-
-                    documentClient.OpenAsync().Wait();
-
-                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
+                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
                     OASISResult<bool> ensureDbSetupResult = dbClientFactory.EnsureDbSetupAsync().Result;
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
@@ -90,16 +80,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (dbClientFactory == null)
                 {
-                    var documentClient = new DocumentClient(serviceEndpoint, authKey, new JsonSerializerSettings
-                    {
-                        NullValueHandling = NullValueHandling.Ignore,
-                        DefaultValueHandling = DefaultValueHandling.Ignore,
-                        ContractResolver = new CamelCasePropertyNamesContractResolver()
-                    });
-
-                    await documentClient.OpenAsync();
-
-                    dbClientFactory = new CosmosDbClientFactory(databaseName, collectionNames, documentClient);
+                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey);
+                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
                     OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
 
                     if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
@@ -914,8 +896,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -961,8 +947,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1610,8 +1600,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchResults = new SearchResults();
@@ -1664,8 +1658,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -1706,8 +1704,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar ID
@@ -1735,8 +1737,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar username
@@ -1764,8 +1770,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar email
@@ -1793,8 +1803,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons
@@ -1852,8 +1866,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by metadata from Azure Cosmos DB
@@ -1882,8 +1900,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Azure Cosmos DB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by multiple metadata pairs from Azure Cosmos DB

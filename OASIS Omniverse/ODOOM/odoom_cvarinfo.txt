@@ -1,0 +1,49 @@
+// ODOOM inventory overlay - CVars for ZScript/C++ coordination.
+// When inventory is open, ZScript sets odoom_inventory_open=1 so C++ can
+// temporarily clear key bindings (OQuake-style). Key state CVars are set by C++.
+server int odoom_inventory_open = 0;
+server int odoom_key_up = 0;
+server int odoom_key_down = 0;
+server int odoom_key_left = 0;
+server int odoom_key_right = 0;
+server int odoom_key_pgup = 0;
+server int odoom_key_pgdown = 0;
+server int odoom_key_home = 0;
+server int odoom_key_end = 0;
+server int odoom_key_use = 0;
+server int odoom_key_a = 0;
+server int odoom_key_c = 0;
+server int odoom_key_z = 0;
+server int odoom_key_x = 0;
+server int odoom_key_i = 0;
+server int odoom_key_o = 0;
+server int odoom_key_p = 0;
+server int odoom_key_enter = 0;
+
+// Send popup (OQuake-style): name input buffer and execute
+server int odoom_send_popup_open = 0;
+server string odoom_send_input_line = "";
+server int odoom_send_do_it = 0;
+server string odoom_send_target = "";
+server string odoom_send_item_class = "";
+server int odoom_send_quantity = 1;
+server int odoom_send_to_clan = 0;
+// Status shown in send popup: "Sending...", "Item sent.", or "Send failed: ..."
+server string odoom_send_status = "";
+// One character per frame for ZScript to append to name (0=none, 8=backspace, else ASCII)
+server int odoom_send_last_char = 0;
+
+// STAR API inventory for overlay (same data as "star inventory" command). C++ updates when cache changes.
+// odoom_star_inventory_list: one line per item, format "name\tdesc\ttype\tgame\tquantity" (tab-separated). C++ sends only a window (scroll_offset..scroll_offset+N) to stay under CVar size limit.
+// odoom_star_inventory_count: total item count for current tab (for scroll math). ZScript sets scroll_offset and tab so C++ sends the right window.
+server int odoom_star_inventory_count = 0;
+server string odoom_star_inventory_list = "";
+server int odoom_star_inventory_scroll_offset = 0;
+server int odoom_star_inventory_tab = 0;
+// 1 = beamed in (STAR authenticated). ZScript only gives/shows OQuake keys when this is 1.
+server int odoom_star_beamed_in = 0;
+// STAR has Gold/Silver key (OQuake): 1 = has, 0 = no. Only meaningful when odoom_star_beamed_in=1.
+server int odoom_star_has_gold_key = 0;
+server int odoom_star_has_silver_key = 0;
+// Avatar XP (experience points). Updated from STAR API; shown in top-right when beamed in.
+server int odoom_star_avatar_xp = 0;

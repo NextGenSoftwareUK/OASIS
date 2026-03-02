@@ -59,6 +59,7 @@
             "OASISWebSiteURL": "https://oasisweb4.one/#"
         },
         "StorageProviders": {
+            "LogSwitchingProviders": true,
             "ProviderMethodCallTimeOutSeconds": 99,
             "ActivateProviderTimeOutSeconds": 10,
             "DectivateProviderTimeOutSeconds": 10,
@@ -161,7 +162,7 @@
                 "ConnectionString": ""
             },
             "LocalFileOASIS": { "FilePath": "wallets.json" },
-            "PinataOASIS": { 
+            "PinataOASIS": {
                 "ConnectionString": "https://api.pinata.cloud?apiKey=YOUR_API_KEY&secretKey=YOUR_SECRET_KEY&jwt=YOUR_JWT&gateway=https://gateway.pinata.cloud"
             },
             "BitcoinOASIS": {
@@ -267,6 +268,32 @@
                 "EnableStorage": true,
                 "EnableFirestore": true,
                 "EnableBigQuery": true
+            },
+            "ZkSyncOASIS": {
+                "RpcEndpoint": "https://mainnet.era.zksync.io",
+                "NetworkId": "mainnet",
+                "ChainId": "0x144",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "LineaOASIS": {
+                "RpcEndpoint": "https://rpc.linea.build",
+                "NetworkId": "mainnet",
+                "ChainId": "0xe708",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "ScrollOASIS": {
+                "RpcEndpoint": "https://rpc.scroll.io",
+                "NetworkId": "mainnet",
+                "ChainId": "0x82750",
+                "ChainPrivateKey": "",
+                "ContractAddress": ""
+            },
+            "XRPLOASIS": {
+                "RpcEndpoint": "https://s1.ripple.com:51234",
+                "Network": "mainnet",
+                "ArchiveAccount": "rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         },
         "OASISSystemAccountId": "",

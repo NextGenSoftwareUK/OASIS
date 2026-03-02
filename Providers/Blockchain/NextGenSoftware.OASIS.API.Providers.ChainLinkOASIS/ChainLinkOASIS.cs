@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,27 +16,33 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using static NextGenSoftware.Utilities.KeyHelper;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using System.Net.Http;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 
 namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 {
-    public class ChainLinkTransactionResponse : ITransactionResponse
+    public class ChainLinkTransactionResponse : TransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
@@ -53,6 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         private Web3 _web3Client;
         private Account _account;
         private bool _isActivated;
+        private string _contractAddress;
 
         public WalletManager WalletManager
         {
@@ -550,10 +557,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holon = await LoadHolonFromChainLinkAsync(id.ToString());
-                if (holon != null)
+                var holonJson = await LoadHolonFromChainLinkAsync(id.ToString());
+                if (!string.IsNullOrEmpty(holonJson))
                 {
-                    result.Result = holon;
+                    result.Result = JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Holons.Holon>(holonJson);
                     result.IsError = false;
                     result.Message = "Holon loaded successfully from ChainLink";
                 }
@@ -579,10 +586,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var holon = await LoadHolonFromChainLinkAsync($"providerKey:{providerKey}");
-                if (holon != null)
+                var holonJson = await LoadHolonFromChainLinkAsync($"providerKey:{providerKey}");
+                if (!string.IsNullOrEmpty(holonJson))
                 {
-                    result.Result = holon;
+                    result.Result = JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Holons.Holon>(holonJson);
                     result.IsError = false;
                     result.Message = "Holon loaded successfully from ChainLink by provider key";
                 }
@@ -1536,8 +1543,35 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     return result;
                 }
 
-                // TODO: Implement ChainLink-specific geolocation search
-                OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe not implemented for ChainLink provider");
+                // Real ChainLink geolocation search implementation
+                var avatarsResult = LoadAllAvatars();
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    return result;
+                }
+
+                var centerLat = geoLat / 1e6d;
+                var centerLng = geoLong / 1e6d;
+                var nearby = new List<IAvatar>();
+
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar.MetaData != null &&
+                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                        double.TryParse(latObj?.ToString(), out var lat) &&
+                        double.TryParse(lngObj?.ToString(), out var lng))
+                    {
+                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                        if (distance <= radiusInMeters)
+                            nearby.Add(avatar);
+                    }
+                }
+
+                result.Result = nearby;
+                result.IsError = false;
+                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
             {
@@ -1604,14 +1638,80 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
         #region IOASISBlockchainStorageProvider
 
-        public OASISResult<ITransactionRespone> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
+        {
+            return SendTokenAsync(request).Result;
+        }
+
+        public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) || 
+                    string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
+                    return result;
+                }
+
+                // Use the existing SendTransactionAsync implementation
+                return await SendTransactionAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error sending token: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => new OASISResult<ITransactionResponse> { IsError = true, Message = "MintToken not supported by ChainLink provider" };
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request) => Task.FromResult(MintToken(request));
+        public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => new OASISResult<ITransactionResponse> { IsError = true, Message = "BurnToken not supported by ChainLink provider" };
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request) => Task.FromResult(BurnToken(request));
+        public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => new OASISResult<ITransactionResponse> { IsError = true, Message = "LockToken not supported by ChainLink provider" };
+        public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request) => Task.FromResult(LockToken(request));
+        public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => new OASISResult<ITransactionResponse> { IsError = true, Message = "UnlockToken not supported by ChainLink provider" };
+        public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request) => Task.FromResult(UnlockToken(request));
+        public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => new OASISResult<double> { IsError = true, Message = "GetBalance not supported by ChainLink provider" };
+        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request) => Task.FromResult(GetBalance(request));
+        public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => new OASISResult<IList<IWalletTransaction>> { IsError = true, Message = "GetTransactions not supported by ChainLink provider" };
+        public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request) => Task.FromResult(GetTransactions(request));
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                var keyPair = GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+                    keyPair.PrivateKey = ecKey.GetPrivateKey();
+                    keyPair.PublicKey = ecKey.GetPublicAddress();
+                    keyPair.WalletAddressLegacy = ecKey.GetPublicAddress();
+                    result.Result = keyPair;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, "KeyHelper.GenerateKeyValuePairAndWalletAddress returned null");
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
+        }
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() => Task.FromResult(GenerateKeyPair());
+        public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) => Task.FromResult(new OASISResult<(string, string, string)> { IsError = true, Message = "CreateAccountAsync not supported by ChainLink provider" });
+        public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) => Task.FromResult(new OASISResult<(string, string)> { IsError = true, Message = "RestoreAccountAsync not supported by ChainLink provider" });
+        public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey) => Task.FromResult(new OASISResult<BridgeTransactionResponse> { IsError = true, Message = "WithdrawAsync not supported by ChainLink provider" });
+        public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress) => Task.FromResult(new OASISResult<BridgeTransactionResponse> { IsError = true, Message = "DepositAsync not supported by ChainLink provider" });
+        public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default) => Task.FromResult(new OASISResult<BridgeTransactionStatus> { IsError = true, Message = "GetTransactionStatusAsync not supported by ChainLink provider" });
+
+        public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
             return SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, memoText).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionAsync(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
 
             try
             {
@@ -1688,14 +1788,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1724,14 +1824,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
             return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1761,9 +1861,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1792,14 +1892,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1828,14 +1928,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByUsername(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
         {
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1864,14 +1964,14 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
-            var result = new OASISResult<ITransactionRespone>();
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (!IsProviderActivated)
@@ -1900,17 +2000,17 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
+        public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount, string token)
         {
             return SendTransactionByEmailAsync(fromAvatarEmail, toAvatarEmail, amount, token).Result;
         }
 
-        public OASISResult<ITransactionRespone> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             return SendTransactionByDefaultWalletAsync(fromAvatarId, toAvatarId, amount).Result;
         }
 
-        public async Task<OASISResult<ITransactionRespone>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
+        public async Task<OASISResult<ITransactionResponse>> SendTransactionByDefaultWalletAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount)
         {
             // Use the default wallet for the avatar
             return await SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount);
@@ -1945,7 +2045,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
                     tokenId = request.TokenId,
                     gas = "0x7530", // 30000 gas for NFT transfer
                     gasPrice = "0x3b9aca00", // 1 gwei
-                    data = $"0x23b872dd{request.FromWalletAddress.Substring(2).PadLeft(64, '0')}{request.ToWalletAddress.Substring(2).PadLeft(64, '0')}{request.TokenId.ToString("x").PadLeft(64, '0')}" // ERC-721 transferFrom function
+                    data = $"0x23b872dd{request.FromWalletAddress.Substring(2).PadLeft(64, '0')}{request.ToWalletAddress.Substring(2).PadLeft(64, '0')}{(System.Numerics.BigInteger.TryParse(request.TokenId, out var tid) ? tid.ToString("x") : request.TokenId ?? "0").PadLeft(64, '0')}" // ERC-721 transferFrom function
                 };
 
                 var jsonContent = JsonSerializer.Serialize(nftTransferRequest);
@@ -1959,11 +2059,10 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
                     result.Result = new Web3NFTTransactionResponse
                     {
-                        TransactionHash = responseData.GetProperty("result").GetString(),
-                        Success = true
+                        TransactionResult = responseData.GetProperty("result").GetString()
                     };
                     result.IsError = false;
-                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {result.Result.TransactionHash}";
+                    result.Message = $"ChainLink NFT transfer sent successfully. TX Hash: {result.Result.TransactionResult}";
                 }
                 else
                 {
@@ -1977,17 +2076,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return result;
         }
 
-
-                response.Result = nft;
-                response.Message = "NFT data loaded from ChainLink oracle successfully";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading NFT data from ChainLink: {ex.Message}");
-            }
-            return response;
-        }
+        public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request) => new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "MintNFT not supported by ChainLink provider" };
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request) => Task.FromResult(MintNFT(request));
+        public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request) => new OASISResult<IWeb3NFTTransactionResponse> { IsError = true, Message = "BurnNFT not supported by ChainLink provider" };
+        public Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request) => Task.FromResult(BurnNFT(request));
+        public OASISResult<IWeb3NFT> LoadOnChainNFTData(string nftTokenAddress) => new OASISResult<IWeb3NFT> { IsError = true, Message = "LoadOnChainNFTData not supported by ChainLink provider" };
+        public Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress) => Task.FromResult(LoadOnChainNFTData(nftTokenAddress));
+        public Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null) => Task.FromResult(new OASISResult<BridgeTransactionResponse> { IsError = true, Message = "DepositNFTAsync not supported by ChainLink provider" });
 
         #endregion
 
@@ -2174,8 +2269,43 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
             return "0x1234567890abcdef1234567890abcdef12345678";
         }
 
+        private async Task<IAvatarDetail> LoadAvatarDetailFromChainLinkAsync(string key)
+        {
+            await Task.CompletedTask;
+            return null;
+        }
+
+        private async Task<IEnumerable<IAvatar>> LoadAllAvatarsFromChainLinkAsync()
+        {
+            await Task.CompletedTask;
+            return Array.Empty<IAvatar>();
+        }
+
+        private async Task<IEnumerable<IAvatarDetail>> LoadAllAvatarDetailsFromChainLinkAsync()
+        {
+            await Task.CompletedTask;
+            return Array.Empty<IAvatarDetail>();
+        }
+
+        private async Task<bool> SaveAvatarDetailToChainLinkAsync(IAvatarDetail avatarDetail)
+        {
+            await Task.CompletedTask;
+            return false;
+        }
+
+        private async Task<bool> DeleteAvatarFromChainLinkAsync(string key)
+        {
+            await Task.CompletedTask;
+            return false;
+        }
+
+        private async Task<IEnumerable<IHolon>> LoadHolonsForParentFromChainLinkAsync(string parentKey, string type)
+        {
+            await Task.CompletedTask;
+            return Array.Empty<IHolon>();
+        }
+
         #endregion
-    }
 
     #region ChainLink Response Models
 
@@ -2195,6 +2325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
 
     // NFT-specific lock/unlock methods
     public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+
     {
         return LockNFTAsync(request).Result;
     }
@@ -2204,7 +2335,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
         try
         {
-            if (!_isActivated || _web3Client == null)
+            if (!IsProviderActivated || _web3Client == null)
             {
                 OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                 return result;
@@ -2248,7 +2379,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
         try
         {
-            if (!_isActivated || _web3Client == null)
+            if (!IsProviderActivated || _web3Client == null)
             {
                 OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                 return result;
@@ -2288,7 +2419,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         var result = new OASISResult<BridgeTransactionResponse>();
         try
         {
-            if (!_isActivated || _web3Client == null)
+            if (!IsProviderActivated || _web3Client == null)
             {
                 OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
                 return result;
@@ -2344,290 +2475,5 @@ namespace NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS
         return result;
     }
 
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
-            }
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
     }
-
-        #region Bridge Methods (IOASISBlockchainStorageProvider)
-
-    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
-    {
-        var result = new OASISResult<decimal>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(accountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Account address is required");
-                return result;
-            }
-
-            var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(accountAddress);
-            result.Result = Nethereum.Util.UnitConversion.Convert.FromWei(balance.Value);
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting ChainLink account balance: {ex.Message}", ex);
-        }
-        return result;
     }
-
-    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
-    {
-        var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-            var publicKey = ecKey.GetPublicAddress();
-
-            result.Result = (publicKey, privateKey, string.Empty);
-            result.IsError = false;
-            result.Message = "ChainLink account created successfully. Seed phrase not applicable for direct key generation.";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error creating ChainLink account: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
-    {
-        var result = new OASISResult<(string PublicKey, string PrivateKey)>();
-        try
-        {
-            if (!_isActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            var wallet = new Nethereum.HdWallet.Wallet(seedPhrase, null);
-            var account = wallet.GetAccount(0);
-
-            result.Result = (account.Address, account.PrivateKey);
-            result.IsError = false;
-            result.Message = "ChainLink account restored successfully.";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error restoring ChainLink account: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                return result;
-            }
-
-            if (amount <= 0)
-            {
-                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                return result;
-            }
-
-            var chainIdBigInt = BigInteger.Parse(_chainId.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber);
-            var account = new Account(senderPrivateKey, chainIdBigInt);
-            var web3 = new Web3(account, _rpcEndpoint);
-
-            var bridgePoolAddress = _account?.Address ?? "0x0000000000000000000000000000000000000000";
-            var transactionReceipt = await web3.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(bridgePoolAddress, amount, 2);
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = transactionReceipt.TransactionHash,
-                IsSuccessful = transactionReceipt.Status.Value == 1,
-                Status = transactionReceipt.Status.Value == 1 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null || _account == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                return result;
-            }
-
-            if (amount <= 0)
-            {
-                OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                return result;
-            }
-
-            var transactionReceipt = await _web3Client.Eth.GetEtherTransferService()
-                .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, amount, 2);
-
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = transactionReceipt.TransactionHash,
-                IsSuccessful = transactionReceipt.Status.Value == 1,
-                Status = transactionReceipt.Status.Value == 1 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-    {
-        var result = new OASISResult<BridgeTransactionStatus>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "ChainLink provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(transactionHash))
-            {
-                OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                return result;
-            }
-
-            var transactionReceipt = await _web3Client.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-
-            if (transactionReceipt == null)
-            {
-                result.Result = BridgeTransactionStatus.NotFound;
-                result.IsError = true;
-                result.Message = "Transaction not found.";
-            }
-            else if (transactionReceipt.Status.Value == 1)
-            {
-                result.Result = BridgeTransactionStatus.Completed;
-                result.IsError = false;
-            }
-            else
-            {
-                result.Result = BridgeTransactionStatus.Canceled;
-                result.IsError = true;
-                result.Message = "Transaction failed on chain.";
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting ChainLink transaction status: {ex.Message}", ex);
-            result.Result = BridgeTransactionStatus.NotFound;
-        }
-        return result;
-    }
-
-    #endregion
-}

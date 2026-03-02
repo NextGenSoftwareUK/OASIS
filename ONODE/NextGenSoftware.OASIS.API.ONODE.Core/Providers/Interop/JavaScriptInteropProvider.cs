@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Text;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
@@ -390,10 +391,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     }
 
                     // Parse JavaScript to extract function names and signatures
-                    var scriptContent = _loadedScripts[libraryId] as string;
-                    if (scriptContent != null)
+                    if (_loadedScripts.TryGetValue(libraryId, out var libraryInfo))
                     {
-                        var signatures = ParseJavaScriptSignatures(scriptContent);
+                        var signatures = ParseJavaScriptSignatures(libraryInfo.ScriptContent);
                         result.Result = signatures.Select(s => s.FunctionName).ToList();
                         result.Message = $"Found {signatures.Count} functions in JavaScript library.";
                     }

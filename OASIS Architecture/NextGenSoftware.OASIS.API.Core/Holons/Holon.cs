@@ -57,9 +57,9 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public event EventDelegates.HolonRemoved OnHolonRemoved;
         public event EventDelegates.HolonsLoaded OnChildrenLoaded;
         public event EventDelegates.HolonsError OnChildrenLoadError;
-        
 
-      
+
+
 
         //TODO: TEMP MOVED TO HOLONBASE TILL REFACTOR CODEBASE.
         //public Dictionary<ProviderType, string> ProviderUniqueStorageKey { get; set; } = new Dictionary<ProviderType, string>(); //Unique key used by each provider (e.g. hashaddress in hc, accountname for Telos, id in MongoDB etc).        
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
 
         //FROM CELESTIALHOLON - TODO: NEED TO REFFACTOR CODEBASE LATER TO USE ICELESTIALHOLON INSTEAD OF IHolon WHERE APPROPRIATE.
-        public IList<INode> Nodes { get; set; }
+        public IList<INode> Nodes { get; set; } = new List<INode>();
         public Guid ParentOmniverseId { get; set; } //The Omniverse this Holon belongs to.
         public IOmiverse ParentOmniverse { get; set; } //The Omniverse this Holon belongs to.
         public Guid ParentMultiverseId { get; set; } //The Multiverse this Holon belongs to.

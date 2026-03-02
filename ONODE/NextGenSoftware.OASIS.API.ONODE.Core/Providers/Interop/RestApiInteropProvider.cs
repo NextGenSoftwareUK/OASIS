@@ -131,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                     if (!_loadedLibraries.TryGetValue(libraryId, out var library))
                     {
                         OASISErrorHandling.HandleError(ref result, "Library not loaded.");
-                        return Task.FromResult(result);
+                        return result;
                     }
 
                     // Build API endpoint URL

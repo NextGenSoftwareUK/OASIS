@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -257,12 +258,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     oasisAvatar.Achievements.Add((Achievement)item);
             }
 
-            //oasisAvatar.Inventory = avatar.Result.Inventory;
-
-            if (avatar.Result.Achievements != null)
+            if (avatar.Result.Inventory != null)
             {
                 foreach (var item in avatar.Result.Inventory)
-                    oasisAvatar.Inventory.Add((InventoryItem)item);
+                {
+                    var inv = item as InventoryItem ?? new InventoryItem();
+                    var copy = new InventoryItem
+                    {
+                        Name = inv.Name,
+                        Description = inv.Description,
+                        Quantity = inv.Quantity,
+                        Stack = inv.Stack,
+                        Id = inv.Id,
+                        Image2D = inv.Image2D,
+                        Image2DURI = inv.Image2DURI,
+                        Object3D = inv.Object3D,
+                        Object3DURI = inv.Object3DURI,
+                        GameSource = inv.GameSource,
+                        ItemType = inv.ItemType,
+                        NftId = inv.NftId
+                    };
+                    if (inv.MetaData != null && inv.MetaData.Count > 0)
+                        copy.MetaData = new Dictionary<string, object>(inv.MetaData);
+                    oasisAvatar.Inventory.Add(copy);
+                }
             }
 
             oasisAvatar.Address = avatar.Result.Address;
@@ -573,12 +592,30 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     mongoAvatar.Achievements.Add((Achievement)item);
             }
 
-            //mongoAvatar.Inventory = avatar.Inventory;
-
-            if (avatar.Inventory != null)
+            if (avatar.Inventory != null && avatar.Inventory.Count > 0)
             {
                 foreach (var item in avatar.Inventory)
-                    mongoAvatar.Inventory.Add((InventoryItem)item);
+                {
+                    var inv = item as InventoryItem ?? new InventoryItem();
+                    var mongoInv = new InventoryItem
+                    {
+                        Name = inv.Name,
+                        Description = inv.Description,
+                        Quantity = inv.Quantity,
+                        Stack = inv.Stack,
+                        Id = inv.Id,
+                        Image2D = inv.Image2D,
+                        Image2DURI = inv.Image2DURI,
+                        Object3D = inv.Object3D,
+                        Object3DURI = inv.Object3DURI,
+                        GameSource = inv.GameSource,
+                        ItemType = inv.ItemType,
+                        NftId = inv.NftId
+                    };
+                    if (inv.MetaData != null && inv.MetaData.Count > 0)
+                        mongoInv.MetaData = new Dictionary<string, object>(inv.MetaData);
+                    mongoAvatar.Inventory.Add(mongoInv);
+                }
             }
 
             mongoAvatar.Address = avatar.Address;

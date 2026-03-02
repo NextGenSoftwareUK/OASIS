@@ -1,6 +1,7 @@
-﻿//using System.Text.Json;
+//using System.Text.Json;
 //using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
@@ -409,8 +410,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar by provider key in avatar folder
@@ -466,8 +471,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarFilePath = Path.Combine(_avatarFolderPath, $"{Id}.json");
@@ -516,8 +525,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar by email in avatar folder
@@ -573,8 +586,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar by username in avatar folder
@@ -630,8 +647,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatars = new List<IAvatar>();
@@ -683,8 +704,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarDetailFilePath = Path.Combine(_avatarDetailFolderPath, $"{id}.json");
@@ -733,8 +758,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar detail by email
@@ -789,8 +818,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for avatar detail by username
@@ -845,8 +878,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarDetails = new List<IAvatarDetail>();
@@ -897,8 +934,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -939,8 +980,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -981,8 +1026,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarFilePath = Path.Combine(_avatarFolderPath, $"{id}.json");
@@ -1040,8 +1089,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first
@@ -1077,8 +1130,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first
@@ -1114,8 +1171,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by provider key first
@@ -1151,8 +1212,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -1201,8 +1266,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -1251,8 +1320,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holon == null)
@@ -1307,8 +1380,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null)
@@ -1359,8 +1436,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonFilePath = Path.Combine(_holonDirectory, $"{id}.json");
@@ -1429,8 +1510,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search for holon by provider key in holon directory
@@ -1507,8 +1592,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load parent holon first
@@ -1592,8 +1681,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var matchingHolons = new List<IHolon>();
@@ -1672,8 +1765,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var matchingHolons = new List<IHolon>();
@@ -1764,8 +1861,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holons = new List<IHolon>();
@@ -1842,8 +1943,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonFilePath = Path.Combine(_holonDirectory, $"{id}.json");
@@ -1914,8 +2019,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null)
@@ -1969,8 +2078,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar
@@ -2052,8 +2165,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all avatars and holons
@@ -2093,8 +2210,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (searchParams == null)
@@ -2342,8 +2463,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarFilePath = Path.Combine(_avatarFolderPath, $"{id}.json");
@@ -2384,8 +2509,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by provider key first
@@ -2434,8 +2563,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first
@@ -2484,8 +2617,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first
@@ -2539,8 +2676,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holon first to get the data
@@ -2583,8 +2724,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(providerKey))
@@ -2614,79 +2759,81 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return result;
         }
 
-        public Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id)
+        // These are explicit interface implementations that delegate to the existing methods
+        Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> IOASISStorageProvider.LoadProviderWalletsForAvatarByIdAsync(Guid id)
         {
-            throw new NotImplementedException();
+            return LoadProviderWalletsForAvatarByIdAsync(id);
         }
 
-        public Task<OASISResult<bool>> SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
+        Task<OASISResult<bool>> IOASISStorageProvider.SaveProviderWalletsForAvatarByIdAsync(Guid id, Dictionary<ProviderType, List<IProviderWallet>> providerWallets)
         {
-            throw new NotImplementedException();
+            return SaveProviderWalletsForAvatarByIdAsync(id, providerWallets);
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+        // These are explicit interface implementations that delegate to the override methods
+        Task<OASISResult<IAvatar>> IOASISStorageProvider.LoadAvatarByProviderKeyAsync(string providerKey, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByProviderKeyAsync(providerKey, version);
         }
 
-        public OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
+        OASISResult<IAvatar> IOASISStorageProvider.LoadAvatarByProviderKey(string providerKey, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
+        Task<OASISResult<IAvatar>> IOASISStorageProvider.LoadAvatarAsync(Guid Id, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(Id, version);
         }
 
-        public OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
+        OASISResult<IAvatar> IOASISStorageProvider.LoadAvatar(Guid id, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarAsync(id, version).Result;
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+        Task<OASISResult<IAvatar>> IOASISStorageProvider.LoadAvatarByEmailAsync(string avatarEmail, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail, version);
         }
 
-        public OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
+        OASISResult<IAvatar> IOASISStorageProvider.LoadAvatarByEmail(string avatarEmail, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        Task<OASISResult<IAvatar>> IOASISStorageProvider.LoadAvatarByUsernameAsync(string avatarUsername, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername, version);
         }
 
-        public OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
+        OASISResult<IAvatar> IOASISStorageProvider.LoadAvatarByUsername(string avatarUsername, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        Task<OASISResult<IEnumerable<IAvatar>>> IOASISStorageProvider.LoadAllAvatarsAsync(int version)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarsAsync(version);
         }
 
-        public OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
+        OASISResult<IEnumerable<IAvatar>> IOASISStorageProvider.LoadAllAvatars(int version)
         {
-            throw new NotImplementedException();
+            return LoadAllAvatarsAsync(version).Result;
         }
 
-        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
+        Task<OASISResult<IAvatarDetail>> IOASISStorageProvider.LoadAvatarDetailAsync(Guid id, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailAsync(id, version);
         }
 
-        public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
+        OASISResult<IAvatarDetail> IOASISStorageProvider.LoadAvatarDetail(Guid id, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
-        public Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+        Task<OASISResult<IAvatarDetail>> IOASISStorageProvider.LoadAvatarDetailByEmailAsync(string avatarEmail, int version)
         {
-            throw new NotImplementedException();
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version);
         }
 
         // Duplicate methods removed - implementations are above (see lines 785-2689)
@@ -2698,8 +2845,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarDetails = new List<IAvatarDetail>();
@@ -2758,8 +2909,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatars = new List<IAvatar>();
@@ -2818,8 +2973,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var filePath = Path.Combine(_basePath, $"{Id}.json");
@@ -2875,8 +3034,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var files = Directory.GetFiles(_basePath, "*.json");
@@ -2937,8 +3100,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var files = Directory.GetFiles(_basePath, "*.json");
@@ -2999,8 +3166,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var filePath = Path.Combine(_basePath, $"{id}.json");
@@ -3056,8 +3227,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var files = Directory.GetFiles(_basePath, "*.json");
@@ -3118,8 +3293,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var files = Directory.GetFiles(_basePath, "*.json");
@@ -3182,8 +3361,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var files = Directory.GetFiles(_basePath, "*.json");
@@ -3242,8 +3425,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -3293,8 +3480,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "LocalFile provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (Avatar == null)
@@ -3337,26 +3528,6 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return SaveAvatarDetailAsync(Avatar).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
-
-        public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
-
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
-
-        public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return null;
-        }
-
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
         //    throw new NotImplementedException();
@@ -3379,22 +3550,95 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                var holons = new List<IHolon>();
+                var files = Directory.GetFiles(_holonDirectory, "*.json", SearchOption.AllDirectories);
+                
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var content = await File.ReadAllTextAsync(file);
+                        var holon = JsonSerializer.Deserialize<Holon>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        
+                        if (holon != null && holon.ParentHolonId == id)
+                        {
+                            // Filter by type if specified
+                            if (type == HolonType.All || holon.HolonType == type)
+                            {
+                                // Load children recursively if requested
+                                if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
+                                {
+                                    var childrenResult = await LoadHolonsForParentAsync(holon.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, loadChildrenFromProvider, version);
+                                    if (!childrenResult.IsError && childrenResult.Result != null)
+                                    {
+                                        holon.Children = childrenResult.Result.ToList();
+                                    }
+                                }
+                                holons.Add(holon);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"Error loading holon from file {file}: {ex.Message}", ex);
+                            return result;
+                        }
+                        // Log error but continue with other files
+                        Console.WriteLine($"Error processing file {file}: {ex.Message}");
+                    }
+                }
+                
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from local file system";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from local file system: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            // First load the parent holon to get its ID
+            var parentResult = await LoadHolonAsync(providerKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
+            if (parentResult.IsError || parentResult.Result == null)
+            {
+                return new OASISResult<IEnumerable<IHolon>>
+                {
+                    IsError = true,
+                    Message = $"Failed to load parent holon by provider key: {parentResult.Message}"
+                };
+            }
+
+            // Then load children using the parent ID
+            return await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -3436,7 +3680,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     {
                                         var holon = new Holon
                                         {
-                                            Id = Guid.Parse(holonData.GetValueOrDefault("Id", Guid.NewGuid().ToString()).ToString()),
+                                            Id = Guid.TryParse(holonData.GetValueOrDefault("Id", "").ToString(), out var holonId) ? holonId : CreateDeterministicGuidFromProviderKey(JsonSerializer.Deserialize<Dictionary<Core.Enums.ProviderType, string>>(holonData.GetValueOrDefault("ProviderUniqueStorageKey", "{}").ToString()) ?? new Dictionary<Core.Enums.ProviderType, string>(), Core.Enums.ProviderType.LocalFileOASIS),
                                             Name = holonData.GetValueOrDefault("Name", "").ToString(),
                                             Description = holonData.GetValueOrDefault("Description", "").ToString(),
                                             HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("HolonType", HolonType.All.ToString()).ToString(), out var holonType) ? holonType : HolonType.All,
@@ -3510,7 +3754,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     {
                                         var holon = new Holon
                                         {
-                                            Id = Guid.Parse(holonData.GetValueOrDefault("Id", Guid.NewGuid().ToString()).ToString()),
+                                            Id = Guid.TryParse(holonData.GetValueOrDefault("Id", "").ToString(), out var holonId) ? holonId : CreateDeterministicGuidFromProviderKey(JsonSerializer.Deserialize<Dictionary<Core.Enums.ProviderType, string>>(holonData.GetValueOrDefault("ProviderUniqueStorageKey", "{}").ToString()) ?? new Dictionary<Core.Enums.ProviderType, string>(), Core.Enums.ProviderType.LocalFileOASIS),
                                             Name = holonData.GetValueOrDefault("Name", "").ToString(),
                                             Description = holonData.GetValueOrDefault("Description", "").ToString(),
                                             HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("HolonType", HolonType.All.ToString()).ToString(), out var holonType) ? holonType : HolonType.All,
@@ -3575,7 +3819,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             {
                                         var holon = new Holon
                                         {
-                                            Id = Guid.Parse(holonData.GetValueOrDefault("Id", Guid.NewGuid().ToString()).ToString()),
+                                            Id = Guid.TryParse(holonData.GetValueOrDefault("Id", "").ToString(), out var holonId) ? holonId : CreateDeterministicGuidFromProviderKey(JsonSerializer.Deserialize<Dictionary<Core.Enums.ProviderType, string>>(holonData.GetValueOrDefault("ProviderUniqueStorageKey", "{}").ToString()) ?? new Dictionary<Core.Enums.ProviderType, string>(), Core.Enums.ProviderType.LocalFileOASIS),
                                             Name = holonData.GetValueOrDefault("Name", "").ToString(),
                                             Description = holonData.GetValueOrDefault("Description", "").ToString(),
                                             HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("HolonType", HolonType.All.ToString()).ToString(), out var holonType) ? holonType : HolonType.All,
@@ -4057,5 +4301,29 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return ExportAllAsync(version).Result;
         } 
         */
+
+        /// <summary>
+        /// Creates a deterministic GUID from ProviderUniqueStorageKey, falling back to provider type if key not available
+        /// </summary>
+        private static Guid CreateDeterministicGuidFromProviderKey(Dictionary<Core.Enums.ProviderType, string> providerKeys, Core.Enums.ProviderType providerType)
+        {
+            var key = providerKeys?.GetValueOrDefault(providerType) 
+                ?? providerKeys?.Values?.FirstOrDefault() 
+                ?? $"LocalFileOASIS:unknown";
+            return CreateDeterministicGuid(key);
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
     }
 }
