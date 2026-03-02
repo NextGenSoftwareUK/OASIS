@@ -50,6 +50,8 @@ static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 /** 1 only after user has run "star beamin" and it succeeded (or async auth callback). Used to gate mint/add so we do not mint shells/shotgun etc. at startup before beamin. */
 static int g_star_beamed_in = 0;
+/** 1 after we have called star_api_refresh_avatar_xp() once for this beam-in; reset on beam out so we only hit the endpoint once per login. */
+static int g_star_refresh_xp_called_this_session = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
@@ -645,7 +647,10 @@ static void OQ_OnAuthDone(void* user_data) {
             Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
         OQ_ApplyBeamFacePreference();
-        star_api_refresh_avatar_xp();
+        if (!g_star_refresh_xp_called_this_session) {
+            g_star_refresh_xp_called_this_session = 1;
+            star_api_refresh_avatar_xp();
+        }
         g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
         g_inventory_last_refresh = 0.0;
@@ -2119,19 +2124,7 @@ void OQuake_STAR_PollItems(void) {
         g_oq_reapply_json_frames--;
     }
 
-    /* One-time delayed XP refresh ~3s after beam-in so HUD shows correct XP if API was slow or format differs. */
-    {
-        static int xp_refresh_delay = 0;
-        static int xp_refresh_done = 0;
-        if (g_star_beamed_in && !xp_refresh_done) {
-            if (xp_refresh_delay < 180)  /* ~3 sec at 60 fps */
-                xp_refresh_delay++;
-            else {
-                star_api_refresh_avatar_xp();
-                xp_refresh_done = 1;
-            }
-        }
-    }
+    /* XP refresh is done once in auth-done or API-key path; no delayed second call. */
 
     if (!sv.active || cls.demoplayback) {
         poll_prev_items = (unsigned int)cl.items;
@@ -2526,7 +2519,10 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            star_api_refresh_avatar_xp();
+            if (!g_star_refresh_xp_called_this_session) {
+                g_star_refresh_xp_called_this_session = 1;
+                star_api_refresh_avatar_xp();
+            }
             g_star_beamed_in = 1;
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
@@ -2551,6 +2547,7 @@ void OQuake_STAR_Console_f(void) {
         star_api_cleanup();
         g_star_initialized = 0;
         g_star_beamed_in = 0;
+        g_star_refresh_xp_called_this_session = 0;  /* Next beam-in will call refresh once. */
         g_star_username[0] = 0;
         Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
         Con_Printf("Logged out (beamout). Use 'star beamin' to log in again.\n");

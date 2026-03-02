@@ -891,6 +891,13 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
+    /// <summary>Returns the cached avatar ID (set by AuthenticateAsync or init with api_key+avatar_id). Used by star_api_get_avatar_id to avoid a second GET when the game then calls refresh XP.</summary>
+    public string? GetCachedAvatarId()
+    {
+        lock (_stateLock)
+            return _avatarId;
+    }
+
     /// <summary>Refresh XP cache from API via GET /api/avatar/current (server returns avatar with AvatarDetail.XP). Call once after beam-in.</summary>
     public void RefreshAvatarXp()
     {
@@ -3990,14 +3997,16 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        // Get avatar_id by calling GetCurrentAvatarAsync which will ensure it's set
-        var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
-        if (result.IsError || result.Result is null)
+        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_xp().
+        string? avatarId = client.GetCachedAvatarId();
+        if (string.IsNullOrWhiteSpace(avatarId))
         {
-            return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
+            // Not set yet (e.g. rare path); resolve from API
+            var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
+            if (result.IsError || result.Result is null)
+                return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
+            avatarId = result.Result.Id.ToString();
         }
-
-        var avatarId = result.Result.Id.ToString();
         if (string.IsNullOrWhiteSpace(avatarId))
             return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized);
 
