@@ -1954,6 +1954,7 @@ void OQuake_STAR_OnEntityFreed(void* ed) {
     ed_classname = PR_GetString(((edict_t*)ed)->v.classname);
     if (!ed_classname || strncmp(ed_classname, "monster_", 8) != 0)
         return;
+    Con_Printf("OQuake STAR: monster freed: %s (hook reached, queuing)\n", ed_classname);
     OQuake_STAR_OnMonsterKilled(ed_classname);
 }
 
