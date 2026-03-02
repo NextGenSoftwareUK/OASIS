@@ -59,7 +59,7 @@ if /i not "%~1"=="run" (
     set /p "BUILD_CHOICE=  Full clean/rebuild [C] or incremental build [I]? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
-if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
+if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1" & set "BUILD_STAR_CLIENT=1"
 if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
