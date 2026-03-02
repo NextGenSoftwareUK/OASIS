@@ -106,6 +106,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 int star_api_consume_last_background_error(char* buf, size_t size);
 /** Consume one STAR log message for the game console. Returns 1 if a message was copied to buf, 0 otherwise. Call from game pump each frame. */
 int star_api_consume_console_log(char* buf, size_t size);
+/** Append a line to star_api.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
+void star_api_log_to_file(const char* message);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus

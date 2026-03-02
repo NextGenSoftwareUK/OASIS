@@ -699,12 +699,13 @@ void ODOOM_InventoryInputCaptureFrame(void)
 {
 	star_sync_pump();
 
-	/* One-time message so you can confirm this build has the door-check code (E on door logs "[ODOOM STAR door v2]"). */
+	/* One-time message so you can confirm this build has the door-check code (E on door logs "[ODOOM STAR door v2]"). Also write to star_api.log for pasting. */
 	{
 		static bool door_v2_printed = false;
 		if (g_star_initialized && !door_v2_printed) {
 			door_v2_printed = true;
 			Printf(PRINT_HIGH, "[ODOOM STAR] door check v2 active (E on locked door will log)\n");
+			star_api_log_to_file("[ODOOM STAR] door check v2 active (E on locked door will log)");
 		}
 	}
 
@@ -1274,6 +1275,11 @@ static void StarLogInfo(const char* fmt, ...) {
 	va_end(args);
 	std::printf("STAR API: %s\n", msg);
 	Printf(PRINT_NONOTIFY, TEXTCOLOR_GREEN "STAR API: %s\n", msg);
+	if (g_star_debug_logging) {
+		char buf[1100];
+		std::snprintf(buf, sizeof(buf), "STAR API: %s", msg);
+		star_api_log_to_file(buf);
+	}
 }
 
 static void StarLogError(const char* fmt, ...) {
@@ -1284,6 +1290,11 @@ static void StarLogError(const char* fmt, ...) {
 	va_end(args);
 	std::printf("STAR API ERROR: %s\n", msg);
 	Printf(PRINT_NONOTIFY, TEXTCOLOR_RED "STAR API ERROR: %s\n", msg);
+	{
+		char buf[1100];
+		std::snprintf(buf, sizeof(buf), "STAR API ERROR: %s", msg);
+		star_api_log_to_file(buf);
+	}
 }
 
 static void StarLogRuntimeAuthFailureOnce(const char* reason) {
@@ -1705,8 +1716,13 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	/* Only Doom keycard doors (1-4). Engine may call with many keynums; only handle 1-4 (no log for >4 to avoid spam). */
 	if (keynum > 4) return 0;
 
-	/* Unconditional log when E is pressed on a door so we can confirm this code path is in the binary and being called. */
-	Printf(PRINT_HIGH, "[ODOOM STAR door v2] E on door keynum=%d\n", keynum);
+	/* Unconditional log when E is pressed on a door; also write to star_api.log so user can paste. */
+	{
+		char buf[128];
+		std::snprintf(buf, sizeof(buf), "[ODOOM STAR door v2] E on door keynum=%d", keynum);
+		Printf(PRINT_HIGH, "%s\n", buf);
+		star_api_log_to_file(buf);
+	}
 
 	if (!StarTryInitializeAndAuthenticate(false)) {
 		if (g_star_debug_logging)
@@ -1719,6 +1735,24 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!ODOOM_STAR_HasKeycard(keynum, &keyname)) {
 		if (g_star_debug_logging)
 			StarLogInfo("Door check: no key in STAR for keynum=%d", keynum);
+		/* Log to star_api.log so user can paste: get_inventory count and first few item names to see why match failed. */
+		star_item_list_t* list = nullptr;
+		star_api_result_t r = star_api_get_inventory(&list);
+		if (r == STAR_API_SUCCESS && list && list->items) {
+			char buf[512];
+			std::snprintf(buf, sizeof(buf), "door keynum=%d no key; get_inventory count=%zu", keynum, (size_t)list->count);
+			star_api_log_to_file(buf);
+			for (size_t i = 0; i < list->count && i < 5; i++) {
+				std::snprintf(buf, sizeof(buf), "  item[%zu] name=\"%s\"", i, list->items[i].name);
+				star_api_log_to_file(buf);
+			}
+			star_api_free_item_list(list);
+		} else {
+			char buf[256];
+			const char* err = star_api_get_last_error();
+			std::snprintf(buf, sizeof(buf), "door keynum=%d no key; get_inventory failed result=%d err=%s", keynum, (int)r, err ? err : "");
+			star_api_log_to_file(buf);
+		}
 		return 0;
 	}
 
@@ -1727,6 +1761,11 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
 	if (g_star_debug_logging)
 		StarLogInfo("Door check: OPENED keynum=%d with \"%s\"", keynum, keyname ? keyname : "(null)");
+	{
+		char buf[256];
+		std::snprintf(buf, sizeof(buf), "door keynum=%d OPENED with \"%s\"", keynum, keyname ? keyname : "(null)");
+		star_api_log_to_file(buf);
+	}
 	return 1;
 }
 
