@@ -507,5 +507,90 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.False(removeResult.IsError);
     }
 
+    /// <summary>AddXp with positive amount must call real API and update GetCachedAvatarXp() when server returns newTotal.</summary>
+    [Fact]
+    public async Task AddXpAsync_WithPositiveAmount_UpdatesCache()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        if (_useFakeServer)
+            Assert.False(client.SetApiKey("local-api-key", "11111111-1111-1111-1111-111111111111").IsError);
+        else
+        {
+            var auth = await client.AuthenticateAsync(GetEnv("STARAPI_USERNAME", StarApiTestDefaults.Username), GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password));
+            Assert.False(auth.IsError);
+        }
+
+        var add10 = await client.AddXpAsync(10);
+        Assert.False(add10.IsError, add10.Message ?? "AddXpAsync(10) failed");
+        Assert.True(add10.Result >= 0);
+        Assert.Equal(add10.Result, client.GetCachedAvatarXp());
+
+        var add5 = await client.AddXpAsync(5);
+        Assert.False(add5.IsError, add5.Message ?? "AddXpAsync(5) failed");
+        Assert.True(add5.Result >= 0);
+        Assert.Equal(add5.Result, client.GetCachedAvatarXp());
+
+        if (_useFakeServer && _web5Server is not null)
+        {
+            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+            Assert.True(_web5Server.HitCount("POST", "/api/avatar/add-xp") >= 2);
+        }
+    }
+
+    /// <summary>AddXp(0) must call real API and update cache when server returns newTotal (refresh path used after beam-in).</summary>
+    [Fact]
+    public async Task AddXpAsync_WithZero_UpdatesCacheFromNewTotal()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        if (_useFakeServer)
+            Assert.False(client.SetApiKey("local-api-key", "11111111-1111-1111-1111-111111111111").IsError);
+        else
+        {
+            var auth = await client.AuthenticateAsync(GetEnv("STARAPI_USERNAME", StarApiTestDefaults.Username), GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password));
+            Assert.False(auth.IsError);
+        }
+
+        var addSome = await client.AddXpAsync(1);
+        Assert.False(addSome.IsError, addSome.Message ?? "AddXpAsync(1) failed");
+        var expectedTotal = addSome.Result;
+
+        var refresh = await client.AddXpAsync(0);
+        Assert.False(refresh.IsError, refresh.Message ?? "AddXpAsync(0) refresh failed");
+        Assert.Equal(expectedTotal, refresh.Result);
+        Assert.Equal(expectedTotal, client.GetCachedAvatarXp());
+
+        if (_useFakeServer && _web5Server is not null)
+            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+    }
+
+    /// <summary>RefreshAvatarXp() must call real API; cache must match server newTotal once the async call completes.</summary>
+    [Fact]
+    public async Task RefreshAvatarXp_UpdatesCacheWhenServerReturnsNewTotal()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        if (_useFakeServer)
+            Assert.False(client.SetApiKey("local-api-key", "11111111-1111-1111-1111-111111111111").IsError);
+        else
+        {
+            var auth = await client.AuthenticateAsync(GetEnv("STARAPI_USERNAME", StarApiTestDefaults.Username), GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password));
+            Assert.False(auth.IsError);
+        }
+
+        await client.AddXpAsync(1);
+        var afterAdd = client.GetCachedAvatarXp();
+
+        client.RefreshAvatarXp();
+        await Task.Delay(1500);
+        var afterRefresh = client.GetCachedAvatarXp();
+        Assert.True(afterRefresh >= 0, "GetCachedAvatarXp() should be non-negative after RefreshAvatarXp");
+        Assert.Equal(afterAdd, afterRefresh);
+
+        if (_useFakeServer && _web5Server is not null)
+            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+    }
+
 }
 

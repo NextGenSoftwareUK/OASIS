@@ -441,15 +441,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Add experience points to the authenticated avatar (e.g. from game actions like killing monsters). Forwards to WEB4 OASIS API.
+        /// Add experience points to the authenticated avatar (e.g. from game actions like killing monsters). Amount 0 is allowed (returns current XP without change; used to refresh cache after beam-in). Forwards to WEB4 OASIS API.
         /// </summary>
         [HttpPost("add-xp")]
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AddXp([FromBody] AddXpRequest request)
         {
-            if (request == null || request.Amount <= 0)
-                return BadRequest(new OASISResult<string> { IsError = true, Message = "Amount must be a positive integer." });
+            if (request == null || request.Amount < 0)
+                return BadRequest(new OASISResult<string> { IsError = true, Message = "Amount must be a non-negative integer." });
             var json = System.Text.Json.JsonSerializer.Serialize(request);
             var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
             return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/add-xp", content);
