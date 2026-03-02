@@ -84,7 +84,7 @@ star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* targe
 void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
 /** Get cached avatar XP (from last get-current-avatar or add-xp). Returns 1 on success, 0 otherwise. */
 int star_api_get_avatar_xp(int* xp_out);
-/** Trigger background refresh of avatar XP (e.g. after beam-in). */
+/** Refresh avatar XP from API (GET /api/avatar/current; server returns avatar with XP). Call once after beam-in. */
 void star_api_refresh_avatar_xp(void);
 /** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
 void star_api_refresh_avatar_xp_blocking(void);

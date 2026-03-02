@@ -339,8 +339,8 @@ public sealed class StarApiClient : IDisposable
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            /* Call refresh XP so we get both GET avatar/current and add-xp(0) results in console. */
-            RefreshAvatarXp();
+            /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler; only one refresh to avoid duplicate add-xp. */
+            /* RefreshAvatarXp(); */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
             InvokeCallback(StarApiResultCode.Success);
@@ -372,8 +372,8 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        /* Call refresh XP so we get both GET avatar/current and add-xp(0) results in console. */
-        RefreshAvatarXp();
+        /* Game calls star_api_refresh_avatar_xp() after beam-in; only one refresh to avoid duplicate add-xp. */
+        /* RefreshAvatarXp(); */
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
@@ -891,7 +891,7 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
-    /// <summary>Refresh XP cache from API after beam-in. Calls both GET /api/avatar/current and add-xp(0); logs both results to console so you can see which works. Cache is updated from whichever succeeds.</summary>
+    /// <summary>Refresh XP cache from API via GET /api/avatar/current (server returns avatar with AvatarDetail.XP). Call once after beam-in.</summary>
     public void RefreshAvatarXp()
     {
         if (!IsInitialized())
@@ -899,25 +899,13 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.StarApiLog("[XP refresh] skipped (not initialized)");
             return;
         }
-        StarApiExports.StarApiLog("[XP refresh] calling refresh XP endpoint (GET /api/avatar/current) and add-xp(0); results below.");
         _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
         {
-            StarApiExports.StarApiLog("[XP refresh] GET /api/avatar/current (refresh XP endpoint) ...");
             var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
             if (result.IsError)
                 StarApiExports.StarApiLog($"[XP refresh GET avatar/current] failed: {result.Message}");
             else
                 StarApiExports.StarApiLog($"[XP refresh GET avatar/current] OK XP={result.Result?.XP ?? 0} (cache updated)");
-            return result;
-        }, CancellationToken.None);
-        _ = RunOnBackgroundAsync<int>(async ct =>
-        {
-            StarApiExports.StarApiLog("[XP refresh] POST add-xp(0) ...");
-            var result = await AddXpAsync(0, ct).ConfigureAwait(false);
-            if (result.IsError)
-                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] failed: {result.Message}");
-            else
-                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] OK newTotal={result.Result} (cache updated)");
             return result;
         }, CancellationToken.None);
     }

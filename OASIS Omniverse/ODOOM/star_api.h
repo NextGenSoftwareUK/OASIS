@@ -93,7 +93,7 @@ void star_api_queue_add_xp(int amount);
 void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
 /** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
 int star_api_get_avatar_xp(int* xp_out);
-/** Refresh avatar profile (including XP) from API. Call after beam-in so HUD shows correct XP immediately. Non-blocking (queued). */
+/** Refresh avatar XP from API (GET /api/avatar/current; server returns avatar with XP). Call once after beam-in. */
 void star_api_refresh_avatar_xp(void);
 /** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
 void star_api_refresh_avatar_xp_blocking(void);
