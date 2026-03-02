@@ -4045,6 +4045,7 @@ public static unsafe class StarApiExports
     }
 
     private static readonly object LogLock = new();
+
     internal static void StarApiLog(string message)
     {
         var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] {message}";
@@ -4059,6 +4060,25 @@ public static unsafe class StarApiExports
         }
         catch { /* ignore file write errors */ }
         EnqueueConsoleLog(message);
+    }
+
+    /// <summary>Append a line to star_api.log so game (e.g. Doom) door-check and debug messages appear in the same log for pasting.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_log_to_file", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiLogToFile(sbyte* message)
+    {
+        var msg = PtrToString(message);
+        if (string.IsNullOrWhiteSpace(msg)) return;
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [ODOOM] {msg}";
+        Trace.WriteLine(line);
+        try
+        {
+            var dir = Environment.CurrentDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var path = Path.Combine(dir, "star_api.log");
+            lock (LogLock)
+                File.AppendAllText(path, line + Environment.NewLine);
+        }
+        catch { /* ignore */ }
     }
 
     private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)
