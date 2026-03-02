@@ -288,44 +288,54 @@ if (Test-Path $aKeysCpp) {
         $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
         $akChanged = $true
     }
-    # Insert STAR check: when quiet (status bar/HUD probe) use PlayerHasKey so keys from STAR show; when !quiet use CheckDoorAccess for door open + use.
+    # Insert STAR check: when !quiet (E on door) run CheckDoorAccess FIRST so we always log; when quiet (HUD) do engine key then PlayerHasKey.
     $starBlockOld = '\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(!quiet && UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*#endif'
     $starBlockNew = @'
 
 #ifdef OASIS_STAR_API
 	if (quiet) {
+		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
 	} else {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+		if (lock->check(owner)) return true;
 	}
 #endif
 '@
+    # Repair: if already patched with OLD order (lock->check before #ifdef), replace with new order (STAR first when !quiet) so E on door always logs.
+    $oldOrderPattern = '(?ms)^\s*if \(lock->check\(owner\)\) return true;\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(quiet\) \{\r?\n\s*if \(UZDoom_STAR_PlayerHasKey\(keynum\)\) return true;\r?\n\s*\} else \{\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*\}\r?\n\s*#endif(\r?\n\s*if \(quiet\) return false;)'
+    $newOrderBlock = "#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`$1"
+    if ($akContent -match $oldOrderPattern) {
+        $akContent = $akContent -replace $oldOrderPattern, $newOrderBlock
+        $akChanged = $true
+    }
     if ($akContent -notmatch 'UZDoom_STAR_PlayerHasKey') {
         # Replace existing STAR block with extended one (door + HUD), or insert if missing.
         if ($akContent -match $starBlockOld) {
             $akContent = $akContent -replace $starBlockOld, $starBlockNew
             $akChanged = $true
         } else {
-            # STAR block must sit between "if (lock->check(owner)) return true;" and "if (quiet) return false;" so E on door runs CheckDoorAccess.
-            # Try multiple patterns: with/without leading space (UZDoom uses one space before both lines), tabs, \r\n.
+            # STAR block: when !quiet (player E on door) run CheckDoorAccess FIRST so we always log and can open via STAR; then engine key. When quiet (HUD) do engine then PlayerHasKey.
             $newBlockNoLead = @'
-if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
 	if (quiet) {
+		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
 	} else {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+		if (lock->check(owner)) return true;
 	}
 #endif
 	if (quiet) return false;
 '@
             $newBlockWithLead = @'
- if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
 	if (quiet) {
+		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
 	} else {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+		if (lock->check(owner)) return true;
 	}
 #endif
 	if (quiet) return false;
@@ -346,24 +356,27 @@ if (lock->check(owner)) return true;
                 $akContent = $akContent -replace '\s+if \(lock->check\(owner\)\) return true;[\r\n]+\s+if \(quiet\) return false;', $newBlockWithLead
                 $akChanged = $true; $patched = $true
             }
-            # Fallback: single replace that captures indentation so we preserve it
+            # Fallback: single replace that captures indentation so we preserve it (STAR first when !quiet)
+            $fallbackRepl = "`$1#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`r`n`$3if (quiet) return false;"
             if (-not $patched -and $akContent -match '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;') {
-                $akContent = $akContent -replace '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;', "`$1if (lock->check(owner)) return true;`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3if (quiet) return false;"
+                $akContent = $akContent -replace '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;', $fallbackRepl
                 $akChanged = $true; $patched = $true
             }
             if (-not $patched -and $akContent -match 'lock->check\(owner\)' -and $akContent -notmatch 'UZDoom_STAR') {
-                # Last resort: insert STAR block on line after lock->check (match any line endings)
-                $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', "`$1`$2#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
+                # Last resort: insert STAR block (STAR first when !quiet)
+                $lastResortRepl = "#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
+                $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', $lastResortRepl
                 $akChanged = $true
             }
-            # Literal replace: shared STAR block used for both tab- and space-indent sources (define before flexible/literal use)
+            # Literal replace: STAR first when !quiet so E on door always hits CheckDoorAccess (and logs)
             $literalNew = @"
- if (lock->check(owner)) return true;
 #ifdef OASIS_STAR_API
 	if (quiet) {
+		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
 	} else {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
+		if (lock->check(owner)) return true;
 	}
 #endif
 	if (quiet) return false;
@@ -686,5 +699,11 @@ if ((Test-Path $lwH) -and (Test-Path $lwCpp)) {
         $cppContent = $cppContent -replace '(#include "version\.h")', "`$1`r`n#ifdef _WIN32`r`n#define NOMINMAX`r`n#include <windows.h>`r`n#include <string>`r`n#endif"
         Set-Content -Path $lwCpp -Value $cppContent -NoNewline
     }
+}
+
+# Verify a_keys.cpp has STAR door block so E on door logs and checks STAR inventory
+$verifyScript = Join-Path $odoomRoot "Scripts\verify_a_keys_patch.ps1"
+if (Test-Path $verifyScript) {
+    & $verifyScript -UZDOOM_SRC $src
 }
 

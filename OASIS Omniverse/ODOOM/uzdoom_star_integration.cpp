@@ -1776,9 +1776,15 @@ int UZDoom_STAR_PlayerHasKey(int keynum) {
 	return ODOOM_STAR_HasKeycard(keynum, nullptr) ? 1 : 0;
 }
 
-/** Called from a_doors.cpp EV_DoDoor before P_CheckKeys. No log here to avoid spam (EV_DoDoor can fire many times); the actual door-use log is in UZDoom_STAR_CheckDoorAccess ("[ODOOM STAR door v2] E on door keynum=..."). */
+/** Called from a_doors.cpp EV_DoDoor before P_CheckKeys. Log once per lock value to star_api.log so we can tell if E on door reaches EV_DoDoor (if you see this but no "door v2 E on door", a_keys.cpp is not patched). */
 void ODOOM_STAR_LogEvDoDoorLock(int lock) {
-	(void)lock;
+	if (lock < 1 || lock > 4) return;
+	static bool logged_lock[5] = {false};
+	if (logged_lock[lock]) return;
+	logged_lock[lock] = true;
+	char buf[80];
+	std::snprintf(buf, sizeof(buf), "[ODOOM STAR] EV_DoDoor lock=%d (before P_CheckKeys)", lock);
+	star_api_log_to_file(buf);
 }
 
 void UZDoom_STAR_OnBossKilled(const char* boss_name) {

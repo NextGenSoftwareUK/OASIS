@@ -55,6 +55,8 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx);
 void OQuake_STAR_OnMonsterKilled(const char* monster_name);
 /** Call from engine or QuakeC when a boss is killed (same as OnMonsterKilled; kept for backward compat). */
 void OQuake_STAR_OnBossKilled(const char* boss_name);
+/** Safe hook for ED_Free: call from engine before ED_Free(ent). Only reports monster kills when sv.active && !demoplayback; no PR_GetString in engine. Pass entity pointer (edict_t*). */
+void OQuake_STAR_OnEntityFreed(void* ed);
 
 #ifdef __cplusplus
 }

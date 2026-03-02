@@ -1,12 +1,14 @@
 <#
 .SYNOPSIS
-  Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, and the build (like ODOOM: full automation).
+  Copies OQuake + STAR files into vkQuake and patches host.c, pr_ext.c, sbar.c, gl_screen.c, pr_edict.c/pr_cx.c (monster kill hook), and the build (like ODOOM: full automation).
   Invoked by BUILD_OQUAKE.bat. Manual: .\apply_oquake_to_vkquake.ps1 -VkQuakeSrc "C:\Source\vkQuake"
+  Use -RevertMonsterHook to remove the ED_Free monster hook (no XP/NFT on kill; use if you get host/program errors).
 #>
 param(
     [string]$VkQuakeSrc = $env:VKQUAKE_SRC,
     [string]$QuakeInstallDir = "C:\Program Files (x86)\Steam\steamapps\common\Quake",
-    [switch]$SkipQuakeInstallPrompt
+    [switch]$SkipQuakeInstallPrompt,
+    [switch]$RevertMonsterHook
 )
 
 $ErrorActionPreference = "Stop"
@@ -280,7 +282,54 @@ if (Test-Path $SbarC) {
     }
 }
 
-# --- Monster kill hook REMOVED (reverted to last good build). Strip any existing hook from vkQuake so no host/program error on new game. ---
+# --- Monster kill hook: add when missing (XP + NFT on kill), or strip when -RevertMonsterHook. Safe path: engine only calls OQuake_STAR_OnEntityFreed(ent); integration does PR_GetString + sv.active/demoplayback guards. ---
+# Repair: preprocessor must start in column 0 (MSVC C2014). Fix already-patched files that have indented #ifdef/#endif.
+function Repair-MonsterHookPreprocessor {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_edict.c' -and $FileLabel -ne 'pr_cx.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    # Preprocessor must start in column 0 (MSVC C2014). Fix #ifdef/#endif that are indented or on same line as other code.
+    if ($content -notmatch '\s+#ifdef\s+OASIS_STAR_API|OQuake_STAR_OnEntityFreed') { return $false }
+    $orig = $content
+    # Pass 1: ensure #ifdef OASIS_STAR_API is always at column 0 (fix "if (!init)\t\t#ifdef" or "\t#ifdef")
+    $content = $content -replace '\s+#ifdef\s+OASIS_STAR_API', "`r`n#ifdef OASIS_STAR_API"
+    # Pass 2: ensure #endif that follows OQuake_STAR_OnEntityFreed is at column 0
+    $content = $content -replace '(OQuake_STAR_OnEntityFreed\s*\(\s*\w+\s*\)\s*;\s*)\r?\n\s+#endif', "`$1`r`n#endif"
+    # Pass 3: fix full block when #ifdef was on its own indented line (original pattern)
+    $content = $content -replace '(?m)^(\s+)#ifdef\s+OASIS_STAR_API\s*\r?\n\s+OQuake_STAR_OnEntityFreed\s*\(\s*(\w+)\s*\)\s*;\s*\r?\n\s+#endif', "`r`n#ifdef OASIS_STAR_API`r`n`tOQuake_STAR_OnEntityFreed(`$2);`r`n#endif"
+    if ($content -eq $orig) { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Repaired ${FileLabel}: preprocessor at column 0 (fix C2014/C1020)" -ForegroundColor Green
+    return $true
+}
+function Add-MonsterHookToFile {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_edict.c' -and $FileLabel -ne 'pr_cx.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    # If hook present but with indented preprocessor, repair instead of skipping
+    if ($content -match '\s+#ifdef\s+OASIS_STAR_API' -and $content -match 'OQuake_STAR_OnEntityFreed') {
+        return Repair-MonsterHookPreprocessor -FilePath $FilePath -FileLabel $FileLabel
+    }
+    if ($content -match 'OQuake_STAR_OnEntityFreed|OQuake_STAR_OnMonsterKilled') { return $false }
+    if ($content -notmatch 'ED_Free\s*\(\s*\w+\s*\)') { return $false }
+    # Add include so OQuake_STAR_OnEntityFreed is declared
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        if ($content -notmatch 'oquake_star_integration\.h') {
+            $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        }
+    }
+    # Replace each ED_Free(ent); with single safe call + ED_Free. Preprocessor (#ifdef/#endif) must start in column 0 for MSVC (C2014).
+    $repl = "`r`n#ifdef OASIS_STAR_API`r`n`$1OQuake_STAR_OnEntityFreed(`$3);`r`n#endif`r`n`$1`$2`$3`$4"
+    $content = $content -replace '(\s*)(ED_Free\s*\(\s*)(\w+)(\s*\)\s*;)', $repl
+    if ($content -notmatch 'OQuake_STAR_OnEntityFreed') { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched ${FileLabel}: added ED_Free monster hook (safe: OQuake_STAR_OnEntityFreed, guards in integration)" -ForegroundColor Green
+    return $true
+}
+
 function Remove-MonsterHookFromFile {
     param([string]$FilePath, [string]$FileLabel)
     if (-not (Test-Path $FilePath)) { return $false }
@@ -291,7 +340,9 @@ function Remove-MonsterHookFromFile {
     $orig = $content
     # Strip patterns (avoid [^)] in regex - use [^\)]+ so .NET accepts). Run each in try/catch in case engine differs.
     $stripPatterns = @(
+        @{ re = '(?ms)\s*#ifdef\s+OASIS_STAR_API\s*\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*\w+\s*\)\s*;\s*\r?\n\s*#endif\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' },
         @{ re = '(?ms)\s*\{\s*\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*\w+\s*\)\s*;\s*\r?\n\s*\}\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' },
+        @{ re = '(?ms)\s*#ifdef\s+OASIS_STAR_API\s*\r?\n\s*\{\s*\r?\n\s*const\s+char\s+\*ed_classname\s*=\s*PR_GetString\s*\(\s*\w+->v\.classname\s*\)\s*;\s*\r?\n\s*if\s*\(\s*ed_classname\s*&&\s*strncmp\s*\(\s*ed_classname\s*,\s*"monster_"\s*,\s*8\s*\)\s*==\s*0\s*\)\s*\r?\n\s*OQuake_STAR_OnMonsterKilled\s*\(\s*ed_classname\s*\)\s*;\s*\r?\n\s*\}\s*\r?\n\s*#endif\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' },
         @{ re = '(?ms)\s*\{\s*\r?\n\s*const\s+char\s+\*cls\s*=\s*PR_GetString\s*\(\s*\w+->v\.classname\s*\)\s*;\s*\r?\n\s*if\s*\(\s*cls\s*&&\s*strncmp\s*\(\s*cls\s*,\s*"monster_"\s*,\s*8\s*\)\s*==\s*0\s*\)\s*\r?\n\s*OQuake_STAR_OnMonsterKilled\s*\(\s*cls\s*\)\s*;\s*\r?\n\s*\}\s*\r?\n(\s*ED_Free\s*\(\s*\w+\s*\)\s*;)'; repl = '$1' }
     )
     foreach ($p in $stripPatterns) {
@@ -335,18 +386,40 @@ function Remove-MonsterHookFromFile {
     Write-Host "[OQuake] WARNING: ${FileLabel} still contains OQuake_STAR monster hook - strip did not match. Restore from vkQuake repo: git checkout Quake/${FileLabel}" -ForegroundColor Yellow
     return $false
 }
-foreach ($cFile in @("pr_cx.c", "pr_edict.c")) {
-    $path = Join-Path $QuakeDir $cFile
-    if (Remove-MonsterHookFromFile -FilePath $path -FileLabel $cFile) {
-        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+
+if ($RevertMonsterHook) {
+    foreach ($cFile in @("pr_cx.c", "pr_edict.c")) {
+        $path = Join-Path $QuakeDir $cFile
+        if (Remove-MonsterHookFromFile -FilePath $path -FileLabel $cFile) {
+            foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+                if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            }
         }
     }
-}
-Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
-    if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
+    Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
+        if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
+            foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+                if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            }
+        }
+    }
+} else {
+    # Repair preprocessor (column 0) in BOTH files first so C2014/C1020 are fixed in pr_edict.c and pr_cx.c
+    foreach ($cFile in @("pr_cx.c", "pr_edict.c")) {
+        $path = Join-Path $QuakeDir $cFile
+        Repair-MonsterHookPreprocessor -FilePath $path -FileLabel $cFile | Out-Null
+    }
+    $monsterHookAdded = $false
+    foreach ($cFile in @("pr_cx.c", "pr_edict.c")) {
+        $path = Join-Path $QuakeDir $cFile
+        if (Add-MonsterHookToFile -FilePath $path -FileLabel $cFile) {
+            $monsterHookAdded = $true
+            break
+        }
+    }
+    if ($monsterHookAdded) {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (monster hook added)" -ForegroundColor Yellow; break }
         }
     }
 }
