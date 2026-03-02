@@ -339,7 +339,7 @@ public sealed class StarApiClient : IDisposable
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            /* Queue XP refresh using same add-xp(0) path as monster kill; cache updates when response returns (no UI block). */
+            /* Call refresh XP so we get both GET avatar/current and add-xp(0) results in console. */
             RefreshAvatarXp();
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
@@ -372,7 +372,7 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        /* Refresh XP using same add-xp(0) path as monster kill (async, no block). */
+        /* Call refresh XP so we get both GET avatar/current and add-xp(0) results in console. */
         RefreshAvatarXp();
 
         InvokeCallback(StarApiResultCode.Success);
@@ -834,17 +834,17 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
             if (amount == 0)
-                StarApiExports.StarApiLog($"XP refresh: POST add-xp amount=0 url={url}");
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] POST url={url}");
             var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
             var rawPreview = response.Result != null && response.Result.Length > 0
                 ? (response.Result.Length <= 400 ? response.Result : response.Result[..400] + "...")
                 : "(null or empty)";
             if (amount == 0)
-                StarApiExports.StarApiLog($"XP refresh: response IsError={response.IsError} body={rawPreview}");
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] response IsError={response.IsError} body={rawPreview}");
             if (response.IsError)
             {
                 if (amount == 0)
-                    StarApiExports.StarApiLog($"XP refresh: add-xp failed message={response.Message}");
+                    StarApiExports.StarApiLog($"[XP refresh add-xp(0)] failed: {response.Message}");
                 return FailAndCallback<int>(response.Message ?? "Add XP failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
             }
 
@@ -852,26 +852,26 @@ public sealed class StarApiClient : IDisposable
             if (!parseResult)
             {
                 if (amount == 0)
-                    StarApiExports.StarApiLog($"XP refresh: parse failed code={parseErrorCode} message={parseErrorMessage}");
+                    StarApiExports.StarApiLog($"[XP refresh add-xp(0)] parse failed: {parseErrorMessage}");
                 return FailAndCallback<int>(parseErrorMessage, parseErrorCode);
             }
 
             var newTotal = GetIntProperty(resultElement, "newTotal") ?? GetIntProperty(resultElement, "NewTotal")
                 ?? GetIntProperty(resultElement, "xp") ?? GetIntProperty(resultElement, "XP");
             if (amount == 0)
-                StarApiExports.StarApiLog($"XP refresh: parsed newTotal={newTotal?.ToString() ?? "null"} (looking for newTotal/NewTotal/xp/XP)");
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] parsed newTotal={newTotal?.ToString() ?? "null"}");
             if (newTotal.HasValue && newTotal.Value >= 0)
             {
                 Volatile.Write(ref _cachedAvatarXp, newTotal.Value);
                 if (amount == 0)
-                    StarApiExports.StarApiLog($"XP refresh: cachedAvatarXp updated to {newTotal.Value}");
+                    StarApiExports.StarApiLog($"[XP refresh add-xp(0)] cache updated to {newTotal.Value}");
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(newTotal.Value, StarApiResultCode.Success, amount == 0 ? "XP refreshed." : "XP added.");
             }
             /* No newTotal in response: assume current + amount (skip when amount is 0). */
             if (amount == 0)
             {
-                StarApiExports.StarApiLog($"XP refresh: no newTotal in response; cache stays at {Volatile.Read(ref _cachedAvatarXp)}");
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] no newTotal in response; cache stays at {Volatile.Read(ref _cachedAvatarXp)}");
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(Volatile.Read(ref _cachedAvatarXp), StarApiResultCode.Success, "XP refresh (no newTotal in response).");
             }
@@ -883,7 +883,7 @@ public sealed class StarApiClient : IDisposable
         catch (Exception ex)
         {
             if (amount == 0)
-                StarApiExports.StarApiLog($"XP refresh: exception {ex.GetType().Name} {ex.Message}");
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] exception: {ex.Message}");
             return FailAndCallback<int>($"Add XP failed: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -891,27 +891,35 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
-    /// <summary>Refresh XP cache from API. Temp: use add-xp(0) (same path as monster kill; client check removed so server may accept). GET avatar/current path commented out for now.</summary>
+    /// <summary>Refresh XP cache from API after beam-in. Calls both GET /api/avatar/current and add-xp(0); logs both results to console so you can see which works. Cache is updated from whichever succeeds.</summary>
     public void RefreshAvatarXp()
     {
         if (!IsInitialized())
         {
-            StarApiExports.StarApiLog("XP refresh: skipped (not initialized)");
+            StarApiExports.StarApiLog("[XP refresh] skipped (not initialized)");
             return;
         }
-        // Temp: add-xp(0) so Quake XP shows after beam-in (refresh path was staying 0)
-        StarApiExports.StarApiLog("XP refresh: queuing add-xp(0) on background");
-        _ = RunOnBackgroundAsync(ct => AddXpAsync(0, ct), CancellationToken.None);
-
-        // GET avatar/current path (commented out until refresh path is fixed):
-        // StarApiExports.StarApiLog("XP refresh: queuing GET avatar/current on background");
-        // _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
-        // {
-        //     var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
-        //     if (!result.IsError && result.Result != null)
-        //         StarApiExports.StarApiLog($"XP refresh: cache updated to {GetCachedAvatarXp()} from avatar/current");
-        //     return result;
-        // }, CancellationToken.None);
+        StarApiExports.StarApiLog("[XP refresh] calling refresh XP endpoint (GET /api/avatar/current) and add-xp(0); results below.");
+        _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
+        {
+            StarApiExports.StarApiLog("[XP refresh] GET /api/avatar/current (refresh XP endpoint) ...");
+            var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
+            if (result.IsError)
+                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] failed: {result.Message}");
+            else
+                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] OK XP={result.Result?.XP ?? 0} (cache updated)");
+            return result;
+        }, CancellationToken.None);
+        _ = RunOnBackgroundAsync<int>(async ct =>
+        {
+            StarApiExports.StarApiLog("[XP refresh] POST add-xp(0) ...");
+            var result = await AddXpAsync(0, ct).ConfigureAwait(false);
+            if (result.IsError)
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] failed: {result.Message}");
+            else
+                StarApiExports.StarApiLog($"[XP refresh add-xp(0)] OK newTotal={result.Result} (cache updated)");
+            return result;
+        }, CancellationToken.None);
     }
 
     /// <summary>Load avatar XP from API and update cache. Blocks until the request completes. Uses add-xp(0) so same code path as monster kill.</summary>

@@ -1750,15 +1750,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         /// Add experience points to the logged-in avatar (e.g. from game actions like killing monsters). Only works for logged-in users.
+        /// Amount 0 is allowed: returns current XP without changing it (used by clients to refresh XP cache after beam-in).
         /// </summary>
-        /// <param name="request">Body with amount (positive integer).</param>
-        /// <returns>New total XP after adding.</returns>
+        /// <param name="request">Body with amount (non-negative integer).</param>
+        /// <returns>New total XP after adding (or current XP if amount is 0).</returns>
         [Authorize]
         [HttpPost("add-xp")]
         public async Task<OASISHttpResponseMessage<AddXpResponse>> AddXp([FromBody] AddXpRequest request)
         {
-            if (request == null || request.Amount <= 0)
-                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Amount must be a positive integer." }, HttpStatusCode.BadRequest);
+            if (request == null || request.Amount < 0)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Amount must be a non-negative integer." }, HttpStatusCode.BadRequest);
 
             var avatarId = Avatar?.Id ?? Guid.Empty;
             if (avatarId == Guid.Empty)
@@ -1769,15 +1770,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = loadResult.Message ?? "Failed to load avatar detail." }, HttpStatusCode.BadRequest);
 
             var detail = loadResult.Result;
-            detail.XP = detail.XP + request.Amount;
-            if (detail.XP < 0)
-                detail.XP = 0;
+            if (request.Amount > 0)
+            {
+                detail.XP = detail.XP + request.Amount;
+                if (detail.XP < 0)
+                    detail.XP = 0;
+                var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
+                if (updateResult.IsError)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = updateResult.Message ?? "Failed to update avatar XP." }, HttpStatusCode.BadRequest);
+            }
 
-            var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
-            if (updateResult.IsError)
-                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = updateResult.Message ?? "Failed to update avatar XP." }, HttpStatusCode.BadRequest);
-
-            var newTotal = (updateResult.Result?.XP ?? detail.XP);
+            var newTotal = detail.XP;
             return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { Result = new AddXpResponse { NewTotal = newTotal }, IsError = false });
         }
 

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests;
 
@@ -15,6 +16,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<string, int> _routeHits = new(StringComparer.OrdinalIgnoreCase);
     private readonly Guid _avatarId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private int _avatarXp;
 
     public FakeStarApiServer()
     {
@@ -127,8 +129,34 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                         Username = "integration_user",
                         Email = "integration@example.com",
                         FirstName = "Integration",
-                        LastName = "User"
+                        LastName = "User",
+                        XP = _avatarXp
                     }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/add-xp")
+            {
+                var body = await ReadBodyAsync(request).ConfigureAwait(false);
+                var amount = 0;
+                if (!string.IsNullOrWhiteSpace(body))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("amount", out var amountEl))
+                            amount = amountEl.GetInt32();
+                    }
+                    catch { /* use 0 */ }
+                }
+                if (amount >= 0)
+                    Interlocked.Add(ref _avatarXp, amount);
+                var newTotal = _avatarXp;
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new { newTotal }
                 }).ConfigureAwait(false);
                 return;
             }
