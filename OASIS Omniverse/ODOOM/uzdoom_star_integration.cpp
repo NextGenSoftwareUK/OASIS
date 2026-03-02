@@ -66,6 +66,8 @@ static bool g_star_initialized = false;
 static bool g_star_client_ready = false;
 /** When true, user explicitly beamed out; do not auto re-auth on door/touch until they run "star beamin" again. */
 static bool g_star_user_beamed_out = false;
+/** True after we have called star_api_refresh_avatar_xp() once for this beam-in; reset on beam out so we only hit the endpoint once per login. */
+static bool g_star_refresh_xp_called_this_session = false;
 static bool g_star_debug_logging = true;
 static bool g_star_logged_runtime_auth_failure = false;
 static bool g_star_logged_missing_auth_config = false;
@@ -639,7 +641,10 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
-		star_api_refresh_avatar_xp();
+		if (!g_star_refresh_xp_called_this_session) {
+			g_star_refresh_xp_called_this_session = true;
+			star_api_refresh_avatar_xp();
+		}
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
@@ -2164,6 +2169,7 @@ CCMD(star)
 		g_star_client_ready = false;
 		g_star_initialized = false;
 		g_star_user_beamed_out = true;  /* Stay logged out until user runs "star beamin" again. */
+		g_star_refresh_xp_called_this_session = false;  /* Next beam-in will call refresh once. */
 		g_star_init_failed_this_session = false;
 		g_star_async_auth_pending = false;
 		g_star_face_suppressed_for_session = false;
