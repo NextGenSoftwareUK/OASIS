@@ -658,7 +658,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int xp = xpVar.GetInt();
 			String xpText = String.Format("XP: %d", xp);
 			int xpW = f.StringWidth(xpText);
-			int xpX = 320 - xpW - 2;
+			int xpX = 320 - xpW - 2 + 50;  // 50px to the right of original position
 			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
@@ -689,8 +689,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		int headerX = 160 - (f.StringWidth("OASIS Inventory") / 2);
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
-		int tabGap = 7;
-		int tabX = -12;
+		int tabGap = 10;
+		int tabX = -22;  // 10px left of previous (-12)
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";
