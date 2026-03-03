@@ -117,6 +117,7 @@ static const oquake_monster_entry_t OQUAKE_MONSTERS[] = {
     { "monster_zombie",    "oquake_zombie",    "Zombie",     20, 0 },
     { "monster_fish",      "oquake_fish",      "Fish",       30, 0 },
     { "monster_grunt",     "oquake_grunt",     "Grunt",      25, 0 },
+    { "monster_army",      "oquake_grunt",     "Grunt",      25, 0 },  /* Quake progs use monster_army for soldier/Grunt */
     { "monster_ogre",      "oquake_ogre",      "Ogre",       70, 0 },
     { "monster_enforcer",  "oquake_enforcer",  "Enforcer",   60, 0 },
     { "monster_demon",     "oquake_demon",     "Demon",      40, 0 },
@@ -1950,52 +1951,26 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov, "OQUAKE");
 }
 
-/* Grace period after level becomes active: ignore monster_ frees in this window (level-load cleanup, not real kills). */
-#define OQUAKE_STAR_KILL_GRACE_FRAMES 90   /* ~1.5 sec at 60fps; filters level-load entity frees */
-
-/* Hook: called from ED_Free (pr_edict.c) and PF_sv_makestatic (pr_cmds.c). Dedupe same entity same frame. */
+/* Hook: called from PF_Remove/PF_sv_makestatic (pr_cmds.c) as fallback. Primary path is SVC_KILLEDMONSTER in PF_sv_WriteByte. Dedupe same entity same frame. */
 void OQuake_STAR_OnEntityFreed(void* ed) {
     const char* ed_classname;
-    char buf[320];
     static void* s_last_counted_ed;
     static int s_last_counted_frame = -1;
-    int counted;
 
     if (!ed)
         return;
     ed_classname = PR_GetString(((edict_t*)ed)->v.classname);
-    /* Log first 200 entity frees when in level so we see if hook runs and what classnames we get on kill. */
-    {
-        static int s_any_log = 0;
-        if (sv.active && !cls.demoplayback && s_any_log < 200) {
-            s_any_log++;
-            snprintf(buf, sizeof(buf), "OQUAKE: entity freed #%d classname=%s", s_any_log, ed_classname ? ed_classname : "(null)");
-            star_api_log_to_file(buf);
-            Con_Printf("OQuake STAR: %s\n", buf);
-        }
-    }
     if (!ed_classname || strncmp(ed_classname, "monster_", 8) != 0)
         return;
 
-    /* Only skip demo playback; count all monster frees so kills are never filtered out. */
-    counted = cls.demoplayback ? 0 : 1;
-
-    snprintf(buf, sizeof(buf), "OQUAKE: monster freed classname=%s sv.active=%d demoplayback=%d counted=%d",
-        ed_classname, sv.active ? 1 : 0, cls.demoplayback ? 1 : 0, counted);
-    star_api_log_to_file(buf);
-    Con_Printf("OQuake STAR: %s\n", buf);
-
-    if (!counted)
+    if (cls.demoplayback)
         return;
-    /* Dedupe: same entity can be seen from pr_cmds.c and again inside ED_Free in same frame. */
+    /* Dedupe: same entity can be seen from both PF_Remove and PF_sv_makestatic in same frame. */
     if (ed == s_last_counted_ed && host_framecount == s_last_counted_frame)
         return;
     s_last_counted_ed = ed;
     s_last_counted_frame = host_framecount;
 
-    Con_Printf("OQuake STAR: monster freed: %s (queuing XP/mint)\n", ed_classname);
-    snprintf(buf, sizeof(buf), "OQUAKE: monster freed: %s (queuing XP/mint)", ed_classname);
-    star_api_log_to_file(buf);
     OQuake_STAR_OnMonsterKilled(ed_classname);
 }
 

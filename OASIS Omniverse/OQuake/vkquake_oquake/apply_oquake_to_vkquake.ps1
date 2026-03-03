@@ -393,6 +393,38 @@ function Remove-MonsterHookFromPF_Remove {
     return $true
 }
 
+# Monster kill via SVC_KILLEDMONSTER: when QuakeC Killed() does WriteByte(MSG_ALL, SVC_KILLEDMONSTER), self is the dead monster. Primary path for XP/NFT.
+function Add-MonsterHookInPF_sv_WriteByte {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'svc_killedmonster') { return $false }
+    $pattern = '(static void PF_sv_WriteByte\s*\(\s*void\s*\)\s*\{\s*\r?\n)\s*MSG_WriteByte\s*\(\s*WriteDest\s*\(\s*\)\s*,\s*G_FLOAT\s*\(\s*OFS_PARM1\s*\)\s*\)\s*;\s*\r?\n(\})'
+    $repl = "`$1	float byteval = G_FLOAT (OFS_PARM1);`r`n	/* When QuakeC Killed() does WriteByte(MSG_ALL, SVC_KILLEDMONSTER), self is the dead monster. */`r`n	if ((int)byteval == svc_killedmonster)`r`n	{`r`n		edict_t *dead = PROG_TO_EDICT (pr_global_struct->self);`r`n		const char *classname = dead ? PR_GetString (dead->v.classname) : NULL;`r`n		if (classname && classname[0])`r`n			OQuake_STAR_OnMonsterKilled (classname);`r`n	}`r`n	MSG_WriteByte (WriteDest (), byteval);`r`n`$2"
+    if ($content -notmatch $pattern) { return $false }
+    $content = $content -replace $pattern, $repl
+    if ($content -notmatch 'svc_killedmonster') { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched pr_cmds.c: monster kill hook in PF_sv_WriteByte (SVC_KILLEDMONSTER)" -ForegroundColor Green
+    return $true
+}
+function Remove-MonsterHookFromPF_sv_WriteByte {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -notmatch 'svc_killedmonster') { return $false }
+    # Match from "float byteval" through "MSG_WriteByte (WriteDest (), byteval);" and replace with vanilla one-liner (. matches newline)
+    $pattern = '(?s)(static void PF_sv_WriteByte\s*\(\s*void\s*\)\s*\{\s*\r?\n).*?MSG_WriteByte\s*\(\s*WriteDest\s*\(\s*\)\s*,\s*byteval\s*\)\s*;\s*\r?\n(\})'
+    $repl = "`$1`tMSG_WriteByte (WriteDest (), G_FLOAT (OFS_PARM1));`r`n`$2"
+    $content = $content -replace $pattern, $repl
+    if ($content -match 'svc_killedmonster') { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Removed monster hook from PF_sv_WriteByte in pr_cmds.c" -ForegroundColor Green
+    return $true
+}
+
 # Repair: preprocessor must start in column 0 (MSVC C2014). Fix already-patched files that have indented #ifdef/#endif.
 function Repair-MonsterHookPreprocessor {
     param([string]$FilePath, [string]$FileLabel)
@@ -523,6 +555,11 @@ if ($RevertMonsterHook) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
+    if (Remove-MonsterHookFromPF_sv_WriteByte -FilePath $path -FileLabel "pr_cmds.c") {
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+        }
+    }
     Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
         if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
             foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
@@ -542,11 +579,11 @@ if ($RevertMonsterHook) {
         Remove-MonsterHookFromFile -FilePath $path -FileLabel $cFile | Out-Null
     }
     $monsterHookAdded = $false
-    $path = Join-Path $QuakeDir "pr_edict.c"
-    if (Add-MonsterHookInsideEDFree -FilePath $path -FileLabel "pr_edict.c") {
+    # Primary: hook SVC_KILLEDMONSTER in PF_sv_WriteByte (when QuakeC Killed() runs, self = dead monster). No pr_edict.c hook (avoids C2082).
+    $path = Join-Path $QuakeDir "pr_cmds.c"
+    if (Add-MonsterHookInPF_sv_WriteByte -FilePath $path -FileLabel "pr_cmds.c") {
         $monsterHookAdded = $true
     }
-    $path = Join-Path $QuakeDir "pr_cmds.c"
     if (Add-MonsterHookInPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
         $monsterHookAdded = $true
     }
