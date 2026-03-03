@@ -282,14 +282,19 @@ if (Test-Path $SbarC) {
     }
 }
 
-# --- Monster kill hook: hook inside ED_Free() in pr_edict.c so EVERY caller (pr_cmds.c, pr_edict.c, host_cmd.c) triggers XP/mint. Call-site patches only catch pr_edict.c; monster death often goes through pr_cmds.c. ---
-# Add hook at start of void ED_Free(edict_t *ed) so all ED_Free calls are caught.
+# --- Monster kill hook: hook inside ED_Free() in pr_edict.c so EVERY caller is caught (unconditional, no #ifdef). ---
 function Add-MonsterHookInsideEDFree {
     param([string]$FilePath, [string]$FileLabel)
     if (-not (Test-Path $FilePath)) { return $false }
     if ($FileLabel -ne 'pr_edict.c') { return $false }
     $content = Get-Content $FilePath -Raw
-    if ($content -match 'void ED_Free\s*\([^)]*\)\s*\{\s*[\r\n]+\s*#ifdef OASIS_STAR_API') { return $false }
+    if ($content -match 'void ED_Free\s*\([^)]*\)\s*\{\s*[\r\n]+\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)') { return $false }
+    if ($content -match 'void ED_Free\s*\([^)]*\)\s*\{\s*[\r\n]+\s*#ifdef OASIS_STAR_API') {
+        $content = $content -replace '(void ED_Free\s*\(\s*edict_t\s*\*\s*ed\s*\)\s*\{\s*)\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;\r?\n\s*#endif', "`$1`r`n`tOQuake_STAR_OnEntityFreed(ed);"
+        Set-Content $FilePath $content -NoNewline
+        Write-Host "[OQuake] pr_edict.c: ED_Free hook now unconditional (no #ifdef)" -ForegroundColor Green
+        return $true
+    }
     if ($content -notmatch 'void ED_Free\s*\(\s*edict_t\s*\*\s*ed\s*\)') { return $false }
     if ($content -notmatch 'oquake_star_integration\.h') {
         $content = $content -replace '(\#include\s+"pr_edict\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
@@ -298,10 +303,10 @@ function Add-MonsterHookInsideEDFree {
         }
     }
     $orig = $content
-    $content = $content -replace '(void ED_Free\s*\(\s*edict_t\s*\*\s*ed\s*\)\s*\{)(\r?\n)(\s*if\s*\(\s*ed->free\s*)', "`$1`$2#ifdef OASIS_STAR_API`r`n`tOQuake_STAR_OnEntityFreed(ed);`r`n#endif`$2`$3"
+    $content = $content -replace '(void ED_Free\s*\(\s*edict_t\s*\*\s*ed\s*\)\s*\{)(\r?\n)(\s*if\s*\(\s*ed->free\s*)', "`$1`$2`tOQuake_STAR_OnEntityFreed(ed);`r`n`$2`$3"
     if ($content -eq $orig) { return $false }
     Set-Content $FilePath $content -NoNewline
-    Write-Host "[OQuake] Patched pr_edict.c: hook inside ED_Free() (all callers trigger XP/mint)" -ForegroundColor Green
+    Write-Host "[OQuake] Patched pr_edict.c: unconditional hook inside ED_Free() (all callers)" -ForegroundColor Green
     return $true
 }
 function Remove-MonsterHookFromInsideEDFree {
@@ -312,6 +317,9 @@ function Remove-MonsterHookFromInsideEDFree {
     if ($content -notmatch 'OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)') { return $false }
     $orig = $content
     $content = $content -replace '(\{\s*)\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;\r?\n\s*#endif\r?\n(\s*if\s*\(\s*ed->free\s*)', "`$1`r`n`$2"
+    if ($content -eq $orig) {
+        $content = $content -replace '(\{\s*)\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;\r?\n(\s*if\s*\(\s*ed->free\s*)', "`$1`r`n`$2"
+    }
     if ($content -eq $orig) { return $false }
     Set-Content $FilePath $content -NoNewline
     Write-Host "[OQuake] Removed hook from inside ED_Free() in pr_edict.c" -ForegroundColor Green
@@ -343,15 +351,45 @@ function Remove-MonsterHookFromPrCmds {
     $content = Get-Content $FilePath -Raw
     if ($content -notmatch 'OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)') { return $false }
     $orig = $content
-    # Remove unconditional hook
+    # Remove unconditional hook (makestatic)
     $content = $content -replace '(// throw the entity away now\s*\r?\n)\s*OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)\s*;\r?\n(\s*ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2"
     if ($content -eq $orig) {
-        # Remove #ifdef-wrapped hook
         $content = $content -replace '(// throw the entity away now\s*\r?\n)\s*#ifdef OASIS_STAR_API\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)\s*;\r?\n\s*#endif\r?\n(\s*ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2"
     }
+    # Remove PF_Remove hook
+    $content = $content -replace '(\s+ed\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;[^\r\n]*\r?\n(\s*ED_Free\s*\(\s*ed\s*\)\s*;)', "`$1`$2"
     if ($content -eq $orig) { return $false }
     Set-Content $FilePath $content -NoNewline
     Write-Host "[OQuake] Removed monster hook from pr_cmds.c" -ForegroundColor Green
+    return $true
+}
+
+# Hook in PF_Remove so we catch monster kills when progs call remove(self) instead of makestatic(self).
+function Add-MonsterHookInPF_Remove {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'ed\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)') { return $false }
+    if ($content -notmatch 'ed\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n\s*ED_Free\s*\(\s*ed\s*\)') { return $false }
+    $orig = $content
+    $content = $content -replace '(ed\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)(\s*)(ED_Free\s*\(\s*ed\s*\)\s*;)', "`$1`$2OQuake_STAR_OnEntityFreed(ed);`r`n`$2`$3"
+    if ($content -eq $orig) { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched pr_cmds.c: monster hook in PF_Remove (remove builtin)" -ForegroundColor Green
+    return $true
+}
+function Remove-MonsterHookFromPF_Remove {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -notmatch 'OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;[^\r\n]*\r?\n\s*ED_Free\s*\(\s*ed\s*\)') { return $false }
+    $orig = $content
+    $content = $content -replace '(\s+ed\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)\s*OQuake_STAR_OnEntityFreed\s*\(\s*ed\s*\)\s*;[^\r\n]*\r?\n(\s*ED_Free\s*\(\s*ed\s*\)\s*;)', "`$1`$2"
+    if ($content -eq $orig) { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Removed monster hook from PF_Remove in pr_cmds.c" -ForegroundColor Green
     return $true
 }
 
@@ -475,6 +513,11 @@ if ($RevertMonsterHook) {
         }
     }
     $path = Join-Path $QuakeDir "pr_cmds.c"
+    if (Remove-MonsterHookFromPF_Remove -FilePath $path -FileLabel "pr_cmds.c") {
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+        }
+    }
     if (Remove-MonsterHookFromPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
@@ -505,6 +548,9 @@ if ($RevertMonsterHook) {
     }
     $path = Join-Path $QuakeDir "pr_cmds.c"
     if (Add-MonsterHookInPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
+        $monsterHookAdded = $true
+    }
+    if (Add-MonsterHookInPF_Remove -FilePath $path -FileLabel "pr_cmds.c") {
         $monsterHookAdded = $true
     }
     if ($monsterHookAdded) {

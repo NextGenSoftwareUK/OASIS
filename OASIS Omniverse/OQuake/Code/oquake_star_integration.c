@@ -1953,36 +1953,45 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
 /* Grace period after level becomes active: ignore monster_ frees in this window (level-load cleanup, not real kills). */
 #define OQUAKE_STAR_KILL_GRACE_FRAMES 90   /* ~1.5 sec at 60fps; filters level-load entity frees */
 
-/* Safe ED_Free hook: only run when in a real game so we avoid VM/state issues (program error on new game / load). */
+/* Hook: called from ED_Free (pr_edict.c) and PF_sv_makestatic (pr_cmds.c). Dedupe same entity same frame. */
 void OQuake_STAR_OnEntityFreed(void* ed) {
     const char* ed_classname;
     char buf[320];
-    static int s_level_active_since_frame = -1;
-    static int s_prev_sv_active = 0;
-    int grace_frames;
+    static void* s_last_counted_ed;
+    static int s_last_counted_frame = -1;
     int counted;
 
     if (!ed)
         return;
     ed_classname = PR_GetString(((edict_t*)ed)->v.classname);
+    /* Log first 200 entity frees when in level so we see if hook runs and what classnames we get on kill. */
+    {
+        static int s_any_log = 0;
+        if (sv.active && !cls.demoplayback && s_any_log < 200) {
+            s_any_log++;
+            snprintf(buf, sizeof(buf), "OQUAKE: entity freed #%d classname=%s", s_any_log, ed_classname ? ed_classname : "(null)");
+            star_api_log_to_file(buf);
+            Con_Printf("OQuake STAR: %s\n", buf);
+        }
+    }
     if (!ed_classname || strncmp(ed_classname, "monster_", 8) != 0)
         return;
 
-    if (sv.active && !s_prev_sv_active)
-        s_level_active_since_frame = host_framecount;
-    s_prev_sv_active = sv.active;
+    /* Only skip demo playback; count all monster frees so kills are never filtered out. */
+    counted = cls.demoplayback ? 0 : 1;
 
-    grace_frames = (s_level_active_since_frame >= 0) ? (int)(host_framecount - s_level_active_since_frame) : -1;
-    counted = (sv.active && !cls.demoplayback &&
-        (s_level_active_since_frame < 0 || grace_frames >= OQUAKE_STAR_KILL_GRACE_FRAMES)) ? 1 : 0;
-
-    snprintf(buf, sizeof(buf), "OQUAKE: monster freed classname=%s sv.active=%d demoplayback=%d grace_frames=%d counted=%d",
-        ed_classname, sv.active ? 1 : 0, cls.demoplayback ? 1 : 0, grace_frames, counted);
+    snprintf(buf, sizeof(buf), "OQUAKE: monster freed classname=%s sv.active=%d demoplayback=%d counted=%d",
+        ed_classname, sv.active ? 1 : 0, cls.demoplayback ? 1 : 0, counted);
     star_api_log_to_file(buf);
     Con_Printf("OQuake STAR: %s\n", buf);
 
     if (!counted)
         return;
+    /* Dedupe: same entity can be seen from pr_cmds.c and again inside ED_Free in same frame. */
+    if (ed == s_last_counted_ed && host_framecount == s_last_counted_frame)
+        return;
+    s_last_counted_ed = ed;
+    s_last_counted_frame = host_framecount;
 
     Con_Printf("OQuake STAR: monster freed: %s (queuing XP/mint)\n", ed_classname);
     snprintf(buf, sizeof(buf), "OQUAKE: monster freed: %s (queuing XP/mint)", ed_classname);
