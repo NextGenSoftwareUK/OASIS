@@ -729,48 +729,106 @@ static void ODOOM_OnSendItemDone(void* user_data) {
 	/* Do NOT refetch inventory here; we updated the cache above. Keeps API hits to minimum. */
 }
 
-/** Apply health or armor to the console player when using a Health/Armor item from STAR inventory.
- *  Use-from-inventory ALWAYS adds the item's amount; items that originally allowed over 100 (e.g. Soul Sphere,
- *  Mega Sphere) use max 200 so the HUD shows the correct value. */
-static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string& type) {
-	FLevelLocals* level = primaryLevel;
-	if (!level) return;
-	player_t* player = level->GetConsolePlayer();
-	if (!player || !player->mo) return;
-	/* Avoid std::string::npos for MSVC/Windows macro compatibility; npos is typically (size_t)-1 */
+/** Strip UI-only [NFT] / [BOSSNFT] prefix so we match API-stored names. */
+static std::string ODOOM_StripNftDisplayPrefix(const std::string& name) {
 	const size_t np = (size_t)(-1);
-	const bool isHealth = (type.find("Health") != np || type.find("health") != np);
-	const bool isArmor = (type.find("Armor") != np || type.find("armor") != np);
+	if (name.empty()) return name;
+	size_t start = name.find_first_not_of(" \t");
+	if (start == np) return name;
+	size_t len = name.size() - start;
+	if (len >= 6 && name.compare(start, 6, "[NFT] ") == 0)
+		return name.substr(start + 6);
+	if (len >= 10 && name.compare(start, 10, "[BOSSNFT] ") == 0)
+		return name.substr(start + 10);
+	return name;
+}
+
+/** Returns true if using this item would exceed config max health/armor (or already at max). Sets *out_msg to the message to show. */
+static bool ODOOM_WouldUseExceedMax(const std::string& name, const std::string& type, const char** out_msg) {
+	*out_msg = nullptr;
+	FLevelLocals* level = primaryLevel;
+	if (!level) return false;
+	player_t* player = level->GetConsolePlayer();
+	if (!player || !player->mo) return false;
+	const size_t np = (size_t)(-1);
+	std::string n = ODOOM_StripNftDisplayPrefix(name);
+	const bool isHealth = (type.find("Health") != np || type.find("health") != np ||
+		n.find("Stimpack") != np || n.find("Medikit") != np || n.find("Health Bonus") != np ||
+		n.find("Soul") != np || n.find("Mega") != np || n.find("Health") != np);
+	const bool isArmor = (type.find("Armor") != np || type.find("armor") != np ||
+		n.find("Armor") != np || n.find("Blue") != np || n.find("Green") != np || n.find("Yellow") != np);
 	int configMaxH = 200, configMaxA = 200;
 	{ FBaseCVar* v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxH = v->GetGenericRep(CVAR_Int).Int; if (configMaxH <= 0) configMaxH = 200; }
 	{ FBaseCVar* v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxA = v->GetGenericRep(CVAR_Int).Int; if (configMaxA <= 0) configMaxA = 200; }
 	if (isHealth) {
 		int amount = 25;
-		int maxH = 100;
-		if (maxH > configMaxH) maxH = configMaxH;
-		if (name.find("Stimpack") != np) { amount = 10; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (name.find("Medikit") != np) { amount = 25; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (name.find("Health Bonus") != np) { amount = 1; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (name.find("Soul Sphere") != np || name.find("Soul") != np) { amount = 100; maxH = configMaxH; }
-		else if (name.find("Mega") != np && (name.find("Sphere") != np || name.find("Health") != np)) { amount = 200; maxH = configMaxH; }
-		else if (name.find("Large Health") != np) { amount = 50; maxH = configMaxH; }
-		else if (name.find("Mega Health") != np) { amount = 100; maxH = configMaxH; }
-		else if (name.find("Health") != np) { amount = 25; maxH = configMaxH; }
-		{ int newH = player->mo->health + amount; player->mo->health = (newH < maxH) ? newH : maxH; }
-		player->health = player->mo->health;
-		Printf(PRINT_HIGH, "STAR: used %s, health now %d\n", name.c_str(), player->mo->health);
+		if (n.find("Stimpack") != np) amount = 10;
+		else if (n.find("Medikit") != np) amount = 25;
+		else if (n.find("Health Bonus") != np) amount = 1;
+		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
+		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
+		else if (n.find("Large Health") != np) amount = 50;
+		else if (n.find("Mega Health") != np) amount = 100;
+		else if (n.find("Health") != np) amount = 25;
+		int cur = player->mo->health;
+		if (cur >= configMaxH) { *out_msg = "You cannot use this because you are already at max health."; return true; }
+		if (cur + amount > configMaxH) { *out_msg = "You cannot use this because you are already at max health."; return true; }
 	}
 	if (isArmor) {
 		int amount = 100;
-		if (name.find("Blue") != np || name.find("Mega") != np) amount = 200;
-		else if (name.find("Green") != np || name.find("Yellow") != np) amount = 100;
+		if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
+		else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
+		AActor* arm = player->mo->FindInventory(FName("BasicArmor"), true);
+		int cur = arm ? arm->IntVar(FName("Amount")) : 0;
+		if (cur >= configMaxA) { *out_msg = "You cannot use this because you are already at max armor."; return true; }
+		if (cur + amount > configMaxA) { *out_msg = "You cannot use this because you are already at max armor."; return true; }
+	}
+	return false;
+}
+
+/** Apply health or armor to the console player when using a Health/Armor item from STAR inventory.
+ *  Use-from-inventory ALWAYS adds the item's amount; items that originally allowed over 100 (e.g. Soul Sphere,
+ *  Mega Sphere) use max from config so the HUD shows the correct value. */
+static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string& type) {
+	FLevelLocals* level = primaryLevel;
+	if (!level) return;
+	player_t* player = level->GetConsolePlayer();
+	if (!player || !player->mo) return;
+	const size_t np = (size_t)(-1);
+	std::string n = ODOOM_StripNftDisplayPrefix(name);
+	const bool isHealth = (type.find("Health") != np || type.find("health") != np ||
+		n.find("Stimpack") != np || n.find("Medikit") != np || n.find("Health Bonus") != np ||
+		n.find("Soul") != np || n.find("Mega") != np || n.find("Health") != np);
+	const bool isArmor = (type.find("Armor") != np || type.find("armor") != np ||
+		n.find("Armor") != np || n.find("Blue") != np || n.find("Green") != np || n.find("Yellow") != np);
+	int configMaxH = 200, configMaxA = 200;
+	{ FBaseCVar* v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxH = v->GetGenericRep(CVAR_Int).Int; if (configMaxH <= 0) configMaxH = 200; }
+	{ FBaseCVar* v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxA = v->GetGenericRep(CVAR_Int).Int; if (configMaxA <= 0) configMaxA = 200; }
+	if (isHealth) {
+		int amount = 25;
+		int maxH = configMaxH;
+		if (n.find("Stimpack") != np) { amount = 10; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (n.find("Medikit") != np) { amount = 25; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (n.find("Health Bonus") != np) { amount = 1; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) { amount = 100; maxH = configMaxH; }
+		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) { amount = 200; maxH = configMaxH; }
+		else if (n.find("Large Health") != np) { amount = 50; maxH = configMaxH; }
+		else if (n.find("Mega Health") != np) { amount = 100; maxH = configMaxH; }
+		else if (n.find("Health") != np) { amount = 25; maxH = configMaxH; }
+		{ int newH = player->mo->health + amount; player->mo->health = (newH < maxH) ? newH : maxH; }
+		player->health = player->mo->health;
+		Printf(PRINT_HIGH, "STAR: used %s, health now %d\n", n.c_str(), player->mo->health);
+	}
+	if (isArmor) {
+		int amount = 100;
+		if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
+		else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
 		AActor* arm = player->mo->FindInventory(FName("BasicArmor"), true);
 		if (arm) {
 			int& a = arm->IntVar(FName("Amount"));
 			{ int newA = a + amount; int cap = configMaxA; a = (newA < cap) ? newA : cap; }
-			Printf(PRINT_HIGH, "STAR: used %s, armor now %d\n", name.c_str(), a);
+			Printf(PRINT_HIGH, "STAR: used %s, armor now %d\n", n.c_str(), a);
 		}
-		/* If no BasicArmor yet, pick up any armor in-game first; UZDoom AActor has no GiveInventory in this build. */
 	}
 }
 
@@ -881,11 +939,20 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				const char* nameStr = (nameCv && nameCv->GetRealType() == CVAR_String) ? nameCv->GetGenericRep(CVAR_String).String : "";
 				const char* typeStr = (typeCv && typeCv->GetRealType() == CVAR_String) ? typeCv->GetGenericRep(CVAR_String).String : "Item";
 				if (nameStr && nameStr[0]) {
-					g_star_use_pending_name = nameStr;
-					g_star_use_pending_type = typeStr ? typeStr : "";
-					star_sync_use_item_start(nameStr, "odoom_use", ODOOM_OnUseItemFromInventoryDone, nullptr);
-					UCVarValue u; u.Int = 0;
-					doCv->SetGenericRep(u, CVAR_Int);
+					std::string nameS(nameStr);
+					std::string typeS(typeStr ? typeStr : "");
+					const char* blockMsg = nullptr;
+					if (ODOOM_WouldUseExceedMax(nameS, typeS, &blockMsg)) {
+						if (blockMsg) Printf(PRINT_NONOTIFY, "%s\n", blockMsg);
+						UCVarValue u; u.Int = 0;
+						doCv->SetGenericRep(u, CVAR_Int);
+					} else {
+						g_star_use_pending_name = nameStr;
+						g_star_use_pending_type = typeStr ? typeStr : "";
+						star_sync_use_item_start(nameStr, "odoom_use", ODOOM_OnUseItemFromInventoryDone, nullptr);
+						UCVarValue u; u.Int = 0;
+						doCv->SetGenericRep(u, CVAR_Int);
+					}
 				}
 			}
 		}
