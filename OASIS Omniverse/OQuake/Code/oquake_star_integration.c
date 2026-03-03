@@ -103,7 +103,7 @@ enum {
     OQ_TAB_COUNT = 7
 };
 
-/* Quake monster table: engine name(s), config key, display name, XP, isBoss. Config key used for mint_monster_oquake_* in oasisstar.json. */
+/* Quake monster table: engine name(s), config key, display name, XP, isBoss. Display names from https://quake.fandom.com/wiki/Monster_(Q1). Config key = mint_monster_oquake_* in oasisstar.json. */
 typedef struct oquake_monster_entry_s {
     const char* engine_name;  /* primary engine/class name */
     const char* config_key;
@@ -113,18 +113,20 @@ typedef struct oquake_monster_entry_s {
 } oquake_monster_entry_t;
 
 static const oquake_monster_entry_t OQUAKE_MONSTERS[] = {
-    { "monster_dog",       "oquake_dog",       "Dog",        15, 0 },
-    { "monster_zombie",    "oquake_zombie",    "Zombie",     20, 0 },
-    { "monster_fish",      "oquake_fish",      "Fish",       30, 0 },
-    { "monster_grunt",     "oquake_grunt",     "Grunt",      25, 0 },
-    { "monster_army",      "oquake_grunt",     "Grunt",      25, 0 },  /* Quake progs use monster_army for soldier/Grunt */
-    { "monster_ogre",      "oquake_ogre",      "Ogre",       70, 0 },
-    { "monster_enforcer",  "oquake_enforcer",  "Enforcer",   60, 0 },
-    { "monster_demon",     "oquake_demon",     "Demon",      40, 0 },
-    { "monster_fiend",     "oquake_demon",     "Demon",      40, 0 },
-    { "monster_shambler",  "oquake_shambler",  "Shambler",  200, 1 },
-    { "monster_spawn",     "oquake_spawn",     "Spawn",     100, 0 },
-    { "monster_knight",    "oquake_knight",    "Knight",     80, 0 },
+    { "monster_dog",       "oquake_dog",       "Rottweiler",    15, 0 },
+    { "monster_zombie",    "oquake_zombie",    "Zombie",        20, 0 },
+    { "monster_fish",      "oquake_fish",      "Rotfish",       30, 0 },
+    { "monster_grunt",     "oquake_grunt",     "Grunt",         25, 0 },
+    { "monster_army",      "oquake_grunt",     "Grunt",         25, 0 },  /* Quake progs use monster_army for soldier */
+    { "monster_ogre",      "oquake_ogre",      "Ogre",          70, 0 },
+    { "monster_enforcer",  "oquake_enforcer",  "Enforcer",      60, 0 },
+    { "monster_demon",     "oquake_demon",     "Fiend",         40, 0 },
+    { "monster_fiend",     "oquake_demon",     "Fiend",         40, 0 },
+    { "monster_shambler",  "oquake_shambler",  "Shambler",    200, 1 },
+    { "monster_demon1",    "oquake_shambler",  "Shambler",    200, 1 },   /* alternate classname for Shambler */
+    { "monster_spawn",     "oquake_spawn",     "Spawn",        100, 0 },
+    { "monster_knight",    "oquake_knight",    "Knight",        80, 0 },
+    { "monster_wizard",    "oquake_scrag",     "Scrag",         60, 0 },  /* flying creature; classname wizard */
     { "monster_shub",      "oquake_shub",      "Shub-Niggurath", 500, 1 },
     { "shub_niggurath",    "oquake_shub",      "Shub-Niggurath", 500, 1 },
     { NULL, NULL, NULL, 0, 0 }
@@ -284,6 +286,11 @@ static void OQ_AppendGameSourceTag(const oquake_inventory_entry_t* item, char* l
 {
     const char* gs;
     if (!item || !label || label_size < 2)
+        return;
+    /* Monster items have game in the name (e.g. "Dog (OQUAKE)"); don't append again. Also skip if already present. */
+    if (item->item_type[0] != '\0' && strstr(item->item_type, "Monster"))
+        return;
+    if (strstr(label, " (OQUAKE)") || strstr(label, " (ODOOM)"))
         return;
     gs = item->game_source;
     if (!gs || !gs[0])
