@@ -115,6 +115,8 @@ CVAR(Float, odoom_oq_monster_scale_ogre, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG
 CVAR(Float, odoom_oq_monster_scale_enforcer, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_spawn, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_knight, 0.60f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, odoom_oq_monster_scale_scrag, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Float, odoom_oq_monster_scale_shub, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_username, "", 0)
 CVAR(String, odoom_oasis_api_url, "https://api.oasisplatform.world", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 /* Stack (1) = each pickup adds quantity; Unlock (0) = one per type. Ammo always stacks. Shared with OQuake; sigils are OQuake-only. */
@@ -153,16 +155,19 @@ static const ODOOM_MonsterEntry ODOOM_MONSTERS[] = {
 	{ "Archvile",            "odoom_archvile",             "Archvile",     120, 0 },
 	{ "SpiderMastermind",    "odoom_spidermastermind",    "SpiderMastermind", 800, 1 },
 	{ "Cyberdemon",          "odoom_cyberdemon",          "Cyberdemon",   1000, 1 },
-	{ "OQMonsterDog",        "oquake_dog",                "Dog",             15, 0 },
+	/* OQ* entries: display names match Quake canonical names so inventory is consistent across games (per-game stacking via (ODOOM)/(OQUAKE) in name). */
+	{ "OQMonsterDog",        "oquake_dog",                "Rottweiler",     15, 0 },
 	{ "OQMonsterZombie",     "oquake_zombie",             "Zombie",         20, 0 },
-	{ "OQMonsterDemon",      "oquake_demon",              "Demon",          40, 0 },
+	{ "OQMonsterDemon",      "oquake_demon",              "Fiend",          40, 0 },
 	{ "OQMonsterShambler",   "oquake_shambler",           "Shambler",      200, 1 },
 	{ "OQMonsterGrunt",      "oquake_grunt",              "Grunt",          25, 0 },
-	{ "OQMonsterFish",       "oquake_fish",               "Fish",           30, 0 },
+	{ "OQMonsterFish",       "oquake_fish",               "Rotfish",        30, 0 },
 	{ "OQMonsterOgre",       "oquake_ogre",               "Ogre",           70, 0 },
 	{ "OQMonsterEnforcer",   "oquake_enforcer",           "Enforcer",       60, 0 },
 	{ "OQMonsterSpawn",      "oquake_spawn",              "Spawn",         100, 0 },
 	{ "OQMonsterKnight",     "oquake_knight",             "Knight",         80, 0 },
+	{ "OQMonsterScrag",      "oquake_scrag",              "Scrag",          60, 0 },
+	{ "OQMonsterShub",       "oquake_shub",               "Shub-Niggurath", 500, 1 },
 	{ nullptr, nullptr, nullptr, 0, 0 }
 };
 
