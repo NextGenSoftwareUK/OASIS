@@ -4068,12 +4068,14 @@ public static unsafe class StarApiExports
     {
         var msg = PtrToString(message);
         if (string.IsNullOrWhiteSpace(msg)) return;
-        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [ODOOM] {msg}";
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] {msg}";
         Trace.WriteLine(line);
         try
         {
-            var dir = Environment.CurrentDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            // Write next to the executable (same folder as star_api.dll) so the log is easy to find in the build folder.
+            var dir = AppContext.BaseDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
+            dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             var path = Path.Combine(dir, "star_api.log");
             lock (LogLock)
                 File.AppendAllText(path, line + Environment.NewLine);
