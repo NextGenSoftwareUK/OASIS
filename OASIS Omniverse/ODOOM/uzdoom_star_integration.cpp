@@ -54,6 +54,7 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #include "c_cvars.h"
 #include "m_argv.h"
 #include "printf.h"
+#include "i_time.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -93,6 +94,10 @@ static std::string g_star_last_pickup_name;
 static std::string g_star_last_pickup_type;
 static std::string g_star_last_pickup_desc;
 static bool g_star_has_last_pickup = false;
+/** Debounce generic pickups: avoid spamming when standing on health/items at full. Only queue same (name,type) once per 0.5s. */
+static std::string g_star_last_generic_key;
+static int g_star_last_generic_tic = -99999;
+static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
 static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
@@ -1672,6 +1677,16 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		itemType = g_star_pending_item_type.empty() ? "Item" : g_star_pending_item_type.c_str();
 	}
 	if (!name || !desc) return;
+
+	/* Debounce generic pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM) {
+		std::string key = std::string(name) + "|" + (itemType ? itemType : "Item");
+		int now = I_GetTime();
+		if (key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
+			return;
+		g_star_last_generic_key = key;
+		g_star_last_generic_tic = now;
+	}
 
 	/* C# client does all heavy lifting: queue pickup (mint if enabled, then add_item) or queue add_item only. */
 	bool isKey = (keynum >= 1 && keynum <= 4) || keynum == STAR_PICKUP_OQUAKE_GOLD_KEY || keynum == STAR_PICKUP_OQUAKE_SILVER_KEY;

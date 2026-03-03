@@ -696,7 +696,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		int tabGap = 10;
-		int tabX = -22;  // 10px left of previous (-12)
+		int tabX = -32;  // 10px further left (was -22)
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";
