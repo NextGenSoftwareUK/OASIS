@@ -192,13 +192,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Removes an item from the avatar's inventory
+        /// Decrements an item's quantity in the avatar's inventory. quantity must be 1 or greater. The item is removed only when its quantity reaches 0 after the decrement.
         /// </summary>
-        public async Task<OASISResult<bool>> RemoveItemFromAvatarInventoryAsync(Guid avatarId, Guid itemId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> RemoveItemFromAvatarInventoryAsync(Guid avatarId, Guid itemId, int quantity = 1, ProviderType providerType = ProviderType.Default)
         {
             var result = new OASISResult<bool>();
             try
             {
+                if (quantity < 1)
+                {
+                    result.IsError = true;
+                    result.Message = "Quantity must be 1 or greater.";
+                    return result;
+                }
+
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
                 if (avatarDetailResult.IsError || avatarDetailResult.Result == null)
                 {
@@ -215,18 +222,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Find and remove the item
-                var itemToRemove = avatarDetail.Inventory.FirstOrDefault(i => i.Id == itemId);
-                if (itemToRemove == null)
+                var itemToChange = avatarDetail.Inventory.FirstOrDefault(i => i.Id == itemId);
+                if (itemToChange == null)
                 {
                     result.IsError = true;
                     result.Message = "Item not found in avatar inventory";
                     return result;
                 }
 
-                avatarDetail.Inventory.Remove(itemToRemove);
+                int currentQty = itemToChange.Quantity > 0 ? itemToChange.Quantity : 1;
+                itemToChange.Quantity = currentQty - quantity;
+                if (itemToChange.Quantity <= 0)
+                    avatarDetail.Inventory.Remove(itemToChange);
 
-                // Save the updated avatar detail
                 var saveResult = await SaveAvatarDetailAsync(avatarDetail);
                 if (saveResult.IsError)
                 {
@@ -236,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 result.Result = true;
-                result.Message = "Item removed from avatar inventory successfully";
+                result.Message = "Item quantity decremented in avatar inventory.";
             }
             catch (Exception ex)
             {
@@ -249,11 +257,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Removes an item from the avatar's inventory (synchronous version)
+        /// Decrements an item's quantity in the avatar's inventory (synchronous version). quantity must be 1 or greater.
         /// </summary>
-        public OASISResult<bool> RemoveItemFromAvatarInventory(Guid avatarId, Guid itemId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> RemoveItemFromAvatarInventory(Guid avatarId, Guid itemId, int quantity = 1, ProviderType providerType = ProviderType.Default)
         {
-            return RemoveItemFromAvatarInventoryAsync(avatarId, itemId, providerType).Result;
+            return RemoveItemFromAvatarInventoryAsync(avatarId, itemId, quantity, providerType).Result;
         }
 
         /// <summary>

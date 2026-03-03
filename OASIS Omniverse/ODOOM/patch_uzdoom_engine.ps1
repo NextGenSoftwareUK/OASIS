@@ -271,6 +271,23 @@ bool wasgibbed = (health < GetGibHealth());
             }
         }
     }
+    # Force-destroy generic pickups (health/armor/ammo) when engine didn't consume so item goes to STAR and disappears from floor. When always_allow_pickup=0 (oasisstar.json), use original Doom behavior (don't destroy).
+    if ($piContent -notmatch 'STAR_PICKUP_GENERIC_ITEM') {
+        $touchOld = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
+        $touchNew = @'
+special->CallTouch (toucher);
+#ifdef OASIS_STAR_API
+	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
+	if (star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup() && !(special->ObjectFlags & OF_EuthanizeMe))
+		special->Destroy();
+	if (star_key) UZDoom_STAR_PostTouchSpecial(star_key);
+#endif
+'@
+        if ($piContent -match $touchOld) {
+            $piContent = $piContent -replace $touchOld, $touchNew
+            $piChanged = $true
+        }
+    }
     if ($piChanged) {
         Set-Content $pInteractionCpp $piContent -NoNewline
         $changes += "p_interaction (monster kill mint)"
