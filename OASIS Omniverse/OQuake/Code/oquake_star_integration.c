@@ -1923,38 +1923,70 @@ void OQuake_STAR_OnMonsterKilled(const char* monster_name) {
     int do_mint;
     const char* prov;
     int idx;
+    char star_log_buf[256];
     if (!monster_name || !monster_name[0]) {
         Con_Printf("OQuake STAR: OnMonsterKilled called with empty name (hook may be mis-installed)\n");
         return;
     }
     if (!g_star_initialized) {
         Con_Printf("OQuake STAR: monster \"%s\" killed but not beamed in (no XP/mint)\n", monster_name);
+        snprintf(star_log_buf, sizeof(star_log_buf), "OQUAKE: monster \"%s\" killed but not beamed in (no XP/mint)", monster_name);
+        star_api_log_to_file(star_log_buf);
         return;
     }
     e = OQ_FindMonsterByEngineName(monster_name);
     if (!e) {
         Con_Printf("OQuake STAR: unknown monster \"%s\" (no XP/mint)\n", monster_name);
+        snprintf(star_log_buf, sizeof(star_log_buf), "OQUAKE: unknown monster \"%s\" (no XP/mint)", monster_name);
+        star_api_log_to_file(star_log_buf);
         return;
     }
     idx = (int)(e - OQUAKE_MONSTERS);
     do_mint = OQ_ShouldMintMonster(idx) ? 1 : 0;
     prov = oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS";
     Con_Printf("OQuake STAR: monster kill queued: %s (%d XP, mint=%d)\n", e->display_name, e->xp, do_mint);
+    snprintf(star_log_buf, sizeof(star_log_buf), "OQUAKE: monster kill queued: %s (%d XP, mint=%d)", e->display_name, e->xp, do_mint);
+    star_api_log_to_file(star_log_buf);
     star_api_queue_monster_kill(e->engine_name, e->display_name, e->xp, e->is_boss, do_mint, prov, "OQUAKE");
 }
+
+/* Grace period after level becomes active: ignore monster_ frees in this window (level-load cleanup, not real kills). */
+#define OQUAKE_STAR_KILL_GRACE_FRAMES 90   /* ~1.5 sec at 60fps; filters level-load entity frees */
 
 /* Safe ED_Free hook: only run when in a real game so we avoid VM/state issues (program error on new game / load). */
 void OQuake_STAR_OnEntityFreed(void* ed) {
     const char* ed_classname;
+    char buf[320];
+    static int s_level_active_since_frame = -1;
+    static int s_prev_sv_active = 0;
+    int grace_frames;
+    int counted;
+
     if (!ed)
-        return;
-    /* Only during active game; skip during demo playback, map load, or menu. */
-    if (!sv.active || cls.demoplayback)
         return;
     ed_classname = PR_GetString(((edict_t*)ed)->v.classname);
     if (!ed_classname || strncmp(ed_classname, "monster_", 8) != 0)
         return;
-    Con_Printf("OQuake STAR: monster freed: %s (hook reached, queuing)\n", ed_classname);
+
+    if (sv.active && !s_prev_sv_active)
+        s_level_active_since_frame = host_framecount;
+    s_prev_sv_active = sv.active;
+
+    grace_frames = (s_level_active_since_frame >= 0) ? (int)(host_framecount - s_level_active_since_frame) : -1;
+    counted = (sv.active && !cls.demoplayback &&
+        (s_level_active_since_frame < 0 || grace_frames >= OQUAKE_STAR_KILL_GRACE_FRAMES)) ? 1 : 0;
+
+    snprintf(buf, sizeof(buf), "OQUAKE: monster freed classname=%s sv.active=%d demoplayback=%d grace_frames=%d counted=%d",
+        ed_classname, sv.active ? 1 : 0, cls.demoplayback ? 1 : 0, grace_frames, counted);
+    star_api_log_to_file(buf);
+    Con_Printf("OQuake STAR: %s\n", buf);
+
+    if (!counted)
+        return;
+
+    Con_Printf("OQuake STAR: monster freed: %s (queuing XP/mint)\n", ed_classname);
+    snprintf(buf, sizeof(buf), "OQUAKE: monster freed: %s (queuing XP/mint)", ed_classname);
+    star_api_log_to_file(buf);
     OQuake_STAR_OnMonsterKilled(ed_classname);
 }
 
