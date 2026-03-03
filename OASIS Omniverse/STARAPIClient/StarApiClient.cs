@@ -774,24 +774,38 @@ public sealed class StarApiClient : IDisposable
         return Success(successful, StarApiResultCode.Success, $"Queued add-item jobs completed for {successful.Count} item(s).");
     }
 
+    /// <summary>Storage name for add-item: include game suffix so ODOOM and OQUAKE pickups (armor, weapons, etc.) stack per-game, not merged.</summary>
+    private static string ItemNameWithGameSource(string itemName, string gameSource)
+    {
+        if (string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource)) return itemName;
+        var g = gameSource.Trim();
+        if (g.Equals("Quake", StringComparison.OrdinalIgnoreCase)) g = "OQUAKE";
+        if (!g.Equals("ODOOM", StringComparison.OrdinalIgnoreCase) && !g.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase))
+            return itemName;
+        if (itemName.Contains(" (ODOOM)") || itemName.Contains(" (OQUAKE)"))
+            return itemName;
+        return $"{itemName} ({g})";
+    }
+
     /// <summary>Add pickup to local delta (one row per type). Used by native C: game calls this on pickup; GetInventory returns API + pending; worker flushes to API in background. No per-call HTTP.</summary>
     public void EnqueueAddItemJobOnly(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true)
     {
         if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName) || string.IsNullOrWhiteSpace(gameSource))
             return;
+        var storageName = ItemNameWithGameSource(itemName, gameSource);
         var qty = quantity < 1 ? 1 : quantity;
         var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
         lock (_localPendingLock)
         {
-            if (_localPending.TryGetValue(itemName, out var existing))
+            if (_localPending.TryGetValue(storageName, out var existing))
             {
                 existing.Quantity += qty;
             }
             else
             {
-                _localPending[itemName] = new LocalPendingEntry
+                _localPending[storageName] = new LocalPendingEntry
                 {
-                    Name = itemName,
+                    Name = storageName,
                     Description = description ?? string.Empty,
                     GameSource = gameSource,
                     ItemType = type,
@@ -952,14 +966,15 @@ public sealed class StarApiClient : IDisposable
         }
         var type = string.IsNullOrWhiteSpace(itemType) ? "KeyItem" : itemType;
         var qty = quantity < 1 ? 1 : quantity;
-        _pendingPickupWithMint.Enqueue(new PendingPickupWithMintJob(itemName, description ?? string.Empty, gameSource, type, doMint, provider, sendToAddressAfterMinting, qty));
+        var storageName = ItemNameWithGameSource(itemName, gameSource);
+        _pendingPickupWithMint.Enqueue(new PendingPickupWithMintJob(storageName, description ?? string.Empty, gameSource, type, doMint, provider, sendToAddressAfterMinting, qty));
         /* Show in overlay immediately: merge in GetInventoryAsync uses _localPending, so add here; worker will deduct when add completes. */
         lock (_localPendingLock)
         {
-            if (_localPending.TryGetValue(itemName, out var existing))
+            if (_localPending.TryGetValue(storageName, out var existing))
                 existing.Quantity += qty;
             else
-                _localPending[itemName] = new LocalPendingEntry { Name = itemName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
+                _localPending[storageName] = new LocalPendingEntry { Name = storageName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
         }
         _addItemSignal.Release();
     }
