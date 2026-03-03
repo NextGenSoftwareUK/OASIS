@@ -7,6 +7,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -37,13 +41,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         // Directly use AvatarManager instead of service layer
         private AvatarManager AvatarManager => Program.AvatarManager;
-        
-        // Temporary service access for methods not yet migrated (being phased out)
-        // Note: AvatarService is being phased out, use AvatarManager directly
-        // private IAvatarService _avatarService => Program.AvatarService;
-        
-        public AvatarController()
+
+        private readonly ILogger<AvatarController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
+
+        private static readonly object StarLogLock = new object();
+
+        public AvatarController(ILogger<AvatarController> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
+            _logger = logger;
+            _configuration = configuration;
+            _env = env;
+        }
+
+        /// <summary>When Star logging is enabled, write to both star_api.log and console (ILogger).</summary>
+        private void StarLog(string message, LogLevel level = LogLevel.Information)
+        {
+            var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] {message}";
+            _logger.Log(level, "[STAR] {Message}", message);
+            try
+            {
+                var dir = string.IsNullOrEmpty(_env?.ContentRootPath) ? AppContext.BaseDirectory : _env.ContentRootPath;
+                if (string.IsNullOrEmpty(dir)) dir = Directory.GetCurrentDirectory() ?? ".";
+                var path = Path.Combine(dir, "star_api.log");
+                lock (StarLogLock)
+                    System.IO.File.AppendAllText(path, line + Environment.NewLine);
+            }
+            catch { /* ignore file errors */ }
         }
 
         /// <summary>
@@ -1732,7 +1757,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = AvatarManager.LoggedInAvatar });
         }
 
-        /// <summary>
+         /// <summary>
         /// Gets the logged-in avatar with XP (AvatarDetail). Used by STAR API GET /api/avatar/current so clients can refresh XP after beam-in.
         /// </summary>
         [Authorize]
@@ -2427,18 +2452,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Removes an item from the avatar's inventory.
+        /// Decrements an item's quantity in the avatar's inventory. quantity must be 1 or greater. The item is removed only when its quantity reaches 0 after the decrement.
         /// </summary>
         [HttpDelete("inventory/{itemId}")]
         [Authorize]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<bool>> RemoveItemFromAvatarInventory(Guid itemId)
+        public async Task<OASISHttpResponseMessage<bool>> RemoveItemFromAvatarInventory(Guid itemId, [FromQuery] int quantity = 1)
         {
+            var starLogEnabled = _configuration?.GetSection("Star")?["LoggingEnabled"]?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
+
+            if (starLogEnabled)
+                StarLog($"RemoveItemFromAvatarInventory called: itemId={itemId} quantity={quantity} avatarId={AvatarId}");
+
             try
             {
                 if (AvatarId == Guid.Empty)
                 {
+                    if (starLogEnabled)
+                        StarLog("RemoveItemFromAvatarInventory rejected: AvatarId required", LogLevel.Warning);
                     return HttpResponseHelper.FormatResponse(new OASISResult<bool>
                     {
                         IsError = true,
@@ -2446,11 +2478,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }, HttpStatusCode.BadRequest);
                 }
 
-                var result = await AvatarManager.RemoveItemFromAvatarInventoryAsync(AvatarId, itemId);
+                if (quantity < 1)
+                {
+                    if (starLogEnabled)
+                        StarLog($"RemoveItemFromAvatarInventory rejected: quantity must be >= 1 (got {quantity})", LogLevel.Warning);
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Quantity must be 1 or greater."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.RemoveItemFromAvatarInventoryAsync(AvatarId, itemId, quantity);
+
+                if (starLogEnabled)
+                    StarLog($"RemoveItemFromAvatarInventory result: itemId={itemId} quantity={quantity} success={!result.IsError} message={result.Message ?? "(ok)"}");
+
                 return HttpResponseHelper.FormatResponse(result);
             }
             catch (Exception ex)
             {
+                if (starLogEnabled)
+                {
+                    StarLog($"RemoveItemFromAvatarInventory exception: itemId={itemId} quantity={quantity} error={ex.GetType().Name}: {ex.Message}", LogLevel.Error);
+                    _logger.LogError(ex, "[STAR] RemoveItemFromAvatarInventory exception: itemId={ItemId} quantity={Quantity}", itemId, quantity);
+                }
                 return HttpResponseHelper.FormatResponse(new OASISResult<bool>
                 {
                     IsError = true,

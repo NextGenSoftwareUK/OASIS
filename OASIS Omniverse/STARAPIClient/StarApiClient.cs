@@ -1142,30 +1142,51 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Strip UI-only display prefix so we match API-stored names. Backend does not store "[NFT]" or "[BOSSNFT]" in the name.</summary>
+    private static string StripNftDisplayPrefix(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return name ?? string.Empty;
+        var n = name.AsSpan().Trim();
+        if (n.StartsWith("[NFT] ", StringComparison.OrdinalIgnoreCase))
+            return n.Slice(6).Trim().ToString();
+        if (n.StartsWith("[BOSSNFT] ", StringComparison.OrdinalIgnoreCase))
+            return n.Slice(10).Trim().ToString();
+        return name;
+    }
+
     private void RemoveFromInventoryCache(string itemName, int quantity)
     {
         if (string.IsNullOrWhiteSpace(itemName) || quantity <= 0) return;
         lock (_inventoryCacheLock)
         {
             if (_cachedInventory is null || _cachedInventory.Count == 0) return;
-            var removed = 0;
-            _cachedInventory.RemoveAll(x =>
-            {
-                if (removed >= quantity) return false;
-                var match = string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase);
-                if (match) removed++;
-                return match;
-            });
+            var idx = _cachedInventory.FindIndex(x => string.Equals(x.Name, itemName, StringComparison.OrdinalIgnoreCase));
+            if (idx < 0) return;
+            var item = _cachedInventory[idx];
+            var newQty = item.Quantity - quantity;
+            if (newQty <= 0)
+                _cachedInventory.RemoveAt(idx);
+            else
+                _cachedInventory[idx] = new StarItem
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Description,
+                    GameSource = item.GameSource,
+                    ItemType = item.ItemType,
+                    NftId = item.NftId,
+                    Quantity = newQty
+                };
         }
     }
 
-    /// <summary>Record use of an item in a context (e.g. door). For optimization, prefer deciding access from the already-loaded inventory (local cache) and only call this when you need to record use or when cache is unavailable.</summary>
-    public async Task<OASISResult<bool>> UseItemAsync(string itemName, string? context = null, CancellationToken cancellationToken = default)
+    /// <summary>Record use of an item in a context (e.g. door). quantity: number to consume (default 1). For optimization, prefer deciding access from the already-loaded inventory (local cache) and only call this when you need to record use or when cache is unavailable.</summary>
+    public async Task<OASISResult<bool>> UseItemAsync(string itemName, string? context = null, int quantity = 1, CancellationToken cancellationToken = default)
     {
-        return await UseItemCoreAsync(itemName, context, cancellationToken).ConfigureAwait(false);
+        return await UseItemCoreAsync(itemName, context, quantity, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<OASISResult<bool>> QueueUseItemAsync(string itemName, string? context = null, CancellationToken cancellationToken = default)
+    public Task<OASISResult<bool>> QueueUseItemAsync(string itemName, string? context = null, int quantity = 1, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return Task.FromResult(FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized));
@@ -1174,17 +1195,17 @@ public sealed class StarApiClient : IDisposable
             return Task.FromResult(FailAndCallback<bool>("Item name is required.", StarApiResultCode.InvalidParam));
 
         var tcs = new TaskCompletionSource<OASISResult<bool>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, cancellationToken, tcs));
+        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, quantity, cancellationToken, tcs));
         _useItemSignal.Release();
         return tcs.Task;
     }
 
-    /// <summary>Enqueue one use-item job without returning a completion task. Used by native C sync lib for batching.</summary>
-    public void EnqueueUseItemJobOnly(string itemName, string? context = null)
+    /// <summary>Enqueue one use-item job without returning a completion task. Used by native C sync lib for batching. quantity: number to consume (default 1).</summary>
+    public void EnqueueUseItemJobOnly(string itemName, string? context = null, int quantity = 1)
     {
         if (!IsInitialized() || string.IsNullOrWhiteSpace(itemName))
             return;
-        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, CancellationToken.None, null));
+        _pendingUseItemJobs.Enqueue(new PendingUseItemJob(itemName, context, quantity, CancellationToken.None, null));
         _useItemSignal.Release();
     }
 
@@ -1202,13 +1223,16 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Use-item queue flushed.");
     }
 
-    private async Task<OASISResult<bool>> UseItemCoreAsync(string itemName, string? context = null, CancellationToken cancellationToken = default)
+    private async Task<OASISResult<bool>> UseItemCoreAsync(string itemName, string? context = null, int quantity = 1, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         if (string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<bool>("Item name is required.", StarApiResultCode.InvalidParam);
+
+        itemName = StripNftDisplayPrefix(itemName);
+        int useQty = quantity > 0 ? quantity : 1;
 
         var inventory = await GetInventoryAsync(cancellationToken).ConfigureAwait(false);
         if (inventory.IsError)
@@ -1225,6 +1249,7 @@ public sealed class StarApiClient : IDisposable
         var item = inventory.Result!.FirstOrDefault(i => string.Equals(i.Name, itemName, StringComparison.OrdinalIgnoreCase));
         if (item is null)
         {
+            StarApiExports.StarApiLog($"UseItem: item not in inventory name='{itemName}'");
             InvokeCallback(StarApiResultCode.Success);
             return Success(false, StarApiResultCode.Success, $"Item '{itemName}' is not in inventory.");
         }
@@ -1239,16 +1264,28 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
 
-            var response = await SendRawAsync(HttpMethod.Delete, $"{_baseApiUrl}/api/avatar/inventory/{item.Id}", payload, cancellationToken).ConfigureAwait(false);
-            if (response.IsError)
-                return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            var url = $"{_baseApiUrl}/api/avatar/inventory/{item.Id}";
+            if (useQty > 0)
+                url += $"?quantity={useQty}";
 
-            RemoveFromInventoryCache(itemName, 1);
+            StarApiExports.StarApiLog($"UseItem: DELETE {url} name='{itemName}' context='{context ?? "game_use"}' quantity={useQty} itemId={item.Id}");
+
+            var response = await SendRawAsync(HttpMethod.Delete, url, payload, cancellationToken).ConfigureAwait(false);
+
+            if (response.IsError)
+            {
+                StarApiExports.StarApiLog($"UseItem: failed response IsError=true message='{response.Message}'");
+                return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
+
+            StarApiExports.StarApiLog($"UseItem: success name='{itemName}' quantity={useQty} (removed from cache)");
+            RemoveFromInventoryCache(itemName, useQty);
             InvokeCallback(StarApiResultCode.Success);
             return Success(true, StarApiResultCode.Success, "Item used successfully.");
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLog($"UseItem: exception {ex.GetType().Name} message='{ex.Message}'");
             return FailAndCallback<bool>($"Failed to use item: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -1759,6 +1796,7 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
         if (string.IsNullOrWhiteSpace(targetUsernameOrAvatarId) || string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<bool>("Target and item name are required.", StarApiResultCode.InvalidParam);
+        itemName = StripNftDisplayPrefix(itemName);
         if (quantity < 1) quantity = 1;
 
         var payload = BuildJson(writer =>
@@ -1796,6 +1834,7 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
         if (string.IsNullOrWhiteSpace(clanNameOrTargetUsername) || string.IsNullOrWhiteSpace(itemName))
             return FailAndCallback<bool>("Clan name (or target) and item name are required.", StarApiResultCode.InvalidParam);
+        itemName = StripNftDisplayPrefix(itemName);
         if (quantity < 1) quantity = 1;
 
         var payload = BuildJson(writer =>
@@ -2958,7 +2997,7 @@ public sealed class StarApiClient : IDisposable
                 Interlocked.Increment(ref _activeUseItemJobs);
                 try
                 {
-                    var result = await UseItemCoreAsync(job.ItemName, job.Context, job.CancellationToken).ConfigureAwait(false);
+                    var result = await UseItemCoreAsync(job.ItemName, job.Context, job.Quantity, job.CancellationToken).ConfigureAwait(false);
                     job.Completion?.TrySetResult(result);
                 }
                 finally
@@ -3349,16 +3388,18 @@ public sealed class StarApiClient : IDisposable
 
     private sealed class PendingUseItemJob
     {
-        public PendingUseItemJob(string itemName, string? context, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>>? completion)
+        public PendingUseItemJob(string itemName, string? context, int quantity, CancellationToken cancellationToken, TaskCompletionSource<OASISResult<bool>>? completion)
         {
             ItemName = itemName;
             Context = context;
+            Quantity = quantity > 0 ? quantity : 1;
             CancellationToken = cancellationToken;
             Completion = completion;
         }
 
         public string ItemName { get; }
         public string? Context { get; }
+        public int Quantity { get; }
         public CancellationToken CancellationToken { get; }
         public TaskCompletionSource<OASISResult<bool>>? Completion { get; }
     }
@@ -3775,9 +3816,9 @@ public static unsafe class StarApiExports
         return (int)StarApiResultCode.Success;
     }
 
-    /// <summary>Native export for star_api_use_item. Prefer deciding access from already-loaded inventory (local cache); use this when recording use or when cache unavailable.</summary>
+    /// <summary>Native export for star_api_use_item. quantity: number to consume (default 1).</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_use_item", CallConvs = [typeof(CallConvCdecl)])]
-    public static byte StarApiUseItem(sbyte* itemName, sbyte* context)
+    public static byte StarApiUseItem(sbyte* itemName, sbyte* context, int quantity)
     {
         var client = GetClient();
         if (client is null)
@@ -3787,18 +3828,20 @@ public static unsafe class StarApiExports
             return 0;
         }
 
-        var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context)).GetAwaiter().GetResult();
+        int q = quantity > 0 ? quantity : 1;
+        var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context), q).GetAwaiter().GetResult();
         var code = FinalizeResult(result);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_use_item", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiQueueUseItem(sbyte* itemName, sbyte* context)
+    public static void StarApiQueueUseItem(sbyte* itemName, sbyte* context, int quantity)
     {
         var client = GetClient();
         if (client is null)
             return;
-        client.EnqueueUseItemJobOnly(PtrToString(itemName) ?? string.Empty, PtrToString(context));
+        int q = quantity > 0 ? quantity : 1;
+        client.EnqueueUseItemJobOnly(PtrToString(itemName) ?? string.Empty, PtrToString(context), q);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_flush_use_item_jobs", CallConvs = [typeof(CallConvCdecl)])]
@@ -4078,7 +4121,7 @@ public static unsafe class StarApiExports
         EnqueueConsoleLog(message);
     }
 
-    /// <summary>Append a line to star_api.log so game (e.g. Doom) door-check and debug messages appear in the same log for pasting.</summary>
+    /// <summary>Append a line to star_api.log and enqueue for Doom console so game (e.g. Doom) door-check and debug messages appear in both.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_log_to_file", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiLogToFile(sbyte* message)
     {
@@ -4097,6 +4140,7 @@ public static unsafe class StarApiExports
                 File.AppendAllText(path, line + Environment.NewLine);
         }
         catch { /* ignore */ }
+        EnqueueConsoleLog(msg);
     }
 
     private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)

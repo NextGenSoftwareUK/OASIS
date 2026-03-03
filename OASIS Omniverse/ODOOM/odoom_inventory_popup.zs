@@ -226,6 +226,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<String> starGroupLabels;
 			array<int> starGroupCounts;
 			array<String> starGroupFirstNames;
+			array<String> starGroupTypes;
 			for (int i = 0; i < starCount; i++)
 			{
 				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
@@ -236,6 +237,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				starGroupLabels.Push(String.Format("%s x%d", label, qty));
 				starGroupCounts.Push(qty);
 				starGroupFirstNames.Push(starNames[i]);
+				starGroupTypes.Push((i < starTypes.Size()) ? starTypes[i] : "Item");
 			}
 			int starGroupCount = starGroupLabels.Size();
 			if (starGroupCount > MAX_STAR_GROUPS_TO_CACHE) starGroupCount = MAX_STAR_GROUPS_TO_CACHE;
@@ -327,9 +329,19 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (selectedAbsolute < 0) selectedAbsolute = 0;
 			}
 
+			bool canUseStar = (selectedAbsolute < (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && starGroupCount > 0 && starWindowIdx >= 0 && starWindowIdx < starGroupCount && starGroupCounts[starWindowIdx] > 0);
 			if ((useDown && !wasUseDown) || keyUsePressed)
 			{
-				if (selectedItem != null && selectedItem.Amount > 0)
+				if (canUseStar)
+				{
+					CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
+					CVar typeCv = CVar.FindCVar("odoom_star_use_item_type");
+					CVar doCv = CVar.FindCVar("odoom_star_use_do_it");
+					if (nameCv != null) nameCv.SetString(starGroupFirstNames[starWindowIdx]);
+					if (typeCv != null) typeCv.SetString(starGroupTypes[starWindowIdx]);
+					if (doCv != null) doCv.SetInt(1);
+				}
+				else if (selectedItem != null && selectedItem.Amount > 0)
 				{
 					p.mo.UseInventory(selectedItem);
 					if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
@@ -696,7 +708,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		int tabGap = 10;
-		int tabX = -32;  // 10px further left (was -22)
+		int tabX = -37;  // 5px further left (was -32)
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";
@@ -719,7 +731,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_MONSTERS ? Font.CR_GREEN : Font.CR_GRAY, tab6X, 33, tab6, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
-		screen.DrawText(f, Font.CR_DARKGRAY, -16, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_DARKGRAY, -26, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		// Parse cache strings into lines for indexing (local arrays only; no array members)
 		array<String> starLines;

@@ -55,6 +55,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #include "m_argv.h"
 #include "printf.h"
 #include "i_time.h"
+#include "g_levellocals.h"
+#include "playsim/d_player.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -84,7 +86,7 @@ static std::string g_star_effective_username;
 static std::string g_star_effective_password;
 static const int STAR_PICKUP_OQUAKE_GOLD_KEY = 5005;
 static const int STAR_PICKUP_OQUAKE_SILVER_KEY = 5013;
-static const int STAR_PICKUP_GENERIC_ITEM = 9001;
+/* STAR_PICKUP_GENERIC_ITEM is from uzdoom_star_integration.h (#define 9001) */
 static std::string g_star_pending_item_name;
 static std::string g_star_pending_item_desc;
 static std::string g_star_pending_item_type;
@@ -98,6 +100,9 @@ static bool g_star_has_last_pickup = false;
 static std::string g_star_last_generic_key;
 static int g_star_last_generic_tic = -99999;
 static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
+/** When user presses E on a STAR item in inventory, we store name/type for the use-item callback to apply Health/Armor. */
+static std::string g_star_use_pending_name;
+static std::string g_star_use_pending_type;
 static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
@@ -136,6 +141,11 @@ CVAR(Int, odoom_star_mint_powerups, 0, CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_mint_keys, 0, CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_nft_provider, "SolanaOASIS", CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_send_to_address_after_minting, "", CVAR_GLOBALCONFIG)
+/** 1 = always allow pickup (add to STAR inventory and remove from floor even when full); 0 = original Doom (full health/armor = can't pick up). */
+CVAR(Int, odoom_star_always_allow_pickup, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** Max health/armor when using items from inventory (e.g. 200). Can set higher if desired. */
+CVAR(Int, odoom_star_max_health, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_max_armor, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 /** Per-monster mint flag: 1 = mint NFT when killed, 0 = off. Keys = normalized config key (e.g. odoom_zombieman, oquake_ogre). */
 static std::map<std::string, int> g_odoom_mint_monster_flags;
@@ -328,6 +338,20 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_send_to_address_after_minting = value;
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "always_allow_pickup", value, (int)sizeof(value))) {
+		odoom_star_always_allow_pickup = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "max_health", value, (int)sizeof(value))) {
+		int v = atoi(value);
+		odoom_star_max_health = (v > 0) ? v : 200;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "max_armor", value, (int)sizeof(value))) {
+		int v = atoi(value);
+		odoom_star_max_armor = (v > 0) ? v : 200;
+		loaded = true;
+	}
 	/* Per-monster mint: mint_monster_odoom_zombieman, mint_monster_oquake_ogre, etc. Default 1 if key missing. */
 	for (int i = 0; ODOOM_MONSTERS[i].engineName; i++) {
 		char key[128];
@@ -396,6 +420,20 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 			fputc((unsigned char)*send_addr, f);
 		}
 		fprintf(f, "\",\n");
+	}
+	{
+		int ap = 1, mh = 200, ma = 200;
+		FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup", nullptr);
+		if (v && v->GetRealType() == CVAR_Int) ap = v->GetGenericRep(CVAR_Int).Int ? 1 : 0;
+		v = FindCVar("odoom_star_max_health", nullptr);
+		if (v && v->GetRealType() == CVAR_Int) mh = v->GetGenericRep(CVAR_Int).Int;
+		v = FindCVar("odoom_star_max_armor", nullptr);
+		if (v && v->GetRealType() == CVAR_Int) ma = v->GetGenericRep(CVAR_Int).Int;
+		if (mh <= 0) mh = 200;
+		if (ma <= 0) ma = 200;
+		fprintf(f, "  \"always_allow_pickup\": %d,\n", ap);
+		fprintf(f, "  \"max_health\": %d,\n", mh);
+		fprintf(f, "  \"max_armor\": %d,\n", ma);
 	}
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
@@ -691,6 +729,68 @@ static void ODOOM_OnSendItemDone(void* user_data) {
 	/* Do NOT refetch inventory here; we updated the cache above. Keeps API hits to minimum. */
 }
 
+/** Apply health or armor to the console player when using a Health/Armor item from STAR inventory.
+ *  Use-from-inventory ALWAYS adds the item's amount; items that originally allowed over 100 (e.g. Soul Sphere,
+ *  Mega Sphere) use max 200 so the HUD shows the correct value. */
+static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string& type) {
+	FLevelLocals* level = primaryLevel;
+	if (!level) return;
+	player_t* player = level->GetConsolePlayer();
+	if (!player || !player->mo) return;
+	/* Avoid std::string::npos for MSVC/Windows macro compatibility; npos is typically (size_t)-1 */
+	const size_t np = (size_t)(-1);
+	const bool isHealth = (type.find("Health") != np || type.find("health") != np);
+	const bool isArmor = (type.find("Armor") != np || type.find("armor") != np);
+	int configMaxH = 200, configMaxA = 200;
+	{ FBaseCVar* v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxH = v->GetGenericRep(CVAR_Int).Int; if (configMaxH <= 0) configMaxH = 200; }
+	{ FBaseCVar* v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxA = v->GetGenericRep(CVAR_Int).Int; if (configMaxA <= 0) configMaxA = 200; }
+	if (isHealth) {
+		int amount = 25;
+		int maxH = 100;
+		if (maxH > configMaxH) maxH = configMaxH;
+		if (name.find("Stimpack") != np) { amount = 10; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (name.find("Medikit") != np) { amount = 25; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (name.find("Health Bonus") != np) { amount = 1; maxH = (100 < configMaxH) ? 100 : configMaxH; }
+		else if (name.find("Soul Sphere") != np || name.find("Soul") != np) { amount = 100; maxH = configMaxH; }
+		else if (name.find("Mega") != np && (name.find("Sphere") != np || name.find("Health") != np)) { amount = 200; maxH = configMaxH; }
+		else if (name.find("Large Health") != np) { amount = 50; maxH = configMaxH; }
+		else if (name.find("Mega Health") != np) { amount = 100; maxH = configMaxH; }
+		else if (name.find("Health") != np) { amount = 25; maxH = configMaxH; }
+		{ int newH = player->mo->health + amount; player->mo->health = (newH < maxH) ? newH : maxH; }
+		player->health = player->mo->health;
+		Printf(PRINT_HIGH, "STAR: used %s, health now %d\n", name.c_str(), player->mo->health);
+	}
+	if (isArmor) {
+		int amount = 100;
+		if (name.find("Blue") != np || name.find("Mega") != np) amount = 200;
+		else if (name.find("Green") != np || name.find("Yellow") != np) amount = 100;
+		AActor* arm = player->mo->FindInventory(FName("BasicArmor"), true);
+		if (arm) {
+			int& a = arm->IntVar(FName("Amount"));
+			{ int newA = a + amount; int cap = configMaxA; a = (newA < cap) ? newA : cap; }
+			Printf(PRINT_HIGH, "STAR: used %s, armor now %d\n", name.c_str(), a);
+		}
+		/* If no BasicArmor yet, pick up any armor in-game first; UZDoom AActor has no GiveInventory in this build. */
+	}
+}
+
+/** Called when use-item from inventory (E on STAR row) completes; applies Health/Armor then refreshes overlay. */
+static void ODOOM_OnUseItemFromInventoryDone(void* user_data) {
+	(void)user_data;
+	int success = 0;
+	char err_buf[384] = {};
+	if (!star_sync_use_item_get_result(&success, err_buf, sizeof(err_buf)))
+		return;
+	if (success && !g_star_use_pending_name.empty())
+		ODOOM_ApplyHealthOrArmor(g_star_use_pending_name, g_star_use_pending_type);
+	g_star_use_pending_name.clear();
+	g_star_use_pending_type.clear();
+	if (success)
+		ODOOM_RefreshOverlayFromClient();
+	else if (err_buf[0])
+		StarLogError("star_api_use_item failed: %s", err_buf);
+}
+
 /** Called from main thread by star_sync_pump() when use-item (e.g. door key) completes. */
 static void ODOOM_OnUseItemDone(void* user_data) {
 	(void)user_data;
@@ -772,6 +872,23 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). When not beamed in we push empty. */
 	if (open) {
 		ODOOM_RefreshOverlayFromClient();
+		/* Use STAR item from inventory (E on selected STAR row): ZScript set odoom_star_use_do_it=1, name and type. */
+		if (!star_sync_use_item_in_progress()) {
+			FBaseCVar* doCv = FindCVar("odoom_star_use_do_it", nullptr);
+			if (doCv && doCv->GetRealType() == CVAR_Int && doCv->GetGenericRep(CVAR_Int).Int != 0) {
+				FBaseCVar* nameCv = FindCVar("odoom_star_use_item_name", nullptr);
+				FBaseCVar* typeCv = FindCVar("odoom_star_use_item_type", nullptr);
+				const char* nameStr = (nameCv && nameCv->GetRealType() == CVAR_String) ? nameCv->GetGenericRep(CVAR_String).String : "";
+				const char* typeStr = (typeCv && typeCv->GetRealType() == CVAR_String) ? typeCv->GetGenericRep(CVAR_String).String : "Item";
+				if (nameStr && nameStr[0]) {
+					g_star_use_pending_name = nameStr;
+					g_star_use_pending_type = typeStr ? typeStr : "";
+					star_sync_use_item_start(nameStr, "odoom_use", ODOOM_OnUseItemFromInventoryDone, nullptr);
+					UCVarValue u; u.Int = 0;
+					doCv->SetGenericRep(u, CVAR_Int);
+				}
+			}
+		}
 	} else if (g_star_initialized) {
 		/* First frame after beam-in: refresh gold/silver key CVars immediately so OQ keys appear with Doom keycards (no wait for console close). */
 		if (g_star_just_beamed_in) {
@@ -1624,7 +1741,10 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		return keynum;
 	}
 
-	// Generic inventory sync path for non-key pickups (weapons/ammo/armor/items).
+	// Generic inventory sync path: health, armor, ammo, weapons. We always allow pickup: item is added to
+	// STAR inventory and the floor object is destroyed (see p_interaction patch). If the engine didn't
+	// consume (e.g. health/armor full), we still take it into inventory; using it later (E in inventory)
+	// applies the health/armor and updates the HUD.
 	auto invType = PClass::FindActor(NAME_Inventory);
 	if (invType && special->IsKindOf(invType)) {
 		const char* cls = special->GetClass()->TypeName.GetChars();
@@ -1794,6 +1914,12 @@ int UZDoom_STAR_PlayerHasKey(int keynum) {
 	if (keynum <= 0 || keynum > 4) return 0;
 	if (!StarTryInitializeAndAuthenticate(false)) return 0;
 	return ODOOM_STAR_HasKeycard(keynum, nullptr) ? 1 : 0;
+}
+
+int UZDoom_STAR_AlwaysAllowPickup(void) {
+	FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup", nullptr);
+	if (v && v->GetRealType() == CVAR_Int) return (v->GetGenericRep(CVAR_Int).Int != 0) ? 1 : 0;
+	return 1;
 }
 
 /** Called from a_doors.cpp EV_DoDoor before P_CheckKeys. Log once per lock value to star_api.log so we can tell if E on door reaches EV_DoDoor (if you see this but no "door v2 E on door", a_keys.cpp is not patched). */
