@@ -229,7 +229,10 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < starCount; i++)
 			{
 				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
-				String label = StarItemShortLabel(starNames[i], starGames[i]);
+				// Monster items already have game in the name (e.g. "Dog (OQUAKE)"); don't append game again.
+				String label = (i < starTypes.Size() && starTypes[i].Compare("Monster") == 0)
+					? starNames[i]
+					: StarItemShortLabel(starNames[i], starGames[i]);
 				starGroupLabels.Push(String.Format("%s x%d", label, qty));
 				starGroupCounts.Push(qty);
 				starGroupFirstNames.Push(starNames[i]);
@@ -545,9 +548,12 @@ class OASISInventoryOverlayHandler : EventHandler
 	}
 
 	// Short display label for STAR items: "Shells (OQUAKE)" – item name (game in brackets). Names are already short (Shells, Shotgun, etc.).
+	// If name already contains " (OQUAKE)" or " (ODOOM)" (e.g. monster kills), show as-is to avoid duplicating game.
 	private String StarItemShortLabel(String name, String game)
 	{
 		String n = name;
+		if (n.IndexOf(" (OQUAKE)") >= 0 || n.IndexOf(" (ODOOM)") >= 0)
+			return n;
 		String g = (game.Length() > 0) ? game : "STAR";
 		if (g == "QUAKE" || g == "Quake" || g == "quake") g = "OQUAKE";
 		// ODOOM/Doom-specific mappings

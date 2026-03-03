@@ -2738,8 +2738,9 @@ public sealed class StarApiClient : IDisposable
                     continue;
                 }
                 StarApiExports.StarApiLog($"Monster kill: NFT minted for {monsterJob.DisplayName}, adding to inventory");
-                /* Store item name without [NFT] prefix (popup adds it). Add [BOSS] for boss monsters only. */
-                var itemName = monsterJob.IsBoss ? "[BOSS] " + monsterJob.DisplayName : monsterJob.DisplayName;
+                /* Store item name with game source so OQUAKE and ODOOM kills are separate (e.g. "Dog (OQUAKE)" vs "Dog (ODOOM)"). Add [BOSS] for boss monsters only. */
+                var baseName = monsterJob.IsBoss ? "[BOSS] " + monsterJob.DisplayName : monsterJob.DisplayName;
+                var itemName = $"{baseName} ({gameSource})";
                 Interlocked.Increment(ref _activeAddItemJobs);
                 try
                 {
