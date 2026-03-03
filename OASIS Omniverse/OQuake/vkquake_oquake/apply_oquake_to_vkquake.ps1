@@ -317,6 +317,44 @@ function Remove-MonsterHookFromInsideEDFree {
     Write-Host "[OQuake] Removed hook from inside ED_Free() in pr_edict.c" -ForegroundColor Green
     return $true
 }
+
+# Hook in pr_cmds.c at PF_sv_makestatic (makestatic). UNCONDITIONAL (no #ifdef) so it always runs regardless of OASIS_STAR_API define.
+function Add-MonsterHookInPrCmds {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)') { return $false }
+    if ($content -notmatch '// throw the entity away now\s*\r?\n\s*ED_Free\s*\(\s*ent\s*\)') { return $false }
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+    }
+    $orig = $content
+    $content = $content -replace '(// throw the entity away now\s*\r?\n)(\s*)(ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2OQuake_STAR_OnEntityFreed(ent);`r`n`$2`$3"
+    if ($content -eq $orig) { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched pr_cmds.c: unconditional monster hook in PF_sv_makestatic (before ED_Free)" -ForegroundColor Green
+    return $true
+}
+function Remove-MonsterHookFromPrCmds {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -notmatch 'OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)') { return $false }
+    $orig = $content
+    # Remove unconditional hook
+    $content = $content -replace '(// throw the entity away now\s*\r?\n)\s*OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)\s*;\r?\n(\s*ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2"
+    if ($content -eq $orig) {
+        # Remove #ifdef-wrapped hook
+        $content = $content -replace '(// throw the entity away now\s*\r?\n)\s*#ifdef OASIS_STAR_API\r?\n\s*OQuake_STAR_OnEntityFreed\s*\(\s*ent\s*\)\s*;\r?\n\s*#endif\r?\n(\s*ED_Free\s*\(\s*ent\s*\)\s*;)', "`$1`$2"
+    }
+    if ($content -eq $orig) { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Removed monster hook from pr_cmds.c" -ForegroundColor Green
+    return $true
+}
+
 # Repair: preprocessor must start in column 0 (MSVC C2014). Fix already-patched files that have indented #ifdef/#endif.
 function Repair-MonsterHookPreprocessor {
     param([string]$FilePath, [string]$FileLabel)
@@ -436,6 +474,12 @@ if ($RevertMonsterHook) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
         }
     }
+    $path = Join-Path $QuakeDir "pr_cmds.c"
+    if (Remove-MonsterHookFromPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache" -ForegroundColor Yellow; break }
+        }
+    }
     Get-ChildItem -Path $QuakeDir -Filter "*.c" | ForEach-Object {
         if (Remove-MonsterHookFromFile -FilePath $_.FullName -FileLabel $_.Name) {
             foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
@@ -459,9 +503,13 @@ if ($RevertMonsterHook) {
     if (Add-MonsterHookInsideEDFree -FilePath $path -FileLabel "pr_edict.c") {
         $monsterHookAdded = $true
     }
+    $path = Join-Path $QuakeDir "pr_cmds.c"
+    if (Add-MonsterHookInPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
+        $monsterHookAdded = $true
+    }
     if ($monsterHookAdded) {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
-            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (monster hook inside ED_Free)" -ForegroundColor Yellow; break }
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (monster hook inside ED_Free + pr_cmds makestatic)" -ForegroundColor Yellow; break }
         }
     }
 }

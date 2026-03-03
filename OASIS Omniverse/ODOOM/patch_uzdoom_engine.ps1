@@ -285,14 +285,18 @@ if (Test-Path $aKeysCpp) {
     $akContent = Get-Content $aKeysCpp -Raw
     $akChanged = $false
     if ($akContent -notmatch 'uzdoom_star_integration\.h') {
-        $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $akContent = $akContent -replace '(\#include "g_levellocals\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
         $akChanged = $true
     }
-    # Insert STAR check: when !quiet (E on door) run CheckDoorAccess FIRST so we always log; when quiet (HUD) do engine key then PlayerHasKey.
+    # Convert #ifdef-wrapped include to unconditional so door code always compiles
+    if ($akContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif') {
+        $akContent = $akContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif', '#include "uzdoom_star_integration.h"'
+        $akChanged = $true
+    }
+    # Unconditional STAR block (no #ifdef) so door log/check always runs regardless of OASIS_STAR_API define.
     $starBlockOld = '\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(!quiet && UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*#endif'
     $starBlockNew = @'
 
-#ifdef OASIS_STAR_API
 	if (quiet) {
 		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
@@ -300,13 +304,18 @@ if (Test-Path $aKeysCpp) {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
 		if (lock->check(owner)) return true;
 	}
-#endif
 '@
-    # Repair: if already patched with OLD order (lock->check before #ifdef), replace with new order (STAR first when !quiet) so E on door always logs.
-    $oldOrderPattern = '(?ms)^\s*if \(lock->check\(owner\)\) return true;\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(quiet\) \{\r?\n\s*if \(UZDoom_STAR_PlayerHasKey\(keynum\)\) return true;\r?\n\s*\} else \{\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*\}\r?\n\s*#endif(\r?\n\s*if \(quiet\) return false;)'
-    $newOrderBlock = "#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`$1"
+    # Repair: if already patched with #ifdef-wrapped block, replace with unconditional block so it always compiles.
+    $oldOrderPattern = '(?ms)^\s*#ifdef OASIS_STAR_API\r?\n\s*if \(quiet\) \{\r?\n\s*if \(lock->check\(owner\)\) return true;\r?\n\s*if \(UZDoom_STAR_PlayerHasKey\(keynum\)\) return true;\r?\n\s*\} else \{\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*if \(lock->check\(owner\)\) return true;\r?\n\s*\}\r?\n\s*#endif(\r?\n\s*if \(quiet\) return false;)'
+    $newOrderBlockUncond = "`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`$1"
     if ($akContent -match $oldOrderPattern) {
-        $akContent = $akContent -replace $oldOrderPattern, $newOrderBlock
+        $akContent = $akContent -replace $oldOrderPattern, $newOrderBlockUncond
+        $akChanged = $true
+    }
+    $oldOrderPattern2 = '(?ms)^\s*if \(lock->check\(owner\)\) return true;\r?\n\s*#ifdef OASIS_STAR_API\r?\n\s*if \(quiet\) \{\r?\n\s*if \(UZDoom_STAR_PlayerHasKey\(keynum\)\) return true;\r?\n\s*\} else \{\r?\n\s*if \(UZDoom_STAR_CheckDoorAccess\(owner, keynum, remote\)\) return true;\r?\n\s*\}\r?\n\s*#endif(\r?\n\s*if \(quiet\) return false;)'
+    $newOrderBlock2 = "`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`$1"
+    if ($akContent -match $oldOrderPattern2) {
+        $akContent = $akContent -replace $oldOrderPattern2, $newOrderBlock2
         $akChanged = $true
     }
     if ($akContent -notmatch 'UZDoom_STAR_PlayerHasKey') {
@@ -317,7 +326,6 @@ if (Test-Path $aKeysCpp) {
         } else {
             # STAR block: when !quiet (player E on door) run CheckDoorAccess FIRST so we always log and can open via STAR; then engine key. When quiet (HUD) do engine then PlayerHasKey.
             $newBlockNoLead = @'
-#ifdef OASIS_STAR_API
 	if (quiet) {
 		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
@@ -325,11 +333,9 @@ if (Test-Path $aKeysCpp) {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
 		if (lock->check(owner)) return true;
 	}
-#endif
 	if (quiet) return false;
 '@
             $newBlockWithLead = @'
-#ifdef OASIS_STAR_API
 	if (quiet) {
 		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
@@ -337,7 +343,6 @@ if (Test-Path $aKeysCpp) {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
 		if (lock->check(owner)) return true;
 	}
-#endif
 	if (quiet) return false;
 '@
             $patched = $false
@@ -357,20 +362,19 @@ if (Test-Path $aKeysCpp) {
                 $akChanged = $true; $patched = $true
             }
             # Fallback: single replace that captures indentation so we preserve it (STAR first when !quiet)
-            $fallbackRepl = "`$1#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`r`n`$3if (quiet) return false;"
+            $fallbackRepl = "`$1`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n`$3if (quiet) return false;"
             if (-not $patched -and $akContent -match '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;') {
                 $akContent = $akContent -replace '(\s*)if \(lock->check\(owner\)\) return true;(\r?\n)(\s*)if \(quiet\) return false;', $fallbackRepl
                 $akChanged = $true; $patched = $true
             }
             if (-not $patched -and $akContent -match 'lock->check\(owner\)' -and $akContent -notmatch 'UZDoom_STAR') {
                 # Last resort: insert STAR block (STAR first when !quiet)
-                $lastResortRepl = "#ifdef OASIS_STAR_API`r`n`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n#endif`r`n`$3`$4"
+                $lastResortRepl = "`tif (quiet) {`r`n`t`tif (lock->check(owner)) return true;`r`n`t`tif (UZDoom_STAR_PlayerHasKey(keynum)) return true;`r`n`t} else {`r`n`t`tif (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;`r`n`t`tif (lock->check(owner)) return true;`r`n`t}`r`n`$3`$4"
                 $akContent = $akContent -replace '(if \(lock->check\(owner\)\) return true;)(\r?\n)(\s*)(if \(quiet\) return false;)', $lastResortRepl
                 $akChanged = $true
             }
             # Literal replace: STAR first when !quiet so E on door always hits CheckDoorAccess (and logs)
             $literalNew = @"
-#ifdef OASIS_STAR_API
 	if (quiet) {
 		if (lock->check(owner)) return true;
 		if (UZDoom_STAR_PlayerHasKey(keynum)) return true;
@@ -378,7 +382,6 @@ if (Test-Path $aKeysCpp) {
 		if (UZDoom_STAR_CheckDoorAccess(owner, keynum, remote)) return true;
 		if (lock->check(owner)) return true;
 	}
-#endif
 	if (quiet) return false;
 "@
             # Flexible: any whitespace before both if lines (catches 2 tabs, 3 spaces, etc.)
@@ -442,14 +445,13 @@ $aDoorsCpp = "$src\src\playsim\mapthinkers\a_doors.cpp"
 if (Test-Path $aDoorsCpp) {
     $adContent = Get-Content $aDoorsCpp -Raw
     $adChanged = $false
-    # Repair: normalize STAR door block so #ifdef/#endif are at column 0 (fixes C2014) and remove duplicate #endif (fixes C1020)
+    # Repair: convert #ifdef-wrapped STAR door block to unconditional so it always compiles
     if ($adContent -match 'ODOOM_STAR_LogEvDoDoorLock') {
-        # Replace the entire STAR door block (any leading/trailing whitespace on # lines) with canonical form
         $starDoorBlockPattern = '\s*#ifdef\s+OASIS_STAR_API\s*\r?\n\s*ODOOM_STAR_LogEvDoDoorLock\s*\(\s*lock\s*\)\s*;\s*\r?\n\s*#endif'
-        $starDoorBlockCanon = "`r`n#ifdef OASIS_STAR_API`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif"
+        $starDoorBlockUncond = "`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);"
         if ($adContent -match $starDoorBlockPattern) {
-            $adContent = $adContent -replace $starDoorBlockPattern, $starDoorBlockCanon
-            Write-Host "[ODOOM] a_doors.cpp: normalized STAR door block (preprocessor at column 0)" -ForegroundColor Yellow
+            $adContent = $adContent -replace $starDoorBlockPattern, $starDoorBlockUncond
+            Write-Host "[ODOOM] a_doors.cpp: STAR door block now unconditional (no #ifdef)" -ForegroundColor Yellow
             $adChanged = $true
         }
         # Also fix any other STAR preprocessor lines that have leading whitespace (e.g. include block)
@@ -467,13 +469,16 @@ if (Test-Path $aDoorsCpp) {
         }
     }
     if ($adContent -notmatch 'uzdoom_star_integration\.h') {
-        $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $adContent = $adContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+        $adChanged = $true
+    }
+    if ($adContent -match '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif') {
+        $adContent = $adContent -replace '#ifdef OASIS_STAR_API\r?\n\s*#include "uzdoom_star_integration\.h"\r?\n\s*#endif', '#include "uzdoom_star_integration.h"'
         $adChanged = $true
     }
     if ($adContent -notmatch 'ODOOM_STAR_LogEvDoDoorLock') {
         $patched = $false
-        # Block must have #ifdef/#endif in column 0 (no leading space) for MSVC
-        $starBlock = "`r`n#ifdef OASIS_STAR_API`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);`r`n#endif`r`n"
+        $starBlock = "`r`n	ODOOM_STAR_LogEvDoDoorLock(lock);`r`n	"
         if ($adContent -match '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))') {
             $adContent = $adContent -replace '(\s+)(if \(lock != 0 && !P_CheckKeys \(thing, lock, tag != 0\))', "$starBlock`$1`$2"
             $adChanged = $true
