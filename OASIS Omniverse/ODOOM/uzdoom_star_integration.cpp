@@ -103,6 +103,9 @@ static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
 /** When user presses E on a STAR item in inventory, we store name/type for the use-item callback to apply Health/Armor. */
 static std::string g_star_use_pending_name;
 static std::string g_star_use_pending_type;
+/** Deferred apply: set when use-item succeeds; applied at start of next frame so engine does not overwrite health. */
+static std::string g_star_deferred_apply_name;
+static std::string g_star_deferred_apply_type;
 static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
@@ -832,15 +835,17 @@ static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string&
 	}
 }
 
-/** Called when use-item from inventory (E on STAR row) completes; applies Health/Armor then refreshes overlay. */
+/** Called when use-item from inventory (E on STAR row) completes. Defer Health/Armor apply to next frame so the engine does not overwrite it. */
 static void ODOOM_OnUseItemFromInventoryDone(void* user_data) {
 	(void)user_data;
 	int success = 0;
 	char err_buf[384] = {};
 	if (!star_sync_use_item_get_result(&success, err_buf, sizeof(err_buf)))
 		return;
-	if (success && !g_star_use_pending_name.empty())
-		ODOOM_ApplyHealthOrArmor(g_star_use_pending_name, g_star_use_pending_type);
+	if (success && !g_star_use_pending_name.empty()) {
+		g_star_deferred_apply_name = g_star_use_pending_name;
+		g_star_deferred_apply_type = g_star_use_pending_type;
+	}
 	g_star_use_pending_name.clear();
 	g_star_use_pending_type.clear();
 	if (success)
@@ -865,6 +870,26 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
+	/* Apply deferred health/armor from previous frame's use-item so the engine does not overwrite it. */
+	if (!g_star_deferred_apply_name.empty()) {
+		ODOOM_ApplyHealthOrArmor(g_star_deferred_apply_name, g_star_deferred_apply_type);
+		g_star_deferred_apply_name.clear();
+		g_star_deferred_apply_type.clear();
+		ODOOM_RefreshOverlayFromClient();
+	}
+
+	/* Decrement toast frame counter so ZScript shows message for ~3 seconds. */
+	{
+		FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
+		if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+			int f = toastFramesCv->GetGenericRep(CVAR_Int).Int;
+			if (f > 0) {
+				UCVarValue v; v.Int = f - 1;
+				toastFramesCv->SetGenericRep(v, CVAR_Int);
+			}
+		}
+	}
+
 	star_sync_pump();
 
 	/* One-time message so you can confirm this build has the door-check code (E on door logs "[ODOOM STAR door v2]"). Also write to star_api.log for pasting. */
@@ -943,7 +968,19 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					std::string typeS(typeStr ? typeStr : "");
 					const char* blockMsg = nullptr;
 					if (ODOOM_WouldUseExceedMax(nameS, typeS, &blockMsg)) {
-						if (blockMsg) Printf(PRINT_NONOTIFY, "%s\n", blockMsg);
+						if (blockMsg) {
+							Printf(PRINT_NONOTIFY, "%s\n", blockMsg);
+							FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+							FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
+							if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String) {
+								UCVarValue val; val.String = (char*)blockMsg;
+								toastMsgCv->SetGenericRep(val, CVAR_String);
+							}
+							if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+								UCVarValue v; v.Int = 105; /* 3 sec at 35 fps */
+								toastFramesCv->SetGenericRep(v, CVAR_Int);
+							}
+						}
 						UCVarValue u; u.Int = 0;
 						doCv->SetGenericRep(u, CVAR_Int);
 					} else {

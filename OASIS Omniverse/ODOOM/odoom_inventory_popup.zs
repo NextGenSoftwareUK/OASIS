@@ -680,6 +680,21 @@ class OASISInventoryOverlayHandler : EventHandler
 			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
+		// Toast message at top center (~3 seconds when C++ sets odoom_star_toast_message and odoom_star_toast_frames)
+		CVar toastFramesCv = CVar.FindCVar("odoom_star_toast_frames");
+		CVar toastMsgCv = CVar.FindCVar("odoom_star_toast_message");
+		if (toastFramesCv != null && toastFramesCv.GetInt() > 0 && toastMsgCv != null)
+		{
+			String toastMsg = toastMsgCv.GetString();
+			if (toastMsg.Length() > 0)
+			{
+				int tw = f.StringWidth(toastMsg);
+				int tx = 160 - (tw / 2);
+				if (tx < 2) tx = 2;
+				screen.DrawText(f, Font.CR_GOLD, tx, 4, toastMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+		}
+
 		if (!popupOpen) return;
 
 		// When send popup is open, draw only the send popup (no inventory list behind it)
