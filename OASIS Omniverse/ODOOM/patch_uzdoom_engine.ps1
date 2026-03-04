@@ -294,6 +294,17 @@ special->CallTouch (toucher);
     }
 }
 
+# 3c1. a_pickups.h: declare PrintPickupMessage so ODOOM integration can call engine pickup message/sound path
+$aPickupsH = "$src\src\playsim\a_pickups.h"
+if (Test-Path $aPickupsH) {
+    $apContent = Get-Content $aPickupsH -Raw
+    if ($apContent -notmatch 'PrintPickupMessage') {
+        $apContent = $apContent -replace '(void DepleteOrDestroy\(AActor \*item\);[^\r\n]*)', "`$1`r`nvoid PrintPickupMessage(bool localview, const FString &str);	// OASIS STAR: call from integration for pickup feedback"
+        Set-Content $aPickupsH $apContent -NoNewline
+        $changes += "a_pickups.h (PrintPickupMessage)"
+    }
+}
+
 # 3c2. a_keys.cpp: call UZDoom_STAR_CheckDoorAccess only when the player actually tries to open a door (E key).
 #      P_CheckKeys(..., quiet): quiet==true = probe (status bar, automap, map load); quiet==false = player use.
 #      We must only invoke STAR when !quiet so we never touch inventory on map load or other probes.

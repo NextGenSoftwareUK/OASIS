@@ -47,6 +47,7 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 /* ODOOM (UZDoom) headers for key detection */
 #include "gamedata/a_keys.h"
 #include "playsim/actor.h"
+#include "playsim/a_pickups.h"
 #include "gamedata/info.h"
 #include "vm.h"
 #include "c_dispatch.h"
@@ -103,9 +104,10 @@ static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
 /** When user presses E on a STAR item in inventory, we store name/type for the use-item callback to apply Health/Armor. */
 static std::string g_star_use_pending_name;
 static std::string g_star_use_pending_type;
-/** Deferred apply: set when use-item succeeds; applied at start of next frame so engine does not overwrite health. */
+/** Deferred apply: set when use-item succeeds; applied at start of next frame. Re-apply for several frames so HUD/status bar sees the update. */
 static std::string g_star_deferred_apply_name;
 static std::string g_star_deferred_apply_type;
+static int g_star_deferred_apply_frames = 0;  /* number of frames left to re-apply (e.g. 3) */
 static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
@@ -845,6 +847,7 @@ static void ODOOM_OnUseItemFromInventoryDone(void* user_data) {
 	if (success && !g_star_use_pending_name.empty()) {
 		g_star_deferred_apply_name = g_star_use_pending_name;
 		g_star_deferred_apply_type = g_star_use_pending_type;
+		g_star_deferred_apply_frames = 3;  /* re-apply for 3 frames so HUD/status bar picks up the change */
 	}
 	g_star_use_pending_name.clear();
 	g_star_use_pending_type.clear();
@@ -870,15 +873,18 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
-	/* Apply deferred health/armor from previous frame's use-item so the engine does not overwrite it. */
-	if (!g_star_deferred_apply_name.empty()) {
+	/* Apply deferred health/armor; re-apply for several frames so HUD/status bar sees the update. */
+	if (g_star_deferred_apply_frames > 0 && !g_star_deferred_apply_name.empty()) {
 		ODOOM_ApplyHealthOrArmor(g_star_deferred_apply_name, g_star_deferred_apply_type);
-		g_star_deferred_apply_name.clear();
-		g_star_deferred_apply_type.clear();
+		g_star_deferred_apply_frames--;
+		if (g_star_deferred_apply_frames <= 0) {
+			g_star_deferred_apply_name.clear();
+			g_star_deferred_apply_type.clear();
+		}
 		ODOOM_RefreshOverlayFromClient();
 	}
 
-	/* Decrement toast frame counter so ZScript shows message for ~3 seconds. */
+	/* Decrement toast frame counters so ZScript shows messages for their duration. */
 	{
 		FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
 		if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
@@ -886,6 +892,14 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			if (f > 0) {
 				UCVarValue v; v.Int = f - 1;
 				toastFramesCv->SetGenericRep(v, CVAR_Int);
+			}
+		}
+		FBaseCVar* pickupFramesCv = FindCVar("odoom_star_pickup_toast_frames", nullptr);
+		if (pickupFramesCv && pickupFramesCv->GetRealType() == CVAR_Int) {
+			int f = pickupFramesCv->GetGenericRep(CVAR_Int).Int;
+			if (f > 0) {
+				UCVarValue v; v.Int = f - 1;
+				pickupFramesCv->SetGenericRep(v, CVAR_Int);
 			}
 		}
 	}
@@ -1934,6 +1948,18 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		star_api_queue_pickup_with_mint(name, desc, "ODOOM", itemType ? itemType : "KeyItem", 1, provider, send_to_addr, qty);
 	else
 		star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nullptr, qty, 1);
+
+	/* Use the same path the engine uses: PrintPickupMessage (status bar message + Printf) and S_Sound (pickup sound). */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && desc && desc[0]) {
+		FString msg(desc);
+		PrintPickupMessage(true, msg);
+		FLevelLocals* level = primaryLevel;
+		if (level) {
+			player_t* pl = level->GetConsolePlayer();
+			if (pl && pl->mo)
+				S_Sound(pl->mo, CHAN_ITEM, (EChanFlags)(CHANF_NOPAUSE | CHANF_MAYBE_LOCAL), "misc/i_pkup", 1.f, 1.f);
+		}
+	}
 
 	/* Quest objective completion (fire-and-forget; no callback needed). */
 	static const char ODOOM_DEFAULT_QUEST_ID[] = "cross_dimensional_keycard_hunt";
