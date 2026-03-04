@@ -680,7 +680,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
-		// Toast message at top center (~3 seconds when C++ sets odoom_star_toast_message and odoom_star_toast_frames)
+		// Toast message at top center (~3 seconds when C++ sets odoom_star_toast_message and odoom_star_toast_frames). Scaled down so it fits on screen.
 		CVar toastFramesCv = CVar.FindCVar("odoom_star_toast_frames");
 		CVar toastMsgCv = CVar.FindCVar("odoom_star_toast_message");
 		if (toastFramesCv != null && toastFramesCv.GetInt() > 0 && toastMsgCv != null)
@@ -688,10 +688,24 @@ class OASISInventoryOverlayHandler : EventHandler
 			String toastMsg = toastMsgCv.GetString();
 			if (toastMsg.Length() > 0)
 			{
-				int tw = f.StringWidth(toastMsg);
+				double toastScale = 0.5;
+				int tw = int(f.StringWidth(toastMsg) * toastScale);
 				int tx = 160 - (tw / 2);
 				if (tx < 2) tx = 2;
-				screen.DrawText(f, Font.CR_GOLD, tx, 4, toastMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GOLD, tx, 4, toastMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, toastScale, DTA_ScaleY, toastScale);
+			}
+		}
+
+		// Pickup toast: "Picked up X" in red at top-left when we take health/armor/ammo into STAR (same style as engine pickup message).
+		CVar pickupFramesCv = CVar.FindCVar("odoom_star_pickup_toast_frames");
+		CVar pickupMsgCv = CVar.FindCVar("odoom_star_pickup_toast_message");
+		if (pickupFramesCv != null && pickupFramesCv.GetInt() > 0 && pickupMsgCv != null)
+		{
+			String pickupMsg = pickupMsgCv.GetString();
+			if (pickupMsg.Length() > 0)
+			{
+				double pickupScale = 0.5;
+				screen.DrawText(f, Font.CR_RED, 2, 4, pickupMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, pickupScale, DTA_ScaleY, pickupScale);
 			}
 		}
 
