@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# ODOOM - UZDoom + OASIS STAR API. Cross-platform (Linux/macOS) build; equivalent of "BUILD ODOOM.bat" on Windows.
+# ODOOM - UZDoom + OASIS STAR API. Cross-platform (Linux, macOS) build; equivalent of "BUILD ODOOM.bat" on Windows.
+# Supports: Windows (use BUILD ODOOM.bat), Linux, macOS (use this script).
 # Usage: ./BUILD_ODOOM.sh [ run ] [ nosprites ]
 #   (none)  = incremental build: copy integration, patch, configure, build, package
 #   run     = build then launch ODOOM
@@ -13,7 +14,7 @@ STARAPICLIENT="$OMNIVERSE/STARAPIClient"
 ODOOM_INTEGRATION="$HERE"
 DOOM_FOLDER="$ODOOM_INTEGRATION"
 
-# Default source path (Linux/macOS)
+# Default source path (Linux / macOS)
 UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/UZDoom}"
 DO_FULL_CLEAN=0
 DO_SPRITE_REGEN=0
@@ -44,14 +45,16 @@ echo ""
 # --- Prerequisites ---
 if ! command -v pkg-config &>/dev/null; then
   echo "ERROR: pkg-config is required for UZDoom CMake. Install with:"
-  echo "  sudo apt install -y pkg-config   # Debian/Ubuntu"
-  echo "  sudo dnf install -y pkgconfig    # Fedora"
+  echo "  sudo apt install -y pkg-config        # Debian/Ubuntu"
+  echo "  sudo dnf install -y pkgconfig         # Fedora"
+  echo "  brew install pkg-config               # macOS"
   exit 1
 fi
 if ! pkg-config --exists sdl2 2>/dev/null; then
-  echo "ERROR: SDL2 not found. UZDoom needs SDL2, ALSA, glib-2.0, gtk+-3.0, libvpx. Install with:"
+  echo "ERROR: SDL2 not found. UZDoom needs SDL2, ALSA (Linux), glib-2.0, gtk+-3.0, libvpx. Install with:"
   echo "  sudo apt install -y libsdl2-dev libasound2-dev libglib2.0-dev libgtk-3-dev libvpx-dev   # Debian/Ubuntu"
-  echo "  sudo dnf install -y SDL2-devel alsa-lib-devel glib2-devel gtk3-devel libvpx-devel       # Fedora"
+  echo "  sudo dnf install -y SDL2-devel alsa-lib-devel glib2-devel gtk3-devel libvpx-devel         # Fedora"
+  echo "  brew install pkg-config sdl2 glib gtk+3 libvpx   # macOS (ALSA not needed)"
   exit 1
 fi
 if [[ ! -f "$UZDOOM_SRC/src/d_main.cpp" ]]; then

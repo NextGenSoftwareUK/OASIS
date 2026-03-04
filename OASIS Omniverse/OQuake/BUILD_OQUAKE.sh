@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# OQuake - vkQuake + OASIS STAR API. Cross-platform (Linux/macOS) build; equivalent of "BUILD_OQUAKE.bat" on Windows.
+# OQuake - vkQuake + OASIS STAR API. Cross-platform (Linux, macOS) build; equivalent of "BUILD_OQUAKE.bat" on Windows.
+# Supports: Windows (use BUILD_OQUAKE.bat), Linux, macOS (use this script).
 # Usage: ./BUILD_OQUAKE.sh [ run ] [ batch ]
 #   (none) = incremental: deploy STAR API, copy integration, patch vkQuake, build, package
 #   run    = build then launch OQuake
