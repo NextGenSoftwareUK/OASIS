@@ -2,6 +2,11 @@
 
 This folder contains scripts to build **native installers** for Windows, macOS, and Linux. Run the scripts on (or for) each platform to produce installable packages.
 
+**Getting Started (installer + manual setup):** For step-by-step guides per platform, see the repo docs:
+- [STAR CLI Getting Started — Windows](../../../Docs/Devs/STAR_CLI_GettingStarted_Windows.md)
+- [STAR CLI Getting Started — Linux](../../../Docs/Devs/STAR_CLI_GettingStarted_Linux.md)
+- [STAR CLI Getting Started — macOS](../../../Docs/Devs/STAR_CLI_GettingStarted_Mac.md)
+
 | Platform | Location | What you get |
 |----------|----------|----------------|
 | **Windows** | `windows/` | **Inno Setup** EXE installer: adds `star.exe` to Program Files and optionally to system PATH. |
@@ -54,5 +59,7 @@ All scripts publish the STAR CLI (single-file, self-contained) for the target pl
 - **Windows:** Inno Setup 6 (optional) for the EXE installer.
 - **macOS:** None beyond .NET 8 (uses built-in `pkgbuild`).
 - **Linux:** Ruby and **fpm** (`gem install fpm`) for .deb/.rpm; `rpm` for RPM builds.
+
+The **Linux** installer script has been tested: it publishes the binary and, when **fpm** is installed, produces .deb and .rpm packages; without fpm it still publishes `star` to `publish/linux-x64/` for manual install.
 
 See each platform’s subfolder for more detail (e.g. `windows/`, `macos/README.md`, `linux/README.md`).
