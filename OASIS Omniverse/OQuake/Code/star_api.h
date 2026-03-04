@@ -80,14 +80,6 @@ star_api_result_t star_api_complete_quest(const char* quest_id);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
-/** Queue monster kill (XP + optional mint + add to inventory). Runs on C# background thread. game_source NULL/empty = ODOOM. */
-void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
-/** Get cached avatar XP (from last get-current-avatar or add-xp). Returns 1 on success, 0 otherwise. */
-int star_api_get_avatar_xp(int* xp_out);
-/** Refresh avatar XP from API (GET /api/avatar/current; server returns avatar with XP). Call once after beam-in. */
-void star_api_refresh_avatar_xp(void);
-/** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
-void star_api_refresh_avatar_xp_blocking(void);
 star_api_result_t star_api_get_avatar_id(char* avatar_id_out, size_t avatar_id_size);
 /** Set avatar ID on the client (e.g. after SSO from C++ auth result). Does not change JWT. */
 star_api_result_t star_api_set_avatar_id(const char* avatar_id);
@@ -95,6 +87,16 @@ star_api_result_t star_api_set_avatar_id(const char* avatar_id);
 star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
 /** Send item from current avatar's inventory to a clan. Target = clan name (or username). item_id optional (NULL or empty = match by name). */
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
+/** Queue add XP for the beamed-in avatar (e.g. on monster kill). Flushed with add-item jobs or on next API sync. amount must be > 0. */
+void star_api_queue_add_xp(int amount);
+/** Queue monster kill (XP + optional mint + add to inventory). All work runs on background thread; never blocks. provider/game_source may be NULL (game_source NULL/empty = ODOOM). */
+void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
+/** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
+int star_api_get_avatar_xp(int* xp_out);
+/** Refresh avatar XP from API (GET /api/avatar/current; server returns avatar with XP). Call once after beam-in. */
+void star_api_refresh_avatar_xp(void);
+/** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
+void star_api_refresh_avatar_xp_blocking(void);
 const char* star_api_get_last_error(void);
 /** Consume last mint result from background pickup-with-mint. Writes item name, NFT ID, and hash to buffers (null-terminated). Returns 1 if a result was available, 0 otherwise. Call from game pump/frame to show mint results in console. */
 #define STAR_API_HAS_CONSUME_LAST_MINT 1
@@ -104,6 +106,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 int star_api_consume_last_background_error(char* buf, size_t size);
 /** Consume one STAR log message for the game console. Returns 1 if a message was copied to buf, 0 otherwise. Call from game pump each frame. */
 int star_api_consume_console_log(char* buf, size_t size);
+/** Append a line to star_api.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
+void star_api_log_to_file(const char* message);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus
