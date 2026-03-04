@@ -4,9 +4,17 @@ OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OA
 
 ---
 
-## New here? Start with onboarding
+## New here? Start with a Getting Started guide
 
-**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](DEVELOPER_ONBOARDING.md)** – The **canonical setup guide** for OASIS Omniverse. Clone repos, install tools, build ODOOM/OQuake, run local or live APIs, and configure `oasisstar.json`. Use this as your main entry point for first-time setup.
+Choose your platform for a clear, step-by-step setup:
+
+| Platform | Guide |
+|----------|--------|
+| **Windows** | **[Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md)** |
+| **Linux** | **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** |
+| **macOS** | **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)** |
+
+**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](DEVELOPER_ONBOARDING.md)** – Deeper canonical setup (repos, tools, build, run, `oasisstar.json`). Use with the platform guide above.
 
 ---
 
@@ -101,8 +109,10 @@ OASIS Omniverse/
 
 ## Documentation
 
-- **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Start here (onboarding): repos, tools, build, run, config.
+- **Getting Started (by platform):** [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md)
+- **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Onboarding: repos, tools, build, run, config.
 - [QUICKSTART.md](QUICKSTART.md) – Minimal steps to build and run + checklist.
+- [LINUX_BUILD.md](LINUX_BUILD.md) – Linux/macOS build reference (env vars, scripts).
 - [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) – Architecture, phases, API usage, troubleshooting.
 - [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md) – Quest system design and usage.
 - [STARAPIClient/README.md](STARAPIClient/README.md) – STAR API client, star_sync, cache, build, tests.
