@@ -6,17 +6,18 @@
 param([Parameter(Mandatory=$true)][string]$UZDOOM_SRC)
 
 $odoomRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$src = $UZDOOM_SRC.TrimEnd('\')
-$versionH = "$src\src\version.h"
-$startscreenCpp = "$src\src\common\startscreen\startscreen.cpp"
-$sharedSbarCpp = "$src\src\g_statusbar\shared_sbar.cpp"
-$dMainCpp = "$src\src\d_main.cpp"
-$sbarMugshotCpp = "$src\src\g_statusbar\sbar_mugshot.cpp"
-$zscriptTxt = "$src\wadsrc\static\zscript.txt"
-$cvarinfoTxt = "$src\wadsrc\static\cvarinfo.txt"
+# Normalize path for cross-platform (Linux/macOS use /)
+$src = ($UZDOOM_SRC.TrimEnd('\').TrimEnd('/')) -replace '\\', '/'
+$versionH = "$src/src/version.h"
+$startscreenCpp = "$src/src/common/startscreen/startscreen.cpp"
+$sharedSbarCpp = "$src/src/g_statusbar/shared_sbar.cpp"
+$dMainCpp = "$src/src/d_main.cpp"
+$sbarMugshotCpp = "$src/src/g_statusbar/sbar_mugshot.cpp"
+$zscriptTxt = "$src/wadsrc/static/zscript.txt"
+$cvarinfoTxt = "$src/wadsrc/static/cvarinfo.txt"
 $odoomCvarinfo = Join-Path $odoomRoot "odoom_cvarinfo.txt"
-$doomItemsMapinfo = "$src\wadsrc\static\mapinfo\doomitems.txt"
-$commonMapinfo = "$src\wadsrc\static\mapinfo\common.txt"
+$doomItemsMapinfo = "$src/wadsrc/static/mapinfo/doomitems.txt"
+$commonMapinfo = "$src/wadsrc/static/mapinfo/common.txt"
 if (Test-Path (Join-Path $odoomRoot "generate_odoom_version.ps1")) {
     & (Join-Path $odoomRoot "generate_odoom_version.ps1") -Root $odoomRoot
 }
@@ -648,14 +649,14 @@ if (Test-Path $doomItemsMapinfo) {
 }
 
 # 8. Editor button: add centre button between Play and Exit in launcher button bar
-$widgetsDest = "$src\src\widgets"
-$lbbH = "$widgetsDest\launcherbuttonbar.h"
-$lbbCpp = "$widgetsDest\launcherbuttonbar.cpp"
-$lwH = "$src\src\widgets\launcherwindow.h"
-$lwCpp = "$src\src\widgets\launcherwindow.cpp"
+$widgetsDest = "$src/src/widgets"
+$lbbH = "$widgetsDest/launcherbuttonbar.h"
+$lbbCpp = "$widgetsDest/launcherbuttonbar.cpp"
+$lwH = "$src/src/widgets/launcherwindow.h"
+$lwCpp = "$src/src/widgets/launcherwindow.cpp"
 
 # Restore launcher widget files from git so we always patch from a clean state (fixes any prior broken patch).
-$widgetsToRestore = @("$widgetsDest\launcherwindow.cpp", "$widgetsDest\launcherwindow.h", "$widgetsDest\launcherbuttonbar.cpp", "$widgetsDest\launcherbuttonbar.h")
+$widgetsToRestore = @("$widgetsDest/launcherwindow.cpp", "$widgetsDest/launcherwindow.h", "$widgetsDest/launcherbuttonbar.cpp", "$widgetsDest/launcherbuttonbar.h")
 $anyExist = $false
 foreach ($f in $widgetsToRestore) { if (Test-Path $f) { $anyExist = $true; break } }
 if ($anyExist) {
@@ -665,7 +666,7 @@ if ($anyExist) {
         $gitOk = $false
         try { $null = git rev-parse --is-inside-work-tree 2>$null; $gitOk = $true } catch {}
         if ($gitOk) {
-            $srcRoot = $src.TrimEnd("\", "/")
+            $srcRoot = $src.TrimEnd('/').TrimEnd('\')
             foreach ($f in $widgetsToRestore) {
                 if (Test-Path -LiteralPath $f) {
                     $rel = $f.Replace($srcRoot, "").Replace("\", "/").TrimStart("/")
