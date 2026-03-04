@@ -1,6 +1,6 @@
 # Getting Started — Windows
 
-This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **Windows**.
+This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **Windows**. ODOOM and OQuake also support [Linux](GettingStarted_Linux.md) and [macOS](GettingStarted_Mac.md).
 
 ---
 
