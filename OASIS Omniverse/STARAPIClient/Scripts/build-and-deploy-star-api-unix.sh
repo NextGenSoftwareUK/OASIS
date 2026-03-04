@@ -2,7 +2,7 @@
 # Build STARAPIClient for Linux or macOS and deploy the native shared library + star_api.h to ODOOM and OQuake.
 # Usage: ./build-and-deploy-star-api-unix.sh [ -ForceBuild ] [ -Runtime linux-x64|osx-x64|osx-arm64 ]
 # If -Runtime is omitted, it is auto-detected from uname.
-# Called by BUILD_ODOOM.sh and BUILD_OQUAKE.sh on Linux/macOS.
+# Called by BUILD_ODOOM.sh and BUILD_OQUAKE.sh on Linux and macOS.
 
 set -e
 

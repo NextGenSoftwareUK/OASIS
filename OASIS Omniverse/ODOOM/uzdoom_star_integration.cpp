@@ -75,7 +75,7 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #define ODOOM_K_HOME      VK_HOME
 #define ODOOM_K_END       VK_END
 #else
-/* Use engine key codes (GK_*) so code compiles on Linux/macOS. Provided by engine keydef headers. */
+/* Use engine key codes (GK_*) so code compiles on Linux and macOS. Provided by engine keydef headers. */
 #define ODOOM_K_UP        GK_UP
 #define ODOOM_K_DOWN      GK_DOWN
 #define ODOOM_K_LEFT      GK_LEFT
@@ -510,7 +510,7 @@ static void ODOOM_SaveStarConfigToFiles(void) {
 		g_odoom_json_config_path = path;
 }
 
-/** Return 1 if key is currently down, 0 otherwise. Uses platform API when available. */
+/** Return 1 if key is currently down, 0 otherwise. Windows: GetAsyncKeyState(VK_*). Linux/macOS: engine GK_*; returns 0 until engine key API is wired. */
 static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 {
 #ifdef _WIN32
@@ -518,7 +518,7 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 	return (s & 0x8000) ? 1 : 0;
 #else
 	(void)vk_or_ascii;
-	return 0;
+	return 0;  /* Linux/macOS: TODO wire to engine key state (GK_*) when API available */
 #endif
 }
 

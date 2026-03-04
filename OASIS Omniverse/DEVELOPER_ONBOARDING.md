@@ -2,6 +2,8 @@
 
 This guide helps new developers set up a full local environment to work on **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the **OASIS** backend and APIs. It covers cloning all required repos, installing tools, building, running, and choosing between local APIs or the live OASIS APIs.
 
+**Supported platforms:** ODOOM and OQuake are built for **Windows**, **macOS**, and **Linux**. Use the platform-specific Getting Started guide for your OS: [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md).
+
 ---
 
 ## Table of contents

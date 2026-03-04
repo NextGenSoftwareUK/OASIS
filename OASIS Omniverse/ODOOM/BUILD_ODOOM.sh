@@ -142,22 +142,45 @@ echo "[ODOOM][STEP] Configuring CMake and STAR API..."
 mkdir -p "$UZDOOM_SRC/build"
 cd "$UZDOOM_SRC/build"
 
-# On Linux we pass STAR_API_DIR (header) and STAR_API_LIB_DIR (folder containing libstar_api.so)
+# On Linux/macOS we pass STAR_API_DIR (header) and STAR_API_LIB_DIR (folder containing libstar_api.so / libstar_api.dylib)
 STAR_API_DIR="$STARAPICLIENT"
 STAR_API_LIB_DIR="$DOOM_FOLDER"
 PYTHON3_EXE="${PYTHON3_EXE:-$(command -v python3 || command -v python)}"
 
+# Copy STAR API lib into build/ and build/src/ so the linker finds it (link runs from build/src/; -lstar_api needs libstar_api.so).
+STAR_LIB_SRC=""
+for lib in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+  if [[ -f "$STAR_API_LIB_DIR/$lib" ]]; then
+    STAR_LIB_SRC="$STAR_API_LIB_DIR/$lib"
+    break
+  fi
+done
+if [[ -z "$STAR_LIB_SRC" || ! -f "$STAR_LIB_SRC" ]]; then
+  echo "ERROR: No STAR API library in $STAR_API_LIB_DIR. Run BUILD_ODOOM.sh from ODOOM folder (it deploys STAR API first)."
+  exit 1
+fi
+STAR_LIB_NAME="libstar_api.so"
+[[ "$STAR_LIB_SRC" == *.dylib ]] && STAR_LIB_NAME="libstar_api.dylib"
+mkdir -p "$UZDOOM_SRC/build/src"
+for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
+  cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
+done
+# Add both ODOOM folder and build/src to link path so -lstar_api resolves
+CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$STAR_API_LIB_DIR\""
 cmake .. \
   -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DOASIS_STAR_API=ON \
   -DSTAR_API_DIR:PATH="$STAR_API_DIR" \
   -DSTAR_API_LIB_DIR:PATH="$STAR_API_LIB_DIR" \
+  -DCMAKE_EXE_LINKER_FLAGS:STRING="$CMAKE_LINK_FLAGS" \
   -DPython3_EXECUTABLE:FILEPATH="$PYTHON3_EXE"
 
 echo ""
 echo "[ODOOM][STEP] Building..."
 NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
+# Ensure linker finds libstar_api.so at link time (in case CMake does not pass our -L flags)
+export LIBRARY_PATH="$UZDOOM_SRC/build/src:$STAR_API_LIB_DIR${LIBRARY_PATH:+:$LIBRARY_PATH}"
 cmake --build . -j${NPROC}
 
 echo ""

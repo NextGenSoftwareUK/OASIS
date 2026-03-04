@@ -1,5 +1,7 @@
 # OASIS Omniverse — Documentation
 
+**ODOOM and OQuake support Windows, macOS, and Linux.** Use the guide for your OS below.
+
 ## Getting Started (by platform)
 
 Use the guide for your operating system to install prerequisites, clone repos, and build ODOOM, OQuake, and STARAPIClient:

@@ -1,20 +1,38 @@
 # Getting Started — macOS
 
-This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **macOS** (Intel and Apple Silicon).
+This guide walks you through building and running **ODOOM**, **OQuake**, and **STARAPIClient** on **macOS** (Intel and Apple Silicon). ODOOM and OQuake also support [Windows](GettingStarted_Windows.md) and [Linux](GettingStarted_Linux.md).
 
 ---
 
 ## 1. Prerequisites
 
-Install the following (using [Homebrew](https://brew.sh/) if not already installed):
+Install the following (using [Homebrew](https://brew.sh/) if not already installed).
+
+**One-time install (ODOOM + OQuake + STARAPIClient NativeAOT, all deps):**
 
 ```bash
 # Install Homebrew (if needed): /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-# Build tools and .NET
-brew install cmake dotnet@8
+brew install pkg-config cmake dotnet@8 sdl2 glib gtk+3 libvpx meson ninja vulkan-headers molten-vk python3 powershell
+```
 
-# Optional but recommended: PowerShell Core (for UZDoom/vkQuake patch scripts)
+Xcode Command Line Tools (or full Xcode) provide `clang` for NativeAOT; install with `xcode-select --install` if needed. If the STARAPIClient NativeAOT build fails to find the linker, set (e.g. in `~/.zshrc` or `~/.bash_profile`):
+
+```bash
+export DOTNET_CLANG_PATH=$(which clang)
+export DOTNET_LINKER_PATH=$(which ld)   # or path to ld64 on macOS
+```
+
+**Or install in groups:**
+
+```bash
+# Build tools and .NET
+brew install pkg-config cmake dotnet@8
+
+# ODOOM/UZDoom: SDL2, ZMusic/fluidsynth (glib, GTK), VPX (WebM)
+brew install sdl2 glib gtk+3 libvpx
+
+# Optional: PowerShell Core (for UZDoom/vkQuake patch scripts)
 brew install powershell
 
 # For OQuake: Meson, Ninja, Vulkan
@@ -27,6 +45,8 @@ brew install python3
 | Tool | Purpose |
 |------|----------|
 | **.NET 8 SDK** | Build STARAPIClient (NativeAOT) for osx-x64 or osx-arm64 |
+| **pkg-config** | Required by UZDoom CMake (SDL2, etc.) |
+| **sdl2, glib, gtk+3, libvpx** | UZDoom/ODOOM (SDL2, ZMusic/fluidsynth, VPX) |
 | **CMake** | Configure and build UZDoom |
 | **PowerShell Core (pwsh)** | Run patch scripts (optional) |
 | **Meson, Ninja** | Build vkQuake |
