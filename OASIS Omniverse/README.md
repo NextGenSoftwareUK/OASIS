@@ -40,7 +40,12 @@ git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
 git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
 ```
 
-Build scripts expect these paths by default; you can change them in `BUILD ODOOM.bat` (UZDOOM_SRC) and `BUILD_OQUAKE.bat` (VKQUAKE_SRC, QUAKE_SRC).
+Build scripts expect these paths by default; you can change them in the build script for your platform (`BUILD ODOOM.bat` / `BUILD_ODOOM.sh`, `BUILD_OQUAKE.bat` / `BUILD_OQUAKE.sh`).
+
+| Platform | ODOOM build | OQuake build |
+|----------|-------------|--------------|
+| **Windows** | `BUILD ODOOM.bat` | `BUILD_OQUAKE.bat` |
+| **Linux / macOS** | `./BUILD_ODOOM.sh` | `./BUILD_OQUAKE.sh` |
 
 ---
 
