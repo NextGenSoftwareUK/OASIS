@@ -1,0 +1,16 @@
+sudo apt update
+sudo apt install -y build-essential
+
+sudo apt install -y clang
+
+sudo apt update
+sudo apt install -y build-essential binutils
+
+sudo apt install -y clang lld
+export DOTNET_CLANG_PATH=$(which clang)
+export DOTNET_LINKER_PATH=$(which ld.lld)
+
+sudo apt update
+sudo apt install -y build-essential binutils
+
+sudo apt install -y pkg-config
