@@ -48,6 +48,7 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #include "gamedata/a_keys.h"
 #include "playsim/actor.h"
 #include "playsim/a_pickups.h"
+#include "playsim/p_local.h"
 #include "gamedata/info.h"
 #include "vm.h"
 #include "c_dispatch.h"
@@ -811,18 +812,17 @@ static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string&
 	{ FBaseCVar* v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxA = v->GetGenericRep(CVAR_Int).Int; if (configMaxA <= 0) configMaxA = 200; }
 	if (isHealth) {
 		int amount = 25;
-		int maxH = configMaxH;
-		if (n.find("Stimpack") != np) { amount = 10; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (n.find("Medikit") != np) { amount = 25; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (n.find("Health Bonus") != np) { amount = 1; maxH = (100 < configMaxH) ? 100 : configMaxH; }
-		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) { amount = 100; maxH = configMaxH; }
-		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) { amount = 200; maxH = configMaxH; }
-		else if (n.find("Large Health") != np) { amount = 50; maxH = configMaxH; }
-		else if (n.find("Mega Health") != np) { amount = 100; maxH = configMaxH; }
-		else if (n.find("Health") != np) { amount = 25; maxH = configMaxH; }
-		{ int newH = player->mo->health + amount; player->mo->health = (newH < maxH) ? newH : maxH; }
-		player->health = player->mo->health;
-		Printf(PRINT_HIGH, "STAR: used %s, health now %d\n", n.c_str(), player->mo->health);
+		if (n.find("Stimpack") != np) amount = 10;
+		else if (n.find("Medikit") != np) amount = 25;
+		else if (n.find("Health Bonus") != np) amount = 1;
+		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
+		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
+		else if (n.find("Large Health") != np) amount = 50;
+		else if (n.find("Mega Health") != np) amount = 100;
+		else if (n.find("Health") != np) amount = 25;
+		/* Use engine path so HUD updates; config max allows over 200 when set higher. */
+		if (P_GiveBody(player->mo, amount, configMaxH))
+			Printf(PRINT_HIGH, "STAR: used %s, health now %d\n", n.c_str(), player->mo->health);
 	}
 	if (isArmor) {
 		int amount = 100;
@@ -873,14 +873,12 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
-	/* Apply deferred health/armor; re-apply for several frames so HUD/status bar sees the update. */
+	/* Apply deferred health/armor once (engine P_GiveBody updates HUD; no multi-frame re-apply). */
 	if (g_star_deferred_apply_frames > 0 && !g_star_deferred_apply_name.empty()) {
 		ODOOM_ApplyHealthOrArmor(g_star_deferred_apply_name, g_star_deferred_apply_type);
-		g_star_deferred_apply_frames--;
-		if (g_star_deferred_apply_frames <= 0) {
-			g_star_deferred_apply_name.clear();
-			g_star_deferred_apply_type.clear();
-		}
+		g_star_deferred_apply_frames = 0;
+		g_star_deferred_apply_name.clear();
+		g_star_deferred_apply_type.clear();
 		ODOOM_RefreshOverlayFromClient();
 	}
 
@@ -983,16 +981,19 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					const char* blockMsg = nullptr;
 					if (ODOOM_WouldUseExceedMax(nameS, typeS, &blockMsg)) {
 						if (blockMsg) {
-							Printf(PRINT_NONOTIFY, "%s\n", blockMsg);
-							FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+							/* Show only in toast once; don't reset if already showing (avoids spam). */
 							FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
-							if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String) {
-								UCVarValue val; val.String = (char*)blockMsg;
-								toastMsgCv->SetGenericRep(val, CVAR_String);
-							}
-							if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
-								UCVarValue v; v.Int = 105; /* 3 sec at 35 fps */
-								toastFramesCv->SetGenericRep(v, CVAR_Int);
+							int showFrames = (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) ? toastFramesCv->GetGenericRep(CVAR_Int).Int : 0;
+							if (showFrames <= 0) {
+								FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+								if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String) {
+									UCVarValue val; val.String = (char*)blockMsg;
+									toastMsgCv->SetGenericRep(val, CVAR_String);
+								}
+								if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+									UCVarValue v; v.Int = 105; /* 3 sec at 35 fps */
+									toastFramesCv->SetGenericRep(v, CVAR_Int);
+								}
 							}
 						}
 						UCVarValue u; u.Int = 0;
