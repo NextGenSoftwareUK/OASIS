@@ -55,3 +55,6 @@ server int odoom_star_use_do_it = 0;
 // Toast message at top center (e.g. "You cannot use this because you are already at max health."). C++ sets message and odoom_star_toast_frames (e.g. 105 = 3 sec at 35 fps); ZScript draws while frames > 0; C++ decrements each frame.
 server string odoom_star_toast_message = "";
 server int odoom_star_toast_frames = 0;
+// Pickup feedback when we take health/armor/ammo into STAR (engine would not allow): show "Picked up X" in red top-left like normal pickup. C++ sets message and frames; ZScript draws; C++ decrements each frame.
+server string odoom_star_pickup_toast_message = "";
+server int odoom_star_pickup_toast_frames = 0;
