@@ -334,16 +334,55 @@ class OASISInventoryOverlayHandler : EventHandler
 			{
 				if (canUseStar)
 				{
-					CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
-					CVar typeCv = CVar.FindCVar("odoom_star_use_item_type");
-					CVar doCv = CVar.FindCVar("odoom_star_use_do_it");
-					if (nameCv != null) nameCv.SetString(starGroupFirstNames[starWindowIdx]);
-					if (typeCv != null) typeCv.SetString(starGroupTypes[starWindowIdx]);
-					if (doCv != null) doCv.SetInt(1);
+					String starType = starGroupTypes[starWindowIdx];
+					// STAR weapons: switch to that weapon if player has it locally (do not consume from STAR).
+					if (starType.IndexOf("Weapon") >= 0)
+					{
+						String wname = starGroupFirstNames[starWindowIdx];
+						// Match by class name (wname may be "Shotgun" or "Shotgun (ODOOM)")
+						for (let inv = p.mo.Inv; inv != null; inv = inv.Inv)
+						{
+							if (inv is "Weapon")
+							{
+								String cname = inv.GetClassName();
+								if (cname.IndexOf(wname) >= 0 || wname.IndexOf(cname) >= 0)
+								{
+									p.PendingWeapon = Weapon(inv);
+									break;
+								}
+							}
+						}
+					}
+					// STAR ammo: pressing E has no effect (cannot use/consume ammo from inventory).
+					else if (starType.IndexOf("Ammo") >= 0)
+					{
+						// no-op
+					}
+					else
+					{
+						CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
+						CVar typeCv = CVar.FindCVar("odoom_star_use_item_type");
+						CVar doCv = CVar.FindCVar("odoom_star_use_do_it");
+						if (nameCv != null) nameCv.SetString(starGroupFirstNames[starWindowIdx]);
+						if (typeCv != null) typeCv.SetString(starType);
+						if (doCv != null) doCv.SetInt(1);
+					}
 				}
 				else if (selectedItem != null && selectedItem.Amount > 0)
 				{
-					p.mo.UseInventory(selectedItem);
+					// Weapons: switch to that weapon (do not consume); Ammo: no effect (cannot use/consume ammo from inventory).
+					if (selectedItem is "Weapon")
+					{
+						Weapon w = Weapon(selectedItem);
+						if (w != null)
+						{
+							p.PendingWeapon = w;
+						}
+					}
+					else if (!(selectedItem is "Ammo"))
+					{
+						p.mo.UseInventory(selectedItem);
+					}
 					if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
 					if (selectedAbsolute < 0) selectedAbsolute = 0;
 				}
