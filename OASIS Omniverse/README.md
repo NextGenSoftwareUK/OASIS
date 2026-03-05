@@ -2,11 +2,21 @@
 
 OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across classic FPS games.
 
+**ODOOM and OQuake are built to be 100% compatible with Windows, macOS, and Linux.** Use the platform-specific Getting Started guide below for your OS.
+
 ---
 
-## New here? Start with onboarding
+## New here? Start with a Getting Started guide
 
-**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](DEVELOPER_ONBOARDING.md)** – The **canonical setup guide** for OASIS Omniverse. Clone repos, install tools, build ODOOM/OQuake, run local or live APIs, and configure `oasisstar.json`. Use this as your main entry point for first-time setup.
+Choose your platform for a clear, step-by-step setup:
+
+| Platform | Guide |
+|----------|--------|
+| **Windows** | **[Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md)** |
+| **Linux** | **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** |
+| **macOS** | **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)** |
+
+**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](DEVELOPER_ONBOARDING.md)** – Deeper canonical setup (repos, tools, build, run, `oasisstar.json`). Use with the platform guide above.
 
 ---
 
@@ -30,7 +40,12 @@ git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
 git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
 ```
 
-Build scripts expect these paths by default; you can change them in `BUILD ODOOM.bat` (UZDOOM_SRC) and `BUILD_OQUAKE.bat` (VKQUAKE_SRC, QUAKE_SRC).
+Build scripts expect these paths by default; you can change them in the build script for your platform (`BUILD ODOOM.bat` / `BUILD_ODOOM.sh`, `BUILD_OQUAKE.bat` / `BUILD_OQUAKE.sh`).
+
+| Platform | ODOOM build | OQuake build |
+|----------|-------------|--------------|
+| **Windows** | `BUILD ODOOM.bat` | `BUILD_OQUAKE.bat` |
+| **Linux / macOS** | `./BUILD_ODOOM.sh` | `./BUILD_OQUAKE.sh` |
 
 ---
 
@@ -101,8 +116,10 @@ OASIS Omniverse/
 
 ## Documentation
 
-- **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Start here (onboarding): repos, tools, build, run, config.
+- **Getting Started (by platform):** [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md)
+- **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Onboarding: repos, tools, build, run, config.
 - [QUICKSTART.md](QUICKSTART.md) – Minimal steps to build and run + checklist.
+- [LINUX_BUILD.md](LINUX_BUILD.md) – Linux/macOS build reference (env vars, scripts).
 - [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) – Architecture, phases, API usage, troubleshooting.
 - [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md) – Quest system design and usage.
 - [STARAPIClient/README.md](STARAPIClient/README.md) – STAR API client, star_sync, cache, build, tests.

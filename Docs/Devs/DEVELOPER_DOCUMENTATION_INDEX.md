@@ -164,6 +164,10 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ## 🚀 **Getting Started Guides**
 
+### **By platform (installer + manual setup)**
+- **STAR CLI:** [Windows](./STAR_CLI_GettingStarted_Windows.md) · [Linux](./STAR_CLI_GettingStarted_Linux.md) · [macOS](./STAR_CLI_GettingStarted_Mac.md) — Install via installer or git clone; run and verify STAR CLI.
+- **OASIS development:** [Windows](./OASIS_Development_GettingStarted_Windows.md) · [Linux](./OASIS_Development_GettingStarted_Linux.md) · [macOS](./OASIS_Development_GettingStarted_Mac.md) — Clone, build solution, run tests, project structure.
+
 ### **Quick Start**
 - **[OASIS Quick Start Guide](./OASIS_Quick_Start_Guide.md)** - Get started with OASIS
 - **[STAR Quick Start Guide](./STAR_QUICK_START_GUIDE.md)** - Get started with STAR
