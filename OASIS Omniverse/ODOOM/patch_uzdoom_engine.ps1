@@ -153,6 +153,34 @@ if (Test-Path $dMainCpp) {
             $changes += "d_main (inventory capture)"
         }
     }
+    # 3a1b. d_main.cpp: call ODOOM_PostTic after TryRunTics so STAR health/armor apply runs after the tic (HUD then shows correct value)
+    $dContent = Get-Content $dMainCpp -Raw
+    if ($dContent -notmatch 'ODOOM_PostTic') {
+        if ($dContent -match 'TryRunTics\s*\(\s*\)\s*;[^\r\n]*\r?\n') {
+            $dContent = $dContent -replace '(TryRunTics\s*\(\s*\)\s*;[^\r\n]*\r?\n)(\s*// Update display)', "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_PostTic();`r`n#endif`r`n`$2"
+            Set-Content $dMainCpp $dContent -NoNewline
+            $changes += "d_main (post-tic health/armor)"
+        }
+    }
+}
+
+# 3a1c. d_net.cpp: call ODOOM_PostOneTic after every game tic so STAR health/armor re-apply overwrites whatever reverts it during the tic
+$dNetCpp = "$src\src\d_net.cpp"
+if (Test-Path $dNetCpp) {
+    $dnContent = Get-Content $dNetCpp -Raw
+    $dnChanged = $false
+    if ($dnContent -notmatch 'uzdoom_star_integration\.h') {
+        $dnContent = $dnContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $dnChanged = $true
+    }
+    if ($dnContent -notmatch 'ODOOM_PostOneTic') {
+        $dnContent = $dnContent -replace '(\+\+gametic;)\r?\n(\r?\n\s*if \(stabilize\))', "`$1`r`n#ifdef OASIS_STAR_API`r`n		ODOOM_PostOneTic();`r`n#endif`r`n`$2"
+        $dnChanged = $true
+    }
+    if ($dnChanged) {
+        Set-Content $dNetCpp $dnContent -NoNewline
+        $changes += "d_net (post-one-tic health re-apply)"
+    }
 }
 
 # 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed)
@@ -453,9 +481,44 @@ if (Test-Path $aKeysCpp) {
             }
         }
     }
+    # P_GetKeyNameForLock: for custom locks (129, 130, ...) STAR can resolve key name from engine
+    if ($akContent -notmatch 'P_GetKeyNameForLock') {
+        $akContent = $akContent -replace '(return !!Locks\.CheckKey\(keynum\);\r?\n\}\r?\n)(\r?\n//)', @"
+return !!Locks.CheckKey(keynum);
+}
+
+const char *P_GetKeyNameForLock (int locknum)
+{
+	auto lock = Locks.CheckKey(locknum);
+	if (!lock || lock->keylist.Size() == 0) return nullptr;
+	for (unsigned int i = 0; i < lock->keylist.Size(); i++)
+	{
+		const Keygroup &kg = lock->keylist[i];
+		if (kg.anykeylist.Size() > 0)
+		{
+			PClassActor *key = kg.anykeylist[0].key;
+			if (key) return key->TypeName.GetChars();
+		}
+	}
+	return nullptr;
+}
+
+`$2
+"@
+        $akChanged = $true
+    }
     if ($akChanged) {
         Set-Content $aKeysCpp $akContent -NoNewline
         $changes += "a_keys (STAR door check only on player use)"
+    }
+    $aKeysH = "$src\src\gamedata\a_keys.h"
+    if (Test-Path $aKeysH) {
+        $akHContent = Get-Content $aKeysH -Raw
+        if ($akHContent -notmatch 'P_GetKeyNameForLock') {
+            $akHContent = $akHContent -replace '(int P_IsLockDefined \(int lock\)\s*)(\r?\n)', "`$1`r`nconst char *P_GetKeyNameForLock (int locknum);`r`n`$2"
+            Set-Content $aKeysH $akHContent -NoNewline
+            $changes += "a_keys.h (P_GetKeyNameForLock)"
+        }
     }
     # Warn if a_keys still has no STAR block (patch patterns did not match)
     if (Test-Path $aKeysCpp) {
@@ -463,6 +526,53 @@ if (Test-Path $aKeysCpp) {
         if ($akFinal -notmatch 'UZDoom_STAR_CheckDoorAccess') {
             Write-Host "[ODOOM] WARNING: a_keys.cpp has no STAR block (E on door will not check STAR). Re-run patch after confirming P_CheckKeys in a_keys.cpp contains: if (lock->check(owner)) return true; then if (quiet) return false;"
         }
+    }
+}
+
+# 3c2c. p_lnspec.cpp: log Door_LockedRaise (special 13) lock arg so we see map lock value
+$pLnspecCpp = "$src\src\playsim\p_lnspec.cpp"
+if (Test-Path $pLnspecCpp) {
+    $plContent = Get-Content $pLnspecCpp -Raw
+    $plChanged = $false
+    if ($plContent -notmatch 'uzdoom_star_integration\.h') {
+        $plContent = $plContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+        $plChanged = $true
+    }
+    if ($plContent -notmatch 'ODOOM_STAR_LogDoorLockedRaiseLock') {
+        $plContent = $plContent -replace '(// Door_LockedRaise \(tag, speed, delay, lock, lighttag\))\r?\n(\s*\{)\r?\n(#if 0)', "`$1`r`n`$2`r`n`tODOOM_STAR_LogDoorLockedRaiseLock(arg3);`r`n`$3"
+        $plChanged = $true
+    }
+    if ($plChanged) {
+        Set-Content $pLnspecCpp $plContent -NoNewline
+        $changes += "p_lnspec (STAR Door_LockedRaise log)"
+    }
+}
+
+# 3c2b. p_spec.cpp: log when P_ActivateLine is called (E use) and when line->locknumber is checked
+$pSpecCpp = "$src\src\playsim\p_spec.cpp"
+if (Test-Path $pSpecCpp) {
+    $psContent = Get-Content $pSpecCpp -Raw
+    $psChanged = $false
+    if ($psContent -notmatch 'uzdoom_star_integration\.h') {
+        $psContent = $psContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+        $psChanged = $true
+    }
+    # Add or fix P_ActivateLine log (log every line activation so E on door is visible)
+    if ($psContent -notmatch 'ODOOM_STAR_LogActivateLineUse\s*\(\s*activationType\s*,') {
+        if ($psContent -match 'ODOOM_STAR_LogActivateLineUse\s*\(\s*line->special\s*,') {
+            $psContent = $psContent -replace 'if \(activationType == SPAC_Use\) ODOOM_STAR_LogActivateLineUse\(line->special, line->locknumber\);', 'ODOOM_STAR_LogActivateLineUse(activationType, line->special, line->locknumber);'
+        } elseif ($psContent -notmatch 'ODOOM_STAR_LogActivateLineUse') {
+            $psContent = $psContent -replace '(auto Level = line->GetLevel\(\);)\r?\n(\r?\n)(\s*// \[MK\])', "`$1`r`n`tODOOM_STAR_LogActivateLineUse(activationType, line->special, line->locknumber);`r`n`$2`$3"
+        }
+        $psChanged = $true
+    }
+    if ($psContent -notmatch 'ODOOM_STAR_LogLineDoorKeyCheck') {
+        $psContent = $psContent -replace '(\s*)(if \(line->locknumber > 0 && !P_CheckKeys \(mo, line->locknumber, remote\)\) return false;)', "`$1if (line->locknumber > 0) { ODOOM_STAR_LogLineDoorKeyCheck(line->locknumber); if (!P_CheckKeys (mo, line->locknumber, remote)) return false; }"
+        $psChanged = $true
+    }
+    if ($psChanged) {
+        Set-Content $pSpecCpp $psContent -NoNewline
+        $changes += "p_spec (STAR door/use log)"
     }
 }
 
