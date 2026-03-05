@@ -1,5 +1,6 @@
+# Build and deploy STARAPIClient for Windows. For Linux/macOS use build-and-deploy-star-api-unix.sh.
 param(
-    [string]$Runtime = "win-x64",
+    [string]$Runtime = "win-x64",  # Windows: win-x64. Linux/macOS: use Scripts/build-and-deploy-star-api-unix.sh
     [switch]$RunSmokeTest,
     [switch]$ForceBuild
 )
