@@ -1913,6 +1913,7 @@ void UZDoom_STAR_Init(void) {
 	Printf("  " GAMENAME " " ODOOM_VERSION_STR "\n");
 	Printf("  STAR API - Enabling full interoperable games across the OASIS Omniverse!\n");
 	Printf("  Type 'star' in console for STAR commands.\n");
+	Printf("  Locked doors: press E on the door to use a keycard (key only used when you press E).\n");
 	Printf("\n");
 	Printf("  Welcome to ODOOM!\n");
 	Printf("\n");
@@ -2086,9 +2087,24 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 }
 
+/* Use button (E) in ticcmd_t.buttons. Matches engine BT_USE = 2. */
+#define ODOOM_BT_USE 2
+
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
+	(void)remote;
 	if (!owner || keynum <= 0) return 0;
-	/* Only called when player used the line (!quiet), so we open when we have the key. No per-tic logging. */
+
+	/* Only open and consume when the player is actually pressing E on the door.
+	 * The engine can call P_CheckKeys(!quiet) from other paths (e.g. sector re-check), so we require use button. */
+	player_t* pl = owner->player;
+	if (!pl) {
+		/* Fallback: owner may be console player's mo; get console player for single-player. */
+		FLevelLocals* level = primaryLevel;
+		if (!level) return 0;
+		pl = level->GetConsolePlayer();
+		if (!pl || pl->mo != owner) return 0;
+	}
+	if (!(pl->cmd.buttons & ODOOM_BT_USE)) return 0;
 
 	if (!StarTryInitializeAndAuthenticate(false)) {
 		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
@@ -2102,8 +2118,14 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 
 	/* Consume key matching this door (red door = red keycard only). */
 	bool keyMatchesDoor = (keyname && KeyNameContainsKeycard(keynum, keyname));
-	if (keyname && keyMatchesDoor)
+	if (keyname && keyMatchesDoor) {
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
+		/* Minimal logging: one line to file and console when door is opened with key. */
+		char buf[256];
+		std::snprintf(buf, sizeof(buf), "[ODOOM STAR] door keynum=%d opened with key=\"%s\"", keynum, keyname);
+		star_api_log_to_file(buf);
+		Printf(PRINT_HIGH, TEXTCOLOR_GREEN "%s\n", buf);
+	}
 	return 1;
 }
 
