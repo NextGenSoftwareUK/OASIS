@@ -1791,8 +1791,9 @@ static const char* const* GetKeycardNameVariants(int keynum, int* outCount) {
 		case 2: *outCount = 5; return blue;
 		case 3: *outCount = 5; return yellow;
 		case 4: *outCount = 3; return skull;
-		case 129: *outCount = 5; return blue;   /* common custom lock = blue */
-		case 130: *outCount = 5; return red;    /* common custom lock = red */
+		case 129: *outCount = 5; return red;    /* ZDoom extended lock 129 = red keycard */
+		case 130: *outCount = 5; return blue;    /* ZDoom extended lock 130 = blue keycard */
+		case 131: *outCount = 5; return yellow;  /* ZDoom extended lock 131 = yellow keycard */
 		default: *outCount = 0; return nullptr;
 	}
 }
@@ -1811,9 +1812,9 @@ static bool KeyNameContainsKeycard(int keynum, const char* itemName) {
 		return lower.find(s) != std::string::npos;
 	};
 	switch (keynum) {
-		case 1: case 130: return has("red") && (has("key") || has("keycard"));
-		case 2: case 129: return has("blue") && (has("key") || has("keycard"));
-		case 3: return has("yellow") && (has("key") || has("keycard"));
+		case 1: case 129: return has("red") && (has("key") || has("keycard"));
+		case 2: case 130: return has("blue") && (has("key") || has("keycard"));
+		case 3: case 131: return has("yellow") && (has("key") || has("keycard"));
 		case 4: return has("skull") && has("key");
 		default: return false;
 	}
@@ -1847,13 +1848,14 @@ static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
 			found = true;
 			break;
 		}
+		/* Engine key name fallback: only accept if item name contains engine key string AND matches this door's key type (red/blue/yellow), so e.g. "Keycard" never matches blue for a red door. */
 		if (engineKeyName && it->name && it->name[0]) {
 			std::string lowerItem;
 			for (const char* p = it->name; *p; ++p)
 				lowerItem.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*p == '_' ? ' ' : *p))));
 			std::string lowerKey(engineKeyName);
 			for (auto& c : lowerKey) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-			if (lowerItem.find(lowerKey) != std::string::npos) {
+			if (lowerItem.find(lowerKey) != std::string::npos && KeyNameContainsKeycard(keynum, it->name)) {
 				std::strncpy(matched_name, it->name, sizeof(matched_name) - 1);
 				matched_name[sizeof(matched_name) - 1] = '\0';
 				found = true;
