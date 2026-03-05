@@ -239,8 +239,8 @@ static bool g_star_init_failed_this_session = false;
 
 /** Frames since beam-in (or STAR became initialized). Used to avoid consuming key when opening door for a short time after beam-in. */
 static int g_star_frames_since_beamin = 99999;
-/** Do not consume key when opening door for this many frames (~5 s) after beam-in. */
-static const int STAR_DOOR_CONSUME_GRACE_FRAMES = 300;
+/** Always consume key when opening door (was 300-frame grace after beam-in; now 0 so key is used and HUD updates). */
+static const int STAR_DOOR_CONSUME_GRACE_FRAMES = 0;
 /** Set true in OnAuthDone when beam-in succeeds; next frame we refresh gold/silver key CVars once so they appear with Doom keycards. */
 static bool g_star_just_beamed_in = false;
 
@@ -1119,6 +1119,17 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
 		C_DoCommand("bind end \"\"");
+		/* Restore number keys for weapon slots (original Doom engine behavior: 0-9 select weapons). */
+		C_DoCommand("bind 0 \"slot0\"");
+		C_DoCommand("bind 1 \"slot1\"");
+		C_DoCommand("bind 2 \"slot2\"");
+		C_DoCommand("bind 3 \"slot3\"");
+		C_DoCommand("bind 4 \"slot4\"");
+		C_DoCommand("bind 5 \"slot5\"");
+		C_DoCommand("bind 6 \"slot6\"");
+		C_DoCommand("bind 7 \"slot7\"");
+		C_DoCommand("bind 8 \"slot8\"");
+		C_DoCommand("bind 9 \"slot9\"");
 		g_odoom_inventory_bindings_captured = false;
 	}
 
@@ -1963,18 +1974,20 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		return keynum;
 	}
 
-	// Generic inventory sync path: health, armor, ammo, weapons. We always allow pickup: item is added to
-	// STAR inventory and the floor object is destroyed (see p_interaction patch). If the engine didn't
-	// consume (e.g. health/armor full), we still take it into inventory; using it later (E in inventory)
-	// applies the health/armor and updates the HUD.
+	// Generic inventory sync path: health, armor, ammo (not weapons). Weapons return 0 so the engine
+	// handles pickup normally (player gets weapon, auto-switch, number keys work). Health/armor/ammo when
+	// always_allow_pickup=1 go to STAR and floor item is destroyed; using from inventory applies them.
 	auto invType = PClass::FindActor(NAME_Inventory);
 	if (invType && special->IsKindOf(invType)) {
+		auto weaponType = PClass::FindActor(NAME_Weapon);
+		if (weaponType && special->IsKindOf(weaponType)) {
+			/* Let engine handle weapon pickup so player auto-switches and number keys work (original Doom behavior). */
+			return 0;
+		}
 		const char* cls = special->GetClass()->TypeName.GetChars();
 		const char* type = "Item";
-		auto weaponType = PClass::FindActor(NAME_Weapon);
 		auto ammoType = PClass::FindActor(NAME_Ammo);
-		if (weaponType && special->IsKindOf(weaponType)) type = "Weapon";
-		else if (ammoType && special->IsKindOf(ammoType)) type = "Ammo";
+		if (ammoType && special->IsKindOf(ammoType)) type = "Ammo";
 		else if (cls && (strstr(cls, "Armor") || strstr(cls, "armor"))) type = "Armor";
 		else if (cls && (strstr(cls, "Health") || strstr(cls, "health") || strstr(cls, "Medikit") || strstr(cls, "Stimpack"))) type = "Health";
 
@@ -2130,7 +2143,8 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	}
 
 	/* Use the name variant that matched the API for consume. */
-	if (keyname && g_star_frames_since_beamin >= STAR_DOOR_CONSUME_GRACE_FRAMES)
+	/* Always consume key when opening door so STAR inventory and HUD update (key vanishes from list and status bar). */
+	if (keyname)
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
 	if (g_star_debug_logging)
 		StarLogInfo("Door check: OPENED keynum=%d with \"%s\"", keynum, keyname ? keyname : "(null)");
