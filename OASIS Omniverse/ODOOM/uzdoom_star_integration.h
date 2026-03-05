@@ -65,15 +65,22 @@ int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote);
  */
 int UZDoom_STAR_PlayerHasKey(int keynum);
 
-/**
- * Diagnostic: log when EV_DoDoor is about to check keys (lock != 0).
- * Call from a_doors.cpp EV_DoDoor() when OASIS_STAR_API is defined, before P_CheckKeys.
- * Used to verify the door path is reached when pressing E on a locked door.
- */
+/** Log when EV_DoDoor is about to check keys (lock 1-4). Call from a_doors.cpp EV_DoDoor before P_CheckKeys. */
 void ODOOM_STAR_LogEvDoDoorLock(int lock);
+/** Log when P_ActivateLine is about to check keys (line->locknumber). Call from p_spec.cpp before P_CheckKeys when line->locknumber > 0. */
+void ODOOM_STAR_LogLineDoorKeyCheck(int keynum);
+/** Log every time P_ActivateLine runs (E use, push, etc.). Call at start of P_ActivateLine. */
+void ODOOM_STAR_LogActivateLineUse(int activationType, int special, int locknumber);
+/** Log when Door_LockedRaise (special 13) runs with its lock arg so we see map lock value. Call from p_lnspec LS_Door_LockedRaise. */
+void ODOOM_STAR_LogDoorLockedRaiseLock(int lock);
 
 /** Call every frame from status bar (when OASIS_STAR_API): polls async auth/inventory and when inventory open, clear key bindings (OQuake-style). */
 void ODOOM_InventoryInputCaptureFrame(void);
+
+/** Call after TryRunTics so STAR health/armor apply runs after the tic and is not overwritten; applies deferred use-item health/armor. */
+void ODOOM_PostTic(void);
+/** Call after every game tic (inside TryRunTics loop) to re-apply stored health/armor so engine overwrites don't stick. */
+void ODOOM_PostOneTic(void);
 
 /** Call from engine input when building ticcmd: set odoom_key_* CVars from raw key state (for ZScript). */
 void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int enter, int pgup, int pgdown, int home, int endkey);
