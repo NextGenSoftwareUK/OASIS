@@ -64,6 +64,36 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #include <windows.h>
 #include <wincred.h>
 #pragma comment(lib, "Credui.lib")
+/* Use Windows virtual key codes for ODOOM_GetRawKeyDown(GetAsyncKeyState). */
+#define ODOOM_K_UP        VK_UP
+#define ODOOM_K_DOWN      VK_DOWN
+#define ODOOM_K_LEFT      VK_LEFT
+#define ODOOM_K_RIGHT     VK_RIGHT
+#define ODOOM_K_RETURN    VK_RETURN
+#define ODOOM_K_PAGEUP    VK_PRIOR
+#define ODOOM_K_PAGEDOWN  VK_NEXT
+#define ODOOM_K_HOME      VK_HOME
+#define ODOOM_K_END       VK_END
+#else
+/* Use engine key codes (GK_*) so code compiles on Linux and macOS. Provided by engine keydef headers. */
+#define ODOOM_K_UP        GK_UP
+#define ODOOM_K_DOWN      GK_DOWN
+#define ODOOM_K_LEFT      GK_LEFT
+#define ODOOM_K_RIGHT     GK_RIGHT
+#define ODOOM_K_RETURN    GK_RETURN
+#if defined(GK_PAGEUP)
+#define ODOOM_K_PAGEUP    GK_PAGEUP
+#define ODOOM_K_PAGEDOWN  GK_PAGEDOWN
+#elif defined(GK_PRIOR)
+#define ODOOM_K_PAGEUP    GK_PRIOR
+#define ODOOM_K_PAGEDOWN  GK_NEXT
+#else
+/* Fallback if engine uses other names; define to a harmless value so build succeeds. */
+#define ODOOM_K_PAGEUP    0
+#define ODOOM_K_PAGEDOWN  0
+#endif
+#define ODOOM_K_HOME      GK_HOME
+#define ODOOM_K_END       GK_END
 #endif
 
 static star_api_config_t g_star_config;
@@ -484,7 +514,7 @@ static void ODOOM_SaveStarConfigToFiles(void) {
 		g_odoom_json_config_path = path;
 }
 
-/** Return 1 if key is currently down, 0 otherwise. Uses platform API when available. */
+/** Return 1 if key is currently down, 0 otherwise. Windows: GetAsyncKeyState(VK_*). Linux/macOS: engine GK_*; returns 0 until engine key API is wired. */
 static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 {
 #ifdef _WIN32
@@ -492,7 +522,7 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 	return (s & 0x8000) ? 1 : 0;
 #else
 	(void)vk_or_ascii;
-	return 0;
+	return 0;  /* Linux/macOS: TODO wire to engine key state (GK_*) when API available */
 #endif
 }
 
@@ -1094,10 +1124,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	/* Always feed raw key state into CVars so ZScript can open inventory with I (keyIPressed) when closed and drive popup when open. */
 	{
-		int up   = ODOOM_GetRawKeyDown(VK_UP);
-		int down = ODOOM_GetRawKeyDown(VK_DOWN);
-		int left = ODOOM_GetRawKeyDown(VK_LEFT);
-		int right= ODOOM_GetRawKeyDown(VK_RIGHT);
+		int up   = ODOOM_GetRawKeyDown(ODOOM_K_UP);
+		int down = ODOOM_GetRawKeyDown(ODOOM_K_DOWN);
+		int left = ODOOM_GetRawKeyDown(ODOOM_K_LEFT);
+		int right= ODOOM_GetRawKeyDown(ODOOM_K_RIGHT);
 		int use  = ODOOM_GetRawKeyDown('E');
 		int a    = ODOOM_GetRawKeyDown('A');
 		int c    = ODOOM_GetRawKeyDown('C');
@@ -1106,11 +1136,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int i    = ODOOM_GetRawKeyDown('I');
 		int o    = ODOOM_GetRawKeyDown('O');
 		int p    = ODOOM_GetRawKeyDown('P');
-		int enter= ODOOM_GetRawKeyDown(VK_RETURN);
-		int pgup  = ODOOM_GetRawKeyDown(VK_PRIOR);
-		int pgdown= ODOOM_GetRawKeyDown(VK_NEXT);
-		int home  = ODOOM_GetRawKeyDown(VK_HOME);
-		int endkey= ODOOM_GetRawKeyDown(VK_END);
+		int enter= ODOOM_GetRawKeyDown(ODOOM_K_RETURN);
+		int pgup  = ODOOM_GetRawKeyDown(ODOOM_K_PAGEUP);
+		int pgdown= ODOOM_GetRawKeyDown(ODOOM_K_PAGEDOWN);
+		int home  = ODOOM_GetRawKeyDown(ODOOM_K_HOME);
+		int endkey= ODOOM_GetRawKeyDown(ODOOM_K_END);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, enter, pgup, pgdown, home, endkey);
