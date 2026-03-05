@@ -358,6 +358,11 @@ class OASISInventoryOverlayHandler : EventHandler
 					{
 						// no-op
 					}
+					// STAR keys/keycards: pressing E has no effect; keys can only be used when pressing E on a door.
+					else if (starType.IndexOf("Key") >= 0)
+					{
+						// no-op
+					}
 					else
 					{
 						CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
@@ -370,7 +375,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				else if (selectedItem != null && selectedItem.Amount > 0)
 				{
-					// Weapons: switch to that weapon (do not consume); Ammo: no effect (cannot use/consume ammo from inventory).
+					// Weapons: switch to that weapon (do not consume); Ammo and Keys: no effect (use only on door for keys).
 					if (selectedItem is "Weapon")
 					{
 						Weapon w = Weapon(selectedItem);
@@ -379,7 +384,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							p.PendingWeapon = w;
 						}
 					}
-					else if (!(selectedItem is "Ammo"))
+					else if (!(selectedItem is "Ammo") && !(selectedItem is "Key"))
 					{
 						p.mo.UseInventory(selectedItem);
 					}

@@ -19,6 +19,8 @@ extern "C" {
 
 /** PreTouchSpecial return value for generic inventory (health, armor, ammo, etc.). Engine uses this to force-destroy actor when not consumed. */
 #define STAR_PICKUP_GENERIC_ITEM 9001
+/** PreTouchSpecial return value for weapons only. Engine must NOT destroy (so CallTouch gives weapon to player); we still call PostTouchSpecial to add/mint in STAR. */
+#define STAR_PICKUP_WEAPON 9002
 
 /** When true (always_allow_pickup=1), engine force-destroys generic pickups so they go to STAR inventory even when full. When false, original Doom behavior (full = can't pick up). */
 int UZDoom_STAR_AlwaysAllowPickup(void);
