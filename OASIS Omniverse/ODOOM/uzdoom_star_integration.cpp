@@ -940,16 +940,6 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	star_sync_pump();
 
-	/* One-time message so you can confirm this build has the door-check code (E on door logs "[ODOOM STAR door v2]"). Also write to star_api.log for pasting. */
-	{
-		static bool door_v2_printed = false;
-		if (g_star_initialized && !door_v2_printed) {
-			door_v2_printed = true;
-			Printf(PRINT_HIGH, "[ODOOM STAR] door check v2 active (E on locked door will log)\n");
-			star_api_log_to_file("[ODOOM STAR] door check v2 active (E on locked door will log)");
-		}
-	}
-
 	/* Show mint result in console when background pickup-with-mint completes (NFT ID + Hash). */
 	{
 		char item_buf[256] = {}, nft_buf[128] = {}, hash_buf[256] = {};
@@ -1829,23 +1819,23 @@ static bool KeyNameContainsKeycard(int keynum, const char* itemName) {
 	}
 }
 
-/** Returns true if STAR inventory has this key (any name variant). If outName is non-null, set to the first matching variant for use_item. Fallback: scan get_inventory when variants fail. For custom keynums, uses P_GetKeyNameForLock when available. */
+/** Returns true if STAR inventory has this key (any name variant). If outName is non-null, set to the *actual* item name from the API list so use_item can find and consume it (C# matches by exact name). */
 static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
-	int n = 0;
-	const char* const* names = GetKeycardNameVariants(keynum, &n);
-	if (names && n > 0) {
-		for (int i = 0; i < n; i++) {
-			if (star_api_has_item(names[i])) {
-				if (outName) *outName = names[i];
-				return true;
-			}
-		}
-	}
-	/* Fallback: get full inventory and match by name content (handles "Red Keycard (ODOOM)" etc.). For custom locks, also try engine key name. */
 	const char* engineKeyName = (keynum > 4) ? P_GetKeyNameForLock(keynum) : nullptr;
 	star_item_list_t* list = nullptr;
-	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items)
+	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items) {
+		/* No list: try variant names for has_item only (outName would be wrong for use_item). */
+		if (!outName) {
+			int n = 0;
+			const char* const* names = GetKeycardNameVariants(keynum, &n);
+			if (names && n > 0) {
+				for (int i = 0; i < n; i++) {
+					if (star_api_has_item(names[i])) return true;
+				}
+			}
+		}
 		return false;
+	}
 	static char matched_name[256];
 	matched_name[0] = '\0';
 	bool found = false;
@@ -1858,13 +1848,12 @@ static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
 			break;
 		}
 		if (engineKeyName && it->name && it->name[0]) {
-			const size_t np = (size_t)(-1);
 			std::string lowerItem;
 			for (const char* p = it->name; *p; ++p)
-				lowerItem.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*p))));
+				lowerItem.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*p == '_' ? ' ' : *p))));
 			std::string lowerKey(engineKeyName);
 			for (auto& c : lowerKey) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-			if (lowerItem.find(lowerKey) != np) {
+			if (lowerItem.find(lowerKey) != std::string::npos) {
 				std::strncpy(matched_name, it->name, sizeof(matched_name) - 1);
 				matched_name[sizeof(matched_name) - 1] = '\0';
 				found = true;
@@ -1974,20 +1963,16 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		return keynum;
 	}
 
-	// Generic inventory sync path: health, armor, ammo (not weapons). Weapons return 0 so the engine
-	// handles pickup normally (player gets weapon, auto-switch, number keys work). Health/armor/ammo when
-	// always_allow_pickup=1 go to STAR and floor item is destroyed; using from inventory applies them.
+	// Generic inventory sync path: health, armor, ammo, weapons. Engine CallTouch runs first (gives item to player);
+	// when engine didn't consume we destroy and add to STAR. PostTouchSpecial adds to STAR/mint for all (including weapons).
 	auto invType = PClass::FindActor(NAME_Inventory);
 	if (invType && special->IsKindOf(invType)) {
-		auto weaponType = PClass::FindActor(NAME_Weapon);
-		if (weaponType && special->IsKindOf(weaponType)) {
-			/* Let engine handle weapon pickup so player auto-switches and number keys work (original Doom behavior). */
-			return 0;
-		}
 		const char* cls = special->GetClass()->TypeName.GetChars();
 		const char* type = "Item";
+		auto weaponType = PClass::FindActor(NAME_Weapon);
 		auto ammoType = PClass::FindActor(NAME_Ammo);
-		if (ammoType && special->IsKindOf(ammoType)) type = "Ammo";
+		if (weaponType && special->IsKindOf(weaponType)) type = "Weapon";
+		else if (ammoType && special->IsKindOf(ammoType)) type = "Ammo";
 		else if (cls && (strstr(cls, "Armor") || strstr(cls, "armor"))) type = "Armor";
 		else if (cls && (strstr(cls, "Health") || strstr(cls, "health") || strstr(cls, "Medikit") || strstr(cls, "Stimpack"))) type = "Health";
 
@@ -2001,6 +1986,9 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		}
 		g_star_has_pending_item = true;
 		StarLogInfo("Pickup detected: %s (type=%s, amount=%d).", cls ? cls : "Inventory", type, g_star_pending_item_amount);
+		/* Weapons: return STAR_PICKUP_WEAPON so the engine never destroys the actor (CallTouch gives weapon to player); we still run PostTouchSpecial to add/mint in STAR. */
+		if (weaponType && special->IsKindOf(weaponType))
+			return STAR_PICKUP_WEAPON;
 		return STAR_PICKUP_GENERIC_ITEM;
 	}
 
@@ -2026,15 +2014,15 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	} else if (keynum >= 1 && keynum <= 4) {
 		name = GetKeycardName(keynum);
 		desc = GetKeycardDescription(keynum);
-	} else if (keynum == STAR_PICKUP_GENERIC_ITEM && g_star_has_pending_item) {
+	} else if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
 		name = g_star_pending_item_name.c_str();
 		desc = g_star_pending_item_desc.c_str();
 		itemType = g_star_pending_item_type.empty() ? "Item" : g_star_pending_item_type.c_str();
 	}
 	if (!name || !desc) return;
 
-	/* Debounce generic pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM) {
+	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
 		std::string key = std::string(name) + "|" + (itemType ? itemType : "Item");
 		int now = I_GetTime();
 		if (key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
@@ -2050,7 +2038,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	bool isPowerup = itemType && (strstr(itemType, "owerup") != nullptr || strstr(itemType, "Health") != nullptr);
 	bool doMint = (isKey && odoom_star_mint_keys) || (isWeapon && odoom_star_mint_weapons) || (isArmor && odoom_star_mint_armor) || (isPowerup && odoom_star_mint_powerups);
 	int qty = 1;
-	if (keynum == STAR_PICKUP_GENERIC_ITEM && g_star_has_pending_item)
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item)
 		qty = (g_star_pending_item_amount > 0) ? g_star_pending_item_amount : 1;
 	const char* provider = (const char*)odoom_star_nft_provider;
 	if (!provider || !provider[0]) provider = "SolanaOASIS";
@@ -2067,7 +2055,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nullptr, qty, 1);
 
 	/* Use the same path the engine uses: PrintPickupMessage (status bar message + Printf) and S_Sound (pickup sound). */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM && desc && desc[0]) {
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && desc && desc[0]) {
 		FString msg(desc);
 		PrintPickupMessage(true, msg);
 		FLevelLocals* level = primaryLevel;
@@ -2089,7 +2077,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", "ODOOM");
 	}
 
-	if (keynum == STAR_PICKUP_GENERIC_ITEM) {
+	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
 		g_star_has_pending_item = false;
 		g_star_pending_item_name.clear();
 		g_star_pending_item_desc.clear();
@@ -2100,59 +2088,22 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 
 int UZDoom_STAR_CheckDoorAccess(struct AActor* owner, int keynum, int remote) {
 	if (!owner || keynum <= 0) return 0;
-	/* Support standard (1-4) and common custom locks (129=blue, 130=red). Other keynums use GetKeycardNameVariants if added, or P_GetKeyNameForLock. */
-
-	/* Unconditional log when E is pressed on a door; also write to star_api.log so user can paste. */
-	{
-		char buf[128];
-		std::snprintf(buf, sizeof(buf), "[ODOOM STAR door v2] E on door keynum=%d", keynum);
-		Printf(PRINT_HIGH, "%s\n", buf);
-		star_api_log_to_file(buf);
-	}
+	/* Only called when player used the line (!quiet), so we open when we have the key. No per-tic logging. */
 
 	if (!StarTryInitializeAndAuthenticate(false)) {
-		if (g_star_debug_logging)
-			StarLogInfo("Door check: init/auth failed: %s", star_api_get_last_error());
 		StarLogRuntimeAuthFailureOnce(star_api_get_last_error());
 		return 0;
 	}
 
 	const char* keyname = nullptr;
 	if (!ODOOM_STAR_HasKeycard(keynum, &keyname)) {
-		if (g_star_debug_logging)
-			StarLogInfo("Door check: no key in STAR for keynum=%d", keynum);
-		/* Log to star_api.log so user can paste: get_inventory count and first few item names to see why match failed. */
-		star_item_list_t* list = nullptr;
-		star_api_result_t r = star_api_get_inventory(&list);
-		if (r == STAR_API_SUCCESS && list && list->items) {
-			char buf[512];
-			std::snprintf(buf, sizeof(buf), "door keynum=%d no key; get_inventory count=%zu", keynum, (size_t)list->count);
-			star_api_log_to_file(buf);
-			for (size_t i = 0; i < list->count && i < 5; i++) {
-				std::snprintf(buf, sizeof(buf), "  item[%zu] name=\"%s\"", i, list->items[i].name);
-				star_api_log_to_file(buf);
-			}
-			star_api_free_item_list(list);
-		} else {
-			char buf[256];
-			const char* err = star_api_get_last_error();
-			std::snprintf(buf, sizeof(buf), "door keynum=%d no key; get_inventory failed result=%d err=%s", keynum, (int)r, err ? err : "");
-			star_api_log_to_file(buf);
-		}
 		return 0;
 	}
 
-	/* Use the name variant that matched the API for consume. */
-	/* Always consume key when opening door so STAR inventory and HUD update (key vanishes from list and status bar). */
-	if (keyname)
+	/* Consume key matching this door (red door = red keycard only). */
+	bool keyMatchesDoor = (keyname && KeyNameContainsKeycard(keynum, keyname));
+	if (keyname && keyMatchesDoor)
 		star_sync_use_item_start(keyname, "odoom_door", ODOOM_OnUseItemDone, nullptr);
-	if (g_star_debug_logging)
-		StarLogInfo("Door check: OPENED keynum=%d with \"%s\"", keynum, keyname ? keyname : "(null)");
-	{
-		char buf[256];
-		std::snprintf(buf, sizeof(buf), "door keynum=%d OPENED with \"%s\"", keynum, keyname ? keyname : "(null)");
-		star_api_log_to_file(buf);
-	}
 	return 1;
 }
 
@@ -2169,34 +2120,23 @@ int UZDoom_STAR_AlwaysAllowPickup(void) {
 	return 1;
 }
 
-/** Called from a_doors.cpp EV_DoDoor before P_CheckKeys. Log every time (including lock=0) so we see when special 13 runs. */
+/** Called from a_doors.cpp EV_DoDoor before P_CheckKeys. No-op to avoid log spam (engine calls every tic). */
 void ODOOM_STAR_LogEvDoDoorLock(int lock) {
-	char buf[80];
-	std::snprintf(buf, sizeof(buf), "[ODOOM STAR] EV_DoDoor lock=%d (before P_CheckKeys)", lock);
-	star_api_log_to_file(buf);
-	Printf(PRINT_HIGH, "%s\n", buf);
+	(void)lock;
 }
 
 void ODOOM_STAR_LogLineDoorKeyCheck(int keynum) {
-	if (keynum < 1 || keynum > 4) return;
-	char buf[80];
-	std::snprintf(buf, sizeof(buf), "[ODOOM STAR] P_ActivateLine door lock=%d (before P_CheckKeys)", keynum);
-	star_api_log_to_file(buf);
-	Printf(PRINT_HIGH, "%s\n", buf);
+	(void)keynum;
 }
 
 void ODOOM_STAR_LogActivateLineUse(int activationType, int special, int locknumber) {
-	char buf[140];
-	std::snprintf(buf, sizeof(buf), "[ODOOM STAR] P_ActivateLine activationType=%d special=%d locknumber=%d", activationType, special, locknumber);
-	star_api_log_to_file(buf);
-	Printf(PRINT_HIGH, "%s\n", buf);
+	(void)activationType;
+	(void)special;
+	(void)locknumber;
 }
 
 void ODOOM_STAR_LogDoorLockedRaiseLock(int lock) {
-	char buf[100];
-	std::snprintf(buf, sizeof(buf), "[ODOOM STAR] Door_LockedRaise (special 13) lock arg=%d", lock);
-	star_api_log_to_file(buf);
-	Printf(PRINT_HIGH, "%s\n", buf);
+	(void)lock;
 }
 
 void UZDoom_STAR_OnBossKilled(const char* boss_name) {
