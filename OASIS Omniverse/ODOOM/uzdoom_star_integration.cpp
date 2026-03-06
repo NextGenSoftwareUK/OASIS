@@ -885,6 +885,29 @@ static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string&
 	}
 }
 
+/** Find first health (want_health true) or armor (want_health false) item in STAR inventory. Returns true if found and sets out_name/out_type. */
+static bool ODOOM_FindFirstHealthOrArmorInInventory(bool want_health, std::string* out_name, std::string* out_type) {
+	star_item_list_t* list = nullptr;
+	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items) return false;
+	const size_t np = (size_t)(-1);
+	for (size_t i = 0; i < list->count; i++) {
+		const char* n = list->items[i].name;
+		const char* t = list->items[i].item_type;
+		if (!n || !t) continue;
+		std::string name(n);
+		std::string type(t);
+		bool is_health = (type.find("Health") != np || type.find("health") != np ||
+			name.find("Stimpack") != np || name.find("Medikit") != np || name.find("Health Bonus") != np ||
+			name.find("Soul") != np || name.find("Mega") != np || name.find("Health") != np);
+		bool is_armor = (type.find("Armor") != np || type.find("armor") != np ||
+			name.find("Armor") != np || name.find("Blue") != np || name.find("Green") != np || name.find("Yellow") != np);
+		if (want_health && is_health) { *out_name = name; *out_type = type; star_api_free_item_list(list); return true; }
+		if (!want_health && is_armor) { *out_name = name; *out_type = type; star_api_free_item_list(list); return true; }
+	}
+	star_api_free_item_list(list);
+	return false;
+}
+
 /** Called when use-item from inventory (E on STAR row) completes. Defer Health/Armor apply to next frame so the engine does not overwrite it. */
 static void ODOOM_OnUseItemFromInventoryDone(void* user_data) {
 	(void)user_data;
@@ -1075,6 +1098,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind D \"\"");
 		C_DoCommand("bind E \"\"");
 		C_DoCommand("bind C \"\"");
+		C_DoCommand("bind F \"\"");
 		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind X \"\"");
 		/* I, O, P cleared so they only affect popup; ZScript will read odoom_key_i/o/p from raw state */
@@ -1102,7 +1126,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind D \"+moveright\"");
 		C_DoCommand("bind E \"+use\"");
 		C_DoCommand("bind A \"+moveleft\"");
-		C_DoCommand("bind C \"+crouch\"");
+		C_DoCommand("bind C \"odoom_use_health\"");
+		C_DoCommand("bind F \"odoom_use_armor\"");
 		C_DoCommand("bind Z \"+user4\"");
 		C_DoCommand("bind X \"+reload\"");
 		C_DoCommand("bind I \"+user1\"");
@@ -1891,6 +1916,8 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind i +user1");
 	C_DoCommand("defaultbind o +user2");
 	C_DoCommand("defaultbind p +user3");
+	C_DoCommand("defaultbind c odoom_use_health");
+	C_DoCommand("defaultbind f odoom_use_armor");
 
 	StarLogInfo("STAR bootstrap: Beaming in...");
 	if (StarTryInitializeAndAuthenticate(true)) { /* C# client handles inventory; overlay refreshes from get_inventory when opened. */ }
@@ -2289,6 +2316,42 @@ void UZDoom_STAR_OnMonsterKilled(const char* monster_name) {
 //-----------------------------------------------------------------------------
 static bool StarInitialized(void) {
 	return g_star_initialized;
+}
+
+CCMD(odoom_use_health)
+{
+	if (!g_star_initialized || star_sync_use_item_in_progress()) return;
+	std::string name, type;
+	if (!ODOOM_FindFirstHealthOrArmorInInventory(true, &name, &type)) {
+		Printf("No health item in STAR inventory.\n");
+		return;
+	}
+	const char* blockMsg = nullptr;
+	if (ODOOM_WouldUseExceedMax(name, type, &blockMsg)) {
+		if (blockMsg) Printf(PRINT_HIGH, "%s\n", blockMsg);
+		return;
+	}
+	g_star_use_pending_name = name;
+	g_star_use_pending_type = type;
+	star_sync_use_item_start(name.c_str(), "odoom_use_health", ODOOM_OnUseItemFromInventoryDone, nullptr);
+}
+
+CCMD(odoom_use_armor)
+{
+	if (!g_star_initialized || star_sync_use_item_in_progress()) return;
+	std::string name, type;
+	if (!ODOOM_FindFirstHealthOrArmorInInventory(false, &name, &type)) {
+		Printf("No armor item in STAR inventory.\n");
+		return;
+	}
+	const char* blockMsg = nullptr;
+	if (ODOOM_WouldUseExceedMax(name, type, &blockMsg)) {
+		if (blockMsg) Printf(PRINT_HIGH, "%s\n", blockMsg);
+		return;
+	}
+	g_star_use_pending_name = name;
+	g_star_use_pending_type = type;
+	star_sync_use_item_start(name.c_str(), "odoom_use_armor", ODOOM_OnUseItemFromInventoryDone, nullptr);
 }
 
 CCMD(star)
