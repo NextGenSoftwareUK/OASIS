@@ -214,13 +214,21 @@ extern void PF_OQuake_OnKeyPickup (void);
 extern void PF_OQuake_CheckDoorAccess (void);
 extern void PF_OQuake_OnBossKilled (void);
 extern void PF_OQuake_OnMonsterKilled (void);
+extern void PF_OQuake_OnPickupLeftOnFloor (void);
 "@
             $content = $content -replace [regex]::Escape($Matches[1]) + "(\r?\n)", "$Matches[1]$add`$2"
             $prExtPatched = $true
             Write-Host "[OQuake] Patched pr_ext.c: added OQuake builtin externs" -ForegroundColor Green
         }
+    } elseif ($content -notmatch 'PF_OQuake_OnPickupLeftOnFloor') {
+        $newExtern = "extern void PF_OQuake_OnPickupLeftOnFloor (void);"
+        if ($content -match [regex]::Escape("extern void PF_OQuake_OnMonsterKilled (void);") -and $content -notmatch [regex]::Escape($newExtern)) {
+            $content = $content -replace '(extern void PF_OQuake_OnMonsterKilled \(void\);)(\r?\n)', "`$1`$2$newExtern`$2"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added PF_OQuake_OnPickupLeftOnFloor extern" -ForegroundColor Green
+        }
     }
-    # Extension table: add four OQuake entries before the closing }; of extensionbuiltins
+    # Extension table: add five OQuake entries before the closing }; of extensionbuiltins
     if ($content -notmatch 'ex_OQuake_OnMonsterKilled') {
         $insert = @'
 
@@ -228,11 +236,23 @@ extern void PF_OQuake_OnMonsterKilled (void);
  {"ex_OQuake_CheckDoorAccess", PF_OQuake_CheckDoorAccess, PF_NoCSQC, 0, "float(string doorname, string requiredkey)"},
  {"ex_OQuake_OnBossKilled", PF_OQuake_OnBossKilled, PF_NoCSQC, 0, "void(string bossname)"},
  {"ex_OQuake_OnMonsterKilled", PF_OQuake_OnMonsterKilled, PF_NoCSQC, 0, "void(string monster_classname)"},
+ {"ex_OQuake_OnPickupLeftOnFloor", PF_OQuake_OnPickupLeftOnFloor, PF_NoCSQC, 0, "void(string item_name, string item_type, float quantity)"},
 '@
         if ($content -match '"ex_bot_followentity"') {
             $content = $content -replace '(\{\s*"ex_bot_followentity",\s*PF_Fixme,\s*PF_NoCSQC,\s*0,\s*"float\(entity bot, entity goal\)"\s*\},)(\r?\n)(\s*\}\s*;)', "`$1$insert`$2`$3"
             $prExtPatched = $true
             Write-Host "[OQuake] Patched pr_ext.c: added OQuake extension builtin entries" -ForegroundColor Green
+        }
+    } elseif ($content -notmatch 'ex_OQuake_OnPickupLeftOnFloor') {
+        # Already had four OQuake builtins; add the fifth (OnPickupLeftOnFloor)
+        if ($content -match '(\{\s*"ex_OQuake_OnMonsterKilled",[^\}]+\},)(\r?\n)(\s*\}\s*;)') {
+            $insert = @'
+
+ {"ex_OQuake_OnPickupLeftOnFloor", PF_OQuake_OnPickupLeftOnFloor, PF_NoCSQC, 0, "void(string item_name, string item_type, float quantity)"},
+'@
+            $content = $content -replace '(\{\s*"ex_OQuake_OnMonsterKilled",[^\}]+\},)(\r?\n)(\s*\}\s*;)', "`$1$insert`$2`$3"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added OQuake_OnPickupLeftOnFloor builtin" -ForegroundColor Green
         }
     }
     if ($prExtPatched) {

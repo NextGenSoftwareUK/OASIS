@@ -265,11 +265,12 @@ After rebuilding vkQuake with these changes, the anorak face when beamed in, the
 
 Already done if you use the provided defs/items/doors:
 
-- `defs.qc`: `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, `OQuake_OnMonsterKilled` (register builtins from pr_ext_oquake.c).
+- `defs.qc`: `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, `OQuake_OnMonsterKilled`, `OQuake_OnPickupLeftOnFloor` (register builtins from pr_ext_oquake.c).
 - `items.qc`: after giving key, call `OQuake_OnKeyPickup("silver_key")` or `"gold_key"`.
 - When a boss is killed: call `OQuake_OnBossKilled("Shub-Niggurath")` (or use `OQuake_OnMonsterKilled` with class name).
 - When any monster is killed: call `OQuake_OnMonsterKilled("monster_ogre")` (engine class name). Grants XP and optionally mints NFT (see star config / star mint monster).
 - `doors.qc`: if player lacks local key, call `OQuake_CheckDoorAccess(..., "silver_key")` or `"gold_key"`; if it returns 1, open the door.
+- **Health/armor (same as ODOOM):** When the player touches a health/armor/ammo pickup but the engine does **not** apply it (e.g. player already at max), call `OQuake_OnPickupLeftOnFloor(item_name, item_type, quantity)` so the item is added to STAR; then remove the entity so the item is not left on the floor. When the engine **does** apply the pickup (stats increase), do **not** add to STAR (handled by OnStatsChangedEx).
 
 No changes needed there once the engine builtins are registered.
 

@@ -25,9 +25,9 @@ If using **vkQuake**, also use:
 - **Call** `OQuake_STAR_Cleanup()` at shutdown (e.g. in `Host_Shutdown()`).
 - **On key pickup:** When the player gets silver or gold key, call  
   `OQuake_STAR_OnKeyPickup("silver_key")` or `OQuake_STAR_OnKeyPickup("gold_key")`.
-- **On key door:** When the player touches a key door and does *not* have the key locally, call  
+- **On key door:** When the player **uses** (e.g. presses E on) a key door and does *not* have the key locally, call  
   `OQuake_STAR_CheckDoorAccess(door_targetname, "silver_key")` or `"gold_key"`.  
-  If it returns `1`, open the door (and optionally consume the key via STAR API).
+  If it returns `1`, open the door (the key is consumed via STAR API). For parity with ODOOM, call only when the player presses use on the door, not on touch or level load.
 
 ## 3. QuakeC / extension builtins
 
@@ -47,5 +47,9 @@ Add **pr_ext_oquake.c** (or equivalent) to the build and register these two buil
 ## 5. Run
 
 Set **STAR_USERNAME** / **STAR_PASSWORD** or **STAR_API_KEY** / **STAR_AVATAR_ID**, then run the engine with your Quake game data (e.g. `-basedir` to Steam Quake). Keys picked up in OQuake or ODOOM will then open doors in the other game when the STAR API is authenticated.
+
+**oasisstar.json** (in build or game dir) can set **max_health**, **max_armor** (default 100), and **always_allow_pickup** (1 = always queue pickups to STAR). Use-from-inventory respects these caps and shows a toast when already at max.
+
+**Health/armor same as ODOOM:** Add to STAR only when the engine would leave the item on the floor (did not apply to player). When the engine applies the pickup (stats increase), do not add to STAR. When the player is full and touches health/armor/ammo, the engine should call **OQuake_STAR_OnPickupLeftOnFloor**(item_name, item_type, quantity) so the item is added to STAR, then remove the entity so the item is not left on the floor. QuakeC builtin: `void(string item_name, string item_type, float quantity) OQuake_OnPickupLeftOnFloor = #0:ex_OQuake_OnPickupLeftOnFloor;`
 
 For a full Windows walkthrough, see **Docs/WINDOWS_INTEGRATION.md**.
