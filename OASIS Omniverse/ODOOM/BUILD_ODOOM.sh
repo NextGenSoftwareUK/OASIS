@@ -97,6 +97,7 @@ cp -f "$ODOOM_INTEGRATION/odoom_oquake_keys.zs" "$UZDOOM_SRC/wadsrc/static/zscri
 cp -f "$ODOOM_INTEGRATION/odoom_oquake_items.zs" "$UZDOOM_SRC/wadsrc/static/zscript/actors/doom/"
 mkdir -p "$UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar"
 cp -f "$ODOOM_INTEGRATION/odoom_inventory_popup.zs" "$UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar/"
+[[ -f "$ODOOM_INTEGRATION/KEYCONF.txt" ]] && cp -f "$ODOOM_INTEGRATION/KEYCONF.txt" "$UZDOOM_SRC/wadsrc/static/KEYCONF"
 mkdir -p "$UZDOOM_SRC/wadsrc/static/textures"
 [[ -d "$ODOOM_INTEGRATION/textures" ]] && cp -f "$ODOOM_INTEGRATION/textures/OASFACE.png" "$UZDOOM_SRC/wadsrc/static/textures/" 2>/dev/null || true
 mkdir -p "$UZDOOM_SRC/wadsrc/static/sprites" "$UZDOOM_SRC/wadsrc/static/graphics"
