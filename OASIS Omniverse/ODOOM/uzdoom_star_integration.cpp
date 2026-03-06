@@ -132,6 +132,9 @@ static bool g_star_has_last_pickup = false;
 static std::string g_star_last_generic_key;
 static int g_star_last_generic_tic = -99999;
 static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
+/** Player stats before touch: only add to STAR when engine would leave item on floor (did not apply to player). */
+static int g_star_pre_touch_health = -1;
+static int g_star_pre_touch_armor = -1;
 /** When user presses E on a STAR item in inventory, we store name/type for the use-item callback to apply Health/Armor. */
 static std::string g_star_use_pending_name;
 static std::string g_star_use_pending_type;
@@ -1988,6 +1991,19 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 			g_star_pending_item_amount = (amt > 0) ? amt : 1;
 		}
 		g_star_has_pending_item = true;
+		/* Store player stats before touch: we only add to STAR when engine would leave item on floor (did not apply). */
+		{
+			FLevelLocals* level = primaryLevel;
+			player_t* pl = level ? level->GetConsolePlayer() : nullptr;
+			if (pl && pl->mo) {
+				g_star_pre_touch_health = pl->mo->health;
+				AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
+				g_star_pre_touch_armor = arm ? arm->IntVar(FName("Amount")) : 0;
+			} else {
+				g_star_pre_touch_health = -1;
+				g_star_pre_touch_armor = -1;
+			}
+		}
 		StarLogInfo("Pickup detected: %s (type=%s, amount=%d).", cls ? cls : "Inventory", type, g_star_pending_item_amount);
 		/* Weapons: return STAR_PICKUP_WEAPON so the engine never destroys the actor (CallTouch gives weapon to player); we still run PostTouchSpecial to add/mint in STAR. */
 		if (weaponType && special->IsKindOf(weaponType))
@@ -2023,6 +2039,37 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		itemType = g_star_pending_item_type.empty() ? "Item" : g_star_pending_item_type.c_str();
 	}
 	if (!name || !desc) return;
+
+	/* Only add to STAR when the engine would normally leave the item on the floor (did not apply to player). */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0) {
+		FLevelLocals* level = primaryLevel;
+		player_t* pl = level ? level->GetConsolePlayer() : nullptr;
+		if (pl && pl->mo) {
+			int cur_health = pl->mo->health;
+			AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
+			int cur_armor = arm ? arm->IntVar(FName("Amount")) : 0;
+			if (strstr(itemType, "Health") || strstr(itemType, "health")) {
+				if (cur_health > g_star_pre_touch_health) {
+					g_star_has_pending_item = false;
+					g_star_pending_item_name.clear();
+					g_star_pending_item_desc.clear();
+					g_star_pending_item_type.clear();
+					g_star_pending_item_amount = 1;
+					return; /* Engine used it on player; don't add to STAR. */
+				}
+			}
+			if (strstr(itemType, "Armor") || strstr(itemType, "armor")) {
+				if (cur_armor > g_star_pre_touch_armor) {
+					g_star_has_pending_item = false;
+					g_star_pending_item_name.clear();
+					g_star_pending_item_desc.clear();
+					g_star_pending_item_type.clear();
+					g_star_pending_item_amount = 1;
+					return; /* Engine used it on player; don't add to STAR. */
+				}
+			}
+		}
+	}
 
 	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
 	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
