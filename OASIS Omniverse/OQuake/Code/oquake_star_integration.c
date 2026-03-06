@@ -31,8 +31,9 @@ star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_av
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 #endif
 
-/* Forward declare callbacks so they can be used before their definitions. */
+/* Forward declare callbacks and helpers so they can be used before their definitions. */
 static void OQ_OnSendItemDone(void* user_data);
+static int OQ_ContainsNoCase(const char* haystack, const char* needle);
 static qboolean g_star_debug_logging = false;
 
 /** Called from sync worker after each star_api_add_item; logs result to console only when star debug is on. */
@@ -91,6 +92,11 @@ cvar_t oquake_star_mint_powerups = {"oquake_star_mint_powerups", "0", 0};
 cvar_t oquake_star_mint_keys = {"oquake_star_mint_keys", "0", 0};
 cvar_t oquake_star_nft_provider = {"oquake_star_nft_provider", "SolanaOASIS", 0};
 cvar_t oquake_star_send_to_address_after_minting = {"oquake_star_send_to_address_after_minting", "", 0};
+/* Max health/armor when using items from inventory (from oasisstar.json). Default 100 (Quake standard). */
+cvar_t oquake_star_max_health = {"oquake_star_max_health", "100", 0};
+cvar_t oquake_star_max_armor = {"oquake_star_max_armor", "100", 0};
+/* 1 = always queue pickups to STAR even when full (like ODOOM always_allow_pickup). */
+cvar_t oquake_star_always_allow_pickup = {"oquake_star_always_allow_pickup", "1", 0};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -503,16 +509,84 @@ static void OQ_SendSelectedItem(void)
     g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 }
 
+/** Returns 1 if using this health/armor item would exceed max (or already at max). Sets toast message. Same logic as ODOOM. */
+static int OQ_WouldUseExceedMax(const char* name, const char* type, const char** toast_msg) {
+    int max_h = 100, max_a = 100;
+    int cur_h, cur_a;
+    *toast_msg = NULL;
+    if (oquake_star_max_health.string && atoi(oquake_star_max_health.string) > 0)
+        max_h = atoi(oquake_star_max_health.string);
+    if (oquake_star_max_armor.string && atoi(oquake_star_max_armor.string) > 0)
+        max_a = atoi(oquake_star_max_armor.string);
+    cur_h = cl.stats[STAT_HEALTH];
+    cur_a = cl.stats[STAT_ARMOR];
+    if (type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup")) {
+        if (name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health"))) {
+            int amount = OQ_ContainsNoCase(name, "Mega") ? 100 : 25;
+            if (cur_h >= max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
+            if (cur_h + amount > max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
+        }
+    }
+    if (type && (OQ_ContainsNoCase(type, "armor") || (name && OQ_ContainsNoCase(name, "Armor")))) {
+        int amount = (name && (OQ_ContainsNoCase(name, "Red") || OQ_ContainsNoCase(name, "Mega"))) ? 200 : 100;
+        if (cur_a >= max_a) { *toast_msg = "You cannot use this because you are already at max armor."; return 1; }
+        if (cur_a + amount > max_a) { *toast_msg = "You cannot use this because you are already at max armor."; return 1; }
+    }
+    return 0;
+}
+
+/** Apply health or armor to local player after use-item (cap at max from config). */
+static void OQ_ApplyHealthOrArmor(const char* name, const char* type) {
+    int max_h = 100, max_a = 100;
+    int amount;
+    if (oquake_star_max_health.string && atoi(oquake_star_max_health.string) > 0)
+        max_h = atoi(oquake_star_max_health.string);
+    if (oquake_star_max_armor.string && atoi(oquake_star_max_armor.string) > 0)
+        max_a = atoi(oquake_star_max_armor.string);
+    if (type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup")) && name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health"))) {
+        amount = OQ_ContainsNoCase(name, "Mega") ? 100 : 25;
+        cl.stats[STAT_HEALTH] += amount;
+        if (cl.stats[STAT_HEALTH] > max_h) cl.stats[STAT_HEALTH] = max_h;
+    }
+    if ((type && OQ_ContainsNoCase(type, "armor")) || (name && OQ_ContainsNoCase(name, "Armor"))) {
+        amount = (name && (OQ_ContainsNoCase(name, "Red") || OQ_ContainsNoCase(name, "Mega"))) ? 200 : 100;
+        cl.stats[STAT_ARMOR] += amount;
+        if (cl.stats[STAT_ARMOR] > max_a) cl.stats[STAT_ARMOR] = max_a;
+    }
+}
+
 static void OQ_UseSelectedItem(void)
 {
+    const char* toast_msg = NULL;
     oquake_inventory_entry_t* item = OQ_GetSelectedItem();
     if (!item) {
         q_strlcpy(g_inventory_status, "No item selected.", sizeof(g_inventory_status));
         return;
     }
-
+    /* Keys: no effect from inventory (only on doors). Same as ODOOM. */
+    if (OQ_ItemMatchesTab(item, OQ_TAB_KEYS)) {
+        q_strlcpy(g_inventory_status, "Keys can only be used on doors.", sizeof(g_inventory_status));
+        return;
+    }
+    /* Ammo: no effect from inventory. Same as ODOOM. */
+    if (OQ_ItemMatchesTab(item, OQ_TAB_AMMO)) {
+        q_strlcpy(g_inventory_status, "Ammo cannot be used from inventory.", sizeof(g_inventory_status));
+        return;
+    }
+    /* Weapons: switch in game (we cannot switch from C; show message). Do not consume. */
+    if (OQ_ItemMatchesTab(item, OQ_TAB_WEAPONS)) {
+        q_strlcpy(g_inventory_status, "Select this weapon in game (number keys).", sizeof(g_inventory_status));
+        return;
+    }
+    /* Health/Armor: check max first; toast if already at max, else use and apply. */
+    if (OQ_WouldUseExceedMax(item->name, item->item_type, &toast_msg)) {
+        if (toast_msg)
+            q_strlcpy(g_inventory_status, toast_msg, sizeof(g_inventory_status));
+        return;
+    }
     star_api_queue_use_item(item->name, "inventory_overlay");
     if (star_api_flush_use_item_jobs() == STAR_API_SUCCESS) {
+        OQ_ApplyHealthOrArmor(item->name, item->item_type);
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Used item: %s", item->name);
         OQ_RefreshOverlayFromClient();
     } else {
@@ -1088,6 +1162,18 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_mint_keys", atoi(value) ? "1" : "0");
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "max_health", value, sizeof(value))) {
+        Cvar_Set("oquake_star_max_health", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "max_armor", value, sizeof(value))) {
+        Cvar_Set("oquake_star_max_armor", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "always_allow_pickup", value, sizeof(value))) {
+        Cvar_Set("oquake_star_always_allow_pickup", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
     if (OQ_ExtractJsonValue(json, "nft_provider", value, sizeof(value))) {
         Cvar_Set("oquake_star_nft_provider", value);
         loaded = 1;
@@ -1132,6 +1218,9 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     const char *m_armor = oquake_star_mint_armor.string;
     const char *m_powerups = oquake_star_mint_powerups.string;
     const char *m_keys = oquake_star_mint_keys.string;
+    const char *max_h = oquake_star_max_health.string;
+    const char *max_a = oquake_star_max_armor.string;
+    const char *always_pickup = oquake_star_always_allow_pickup.string;
     const char *nft_prov = oquake_star_nft_provider.string;
     const char *send_addr = oquake_star_send_to_address_after_minting.string;
     
@@ -1149,6 +1238,9 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     fprintf(f, "  \"mint_armor\": %s,\n", (m_armor && atoi(m_armor)) ? "1" : "0");
     fprintf(f, "  \"mint_powerups\": %s,\n", (m_powerups && atoi(m_powerups)) ? "1" : "0");
     fprintf(f, "  \"mint_keys\": %s,\n", (m_keys && atoi(m_keys)) ? "1" : "0");
+    fprintf(f, "  \"max_health\": %s,\n", max_h && atoi(max_h) > 0 ? max_h : "100");
+    fprintf(f, "  \"max_armor\": %s,\n", max_a && atoi(max_a) > 0 ? max_a : "100");
+    fprintf(f, "  \"always_allow_pickup\": %s,\n", (always_pickup && atoi(always_pickup)) ? "1" : "0");
     fprintf(f, "  \"nft_provider\": \"");
     if (nft_prov && nft_prov[0]) {
         const char* p;
@@ -1278,6 +1370,9 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         fprintf(f, "set oquake_star_mint_armor \"%s\"\n", atoi(oquake_star_mint_armor.string) ? "1" : "0");
         fprintf(f, "set oquake_star_mint_powerups \"%s\"\n", atoi(oquake_star_mint_powerups.string) ? "1" : "0");
         fprintf(f, "set oquake_star_mint_keys \"%s\"\n", atoi(oquake_star_mint_keys.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_max_health \"%s\"\n", oquake_star_max_health.string ? oquake_star_max_health.string : "100");
+        fprintf(f, "set oquake_star_max_armor \"%s\"\n", oquake_star_max_armor.string ? oquake_star_max_armor.string : "100");
+        fprintf(f, "set oquake_star_always_allow_pickup \"%s\"\n", atoi(oquake_star_always_allow_pickup.string) ? "1" : "0");
         fprintf(f, "set oquake_star_nft_provider \"%s\"\n", oquake_star_nft_provider.string ? oquake_star_nft_provider.string : "SolanaOASIS");
         fprintf(f, "set oquake_star_send_to_address_after_minting \"%s\"\n", oquake_star_send_to_address_after_minting.string ? oquake_star_send_to_address_after_minting.string : "");
     }
@@ -1364,6 +1459,9 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_mint_keys);
     Cvar_RegisterVariable(&oquake_star_nft_provider);
     Cvar_RegisterVariable(&oquake_star_send_to_address_after_minting);
+    Cvar_RegisterVariable(&oquake_star_max_health);
+    Cvar_RegisterVariable(&oquake_star_max_armor);
+    Cvar_RegisterVariable(&oquake_star_always_allow_pickup);
 
     /* Default all monster mint flags to 1 (load from JSON may override) */
     {
@@ -1478,6 +1576,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_mint_powerups", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
                                     Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_health") == 0) {
+                                    Cvar_Set("oquake_star_max_health", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_armor") == 0) {
+                                    Cvar_Set("oquake_star_max_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_always_allow_pickup") == 0) {
+                                    Cvar_Set("oquake_star_always_allow_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -1603,6 +1707,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_mint_powerups", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
                                     Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_health") == 0) {
+                                    Cvar_Set("oquake_star_max_health", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_armor") == 0) {
+                                    Cvar_Set("oquake_star_max_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_always_allow_pickup") == 0) {
+                                    Cvar_Set("oquake_star_always_allow_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -1711,6 +1821,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_mint_powerups", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_mint_keys") == 0) {
                                     Cvar_Set("oquake_star_mint_keys", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_health") == 0) {
+                                    Cvar_Set("oquake_star_max_health", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_max_armor") == 0) {
+                                    Cvar_Set("oquake_star_max_armor", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_always_allow_pickup") == 0) {
+                                    Cvar_Set("oquake_star_always_allow_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -2065,29 +2181,20 @@ void OQuake_STAR_OnStatsChangedEx(
         if (!sv.active || cls.demoplayback)
             return;
     }
-    /* Minimal hook: queue pickup to C# client; client manages delta and sync. */
-    if (new_shells > old_shells) {
-        q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
-        added += OQ_AddInventoryEvent("Shells", desc, "Ammo");
-    }
-    if (new_nails > old_nails) {
-        q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
-        added += OQ_AddInventoryEvent("Nails", desc, "Ammo");
-    }
-    if (new_rockets > old_rockets) {
-        q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
-        added += OQ_AddInventoryEvent("Rockets", desc, "Ammo");
-    }
-    if (new_cells > old_cells) {
-        q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
-        added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
-    }
-    if (new_armor > old_armor) {
-        int delta = new_armor - old_armor;
-        const char* armor_name = (delta <= 100) ? "Green Armor" : (delta < 200) ? "Yellow Armor" : "Red Armor";
-        q_snprintf(desc, sizeof(desc), "Armor pickup +%d", delta);
-        added += OQ_AddInventoryEvent(armor_name, desc, "Armor");
-    }
+    /* Same as ODOOM: only add to STAR when the engine would leave the item on the floor (did not apply to player).
+     * This callback runs when stats *changed* (engine gave the pickup), so we do NOT add those to STAR.
+     * When the engine would leave the item (player full), the engine must call OQuake_STAR_OnPickupLeftOnFloor
+     * and remove the entity so the item is not left on the floor. */
+    (void)old_shells;
+    (void)new_shells;
+    (void)old_nails;
+    (void)new_nails;
+    (void)old_rockets;
+    (void)new_rockets;
+    (void)old_cells;
+    (void)new_cells;
+    (void)old_armor;
+    (void)new_armor;
     if (added > 0) {
         if (g_star_initialized) {
             q_snprintf(g_inventory_status, sizeof(g_inventory_status), "STAR updated: %d pickup(s) queued", added);
@@ -2108,6 +2215,31 @@ void OQuake_STAR_OnStatsChanged(
     OQuake_STAR_OnStatsChangedEx(old_shells, new_shells, old_nails, new_nails,
         old_rockets, new_rockets, old_cells, new_cells,
         old_health, new_health, old_armor, new_armor, 1);
+}
+
+/** Same as ODOOM: add to STAR only when the engine would leave the item on the floor. Call from engine/QuakeC when player touches health/armor/ammo but engine does not apply it (e.g. player full). Engine should remove the entity after so the item is not left on the floor. */
+void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity) {
+    char desc[96];
+    int qty = (quantity > 0) ? quantity : 1;
+    if (!item_name || !item_name[0] || !g_star_initialized || !g_star_beamed_in)
+        return;
+    {
+        extern server_t sv;
+        extern client_static_t cls;
+        if (!sv.active || cls.demoplayback)
+            return;
+    }
+    q_snprintf(desc, sizeof(desc), "Pickup (engine left on floor) +%d", qty);
+    if (OQ_DoMintForItemType(item_type ? item_type : "Item"))
+        star_api_queue_pickup_with_mint(item_name, desc, "Quake", item_type ? item_type : "Item", 1, oquake_star_nft_provider.string, oquake_star_send_to_address_after_minting.string, qty);
+    else
+        star_api_queue_add_item(item_name, desc, "Quake", item_type ? item_type : "Item", NULL, qty, 1);
+    q_strlcpy(g_star_last_pickup_name, item_name, sizeof(g_star_last_pickup_name));
+    q_strlcpy(g_star_last_pickup_desc, desc, sizeof(g_star_last_pickup_desc));
+    q_strlcpy(g_star_last_pickup_type, item_type ? item_type : "Item", sizeof(g_star_last_pickup_type));
+    g_star_has_last_pickup = true;
+    if (g_inventory_open)
+        OQ_RefreshOverlayFromClient();
 }
 
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
@@ -2206,16 +2338,54 @@ static void OQ_OnUseItemDone(void* user_data) {
         OQ_RefreshOverlayFromClient();
 }
 
+/** 1 if item name (lowercase) contains substring. */
+static int OQ_ItemNameContains(const char* item_name, const char* sub) {
+    char lower[256];
+    size_t i, len;
+    if (!item_name || !sub || !sub[0]) return 0;
+    len = strlen(item_name);
+    if (len >= sizeof(lower)) len = sizeof(lower) - 1;
+    for (i = 0; i < len; i++)
+        lower[i] = (char)tolower((unsigned char)item_name[i]);
+    lower[len] = '\0';
+    return strstr(lower, sub) ? 1 : 0;
+}
+
+/** Silver doors: only silver_key. Gold doors: only gold_key. No Doom keycards. */
+static int OQ_FindKeyForDoor(const char* required_key_name, char* out_name, size_t out_size) {
+    star_item_list_t* list = NULL;
+    size_t i;
+    if (!required_key_name || !out_name || out_size < 2) return 0;
+    out_name[0] = '\0';
+    if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list || !list->items)
+        return 0;
+    for (i = 0; i < list->count; i++) {
+        const char* n = list->items[i].name;
+        if (!n || !n[0]) continue;
+        if (OQ_ItemNameContains(required_key_name, "silver") && q_strcasecmp(n, OQUAKE_ITEM_SILVER_KEY) == 0) {
+            q_strlcpy(out_name, n, out_size);
+            star_api_free_item_list(list);
+            return 1;
+        }
+        if (OQ_ItemNameContains(required_key_name, "gold") && q_strcasecmp(n, OQUAKE_ITEM_GOLD_KEY) == 0) {
+            q_strlcpy(out_name, n, out_size);
+            star_api_free_item_list(list);
+            return 1;
+        }
+    }
+    star_api_free_item_list(list);
+    return 0;
+}
+
+/** Door access: only open and consume when we have a key that matches this door. Uses actual item name from inventory for consumption (like ODOOM). QuakeC should call only when player presses use on the door, not on touch. */
 int OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name) {
+    char actual_name[256];
     if (!g_star_initialized || !required_key_name)
         return 0;
-    /* star_api_has_item uses client cache first, then API if needed. */
-    if (star_api_has_item(required_key_name)) {
-        printf("OQuake STAR API: Door opened with cross-game key: %s\n", required_key_name);
-        star_sync_use_item_start(required_key_name, door_targetname ? door_targetname : "quake_door", OQ_OnUseItemDone, NULL);
-        return 1;
-    }
-    return 0;
+    if (!OQ_FindKeyForDoor(required_key_name, actual_name, sizeof(actual_name)))
+        return 0;
+    star_sync_use_item_start(actual_name, door_targetname && door_targetname[0] ? door_targetname : "quake_door", OQ_OnUseItemDone, NULL);
+    return 1;
 }
 
 /*-----------------------------------------------------------------------------
