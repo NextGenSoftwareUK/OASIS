@@ -8,6 +8,23 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+function Copy-FileWithRetry {
+    param([string]$Source, [string]$Destination, [int]$MaxAttempts = 5, [int]$DelayMs = 500)
+    $attempt = 0
+    while ($true) {
+        try {
+            Copy-Item -LiteralPath $Source -Destination $Destination -Force -ErrorAction Stop
+            return
+        }
+        catch [System.IO.IOException] {
+            $attempt++
+            if ($attempt -ge $MaxAttempts) { throw }
+            Write-Host "  File in use, retrying in $DelayMs ms (attempt $attempt/$MaxAttempts)..."
+            Start-Sleep -Milliseconds $DelayMs
+        }
+    }
+}
+
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectDir = Join-Path $scriptDir ".."
 $projectPath = Join-Path $projectDir "STARAPIClient.csproj"
@@ -56,9 +73,9 @@ foreach ($target in $targets)
     if (Test-Path $resolvedTarget)
     {
         Write-Host "Deploying WEB5 STAR API wrapper artifacts to $resolvedTarget"
-        Copy-Item $dllPath (Join-Path $resolvedTarget "star_api.dll") -Force
-        Copy-Item $libPath (Join-Path $resolvedTarget "star_api.lib") -Force
-        Copy-Item $headerPath (Join-Path $resolvedTarget "star_api.h") -Force
+        Copy-FileWithRetry $dllPath (Join-Path $resolvedTarget "star_api.dll")
+        Copy-FileWithRetry $libPath (Join-Path $resolvedTarget "star_api.lib")
+        Copy-FileWithRetry $headerPath (Join-Path $resolvedTarget "star_api.h")
     }
 }
 

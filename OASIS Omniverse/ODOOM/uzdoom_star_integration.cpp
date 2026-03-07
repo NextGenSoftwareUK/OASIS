@@ -185,7 +185,9 @@ CVAR(Int, odoom_star_mint_keys, 0, CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_nft_provider, "SolanaOASIS", CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_send_to_address_after_minting, "", CVAR_GLOBALCONFIG)
 /** 1 = always allow pickup (add to STAR inventory and remove from floor even when full); 0 = original Doom (full health/armor = can't pick up). */
-CVAR(Int, odoom_star_always_allow_pickup, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_always_allow_pickup_if_max, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** 1 = always add pickups to STAR even when engine uses them (player gets both); 0 = only add when engine doesn't use (e.g. at max). Same as OQuake. */
+CVAR(Int, odoom_star_always_add_items_to_inventory, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 /** Max health/armor when using items from inventory (e.g. 200). Can set higher if desired. */
 CVAR(Int, odoom_star_max_health, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_max_armor, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -381,8 +383,12 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_send_to_address_after_minting = value;
 		loaded = true;
 	}
-	if (ODOOM_ExtractJsonValue(json, "always_allow_pickup", value, (int)sizeof(value))) {
-		odoom_star_always_allow_pickup = (atoi(value) != 0) ? 1 : 0;
+	if (ODOOM_ExtractJsonValue(json, "always_allow_pickup_if_max", value, (int)sizeof(value))) {
+		odoom_star_always_allow_pickup_if_max = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "always_add_items_to_inventory", value, (int)sizeof(value))) {
+		odoom_star_always_add_items_to_inventory = (atoi(value) != 0) ? 1 : 0;
 		loaded = true;
 	}
 	if (ODOOM_ExtractJsonValue(json, "max_health", value, (int)sizeof(value))) {
@@ -423,6 +429,7 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 			UCVarValue vs; vs.String = (char*)(const char*)odoom_star_send_to_address_after_minting;
 			v->SetGenericRep(vs, CVAR_String);
 		}
+		u.Int = odoom_star_always_add_items_to_inventory ? 1 : 0; v = FindCVar("odoom_star_always_add_items_to_inventory", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 		u.Int = odoom_star_max_health; v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 		u.Int = odoom_star_max_armor; v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 	}
@@ -467,16 +474,19 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 		fprintf(f, "\",\n");
 	}
 	{
-		int ap = 1, mh = 200, ma = 200;
-		FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup", nullptr);
+		int ap = 1, aa = 0, mh = 200, ma = 200;
+		FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup_if_max", nullptr);
 		if (v && v->GetRealType() == CVAR_Int) ap = v->GetGenericRep(CVAR_Int).Int ? 1 : 0;
+		v = FindCVar("odoom_star_always_add_items_to_inventory", nullptr);
+		if (v && v->GetRealType() == CVAR_Int) aa = v->GetGenericRep(CVAR_Int).Int ? 1 : 0;
 		v = FindCVar("odoom_star_max_health", nullptr);
 		if (v && v->GetRealType() == CVAR_Int) mh = v->GetGenericRep(CVAR_Int).Int;
 		v = FindCVar("odoom_star_max_armor", nullptr);
 		if (v && v->GetRealType() == CVAR_Int) ma = v->GetGenericRep(CVAR_Int).Int;
 		if (mh <= 0) mh = 200;
 		if (ma <= 0) ma = 200;
-		fprintf(f, "  \"always_allow_pickup\": %d,\n", ap);
+		fprintf(f, "  \"always_allow_pickup_if_max\": %d,\n", ap);
+		fprintf(f, "  \"always_add_items_to_inventory\": %d,\n", aa);
 		fprintf(f, "  \"max_health\": %d,\n", mh);
 		fprintf(f, "  \"max_armor\": %d,\n", ma);
 	}
@@ -533,6 +543,8 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 
 /** Max bytes to pass to the inventory list CVar. Engine string CVars can have a small fixed buffer; exceeding it causes "attempted to write past end of stream". Use 1K to stay under typical limits. */
 static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
+/** Max bytes for quest list string (Q\tid\tname\tdesc\tstatus\tpct\n and O\t...\n lines). */
+static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 4096;
 /** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
 static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
 
@@ -699,6 +711,86 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 	ODOOM_UpdateStarKeyHudCVars(list);
 	ODOOM_PushInventoryToCVars(list);
 	star_api_free_item_list(list);
+}
+
+/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count, and when quests exist sets odoom_quest_tracker_title + odoom_quest_tracker_objective from first quest (first incomplete objective). */
+static void ODOOM_RefreshQuestCVars(void) {
+	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
+	FBaseCVar* countVar = FindCVar("odoom_quest_count", nullptr);
+	FBaseCVar* trackerTitleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+	FBaseCVar* trackerObjVar = FindCVar("odoom_quest_tracker_objective", nullptr);
+	if (!listVar || !countVar) return;
+
+	static char questBuf[ODOOM_QUEST_LIST_MAX_BYTES];
+	int n = star_api_get_quests_string(questBuf, sizeof(questBuf));
+	if (n < 0 || !g_star_initialized) {
+		UCVarValue v; v.String = (char*)"";
+		listVar->SetGenericRep(v, CVAR_String);
+		UCVarValue c; c.Int = 0;
+		countVar->SetGenericRep(c, CVAR_Int);
+		if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) { UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
+		if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) { UCVarValue o; o.String = (char*)""; trackerObjVar->SetGenericRep(o, CVAR_String); }
+		return;
+	}
+	questBuf[n] = '\0';
+
+	UCVarValue v; v.String = questBuf;
+	listVar->SetGenericRep(v, CVAR_String);
+
+	/* Count quests (blocks separated by "---") and parse first quest for tracker. */
+	int questCount = 0;
+	std::string firstTitle, firstObjective;
+	const char* p = questBuf;
+	while (*p) {
+		const char* lineEnd = strchr(p, '\n');
+		size_t lineLen = lineEnd ? (size_t)(lineEnd - p) : strlen(p);
+		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
+			questCount++;
+			/* Tab-separated: Q, id, name, desc, status, pct. We want name (3rd field). */
+			int field = 0;
+			const char* start = p + 2;
+			const char* end = start;
+			for (; field < 2 && end <= p + lineLen; ) {
+				if (*end == '\t' || end == p + lineLen) {
+					if (field == 1 && start < end && firstTitle.empty()) {
+						firstTitle.assign(start, end - start);
+						if (firstTitle.size() > 120) firstTitle.resize(120);
+					}
+					field++;
+					start = end + (end < p + lineLen ? 1 : 0);
+				}
+				end++;
+			}
+		}
+		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && questCount == 1 && firstObjective.empty()) {
+			/* O, id, desc, done (tab-separated). We want first objective with done=0; desc is 3rd field. */
+			const char* f0 = p + 2;
+			const char* f1 = (const char*)memchr(f0, '\t', lineLen - (f0 - p));
+			if (f1 && f1 - p < (ptrdiff_t)lineLen) {
+				f1++;
+				const char* f2 = (const char*)memchr(f1, '\t', lineLen - (f1 - p));
+				if (f2 && f2 - p < (ptrdiff_t)lineLen) {
+					const char* doneStart = f2 + 1;
+					if (doneStart < p + lineLen && *doneStart == '0')
+						firstObjective.assign(f1, f2 - f1);
+				}
+			}
+		}
+		if (lineLen >= 3 && p[0] == '-' && p[1] == '-' && p[2] == '-')
+			;
+		p = lineEnd ? lineEnd + 1 : p + lineLen;
+	}
+
+	UCVarValue c; c.Int = questCount;
+	countVar->SetGenericRep(c, CVAR_Int);
+	if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) {
+		UCVarValue t; t.String = (char*)(firstTitle.empty() ? "" : firstTitle.c_str());
+		trackerTitleVar->SetGenericRep(t, CVAR_String);
+	}
+	if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) {
+		UCVarValue o; o.String = (char*)(firstObjective.empty() ? "" : firstObjective.c_str());
+		trackerObjVar->SetGenericRep(o, CVAR_String);
+	}
 }
 
 static void ODOOM_OnAuthDone(void* user_data);
@@ -1161,9 +1253,40 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int pgdown= ODOOM_GetRawKeyDown(ODOOM_K_PAGEDOWN);
 		int home  = ODOOM_GetRawKeyDown(ODOOM_K_HOME);
 		int endkey= ODOOM_GetRawKeyDown(ODOOM_K_END);
+		int q     = ODOOM_GetRawKeyDown('Q');
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, enter, pgup, pgdown, home, endkey);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey);
+	}
+
+	/* Quest: set active from popup (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1) */
+	FBaseCVar* setActiveDoVar = FindCVar("odoom_quest_set_active_do_it", nullptr);
+	FBaseCVar* setActiveIdVar = FindCVar("odoom_quest_set_active_id", nullptr);
+	if (g_star_initialized && setActiveDoVar && setActiveDoVar->GetRealType() == CVAR_Int && setActiveDoVar->GetGenericRep(CVAR_Int).Int != 0) {
+		const char* questId = nullptr;
+		if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String)
+			questId = setActiveIdVar->GetGenericRep(CVAR_String).String;
+		if (questId && questId[0]) {
+			star_api_start_quest(questId);
+			ODOOM_RefreshQuestCVars();
+		}
+		UCVarValue zero; zero.Int = 0;
+		setActiveDoVar->SetGenericRep(zero, CVAR_Int);
+		if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String) {
+			UCVarValue empty; empty.String = (char*)"";
+			setActiveIdVar->SetGenericRep(empty, CVAR_String);
+		}
+	}
+
+	/* Quest tracker + popup: refresh quest list when popup open; periodically refresh tracker when beamed in. */
+	if (g_star_initialized) {
+		FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
+		int questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int) ? questPopupVar->GetGenericRep(CVAR_Int).Int : 0;
+		static int s_quest_refresh_frames = 0;
+		if (questPopupOpen || ++s_quest_refresh_frames >= 60) {
+			s_quest_refresh_frames = 0;
+			ODOOM_RefreshQuestCVars();
+		}
 	}
 
 	/* Send popup: text input buffer (OQuake-style) and execute send when ZScript requests */
@@ -1414,7 +1537,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int enter, int pgup, int pgdown, int home, int endkey)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1435,6 +1558,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_i", i);
 	SET_KEY_CVAR("odoom_key_o", o);
 	SET_KEY_CVAR("odoom_key_p", p);
+	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
 #undef SET_KEY_CVAR
 }
@@ -2058,12 +2182,13 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 	if (!name || !desc) return;
 
-	/* Only add to STAR when the engine would normally leave the item on the floor (did not apply to player), and only when player is below configured max (so at max we don't stash). */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0) {
+	/* When always_add_items_to_inventory=1, always add (player gets both engine benefit and STAR item). Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
 		FLevelLocals* level = primaryLevel;
 		player_t* pl = level ? level->GetConsolePlayer() : nullptr;
 		if (pl && pl->mo) {
 			int config_max_health = 200, config_max_armor = 200;
+			int allow_if_max = 1;
 			{
 				FBaseCVar* v = FindCVar("odoom_star_max_health", nullptr);
 				if (v && v->GetRealType() == CVAR_Int) config_max_health = v->GetGenericRep(CVAR_Int).Int;
@@ -2071,6 +2196,8 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 				v = FindCVar("odoom_star_max_armor", nullptr);
 				if (v && v->GetRealType() == CVAR_Int) config_max_armor = v->GetGenericRep(CVAR_Int).Int;
 				if (config_max_armor <= 0) config_max_armor = 200;
+				v = FindCVar("odoom_star_always_allow_pickup_if_max", nullptr);
+				if (v && v->GetRealType() == CVAR_Int) allow_if_max = v->GetGenericRep(CVAR_Int).Int ? 1 : 0;
 			}
 			int cur_health = pl->mo->health;
 			AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
@@ -2084,13 +2211,13 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 					g_star_pending_item_amount = 1;
 					return; /* Engine used it on player; don't add to STAR. */
 				}
-				if (g_star_pre_touch_health >= config_max_health) {
+				if (g_star_pre_touch_health >= config_max_health && !allow_if_max) {
 					g_star_has_pending_item = false;
 					g_star_pending_item_name.clear();
 					g_star_pending_item_desc.clear();
 					g_star_pending_item_type.clear();
 					g_star_pending_item_amount = 1;
-					return; /* Already at config max_health; don't add to STAR (treat as used/wasted). */
+					return; /* At config max and ifmax=0: don't add to STAR. */
 				}
 			}
 			if (strstr(itemType, "Armor") || strstr(itemType, "armor")) {
@@ -2102,13 +2229,13 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 					g_star_pending_item_amount = 1;
 					return; /* Engine used it on player; don't add to STAR. */
 				}
-				if (g_star_pre_touch_armor >= config_max_armor) {
+				if (g_star_pre_touch_armor >= config_max_armor && !allow_if_max) {
 					g_star_has_pending_item = false;
 					g_star_pending_item_name.clear();
 					g_star_pending_item_desc.clear();
 					g_star_pending_item_type.clear();
 					g_star_pending_item_amount = 1;
-					return; /* Already at config max_armor; don't add to STAR (treat as used/wasted). */
+					return; /* At config max and ifmax=0: don't add to STAR. */
 				}
 			}
 		}
@@ -2229,7 +2356,7 @@ int UZDoom_STAR_PlayerHasKey(int keynum) {
 }
 
 int UZDoom_STAR_AlwaysAllowPickup(void) {
-	FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup", nullptr);
+	FBaseCVar* v = FindCVar("odoom_star_always_allow_pickup_if_max", nullptr);
 	if (v && v->GetRealType() == CVAR_Int) return (v->GetGenericRep(CVAR_Int).Int != 0) ? 1 : 0;
 	return 1;
 }
@@ -2374,7 +2501,9 @@ CCMD(star)
 		Printf("  star quest complete <id>    - Complete a quest\n");
 		Printf("  star bossnft <name> [desc]   - Create boss NFT\n");
 		Printf("  star deploynft <nft_id> <game> [loc] - Deploy boss NFT\n");
-		Printf("  star pickup keycard <red|blue|yellow|skull> - Add keycard (convenience)\n");
+		Printf("  star pickup ifmax <0|1> - At max: 1=pick up into STAR, 0=original Doom (leave on floor)\n");
+		Printf("  star pickup all <0|1> - 1=always add to STAR even when engine uses it, 0=only when at max\n");
+		Printf("  star pickup keycard <red|blue|yellow|skull> - Add keycard to STAR inventory (admin only)\n");
 		Printf("  star debug on|off|status - Toggle STAR debug logging in console\n");
 		Printf("  star face on|off|status - Toggle beamed-in face switch (default on)\n");
 		Printf("  star config        - Show current STAR config (URLs, beam face, stack, mint NFT, provider, max_health, max_armor)\n");
@@ -2394,8 +2523,26 @@ CCMD(star)
 	const char* sub = argv[1];
 	if (strcmp(sub, "pickup") == 0) {
 		Printf("\n");
+		if (argv.argc() >= 4 && strcmp(argv[2], "ifmax") == 0) {
+			int on = (argv[3][0] == '1' && argv[3][1] == '\0') ? 1 : 0;
+			odoom_star_always_allow_pickup_if_max = on;
+			ODOOM_SaveStarConfigToFiles();
+			Printf("Pick up when at max (always_allow_pickup_if_max) set to %s. Config saved.\n", on ? "1" : "0");
+			Printf("\n");
+			return;
+		}
+		if (argv.argc() >= 4 && strcmp(argv[2], "all") == 0) {
+			int on = (argv[3][0] == '1' && argv[3][1] == '\0') ? 1 : 0;
+			odoom_star_always_add_items_to_inventory = on;
+			ODOOM_SaveStarConfigToFiles();
+			Printf("Always add to STAR (always_add_items_to_inventory) set to %s. Config saved.\n", on ? "1" : "0");
+			Printf("\n");
+			return;
+		}
 		if (argv.argc() < 4 || strcmp(argv[2], "keycard") != 0) {
-			Printf("Usage: star pickup keycard <red|blue|yellow|skull>\n");
+			Printf("Usage: star pickup ifmax <0|1> - At max: 1=still pick up into STAR, 0=original Doom (leave on floor)\n");
+			Printf("       star pickup all <0|1> - 1=always add to STAR even when engine uses it, 0=only when at max\n");
+			Printf("       star pickup keycard <red|blue|yellow|skull> - Add keycard to STAR inventory (admin only)\n");
 			Printf("\n");
 			return;
 		}
@@ -2765,9 +2912,11 @@ CCMD(star)
 		Printf("  Send to address after minting: %s\n", (const char*)odoom_star_send_to_address_after_minting && ((const char*)odoom_star_send_to_address_after_minting)[0] ? (const char*)odoom_star_send_to_address_after_minting : "(none)");
 		Printf("  max_health: %d  (health pickups only go to STAR inventory when below this; at max they are not stashed)\n", (int)odoom_star_max_health);
 		Printf("  max_armor:  %d  (armor pickups only go to STAR inventory when below this; at max they are not stashed)\n", (int)odoom_star_max_armor);
-		Printf("  always_allow_pickup: %s\n", odoom_star_always_allow_pickup ? "1" : "0");
+		Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR; 0=original Doom, leave on floor)\n", odoom_star_always_allow_pickup_if_max ? "1" : "0");
+		Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it; 0=only when at max)\n", odoom_star_always_add_items_to_inventory ? "1" : "0");
 		Printf("\n");
 		Printf("To set: star seturl <url>   star setoasisurl <url>\n");
+		Printf("        star pickup ifmax <0|1>   star pickup all <0|1>\n");
 		Printf("        star stack <armor|weapons|powerups|keys> <0|1>\n");
 		Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
 		Printf("        star mint monster <name> <0|1>  (e.g. star mint monster odoom_cacodemon 0 or (ODOOM) Cacodemon)\n");

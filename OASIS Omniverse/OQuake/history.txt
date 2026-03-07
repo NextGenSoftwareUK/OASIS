@@ -1,17 +1,3 @@
-star beamin dellams test!
-star debug on
-star beamin dellams test!
-star debug on
-star beamin dellams test!
-star inventory
-star debug on
-star beamin dellams test!
-star inventory
-star beamin dellams test!
-star inventory
-star beamin dellams test!
-star inventory
-star beamin dellams test!
 star inventory
 star beamin dellams test!
 star inventory
@@ -59,3 +45,19 @@ star beamin dellams test!
 star
 star config
 star beamin dellams test!
+star config
+star beamin dellams test!
+star debug
+star debug on
+star debug
+star debug on
+star beamin dellams test!
+star debug
+star beamin dellams test!
+star debug
+star debug on
+star beamin dellams test!
+STAR CONFI
+STAR CONFIG
+STAR
+STAR CONFIG
