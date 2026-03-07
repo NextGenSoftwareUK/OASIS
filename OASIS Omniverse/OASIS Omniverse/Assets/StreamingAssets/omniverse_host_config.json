@@ -1,0 +1,37 @@
+{
+  "staleGameMinutes": 10,
+  "maintenancePollSeconds": 20,
+  "lowMemoryAvailableMbThreshold": 2048,
+  "web4OasisApiBaseUrl": "http://localhost:5555",
+  "web5StarApiBaseUrl": "http://localhost:5556",
+  "avatarId": "f9ccf5b2-3991-42ec-8155-65b94b2e0f0c",
+  "apiKey": "",
+  "games": [
+    {
+      "gameId": "odoom",
+      "displayName": "ODOOM",
+      "executableRelativePath": "../../ODOOM/build/ODOOM.exe",
+      "workingDirectoryRelativePath": "../../ODOOM/build",
+      "defaultLevelArgument": "+map map01",
+      "baseArguments": "+set vid_fullscreen 0",
+      "portalX": -4.0,
+      "portalZ": 12.0,
+      "portalColorR": 0.2,
+      "portalColorG": 0.85,
+      "portalColorB": 1.0
+    },
+    {
+      "gameId": "oquake",
+      "displayName": "OQUAKE",
+      "executableRelativePath": "../../OQuake/build/OQUAKE.exe",
+      "workingDirectoryRelativePath": "../../OQuake/build",
+      "defaultLevelArgument": "+map e1m1",
+      "baseArguments": "-window",
+      "portalX": 4.0,
+      "portalZ": 12.0,
+      "portalColorR": 1.0,
+      "portalColorG": 0.5,
+      "portalColorB": 0.2
+    }
+  ]
+}

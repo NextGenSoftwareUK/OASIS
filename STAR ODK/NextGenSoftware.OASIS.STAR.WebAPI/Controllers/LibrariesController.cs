@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -24,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class LibrariesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all libraries in the system.
@@ -39,16 +42,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Libraries.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testLibraries = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testLibraries, "Libraries retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<object>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading libraries: {ex.Message}",
-                    Exception = ex
-                });
+                    var testLibraries = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testLibraries, "Libraries retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<object>>(ex, "GetAllLibraries");
             }
         }
 
@@ -67,16 +79,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Libraries.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Library retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading library: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Library retrieved successfully (using test data)"));
+                }
+                return HandleException<object>(ex, "GetLibrary");
             }
         }
 
@@ -108,12 +127,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating library");
             }
         }
 
@@ -146,12 +160,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating library");
             }
         }
 
@@ -165,12 +174,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting library");
             }
         }
 
@@ -279,12 +283,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning library");
             }
         }
 
@@ -300,19 +299,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateLibraryWithOptions([FromBody] CreateLibraryWithOptionsRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Library> { IsError = true, Message = "The request body is required." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<Library>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Libraries.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating library");
             }
         }
 
@@ -332,18 +335,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<object>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Libraries.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "GetLibrary");
             }
         }
 
@@ -362,18 +362,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<object>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Libraries.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library from path");
             }
         }
 
@@ -396,12 +393,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library from published file");
             }
         }
 
@@ -463,12 +455,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing library");
             }
         }
 
@@ -494,12 +481,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading library");
             }
         }
 
@@ -551,12 +533,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading library version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading library version");
             }
         }
 
@@ -580,12 +557,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing library");
             }
         }
 
@@ -609,12 +581,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing library");
             }
         }
 
@@ -638,12 +605,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing library");
             }
         }
 
@@ -667,12 +629,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating library");
             }
         }
 
@@ -696,12 +653,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating library: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating library");
             }
         }
     }

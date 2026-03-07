@@ -412,6 +412,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     holons = holons.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();
                 }
 
+                if (searchParams.FilterByMetaData != null)
+                {
+                    List<Holon> matchedHolons = new List<Holon>();
+
+                    foreach (Holon holon in holons)
+                    {
+                        int matchedKeys = 0;
+                        foreach (KeyValuePair<string, string> metaKeyValuePair in searchParams.FilterByMetaData)
+                        {
+                            if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
+                            {
+                                if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                    matchedHolons.Add(holon);
+                                else
+                                    matchedKeys++;
+                            }
+                        }
+
+                        if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == searchParams.FilterByMetaData.Count)
+                            matchedHolons.Add(holon);
+                    }
+
+                    holons = matchedHolons;
+                }
+
                 result.Result = new SearchResults();
                 //result.Result.SearchResultHolons = (List<IHolon>)DataHelper.ConvertMongoEntitysToOASISHolons(holons.Distinct());
                 //result.Result.SearchResultAvatars = (List<IAvatar>)DataHelper.ConvertMongoEntitysToOASISAvatars(avatars.Distinct());

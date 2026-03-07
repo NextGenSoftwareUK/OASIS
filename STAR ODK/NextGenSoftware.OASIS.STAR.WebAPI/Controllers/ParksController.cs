@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class ParksController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all parks in the system.
@@ -39,21 +42,31 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 // TODO: Implement proper park loading
                 await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IEnumerable<IPark>>
+                OASISResult<IEnumerable<IPark>> result = new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Parks loaded successfully",
                     Result = new List<IPark>()
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IPark>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading parks: {ex.Message}",
-                    Exception = ex
-                });
+                    var testParks = TestDataHelper.GetTestParks(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<IPark>>(testParks, "Parks retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<IPark>>(ex, "GetAllParks");
             }
         }
 
@@ -73,21 +86,31 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             {
                 // TODO: Implement proper park loading by ID
                 await Task.Delay(1); // Placeholder async operation
-                return Ok(new OASISResult<IPark>
+                OASISResult<IPark> result = new OASISResult<IPark>
                 {
                     IsError = false,
                     Message = "Park loaded successfully",
                     Result = null
-                });
+                };
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading park: {ex.Message}",
-                    Exception = ex
-                });
+                    var testParks = TestDataHelper.GetTestParks(1);
+                    return Ok(TestDataHelper.CreateSuccessResult<IPark>(testParks.FirstOrDefault(), "Park retrieved successfully (using test data)"));
+                }
+                return HandleException<IPark>(ex, "GetPark");
             }
         }
 
@@ -105,6 +128,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
                 // TODO: Implement proper park saving
                 await Task.Delay(1); // Placeholder async operation
                 return Ok(new OASISResult<IPark>
@@ -116,12 +148,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error creating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "creating park");
             }
         }
 
@@ -130,6 +157,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (park == null)
+                {
+                    return BadRequest(new OASISResult<IPark>
+                    {
+                        IsError = true,
+                        Message = "Park cannot be null. Please provide a valid Park object in the request body."
+                    });
+                }
+
                 // TODO: Implement proper park saving
                 await Task.Delay(1); // Placeholder async operation
                 return Ok(new OASISResult<IPark>
@@ -141,12 +177,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error updating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "updating park");
             }
         }
 
@@ -166,12 +197,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting park");
             }
         }
 
@@ -248,12 +274,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error creating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "creating park");
             }
         }
 
@@ -282,12 +303,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park");
             }
         }
 
@@ -315,12 +331,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park from path");
             }
         }
 
@@ -347,12 +358,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park from published file");
             }
         }
 
@@ -413,12 +419,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error publishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "publishing park");
             }
         }
 
@@ -448,12 +449,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedPark>
-                {
-                    IsError = true,
-                    Message = $"Error downloading park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedPark>(ex, "downloading park");
             }
         }
 
@@ -513,12 +509,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error loading park version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "loading park version");
             }
         }
 
@@ -546,12 +537,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error editing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "editing park");
             }
         }
 
@@ -579,12 +565,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "unpublishing park");
             }
         }
 
@@ -612,12 +593,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error republishing park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "republishing park");
             }
         }
 
@@ -645,12 +621,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error activating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "activating park");
             }
         }
 
@@ -678,12 +649,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IPark>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating park: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<IPark>(ex, "deactivating park");
             }
         }
 

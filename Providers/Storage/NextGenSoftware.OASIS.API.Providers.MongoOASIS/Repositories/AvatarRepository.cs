@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         public AvatarRepository(MongoDbContext dbContext)
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+            SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
             _dbContext = dbContext;
         }
 

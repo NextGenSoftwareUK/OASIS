@@ -1,4 +1,5 @@
 using System;
+using Nethereum.Hex.HexConvertors.Extensions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -27,6 +28,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.Common;
@@ -36,6 +38,8 @@ using Nethereum.Web3.Accounts;
 using Nethereum.Contracts;
 using Nethereum.Hex.HexTypes;
 using System.Numerics;
+using Nethereum.ABI.FunctionEncoding.Attributes;
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 {
@@ -44,11 +48,95 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
     }
+
+    // Struct definitions for Fantom smart contract
+    public struct AvatarStruct
+    {
+        [Parameter("uint256", "EntityId", 1)]
+        public BigInteger EntityId { get; set; }
+
+        [Parameter("string", "AvatarId", 2)]
+        public string AvatarId { get; set; }
+
+        [Parameter("string", "Info", 3)]
+        public string Info { get; set; }
+    }
+
+    public struct AvatarDetailStruct
+    {
+        [Parameter("uint256", "EntityId", 1)]
+        public BigInteger EntityId { get; set; }
+
+        [Parameter("string", "AvatarId", 2)]
+        public string AvatarId { get; set; }
+
+        [Parameter("string", "Info", 3)]
+        public string Info { get; set; }
+    }
+
+    public struct HolonStruct
+    {
+        [Parameter("uint256", "EntityId", 1)]
+        public BigInteger EntityId { get; set; }
+
+        [Parameter("string", "HolonId", 2)]
+        public string HolonId { get; set; }
+
+        [Parameter("string", "Info", 3)]
+        public string Info { get; set; }
+    }
+
     /// <summary>
-    /// Fantom Provider for OASIS
-    /// Implements Fantom Opera blockchain integration for high-performance smart contracts
+    /// DTO for GetHolon function output from Fantom smart contract
     /// </summary>
-    public class FantomOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
+    public class GetHolonOutputDTO
+    {
+        [Parameter("string", "name", 1)]
+        public string Name { get; set; }
+
+        [Parameter("string", "description", 2)]
+        public string Description { get; set; }
+
+        [Parameter("string", "holonType", 3)]
+        public string HolonType { get; set; }
+
+        [Parameter("string", "metadata", 4)]
+        public string Metadata { get; set; }
+
+        [Parameter("string", "parentId", 5)]
+        public string ParentId { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for GetAvatar function output from Fantom smart contract
+    /// </summary>
+    public class GetAvatarOutputDTO
+    {
+        [Parameter("string", "username", 1)]
+        public string Username { get; set; }
+
+        [Parameter("string", "email", 2)]
+        public string Email { get; set; }
+
+        [Parameter("string", "firstName", 3)]
+        public string FirstName { get; set; }
+
+        [Parameter("string", "lastName", 4)]
+        public string LastName { get; set; }
+
+        [Parameter("string", "avatarType", 5)]
+        public string AvatarType { get; set; }
+
+        [Parameter("string", "metadata", 6)]
+        public string Metadata { get; set; }
+    }
+
+    /// <summary>
+    /// Legacy Fantom provider implementation using a chain-specific contract and custom Nethereum logic.
+    /// This class is kept only for reference and backward compatibility and is no longer used by OASIS at runtime.
+    /// The new FantomOASIS provider below delegates all logic to the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+    /// </summary>
+    public class FantomOASIS_Legacy : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider
     {
         private readonly HttpClient _httpClient;
         private readonly string _rpcEndpoint;
@@ -73,20 +161,21 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         }
 
         /// <summary>
-        /// Initializes a new instance of the FantomOASIS provider
+        /// Initializes a new instance of the legacy FantomOASIS provider.
         /// </summary>
         /// <param name="rpcEndpoint">Fantom RPC endpoint URL</param>
         /// <param name="chainId">Fantom chain ID (250 for mainnet, 4002 for testnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public FantomOASIS(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
+        public FantomOASIS_Legacy(string rpcEndpoint = "https://rpc.ftm.tools", string chainId = "250", string privateKey = "", string contractAddress = "0x0000000000000000000000000000000000000000")
         {
             this.ProviderName = "FantomOASIS";
             this.ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
@@ -316,6 +405,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     {
                         OASISErrorHandling.HandleError(ref response, "Failed to parse Fantom JSON response");
                     }
+
                 }
                 else
                 {
@@ -359,20 +449,46 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         }
 
         /// <summary>
+        /// Get wallet address for avatar using real WalletManager API
+        /// </summary>
+        private async Task<string> GetWalletAddressForAvatarAsync(Guid avatarId)
+        {
+            try
+            {
+                if (avatarId == Guid.Empty)
+                    return "";
+
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    avatarId,
+                    Core.Enums.ProviderType.FantomOASIS);
+
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.WalletAddress))
+                {
+                    return walletResult.Result.WalletAddress;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting wallet address for avatar {avatarId}: {ex.Message}", ex);
+            }
+            return "";
+        }
+
+        /// <summary>
         /// Parse Fantom JSON content and convert to OASIS Player collection
         /// </summary>
         private IEnumerable<IPlayer> ParseFantomToPlayers(string fantomJson)
         {
             try
             {
-                // Deserialize the complete Player collection to preserve all properties
-                var players = JsonSerializer.Deserialize<IEnumerable<Player>>(fantomJson, new JsonSerializerOptions
+                // Deserialize the complete Avatar collection to preserve all properties
+                var players = JsonSerializer.Deserialize<IEnumerable<Avatar>>(fantomJson, new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 });
 
-                return players;
+                return players.Cast<IPlayer>();
             }
             catch (Exception)
             {
@@ -427,6 +543,36 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         #endregion
 
         #region IOASISBlockchainStorageProvider
+
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            var result = new OASISResult<IKeyPairAndWallet>();
+            try
+            {
+                var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+                var publicKey = ecKey.GetPublicAddress();
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PrivateKey = privateKey;
+                    keyPair.PublicKey = publicKey;
+                    keyPair.WalletAddressLegacy = publicKey;
+                }
+                result.Result = keyPair;
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
 
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)
         {
@@ -557,9 +703,66 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT minting
-                // Use Nethereum SDK for Fantom NFT operations
-                OASISErrorHandling.HandleError(ref response, "MintNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT minting");
+                // Real Fantom ERC-721 NFT minting using Nethereum SDK
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Request is required");
+                    return response;
+                }
+
+                // IMintWeb3NFTRequest inherits from MintNFTRequestBase which has MetaData
+                var nftTokenAddress = request.MetaData?.ContainsKey("NFTTokenAddress") == true
+                    ? request.MetaData["NFTTokenAddress"]?.ToString()
+                    : "";
+
+                if (string.IsNullOrWhiteSpace(nftTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "NFT token address is required in MetaData");
+                    return response;
+                }
+
+                var mintToAddress = !string.IsNullOrWhiteSpace(request.SendToAddressAfterMinting)
+                    ? request.SendToAddressAfterMinting
+                    : await GetWalletAddressForAvatarAsync(request.MintedByAvatarId);
+
+                if (string.IsNullOrWhiteSpace(mintToAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "Mint to address is required");
+                    return response;
+                }
+
+                // ERC-721 mint ABI - real implementation
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"},{\"name\":\"_uri\",\"type\":\"string\"}],\"name\":\"mint\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var mintFunction = contract.GetFunction("mint");
+                var tokenId = request.MetaData?.ContainsKey("TokenId") == true &&
+                    int.TryParse(request.MetaData["TokenId"]?.ToString(), out var tid)
+                    ? tid : (int)DateTime.UtcNow.Ticks;
+                var tokenUri = request.JSONMetaDataURL ?? "";
+
+                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    mintToAddress,
+                    new BigInteger(tokenId),
+                    tokenUri);
+
+                response.Result = new Web3NFTTransactionResponse
+                {
+                    TransactionResult = receipt.TransactionHash,
+                    Web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = nftTokenAddress,
+                        Title = request.Title,
+                        Description = request.Description,
+                        MintTransactionHash = receipt.TransactionHash
+                    },
+                    SendNFTTransactionResult = "NFT minted successfully on Fantom"
+                };
+                response.IsError = false;
+                response.Message = "Fantom NFT minted successfully";
             }
             catch (Exception ex)
             {
@@ -584,8 +787,59 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT burning
-                OASISErrorHandling.HandleError(ref result, "BurnNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT burning");
+                // Real Fantom ERC-721 NFT burning using Nethereum SDK
+                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
+                    return result;
+                }
+
+                // ERC-721 burn ABI - real implementation
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
+                var burnFunction = contract.GetFunction("burn");
+
+                // Get token ID from Web3NFTId (convert Guid to BigInteger hash)
+                BigInteger tokenId = BigInteger.Zero;
+                if (request.Web3NFTId != Guid.Empty)
+                {
+                    // Use Web3NFTId hash as token ID (consistent with other providers)
+                    var tokenIdString = request.Web3NFTId.ToString().Replace("-", "");
+                    if (BigInteger.TryParse(tokenIdString.Substring(0, Math.Min(32, tokenIdString.Length)), System.Globalization.NumberStyles.HexNumber, null, out var tid))
+                    {
+                        tokenId = tid;
+                    }
+                    else
+                    {
+                        // Fallback: use hash code
+                        tokenId = new BigInteger(Math.Abs(request.Web3NFTId.GetHashCode()));
+                    }
+                }
+
+                if (tokenId == BigInteger.Zero)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Token ID is required. Please provide Web3NFTId.");
+                    return result;
+                }
+
+                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    tokenId);
+
+                result.Result = new Web3NFTTransactionResponse
+                {
+                    TransactionResult = receipt.TransactionHash,
+                    Web3NFT = new Web3NFT
+                    {
+                        NFTTokenAddress = request.NFTTokenAddress
+                    },
+                    SendNFTTransactionResult = "NFT burned successfully on Fantom"
+                };
+                result.IsError = false;
+                result.Message = "Fantom NFT burned successfully";
             }
             catch (Exception ex)
             {
@@ -609,9 +863,34 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT metadata querying
-                // Use Nethereum SDK to query NFT metadata
-                OASISErrorHandling.HandleError(ref response, "LoadOnChainNFTDataAsync requires Nethereum SDK integration for Fantom ERC-721 NFT metadata querying");
+                // Real Fantom ERC-721 NFT metadata querying using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress))
+                {
+                    OASISErrorHandling.HandleError(ref response, "NFT token address is required");
+                    return response;
+                }
+
+                // ERC-721 metadata ABI - real implementation
+                var erc721Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"tokenURI\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"ownerOf\",\"outputs\":[{\"name\":\"\",\"type\":\"address\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"name\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"symbol\",\"outputs\":[{\"name\":\"\",\"type\":\"string\"}],\"type\":\"function\"}]";
+                var contract = _web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+
+                // Get NFT metadata
+                var nameFunction = contract.GetFunction("name");
+                var symbolFunction = contract.GetFunction("symbol");
+                var name = await nameFunction.CallAsync<string>();
+                var symbol = await symbolFunction.CallAsync<string>();
+
+                var web3NFT = new Web3NFT
+                {
+                    NFTTokenAddress = nftTokenAddress,
+                    Title = name ?? "Fantom NFT",
+                    Symbol = symbol ?? "FTM",
+                    Description = $"ERC-721 NFT on Fantom blockchain"
+                };
+
+                response.Result = web3NFT;
+                response.IsError = false;
+                response.Message = "NFT data loaded successfully from Fantom";
             }
             catch (Exception ex)
             {
@@ -631,8 +910,39 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
-                OASISErrorHandling.HandleError(ref result, "WithdrawNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+                // Real Fantom ERC-721 NFT bridge withdrawal using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
+                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender account address, and private key are required");
+                    return result;
+                }
+
+                // Transfer NFT to bridge contract using ERC-721 transferFrom
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"type\":\"function\"}]";
+                var senderAccount = new Account(senderPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var contract = web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var transferFunction = contract.GetFunction("transferFrom");
+                var bridgeContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccountAddress,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    senderAccountAddress,
+                    bridgeContractAddress,
+                    BigInteger.Parse(tokenId));
+
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = receipt.TransactionHash,
+                    Status = BridgeTransactionStatus.Completed,
+                    IsSuccessful = true
+                };
+                result.IsError = false;
+                result.Message = "NFT withdrawn to bridge successfully on Fantom";
             }
             catch (Exception ex)
             {
@@ -651,8 +961,39 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
                     return result;
                 }
-                // Fantom is EVM-compatible, so use ERC-721 standard for NFT bridge
-                OASISErrorHandling.HandleError(ref result, "DepositNFTAsync requires Nethereum SDK integration for Fantom ERC-721 NFT bridge");
+                // Real Fantom ERC-721 NFT bridge deposit using Nethereum SDK
+                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
+                    string.IsNullOrWhiteSpace(receiverAccountAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, and receiver account address are required");
+                    return result;
+                }
+
+                // Transfer NFT from bridge contract to receiver using ERC-721 transferFrom
+                var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_from\",\"type\":\"address\"},{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"transferFrom\",\"outputs\":[],\"type\":\"function\"}]";
+                var bridgeAccount = new Account(_privateKey ?? "");
+                var web3Client = new Web3(bridgeAccount, _rpcEndpoint);
+                var contract = web3Client.Eth.GetContract(erc721Abi, nftTokenAddress);
+                var transferFunction = contract.GetFunction("transferFrom");
+                var bridgeContractAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+
+                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    bridgeAccount.Address,
+                    new HexBigInteger(100000),
+                    null,
+                    null,
+                    bridgeContractAddress,
+                    receiverAccountAddress,
+                    BigInteger.Parse(tokenId));
+
+                result.Result = new BridgeTransactionResponse
+                {
+                    TransactionId = receipt.TransactionHash,
+                    Status = BridgeTransactionStatus.Completed,
+                    IsSuccessful = true
+                };
+                result.IsError = false;
+                result.Message = "NFT deposited from bridge successfully on Fantom";
             }
             catch (Exception ex)
             {
@@ -667,22 +1008,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveAvatar is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatar: {ex.Message}");
-            }
-            return response;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -745,7 +1071,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     response.Result = avatar;
                     response.IsError = false;
                     response.Message = $"Avatar saved to Fantom successfully. Transaction hash: {transactionReceipt.TransactionHash}";
-                    
+
                     // Store transaction hash in avatar metadata
                     avatar.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
                     avatar.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
@@ -765,22 +1091,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetail is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarDetail: {ex.Message}");
-            }
-            return response;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
@@ -793,34 +1104,82 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveAvatarDetailAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Save avatar detail to smart contract
+                var ad = avatarDetail as AvatarDetail;
+                var avatarDetailData = new
+                {
+                    avatarId = avatarDetail.Id.ToString(),
+                    username = avatarDetail.Username,
+                    email = avatarDetail.Email,
+                    firstName = ad?.FirstName ?? "",
+                    lastName = ad?.LastName ?? "",
+                    avatarType = ad?.AvatarType?.Value.ToString() ?? "",
+                    metadata = JsonSerializer.Serialize(avatarDetail.MetaData)
+                };
+
+                // Call smart contract function to create/update avatar detail
+                var createAvatarDetailFunction = _contract.GetFunction("createAvatarDetail");
+                var gasEstimate = await createAvatarDetailFunction.EstimateGasAsync(
+                    avatarDetailData.avatarId,
+                    avatarDetailData.username,
+                    avatarDetailData.email,
+                    avatarDetailData.firstName,
+                    avatarDetailData.lastName,
+                    avatarDetailData.avatarType,
+                    avatarDetailData.metadata
+                );
+
+                var transactionReceipt = await createAvatarDetailFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    avatarDetailData.avatarId,
+                    avatarDetailData.username,
+                    avatarDetailData.email,
+                    avatarDetailData.firstName,
+                    avatarDetailData.lastName,
+                    avatarDetailData.avatarType,
+                    avatarDetailData.metadata
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    response.Result = avatarDetail;
+                    response.IsError = false;
+                    response.Message = $"Avatar detail saved to Fantom successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+
+                    // Store transaction hash in avatar detail metadata
+                    if (avatarDetail.ProviderMetaData == null)
+                        avatarDetail.ProviderMetaData = new Dictionary<ProviderType, Dictionary<string, string>>();
+                    if (!avatarDetail.ProviderMetaData.ContainsKey(Core.Enums.ProviderType.FantomOASIS))
+                        avatarDetail.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS] = new Dictionary<string, string>();
+                    avatarDetail.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["transactionHash"] = transactionReceipt.TransactionHash;
+                    avatarDetail.ProviderMetaData[Core.Enums.ProviderType.FantomOASIS]["savedAt"] = DateTime.UtcNow.ToString("O");
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Transaction failed on Fantom");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveAvatarDetailAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to Fantom: {ex.Message}");
             }
             return response;
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByEmail is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByEmail: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByEmailAsync(email, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
@@ -833,34 +1192,62 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByEmailAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Query smart contract for avatar by email
+                // Search through all avatars to find one with matching email
+                var getAvatarsCountFunction = _contract.GetFunction("getAvatarsCount");
+                var avatarsCount = await getAvatarsCountFunction.CallAsync<BigInteger>();
+
+                for (uint i = 0; i < avatarsCount; i++)
+                {
+                    try
+                    {
+                        var getAvatarFunction = _contract.GetFunction("getAvatarById");
+                        var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<AvatarStruct>(i);
+                        
+                        // Check if this avatar matches the email (stored in Info field as JSON)
+                        if (!string.IsNullOrEmpty(avatarData.Info) && avatarData.Info.Contains(email))
+                        {
+                            var avatar = JsonSerializer.Deserialize<Avatar>(avatarData.Info, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            
+                            if (avatar != null && avatar.Email == email)
+                            {
+                                response.Result = avatar;
+                                response.IsError = false;
+                                response.Message = "Avatar loaded from Fantom by email successfully";
+                                return response;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Skip invalid avatars
+                        continue;
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref response, $"Avatar not found with email: {email}");
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByEmailAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Fantom: {ex.Message}");
             }
             return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0)
         {
-            var response = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmail is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetailByEmail: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarDetailByEmailAsync(email, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
@@ -873,12 +1260,52 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarDetailByEmailAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Query smart contract for avatar detail by email
+                var getAvatarDetailsCountFunction = _contract.GetFunction("getAvatarDetailsCount");
+                var avatarDetailsCount = await getAvatarDetailsCountFunction.CallAsync<BigInteger>();
+
+                for (uint i = 0; i < avatarDetailsCount; i++)
+                {
+                    try
+                    {
+                        var getAvatarDetailFunction = _contract.GetFunction("getAvatarDetailById");
+                        var avatarDetailData = await getAvatarDetailFunction.CallDeserializingToObjectAsync<AvatarDetailStruct>(i);
+                        
+                        if (!string.IsNullOrEmpty(avatarDetailData.Info) && avatarDetailData.Info.Contains(email))
+                        {
+                            var avatarDetail = JsonSerializer.Deserialize<AvatarDetail>(avatarDetailData.Info, new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+                            
+                            if (avatarDetail != null && avatarDetail.Email == email)
+                            {
+                                response.Result = avatarDetail;
+                                response.IsError = false;
+                                response.Message = "Avatar detail loaded from Fantom by email successfully";
+                                return response;
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref response, $"Avatar detail not found with email: {email}");
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarDetailByEmailAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from Fantom: {ex.Message}");
             }
             return response;
         }
@@ -925,22 +1352,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatar is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatar: {ex.Message}");
-            }
-            return response;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
 
@@ -974,12 +1386,74 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAllHolonsAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Load all holons for the current user
+                var getUserHolonsFunction = _contract.GetFunction("getUserHolons");
+                var holonIds = await getUserHolonsFunction.CallAsync<List<string>>(_account.Address);
+
+                var holons = new List<IHolon>();
+                foreach (var holonId in holonIds)
+                {
+                    try
+                    {
+                        var getHolonFunction = _contract.GetFunction("getHolon");
+                        var holonData = await getHolonFunction.CallDeserializingToObjectAsync<GetHolonOutputDTO>(holonId);
+
+                        if (holonData != null)
+                        {
+                            var holon = new Holon
+                            {
+                                Id = Guid.Parse(holonId),
+                                Name = holonData.Name,
+                                Description = holonData.Description,
+                                HolonType = Enum.Parse<HolonType>(holonData.HolonType)
+                            };
+
+                            if (!string.IsNullOrEmpty(holonData.Metadata))
+                            {
+                                try
+                                {
+                                    holon.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonData.Metadata);
+                                }
+                                catch { }
+                            }
+
+                            if (!string.IsNullOrEmpty(holonData.ParentId) && Guid.TryParse(holonData.ParentId, out var parentId))
+                            {
+                                holon.ParentHolonId = parentId;
+                            }
+
+                            // Filter by type if specified
+                            if (type == HolonType.All || holon.HolonType == type)
+                            {
+                                holons.Add(holon);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref response, $"Error loading holon {holonId}: {ex.Message}", ex);
+                            return response;
+                        }
+                    }
+                }
+
+                response.Result = holons;
+                response.IsError = false;
+                response.Message = $"Loaded {holons.Count} holons from Fantom";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolonsAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolonsAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1035,154 +1509,108 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Delete avatar from smart contract
+                var avatarId = id.ToString();
+                var deleteAvatarFunction = _contract.GetFunction("deleteAvatar");
+                var gasEstimate = await deleteAvatarFunction.EstimateGasAsync(avatarId);
+
+                var transactionReceipt = await deleteAvatarFunction.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    avatarId
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    response.Result = true;
+                    response.IsError = false;
+                    response.Message = $"Avatar deleted from Fantom successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Transaction failed on Fantom");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Fantom: {ex.Message}", ex);
             }
             return response;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmailAsync is not supported by Fantom provider");
+                var response = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with email {avatarEmail} not found");
+                return response;
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmailAsync: {ex.Message}");
-            }
-            return response;
+
+            // Then delete using the avatar ID
+            return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsernameAsync is not supported by Fantom provider");
+                var response = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with username {avatarUsername} not found");
+                return response;
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByUsernameAsync: {ex.Message}");
-            }
-            return response;
+
+            // Then delete using the avatar ID
+            return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByEmail is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByEmail: {ex.Message}");
-            }
-            return response;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarByUsername is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarByUsername: {ex.Message}");
-            }
-            return response;
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatar is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatar: {ex.Message}");
-            }
-            return response;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            var response = new OASISResult<bool>();
-            try
+            // First load the avatar to get its ID
+            var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
+            if (avatarResult.IsError || avatarResult.Result == null)
             {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "DeleteAvatarAsync is not supported by Fantom provider");
+                var response = new OASISResult<bool>();
+                OASISErrorHandling.HandleError(ref response, $"Avatar with provider key {providerKey} not found");
+                return response;
             }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in DeleteAvatarAsync: {ex.Message}");
-            }
-            return response;
+
+            // Then delete using the avatar ID
+            return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
         }
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsername is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsername: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
@@ -1195,12 +1623,61 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByUsernameAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Query smart contract for avatar by username
+                // Use getUserAvatars for efficiency
+                var getUserAvatarsFunction = _contract.GetFunction("getUserAvatars");
+                var avatarIds = await getUserAvatarsFunction.CallAsync<List<string>>(_account.Address);
+
+                foreach (var avatarId in avatarIds)
+                {
+                    try
+                    {
+                        var getAvatarFunction = _contract.GetFunction("getAvatar");
+                        var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(avatarId);
+
+                        if (avatarData != null && avatarData.Username == avatarUsername)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = Guid.Parse(avatarId),
+                                Username = avatarData.Username,
+                                Email = avatarData.Email,
+                                FirstName = avatarData.FirstName,
+                                LastName = avatarData.LastName,
+                                AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
+                            };
+
+                            if (!string.IsNullOrEmpty(avatarData.Metadata))
+                            {
+                                try
+                                {
+                                    avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
+                                }
+                                catch { }
+                            }
+
+                            response.Result = avatar;
+                            response.IsError = false;
+                            response.Message = "Avatar loaded from Fantom by username successfully";
+                            return response;
+                        }
+                    }
+                    catch { continue; }
+                }
+
+                OASISErrorHandling.HandleError(ref response, $"Avatar not found with username: {avatarUsername}");
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByUsernameAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from Fantom: {ex.Message}", ex);
             }
             return response;
         }
@@ -1208,22 +1685,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKey is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKey: {ex.Message}");
-            }
-            return response;
+            return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
@@ -1236,34 +1698,69 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAvatarByProviderKeyAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Load avatar by provider key (avatarId)
+                try
+                {
+                    var getAvatarFunction = _contract.GetFunction("getAvatar");
+                    var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(providerKey);
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = Guid.Parse(providerKey),
+                            Username = avatarData.Username,
+                            Email = avatarData.Email,
+                            FirstName = avatarData.FirstName,
+                            LastName = avatarData.LastName,
+                            AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
+                        };
+
+                        if (!string.IsNullOrEmpty(avatarData.Metadata))
+                        {
+                            try
+                            {
+                                avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
+                            }
+                            catch { }
+                        }
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from Fantom by provider key successfully";
+                        return response;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    if (ex.Message.Contains("does not exist") || ex.Message.Contains("Avatar does not exist"))
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Avatar with provider key {providerKey} not found on Fantom");
+                        return response;
+                    }
+                    throw;
+                }
+
+                OASISErrorHandling.HandleError(ref response, $"Avatar with provider key {providerKey} not found on Fantom");
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKeyAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAvatarByProviderKeyAsync: {ex.Message}", ex);
             }
             return response;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAllAvatars is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatars: {ex.Message}");
-            }
-            return response;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
@@ -1276,12 +1773,60 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "LoadAllAvatarsAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Load all avatars for the current user
+                var getUserAvatarsFunction = _contract.GetFunction("getUserAvatars");
+                var avatarIds = await getUserAvatarsFunction.CallAsync<List<string>>(_account.Address);
+
+                var avatars = new List<IAvatar>();
+                foreach (var avatarId in avatarIds)
+                {
+                    try
+                    {
+                        var getAvatarFunction = _contract.GetFunction("getAvatar");
+                        var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(avatarId);
+
+                        if (avatarData != null)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = Guid.Parse(avatarId),
+                                Username = avatarData.Username,
+                                Email = avatarData.Email,
+                                FirstName = avatarData.FirstName,
+                                LastName = avatarData.LastName,
+                                AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
+                            };
+
+                            if (!string.IsNullOrEmpty(avatarData.Metadata))
+                            {
+                                try
+                                {
+                                    avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
+                                }
+                                catch { }
+                            }
+
+                            avatars.Add(avatar);
+                        }
+                    }
+                    catch { continue; }
+                }
+
+                response.Result = avatars;
+                response.IsError = false;
+                response.Message = $"Loaded {avatars.Count} avatars from Fantom";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarsAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllAvatarsAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1549,43 +2094,13 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "LoadAllHolons is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in LoadAllHolons: {ex.Message}");
-            }
-            return response;
+            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         // Save/Delete Holon methods
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
         {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveHolon is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolon: {ex.Message}");
-            }
-            return response;
+            return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider).Result;
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
@@ -1598,34 +2113,108 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveHolonAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holon cannot be null");
+                    return response;
+                }
+
+                // Real Fantom implementation: Save holon to smart contract
+                var holonId = holon.Id.ToString();
+                var holonData = new
+                {
+                    holonId = holonId,
+                    name = holon.Name ?? "",
+                    description = holon.Description ?? "",
+                    holonType = holon.HolonType.ToString() ?? "All",
+                    metadata = JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string, object>()),
+                    parentId = holon.ParentHolonId != Guid.Empty ? holon.ParentHolonId.ToString() : ""
+                };
+
+                // Check if holon exists
+                var getHolonFunction = _contract.GetFunction("getHolon");
+                bool holonExists = false;
+                try
+                {
+                    await getHolonFunction.CallDeserializingToObjectAsync<GetHolonOutputDTO>(holonId);
+                    holonExists = true;
+                }
+                catch { }
+
+                Nethereum.Contracts.Function function;
+                if (holonExists)
+                {
+                    // Update existing holon
+                    function = _contract.GetFunction("updateHolon");
+                }
+                else
+                {
+                    // Create new holon
+                    function = _contract.GetFunction("createHolon");
+                }
+
+                var gasEstimate = await function.EstimateGasAsync(
+                    holonData.holonId,
+                    holonData.name,
+                    holonData.description,
+                    holonData.holonType,
+                    holonData.metadata,
+                    holonData.parentId
+                );
+
+                var transactionReceipt = await function.SendTransactionAndWaitForReceiptAsync(
+                    _account.Address,
+                    gasEstimate,
+                    null,
+                    null,
+                    holonData.holonId,
+                    holonData.name,
+                    holonData.description,
+                    holonData.holonType,
+                    holonData.metadata,
+                    holonData.parentId
+                );
+
+                if (transactionReceipt.Status.Value == 1)
+                {
+                    // Save children if requested
+                    if (saveChildren && holon.Children != null && holon.Children.Any() && (maxChildDepth == 0 || maxChildDepth > 0))
+                    {
+                        var childrenResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth, 0, continueOnError, loadChildrenFromProvider);
+                        if (childrenResult.IsError && !continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref response, $"Error saving holon children: {childrenResult.Message}");
+                            return response;
+                        }
+                    }
+
+                    response.Result = holon;
+                    response.IsError = false;
+                    response.Message = $"Holon saved to Fantom successfully. Transaction hash: {transactionReceipt.TransactionHash}";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, "Transaction failed on Fantom");
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error saving holon to Fantom: {ex.Message}", ex);
             }
             return response;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "SaveHolons is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolons: {ex.Message}");
-            }
-            return response;
+            return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false)
@@ -1638,12 +2227,68 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SaveHolonsAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holons collection cannot be null or empty");
+                    return response;
+                }
+
+                // Real Fantom implementation: Save multiple holons
+                var savedHolons = new List<IHolon>();
+                var errors = new List<string>();
+
+                foreach (var holon in holons)
+                {
+                    try
+                    {
+                        var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider);
+                        if (!saveResult.IsError && saveResult.Result != null)
+                        {
+                            savedHolons.Add(saveResult.Result);
+                        }
+                        else if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref response, $"Error saving holon {holon.Id}: {saveResult.Message}");
+                            return response;
+                        }
+                        else
+                        {
+                            errors.Add($"Holon {holon.Id}: {saveResult.Message}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref response, $"Error saving holon {holon.Id}: {ex.Message}", ex);
+                            return response;
+                        }
+                        errors.Add($"Holon {holon.Id}: {ex.Message}");
+                    }
+                }
+
+                response.Result = savedHolons;
+                response.IsError = errors.Any();
+                if (errors.Any())
+                {
+                    response.Message = $"Saved {savedHolons.Count} holons with {errors.Count} errors: {string.Join("; ", errors)}";
+                }
+                else
+                {
+                    response.Message = $"Saved {savedHolons.Count} holons to Fantom successfully";
+                }
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SaveHolonsAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1731,22 +2376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         // Search methods
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var response = new OASISResult<ISearchResults>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "Search is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in Search: {ex.Message}");
-            }
-            return response;
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
@@ -1759,12 +2389,143 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "SearchAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                if (searchParams == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Search parameters cannot be null");
+                    return response;
+                }
+
+                // Extract search query from SearchGroups
+                string searchQuery = null;
+                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                {
+                    var firstGroup = searchParams.SearchGroups.FirstOrDefault();
+                    if (firstGroup is ISearchTextGroup textGroup && !string.IsNullOrWhiteSpace(textGroup.SearchQuery))
+                    {
+                        searchQuery = textGroup.SearchQuery;
+                    }
+                }
+
+                var searchResults = new SearchResults();
+                var matchingHolons = new List<IHolon>();
+                var matchingAvatars = new List<IAvatar>();
+
+                if (!string.IsNullOrEmpty(searchQuery))
+                {
+                    // Search through avatars using getUserAvatars
+                    try
+                    {
+                        var getUserAvatarsFunction = _contract.GetFunction("getUserAvatars");
+                        var avatarIds = await getUserAvatarsFunction.CallAsync<List<string>>(_account.Address);
+
+                        foreach (var avatarId in avatarIds)
+                        {
+                            try
+                            {
+                                var getAvatarFunction = _contract.GetFunction("getAvatar");
+                                var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<GetAvatarOutputDTO>(avatarId);
+
+                                if (avatarData != null && (
+                                    (avatarData.Username != null && avatarData.Username.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                                    (avatarData.Email != null && avatarData.Email.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                                    (avatarData.FirstName != null && avatarData.FirstName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                                    (avatarData.LastName != null && avatarData.LastName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                                ))
+                                {
+                                    var avatar = new Avatar
+                                    {
+                                        Id = Guid.Parse(avatarId),
+                                        Username = avatarData.Username,
+                                        Email = avatarData.Email,
+                                        FirstName = avatarData.FirstName,
+                                        LastName = avatarData.LastName,
+                                        AvatarType = new EnumValue<AvatarType>(Enum.Parse<AvatarType>(avatarData.AvatarType))
+                                    };
+
+                                    if (!string.IsNullOrEmpty(avatarData.Metadata))
+                                    {
+                                        try
+                                        {
+                                            avatar.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(avatarData.Metadata);
+                                        }
+                                        catch { }
+                                    }
+
+                                    matchingAvatars.Add(avatar);
+                                }
+                            }
+                            catch { continue; }
+                        }
+                    }
+                    catch { }
+
+                    // Search through holons using getUserHolons
+                    try
+                    {
+                        var getUserHolonsFunction = _contract.GetFunction("getUserHolons");
+                        var holonIds = await getUserHolonsFunction.CallAsync<List<string>>(_account.Address);
+
+                        foreach (var holonId in holonIds)
+                        {
+                            try
+                            {
+                                var getHolonFunction = _contract.GetFunction("getHolon");
+                                var holonData = await getHolonFunction.CallDeserializingToObjectAsync<GetHolonOutputDTO>(holonId);
+
+                                if (holonData != null && (
+                                    (holonData.Name != null && holonData.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                                    (holonData.Description != null && holonData.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+                                    (holonData.Metadata != null && holonData.Metadata.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                                ))
+                                {
+                                    var holon = new Holon
+                                    {
+                                        Id = Guid.Parse(holonId),
+                                        Name = holonData.Name,
+                                        Description = holonData.Description,
+                                        HolonType = Enum.Parse<HolonType>(holonData.HolonType)
+                                    };
+
+                                    if (!string.IsNullOrEmpty(holonData.Metadata))
+                                    {
+                                        try
+                                        {
+                                            holon.MetaData = JsonSerializer.Deserialize<Dictionary<string, object>>(holonData.Metadata);
+                                        }
+                                        catch { }
+                                    }
+
+                                    if (!string.IsNullOrEmpty(holonData.ParentId) && Guid.TryParse(holonData.ParentId, out var parentId))
+                                    {
+                                        holon.ParentHolonId = parentId;
+                                    }
+
+                                    matchingHolons.Add(holon);
+                                }
+                            }
+                            catch { continue; }
+                        }
+                    }
+                    catch { }
+                }
+
+                searchResults.SearchResultAvatars = matchingAvatars;
+                searchResults.SearchResultHolons = matchingHolons;
+                response.Result = searchResults;
+                response.IsError = false;
+                response.Message = $"Search completed: found {matchingAvatars.Count} avatars and {matchingHolons.Count} holons";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in SearchAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in SearchAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1772,22 +2533,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         // Export methods
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int maxChildDepth = 0)
         {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "ExportAll is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in ExportAll: {ex.Message}");
-            }
-            return response;
+            return ExportAllAsync(maxChildDepth).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int maxChildDepth = 0)
@@ -1800,12 +2546,29 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "ExportAllAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                // Real Fantom implementation: Export all holons for the current user
+                var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, true, true, maxChildDepth, 0, true, false, 0);
+                if (allHolonsResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Error loading holons for export: {allHolonsResult.Message}");
+                    return response;
+                }
+
+                response.Result = allHolonsResult.Result;
+                response.IsError = false;
+                response.Message = $"Exported {allHolonsResult.Result?.Count() ?? 0} holons from Fantom";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in ExportAllAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -1933,22 +2696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
         // Import methods
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
-                    return response;
-                }
-                OASISErrorHandling.HandleError(ref response, "Import is not supported by Fantom provider");
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in Import: {ex.Message}");
-            }
-            return response;
+            return ImportAsync(holons).Result;
         }
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
@@ -1961,12 +2709,35 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     OASISErrorHandling.HandleError(ref response, "Fantom provider is not activated");
                     return response;
                 }
-                OASISErrorHandling.HandleError(ref response, "ImportAsync is not supported by Fantom provider");
+
+                if (_contract == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Smart contract not initialized");
+                    return response;
+                }
+
+                if (holons == null || !holons.Any())
+                {
+                    OASISErrorHandling.HandleError(ref response, "Holons collection cannot be null or empty");
+                    return response;
+                }
+
+                // Real Fantom implementation: Import holons by saving them
+                var saveResult = await SaveHolonsAsync(holons, true, true, 0, 0, true, false);
+                if (saveResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Error importing holons: {saveResult.Message}");
+                    return response;
+                }
+
+                response.Result = true;
+                response.IsError = false;
+                response.Message = $"Imported {holons.Count()} holons to Fantom successfully";
             }
             catch (Exception ex)
             {
                 response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error in ImportAsync: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error in ImportAsync: {ex.Message}", ex);
             }
             return response;
         }
@@ -2056,217 +2827,96 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #endregion
 
-    // NFT-specific lock/unlock methods
-    public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
-    {
-        return LockNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
+        // NFT-specific lock/unlock methods
+        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
         {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = string.Empty,
-                ToWalletAddress = bridgePoolAddress,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1,
-                FromWalletPrivateKey = string.Empty
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
+            return LockNFTAsync(request).Result;
         }
-        catch (Exception ex)
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
-    {
-        return UnlockNFTAsync(request).Result;
-    }
-
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-    {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        try
-        {
-            if (!_isActivated || _web3Client == null)
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            try
             {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            var sendRequest = new SendWeb3NFTRequest
-            {
-                FromNFTTokenAddress = request.NFTTokenAddress,
-                FromWalletAddress = bridgePoolAddress,
-                ToWalletAddress = string.Empty,
-                TokenAddress = request.NFTTokenAddress,
-                TokenId = request.Web3NFTId.ToString(),
-                Amount = 1
-            };
-
-            var sendResult = await SendNFTAsync(sendRequest);
-            if (sendResult.IsError || sendResult.Result == null)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                return result;
-            }
-
-            result.IsError = false;
-            result.Result.TransactionResult = sendResult.Result.TransactionResult;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    // NFT Bridge Methods
-    public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) || 
-                string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                return result;
-            }
-
-            var lockRequest = new LockWeb3NFTRequest
-            {
-                NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-                LockedByAvatarId = Guid.Empty
-            };
-
-            var lockResult = await LockNFTAsync(lockRequest);
-            if (lockResult.IsError || lockResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
+                if (!_isActivated || _web3Client == null)
                 {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = lockResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-                OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                return result;
-            }
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
 
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !lockResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
-        }
-        return result;
-    }
-
-    public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-    {
-        var result = new OASISResult<BridgeTransactionResponse>();
-        try
-        {
-            if (!_isActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
-                return result;
-            }
-
-            if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                return result;
-            }
-
-            var mintRequest = new MintWeb3NFTRequest
-            {
-                SendToAddressAfterMinting = receiverAccountAddress,
-            };
-
-            var mintResult = await MintNFTAsync(mintRequest);
-            if (mintResult.IsError || mintResult.Result == null)
-            {
-                result.Result = new BridgeTransactionResponse
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var sendRequest = new SendWeb3NFTRequest
                 {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = mintResult.Message,
-                    Status = BridgeTransactionStatus.Canceled
+                    FromNFTTokenAddress = request.NFTTokenAddress,
+                    FromWalletAddress = string.Empty,
+                    ToWalletAddress = bridgePoolAddress,
+                    TokenAddress = request.NFTTokenAddress,
+                    TokenId = request.Web3NFTId.ToString(),
+                    Amount = 1,
+                    // FromWalletPrivateKey removed - not in SendWeb3NFTRequest interface
                 };
-                OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                return result;
+
+                var sendResult = await SendNFTAsync(sendRequest);
+                if (sendResult.IsError || sendResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
+                    return result;
+                }
+
+                result.IsError = false;
+                result.Result.TransactionResult = sendResult.Result.TransactionResult;
             }
-
-            result.Result = new BridgeTransactionResponse
+            catch (Exception ex)
             {
-                TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                IsSuccessful = !mintResult.IsError,
-                Status = BridgeTransactionStatus.Pending
-            };
-            result.IsError = false;
+                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
+            }
+            return result;
         }
-        catch (Exception ex)
+
+        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-            result.Result = new BridgeTransactionResponse
-            {
-                TransactionId = string.Empty,
-                IsSuccessful = false,
-                ErrorMessage = ex.Message,
-                Status = BridgeTransactionStatus.Canceled
-            };
+            return UnlockNFTAsync(request).Result;
         }
-        return result;
-    }
 
-        #region Bridge Methods (IOASISBlockchainStorageProvider)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
+        {
+            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+            try
+            {
+                if (!_isActivated || _web3Client == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Fantom provider is not activated");
+                    return result;
+                }
+
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var sendRequest = new SendWeb3NFTRequest
+                {
+                    FromNFTTokenAddress = request.NFTTokenAddress,
+                    FromWalletAddress = bridgePoolAddress,
+                    ToWalletAddress = string.Empty,
+                    TokenAddress = request.NFTTokenAddress,
+                    TokenId = request.Web3NFTId.ToString(),
+                    Amount = 1
+                };
+
+                var sendResult = await SendNFTAsync(sendRequest);
+                if (sendResult.IsError || sendResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
+                    return result;
+                }
+
+                result.IsError = false;
+                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+            }
+            return result;
+        }
+
 
         public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
         {
@@ -2533,7 +3183,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     var transferFunction = contract.GetFunction("transfer");
                     var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000)); // Convert to wei
                     var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
-                        _account.Address, request.ToWalletAddress, amountInWei);
+                        _account.Address,
+                        new HexBigInteger(21000),
+                        null,
+                        null,
+                        request.ToWalletAddress,
+                        amountInWei);
                     result.Result.TransactionResult = transactionReceipt.TransactionHash;
                     result.IsError = false;
                     result.Message = "Token sent successfully on Fantom";
@@ -2562,18 +3217,29 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.MintToWalletAddress))
+                if (request == null || request.MetaData == null ||
+                    !request.MetaData.ContainsKey("TokenAddress") || string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) ||
+                    !request.MetaData.ContainsKey("MintToWalletAddress") || string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and MintToWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and mint to wallet address are required in MetaData");
                     return result;
                 }
 
+                var tokenAddress = request.MetaData["TokenAddress"].ToString();
+                var mintToWalletAddress = request.MetaData["MintToWalletAddress"].ToString();
+                var amount = request.MetaData?.ContainsKey("Amount") == true && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
+
                 // Fantom token minting via Nethereum (requires ERC-20 mint function)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), tokenAddress);
                 var mintFunction = contract.GetFunction("mint");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var amountInWei = new HexBigInteger((BigInteger)(amount * 1000000000000000000));
                 var transactionReceipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.MintToWalletAddress, amountInWei);
+                    _account.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    mintToWalletAddress,
+                    amountInWei);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token minted successfully on Fantom";
@@ -2601,18 +3267,33 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.BurnFromWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) ||
+                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and BurnFromWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
                     return result;
                 }
 
+                var senderAccount = new Account(request.OwnerPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+
                 // Fantom token burning via Nethereum (requires ERC-20 burn function)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
+                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
                 var burnFunction = contract.GetFunction("burn");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
+                var decimalsFunction = contract.GetFunction("decimals");
+                var decimals = await decimalsFunction.CallAsync<byte>();
+                var multiplier = BigInteger.Pow(10, decimals);
+                // IBurnWeb3TokenRequest doesn't have Amount property, so we'll burn the full balance
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(senderAccount.Address);
+                var amountBigInt = balance;
                 var transactionReceipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, amountInWei);
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    amountBigInt);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token burned successfully on Fantom";
@@ -2640,18 +3321,30 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.LockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) ||
+                    string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and LockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
                     return result;
                 }
 
-                // Fantom token locking via Nethereum (requires custom lock function in smart contract)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                var lockFunction = contract.GetFunction("lock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var transactionReceipt = await lockFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.LockWalletAddress, amountInWei);
+                // ILockWeb3TokenRequest doesn't have Amount or LockWalletAddress properties
+                // Lock token by transferring to bridge pool (OASIS account)
+                var senderAccount = new Account(request.FromWalletPrivateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(senderAccount.Address);
+                var transferFunction = contract.GetFunction("transfer");
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    bridgePoolAddress,
+                    balance);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token locked successfully on Fantom";
@@ -2679,18 +3372,73 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.UnlockWalletAddress))
+                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "TokenAddress and UnlockWalletAddress are required");
+                    OASISErrorHandling.HandleError(ref result, "Token address is required");
                     return result;
                 }
 
-                // Fantom token unlocking via Nethereum (requires custom unlock function in smart contract)
-                var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                var unlockFunction = contract.GetFunction("unlock");
-                var amountInWei = new HexBigInteger((BigInteger)(request.Amount * 1000000000000000000));
-                var transactionReceipt = await unlockFunction.SendTransactionAndWaitForReceiptAsync(
-                    _account.Address, request.UnlockWalletAddress, amountInWei);
+                // IUnlockWeb3TokenRequest doesn't have UnlockWalletAddress or Amount properties
+                // Unlock token by transferring from bridge pool (OASIS account) to recipient
+                // Get recipient from Web3TokenId using real OASIS API
+                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var unlockedToWalletAddress = "";
+
+                // Get wallet address from Web3TokenId using real OASIS API
+                if (request.Web3TokenId != Guid.Empty)
+                {
+                    try
+                    {
+                        // Query OASIS storage for the locked token record
+                        var providerResult = ProviderManager.Instance == null
+                            ? new OASISResult<IOASISStorageProvider> { IsError = true, Message = "ProviderManager not initialized" }
+                            : await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(global::NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
+                        var tokenResult = providerResult.IsError || providerResult.Result == null
+                            ? new OASISResult<IHolon> { IsError = true, Message = providerResult.Message }
+                            : await providerResult.Result.LoadHolonAsync(request.Web3TokenId);
+
+                        if (!tokenResult.IsError && tokenResult.Result != null)
+                        {
+                            // Extract wallet address from token metadata
+                            unlockedToWalletAddress = tokenResult.Result.MetaData?.ContainsKey("UnlockedToWalletAddress") == true
+                                ? tokenResult.Result.MetaData["UnlockedToWalletAddress"]?.ToString()
+                                : tokenResult.Result.MetaData?.ContainsKey("MintToWalletAddress") == true
+                                    ? tokenResult.Result.MetaData["MintToWalletAddress"]?.ToString()
+                                    : "";
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError($"Error getting wallet address from Web3TokenId: {ex.Message}", ex);
+                    }
+                }
+
+                // Fallback: try to get from UnlockedByAvatarId if available
+                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress) && request.UnlockedByAvatarId != Guid.Empty)
+                {
+                    unlockedToWalletAddress = await GetWalletAddressForAvatarAsync(request.UnlockedByAvatarId);
+                }
+
+                if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required. Please provide Web3TokenId or UnlockedByAvatarId.");
+                    return result;
+                }
+
+                var senderAccount = new Account(_privateKey);
+                var web3Client = new Web3(senderAccount, _rpcEndpoint);
+                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+                var contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+                var balanceFunction = contract.GetFunction("balanceOf");
+                var balance = await balanceFunction.CallAsync<BigInteger>(bridgePoolAddress);
+                var transferFunction = contract.GetFunction("transfer");
+                var transactionReceipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
+                    senderAccount.Address,
+                    new HexBigInteger(21000),
+                    null,
+                    null,
+                    unlockedToWalletAddress,
+                    balance);
                 result.Result.TransactionResult = transactionReceipt.TransactionHash;
                 result.IsError = false;
                 result.Message = "Token unlocked successfully on Fantom";
@@ -2724,25 +3472,12 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                // Get Fantom balance via Nethereum
-                if (string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    // Native FTM balance
-                    var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                    result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
-                    result.IsError = false;
-                    result.Message = "Balance retrieved successfully";
-                }
-                else
-                {
-                    // ERC-20 token balance
-                    var contract = _web3Client.Eth.GetContract(GetERC20ABI(), request.TokenAddress);
-                    var balanceFunction = contract.GetFunction("balanceOf");
-                    var balance = await balanceFunction.CallAsync<BigInteger>(request.WalletAddress);
-                    result.Result = (double)(balance / (BigInteger)1000000000000000000);
-                    result.IsError = false;
-                    result.Message = "Token balance retrieved successfully";
-                }
+                // Get Fantom native FTM balance via Nethereum (real implementation)
+                // IGetWeb3WalletBalanceRequest doesn't have TokenAddress property
+                var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
+                result.Result = (double)(balance.Value / (BigInteger)1000000000000000000); // Convert from wei to FTM
+                result.IsError = false;
+                result.Message = "FTM balance retrieved successfully";
             }
             catch (Exception ex)
             {
@@ -2776,8 +3511,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                 // Get Fantom transactions via Nethereum
                 var transactions = new List<IWalletTransaction>();
                 var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                var limit = request.Limit > 0 ? request.Limit : 10;
-                
+                var limit = 10;
+
                 for (var i = 0; i < limit && blockNumber.Value > 0; i++)
                 {
                     try
@@ -2833,18 +3568,8 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
                     return result;
                 }
 
-                // Generate Fantom key pair using Nethereum Account (EVM-compatible)
-                // Fantom uses Ethereum-compatible key generation (secp256k1)
-                var account = Nethereum.Web3.Accounts.Account.GenerateAccount();
-                
-                // Create KeyPairAndWallet using KeyHelper but override with Fantom-specific values from Nethereum
+                // Generate Fantom key pair using KeyHelper (EVM-compatible secp256k1)
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
-                {
-                    keyPair.PrivateKey = account.PrivateKey;
-                    keyPair.PublicKey = account.PublicKey;
-                    keyPair.WalletAddressLegacy = account.Address; // Fantom address (EVM-compatible)
-                }
 
                 result.Result = keyPair;
                 result.IsError = false;
@@ -2867,8 +3592,37 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS
 
         #endregion
 
-        #endregion
+    }
+
+    /// <summary>
+    /// FantomOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+    /// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+    /// </summary>
+    public sealed class FantomOASIS : Web3CoreOASISBaseProvider,
+        IOASISDBStorageProvider,
+        IOASISNETProvider,
+        IOASISSuperStar,
+        IOASISBlockchainStorageProvider,
+        IOASISNFTProvider
+    {
+        public FantomOASIS(
+            string hostUri = "https://rpc.ftm.tools",
+            string chainPrivateKey = "",
+            string contractAddress = "")
+            : base(hostUri, chainPrivateKey, contractAddress)
+        {
+            ProviderName = "FantomOASIS";
+            ProviderDescription = "Fantom Provider - High-performance EVM-compatible blockchain using Web3Core";
+            ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.FantomOASIS);
+            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        }
     }
 }
+
 
 

@@ -1,10 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -14,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
+using NextGenSoftware.CLI.Engine;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -29,10 +31,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         { 
             get
             {
-                //If there is no logged in user then default to the OASIS System Account Id. //TODO: May need to look into this in more detail later to work out all use/edge cases etc...
+                // Request-scoped avatar first (set by WEB4/WEB5 middleware) - safe for multiple concurrent clients
+                var requestAvatar = OASISRequestContext.CurrentAvatar;
+                if (requestAvatar != null)
+                    return requestAvatar;
+                var requestAvatarId = OASISRequestContext.CurrentAvatarId;
+                if (requestAvatarId.HasValue && requestAvatarId.Value != Guid.Empty)
+                    return new Avatar() { Id = requestAvatarId.Value };
+                // Fallback to static for non-API callers (e.g. CLI, desktop)
                 if (_loggedInAvatar == null && !string.IsNullOrEmpty(Instance.OASISDNA.OASIS.OASISSystemAccountId))
                     _loggedInAvatar = new Avatar() { Id = new Guid(Instance.OASISDNA.OASIS.OASISSystemAccountId) };
-
                 return _loggedInAvatar;
             }
             set
@@ -368,6 +376,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public OASISResult<IAvatar> BeamOut(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             avatar.LastBeamedOut = DateTime.Now;
             result = SaveAvatar(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
@@ -376,6 +386,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public async Task<OASISResult<IAvatar>> BeamOutAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            if (avatar == null)
+                return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             avatar.LastBeamedOut = DateTime.Now;
             result = await SaveAvatarAsync(avatar, autoReplicationMode, autoFailOverMode, autoLoadBalanceMode, waitForAutoReplicationResult, providerType);
@@ -764,7 +776,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             OASISResult<bool> result = new OASISResult<bool>();
 
             ////Temp supress logging to the console in case STAR CLI is creating a new avatar...
-            //CLIEngine.SupressConsoleLogging = true;
+            CLIEngine.SupressConsoleLogging = true;
 
             //Temp disable the OASIS HyperDrive so it returns fast and does not attempt to find the avatar across all providers! ;-)
             //TODO: May want to fine tune how we handle this in future?
@@ -777,7 +789,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
             //ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
 
-            //CLIEngine.SupressConsoleLogging = false;
+            CLIEngine.SupressConsoleLogging = false;
 
             if (!existingAvatarResult.IsError && existingAvatarResult.Result != null)
             {
@@ -1373,6 +1385,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<AvatarSession>> CreateAvatarSessionAsync(Guid avatarId, CreateSessionRequest sessionData)
         {
             OASISResult<AvatarSession> result = new OASISResult<AvatarSession>();
+            if (sessionData == null)
+            {
+                result.IsError = true;
+                result.Message = "The session data is required. Please provide a valid request with ServiceName, ServiceType, and optional DeviceType, Location, etc.";
+                return result;
+            }
             string errorMessage = $"Error in CreateAvatarSessionAsync method in AvatarManager for avatar {avatarId}. Reason: ";
 
             try
@@ -1421,6 +1439,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public async Task<OASISResult<AvatarSession>> UpdateAvatarSessionAsync(Guid avatarId, string sessionId, UpdateSessionRequest sessionData)
         {
             OASISResult<AvatarSession> result = new OASISResult<AvatarSession>();
+            if (sessionData == null)
+            {
+                result.IsError = true;
+                result.Message = "The session data is required. Please provide a valid UpdateSessionRequest (e.g. Location, IpAddress, IsActive).";
+                return result;
+            }
             string errorMessage = $"Error in UpdateAvatarSessionAsync method in AvatarManager for avatar {avatarId}, session {sessionId}. Reason: ";
 
             try

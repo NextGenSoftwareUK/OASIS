@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Data;
 using System.Collections.Generic;
@@ -1228,8 +1228,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "IPFS provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate IPFS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1275,8 +1279,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "IPFS provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate IPFS provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
