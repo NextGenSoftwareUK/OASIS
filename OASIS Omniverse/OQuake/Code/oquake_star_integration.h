@@ -58,7 +58,7 @@ void OQuake_STAR_OnBossKilled(const char* boss_name);
 /** Safe hook for ED_Free: call from engine before ED_Free(ent). Only reports monster kills when sv.active && !demoplayback; no PR_GetString in engine. Pass entity pointer (edict_t*). */
 void OQuake_STAR_OnEntityFreed(void* ed);
 /** Call from engine or QuakeC when the player touches a health/armor/ammo pickup but the engine does NOT apply it (e.g. player already at max). Same as ODOOM: only add to STAR when the item would normally be left on the floor. Engine should remove the entity after calling so the item is not left on the floor. */
-void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity);
+void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity, const char* optional_description);
 /** Call from engine before running the touch function for (item_edict, player_edict). Returns 1 if the pickup was intercepted (player at max health/armor); caller should ED_Free(item_edict) and skip the touch. Returns 0 otherwise. */
 int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
 

@@ -59,5 +59,5 @@ void PF_OQuake_OnPickupLeftOnFloor (void)
 	const char *item_type = G_STRING (OFS_PARM1);
 	int qty = (int)G_FLOAT (OFS_PARM2);
 	if (item_name)
-		OQuake_STAR_OnPickupLeftOnFloor (item_name, item_type ? item_type : "Item", qty > 0 ? qty : 1);
+		OQuake_STAR_OnPickupLeftOnFloor (item_name, item_type ? item_type : "Item", qty > 0 ? qty : 1, NULL);
 }

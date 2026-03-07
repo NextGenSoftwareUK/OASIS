@@ -660,6 +660,22 @@ if (Test-Path $odoomCvarinfo) {
                 $changes += "cvarinfo(update)"
             }
         }
+        # Remove duplicate cvar definitions (e.g. odoom_quest_scroll_offset already exists): keep first occurrence of each cvar name.
+        $allLines = Get-Content $cvarinfoTxt
+        $seenCvars = @{}
+        $outLines = New-Object System.Collections.Generic.List[string]
+        foreach ($line in $allLines) {
+            if ($line -match '^\s*server\s+(int|string|bool|float)\s+(\S+)\s*=') {
+                $cvarName = $matches[2]
+                if ($seenCvars.ContainsKey($cvarName)) { continue }
+                $seenCvars[$cvarName] = $true
+            }
+            $outLines.Add($line)
+        }
+        if ($outLines.Count -lt $allLines.Count) {
+            Set-Content -Path $cvarinfoTxt -Value ($outLines -join "`r`n") -NoNewline
+            $changes += "cvarinfo(dedup)"
+        }
     } else {
         Set-Content -Path $cvarinfoTxt -Value $cvarContent -NoNewline
         $changes += "cvarinfo"
