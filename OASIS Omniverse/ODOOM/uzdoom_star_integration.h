@@ -22,7 +22,7 @@ extern "C" {
 /** PreTouchSpecial return value for weapons only. Engine must NOT destroy (so CallTouch gives weapon to player); we still call PostTouchSpecial to add/mint in STAR. */
 #define STAR_PICKUP_WEAPON 9002
 
-/** When true (always_allow_pickup=1), engine force-destroys generic pickups so they go to STAR inventory even when full. When false, original Doom behavior (full = can't pick up). */
+/** When true (always_allow_pickup_if_max=1), engine force-destroys generic pickups so they go to STAR inventory even when full. When false, original Doom behavior (full = can't pick up). */
 int UZDoom_STAR_AlwaysAllowPickup(void);
 
 struct AActor;
@@ -84,8 +84,8 @@ void ODOOM_PostTic(void);
 /** Call after every game tic (inside TryRunTics loop) to re-apply stored health/armor so engine overwrites don't stick. */
 void ODOOM_PostOneTic(void);
 
-/** Call from engine input when building ticcmd: set odoom_key_* CVars from raw key state (for ZScript). */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int enter, int pgup, int pgdown, int home, int endkey);
+/** Call from engine input when building ticcmd: set odoom_key_* CVars from raw key state (for ZScript). q = key Q for quest popup. */
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey);
 
 /** Whether to show OASIS anorak face in status bar. Only set by star face on/off and beam-in/out. */
 int UZDoom_STAR_GetShowAnorakFace(void);

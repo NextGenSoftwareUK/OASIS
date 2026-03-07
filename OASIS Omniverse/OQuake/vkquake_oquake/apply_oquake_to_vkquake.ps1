@@ -413,6 +413,89 @@ function Remove-MonsterHookFromPF_Remove {
     return $true
 }
 
+# --- Touch pickup at max: intercept in SV_Impact (sv_phys.c) so when player at max health/armor touches a health/armor pickup we add to STAR and remove entity. ---
+function Add-SVImpactTouchIntercept {
+    $svPhysPaths = @(
+        (Join-Path $QuakeDir "sv_phys.c"),
+        (Join-Path $VkQuakeSrc "sv_phys.c"),
+        (Join-Path $VkQuakeSrc "Quake\sv_phys.c")
+    )
+    $svPhys = $null
+    foreach ($p in $svPhysPaths) {
+        if (Test-Path $p) { $svPhys = $p; break }
+    }
+    if (-not $svPhys) {
+        Write-Host "[OQuake] sv_phys.c not found (tried Quake/sv_phys.c under VkQuakeSrc). At-max health pickup to STAR will not work until SV_Impact is patched." -ForegroundColor Yellow
+        return $false
+    }
+    $content = Get-Content $svPhys -Raw
+    if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        Write-Host "[OQuake] sv_phys.c already has touch intercept (health/armor at max -> STAR), skipping." -ForegroundColor Cyan
+        return $true
+    }
+    if ($content -notmatch 'SV_Impact|PR_ExecuteProgram\s*\(\s*\w+->v\.touch\s*\)') {
+        Write-Host "[OQuake] sv_phys.c does not contain expected SV_Impact/touch pattern; skipping patch." -ForegroundColor Yellow
+        return $false
+    }
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
+    }
+    $patched = $false
+    # vkQuake uses single-space indent in SV_Impact. Match that exactly, then try flexible \s+.
+    $sp = ' '
+    $repl2 = " if (OQuake_STAR_InterceptTouchPickupAtMax (e2, e1))`r`n ED_Free (e2);`r`n else`r`n PR_ExecuteProgram (e2->v.touch);"
+    $repl1 = " if (OQuake_STAR_InterceptTouchPickupAtMax (e1, e2))`r`n ED_Free (e1);`r`n else`r`n PR_ExecuteProgram (e1->v.touch);"
+    # Block 2 first (e2 = item when player runs into pickup — main case). Patterns: full block or line-only.
+    $pat2a = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
+    if ($content -match $pat2a) {
+        $content = $content -replace $pat2a, "`$1$repl2"
+        $patched = $true
+    } else {
+        $pat2b = '(\s+)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
+        if ($content -match $pat2b) {
+            $content = $content -replace $pat2b, "`$1$repl2"
+            $patched = $true
+        }
+    }
+    # Block 1: e1's touch
+    $pat1a = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
+    if ($content -match $pat1a) {
+        $content = $content -replace $pat1a, "`$1$repl1"
+        $patched = $true
+    } else {
+        $pat1b = '(\s+)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
+        if ($content -match $pat1b) {
+            $content = $content -replace $pat1b, "`$1$repl1"
+            $patched = $true
+        }
+    }
+    if ($patched -and $content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        Set-Content $svPhys $content -NoNewline
+        Write-Host "[OQuake] Patched sv_phys.c: SV_Impact touch intercept (health/armor at max -> STAR)" -ForegroundColor Green
+        return $true
+    }
+    Write-Host "[OQuake] Could not apply SV_Impact patch (pattern mismatch). At-max health pickup to STAR may not work." -ForegroundColor Yellow
+    return $false
+}
+
+# --- Touch pickup at max: before running the Touch builtin (fallback; real path is SV_Impact in sv_phys.c). ---
+function Add-TouchPickupInterceptInPrCmds {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') { return $false }
+    # PF_Touch (or similar) has two edict params: item = PARM0, player = PARM1. Insert intercept check after both declarations.
+    $pattern = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
+    if ($content -notmatch $pattern) { return $false }
+    $repl = "`$1`$3`r`n`tif (OQuake_STAR_InterceptTouchPickupAtMax(`$2, `$4)) { ED_Free(`$2); return; }"
+    $content = $content -replace $pattern, $repl
+    if ($content -notmatch 'OQuake_STAR_InterceptTouchPickupAtMax') { return $false }
+    Set-Content $FilePath $content -NoNewline
+    Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (health/armor when player full)" -ForegroundColor Green
+    return $true
+}
+
 # Monster kill via SVC_KILLEDMONSTER: when QuakeC Killed() does WriteByte(MSG_ALL, SVC_KILLEDMONSTER), self is the dead monster. Primary path for XP/NFT.
 function Add-MonsterHookInPF_sv_WriteByte {
     param([string]$FilePath, [string]$FileLabel)
@@ -608,6 +691,13 @@ if ($RevertMonsterHook) {
         $monsterHookAdded = $true
     }
     if (Add-MonsterHookInPF_Remove -FilePath $path -FileLabel "pr_cmds.c") {
+        $monsterHookAdded = $true
+    }
+    # SV_Impact (sv_phys.c) is where touch is actually invoked for pickups; patch it first. pr_cmds Touch builtin is fallback.
+    if (Add-SVImpactTouchIntercept) {
+        $monsterHookAdded = $true
+    }
+    if (Add-TouchPickupInterceptInPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
         $monsterHookAdded = $true
     }
     if ($monsterHookAdded) {

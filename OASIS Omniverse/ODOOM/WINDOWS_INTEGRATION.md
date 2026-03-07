@@ -100,7 +100,9 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
    | `star quest complete <id>` | Complete a quest. |
    | `star bossnft <name> [desc]` | Create a boss NFT. |
    | `star deploynft <nft_id> <game> [loc]` | Deploy a boss NFT to a game. |
-   | `star pickup keycard <red\|blue\|yellow\|skull>` | Add a keycard to inventory (e.g. `star pickup keycard red`). |
+   | `star pickup ifmax <0\|1>` | At max health/armor: 1 = still pick up into STAR, 0 = original Doom (leave on floor). |
+   | `star pickup all <0\|1>` | 1 = always add pickups to STAR even when engine uses them; 0 = only add when at max / engine doesn't use. |
+   | `star pickup keycard <red\|blue\|yellow\|skull>` | Add a keycard to STAR inventory (admin only; e.g. `star pickup keycard red`). |
    | `star beamin` | Log in / authenticate (uses `STAR_USERNAME`/`STAR_PASSWORD` or API key from env). |
    | `star beamout` | Log out / disconnect from STAR. |
    | `star config` | Show STAR config (URLs, stack, **mint NFT** options, **nft_provider**). |
@@ -108,7 +110,7 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
    | `star mint <armor\|weapons\|powerups\|keys> <0\|1>` | Turn **mint NFT** on (1) or off (0) when collecting that category. |
    | `star nftprovider <name>` | Set default NFT mint provider (e.g. `SolanaOASIS`). |
 
-   **Config files:** STAR options are stored in **oasisstar.json** (when found) and in the engine config (**uzdoom.ini** or equivalent) via CVars. Keys: `star_api_url`, `oasis_api_url`, `beam_face`, `stack_armor`, `stack_weapons`, `stack_powerups`, `stack_keys`, **`mint_weapons`**, **`mint_armor`**, **`mint_powerups`**, **`mint_keys`** (0/1), **`nft_provider`** (default `SolanaOASIS`), **`send_to_address_after_minting`** (optional wallet address), **`always_allow_pickup`** (1 = pick up health/armor/ammo into STAR even when full, 0 = original Doom behavior), **`max_health`** (cap when using health from inventory, default 200), **`max_armor`** (cap when using armor from inventory, default 200). When mint is on for a category, picking up that item mints an NFT (WEB4 NFTHolon) and adds the inventory item with that NFT ID in metadata. In the **inventory popup**, NFT items show **[NFT]** at the front of the name and are grouped separately (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
+   **Config files:** STAR options are stored in **oasisstar.json** (when found) and in the engine config (**uzdoom.ini** or equivalent) via CVars. Keys: `star_api_url`, `oasis_api_url`, `beam_face`, `stack_armor`, `stack_weapons`, `stack_powerups`, `stack_keys`, **`mint_weapons`**, **`mint_armor`**, **`mint_powerups`**, **`mint_keys`** (0/1), **`nft_provider`** (default `SolanaOASIS`), **`send_to_address_after_minting`** (optional wallet address), **`always_allow_pickup_if_max`** (1 = pick up health/armor into STAR even when full, 0 = original Doom behavior), **`always_add_items_to_inventory`** (1 = always add to STAR even when engine uses the item; 0 = only when engine doesn't use it; same as OQuake), **`max_health`** (cap when using health from inventory, default 200), **`max_armor`** (cap when using armor from inventory, default 200). When mint is on for a category, picking up that item mints an NFT (WEB4 NFTHolon) and adds the inventory item with that NFT ID in metadata. In the **inventory popup**, NFT items show **[NFT]** at the front of the name and are grouped separately (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
 
    **Quick checks:**  
    - `star version` — should show “Initialized: yes” if auth is set.  

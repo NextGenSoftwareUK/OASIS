@@ -18,6 +18,7 @@ server int odoom_key_x = 0;
 server int odoom_key_i = 0;
 server int odoom_key_o = 0;
 server int odoom_key_p = 0;
+server int odoom_key_q = 0;
 server int odoom_key_enter = 0;
 
 // Send popup (OQuake-style): name input buffer and execute
@@ -58,3 +59,16 @@ server int odoom_star_toast_frames = 0;
 // Pickup feedback when we take health/armor/ammo into STAR (engine would not allow): show "Picked up X" in red top-left like normal pickup. C++ sets message and frames; ZScript draws; C++ decrements each frame.
 server string odoom_star_pickup_toast_message = "";
 server int odoom_star_pickup_toast_frames = 0;
+
+// Quest Tracker (left side, near top): C++ sets from first InProgress quest. Always visible when beamed in and quests exist.
+server string odoom_quest_tracker_title = "";
+server string odoom_quest_tracker_objective = "";
+// Quest popup (Q key): full list for ZScript. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests.
+server int odoom_quest_popup_open = 0;
+server string odoom_quest_list = "";
+server int odoom_quest_count = 0;
+// Set active quest from popup: ZScript sets odoom_quest_set_active_id and odoom_quest_set_active_do_it=1; C++ calls star_api_start_quest and clears do_it.
+server string odoom_quest_set_active_id = "";
+server int odoom_quest_set_active_do_it = 0;
+// Quest popup list scroll offset (UI writes here; play context syncs to class field for drawing).
+server int odoom_quest_scroll_offset = 0;
