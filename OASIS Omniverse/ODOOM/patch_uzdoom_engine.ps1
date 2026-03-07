@@ -184,13 +184,13 @@ if (Test-Path $dNetCpp) {
     }
 }
 
-# 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed)
+# 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed). Insert only ONCE (replace first match only).
 $gGameCpp = "$src\src\g_game.cpp"
 if (Test-Path $gGameCpp) {
     $gContent = Get-Content $gGameCpp -Raw
     if ($gContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
         $gChanged = $false
-        if ($gContent -match '#include "version\.h"') {
+        if ($gContent -match '#include "version\.h"' -and $gContent -notmatch 'uzdoom_star_integration\.h') {
             $gContent = $gContent -replace '(#include "version\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
             $gChanged = $true
         }
@@ -199,8 +199,10 @@ if (Test-Path $gGameCpp) {
             '(\bvoid\s+FLevelLocals::RunTic\s*\(\s*\)\s*\r?\n\s*\{\s*\r?\n)'
         )
         foreach ($pat in $runTicPatterns) {
-            if ($gContent -match $pat) {
-                $gContent = $gContent -replace $pat, "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n"
+            $m = [regex]::Match($gContent, $pat)
+            if ($m.Success) {
+                $insert = $m.Groups[1].Value + "#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n"
+                $gContent = $gContent.Substring(0, $m.Index) + $insert + $gContent.Substring($m.Index + $m.Length)
                 $gChanged = $true
                 break
             }
@@ -300,13 +302,13 @@ bool wasgibbed = (health < GetGibHealth());
             }
         }
     }
-    # Force-destroy generic pickups (health/armor/ammo) when engine didn't consume so item goes to STAR and disappears from floor. When always_allow_pickup=0 (oasisstar.json), use original Doom behavior (don't destroy).
+    # Force-destroy generic pickups (health/armor/ammo) when engine didn't consume so item goes to STAR and disappears from floor. When always_allow_pickup_if_max=0 (oasisstar.json), use original Doom behavior (don't destroy).
     if ($piContent -notmatch 'STAR_PICKUP_GENERIC_ITEM') {
         $touchOld = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
         $touchNew = @'
 special->CallTouch (toucher);
 #ifdef OASIS_STAR_API
-	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
+	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup_if_max=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
 	if (star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup() && !(special->ObjectFlags & OF_EuthanizeMe))
 		special->Destroy();
 	if (star_key) UZDoom_STAR_PostTouchSpecial(star_key);

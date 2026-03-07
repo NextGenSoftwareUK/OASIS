@@ -1513,12 +1513,14 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
 
-    public async Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default)
+    public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<List<StarQuestInfo>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(status))
+            return FailAndCallback<List<StarQuestInfo>>("Quest status is required (e.g. InProgress, NotStarted, Completed).", StarApiResultCode.InvalidParam);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/by-status/InProgress", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
             return FailAndCallback<List<StarQuestInfo>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -1528,12 +1530,56 @@ public sealed class StarApiClient : IDisposable
 
         var quests = ParseQuestInfos(resultElement);
         InvokeCallback(StarApiResultCode.Success);
-        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} active quest(s).");
+        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) (status={status}).");
     }
+
+    public Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
+        GetQuestsByStatusAsync("InProgress", cancellationToken);
 
     /// <summary>Run get-active-quests on the background worker so the calling thread does not block.</summary>
     public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
+
+    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective, then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
+    public static string SerializeQuestsForGame(List<StarQuestInfo> quests)
+    {
+        if (quests is null || quests.Count == 0)
+            return string.Empty;
+        var sb = new StringBuilder();
+        foreach (var q in quests)
+        {
+            var name = EscapeForQuestLine(q.Name);
+            var desc = EscapeForQuestLine(q.Description);
+            var status = EscapeForQuestLine(q.Status ?? "InProgress");
+            var objCount = q.Objectives?.Count ?? 0;
+            var completed = q.Objectives?.Count(o => o.IsCompleted) ?? 0;
+            var pct = objCount > 0 ? (completed * 100 / objCount) : 0;
+            sb.Append("Q\t").Append(q.Id).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
+            if (q.Objectives != null)
+            {
+                for (var i = 0; i < q.Objectives.Count; i++)
+                {
+                    var o = q.Objectives[i];
+                    var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
+                    sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
+                }
+            }
+            sb.Append("---\n");
+        }
+        return sb.ToString();
+    }
+
+    private static string EscapeForQuestLine(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return string.Empty;
+        var sb = new StringBuilder(s.Length);
+        foreach (var c in s)
+        {
+            if (c == '\t' || c == '\n' || c == '\r') sb.Append(' ');
+            else sb.Append(c);
+        }
+        return sb.ToString();
+    }
 
     /// <summary>Mint an NFT for a monster kill (any monster, including bosses) via WEB4 OASIS API. Returns NFT ID and optional tx hash. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
     public async Task<OASISResult<(string NftId, string? Hash)>> CreateMonsterNftAsync(string monsterName, string? description, string? gameSource, string? monsterStatsJson, string? provider = null, CancellationToken cancellationToken = default)
@@ -3636,6 +3682,38 @@ public static unsafe class StarApiExports
             NativeMemory.Free(itemList->items);
 
         NativeMemory.Free(itemList);
+    }
+
+    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestsString(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0)
+            return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var result = client.GetActiveQuestsAsync().GetAwaiter().GetResult();
+        var resultCode = ExtractCode(result);
+        if (result.IsError || result.Result is null)
+        {
+            SetError(result.Message ?? "Failed to load quests.");
+            InvokeCallback(resultCode);
+            return -(int)resultCode;
+        }
+
+        var str = StarApiClient.SerializeQuestsForGame(result.Result);
+        var bytesArr = Encoding.UTF8.GetBytes(str);
+        var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+        if (toCopy > 0)
+            new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        var bytes = toCopy;
+        SetError(string.Empty);
+        InvokeCallback(StarApiResultCode.Success);
+        return bytes;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
