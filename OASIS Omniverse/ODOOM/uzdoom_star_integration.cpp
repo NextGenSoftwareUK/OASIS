@@ -135,12 +135,14 @@ static const int g_star_generic_debounce_ticks = 18;  /* ~0.5s at 35 tics/sec */
 /** Player stats before touch: only add to STAR when engine would leave item on floor (did not apply to player). */
 static int g_star_pre_touch_health = -1;
 static int g_star_pre_touch_armor = -1;
-/** When user presses E on a STAR item in inventory, we store name/type for the use-item callback to apply Health/Armor. */
+/** When user presses E on a STAR item in inventory, we store name/type/description for the use-item callback to apply Health/Armor. */
 static std::string g_star_use_pending_name;
 static std::string g_star_use_pending_type;
+static std::string g_star_use_pending_description;
 /** Deferred apply: set when use-item succeeds; applied at start of next frame. Re-apply for several frames so HUD/status bar sees the update. */
 static std::string g_star_deferred_apply_name;
 static std::string g_star_deferred_apply_type;
+static std::string g_star_deferred_apply_description;
 static int g_star_deferred_apply_frames = 0;  /* number of frames left to re-apply (e.g. 3) */
 static int g_star_deferred_health_value = -1; /* target health to re-assign on next frames (avoids engine overwrite) */
 static int g_star_deferred_armor_value = -1;
@@ -574,6 +576,11 @@ static bool ODOOM_ItemMatchesTab(const char* item_type, const char* name, int ta
 	return true; /* unknown tab: show all */
 }
 
+/** Health/armor amount for (+X) description. Returns 0 if not health/armor. Implemented later in file. */
+static int GetHealthOrArmorAmount(const char* className);
+/** Hardcoded Doom ammo amount for (+X) description. Returns 0 to use default 1. Implemented later in file. */
+static int GetHardcodedAmmoAmount(const char* className);
+
 /** Push inventory list to CVars for ZScript overlay. list may be null (clears overlay). Caller keeps ownership.
  * Filters by current tab (odoom_star_inventory_tab), then sends total filtered count and a window [scroll_offset, scroll_offset+N)
  * so all items in that tab are reachable by scrolling. ZScript sets scroll_offset and tab each frame. */
@@ -647,6 +654,16 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 			copySafe(name, it->name, 256);
 		}
 		copySafe(desc, it->description, 256);
+		/* OQUAKE-style: ensure health/armor/ammo show (+X) in description when missing */
+		if (it->item_type[0] && (!it->description[0] || !strstr(it->description, "(+"))) {
+			int amt = GetHealthOrArmorAmount(it->name);
+			if (amt <= 0 && (strstr(it->item_type, "Ammo") || strstr(it->item_type, "ammo")))
+				amt = GetHardcodedAmmoAmount(it->name);
+			if (amt > 0) {
+				snprintf(desc, sizeof(desc), "%s (+%d)", it->name[0] ? it->name : "Item", amt);
+				copySafe(desc, desc, 256);
+			}
+		}
 		copySafe(type, it->item_type, 64);
 		copySafe(game, it->game_source, 64);
 		int qty = (it->quantity > 0) ? it->quantity : 1;
@@ -880,8 +897,21 @@ static std::string ODOOM_StripNftDisplayPrefix(const std::string& name) {
 	return name;
 }
 
-/** Returns true if using this item would exceed config max health/armor (or already at max). Sets *out_msg to the message to show. */
-static bool ODOOM_WouldUseExceedMax(const std::string& name, const std::string& type, const char** out_msg) {
+/** Parse (+X) from name/description (like OQUAKE). Returns 0 if not found. */
+static int ODOOM_ParseAmountFromDescription(const std::string& s) {
+	size_t pos = s.find(" (+");
+	if (pos == std::string::npos) return 0;
+	pos += 3;
+	if (pos >= s.size()) return 0;
+	char* end = nullptr;
+	long v = strtol(s.c_str() + pos, &end, 10);
+	if (end == s.c_str() + pos || v <= 0 || v > 9999) return 0;
+	return (int)v;
+}
+
+/** Returns true if using this item would exceed config max health/armor (or already at max). Sets *out_msg to the message to show.
+ *  If description is non-empty and contains (+X), that amount is used; otherwise name-based heuristics. */
+static bool ODOOM_WouldUseExceedMax(const std::string& name, const std::string& type, const char** out_msg, const char* description = nullptr) {
 	*out_msg = nullptr;
 	FLevelLocals* level = primaryLevel;
 	if (!level) return false;
@@ -898,23 +928,29 @@ static bool ODOOM_WouldUseExceedMax(const std::string& name, const std::string& 
 	{ FBaseCVar* v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxH = v->GetGenericRep(CVAR_Int).Int; if (configMaxH <= 0) configMaxH = 200; }
 	{ FBaseCVar* v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) configMaxA = v->GetGenericRep(CVAR_Int).Int; if (configMaxA <= 0) configMaxA = 200; }
 	if (isHealth) {
-		int amount = 25;
-		if (n.find("Stimpack") != np) amount = 10;
-		else if (n.find("Medikit") != np) amount = 25;
-		else if (n.find("Health Bonus") != np) amount = 1;
-		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
-		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
-		else if (n.find("Large Health") != np) amount = 50;
-		else if (n.find("Mega Health") != np) amount = 100;
-		else if (n.find("Health") != np) amount = 25;
+		int amount = (description && description[0]) ? ODOOM_ParseAmountFromDescription(std::string(description)) : 0;
+		if (amount <= 0) amount = ODOOM_ParseAmountFromDescription(n);
+		if (amount <= 0) {
+			if (n.find("Stimpack") != np) amount = 10;
+			else if (n.find("Medikit") != np) amount = 25;
+			else if (n.find("Health Bonus") != np) amount = 1;
+			else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
+			else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
+			else if (n.find("Large Health") != np) amount = 50;
+			else if (n.find("Mega Health") != np) amount = 100;
+			else if (n.find("Health") != np) amount = 25;
+		}
 		int cur = player->mo->health;
 		if (cur >= configMaxH) { *out_msg = "You cannot use this because you are already at max health."; return true; }
 		if (cur + amount > configMaxH) { *out_msg = "You cannot use this because you are already at max health."; return true; }
 	}
 	if (isArmor) {
-		int amount = 100;
-		if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
-		else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
+		int amount = ODOOM_ParseAmountFromDescription(n);
+		if (amount <= 0) {
+			if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
+			else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
+			else amount = 100;
+		}
 		AActor* arm = player->mo->FindInventory(FName("BasicArmor"), true);
 		int cur = arm ? arm->IntVar(FName("Amount")) : 0;
 		if (cur >= configMaxA) { *out_msg = "You cannot use this because you are already at max armor."; return true; }
@@ -924,9 +960,8 @@ static bool ODOOM_WouldUseExceedMax(const std::string& name, const std::string& 
 }
 
 /** Apply health or armor to the console player when using a Health/Armor item from STAR inventory.
- *  Use-from-inventory ALWAYS adds the item's amount; items that originally allowed over 100 (e.g. Soul Sphere,
- *  Mega Sphere) use max from config so the HUD shows the correct value. */
-static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string& type) {
+ *  Use-from-inventory ALWAYS adds the item's amount; (+X) in name/description overrides name-based amount (like OQUAKE). */
+static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string& type, const char* description = nullptr) {
 	FLevelLocals* level = primaryLevel;
 	if (!level) return;
 	player_t* player = level->GetConsolePlayer();
@@ -946,15 +981,18 @@ static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string&
 	g_star_deferred_health_value = -1;
 	g_star_deferred_armor_value = -1;
 	if (isHealth) {
-		int amount = 25;
-		if (n.find("Stimpack") != np) amount = 10;
-		else if (n.find("Medikit") != np) amount = 25;
-		else if (n.find("Health Bonus") != np) amount = 1;
-		else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
-		else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
-		else if (n.find("Large Health") != np) amount = 50;
-		else if (n.find("Mega Health") != np) amount = 100;
-		else if (n.find("Health") != np) amount = 25;
+		int amount = (description && description[0]) ? ODOOM_ParseAmountFromDescription(std::string(description)) : 0;
+		if (amount <= 0) amount = ODOOM_ParseAmountFromDescription(n);
+		if (amount <= 0) {
+			if (n.find("Stimpack") != np) amount = 10;
+			else if (n.find("Medikit") != np) amount = 25;
+			else if (n.find("Health Bonus") != np) amount = 1;
+			else if (n.find("Soul Sphere") != np || n.find("Soul") != np) amount = 100;
+			else if (n.find("Mega") != np && (n.find("Sphere") != np || n.find("Health") != np)) amount = 200;
+			else if (n.find("Large Health") != np) amount = 50;
+			else if (n.find("Mega Health") != np) amount = 100;
+			else if (n.find("Health") != np) amount = 25;
+		}
 		/* Use engine path so HUD updates; config max allows over 200 when set higher. */
 		if (P_GiveBody(player->mo, amount, configMaxH)) {
 			g_star_deferred_apply_health = true;
@@ -963,9 +1001,13 @@ static void ODOOM_ApplyHealthOrArmor(const std::string& name, const std::string&
 		}
 	}
 	if (isArmor) {
-		int amount = 100;
-		if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
-		else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
+		int amount = (description && description[0]) ? ODOOM_ParseAmountFromDescription(std::string(description)) : 0;
+		if (amount <= 0) amount = ODOOM_ParseAmountFromDescription(n);
+		if (amount <= 0) {
+			if (n.find("Blue") != np || n.find("Mega") != np) amount = 200;
+			else if (n.find("Green") != np || n.find("Yellow") != np) amount = 100;
+			else amount = 100;
+		}
 		AActor* arm = player->mo->FindInventory(FName("BasicArmor"), true);
 		if (arm) {
 			int& a = arm->IntVar(FName("Amount"));
@@ -1010,10 +1052,12 @@ static void ODOOM_OnUseItemFromInventoryDone(void* user_data) {
 	if (success && !g_star_use_pending_name.empty()) {
 		g_star_deferred_apply_name = g_star_use_pending_name;
 		g_star_deferred_apply_type = g_star_use_pending_type;
+		g_star_deferred_apply_description = g_star_use_pending_description;
 		g_star_deferred_apply_frames = 35; /* re-apply for ~1 sec so engine/voodoo overwrites don't revert health */
 	}
 	g_star_use_pending_name.clear();
 	g_star_use_pending_type.clear();
+	g_star_use_pending_description.clear();
 	if (success)
 		ODOOM_RefreshOverlayFromClient();
 	else if (err_buf[0])
@@ -1059,6 +1103,15 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	}
 
 	star_sync_pump();
+
+	/* Once STAR is initialized, reserve Q for quest popup so the engine doesn't consume it (e.g. quit). */
+	if (g_star_initialized) {
+		static bool s_odoom_q_bound_once = false;
+		if (!s_odoom_q_bound_once) {
+			C_DoCommand("bind Q \"\"");
+			s_odoom_q_bound_once = true;
+		}
+	}
 
 	/* Show mint result in console when background pickup-with-mint completes (NFT ID + Hash). */
 	{
@@ -1119,13 +1172,15 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			if (doCv && doCv->GetRealType() == CVAR_Int && doCv->GetGenericRep(CVAR_Int).Int != 0) {
 				FBaseCVar* nameCv = FindCVar("odoom_star_use_item_name", nullptr);
 				FBaseCVar* typeCv = FindCVar("odoom_star_use_item_type", nullptr);
+				FBaseCVar* descCv = FindCVar("odoom_star_use_item_description", nullptr);
 				const char* nameStr = (nameCv && nameCv->GetRealType() == CVAR_String) ? nameCv->GetGenericRep(CVAR_String).String : "";
 				const char* typeStr = (typeCv && typeCv->GetRealType() == CVAR_String) ? typeCv->GetGenericRep(CVAR_String).String : "Item";
+				const char* descStr = (descCv && descCv->GetRealType() == CVAR_String) ? descCv->GetGenericRep(CVAR_String).String : "";
 				if (nameStr && nameStr[0]) {
 					std::string nameS(nameStr);
 					std::string typeS(typeStr ? typeStr : "");
 					const char* blockMsg = nullptr;
-					if (ODOOM_WouldUseExceedMax(nameS, typeS, &blockMsg)) {
+					if (ODOOM_WouldUseExceedMax(nameS, typeS, &blockMsg, descStr && descStr[0] ? descStr : nullptr)) {
 						if (blockMsg) {
 							/* Show only in toast once; don't reset if already showing (avoids spam). */
 							FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
@@ -1147,6 +1202,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					} else {
 						g_star_use_pending_name = nameStr;
 						g_star_use_pending_type = typeStr ? typeStr : "";
+						g_star_use_pending_description = (descStr && descStr[0]) ? descStr : "";
 						star_sync_use_item_start(nameStr, "odoom_use", ODOOM_OnUseItemFromInventoryDone, nullptr);
 						UCVarValue u; u.Int = 0;
 						doCv->SetGenericRep(u, CVAR_Int);
@@ -1193,6 +1249,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind F \"\"");
 		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind X \"\"");
+		C_DoCommand("bind Q \"\"");  /* Q = quest popup; prevent engine from using it (e.g. quit) */
 		/* I, O, P cleared so they only affect popup; ZScript will read odoom_key_i/o/p from raw state */
 		C_DoCommand("bind I \"\"");
 		C_DoCommand("bind O \"\"");
@@ -1227,6 +1284,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind P \"+user3\"");
 		C_DoCommand("bind enter \"+use\"");
 		C_DoCommand("bind \"KP-Enter\" \"+use\"");
+		C_DoCommand("bind Q \"\"");  /* Q always reserved for quest popup so raw key is seen */
 		C_DoCommand("bind pgup \"\"");
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
@@ -1257,6 +1315,20 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey);
+
+		/* Quest popup: C++ toggle on Q press so Q works even if ZScript key handling isn't active (e.g. status bar variant). */
+		if (g_star_initialized) {
+			static int s_odoom_q_prev = 0;
+			if (q && !s_odoom_q_prev) {
+				FBaseCVar* popupVar = FindCVar("odoom_quest_popup_open", nullptr);
+				if (popupVar && popupVar->GetRealType() == CVAR_Int) {
+					int cur = popupVar->GetGenericRep(CVAR_Int).Int;
+					UCVarValue val; val.Int = cur ? 0 : 1;
+					popupVar->SetGenericRep(val, CVAR_Int);
+				}
+			}
+			s_odoom_q_prev = q;
+		}
 	}
 
 	/* Quest: set active from popup (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1) */
@@ -1516,8 +1588,9 @@ void ODOOM_PostTic(void)
 	FLevelLocals* level = primaryLevel;
 	player_t* player = level ? level->GetConsolePlayer() : nullptr;
 	if (g_star_deferred_apply_frames >= 34 && !g_star_deferred_apply_name.empty()) {
-		/* First frame: apply via engine and store target values. */
-		ODOOM_ApplyHealthOrArmor(g_star_deferred_apply_name, g_star_deferred_apply_type);
+		/* First frame: apply via engine and store target values. (+X) from description when present. */
+		const char* desc = g_star_deferred_apply_description.empty() ? nullptr : g_star_deferred_apply_description.c_str();
+		ODOOM_ApplyHealthOrArmor(g_star_deferred_apply_name, g_star_deferred_apply_type, desc);
 		g_star_deferred_apply_frames = 33; /* 33 more frames; PostOneTic re-applies every tic within each frame */
 	} else if (player && player->mo && (g_star_deferred_apply_health || g_star_deferred_apply_armor)) {
 		ODOOM_ReapplyStoredHealthArmor();
@@ -1528,6 +1601,7 @@ void ODOOM_PostTic(void)
 	if (g_star_deferred_apply_frames <= 0) {
 		g_star_deferred_apply_name.clear();
 		g_star_deferred_apply_type.clear();
+		g_star_deferred_apply_description.clear();
 		g_star_deferred_health_value = -1;
 		g_star_deferred_armor_value = -1;
 		g_star_deferred_apply_health = false;
@@ -1584,6 +1658,25 @@ static bool EqualsNoCase(const std::string& a, const std::string& b) {
 		if (std::tolower(ca) != std::tolower(cb)) return false;
 	}
 	return true;
+}
+
+/** Health/armor amount for (+X) description (same as ODOOM_ApplyHealthOrArmor). Returns 0 if not health/armor. */
+static int GetHealthOrArmorAmount(const char* className) {
+	if (!className || !className[0]) return 0;
+	/* Health */
+	if (strstr(className, "Stimpack")) return 10;
+	if (strstr(className, "Medikit")) return 25;
+	if (strstr(className, "HealthBonus")) return 1;
+	if (strstr(className, "SoulSphere") || strstr(className, "Soul")) return 100;
+	if (strstr(className, "Megasphere") || (strstr(className, "Mega") && !strstr(className, "Sphere"))) return 200;
+	if (strstr(className, "Large") && strstr(className, "Health")) return 50;
+	if (strstr(className, "Mega") && strstr(className, "Health")) return 100;
+	if (strstr(className, "Health")) return 25;
+	/* Armor */
+	if (strstr(className, "Blue") || strstr(className, "Mega")) return 200;
+	if (strstr(className, "Green") || strstr(className, "Yellow")) return 100;
+	if (strstr(className, "Armor")) return 100;
+	return 0;
 }
 
 /** Hardcoded Doom ammo pickup amounts for demo (from doomammo.zs / Doom Wiki). Returns 0 to use default 1. */
@@ -2125,13 +2218,18 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		else if (cls && (strstr(cls, "Health") || strstr(cls, "health") || strstr(cls, "Medikit") || strstr(cls, "Stimpack"))) type = "Health";
 
 		g_star_pending_item_name = ToStarItemName(cls);
-		g_star_pending_item_desc = std::string("Picked up ") + (cls ? cls : "Item");
-		g_star_pending_item_type = type;
-		/* Hardcoded ammo amounts for demo (Doom standard: Clip=10, ClipBox=50, Shell=4, ShellBox=20, etc.). */
 		{
-			int amt = GetHardcodedAmmoAmount(cls);
-			g_star_pending_item_amount = (amt > 0) ? amt : 1;
+			int hamt = GetHealthOrArmorAmount(cls);
+			if (hamt > 0 && (type == std::string("Health") || type == std::string("Armor"))) {
+				g_star_pending_item_desc = g_star_pending_item_name + " (+" + std::to_string(hamt) + ")";
+				g_star_pending_item_amount = 1;  /* 1 qty like OQUAKE; (+X) in description */
+			} else {
+				g_star_pending_item_desc = std::string("Picked up ") + (cls ? cls : "Item");
+				int amt = GetHardcodedAmmoAmount(cls);
+				g_star_pending_item_amount = (amt > 0) ? amt : 1;
+			}
 		}
+		g_star_pending_item_type = type;
 		g_star_has_pending_item = true;
 		/* Store player stats before touch: we only add to STAR when engine would leave item on floor (did not apply). */
 		{
@@ -2258,8 +2356,13 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	bool isPowerup = itemType && (strstr(itemType, "owerup") != nullptr || strstr(itemType, "Health") != nullptr);
 	bool doMint = (isKey && odoom_star_mint_keys) || (isWeapon && odoom_star_mint_weapons) || (isArmor && odoom_star_mint_armor) || (isPowerup && odoom_star_mint_powerups);
 	int qty = 1;
-	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item)
-		qty = (g_star_pending_item_amount > 0) ? g_star_pending_item_amount : 1;
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
+		/* Health/armor: 1 qty with (+X) in desc (like OQUAKE); ammo/weapons use amount or 1 */
+		if (isArmor || (itemType && (strstr(itemType, "Health") != nullptr || strstr(itemType, "health") != nullptr)))
+			qty = 1;
+		else
+			qty = (g_star_pending_item_amount > 0) ? g_star_pending_item_amount : 1;
+	}
 	const char* provider = (const char*)odoom_star_nft_provider;
 	if (!provider || !provider[0]) provider = "SolanaOASIS";
 	const char* send_to_addr = (const char*)odoom_star_send_to_address_after_minting;

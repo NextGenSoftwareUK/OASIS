@@ -83,6 +83,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		CVar openVar = CVar.FindCVar("odoom_inventory_open");
 		if (openVar != null)
 			openVar.SetInt(popupOpen ? 1 : 0);
+		// Sync quest popup from C++ (so Q key works when C++ toggles odoom_quest_popup_open)
+		CVar questPopupCv = CVar.FindCVar("odoom_quest_popup_open");
+		if (questPopupCv != null)
+			questPopupOpen = (questPopupCv.GetInt() != 0);
 		// Tell C++ which scroll offset and tab we want so it sends the right window of items (avoids CVar overflow)
 		if (popupOpen)
 		{
@@ -198,7 +202,8 @@ class OASISInventoryOverlayHandler : EventHandler
 				selectedAbsolute = 0;
 			}
 		}
-		if (keyQPressed && !popupOpen)
+		// Q opens quest popup (even when inventory is open)
+		if (keyQPressed)
 		{
 			questPopupOpen = !questPopupOpen;
 			if (questPopupOpen) {
@@ -295,6 +300,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<int> starGroupCounts;
 			array<String> starGroupFirstNames;
 			array<String> starGroupTypes;
+			array<String> starGroupDescs;
 			for (int i = 0; i < starCount; i++)
 			{
 				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
@@ -306,6 +312,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				starGroupCounts.Push(qty);
 				starGroupFirstNames.Push(starNames[i]);
 				starGroupTypes.Push((i < starTypes.Size()) ? starTypes[i] : "Item");
+				starGroupDescs.Push((i < starDescs.Size()) ? starDescs[i] : "");
 			}
 			int starGroupCount = starGroupLabels.Size();
 			if (starGroupCount > MAX_STAR_GROUPS_TO_CACHE) starGroupCount = MAX_STAR_GROUPS_TO_CACHE;
@@ -435,9 +442,11 @@ class OASISInventoryOverlayHandler : EventHandler
 					{
 						CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
 						CVar typeCv = CVar.FindCVar("odoom_star_use_item_type");
+						CVar descCv = CVar.FindCVar("odoom_star_use_item_description");
 						CVar doCv = CVar.FindCVar("odoom_star_use_do_it");
 						if (nameCv != null) nameCv.SetString(starGroupFirstNames[starWindowIdx]);
 						if (typeCv != null) typeCv.SetString(starType);
+						if (descCv != null && starWindowIdx < starGroupDescs.Size()) descCv.SetString(starGroupDescs[starWindowIdx]);
 						if (doCv != null) doCv.SetInt(1);
 					}
 				}
@@ -821,25 +830,25 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
-		// Quest Tracker: left side near top, always visible when beamed in and we have a current quest
-		if (beamedVar != null && beamedVar.GetInt() != 0)
+		// Quest Tracker: left side near top, always visible when STAR is active (shows "Q = Quests" if no quest data or not beamed in)
+		CVar trackerTitleCv = CVar.FindCVar("odoom_quest_tracker_title");
+		CVar trackerObjCv = CVar.FindCVar("odoom_quest_tracker_objective");
+		if (trackerTitleCv != null || trackerObjCv != null || (beamedVar != null && beamedVar.GetInt() != 0))
 		{
-			CVar trackerTitleCv = CVar.FindCVar("odoom_quest_tracker_title");
-			CVar trackerObjCv = CVar.FindCVar("odoom_quest_tracker_objective");
-			if (trackerTitleCv != null && trackerObjCv != null)
+			int trackX = 4;
+			int trackY = 22;
+			double trackScale = 0.5;
+			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
+			bool beamedIn = (beamedVar != null && beamedVar.GetInt() != 0);
+			if (beamedIn && qTitle.Length() > 0)
 			{
-				String qTitle = trackerTitleCv.GetString();
-				if (qTitle.Length() > 0)
-				{
-					int trackX = 4;
-					int trackY = 22;
-					double trackScale = 0.5;
-					screen.DrawText(f, Font.CR_GOLD, trackX, trackY, qTitle, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
-					String qObj = trackerObjCv.GetString();
-					if (qObj.Length() > 0)
-						screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
-				}
+				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, qTitle, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+				String qObj = (trackerObjCv != null) ? trackerObjCv.GetString() : "";
+				if (qObj.Length() > 0)
+					screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
 			}
+			else
+				screen.DrawText(f, Font.CR_GRAY, trackX, trackY, "Q = Quests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
 		}
 
 		// Quest popup (Q key)
