@@ -11,8 +11,6 @@ star inventory
 star beamin dellams test!
 star inventory
 star beamin dellams test!
-star inventory
-star beamin dellams test!
 star config
 star beamin dellams test!
 star config
@@ -61,3 +59,5 @@ STAR CONFIG
 STAR
 STAR CONFIG
 star beamin dellams test!
+star
+star config

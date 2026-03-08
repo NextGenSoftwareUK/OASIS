@@ -49,9 +49,10 @@ server int odoom_star_has_silver_key = 0;
 // Avatar XP (experience points). Updated from STAR API; shown in top-right when beamed in.
 server int odoom_star_avatar_xp = 0;
 
-// Use STAR item from inventory (E on selected STAR row). ZScript sets name + type and do_it=1; C++ runs use_item, consumes one from STAR, and applies that amount of Health/Armor to player (HUD updates). Over-100 allowed for Soul/Mega sphere.
+// Use STAR item from inventory (E on selected STAR row). ZScript sets name + type + description and do_it=1; C++ runs use_item and applies Health/Armor using (+X) from description.
 server string odoom_star_use_item_name = "";
 server string odoom_star_use_item_type = "";
+server string odoom_star_use_item_description = "";
 server int odoom_star_use_do_it = 0;
 // Toast message at top center (e.g. "You cannot use this because you are already at max health."). C++ sets message and odoom_star_toast_frames (e.g. 105 = 3 sec at 35 fps); ZScript draws while frames > 0; C++ decrements each frame.
 server string odoom_star_toast_message = "";
