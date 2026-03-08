@@ -223,6 +223,9 @@ static char g_inventory_saved_all_binds[MAX_KEYS][128];
 static char g_oq_use_pending_name[256];
 static char g_oq_use_pending_type[64];
 static char g_oq_use_pending_description[512];
+/* When we apply health/armor from overlay (use-item), set these so OnStatsChangedEx does not re-add the same item (sync/refresh would otherwise add +1 again). */
+static double g_oq_health_applied_from_overlay_time = 0.0;
+static double g_oq_armor_applied_from_overlay_time = 0.0;
 static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
@@ -609,9 +612,9 @@ static int OQ_WouldUseExceedMax(const char* name, const char* type, const char* 
     amount_from_desc = OQ_ParseAmountFromDescription(description);
     {
         int is_health = type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup"));
-        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health"));
+        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
         if (is_health && is_health_item) {
-            int amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : 25);
+            int amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : (OQ_ContainsNoCase(name, "Stimpack") ? 10 : 25));
             if (cur_h >= max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
             if (cur_h + amount > max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
         }
@@ -638,11 +641,12 @@ static void OQ_ApplyHealthOrArmor(const char* name, const char* type, const char
         max_a = atoi(oquake_star_max_armor.string);
     {
         int is_health = type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup"));
-        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health"));
+        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
         if (is_health && is_health_item) {
-            amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : 25);
+            amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : (OQ_ContainsNoCase(name, "Stimpack") ? 10 : 25));
             cl.stats[STAT_HEALTH] += amount;
             if (cl.stats[STAT_HEALTH] > max_h) cl.stats[STAT_HEALTH] = max_h;
+            g_oq_health_applied_from_overlay_time = realtime;
         }
     }
     {
@@ -651,6 +655,7 @@ static void OQ_ApplyHealthOrArmor(const char* name, const char* type, const char
             amount = (amount_from_desc >= 0) ? amount_from_desc : ((name && (OQ_ContainsNoCase(name, "Red") || OQ_ContainsNoCase(name, "Mega"))) ? 200 : 100);
             cl.stats[STAT_ARMOR] += amount;
             if (cl.stats[STAT_ARMOR] > max_a) cl.stats[STAT_ARMOR] = max_a;
+            g_oq_armor_applied_from_overlay_time = realtime;
         }
     }
 }
@@ -718,16 +723,16 @@ static void OQ_UseSelectedItem(void)
     q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Using: %s...", item->name);
 }
 
-/** First health item in g_inventory_entries (Health or Megahealth). Returns NULL if none. */
+/** First health item in g_inventory_entries (Health, Megahealth, or Stimpack). Returns NULL if none. */
 static const oquake_inventory_entry_t* OQ_FindFirstHealthEntry(void) {
     int i;
     for (i = 0; i < g_inventory_count; i++) {
         const oquake_inventory_entry_t* e = &g_inventory_entries[i];
-        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name && (OQ_ContainsNoCase(e->name, "Megahealth") || OQ_ContainsNoCase(e->name, "Health")))
+        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name && (OQ_ContainsNoCase(e->name, "Megahealth") || OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")))
             return e;
         if (e->item_type && OQ_ContainsNoCase(e->item_type, "health"))
             return e;
-        if (e->name && OQ_ContainsNoCase(e->name, "Health") && !OQ_ItemMatchesTab(e, OQ_TAB_ARMOR))
+        if (e->name && (OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")) && !OQ_ItemMatchesTab(e, OQ_TAB_ARMOR))
             return e;
     }
     return NULL;
@@ -2522,28 +2527,38 @@ void OQuake_STAR_OnStatsChangedEx(
         added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
         OQ_PickupLog("Stats: Cells +%d -> STAR", new_cells - old_cells);
     }
-    /* Armor: add 1 qty with description e.g. "Green Armor (+100)" so use-item applies correct amount. */
+    /* Armor: add 1 qty with description e.g. "Green Armor (+100)" so use-item applies correct amount. Skip if we just applied armor from overlay (would re-add and qty bounces). */
     if (new_armor > old_armor) {
-        int delta = new_armor - old_armor;
-        const char* armor_name = (delta <= 100) ? "Green Armor" : (delta < 200) ? "Yellow Armor" : "Red Armor";
-        q_snprintf(desc, sizeof(desc), "%s (+%d)", armor_name, delta);
-        star_api_queue_add_item(armor_name, desc, "Quake", "Armor", NULL, 1, 1);
-        added++;
-        OQ_PickupLog("Stats: Armor +%d (%s) -> STAR", delta, armor_name);
-    }
-    /* Health: add 1 qty with description e.g. "Health (+25)" or "Megahealth (+100)". */
-    if (new_health > old_health) {
-        int delta = new_health - old_health;
-        if (delta >= 100) {
-            q_snprintf(desc, sizeof(desc), "Megahealth (+%d)", delta);
-            star_api_queue_add_item("Megahealth", desc, "Quake", "Powerup", NULL, 1, 1);
-            OQ_PickupLog("Stats: Megahealth +%d -> STAR", delta);
+        extern double realtime;
+        if (realtime - g_oq_armor_applied_from_overlay_time >= 1.0) {
+            int delta = new_armor - old_armor;
+            const char* armor_name = (delta <= 100) ? "Green Armor" : (delta < 200) ? "Yellow Armor" : "Red Armor";
+            q_snprintf(desc, sizeof(desc), "%s (+%d)", armor_name, delta);
+            star_api_queue_add_item(armor_name, desc, "Quake", "Armor", NULL, 1, 1);
+            added++;
+            OQ_PickupLog("Stats: Armor +%d (%s) -> STAR", delta, armor_name);
         } else {
-            q_snprintf(desc, sizeof(desc), "Health (+%d)", delta);
-            star_api_queue_add_item("Health", desc, "Quake", "Health", NULL, 1, 1);
-            OQ_PickupLog("Stats: Health +%d -> STAR", delta);
+            OQ_PickupLog("Stats: Armor +%d skip (applied from overlay recently)", new_armor - old_armor);
         }
-        added++;
+    }
+    /* Health: add 1 qty with description e.g. "Health (+25)" or "Megahealth (+100)". Skip if we just applied health from overlay (would re-add and qty bounces). */
+    if (new_health > old_health) {
+        extern double realtime;
+        if (realtime - g_oq_health_applied_from_overlay_time >= 1.0) {
+            int delta = new_health - old_health;
+            if (delta >= 100) {
+                q_snprintf(desc, sizeof(desc), "Megahealth (+%d)", delta);
+                star_api_queue_add_item("Megahealth", desc, "Quake", "Powerup", NULL, 1, 1);
+                OQ_PickupLog("Stats: Megahealth +%d -> STAR", delta);
+            } else {
+                q_snprintf(desc, sizeof(desc), "Health (+%d)", delta);
+                star_api_queue_add_item("Health", desc, "Quake", "Health", NULL, 1, 1);
+                OQ_PickupLog("Stats: Health +%d -> STAR", delta);
+            }
+            added++;
+        } else {
+            OQ_PickupLog("Stats: Health +%d skip (applied from overlay recently)", new_health - old_health);
+        }
     }
 
     if (added > 0) {
@@ -2668,6 +2683,10 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
     if (!classname || !classname[0]) {
         OQ_PickupLog("InterceptTouch: item classname empty");
         return 0;
+    }
+    /* Always log when we see a health pickup touch so we can confirm intercept is called at 100% health. */
+    if (OQ_StrEqNoCase(classname, "item_health")) {
+        Con_Printf("[OQuake STAR] Touch: item_health, player_health=%d max_h=%d\n", (int)player->v.health, max_h);
     }
     if (oquake_star_always_add_items_to_inventory.string && atoi(oquake_star_always_add_items_to_inventory.string))
         always_add = 1;
