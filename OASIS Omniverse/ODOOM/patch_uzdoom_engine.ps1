@@ -302,34 +302,28 @@ bool wasgibbed = (health < GetGibHealth());
             }
         }
     }
-    # STAR pickup: INVENTORY_ONLY (use_armor_on_pickup=0 etc.) = skip CallTouch, add to STAR and destroy. Otherwise CallTouch then maybe destroy if generic+AlwaysAllowPickup, then PostTouchSpecial.
-    if ($piContent -notmatch 'STAR_PICKUP_INVENTORY_ONLY') {
-        $touchNew = @'
+    # Force-destroy generic pickups when engine didn't consume (e.g. at max health/armor) so item goes to STAR and disappears. No INVENTORY_ONLY path (was causing standing-on-pickup spam when engine not patched for 9003).
+    $touchNew = @'
+special->CallTouch (toucher);
 #ifdef OASIS_STAR_API
-	if (star_key == STAR_PICKUP_INVENTORY_ONLY) {
-		UZDoom_STAR_PostTouchSpecial(star_key);
-		if (!(special->ObjectFlags & OF_EuthanizeMe)) special->Destroy();
-	} else {
-#endif
-		special->CallTouch (toucher);
-#ifdef OASIS_STAR_API
-		/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup_if_max=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
-		if (star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup() && !(special->ObjectFlags & OF_EuthanizeMe))
-			special->Destroy();
-		if (star_key) UZDoom_STAR_PostTouchSpecial(star_key);
-	}
+	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup_if_max=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
+	if (star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup() && !(special->ObjectFlags & OF_EuthanizeMe))
+		special->Destroy();
+	if (star_key) UZDoom_STAR_PostTouchSpecial(star_key);
 #endif
 '@
-        $touchOld1 = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
-        # Already-patched variant (has AlwaysAllowPickup destroy block)
-        $touchOld2 = '(?s)special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\t.*?if \(star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup\(\) && !\(special->ObjectFlags & OF_EuthanizeMe\)\)\r?\n\t\tspecial->Destroy\(\);\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
-        if ($piContent -match $touchOld1) {
-            $piContent = $piContent -replace $touchOld1, $touchNew
-            $piChanged = $true
-        } elseif ($piContent -match $touchOld2) {
-            $piContent = $piContent -replace $touchOld2, $touchNew
-            $piChanged = $true
-        }
+    $touchOld1 = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
+    $touchOld2 = '(?s)#ifdef OASIS_STAR_API\r?\n\tif \(star_key == STAR_PICKUP_INVENTORY_ONLY\).*?if \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n\t\}\r?\n#endif'
+    $touchOld3 = '(?s)special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\t.*?if \(star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup\(\) && !\(special->ObjectFlags & OF_EuthanizeMe\)\)\r?\n\t\tspecial->Destroy\(\);\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
+    if ($piContent -match $touchOld1) {
+        $piContent = $piContent -replace $touchOld1, $touchNew
+        $piChanged = $true
+    } elseif ($piContent -match $touchOld2) {
+        $piContent = $piContent -replace $touchOld2, $touchNew
+        $piChanged = $true
+    } elseif ($piContent -match $touchOld3) {
+        $piContent = $piContent -replace $touchOld3, $touchNew
+        $piChanged = $true
     }
     if ($piChanged) {
         Set-Content $pInteractionCpp $piContent -NoNewline
