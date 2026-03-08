@@ -440,39 +440,65 @@ function Add-SVImpactTouchIntercept {
     if ($content -notmatch 'oquake_star_integration\.h') {
         $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
     }
-    $patched = $false
-    # vkQuake uses single-space indent in SV_Impact. Match that exactly, then try flexible \s+.
-    $sp = ' '
-    $repl2 = " if (OQuake_STAR_InterceptTouchPickupAtMax (e2, e1))`r`n ED_Free (e2);`r`n else`r`n PR_ExecuteProgram (e2->v.touch);"
-    $repl1 = " if (OQuake_STAR_InterceptTouchPickupAtMax (e1, e2))`r`n ED_Free (e1);`r`n else`r`n PR_ExecuteProgram (e1->v.touch);"
-    # Block 2 first (e2 = item when player runs into pickup — main case). Patterns: full block or line-only.
-    $pat2a = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
-    if ($content -match $pat2a) {
-        $content = $content -replace $pat2a, "`$1$repl2"
-        $patched = $true
-    } else {
-        $pat2b = '(\s+)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
-        if ($content -match $pat2b) {
-            $content = $content -replace $pat2b, "`$1$repl2"
-            $patched = $true
-        }
+    # Already has return-2 handling (detection earlier for at-max health when engine only calls (player,item))
+    if ($content -match 'r == 2|oq_done:') {
+        Write-Host "[OQuake] sv_phys.c already has touch intercept (return 2 / oq_done), skipping." -ForegroundColor Cyan
+        return $true
     }
-    # Block 1: e1's touch
-    $pat1a = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
-    if ($content -match $pat1a) {
-        $content = $content -replace $pat1a, "`$1$repl1"
+    $patched = $false
+    # New pattern: return 1 = free e1, return 2 = free e2; when (player,item) we return 2 so item is freed and touch is skipped (detection earlier).
+    $repl1 = @"
+		{
+			int r = OQuake_STAR_InterceptTouchPickupAtMax (e1, e2);
+			if (r == 1) ED_Free (e1);
+			else if (r == 2) { ED_Free (e2); goto oq_done; }
+			else PR_ExecuteProgram (e1->v.touch);
+		}
+"@
+    $repl2 = @"
+		{
+			int r = OQuake_STAR_InterceptTouchPickupAtMax (e2, e1);
+			if (r == 1) ED_Free (e2);
+			else if (r == 2) ED_Free (e1);
+			else PR_ExecuteProgram (e2->v.touch);
+		}
+"@
+    $doneLabel = "`r`noq_done:`r`n"
+    # Block 1: replace "if (OQuake... (e1, e2)) ED_Free(e1); else PR_ExecuteProgram(e1->v.touch);" with 3-way
+    $pat1 = 'if \(OQuake_STAR_InterceptTouchPickupAtMax \(e1, e2\)\)\r?\n\s*ED_Free \(e1\);\r?\n\s*else\r?\n\s*PR_ExecuteProgram \(e1->v\.touch\);'
+    if ($content -match $pat1) {
+        $content = $content -replace $pat1, $repl1.TrimEnd()
         $patched = $true
-    } else {
-        $pat1b = '(\s+)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
-        if ($content -match $pat1b) {
-            $content = $content -replace $pat1b, "`$1$repl1"
-            $patched = $true
-        }
+    }
+    # Block 2: replace "if (OQuake... (e2, e1)) ED_Free(e2); else PR_ExecuteProgram(e2->v.touch);" with 3-way
+    $pat2 = 'if \(OQuake_STAR_InterceptTouchPickupAtMax \(e2, e1\)\)\r?\n\s*ED_Free \(e2\);\r?\n\s*else\r?\n\s*PR_ExecuteProgram \(e2->v\.touch\);'
+    if ($content -match $pat2) {
+        $content = $content -replace $pat2, $repl2.TrimEnd()
+        $patched = $true
+    }
+    # Add oq_done label before pr_global_struct->self = old_self (only if we patched and not already present)
+    if ($patched -and $content -notmatch 'oq_done:') {
+        $content = $content -replace '(\r?\n\s*)(pr_global_struct->self = old_self;)', "$doneLabel`$1`$2"
     }
     if ($patched -and $content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
         Set-Content $svPhys $content -NoNewline
-        Write-Host "[OQuake] Patched sv_phys.c: SV_Impact touch intercept (health/armor at max -> STAR)" -ForegroundColor Green
+        Write-Host "[OQuake] Patched sv_phys.c: SV_Impact touch intercept (return 1/2, at-max and use_X=0 -> STAR)" -ForegroundColor Green
         return $true
+    }
+    # Fallback: original pattern (no intercept yet) - replace PR_ExecuteProgram with intercept + new 3-way
+    $repl1orig = " if (OQuake_STAR_InterceptTouchPickupAtMax (e1, e2))`r`n ED_Free (e1);`r`n else`r`n PR_ExecuteProgram (e1->v.touch);"
+    $repl2orig = " if (OQuake_STAR_InterceptTouchPickupAtMax (e2, e1))`r`n ED_Free (e2);`r`n else`r`n PR_ExecuteProgram (e2->v.touch);"
+    $pat1b = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
+    $pat2b = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
+    if ($content -match $pat1b -and $content -notmatch 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        $content = $content -replace $pat1b, "`$1$repl1"
+        $content = $content -replace $repl1, $repl1.TrimEnd()
+        $patched = $true
+    }
+    if ($content -match $pat2b -and $content -notmatch 'r == 2') {
+        $content = $content -replace $pat2b, "`$1$repl2"
+        $content = $content -replace '(\r?\n\s*)(pr_global_struct->self = old_self;)', "$doneLabel`$1`$2"
+        $patched = $true
     }
     Write-Host "[OQuake] Could not apply SV_Impact patch (pattern mismatch). At-max health pickup to STAR may not work." -ForegroundColor Yellow
     return $false

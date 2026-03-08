@@ -2682,35 +2682,33 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
     player_health = (int)player->v.health;
     player_armor = (int)player->v.armorvalue;
     /* Process both call orders: when first_edict_is_item==0 the engine called (player, item) and will ED_Free(e2)=item on return 1; when 1, (item, player) and ED_Free(e1)=item. So we can add and return 1 in both cases. */
+    /* Return 1 = free e1 (item), 2 = free e2 (item when e1=player). So when first_edict_is_item we return 1; when e1=player we return 2 so engine frees e2. */
+    #define OQ_INTERCEPT_RET(first_edict_is_item) ((first_edict_is_item) ? 1 : 2)
     q_snprintf(log_buf, sizeof(log_buf), "InterceptTouch: class=%s health=%d max_h=%d armor=%d max_a=%d always_add=%d allow_ifmax=%d first_item=%d",
                classname, player_health, max_h, player_armor, max_a, always_add, allow_pickup_if_max, first_edict_is_item);
     OQ_PickupLog("%s", log_buf);
-    /* Only intercept (return 1) when we are in the item's touch block (e1=item). When e1=player we must return 0 or engine would ED_Free(player). */
-    if (!first_edict_is_item) {
-        OQ_StarDebugLog("InterceptTouch: skip (e1=player) -> ret=0 (wait for item's touch call)");
-        return 0;
-    }
+    /* Run intercept logic for both orderings. When e1=player (first_edict_is_item=0) return 2 so engine frees e2=item and does not run item touch - detection "earlier" so at-max health is handled even when engine only calls (player,item). */
     /* Health: item_health (25), item_health_mega / item_health_super (100). use_health_on_pickup: 0=below max->inventory only; 1=standard. */
     if (OQ_StrEqNoCase(classname, "item_health")) {
         int use_health = (oquake_star_use_health_on_pickup.string && atoi(oquake_star_use_health_on_pickup.string)) ? 1 : 0;
         OQ_StarDebugLog("InterceptTouch: item_health use_health=%d", use_health);
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
-            if (player_health >= max_h) { OQ_StarDebugLog("InterceptTouch: item_health always_add at_max -> ret=1"); return 1; }
-            OQ_StarDebugLog("InterceptTouch: item_health always_add below_max use_health=%d -> ret=%d", use_health, use_health ? 0 : 1);
-            return use_health ? 0 : 1;  /* below max: use_health 0 -> intercept only; 1 -> let engine use */
+            if (player_health >= max_h) { OQ_StarDebugLog("InterceptTouch: item_health always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
+            OQ_StarDebugLog("InterceptTouch: item_health always_add below_max use_health=%d -> ret=%d", use_health, use_health ? 0 : OQ_INTERCEPT_RET(first_edict_is_item));
+            return use_health ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_health >= max_h) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: item_health at_max !allow -> ret=0"); return 0; }
             OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
-            OQ_StarDebugLog("InterceptTouch: item_health at_max allow -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: item_health at_max allow -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         /* Below max: use_health 0 -> inventory only (intercept); 1 -> let engine use */
         if (!use_health) {
             OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
-            OQ_StarDebugLog("InterceptTouch: item_health below_max !use_health -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: item_health below_max !use_health -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         OQ_StarDebugLog("InterceptTouch: item_health below_max use_health -> ret=0");
         return 0;
@@ -2720,44 +2718,44 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         OQ_StarDebugLog("InterceptTouch: megahealth use_powerup=%d", use_powerup);
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
-            if (player_health >= max_h) { OQ_StarDebugLog("InterceptTouch: megahealth always_add at_max -> ret=1"); return 1; }
-            OQ_StarDebugLog("InterceptTouch: megahealth always_add below_max -> ret=%d", use_powerup ? 0 : 1);
-            return use_powerup ? 0 : 1;
+            if (player_health >= max_h) { OQ_StarDebugLog("InterceptTouch: megahealth always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
+            OQ_StarDebugLog("InterceptTouch: megahealth always_add below_max -> ret=%d", use_powerup ? 0 : OQ_INTERCEPT_RET(first_edict_is_item));
+            return use_powerup ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_health >= max_h) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: megahealth at_max !allow -> ret=0"); return 0; }
             OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
-            OQ_StarDebugLog("InterceptTouch: megahealth at_max allow -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: megahealth at_max allow -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (!use_powerup) {
             OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
-            OQ_StarDebugLog("InterceptTouch: megahealth below_max !use_powerup -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: megahealth below_max !use_powerup -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         OQ_StarDebugLog("InterceptTouch: megahealth below_max use_powerup -> ret=0");
         return 0;
     }
-    /* Armor: item_armor1 (green +100), item_armor2 (yellow +150), item_armorInv (red +200). use_armor_on_pickup: 0=below max->inventory only; 1=standard. */
+    /* Armor: item_armor1 (green +100), item_armor2 (yellow +150), item_armorInv (red +200). use_armor_on_pickup=0 -> inventory only, do not let engine apply. */
     if (OQ_StrEqNoCase(classname, "item_armor1")) {
         int use_armor = (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? 1 : 0;
         OQ_StarDebugLog("InterceptTouch: item_armor1 use_armor=%d", use_armor);
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
-            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armor1 always_add at_max -> ret=1"); return 1; }
-            OQ_StarDebugLog("InterceptTouch: item_armor1 always_add below_max -> ret=%d", use_armor ? 0 : 1);
-            return use_armor ? 0 : 1;
+            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armor1 always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
+            OQ_StarDebugLog("InterceptTouch: item_armor1 always_add below_max -> ret=%d", use_armor ? 0 : OQ_INTERCEPT_RET(first_edict_is_item));
+            return use_armor ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_armor >= max_a) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: item_armor1 at_max !allow -> ret=0"); return 0; }
             OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
-            OQ_StarDebugLog("InterceptTouch: item_armor1 at_max allow -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: item_armor1 at_max allow -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
-            OQ_StarDebugLog("InterceptTouch: item_armor1 below_max !use_armor -> ret=1");
-            return 1;
+            OQ_StarDebugLog("InterceptTouch: item_armor1 below_max !use_armor -> ret=%d (inventory only)", OQ_INTERCEPT_RET(first_edict_is_item));
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         OQ_StarDebugLog("InterceptTouch: item_armor1 below_max use_armor -> ret=0");
         return 0;
@@ -2767,17 +2765,17 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         OQ_StarDebugLog("InterceptTouch: item_armor2 use_armor=%d", use_armor);
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
-            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armor2 always_add at_max -> ret=1"); return 1; }
-            return use_armor ? 0 : 1;
+            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armor2 always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
+            return use_armor ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_armor >= max_a) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: item_armor2 at_max !allow -> ret=0"); return 0; }
             OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
-            return 1;
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
-            return 1;
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         return 0;
     }
@@ -2786,17 +2784,17 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         OQ_StarDebugLog("InterceptTouch: item_armorInv use_armor=%d", use_armor);
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
-            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armorInv always_add at_max -> ret=1"); return 1; }
-            return use_armor ? 0 : 1;
+            if (player_armor >= max_a) { OQ_StarDebugLog("InterceptTouch: item_armorInv always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
+            return use_armor ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_armor >= max_a) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: item_armorInv at_max !allow -> ret=0"); return 0; }
             OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
-            return 1;
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
-            return 1;
+            return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         return 0;
     }
@@ -2828,6 +2826,7 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
             return 0;
         }
     }
+    #undef OQ_INTERCEPT_RET
     OQ_PickupLog("InterceptTouch: no match for classname=%s -> ret=0", classname);
     return 0;
 }
