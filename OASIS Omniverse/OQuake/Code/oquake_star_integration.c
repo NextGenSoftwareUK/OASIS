@@ -227,8 +227,8 @@ static char g_oq_use_pending_description[512];
 /* When we apply health/armor from overlay (use-item), set these so OnStatsChangedEx does not re-add the same item (sync/refresh would otherwise add +1 again). */
 static double g_oq_health_applied_from_overlay_time = 0.0;
 static double g_oq_armor_applied_from_overlay_time = 0.0;
-/* Toast message at top center (like ODOOM): show when C/F at max or use from overlay at max. Frames ~105 = ~3 sec at 35 fps. */
-#define OQ_TOAST_FRAMES_DEFAULT 105
+/* Toast message at top center (like ODOOM): show when C/F at max or use from overlay at max. Frames ~175 = ~5 sec at 35 fps. */
+#define OQ_TOAST_FRAMES_DEFAULT 175
 static char g_oq_toast_message[256] = "";
 static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM. */
