@@ -1126,11 +1126,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	star_sync_pump();
 
-	/* Once STAR is initialized, reserve Q for quest popup so the engine doesn't consume it (e.g. quit). */
+	/* Once STAR is initialized, bind Q to quest popup so it opens the popup instead of e.g. quit. */
 	if (g_star_initialized) {
 		static bool s_odoom_q_bound_once = false;
 		if (!s_odoom_q_bound_once) {
-			C_DoCommand("bind Q \"\"");
+			C_DoCommand("bind Q \"odoom_quest_toggle\"");
 			s_odoom_q_bound_once = true;
 		}
 	}
@@ -2270,6 +2270,28 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		/* Weapons: return STAR_PICKUP_WEAPON so the engine never destroys the actor (CallTouch gives weapon to player); we still run PostTouchSpecial to add/mint in STAR. */
 		if (weaponType && special->IsKindOf(weaponType))
 			return STAR_PICKUP_WEAPON;
+		/* When use_X_on_pickup=0 and player below max: add to STAR only, engine must not apply (skip CallTouch). */
+		if (!odoom_star_always_add_items_to_inventory) {
+			int use_health = (odoom_star_use_health_on_pickup != 0);
+			int use_armor = (odoom_star_use_armor_on_pickup != 0);
+			int use_powerup = (odoom_star_use_powerup_on_pickup != 0);
+			int max_h = (odoom_star_max_health > 0) ? (int)odoom_star_max_health : 200;
+			int max_a = (odoom_star_max_armor > 0) ? (int)odoom_star_max_armor : 200;
+			FLevelLocals* level = primaryLevel;
+			player_t* pl = level ? level->GetConsolePlayer() : nullptr;
+			if (pl && pl->mo && g_star_pre_touch_health >= 0) {
+				int cur_h = pl->mo->health;
+				AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
+				int cur_a = arm ? arm->IntVar(FName("Amount")) : 0;
+				if ((strstr(type, "Health") || strstr(type, "health")) && !use_health && cur_h < max_h)
+					return STAR_PICKUP_INVENTORY_ONLY;
+				if ((strstr(type, "Armor") || strstr(type, "armor")) && !use_armor && cur_a < max_a)
+					return STAR_PICKUP_INVENTORY_ONLY;
+				/* Powerup: megahealth, soulsphere, etc. - treat as health for "below max" check */
+				if (cls && (strstr(cls, "Megasphere") || strstr(cls, "Soulsphere") || strstr(cls, "MegaHealth") || strstr(cls, "Supercharge")) && !use_powerup && cur_h < max_h)
+					return STAR_PICKUP_INVENTORY_ONLY;
+			}
+		}
 		return STAR_PICKUP_GENERIC_ITEM;
 	}
 
@@ -2295,15 +2317,15 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	} else if (keynum >= 1 && keynum <= 4) {
 		name = GetKeycardName(keynum);
 		desc = GetKeycardDescription(keynum);
-	} else if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
+	} else if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && g_star_has_pending_item) {
 		name = g_star_pending_item_name.c_str();
 		desc = g_star_pending_item_desc.c_str();
 		itemType = g_star_pending_item_type.empty() ? "Item" : g_star_pending_item_type.c_str();
 	}
 	if (!name || !desc) return;
 
-	/* When always_add_items_to_inventory=1, always add (player gets both engine benefit and STAR item). Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
+	/* When always_add_items_to_inventory=1, always add. When INVENTORY_ONLY we didn't call CallTouch so always add. Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
+	if (keynum != STAR_PICKUP_INVENTORY_ONLY && keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
 		FLevelLocals* level = primaryLevel;
 		player_t* pl = level ? level->GetConsolePlayer() : nullptr;
 		if (pl && pl->mo) {
@@ -2362,7 +2384,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 
 	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
+	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) {
 		std::string key = std::string(name) + "|" + (itemType ? itemType : "Item");
 		int now = I_GetTime();
 		if (key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
@@ -2378,7 +2400,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	bool isPowerup = itemType && (strstr(itemType, "owerup") != nullptr || strstr(itemType, "Health") != nullptr);
 	bool doMint = (isKey && odoom_star_mint_keys) || (isWeapon && odoom_star_mint_weapons) || (isArmor && odoom_star_mint_armor) || (isPowerup && odoom_star_mint_powerups);
 	int qty = 1;
-	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && g_star_has_pending_item) {
 		/* Health/armor: 1 qty with (+X) in desc (like OQUAKE); ammo/weapons use amount or 1 */
 		if (isArmor || (itemType && (strstr(itemType, "Health") != nullptr || strstr(itemType, "health") != nullptr)))
 			qty = 1;
@@ -2400,7 +2422,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nullptr, qty, 1);
 
 	/* Use the same path the engine uses: PrintPickupMessage (status bar message + Printf) and S_Sound (pickup sound). */
-	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && desc && desc[0]) {
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && desc && desc[0]) {
 		FString msg(desc);
 		PrintPickupMessage(true, msg);
 		FLevelLocals* level = primaryLevel;
@@ -2570,6 +2592,21 @@ static bool StarInitialized(void) {
 	return g_star_initialized;
 }
 
+/** Set toast message for ZScript (same as inventory popup "at max" feedback). */
+static void ODOOM_SetToastMessage(const char* msg) {
+	if (!msg || !msg[0]) return;
+	FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+	FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
+	if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String) {
+		UCVarValue val; val.String = (char*)msg;
+		toastMsgCv->SetGenericRep(val, CVAR_String);
+	}
+	if (toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+		UCVarValue v; v.Int = 105; /* ~3 sec at 35 fps, same as popup */
+		toastFramesCv->SetGenericRep(v, CVAR_Int);
+	}
+}
+
 CCMD(odoom_use_health)
 {
 	if (!g_star_initialized || star_sync_use_item_in_progress()) return;
@@ -2580,7 +2617,10 @@ CCMD(odoom_use_health)
 	}
 	const char* blockMsg = nullptr;
 	if (ODOOM_WouldUseExceedMax(name, type, &blockMsg)) {
-		if (blockMsg) Printf(PRINT_HIGH, "%s\n", blockMsg);
+		if (blockMsg) {
+			ODOOM_SetToastMessage(blockMsg);
+			Printf(PRINT_HIGH, "%s\n", blockMsg);
+		}
 		return;
 	}
 	g_star_use_pending_name = name;
@@ -2598,7 +2638,10 @@ CCMD(odoom_use_armor)
 	}
 	const char* blockMsg = nullptr;
 	if (ODOOM_WouldUseExceedMax(name, type, &blockMsg)) {
-		if (blockMsg) Printf(PRINT_HIGH, "%s\n", blockMsg);
+		if (blockMsg) {
+			ODOOM_SetToastMessage(blockMsg);
+			Printf(PRINT_HIGH, "%s\n", blockMsg);
+		}
 		return;
 	}
 	g_star_use_pending_name = name;
@@ -2839,7 +2882,17 @@ CCMD(star)
 		return;
 	}
 	if (strcmp(sub, "quest") == 0) {
-		if (argv.argc() < 3) { Printf("Usage: star quest start|objective|complete ...\n"); return; }
+		if (argv.argc() == 2) {
+			/* "star quest" with no subcommand: open the quest popup */
+			FBaseCVar* popupVar = FindCVar("odoom_quest_popup_open", nullptr);
+			if (popupVar && popupVar->GetRealType() == CVAR_Int) {
+				UCVarValue val; val.Int = 1;
+				popupVar->SetGenericRep(val, CVAR_Int);
+				Printf("Quest popup opened.\n");
+			}
+			return;
+		}
+		if (argv.argc() < 3) { Printf("Usage: star quest [start|objective|complete ...]  (no args = open popup)\n"); return; }
 		const char* qsub = argv[2];
 		if (strcmp(qsub, "start") == 0) {
 			if (argv.argc() < 4) { Printf("Usage: star quest start <quest_id>\n"); return; }
