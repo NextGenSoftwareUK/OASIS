@@ -95,8 +95,8 @@ extern void Key_SetBinding(int keynum, const char *binding);
 cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", 0}; /* Runtime state - not archived */
 cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
 cvar_t oquake_star_config_file = {"oquake_star_config_file", "json", CVAR_ARCHIVE}; /* "json" or "cfg" - which config file to use */
-cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://star-api.oasisplatform.world/api", CVAR_ARCHIVE};
-cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://api.oasisplatform.world", CVAR_ARCHIVE};
+cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://oasisweb4.com/api/star", CVAR_ARCHIVE};
+cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://oasisweb4.com", CVAR_ARCHIVE};
 cvar_t oquake_star_username = {"oquake_star_username", "", 0};
 cvar_t oquake_star_password = {"oquake_star_password", "", 0};
 cvar_t oquake_star_api_key = {"oquake_star_api_key", "", 0};
@@ -1472,6 +1472,78 @@ static void OQ_SyncConfigFiles(const char *cfg_path, const char *json_path) {
 /* Forward declaration */
 // static void OQ_DebugMode_f(void); // Temporarily disabled
 
+/*-----------------------------------------------------------------------------
+ * OQ_StarConfig_f - Show STAR config. Defined here so it is visible when
+ * Cmd_AddCommand(..., OQ_StarConfig_f) is used in OQuake_STAR_Init (MSVC needs def before use).
+ *-----------------------------------------------------------------------------*/
+static void OQ_StarConfig_f(void) {
+    const char* star_url = oquake_star_api_url.string;
+    const char* oasis_url = oquake_oasis_api_url.string;
+    int using_defaults = 0;
+    if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0)
+        using_defaults = 1;
+    if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0)
+        using_defaults = 1;
+    Con_Printf("\n");
+    Con_Printf("OQuake STAR Configuration:\n");
+    if (using_defaults) {
+        Con_Printf("  [WARNING: Using default values - config file may not be loaded]\n");
+        Con_Printf("  Try running: exec config.cfg  or  star reloadconfig\n");
+        Con_Printf("\n");
+    }
+    Con_Printf("  Config file: %s\n", oquake_star_config_file.string && oquake_star_config_file.string[0] ? oquake_star_config_file.string : "json");
+    Con_Printf("  STAR API URL: %s\n", star_url && star_url[0] ? star_url : "(default: https://oasisweb4.com/star/api)");
+    Con_Printf("  OASIS API URL: %s\n", oasis_url && oasis_url[0] ? oasis_url : "(default: https://oasisweb4.com/api)");
+    Con_Printf("  Username: %s\n", oquake_star_username.string && oquake_star_username.string[0] ? oquake_star_username.string : "(not set)");
+    Con_Printf("  Password: %s\n", oquake_star_password.string && oquake_star_password.string[0] ? "***" : "(not set)");
+    Con_Printf("  API Key: %s\n", oquake_star_api_key.string && oquake_star_api_key.string[0] ? "***" : "(not set)");
+    Con_Printf("  Avatar ID: %s\n", oquake_star_avatar_id.string && oquake_star_avatar_id.string[0] ? oquake_star_avatar_id.string : "(not set)");
+    Con_Printf("  Beam face: %s\n", oasis_star_beam_face.value > 0.5f ? "on" : "off");
+    Con_Printf("\n");
+    Con_Printf("  Stack (1) / Unlock (0) - ammo always stacks:\n");
+    Con_Printf("    stack_armor:    %s\n", (oquake_star_stack_armor.string && atoi(oquake_star_stack_armor.string)) ? "1 (stack)" : "0 (unlock)");
+    Con_Printf("    stack_weapons:  %s\n", (oquake_star_stack_weapons.string && atoi(oquake_star_stack_weapons.string)) ? "1 (stack)" : "0 (unlock)");
+    Con_Printf("    stack_powerups: %s\n", (oquake_star_stack_powerups.string && atoi(oquake_star_stack_powerups.string)) ? "1 (stack)" : "0 (unlock)");
+    Con_Printf("    stack_keys:     %s\n", (oquake_star_stack_keys.string && atoi(oquake_star_stack_keys.string)) ? "1 (stack)" : "0 (unlock)");
+    Con_Printf("    stack_sigils:   %s (OQuake only)\n", (oquake_star_stack_sigils.string && atoi(oquake_star_stack_sigils.string)) ? "1 (stack)" : "0 (unlock)");
+    Con_Printf("\n");
+    Con_Printf("  Mint NFT when collecting (1=on, 0=off):\n");
+    Con_Printf("    mint_weapons:   %s\n", (oquake_star_mint_weapons.string && atoi(oquake_star_mint_weapons.string)) ? "1" : "0");
+    Con_Printf("    mint_armor:     %s\n", (oquake_star_mint_armor.string && atoi(oquake_star_mint_armor.string)) ? "1" : "0");
+    Con_Printf("    mint_powerups:  %s\n", (oquake_star_mint_powerups.string && atoi(oquake_star_mint_powerups.string)) ? "1" : "0");
+    Con_Printf("    mint_keys:      %s\n", (oquake_star_mint_keys.string && atoi(oquake_star_mint_keys.string)) ? "1" : "0");
+    Con_Printf("\n");
+    Con_Printf("  Mint NFT when killing monster (1=on, 0=off). Set: star mint monster <name> <0|1>\n");
+    {
+        int i, j;
+        for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++) {
+            int already = 0;
+            for (j = 0; j < i; j++)
+                if (strcmp(OQUAKE_MONSTERS[j].config_key, OQUAKE_MONSTERS[i].config_key) == 0) { already = 1; break; }
+            if (already) continue;
+            Con_Printf("    %s  mint_monster_%s: %s\n", OQUAKE_MONSTERS[i].display_name, OQUAKE_MONSTERS[i].config_key, g_oq_mint_monster_flags[i] ? "1" : "0");
+        }
+    }
+    Con_Printf("  NFT mint provider: %s\n", oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS");
+    Con_Printf("  Send to address after minting: %s\n", oquake_star_send_to_address_after_minting.string && oquake_star_send_to_address_after_minting.string[0] ? oquake_star_send_to_address_after_minting.string : "(none)");
+    Con_Printf("\n");
+    Con_Printf("  max_health: %s  max_armor: %s  \n", oquake_star_max_health.string && oquake_star_max_health.string[0] ? oquake_star_max_health.string : "100", oquake_star_max_armor.string && oquake_star_max_armor.string[0] ? oquake_star_max_armor.string : "100");
+    Con_Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR;)\n", (oquake_star_always_allow_pickup_if_max.string && atoi(oquake_star_always_allow_pickup_if_max.string)) ? "1" : "0");
+    Con_Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it;)\n", (oquake_star_always_add_items_to_inventory.string && atoi(oquake_star_always_add_items_to_inventory.string)) ? "1" : "0");
+    Con_Printf("\n");
+    Con_Printf("To set: star pickup ifmax <0|1>   star pickup all <0|1>\n");
+    Con_Printf("        star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
+    Con_Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
+    Con_Printf("        star mint monster <name> <0|1>  (e.g. star mint monster oquake_ogre 0)\n");
+    Con_Printf("        star nftprovider <name>\n");
+     Con_Printf("\n");
+    Con_Printf("URLs: star seturl <url>   star setoasisurl <url>\n");
+    Con_Printf("Config file: star configfile json|cfg\n");
+    Con_Printf("To save now: star config save (also saved on exit)\n");
+    Con_Printf("Auth: set oquake_star_username \"...\" or star beamin <user> <pass>\n");
+    Con_Printf("\n");
+}
+
 void OQuake_STAR_Init(void) {
     star_sync_init();
     star_sync_set_add_item_log_cb(OQ_AddItemLogCb, NULL);
@@ -1514,6 +1586,9 @@ void OQuake_STAR_Init(void) {
 
     if (!g_star_console_registered) {
         Cmd_AddCommand("star", OQuake_STAR_Console_f);
+        Cmd_AddCommand("starconfig", OQ_StarConfig_f);
+        Cmd_AddCommand("star_config", OQ_StarConfig_f);   /* Alias: use if "star config" is unrecognized (e.g. engine tokenizes) */
+        Cmd_AddCommand("star config", OQ_StarConfig_f);   /* Some engines treat "star config" as one command name */
         Cmd_AddCommand("oasis_inventory_toggle", OQ_InventoryToggle_f);
         Cmd_AddCommand("oasis_inventory_prevtab", OQ_InventoryPrevTab_f);
         Cmd_AddCommand("oasis_inventory_nexttab", OQ_InventoryNextTab_f);
@@ -2751,6 +2826,7 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star beamout  - Log out / disconnect from STAR\n");
         Con_Printf("  star face on|off|status - Toggle beam-in face switch\n");
         Con_Printf("  star config        - Show current config (URLs, stack, mint options)\n");
+        Con_Printf("  starconfig / star_config - Same as 'star config' (use if 'star config' is unrecognised)\n");
         Con_Printf("  star config save   - Write config to files now (also saved on exit)\n");
         Con_Printf("  star stack <armor|weapons|powerups|keys|sigils> <0|1> - Stack (1) or unlock (0)\n");
         Con_Printf("  star mint <armor|weapons|powerups|keys> <0|1> - Mint NFT when collecting (1=on, 0=off)\n");
@@ -3112,75 +3188,14 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("\n");
         return;
     }
-    if (strcmp(sub, "config") == 0) {
+    if (sub && q_strcasecmp(sub, "config") == 0) {
         const char* save_arg = (argc >= 3) ? Cmd_Argv(2) : NULL;
         if (save_arg && strcmp(save_arg, "save") == 0) {
             OQ_SaveStarConfigToFiles();
             Con_Printf("Config saved to oasisstar.json and config.cfg (if paths found).\n");
             return;
         }
-        const char* star_url = oquake_star_api_url.string;
-        const char* oasis_url = oquake_oasis_api_url.string;
-        int using_defaults = 0;
-        
-        if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0)
-            using_defaults = 1;
-        if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0)
-            using_defaults = 1;
-        
-        Con_Printf("\n");
-        Con_Printf("OQuake STAR Configuration:\n");
-        if (using_defaults) {
-            Con_Printf("  [WARNING: Using default values - config file may not be loaded]\n");
-            Con_Printf("  Try running: exec config.cfg  or  star reloadconfig\n");
-            Con_Printf("\n");
-        }
-        Con_Printf("  Config file: %s\n", oquake_star_config_file.string && oquake_star_config_file.string[0] ? oquake_star_config_file.string : "json");
-        Con_Printf("  STAR API URL: %s\n", star_url && star_url[0] ? star_url : "(default: https://star-api.oasisplatform.world/api)");
-        Con_Printf("  OASIS API URL: %s\n", oasis_url && oasis_url[0] ? oasis_url : "(default: https://api.oasisplatform.world)");
-        Con_Printf("  Username: %s\n", oquake_star_username.string && oquake_star_username.string[0] ? oquake_star_username.string : "(not set)");
-        Con_Printf("  Password: %s\n", oquake_star_password.string && oquake_star_password.string[0] ? "***" : "(not set)");
-        Con_Printf("  API Key: %s\n", oquake_star_api_key.string && oquake_star_api_key.string[0] ? "***" : "(not set)");
-        Con_Printf("  Avatar ID: %s\n", oquake_star_avatar_id.string && oquake_star_avatar_id.string[0] ? oquake_star_avatar_id.string : "(not set)");
-        Con_Printf("  Beam face: %s\n", oasis_star_beam_face.value > 0.5f ? "on" : "off");
-        Con_Printf("  Stack (1) / Unlock (0) - ammo always stacks:\n");
-        Con_Printf("    stack_armor:    %s\n", (oquake_star_stack_armor.string && atoi(oquake_star_stack_armor.string)) ? "1 (stack)" : "0 (unlock)");
-        Con_Printf("    stack_weapons:  %s\n", (oquake_star_stack_weapons.string && atoi(oquake_star_stack_weapons.string)) ? "1 (stack)" : "0 (unlock)");
-        Con_Printf("    stack_powerups: %s\n", (oquake_star_stack_powerups.string && atoi(oquake_star_stack_powerups.string)) ? "1 (stack)" : "0 (unlock)");
-        Con_Printf("    stack_keys:     %s\n", (oquake_star_stack_keys.string && atoi(oquake_star_stack_keys.string)) ? "1 (stack)" : "0 (unlock)");
-        Con_Printf("    stack_sigils:   %s (OQuake only)\n", (oquake_star_stack_sigils.string && atoi(oquake_star_stack_sigils.string)) ? "1 (stack)" : "0 (unlock)");
-        Con_Printf("  Mint NFT when collecting (1=on, 0=off):\n");
-        Con_Printf("    mint_weapons:   %s\n", (oquake_star_mint_weapons.string && atoi(oquake_star_mint_weapons.string)) ? "1" : "0");
-        Con_Printf("    mint_armor:     %s\n", (oquake_star_mint_armor.string && atoi(oquake_star_mint_armor.string)) ? "1" : "0");
-        Con_Printf("    mint_powerups:  %s\n", (oquake_star_mint_powerups.string && atoi(oquake_star_mint_powerups.string)) ? "1" : "0");
-        Con_Printf("    mint_keys:      %s\n", (oquake_star_mint_keys.string && atoi(oquake_star_mint_keys.string)) ? "1" : "0");
-        Con_Printf("  Mint NFT when killing monster (1=on, 0=off). Set: star mint monster <name> <0|1>\n");
-        {
-            int i, j;
-            for (i = 0; i < OQ_MONSTER_COUNT && i < OQ_MONSTER_FLAGS_MAX; i++) {
-                int already = 0;
-                for (j = 0; j < i; j++)
-                    if (strcmp(OQUAKE_MONSTERS[j].config_key, OQUAKE_MONSTERS[i].config_key) == 0) { already = 1; break; }
-                if (already) continue;
-                Con_Printf("    %s  mint_monster_%s: %s\n", OQUAKE_MONSTERS[i].display_name, OQUAKE_MONSTERS[i].config_key, g_oq_mint_monster_flags[i] ? "1" : "0");
-            }
-        }
-        Con_Printf("  NFT mint provider: %s\n", oquake_star_nft_provider.string && oquake_star_nft_provider.string[0] ? oquake_star_nft_provider.string : "SolanaOASIS");
-        Con_Printf("  Send to address after minting: %s\n", oquake_star_send_to_address_after_minting.string && oquake_star_send_to_address_after_minting.string[0] ? oquake_star_send_to_address_after_minting.string : "(none)");
-        Con_Printf("  max_health: %s  max_armor: %s  (oasisstar.json; use-from-inventory cap)\n", oquake_star_max_health.string && oquake_star_max_health.string[0] ? oquake_star_max_health.string : "100", oquake_star_max_armor.string && oquake_star_max_armor.string[0] ? oquake_star_max_armor.string : "100");
-        Con_Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR; 0=original Quake, item stays on floor)\n", (oquake_star_always_allow_pickup_if_max.string && atoi(oquake_star_always_allow_pickup_if_max.string)) ? "1" : "0");
-        Con_Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it; 0=only when at max. When 1, overrides above.)\n", (oquake_star_always_add_items_to_inventory.string && atoi(oquake_star_always_add_items_to_inventory.string)) ? "1" : "0");
-        Con_Printf("\n");
-        Con_Printf("To set: star pickup ifmax <0|1>   star pickup all <0|1>\n");
-        Con_Printf("        star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
-        Con_Printf("        star mint <armor|weapons|powerups|keys> <0|1>\n");
-        Con_Printf("        star mint monster <name> <0|1>  (e.g. star mint monster oquake_ogre 0)\n");
-        Con_Printf("        star nftprovider <name>\n");
-        Con_Printf("URLs: star seturl <url>   star setoasisurl <url>\n");
-        Con_Printf("Config file: star configfile json|cfg\n");
-        Con_Printf("To save now: star config save (also saved on exit)\n");
-        Con_Printf("Auth: set oquake_star_username \"...\" or star beamin <user> <pass>\n");
-        Con_Printf("\n");
+        OQ_StarConfig_f();
         return;
     }
     if (strcmp(sub, "stack") == 0) {
