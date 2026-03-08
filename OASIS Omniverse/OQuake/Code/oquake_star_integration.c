@@ -121,6 +121,10 @@ cvar_t oquake_star_max_armor = {"oquake_star_max_armor", "100", 0};
 cvar_t oquake_star_always_allow_pickup_if_max = {"oquake_star_always_allow_pickup_if_max", "1", 0};
 /* 1 = always add to STAR even when engine uses it (player gets both). 0 = only add when at max (or when always_allow_pickup_if_max and at max). When 1, overrides always_allow_pickup_if_max. JSON: "always_add_items_to_inventory". */
 cvar_t oquake_star_always_add_items_to_inventory = {"oquake_star_always_add_items_to_inventory", "0", 0};
+/* 0 = below max: send to STAR inventory only (don't let engine apply). 1 = standard: below max let engine use. At max always use always_allow_pickup_if_max. JSON: "use_health_on_pickup". */
+cvar_t oquake_star_use_health_on_pickup = {"oquake_star_use_health_on_pickup", "0", 0};
+cvar_t oquake_star_use_armor_on_pickup = {"oquake_star_use_armor_on_pickup", "0", 0};
+cvar_t oquake_star_use_powerup_on_pickup = {"oquake_star_use_powerup_on_pickup", "0", 0};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -1212,6 +1216,18 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_always_add_items_to_inventory", atoi(value) ? "1" : "0");
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "use_health_on_pickup", value, sizeof(value))) {
+        Cvar_Set("oquake_star_use_health_on_pickup", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "use_armor_on_pickup", value, sizeof(value))) {
+        Cvar_Set("oquake_star_use_armor_on_pickup", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "use_powerup_on_pickup", value, sizeof(value))) {
+        Cvar_Set("oquake_star_use_powerup_on_pickup", atoi(value) ? "1" : "0");
+        loaded = 1;
+    }
     if (OQ_ExtractJsonValue(json, "nft_provider", value, sizeof(value))) {
         Cvar_Set("oquake_star_nft_provider", value);
         loaded = 1;
@@ -1281,6 +1297,9 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     fprintf(f, "  \"max_armor\": %s,\n", max_a && atoi(max_a) > 0 ? max_a : "100");
     fprintf(f, "  \"always_allow_pickup_if_max\": %s,\n", (always_pickup && atoi(always_pickup)) ? "1" : "0");
     fprintf(f, "  \"always_add_items_to_inventory\": %s,\n", (always_add && atoi(always_add)) ? "1" : "0");
+    fprintf(f, "  \"use_health_on_pickup\": %s,\n", (oquake_star_use_health_on_pickup.string && atoi(oquake_star_use_health_on_pickup.string)) ? "1" : "0");
+    fprintf(f, "  \"use_armor_on_pickup\": %s,\n", (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? "1" : "0");
+    fprintf(f, "  \"use_powerup_on_pickup\": %s,\n", (oquake_star_use_powerup_on_pickup.string && atoi(oquake_star_use_powerup_on_pickup.string)) ? "1" : "0");
     fprintf(f, "  \"nft_provider\": \"");
     if (nft_prov && nft_prov[0]) {
         const char* p;
@@ -1414,6 +1433,9 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         fprintf(f, "set oquake_star_max_armor \"%s\"\n", oquake_star_max_armor.string ? oquake_star_max_armor.string : "100");
         fprintf(f, "set oquake_star_always_allow_pickup_if_max \"%s\"\n", atoi(oquake_star_always_allow_pickup_if_max.string) ? "1" : "0");
         fprintf(f, "set oquake_star_always_add_items_to_inventory \"%s\"\n", atoi(oquake_star_always_add_items_to_inventory.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_use_health_on_pickup \"%s\"\n", atoi(oquake_star_use_health_on_pickup.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_use_armor_on_pickup \"%s\"\n", atoi(oquake_star_use_armor_on_pickup.string) ? "1" : "0");
+        fprintf(f, "set oquake_star_use_powerup_on_pickup \"%s\"\n", atoi(oquake_star_use_powerup_on_pickup.string) ? "1" : "0");
         fprintf(f, "set oquake_star_nft_provider \"%s\"\n", oquake_star_nft_provider.string ? oquake_star_nft_provider.string : "SolanaOASIS");
         fprintf(f, "set oquake_star_send_to_address_after_minting \"%s\"\n", oquake_star_send_to_address_after_minting.string ? oquake_star_send_to_address_after_minting.string : "");
     }
@@ -1528,8 +1550,11 @@ static void OQ_StarConfig_f(void) {
     Con_Printf("  Send to address after minting: %s\n", oquake_star_send_to_address_after_minting.string && oquake_star_send_to_address_after_minting.string[0] ? oquake_star_send_to_address_after_minting.string : "(none)");
     Con_Printf("\n");
     Con_Printf("  max_health: %s  max_armor: %s  \n", oquake_star_max_health.string && oquake_star_max_health.string[0] ? oquake_star_max_health.string : "100", oquake_star_max_armor.string && oquake_star_max_armor.string[0] ? oquake_star_max_armor.string : "100");
-    Con_Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR;)\n", (oquake_star_always_allow_pickup_if_max.string && atoi(oquake_star_always_allow_pickup_if_max.string)) ? "1" : "0");
-    Con_Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it;)\n", (oquake_star_always_add_items_to_inventory.string && atoi(oquake_star_always_add_items_to_inventory.string)) ? "1" : "0");
+    Con_Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR)\n", (oquake_star_always_allow_pickup_if_max.string && atoi(oquake_star_always_allow_pickup_if_max.string)) ? "1" : "0");
+    Con_Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it)\n", (oquake_star_always_add_items_to_inventory.string && atoi(oquake_star_always_add_items_to_inventory.string)) ? "1" : "0");
+    Con_Printf("  use_health_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", (oquake_star_use_health_on_pickup.string && atoi(oquake_star_use_health_on_pickup.string)) ? "1" : "0");
+    Con_Printf("  use_armor_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? "1" : "0");
+    Con_Printf("  use_powerup_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", (oquake_star_use_powerup_on_pickup.string && atoi(oquake_star_use_powerup_on_pickup.string)) ? "1" : "0");
     Con_Printf("\n");
     Con_Printf("To set: star pickup ifmax <0|1>   star pickup all <0|1>\n");
     Con_Printf("        star stack <armor|weapons|powerups|keys|sigils> <0|1> (sigils = OQuake only)\n");
@@ -1576,6 +1601,9 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_max_armor);
     Cvar_RegisterVariable(&oquake_star_always_allow_pickup_if_max);
     Cvar_RegisterVariable(&oquake_star_always_add_items_to_inventory);
+    Cvar_RegisterVariable(&oquake_star_use_health_on_pickup);
+    Cvar_RegisterVariable(&oquake_star_use_armor_on_pickup);
+    Cvar_RegisterVariable(&oquake_star_use_powerup_on_pickup);
 
     /* Default all monster mint flags to 1 (load from JSON may override) */
     {
@@ -1701,6 +1729,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_always_allow_pickup_if_max", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_always_add_items_to_inventory") == 0) {
                                     Cvar_Set("oquake_star_always_add_items_to_inventory", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_health_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_health_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_armor_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_armor_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_powerup_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_powerup_on_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -1834,6 +1868,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_always_allow_pickup_if_max", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_always_add_items_to_inventory") == 0) {
                                     Cvar_Set("oquake_star_always_add_items_to_inventory", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_health_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_health_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_armor_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_armor_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_powerup_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_powerup_on_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -1950,6 +1990,12 @@ void OQuake_STAR_Init(void) {
                                     Cvar_Set("oquake_star_always_allow_pickup_if_max", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_always_add_items_to_inventory") == 0) {
                                     Cvar_Set("oquake_star_always_add_items_to_inventory", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_health_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_health_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_armor_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_armor_on_pickup", cvar_value);
+                                } else if (strcmp(cvar_name, "oquake_star_use_powerup_on_pickup") == 0) {
+                                    Cvar_Set("oquake_star_use_powerup_on_pickup", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_nft_provider") == 0) {
                                     Cvar_Set("oquake_star_nft_provider", cvar_value);
                                 } else if (strcmp(cvar_name, "oquake_star_send_to_address_after_minting") == 0) {
@@ -2474,85 +2520,93 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         max_a = atoi(oquake_star_max_armor.string);
     player_health = (int)player->v.health;
     player_armor = (int)player->v.armorvalue;
-    /* Only add to STAR when we are the item's touch (first edict = item). Otherwise we're the player's touch and would double-add. */
-    if (!first_edict_is_item) {
-        OQ_PickupLog("InterceptTouch: skip (player's touch, classname=%s)", classname);
-        return 0;
-    }
-    q_snprintf(log_buf, sizeof(log_buf), "InterceptTouch: class=%s health=%d max_h=%d armor=%d max_a=%d always_add=%d allow_ifmax=%d",
-               classname, player_health, max_h, player_armor, max_a, always_add, allow_pickup_if_max);
+    /* Process both call orders: when first_edict_is_item==0 the engine called (player, item) and will ED_Free(e2)=item on return 1; when 1, (item, player) and ED_Free(e1)=item. So we can add and return 1 in both cases. */
+    q_snprintf(log_buf, sizeof(log_buf), "InterceptTouch: class=%s health=%d max_h=%d armor=%d max_a=%d always_add=%d allow_ifmax=%d first_item=%d",
+               classname, player_health, max_h, player_armor, max_a, always_add, allow_pickup_if_max, first_edict_is_item);
     OQ_PickupLog("%s", log_buf);
-    /* Health: item_health (25), item_health_mega / item_health_super (100). When always_add=1 and at max, add and remove entity (return 1). */
+    /* Health: item_health (25), item_health_mega / item_health_super (100). use_health_on_pickup: 0=below max->inventory only; 1=standard. */
     if (OQ_StrEqNoCase(classname, "item_health")) {
+        int use_health = (oquake_star_use_health_on_pickup.string && atoi(oquake_star_use_health_on_pickup.string)) ? 1 : 0;
         if (always_add) {
-            OQ_PickupLog("InterceptTouch: item_health -> ADD (always_add) %s", (player_health >= max_h) ? "ret=1" : "ret=0");
             OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
-            return (player_health >= max_h) ? 1 : 0;  /* At max: remove entity so it doesn't stay on floor */
+            return (player_health >= max_h) ? 1 : 0;
         }
         if (player_health >= max_h) {
-            if (!allow_pickup_if_max) {
-                OQ_PickupLog("InterceptTouch: item_health at max, allow_ifmax=0 -> ret=0");
-                return 0;
-            }
-            OQ_PickupLog("InterceptTouch: item_health -> ADD (at max) ret=1");
+            if (!allow_pickup_if_max) return 0;
             OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
             return 1;
         }
-        OQ_PickupLog("InterceptTouch: item_health not at max -> ret=0");
+        /* Below max: use_health 0 -> inventory only (intercept); 1 -> let engine use */
+        if (!use_health) {
+            OQuake_STAR_OnPickupLeftOnFloor("Health", "Health", 1, "Health (+25)");
+            return 1;
+        }
         return 0;
     }
     if (OQ_StrEqNoCase(classname, "item_health_mega") || OQ_StrEqNoCase(classname, "item_health_super")) {
+        int use_powerup = (oquake_star_use_powerup_on_pickup.string && atoi(oquake_star_use_powerup_on_pickup.string)) ? 1 : 0;
         if (always_add) {
-            OQ_PickupLog("InterceptTouch: mega/super health -> ADD (always_add) %s", (player_health >= max_h) ? "ret=1" : "ret=0");
             OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
             return (player_health >= max_h) ? 1 : 0;
         }
         if (player_health >= max_h) {
-            if (!allow_pickup_if_max) {
-                OQ_PickupLog("InterceptTouch: mega/super at max, allow_ifmax=0 -> ret=0");
-                return 0;
-            }
+            if (!allow_pickup_if_max) return 0;
+            OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
+            return 1;
+        }
+        if (!use_powerup) {
             OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
             return 1;
         }
         return 0;
     }
-    /* Armor: item_armor1 (green +100), item_armor2 (yellow +150), item_armorInv (red +200). */
+    /* Armor: item_armor1 (green +100), item_armor2 (yellow +150), item_armorInv (red +200). use_armor_on_pickup: 0=below max->inventory only; 1=standard. */
     if (OQ_StrEqNoCase(classname, "item_armor1")) {
+        int use_armor = (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? 1 : 0;
         if (always_add) {
-            OQ_PickupLog("InterceptTouch: item_armor1 -> ADD (always_add) %s", (player_armor >= max_a) ? "ret=1" : "ret=0");
             OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
             return (player_armor >= max_a) ? 1 : 0;
         }
         if (player_armor >= max_a) {
-            if (!allow_pickup_if_max)
-                return 0;
+            if (!allow_pickup_if_max) return 0;
+            OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
+            return 1;
+        }
+        if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Green Armor", "Armor", 1, "Green Armor (+100)");
             return 1;
         }
         return 0;
     }
     if (OQ_StrEqNoCase(classname, "item_armor2")) {
+        int use_armor = (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? 1 : 0;
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
             return (player_armor >= max_a) ? 1 : 0;
         }
         if (player_armor >= max_a) {
-            if (!allow_pickup_if_max)
-                return 0;
+            if (!allow_pickup_if_max) return 0;
+            OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
+            return 1;
+        }
+        if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Yellow Armor", "Armor", 1, "Yellow Armor (+150)");
             return 1;
         }
         return 0;
     }
     if (OQ_StrEqNoCase(classname, "item_armorInv") || OQ_StrEqNoCase(classname, "item_armor_inv")) {
+        int use_armor = (oquake_star_use_armor_on_pickup.string && atoi(oquake_star_use_armor_on_pickup.string)) ? 1 : 0;
         if (always_add) {
             OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
             return (player_armor >= max_a) ? 1 : 0;
         }
         if (player_armor >= max_a) {
-            if (!allow_pickup_if_max)
-                return 0;
+            if (!allow_pickup_if_max) return 0;
+            OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
+            return 1;
+        }
+        if (!use_armor) {
             OQuake_STAR_OnPickupLeftOnFloor("Red Armor", "Armor", 1, "Red Armor (+200)");
             return 1;
         }
