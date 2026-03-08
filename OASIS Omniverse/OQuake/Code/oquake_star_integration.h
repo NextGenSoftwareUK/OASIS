@@ -59,7 +59,7 @@ void OQuake_STAR_OnBossKilled(const char* boss_name);
 void OQuake_STAR_OnEntityFreed(void* ed);
 /** Call from engine or QuakeC when the player touches a health/armor/ammo pickup but the engine does NOT apply it (e.g. player already at max). Same as ODOOM: only add to STAR when the item would normally be left on the floor. Engine should remove the entity after calling so the item is not left on the floor. */
 void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity, const char* optional_description);
-/** Call from engine before running the touch function for (item_edict, player_edict). Returns 1 if the pickup was intercepted (player at max health/armor); caller should ED_Free(item_edict) and skip the touch. Returns 0 otherwise. */
+/** Call from engine before running the touch function for (e1, e2). Returns 0 = no intercept; 1 = intercept, free e1 (first arg) and skip touch; 2 = intercept, free e2 (second arg) and skip touch. Engine must handle both orderings: (player, item) and (item, player). When (player, item), return 2 so caller frees e2 (the item) and must not run item's touch. */
 int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
 
 #ifdef __cplusplus
