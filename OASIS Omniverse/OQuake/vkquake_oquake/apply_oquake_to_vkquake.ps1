@@ -746,7 +746,7 @@ if (Test-Path $GlScreenC) {
     if ($content -notmatch 'OQuake_STAR_DrawBeamedInStatus') {
         # After SCR_DrawClock (cbx); in the normal game HUD block add the four OQuake draw calls
         $pattern = '(SCR_DrawClock \(cbx\);\s*(?://[^\r\n]*)?)(\r?\n)(\s+SCR_DrawConsole)'
-        $replacement = "`$1`$2	OQuake_STAR_DrawBeamedInStatus (cbx);`r`n	OQuake_STAR_DrawXpStatus (cbx);`r`n	OQuake_STAR_DrawVersionStatus (cbx);`r`n	OQuake_STAR_DrawInventoryOverlay (cbx);`r`n`$3"
+        $replacement = "`$1`$2	OQuake_STAR_DrawBeamedInStatus (cbx);`r`n	OQuake_STAR_DrawXpStatus (cbx);`r`n	OQuake_STAR_DrawVersionStatus (cbx);`r`n	OQuake_STAR_DrawToast (cbx);`r`n	OQuake_STAR_DrawInventoryOverlay (cbx);`r`n`$3"
         if ($content -match $pattern) {
             $content = $content -replace $pattern, $replacement
             $glPatched = $true
