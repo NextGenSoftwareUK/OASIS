@@ -505,21 +505,35 @@ function Add-SVImpactTouchIntercept {
 }
 
 # --- Touch pickup at max: before running the Touch builtin (fallback; real path is SV_Impact in sv_phys.c). ---
+# Try two patterns: (1) two lines with G_EDICT(PARM0) then G_EDICT(PARM1); (2) same with optional comma/semicolon between.
 function Add-TouchPickupInterceptInPrCmds {
     param([string]$FilePath, [string]$FileLabel)
     if (-not (Test-Path $FilePath)) { return $false }
     if ($FileLabel -ne 'pr_cmds.c') { return $false }
     $content = Get-Content $FilePath -Raw
     if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') { return $false }
-    # PF_Touch (or similar) has two edict params: item = PARM0, player = PARM1. Insert intercept check after both declarations.
-    $pattern = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
-    if ($content -notmatch $pattern) { return $false }
+    # PF_Touch: two edict params, item = PARM0 (self), player = PARM1 (other). Free first (item) when we intercept.
+    $pattern1 = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
     $repl = "`$1`$3`r`n`tif (OQuake_STAR_InterceptTouchPickupAtMax(`$2, `$4)) { ED_Free(`$2); return; }"
-    $content = $content -replace $pattern, $repl
-    if ($content -notmatch 'OQuake_STAR_InterceptTouchPickupAtMax') { return $false }
-    Set-Content $FilePath $content -NoNewline
-    Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (health/armor when player full)" -ForegroundColor Green
-    return $true
+    if ($content -match $pattern1) {
+        $content = $content -replace $pattern1, $repl
+        if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+            Set-Content $FilePath $content -NoNewline
+            Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (health/armor when player full)" -ForegroundColor Green
+            return $true
+        }
+    }
+    # Alternative: single line "edict_t *e1 = G_EDICT(OFS_PARM0); edict_t *e2 = G_EDICT(OFS_PARM1);" or with comma
+    $pattern2 = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
+    if ($content -match $pattern2) {
+        $content = $content -replace $pattern2, "`$1`$3`r`n`tif (OQuake_STAR_InterceptTouchPickupAtMax(`$2, `$4)) { ED_Free(`$2); return; }"
+        if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+            Set-Content $FilePath $content -NoNewline
+            Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (pattern 2)" -ForegroundColor Green
+            return $true
+        }
+    }
+    return $false
 }
 
 # Monster kill via SVC_KILLEDMONSTER: when QuakeC Killed() does WriteByte(MSG_ALL, SVC_KILLEDMONSTER), self is the dead monster. Primary path for XP/NFT.
