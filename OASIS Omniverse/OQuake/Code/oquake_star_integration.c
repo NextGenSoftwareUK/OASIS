@@ -35,6 +35,7 @@ star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, co
 /* Forward declare callbacks so they can be used before their definitions. */
 static void OQ_OnSendItemDone(void* user_data);
 static void OQ_PickupLog(const char* fmt, ...);
+static void OQ_StarDebugLog(const char* fmt, ...);
 static qboolean g_star_debug_logging = false;
 
 /** Case-insensitive substring search. Defined early so MSVC parses call sites without error. */
