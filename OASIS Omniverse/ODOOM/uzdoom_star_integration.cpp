@@ -193,6 +193,10 @@ CVAR(Int, odoom_star_always_add_items_to_inventory, 0, CVAR_ARCHIVE | CVAR_GLOBA
 /** Max health/armor when using items from inventory (e.g. 200). Can set higher if desired. */
 CVAR(Int, odoom_star_max_health, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_max_armor, 200, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** 0 = below max: send to STAR inventory only (don't let engine use). 1 = standard. At max: use always_allow_pickup_if_max. Same as OQuake. */
+CVAR(Int, odoom_star_use_health_on_pickup, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_use_armor_on_pickup, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_star_use_powerup_on_pickup, 0, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 
 /** Per-monster mint flag: 1 = mint NFT when killed, 0 = off. Keys = normalized config key (e.g. odoom_zombieman, oquake_ogre). */
 static std::map<std::string, int> g_odoom_mint_monster_flags;
@@ -403,6 +407,18 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_max_armor = (v > 0) ? v : 200;
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "use_health_on_pickup", value, (int)sizeof(value))) {
+		odoom_star_use_health_on_pickup = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "use_armor_on_pickup", value, (int)sizeof(value))) {
+		odoom_star_use_armor_on_pickup = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "use_powerup_on_pickup", value, (int)sizeof(value))) {
+		odoom_star_use_powerup_on_pickup = (atoi(value) != 0) ? 1 : 0;
+		loaded = true;
+	}
 	/* Per-monster mint: mint_monster_odoom_zombieman, mint_monster_oquake_ogre, etc. Default 1 if key missing. */
 	for (int i = 0; ODOOM_MONSTERS[i].engineName; i++) {
 		char key[128];
@@ -434,6 +450,9 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		u.Int = odoom_star_always_add_items_to_inventory ? 1 : 0; v = FindCVar("odoom_star_always_add_items_to_inventory", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 		u.Int = odoom_star_max_health; v = FindCVar("odoom_star_max_health", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 		u.Int = odoom_star_max_armor; v = FindCVar("odoom_star_max_armor", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_use_health_on_pickup ? 1 : 0; v = FindCVar("odoom_star_use_health_on_pickup", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_use_armor_on_pickup ? 1 : 0; v = FindCVar("odoom_star_use_armor_on_pickup", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
+		u.Int = odoom_star_use_powerup_on_pickup ? 1 : 0; v = FindCVar("odoom_star_use_powerup_on_pickup", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 	}
 	return loaded;
 }
@@ -491,6 +510,9 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 		fprintf(f, "  \"always_add_items_to_inventory\": %d,\n", aa);
 		fprintf(f, "  \"max_health\": %d,\n", mh);
 		fprintf(f, "  \"max_armor\": %d,\n", ma);
+		fprintf(f, "  \"use_health_on_pickup\": %d,\n", odoom_star_use_health_on_pickup ? 1 : 0);
+		fprintf(f, "  \"use_armor_on_pickup\": %d,\n", odoom_star_use_armor_on_pickup ? 1 : 0);
+		fprintf(f, "  \"use_powerup_on_pickup\": %d,\n", odoom_star_use_powerup_on_pickup ? 1 : 0);
 	}
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
@@ -1284,7 +1306,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind P \"+user3\"");
 		C_DoCommand("bind enter \"+use\"");
 		C_DoCommand("bind \"KP-Enter\" \"+use\"");
-		C_DoCommand("bind Q \"\"");  /* Q always reserved for quest popup so raw key is seen */
+		C_DoCommand("bind Q \"odoom_quest_toggle\"");  /* Q opens quest popup (fallback if raw key not available) */
 		C_DoCommand("bind pgup \"\"");
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
@@ -2584,6 +2606,17 @@ CCMD(odoom_use_armor)
 	star_sync_use_item_start(name.c_str(), "odoom_use_armor", ODOOM_OnUseItemFromInventoryDone, nullptr);
 }
 
+CCMD(odoom_quest_toggle)
+{
+	if (!g_star_initialized) return;
+	FBaseCVar* popupVar = FindCVar("odoom_quest_popup_open", nullptr);
+	if (popupVar && popupVar->GetRealType() == CVAR_Int) {
+		int cur = popupVar->GetGenericRep(CVAR_Int).Int;
+		UCVarValue val; val.Int = cur ? 0 : 1;
+		popupVar->SetGenericRep(val, CVAR_Int);
+	}
+}
+
 CCMD(star)
 {
 	if (argv.argc() < 2) {
@@ -3017,6 +3050,9 @@ CCMD(star)
 		Printf("  max_armor:  %d  (armor pickups only go to STAR inventory when below this; at max they are not stashed)\n", (int)odoom_star_max_armor);
 		Printf("  always_allow_pickup_if_max: %s  (1=at max still pick up into STAR; 0=original Doom, leave on floor)\n", odoom_star_always_allow_pickup_if_max ? "1" : "0");
 		Printf("  always_add_items_to_inventory: %s  (1=always add to STAR even when engine uses it; 0=only when at max)\n", odoom_star_always_add_items_to_inventory ? "1" : "0");
+		Printf("  use_health_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_health_on_pickup ? "1" : "0");
+		Printf("  use_armor_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_armor_on_pickup ? "1" : "0");
+		Printf("  use_powerup_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_powerup_on_pickup ? "1" : "0");
 		Printf("\n");
 		Printf("To set: star seturl <url>   star setoasisurl <url>\n");
 		Printf("        star pickup ifmax <0|1>   star pickup all <0|1>\n");

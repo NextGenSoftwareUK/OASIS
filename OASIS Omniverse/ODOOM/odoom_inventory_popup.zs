@@ -830,25 +830,20 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
-		// Quest Tracker: left side near top, always visible when STAR is active (shows "Q = Quests" if no quest data or not beamed in)
+		// Quest Tracker: left side near top, only when beamed in and we have a quest title (no "Q = Quests" hint)
 		CVar trackerTitleCv = CVar.FindCVar("odoom_quest_tracker_title");
 		CVar trackerObjCv = CVar.FindCVar("odoom_quest_tracker_objective");
-		if (trackerTitleCv != null || trackerObjCv != null || (beamedVar != null && beamedVar.GetInt() != 0))
+		bool beamedIn = (beamedVar != null && beamedVar.GetInt() != 0);
+		String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
+		if (beamedIn && qTitle.Length() > 0)
 		{
 			int trackX = 4;
 			int trackY = 22;
 			double trackScale = 0.5;
-			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
-			bool beamedIn = (beamedVar != null && beamedVar.GetInt() != 0);
-			if (beamedIn && qTitle.Length() > 0)
-			{
-				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, qTitle, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
-				String qObj = (trackerObjCv != null) ? trackerObjCv.GetString() : "";
-				if (qObj.Length() > 0)
-					screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
-			}
-			else
-				screen.DrawText(f, Font.CR_GRAY, trackX, trackY, "Q = Quests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+			screen.DrawText(f, Font.CR_GOLD, trackX, trackY, qTitle, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+			String qObj = (trackerObjCv != null) ? trackerObjCv.GetString() : "";
+			if (qObj.Length() > 0)
+				screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
 		}
 
 		// Quest popup (Q key)
