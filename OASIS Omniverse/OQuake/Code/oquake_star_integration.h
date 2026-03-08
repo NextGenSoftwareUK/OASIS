@@ -51,6 +51,8 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
 /** Draw avatar XP in top-right (when beamed in). Call from same HUD path as DrawVersionStatus. */
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx);
+/** Draw toast message at top center when set (e.g. "Already at max health"). Call from same HUD path as DrawInventoryOverlay. */
+void OQuake_STAR_DrawToast(cb_context_t* cbx);
 /** Call from engine or QuakeC when a monster is killed: queues XP + optional mint + add to inventory (async). */
 void OQuake_STAR_OnMonsterKilled(const char* monster_name);
 /** Call from engine or QuakeC when a boss is killed (same as OnMonsterKilled; kept for backward compat). */
