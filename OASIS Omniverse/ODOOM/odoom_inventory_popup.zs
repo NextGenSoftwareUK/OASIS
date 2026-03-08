@@ -305,9 +305,10 @@ class OASISInventoryOverlayHandler : EventHandler
 			{
 				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
 				// Monster items already have game in the name (e.g. "Dog (OQUAKE)"); don't append game again.
+				String desc = (i < starDescs.Size()) ? starDescs[i] : "";
 				String label = (i < starTypes.Size() && starTypes[i].Compare("Monster") == 0)
 					? starNames[i]
-					: StarItemShortLabel(starNames[i], starGames[i]);
+					: StarItemShortLabelWithAmount(starNames[i], starGames[i], desc);
 				starGroupLabels.Push(String.Format("%s x%d", label, qty));
 				starGroupCounts.Push(qty);
 				starGroupFirstNames.Push(starNames[i]);
@@ -703,6 +704,23 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (n.IndexOf("yellow_keycard") >= 0 || n.IndexOf("yellow_key") >= 0) return String.Format("Yellow Keycard (%s)", g);
 		if (n.Length() > 24) return String.Format("%s (%s)", n.Left(21), g);
 		return String.Format("%s (%s)", n, g);
+	}
+
+	// Like StarItemShortLabel but if desc contains "(+N)" appends " +N" before game tag (e.g. "Green Armor +100 (OQUAKE)").
+	private String StarItemShortLabelWithAmount(String name, String game, String desc)
+	{
+		String base = StarItemShortLabel(name, game);
+		if (desc.Length() == 0) return base;
+		int plusIdx = desc.IndexOf("(+");
+		if (plusIdx < 0) return base;
+		int numStart = plusIdx + 2;
+		int numEnd = desc.IndexOf(")", numStart);
+		if (numEnd <= numStart) return base;
+		String amount = desc.Mid(numStart, numEnd - numStart);
+		int insertAt = base.IndexOf(" (");
+		if (insertAt >= 0)
+			return String.Format("%s +%s%s", base.Left(insertAt), amount, base.Mid(insertAt));
+		return String.Format("%s +%s", base, amount);
 	}
 
 	private void BuildTabInventory(Actor owner, out array<Inventory> outItems)
