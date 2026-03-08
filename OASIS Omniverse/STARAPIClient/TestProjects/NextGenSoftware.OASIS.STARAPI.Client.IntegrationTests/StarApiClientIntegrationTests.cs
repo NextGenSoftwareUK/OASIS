@@ -51,10 +51,14 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var callbackCodes = new List<StarApiResultCode>();
         client.SetCallback((code, _) => callbackCodes.Add(code), null);
 
+        var timeoutSec = 30;
+        if (!_useFakeServer && int.TryParse(GetEnv("STARAPI_TIMEOUT_SECONDS", ""), out var to) && to > 0)
+            timeoutSec = to;
         var init = client.Init(new StarApiConfig
         {
             Web5StarApiBaseUrl = _web5BaseUrl,
-            Web4OasisApiBaseUrl = _web4BaseUrl
+            Web4OasisApiBaseUrl = _web4BaseUrl,
+            TimeoutSeconds = timeoutSec
         });
         Assert.False(init.IsError);
 
@@ -297,7 +301,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         }
 
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        var timeoutSec = 30;
+        if (!_useFakeServer && int.TryParse(GetEnv("STARAPI_TIMEOUT_SECONDS", ""), out var t) && t > 0)
+            timeoutSec = t;
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl, TimeoutSeconds = timeoutSec });
         var username = _useFakeServer ? "u" : GetEnv("STARAPI_USERNAME", StarApiTestDefaults.Username);
         var password = _useFakeServer ? "p" : GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password);
         await client.AuthenticateAsync(username, password);
@@ -323,7 +330,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         }
 
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        var timeoutSec = 30;
+        if (!_useFakeServer && int.TryParse(GetEnv("STARAPI_TIMEOUT_SECONDS", ""), out var t) && t > 0)
+            timeoutSec = t;
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl, TimeoutSeconds = timeoutSec });
         var username = _useFakeServer ? "u" : GetEnv("STARAPI_USERNAME", StarApiTestDefaults.Username);
         var password = _useFakeServer ? "p" : GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password);
         await client.AuthenticateAsync(username, password);

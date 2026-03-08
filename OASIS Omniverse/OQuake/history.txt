@@ -57,3 +57,4 @@ star config
 star beamin dellams test!
 star config
 star beamin dellams test!
+star debug on

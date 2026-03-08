@@ -46,11 +46,15 @@ internal static class Program
         using var client = new StarApiClient();
         client.SetCallback((code, _) => Console.WriteLine($"[callback] {code}"), null);
 
+        var timeoutSec = harnessMode == "real-local" ? 180 : 30;
+        if (int.TryParse(GetEnv("STARAPI_TIMEOUT_SECONDS", ""), out var envTimeout) && envTimeout > 0)
+            timeoutSec = envTimeout;
+
         var init = client.Init(new StarApiConfig
         {
             Web5StarApiBaseUrl = web5BaseUrl,
             Web4OasisApiBaseUrl = web4BaseUrl,
-            TimeoutSeconds = harnessMode == "real-local" ? 180 : 30,
+            TimeoutSeconds = timeoutSec,
             ApiKey = string.IsNullOrWhiteSpace(apiKey) ? null : apiKey,
             AvatarId = string.IsNullOrWhiteSpace(avatarId) ? null : avatarId
         });
