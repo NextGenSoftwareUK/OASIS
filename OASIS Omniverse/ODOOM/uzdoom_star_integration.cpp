@@ -1337,20 +1337,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey);
-
-		/* Quest popup: C++ toggle on Q press so Q works even if ZScript key handling isn't active (e.g. status bar variant). */
-		if (g_star_initialized) {
-			static int s_odoom_q_prev = 0;
-			if (q && !s_odoom_q_prev) {
-				FBaseCVar* popupVar = FindCVar("odoom_quest_popup_open", nullptr);
-				if (popupVar && popupVar->GetRealType() == CVAR_Int) {
-					int cur = popupVar->GetGenericRep(CVAR_Int).Int;
-					UCVarValue val; val.Int = cur ? 0 : 1;
-					popupVar->SetGenericRep(val, CVAR_Int);
-				}
-			}
-			s_odoom_q_prev = q;
-		}
+		/* Quest popup is driven by ZScript only (same as inventory I key): ZScript reads odoom_key_q and toggles; C++ does not set odoom_quest_popup_open. */
 	}
 
 	/* Quest: set active from popup (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1) */
@@ -2270,28 +2257,7 @@ int UZDoom_STAR_PreTouchSpecial(struct AActor* special) {
 		/* Weapons: return STAR_PICKUP_WEAPON so the engine never destroys the actor (CallTouch gives weapon to player); we still run PostTouchSpecial to add/mint in STAR. */
 		if (weaponType && special->IsKindOf(weaponType))
 			return STAR_PICKUP_WEAPON;
-		/* When use_X_on_pickup=0 and player below max: add to STAR only, engine must not apply (skip CallTouch). */
-		if (!odoom_star_always_add_items_to_inventory) {
-			int use_health = (odoom_star_use_health_on_pickup != 0);
-			int use_armor = (odoom_star_use_armor_on_pickup != 0);
-			int use_powerup = (odoom_star_use_powerup_on_pickup != 0);
-			int max_h = (odoom_star_max_health > 0) ? (int)odoom_star_max_health : 200;
-			int max_a = (odoom_star_max_armor > 0) ? (int)odoom_star_max_armor : 200;
-			FLevelLocals* level = primaryLevel;
-			player_t* pl = level ? level->GetConsolePlayer() : nullptr;
-			if (pl && pl->mo && g_star_pre_touch_health >= 0) {
-				int cur_h = pl->mo->health;
-				AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
-				int cur_a = arm ? arm->IntVar(FName("Amount")) : 0;
-				if ((strstr(type, "Health") || strstr(type, "health")) && !use_health && cur_h < max_h)
-					return STAR_PICKUP_INVENTORY_ONLY;
-				if ((strstr(type, "Armor") || strstr(type, "armor")) && !use_armor && cur_a < max_a)
-					return STAR_PICKUP_INVENTORY_ONLY;
-				/* Powerup: megahealth, soulsphere, etc. - treat as health for "below max" check */
-				if (cls && (strstr(cls, "Megasphere") || strstr(cls, "Soulsphere") || strstr(cls, "MegaHealth") || strstr(cls, "Supercharge")) && !use_powerup && cur_h < max_h)
-					return STAR_PICKUP_INVENTORY_ONLY;
-			}
-		}
+		/* Always return GENERIC_ITEM so engine runs CallTouch; we only add to STAR in PostTouchSpecial when engine didn't consume (e.g. at max). Avoids standing-on-pickup spam and ensures item is destroyed by game logic. use_armor_on_pickup/use_health_on_pickup are respected when at max (add to STAR if allow_pickup_if_max). */
 		return STAR_PICKUP_GENERIC_ITEM;
 	}
 
@@ -2317,15 +2283,15 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	} else if (keynum >= 1 && keynum <= 4) {
 		name = GetKeycardName(keynum);
 		desc = GetKeycardDescription(keynum);
-	} else if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && g_star_has_pending_item) {
+	} else if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
 		name = g_star_pending_item_name.c_str();
 		desc = g_star_pending_item_desc.c_str();
 		itemType = g_star_pending_item_type.empty() ? "Item" : g_star_pending_item_type.c_str();
 	}
 	if (!name || !desc) return;
 
-	/* When always_add_items_to_inventory=1, always add. When INVENTORY_ONLY we didn't call CallTouch so always add. Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
-	if (keynum != STAR_PICKUP_INVENTORY_ONLY && keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
+	/* When always_add_items_to_inventory=1, always add. Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
 		FLevelLocals* level = primaryLevel;
 		player_t* pl = level ? level->GetConsolePlayer() : nullptr;
 		if (pl && pl->mo) {
@@ -2384,7 +2350,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 
 	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) {
+	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
 		std::string key = std::string(name) + "|" + (itemType ? itemType : "Item");
 		int now = I_GetTime();
 		if (key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
@@ -2400,7 +2366,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	bool isPowerup = itemType && (strstr(itemType, "owerup") != nullptr || strstr(itemType, "Health") != nullptr);
 	bool doMint = (isKey && odoom_star_mint_keys) || (isWeapon && odoom_star_mint_weapons) || (isArmor && odoom_star_mint_armor) || (isPowerup && odoom_star_mint_powerups);
 	int qty = 1;
-	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && g_star_has_pending_item) {
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && g_star_has_pending_item) {
 		/* Health/armor: 1 qty with (+X) in desc (like OQUAKE); ammo/weapons use amount or 1 */
 		if (isArmor || (itemType && (strstr(itemType, "Health") != nullptr || strstr(itemType, "health") != nullptr)))
 			qty = 1;
@@ -2422,7 +2388,7 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 		star_api_queue_add_item(name, desc, "ODOOM", itemType ? itemType : "KeyItem", nullptr, qty, 1);
 
 	/* Use the same path the engine uses: PrintPickupMessage (status bar message + Printf) and S_Sound (pickup sound). */
-	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON || keynum == STAR_PICKUP_INVENTORY_ONLY) && desc && desc[0]) {
+	if ((keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) && desc && desc[0]) {
 		FString msg(desc);
 		PrintPickupMessage(true, msg);
 		FLevelLocals* level = primaryLevel;

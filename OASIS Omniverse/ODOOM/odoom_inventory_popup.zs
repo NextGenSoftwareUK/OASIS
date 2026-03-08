@@ -83,10 +83,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		CVar openVar = CVar.FindCVar("odoom_inventory_open");
 		if (openVar != null)
 			openVar.SetInt(popupOpen ? 1 : 0);
-		// Sync quest popup from C++ (so Q key works when C++ toggles odoom_quest_popup_open)
+		// Quest popup state is owned by ZScript (same as inventory). Only write to CVar so C++ knows for refresh; do not read from CVar.
 		CVar questPopupCv = CVar.FindCVar("odoom_quest_popup_open");
 		if (questPopupCv != null)
-			questPopupOpen = (questPopupCv.GetInt() != 0);
+			questPopupCv.SetInt(questPopupOpen ? 1 : 0);
 		// Tell C++ which scroll offset and tab we want so it sends the right window of items (avoids CVar overflow)
 		if (popupOpen)
 		{
@@ -202,7 +202,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				selectedAbsolute = 0;
 			}
 		}
-		// Q opens quest popup (even when inventory is open)
+		// Q toggles quest popup (same technique as I for inventory: one place, edge-triggered toggle)
 		if (keyQPressed)
 		{
 			questPopupOpen = !questPopupOpen;
@@ -212,14 +212,13 @@ class OASISInventoryOverlayHandler : EventHandler
 				CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 				if (scrollCv != null) scrollCv.SetInt(0);
 			}
-			CVar qcv = CVar.FindCVar("odoom_quest_popup_open");
-			if (qcv != null) qcv.SetInt(questPopupOpen ? 1 : 0);
+			if (questPopupCv != null) questPopupCv.SetInt(questPopupOpen ? 1 : 0);
 		}
-		if (questPopupOpen && (keyQPressed || keyIPressed))
+		// Pressing I while quest popup is open closes quest (I will also toggle inventory)
+		if (questPopupOpen && keyIPressed)
 		{
 			questPopupOpen = false;
-			CVar qcv = CVar.FindCVar("odoom_quest_popup_open");
-			if (qcv != null) qcv.SetInt(0);
+			if (questPopupCv != null) questPopupCv.SetInt(0);
 		}
 		if (questPopupOpen)
 		{
