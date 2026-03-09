@@ -2951,12 +2951,12 @@ void OQuake_STAR_PollItems(void) {
         if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
             Con_Printf("%s\n", err_buf);
     }
-    /* Show STAR log messages in console only when star debug is on (XP refresh, monster kill, etc.). */
+    /* Show STAR log messages in console when star debug is on (quests, XP refresh, monster kill, etc.). */
     {
-        char log_buf[512] = {0};
+        char log_buf[1024] = {0};
         if (g_star_debug_logging) {
             int i;
-            for (i = 0; i < 5; i++) {
+            for (i = 0; i < 25; i++) {
                 if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
                     break;
                 Con_Printf("[STAR] %s\n", log_buf);
