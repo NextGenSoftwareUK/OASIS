@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
@@ -82,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 if (Database == null)
                 {
                     Database = new MongoDbContext(ConnectionString, DBName);
+                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);
@@ -138,6 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 if (Database == null)
                 {
                     Database = new MongoDbContext(ConnectionString, DBName);
+                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);
