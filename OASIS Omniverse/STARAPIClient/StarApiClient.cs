@@ -750,7 +750,7 @@ public sealed class StarApiClient : IDisposable
         {
             try
             {
-                var result = await GetActiveQuestsAsync(ct).ConfigureAwait(false);
+                var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
                 string serialized;
                 if (result.IsError)
                 {
@@ -1375,6 +1375,35 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>
+    /// Checks whether the current avatar can start the quest (NotStarted and prerequisites met). Use for the quest popup to enable/disable the Start button.
+    /// </summary>
+    public async Task<OASISResult<bool>> CanStartQuestAsync(string questId, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(questId))
+            return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
+
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<bool>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}/can-start", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<bool>(parseErrorMessage ?? "Parse error", parseErrorCode);
+
+        var canStart = GetBoolProperty(resultElement, "Result") || GetBoolProperty(resultElement, "result");
+        var message = GetStringProperty(resultElement, "Message") ?? GetStringProperty(resultElement, "message");
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(canStart, StarApiResultCode.Success, message ?? (canStart ? "Quest can be started." : "Quest cannot be started."));
+    }
+
     public async Task<OASISResult<bool>> StartQuestAsync(string questId, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1481,6 +1510,10 @@ public sealed class StarApiClient : IDisposable
 
         if (string.IsNullOrWhiteSpace(questName) || string.IsNullOrWhiteSpace(description) || objectives is null || objectives.Count == 0)
             return FailAndCallback<StarQuestInfo?>("Quest name, description and at least one objective are required.", StarApiResultCode.InvalidParam);
+
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<StarQuestInfo?>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
 
         var games = objectives
             .Select(o => string.IsNullOrWhiteSpace(o.GameSource) ? "Unknown" : o.GameSource)
@@ -1600,6 +1633,38 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
 
+    /// <summary>
+    /// Gets all quests for the current avatar (no status filter).
+    /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
+    /// </summary>
+    public async Task<OASISResult<List<StarQuestInfo>>> GetAllQuestsForAvatarAsync(CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<List<StarQuestInfo>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
+        var url = $"{_baseApiUrl}/api/quests/all-for-avatar";
+        if (string.IsNullOrEmpty(_baseApiUrl))
+            return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
+
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"})");
+
+        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
+
+        var quests = ParseQuestInfos(resultElement);
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(quests, StarApiResultCode.Success, $"Loaded {quests?.Count ?? 0} quest(s) for avatar.");
+    }
+
     public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1607,18 +1672,25 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(status))
             return FailAndCallback<List<StarQuestInfo>>("Quest status is required (e.g. InProgress, NotStarted, Completed).", StarApiResultCode.InvalidParam);
 
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
         var url = $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}";
         if (string.IsNullOrEmpty(_baseApiUrl))
             return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
 
+        var avatarIdForLog = GetCachedAvatarId() ?? "(none)";
+        StarApiExports.StarApiLog($"[Quests] Client AvatarId={avatarIdForLog} (compare with seed output and API log)");
         StarApiExports.StarApiLog($"[Quests] GET {url}");
 
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
 
-        var bodyPreview = response.Result != null
-            ? (response.Result.Length <= 300 ? response.Result : response.Result.Substring(0, 300) + "...")
-            : "(null)";
-        StarApiExports.StarApiLog($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}");
+        /* Full body to log file only (no truncation). */
+        var fullBody = response.Result ?? "(null)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={fullBody}");
+        /* Short line to file + console for visibility. */
+        StarApiExports.StarApiLog($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"}");
         if (response.IsError)
             StarApiExports.StarApiLog($"[Quests] Error: {response.Message ?? "Request failed"}");
         else
@@ -1632,6 +1704,10 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
         var quests = ParseQuestInfos(resultElement);
+        if (quests != null && quests.Count > 0)
+            StarApiExports.StarApiLog($"[Quests] OK ({quests.Count} quests) Ids={string.Join(", ", quests.Select(q => q.Id ?? "(null)"))}");
+        else
+            StarApiExports.StarApiLog("[Quests] OK (0 quests)");
         InvokeCallback(StarApiResultCode.Success);
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) (status={status}).");
     }

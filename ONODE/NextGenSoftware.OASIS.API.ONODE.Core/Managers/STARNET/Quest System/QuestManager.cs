@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -611,7 +611,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
-        /// Starts a quest for the specified avatar.
+        /// Returns whether the avatar can start the quest (quest is NotStarted and any MetaData PrerequisiteQuestIds are completed). ParentQuestId is for sub-quests/objectives only, not prerequisites.
+        /// </summary>
+        public async Task<OASISResult<bool>> CanStartQuestAsync(Guid avatarId, Guid questId)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CanStartQuestAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    result.Result = false;
+                    result.Message = "Quest not found or could not be loaded.";
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already completed.";
+                    return result;
+                }
+                if (quest.Status == QuestStatus.InProgress)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already in progress.";
+                    return result;
+                }
+
+                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                    {
+                        foreach (var item in prereqIds)
+                        {
+                            Guid prereqId = Guid.Empty;
+                            if (item is Guid g) prereqId = g;
+                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
+                            if (prereqId == Guid.Empty) continue;
+                            var prereqResult = await LoadAsync(avatarId, prereqId);
+                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                            {
+                                result.Result = false;
+                                result.Message = "Prerequisites not met. Complete all required quests first.";
+                                return result;
+                            }
+                        }
+                    }
+                }
+
+                result.Result = true;
+                result.Message = "Quest can be started.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Starts a quest for the specified avatar. Validates prerequisites: if the quest has PrerequisiteQuestIds in MetaData, those quests must be completed first. (ParentQuestId is used for sub-quests/objectives; when all are complete the parent is marked complete.)
         /// </summary>
         public async Task<OASISResult<bool>> StartQuestAsync(Guid avatarId, Guid questId, string startNotes = null)
         {
@@ -632,6 +697,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest is already completed.");
                     return result;
+                }
+
+                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                    {
+                        foreach (var item in prereqIds)
+                        {
+                            Guid prereqId = Guid.Empty;
+                            if (item is Guid g) prereqId = g;
+                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
+                            if (prereqId == Guid.Empty) continue;
+                            var prereqResult = await LoadAsync(avatarId, prereqId);
+                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Prerequisites not met. Complete all required quests first.");
+                                return result;
+                            }
+                        }
+                    }
                 }
 
                 quest.Status = QuestStatus.InProgress;

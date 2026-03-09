@@ -1,11 +1,3 @@
-star
-star beamin dellams test!
-star
-star config
-star beamin dellams test!
-star config
-star beamin dellams test!
-star debug
 star debug on
 star debug
 star debug on
@@ -39,6 +31,14 @@ star debug on
 star beamin dellams test!
 star debug on
 star debug off
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
 star beamin dellams test!
 star debug on
 star beamin dellams test!

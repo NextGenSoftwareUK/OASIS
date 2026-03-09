@@ -50,6 +50,13 @@ internal static class Program
             Environment.Exit(1);
         }
         Console.WriteLine("Authenticated.");
+
+        // Resolve avatar ID so create/start requests send X-Avatar-Id (same avatar as when game fetches quests).
+        var activeCheck = await client.GetActiveQuestsAsync();
+        if (activeCheck.IsError)
+            Console.WriteLine($"Warning: Could not resolve avatar ID: {activeCheck.Message}. Quests will use JWT avatar.");
+        else
+            Console.WriteLine($"Avatar ID for quests: {client.GetCachedAvatarId() ?? "(none)"} (use this avatar when beaming in from ODOOM/OQuake).");
         Console.WriteLine();
 
         var questsToCreate = new[]
