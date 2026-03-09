@@ -6925,19 +6925,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         {
                             if (oappSystemHolon == null)
                                 continue;
-                            if (oappSystemHolon.STARNETDNA == null || string.IsNullOrEmpty(oappSystemHolon.STARNETDNA.Version))
-                                continue;
                             if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey(STARNETHolonIdName) && oappSystemHolon.MetaData[STARNETHolonIdName] != null)
                                 dependencyId = oappSystemHolon.MetaData[STARNETHolonIdName].ToString();
 
                             latestVersion = latestVersions.ContainsKey(dependencyId) && latestVersions[dependencyId]?.STARNETDNA?.Version != null
                                 ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", ""))
                                 : 0;
-                            currentVersion = Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""));
+                            currentVersion = (oappSystemHolon.STARNETDNA != null && !string.IsNullOrEmpty(oappSystemHolon.STARNETDNA.Version))
+                                ? Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""))
+                                : 0;
 
                             if (latestVersions.ContainsKey(dependencyId) &&
                                 currentVersion > latestVersion
-                                //oappSystemHolon.STARNETDNA.CreatedOn > latestVersions[dependencyId].STARNETDNA.CreatedOn)
                                 || !latestVersions.ContainsKey(dependencyId))
                                 latestVersions[dependencyId] = oappSystemHolon;
                         }

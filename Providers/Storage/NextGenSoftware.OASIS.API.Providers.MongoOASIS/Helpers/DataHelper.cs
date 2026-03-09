@@ -707,7 +707,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
             oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
-            oasisHolon.MetaData = holon.MetaData;
+            oasisHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
             oasisHolon.ProviderMetaData = holon.ProviderMetaData;
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
@@ -822,7 +822,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
             mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
-            mongoHolon.MetaData = holon.MetaData;
+            mongoHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
             mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
             mongoHolon.HolonType = holon.HolonType;

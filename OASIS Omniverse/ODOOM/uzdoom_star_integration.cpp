@@ -1367,18 +1367,24 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
-	/* Quest tracker + popup: refresh every frame when popup open (like inventory), so when background load completes the popup updates. When closed, refresh every 60 frames for tracker. */
+	/* Quest: invalidate when popup opens and refresh once to trigger single API request; then refresh every 60 frames only while popup is open so API is hit once. */
 	if (g_star_initialized) {
 		FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 		int questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int) ? questPopupVar->GetGenericRep(CVAR_Int).Int : 0;
 		static int s_quest_popup_was_open = 0;
-		if (questPopupOpen && !s_quest_popup_was_open)
-			star_api_invalidate_quest_cache();
-		s_quest_popup_was_open = questPopupOpen;
 		static int s_quest_refresh_frames = 0;
-		if (questPopupOpen || ++s_quest_refresh_frames >= 60) {
-			s_quest_refresh_frames = 0;
-			ODOOM_RefreshQuestCVars();
+		if (questPopupOpen && !s_quest_popup_was_open) {
+			star_api_invalidate_quest_cache();
+			ODOOM_RefreshQuestCVars();  /* single API hit when popup opens */
+			s_quest_refresh_frames = 0; /* do not run 60-frame refresh this frame */
+		}
+		s_quest_popup_was_open = questPopupOpen;
+		/* Only poll cache every 60 frames while popup is open (no extra API call). */
+		if (questPopupOpen) {
+			if (++s_quest_refresh_frames >= 60) {
+				s_quest_refresh_frames = 0;
+				ODOOM_RefreshQuestCVars();
+			}
 		}
 	}
 
