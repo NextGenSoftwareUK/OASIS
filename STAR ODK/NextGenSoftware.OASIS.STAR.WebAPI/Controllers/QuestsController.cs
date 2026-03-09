@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
@@ -29,6 +30,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class QuestsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+        private readonly ILogger<QuestsController> _logger;
+
+        public QuestsController(ILogger<QuestsController> logger)
+        {
+            _logger = logger;
+        }
 
         protected override STARAPI GetStarAPI() => _starAPI;
         private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
@@ -331,6 +338,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetQuestsByStatus(string status)
         {
+            _logger.LogInformation("[Quests] GET by-status/{Status} (AvatarId from request)", status ?? "(null)");
             try
             {
                 if (string.IsNullOrWhiteSpace(status))
@@ -474,6 +482,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                             subQuest.Requirements.Add($"GameSource:{obj.GameSource}");
                         if (!string.IsNullOrWhiteSpace(obj.ItemRequired))
                             subQuest.Requirements.Add($"ItemRequired:{obj.ItemRequired}");
+                        subQuest.STARNETDNA = new STARNETDNA
+                        {
+                            Id = subQuest.Id,
+                            Name = subQuest.Name,
+                            Description = subQuest.Description,
+                            Version = "1.0.0",
+                            CreatedByAvatarId = AvatarId,
+                            CreatedOn = DateTime.UtcNow,
+                            ModifiedOn = DateTime.UtcNow
+                        };
                         var addResult = await manager.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
                         if (addResult.IsError)
                             return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to add objective: {addResult.Message}" });
@@ -536,6 +554,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     subQuest.Requirements.Add($"GameSource:{request.GameSource}");
                 if (!string.IsNullOrWhiteSpace(request.ItemRequired))
                     subQuest.Requirements.Add($"ItemRequired:{request.ItemRequired}");
+                subQuest.STARNETDNA = new STARNETDNA
+                {
+                    Id = subQuest.Id,
+                    Name = subQuest.Name,
+                    Description = subQuest.Description,
+                    Version = "1.0.0",
+                    CreatedByAvatarId = AvatarId,
+                    CreatedOn = DateTime.UtcNow,
+                    ModifiedOn = DateTime.UtcNow
+                };
 
                 var manager = CreateQuestManager();
                 var result = await manager.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
