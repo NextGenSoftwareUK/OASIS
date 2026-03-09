@@ -77,7 +77,7 @@ star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
-/** Write serialized quest list (InProgress) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Uses cache; never blocks. */
+/** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
 int star_api_get_quests_string(char* buf, size_t buf_size);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. Call when opening the quest popup so data is up to date. */
 void star_api_invalidate_quest_cache(void);

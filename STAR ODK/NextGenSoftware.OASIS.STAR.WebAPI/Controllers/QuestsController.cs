@@ -327,6 +327,63 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Retrieves all quests for the current avatar (no status filter).
+        /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
+        /// </summary>
+        /// <returns>List of all quests for the authenticated avatar.</returns>
+        /// <response code="200">Quests retrieved successfully</response>
+        /// <response code="400">Error retrieving quests</response>
+        [HttpGet("all-for-avatar")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllQuestsForAvatar()
+        {
+            _logger.LogInformation("[Quests] GET all-for-avatar");
+            try
+            {
+                await EnsureStarApiBootedAsync();
+
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null)
+                    return avatarCheck;
+
+                var avatarId = AvatarId;
+                OASISRequestContext.CurrentAvatarId = avatarId;
+                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                if (result.IsError)
+                    return BadRequest(result);
+                if (result.Result == null || !result.Result.Any())
+                {
+                    _logger.LogInformation("[Quests] LoadAllForAvatar returned 0; trying LoadAllAsync fallback.");
+                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
+                    if (result.IsError)
+                        return BadRequest(result);
+                }
+
+                var list = result.Result ?? Enumerable.Empty<Quest>();
+                _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, list.Count());
+                return Ok(new OASISResult<IEnumerable<Quest>>
+                {
+                    Result = list,
+                    IsError = false,
+                    Message = "Quests retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<Quest>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quests for avatar: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
         /// Retrieves quests by status.
         /// </summary>
         /// <param name="status">The quest status to filter by.</param>
@@ -338,7 +395,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetQuestsByStatus(string status)
         {
-            _logger.LogInformation("[Quests] GET by-status/{Status} (AvatarId from request)", status ?? "(null)");
+            _logger.LogInformation("[Quests] GET by-status/{Status}", status ?? "(null)");
             try
             {
                 if (string.IsNullOrWhiteSpace(status))
@@ -351,17 +408,59 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return avatarCheck;
 
                 var avatarId = AvatarId;
+                _logger.LogInformation("[Quests] Request AvatarId={AvatarId} (compare with seed output: 'Avatar ID for quests: <id>')", avatarId);
                 OASISRequestContext.CurrentAvatarId = avatarId;
                 OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
                 EnsureLoggedInAvatar();
 
-                var result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
+                /* Load quests for this avatar (by MetaData CreatedByAvatarId + Active); fallback to LoadAllAsync if empty. */
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
                 if (result.IsError)
                     return BadRequest(result);
+                var fromAvatar = result.Result?.Count() ?? 0;
+                if (result.Result == null || !result.Result.Any())
+                {
+                    _logger.LogInformation("[Quests] LoadAllForAvatar(CreatedByAvatarId={AvatarId}) returned 0; trying LoadAllAsync fallback.", avatarId);
+                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
+                    if (result.IsError)
+                        return BadRequest(result);
+                    var fromAll = result.Result?.Count() ?? 0;
+                    _logger.LogInformation("[Quests] LoadAllAsync fallback returned {Count} quests (if 0, storage may be empty or use a persistent provider e.g. MongoDB).", fromAll);
+                    if (fromAll > 0)
+                    {
+                        foreach (var q in (result.Result ?? Enumerable.Empty<Quest>()).Take(10))
+                            _logger.LogInformation("[Quests]   Quest Id={QuestId} Name={Name} CreatedByAvatarId={CreatedBy}", q?.Id, q?.Name, q?.STARNETDNA?.CreatedByAvatarId ?? default);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("[Quests] LoadAllForAvatar returned {Count} quests.", fromAvatar);
+                    foreach (var q in (result.Result ?? Enumerable.Empty<Quest>()).Take(10))
+                        _logger.LogInformation("[Quests]   Quest Id={QuestId} Name={Name} CreatedByAvatarId={CreatedBy}", q?.Id, q?.Name, q?.STARNETDNA?.CreatedByAvatarId ?? default);
+                }
 
                 var list = result.Result ?? Enumerable.Empty<Quest>();
+                var totalLoaded = list.Count();
                 var statusTrimmed = status.Trim();
                 var filteredQuests = list.Where(q => q != null && string.Equals((q.Status).ToString(), statusTrimmed, StringComparison.OrdinalIgnoreCase)).ToList();
+                _logger.LogInformation("[Quests] AvatarId={AvatarId} Loaded={Total} AfterStatusFilter({Status})={Filtered}", avatarId, totalLoaded, statusTrimmed, filteredQuests.Count);
+                if (totalLoaded > 0)
+                {
+                    foreach (var q in filteredQuests.Take(5))
+                        _logger.LogInformation("[Quests] Returning quest Id={Id} Name={Name} Status={Status} CreatedByAvatarId={CreatedBy}", q?.Id, q?.Name, q?.Status.ToString(), q?.STARNETDNA?.CreatedByAvatarId ?? default);
+                }
+                if (totalLoaded > 0 && filteredQuests.Count == 0)
+                {
+                    _logger.LogInformation("[Quests] (No quests matched status {Status}; showing first 5 loaded for debug:)", statusTrimmed);
+                    foreach (var q in list.Take(5))
+                        _logger.LogInformation("[Quests]   Quest Id={Id} Name={Name} Status={Status} CreatedByAvatarId={CreatedBy}", q?.Id, q?.Name, q?.Status.ToString(), q?.STARNETDNA?.CreatedByAvatarId ?? default);
+                }
+                if (totalLoaded == 0)
+                {
+                    _logger.LogWarning(
+                        "[Quests] 0 quests returned. Request AvatarId={AvatarId}. Compare with seed output (Avatar ID for quests: <id>). If different, beam in with the same avatar. Ensure API uses a persistent storage provider (e.g. MongoDB).",
+                        avatarId);
+                }
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
                     Result = filteredQuests ?? new List<Quest>(),
@@ -492,6 +591,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                             CreatedOn = DateTime.UtcNow,
                             ModifiedOn = DateTime.UtcNow
                         };
+                        subQuest.MetaData ??= new Dictionary<string, object>();
+                        subQuest.MetaData["CreatedByAvatarId"] = AvatarId.ToString();
+                        subQuest.MetaData["Active"] = "1";
                         var addResult = await manager.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
                         if (addResult.IsError)
                             return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to add objective: {addResult.Message}" });
@@ -976,7 +1078,34 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Starts a quest for the authenticated avatar.
+        /// Checks whether the authenticated avatar can start the quest (quest is NotStarted and prerequisites are met).
+        /// Use for the quest popup to enable/disable the Start button. Returns Result=true when the quest can be started, false otherwise with Message explaining why.
+        /// </summary>
+        [HttpGet("{id}/can-start")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CanStartQuest(Guid id)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<bool>();
+                if (avatarCheck != null) return avatarCheck;
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await CreateQuestManager().CanStartQuestAsync(AvatarId, id);
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<bool>(ex, "checking if quest can be started");
+            }
+        }
+
+        /// <summary>
+        /// Starts a quest for the authenticated avatar. Prerequisites are validated: if the quest has PrerequisiteQuestIds in MetaData, those quests must be completed first. (ParentQuestId is for sub-quests/objectives; when all objectives are complete the parent quest is marked complete.)
         /// </summary>
         [HttpPost("{id}/start")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
