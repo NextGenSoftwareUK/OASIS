@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -341,15 +342,18 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (avatarCheck != null)
                     return avatarCheck;
 
+                var avatarId = AvatarId;
+                OASISRequestContext.CurrentAvatarId = avatarId;
+                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
                 EnsureLoggedInAvatar();
 
-                var result = await _starAPI.Quests.LoadAllAsync(AvatarId, 0);
+                var result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
                 if (result.IsError)
                     return BadRequest(result);
 
                 var list = result.Result ?? Enumerable.Empty<Quest>();
                 var statusTrimmed = status.Trim();
-                var filteredQuests = list.Where(q => q != null && string.Equals(q.Status.ToString(), statusTrimmed, StringComparison.OrdinalIgnoreCase)).ToList();
+                var filteredQuests = list.Where(q => q != null && string.Equals((q.Status).ToString(), statusTrimmed, StringComparison.OrdinalIgnoreCase)).ToList();
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
                     Result = filteredQuests ?? new List<Quest>(),
@@ -362,10 +366,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 var msg = ex.Message;
                 if (ex.InnerException != null)
                     msg += " Inner: " + ex.InnerException.Message;
+                var detailed = ex.StackTrace;
+                if (ex.InnerException?.StackTrace != null)
+                    detailed += Environment.NewLine + "Inner: " + ex.InnerException.StackTrace;
                 return BadRequest(new OASISResult<IEnumerable<Quest>>
                 {
                     IsError = true,
                     Message = $"Error retrieving quests by status: {msg}",
+                    DetailedMessage = detailed,
                     Exception = ex
                 });
             }
