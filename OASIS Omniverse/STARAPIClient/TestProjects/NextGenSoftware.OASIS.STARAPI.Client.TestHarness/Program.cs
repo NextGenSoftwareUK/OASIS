@@ -78,6 +78,10 @@ internal static class Program
 
         Check("GetCurrentAvatarAsync", await client.GetCurrentAvatarAsync());
 
+        Check("GetActiveQuestsAsync (by-status)", await client.GetActiveQuestsAsync());
+        Check("GetQuestsByStatusAsync(InProgress)", await client.GetQuestsByStatusAsync("InProgress"));
+        Check("GetQuestsByStatusAsync(NotStarted)", await client.GetQuestsByStatusAsync("NotStarted"));
+
         var suffix = DateTime.UtcNow.Ticks.ToString()[^6..];
         var itemA = $"HarnessKeyA-{suffix}";
         var itemB = $"HarnessKeyB-{suffix}";

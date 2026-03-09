@@ -332,11 +332,19 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(status))
+                    return BadRequest(new OASISResult<IEnumerable<Quest>> { IsError = true, Message = "Status is required (e.g. InProgress, NotStarted, Completed)." });
+
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null)
+                    return avatarCheck;
+
                 var result = await _starAPI.Quests.LoadAllAsync(AvatarId, 0);
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredQuests = result.Result?.Where(q => q.Status.ToString() == status);
+                var list = result.Result ?? Enumerable.Empty<Quest>();
+                var filteredQuests = list.Where(q => q != null && string.Equals(q.Status?.ToString(), status.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
                     Result = filteredQuests,

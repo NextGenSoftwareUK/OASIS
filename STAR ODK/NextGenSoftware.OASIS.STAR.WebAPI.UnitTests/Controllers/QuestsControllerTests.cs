@@ -96,5 +96,40 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             result.Should().NotBeNull();
             result.Should().BeAssignableTo<IActionResult>();
         }
+
+        [Fact]
+        public async Task GetQuestsByStatus_WithValidStatus_ShouldReturnOASISResult()
+        {
+            // Act
+            var result = await _controller.GetQuestsByStatus("InProgress");
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeAssignableTo<IActionResult>();
+        }
+
+        [Fact]
+        public async Task GetQuestsByStatus_WithNullStatus_ShouldReturnBadRequest()
+        {
+            // Act - pass null (caller may send missing route value)
+            var result = await _controller.GetQuestsByStatus(null);
+
+            // Assert
+            result.Should().NotBeNull();
+            var badRequest = result as BadRequestObjectResult;
+            badRequest.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task GetQuestsByStatus_WithEmptyStatus_ShouldReturnBadRequest()
+        {
+            // Act
+            var result = await _controller.GetQuestsByStatus("");
+
+            // Assert
+            result.Should().NotBeNull();
+            var badRequest = result as BadRequestObjectResult;
+            badRequest.Should().NotBeNull();
+        }
     }
 }

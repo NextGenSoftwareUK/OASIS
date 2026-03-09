@@ -37,4 +37,6 @@ The script will:
 2. Create three demo quests with objectives for Doom and Quake.
 3. Start the first quest so it appears as “In Progress” in the games.
 
-Then open ODOOM or OQuake, log in with the same avatar, and press **Q** to view the quest popup.
+Then open ODOOM or OQuake, **beam in (log in) with the same username/password** you used for the seed, and press **Q** to view the quest popup.
+
+**If you see “No active quests” or an error in the popup:** The games only load quests for the currently beamed-in avatar. Use the same WEB5 API URL and same credentials as the seed. If the quest API fails (e.g. not authenticated, wrong URL), the popup shows the error message; the same error is written to **star_api.log** (next to the game exe or star_api.dll) and to the game console (if it consumes `star_api_consume_console_log`).

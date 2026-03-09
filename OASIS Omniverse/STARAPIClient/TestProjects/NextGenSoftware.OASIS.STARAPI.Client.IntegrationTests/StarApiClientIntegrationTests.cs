@@ -332,6 +332,32 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetActiveQuestsAsync_WithFakeServer_ReturnsParsedQuestsWithoutNullRef()
+    {
+        if (!_useFakeServer)
+            return;
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
+        await client.AuthenticateAsync("u", "p");
+
+        var result = await client.GetQuestsByStatusAsync("InProgress");
+
+        Assert.False(result.IsError, result.Message ?? "GetQuestsByStatusAsync should not error against fake server");
+        Assert.NotNull(result.Result);
+        if (result.Result.Count > 0)
+        {
+            var q = result.Result[0];
+            Assert.NotNull(q);
+            Assert.NotNull(q.Id);
+            Assert.NotNull(q.Name);
+            _ = q.Status?.ToString();
+            Assert.NotNull(q.Objectives);
+        }
+        if (_web5Server is not null)
+            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
+    }
+
+    [Fact]
     public async Task SendItemToClan_Succeeds()
     {
         using var client = new StarApiClient();
