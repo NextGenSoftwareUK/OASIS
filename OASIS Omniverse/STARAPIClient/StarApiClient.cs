@@ -348,6 +348,8 @@ public sealed class StarApiClient : IDisposable
             /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler; only one refresh to avoid duplicate add-xp. */
             /* RefreshAvatarXp(); */
 
+            InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
+
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
             InvokeCallback(StarApiResultCode.Success);
             return result;
@@ -1604,28 +1606,26 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<List<StarQuestInfo>>("Quest status is required (e.g. InProgress, NotStarted, Completed).", StarApiResultCode.InvalidParam);
 
         var url = $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}";
-        if (StarApiExports.GetStarDebug())
-            StarApiExports.StarApiLog($"[Quests] GET {url}");
+        if (string.IsNullOrEmpty(_baseApiUrl))
+            return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
+
+        StarApiExports.StarApiLog($"[Quests] GET {url}");
 
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
 
-        if (StarApiExports.GetStarDebug())
-        {
-            var bodyPreview = response.Result != null
-                ? (response.Result.Length <= 300 ? response.Result : response.Result.Substring(0, 300) + "...")
-                : "(null)";
-            var logLine = $"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}";
-            if (logLine.Length > 450)
-                logLine = logLine.Substring(0, 447) + "...";
-            StarApiExports.StarApiLog(logLine);
-        }
+        var bodyPreview = response.Result != null
+            ? (response.Result.Length <= 300 ? response.Result : response.Result.Substring(0, 300) + "...")
+            : "(null)";
+        var logLine = $"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}";
+        if (logLine.Length > 450) logLine = logLine.Substring(0, 447) + "...";
+        StarApiExports.StarApiLog(logLine);
 
         if (response.IsError)
-            return FailAndCallback<List<StarQuestInfo>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
-            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage, parseErrorCode);
+            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
         var quests = ParseQuestInfos(resultElement);
         InvokeCallback(StarApiResultCode.Success);
@@ -3799,28 +3799,61 @@ public static unsafe class StarApiExports
         NativeMemory.Free(itemList);
     }
 
-    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error.</summary>
+    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error. Must not throw - native caller can crash.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_quests_string", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetQuestsString(sbyte* buf, nuint bufSize)
     {
-        if (buf is null || bufSize == 0)
-            return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
 
-        var client = GetClient();
-        if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        if (!client.TryGetQuestsCache(out var str))
-            str = "Loading...";
+            string fallback;
+            if (!client.TryGetQuestsCache(out var str))
+                fallback = "Loading...";
+            else
+                fallback = str ?? string.Empty;
 
-        var bytesArr = Encoding.UTF8.GetBytes(str ?? string.Empty);
-        var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
-        if (toCopy > 0)
-            new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
-        buf[toCopy] = 0;
-        SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
-        return toCopy;
+            var bytesArr = Encoding.UTF8.GetBytes(fallback);
+            var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+            if (toCopy > 0)
+                new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+            buf[toCopy] = 0;
+            SetError(string.Empty);
+            InvokeCallback(StarApiResultCode.Success);
+            return toCopy;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            try
+            {
+                const string err = "Error: Error loading quests. Check console or star_api.log for details.";
+                var bytes = Encoding.UTF8.GetBytes(err);
+                var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+                if (buf != null && bufSize > 0 && toCopy > 0)
+                {
+                    new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                    buf[toCopy] = 0;
+                }
+                return toCopy;
+            }
+            catch
+            {
+                if (buf != null && bufSize > 0)
+                {
+                    buf[0] = (sbyte)'?';
+                    if (bufSize > 1)
+                        buf[1] = 0;
+                    return 1;
+                }
+                return 0;
+            }
+        }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
@@ -3833,8 +3866,15 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_quest_cache", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiInvalidateQuestCache()
     {
-        var client = GetClient();
-        client?.InvalidateQuestCache();
+        try
+        {
+            var client = GetClient();
+            client?.InvalidateQuestCache();
+        }
+        catch
+        {
+            /* Must not throw - native caller can crash. */
+        }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_clear_cache", CallConvs = [typeof(CallConvCdecl)])]
@@ -4296,6 +4336,22 @@ public static unsafe class StarApiExports
     }
 
     private static readonly object LogLock = new();
+
+    /// <summary>Write to star_api.log and Trace only; do NOT enqueue for game console. Use for quest API logs so Quake/Doom don't consume them and crash.</summary>
+    internal static void StarApiLogFileOnly(string message)
+    {
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] {message}";
+        Trace.WriteLine(line);
+        try
+        {
+            var dir = Environment.CurrentDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var path = Path.Combine(dir, "star_api.log");
+            lock (LogLock)
+                File.AppendAllText(path, line + Environment.NewLine);
+        }
+        catch { /* ignore file write errors */ }
+    }
 
     internal static void StarApiLog(string message)
     {

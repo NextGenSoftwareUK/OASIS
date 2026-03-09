@@ -3659,6 +3659,8 @@ void OQuake_STAR_Console_f(void) {
 }
 
 void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
+    if (!cbx)
+        return;
     int panel_w;
     int panel_h;
     int panel_x;
@@ -3838,12 +3840,14 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
     } /* end if (g_inventory_open) */
 
-    /* Quest popup (Q key), same as ODOOM */
+    /* Quest popup (Q key): refresh every frame when open, like inventory (star_api_get_inventory). When background load completes, next frame shows the list. */
     if (g_quest_popup_open) {
         static char quest_buf[4096];
         int n = star_api_get_quests_string(quest_buf, sizeof(quest_buf));
         if (n < 0)
             n = 0;
+        if (n >= (int)sizeof(quest_buf))
+            n = (int)sizeof(quest_buf) - 1;
         quest_buf[n] = '\0';
         int qw = q_min(glwidth - 48, 500);
         int qh = q_min(glheight - 96, 320);
@@ -3871,10 +3875,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         /* Tab-separated: Q, id, name, desc, status, pct. Show name (2nd field). */
                         char name[128];
                         const char* f = p + 2;
-                        const char* tab1 = (const char*)memchr(f, '\t', (size_t)(eol - f));
+                        size_t seg0 = (eol > f) ? (size_t)(eol - f) : 0;
+                        const char* tab1 = (const char*)memchr(f, '\t', seg0);
                         if (tab1 && tab1 < eol) {
                             const char* name_start = tab1 + 1;
-                            const char* tab2 = (const char*)memchr(name_start, '\t', (size_t)(eol - name_start));
+                            size_t seg1 = (eol > name_start) ? (size_t)(eol - name_start) : 0;
+                            const char* tab2 = (const char*)memchr(name_start, '\t', seg1);
                             const char* name_end = tab2 ? tab2 : eol;
                             int len = (int)(name_end - name_start);
                             if (len > 0 && len < (int)sizeof(name)) {
@@ -3892,10 +3898,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         /* O, id, desc, done. Show desc (2nd field). */
                         char obj[128];
                         const char* f = p + 2;
-                        const char* tab1 = (const char*)memchr(f, '\t', (size_t)(eol - f));
+                        size_t seg0 = (eol > f) ? (size_t)(eol - f) : 0;
+                        const char* tab1 = (const char*)memchr(f, '\t', seg0);
                         if (tab1 && tab1 < eol) {
                             const char* desc_start = tab1 + 1;
-                            const char* tab2 = (const char*)memchr(desc_start, '\t', (size_t)(eol - desc_start));
+                            size_t seg1 = (eol > desc_start) ? (size_t)(eol - desc_start) : 0;
+                            const char* tab2 = (const char*)memchr(desc_start, '\t', seg1);
                             const char* desc_end = tab2 ? tab2 : eol;
                             int len = (int)(desc_end - desc_start);
                             if (len > 0 && len < (int)sizeof(obj)) {
@@ -3907,7 +3915,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         }
                     }
                 }
-                p = eol + (eol < end && *eol == '\n' ? 1 : 0);
+                /* Advance past newline or null so we never hang on a mid-buffer '\0' */
+                p = eol + (eol < end && (*eol == '\n' || *eol == '\0') ? 1 : 0);
             }
         } else {
             Draw_String(cbx, qx + 10, qy + 24, "No active quests.");

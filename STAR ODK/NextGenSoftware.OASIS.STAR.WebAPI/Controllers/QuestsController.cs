@@ -335,29 +335,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (string.IsNullOrWhiteSpace(status))
                     return BadRequest(new OASISResult<IEnumerable<Quest>> { IsError = true, Message = "Status is required (e.g. InProgress, NotStarted, Completed)." });
 
+                await EnsureStarApiBootedAsync();
+
                 var avatarCheck = ValidateAvatarId<Quest>();
                 if (avatarCheck != null)
                     return avatarCheck;
+
+                EnsureLoggedInAvatar();
 
                 var result = await _starAPI.Quests.LoadAllAsync(AvatarId, 0);
                 if (result.IsError)
                     return BadRequest(result);
 
                 var list = result.Result ?? Enumerable.Empty<Quest>();
-                var filteredQuests = list.Where(q => q != null && string.Equals(q.Status?.ToString(), status.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+                var statusTrimmed = status.Trim();
+                var filteredQuests = list.Where(q => q != null && string.Equals(q.Status.ToString(), statusTrimmed, StringComparison.OrdinalIgnoreCase)).ToList();
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
-                    Result = filteredQuests,
+                    Result = filteredQuests ?? new List<Quest>(),
                     IsError = false,
                     Message = "Quests retrieved successfully"
                 });
             }
             catch (Exception ex)
             {
+                var msg = ex.Message;
+                if (ex.InnerException != null)
+                    msg += " Inner: " + ex.InnerException.Message;
                 return BadRequest(new OASISResult<IEnumerable<Quest>>
                 {
                     IsError = true,
-                    Message = $"Error retrieving quests by status: {ex.Message}",
+                    Message = $"Error retrieving quests by status: {msg}",
                     Exception = ex
                 });
             }
@@ -381,13 +389,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                var filteredQuests = result.Result?.Where(q => 
-                    q.Name?.Contains(query, StringComparison.OrdinalIgnoreCase) == true ||
-                    q.Description?.Contains(query, StringComparison.OrdinalIgnoreCase) == true);
-                
+                var list = result.Result ?? Enumerable.Empty<Quest>();
+                var filteredQuests = list.Where(q =>
+                    q?.Name?.Contains(query, StringComparison.OrdinalIgnoreCase) == true ||
+                    q?.Description?.Contains(query, StringComparison.OrdinalIgnoreCase) == true).ToList();
+
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
-                    Result = filteredQuests,
+                    Result = filteredQuests ?? new List<Quest>(),
                     IsError = false,
                     Message = "Quests retrieved successfully"
                 });
