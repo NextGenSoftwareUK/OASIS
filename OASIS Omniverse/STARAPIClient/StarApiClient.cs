@@ -755,15 +755,19 @@ public sealed class StarApiClient : IDisposable
                 if (result.IsError)
                 {
                     serialized = "Error: Error loading quests. Check console or star_api.log for details.";
-                    StarApiExports.StarApiLog($"[Quests] Load failed: {result.Message}");
+                    var msg = result.Message ?? "Load failed";
+                    StarApiExports.StarApiLogFileOnly($"[Quests] Load failed: {result.Message}");
+                    StarApiExports.StarApiLog($"[Quests] Error: {(msg.Length > 80 ? msg.Substring(0, 77) + "..." : msg)}");
                 }
                 else if (result.Result is null || result.Result.Count == 0)
                 {
                     serialized = string.Empty;
+                    StarApiExports.StarApiLog("[Quests] OK (0 quests)");
                 }
                 else
                 {
                     serialized = SerializeQuestsForGame(result.Result);
+                    StarApiExports.StarApiLog($"[Quests] OK ({result.Result.Count} quest(s))");
                 }
                 lock (_questsCacheLock)
                 {
@@ -775,7 +779,9 @@ public sealed class StarApiClient : IDisposable
             catch (Exception ex)
             {
                 var serialized = "Error: Error loading quests. Check console or star_api.log for details.";
-                StarApiExports.StarApiLog($"[Quests] Exception: {ex.Message}");
+                StarApiExports.StarApiLogFileOnly($"[Quests] Exception: {ex.Message}");
+                var msg = ex.Message ?? "Exception";
+                StarApiExports.StarApiLog($"[Quests] Error: {(msg.Length > 80 ? msg.Substring(0, 77) + "..." : msg)}");
                 lock (_questsCacheLock)
                 {
                     _questsCacheString = serialized;
@@ -1616,9 +1622,11 @@ public sealed class StarApiClient : IDisposable
         var bodyPreview = response.Result != null
             ? (response.Result.Length <= 300 ? response.Result : response.Result.Substring(0, 300) + "...")
             : "(null)";
-        var logLine = $"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}";
-        if (logLine.Length > 450) logLine = logLine.Substring(0, 447) + "...";
-        StarApiExports.StarApiLog(logLine);
+        StarApiExports.StarApiLogFileOnly($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}");
+        if (response.IsError)
+            StarApiExports.StarApiLog($"[Quests] Error: {(response.Message != null && response.Message.Length > 80 ? response.Message.Substring(0, 77) + "..." : response.Message ?? "Request failed")}");
+        else
+            StarApiExports.StarApiLog("[Quests] OK");
 
         if (response.IsError)
             return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
@@ -4344,8 +4352,9 @@ public static unsafe class StarApiExports
         Trace.WriteLine(line);
         try
         {
-            var dir = Environment.CurrentDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var dir = AppContext.BaseDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
+            dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             var path = Path.Combine(dir, "star_api.log");
             lock (LogLock)
                 File.AppendAllText(path, line + Environment.NewLine);
@@ -4359,8 +4368,9 @@ public static unsafe class StarApiExports
         Trace.WriteLine(line);
         try
         {
-            var dir = Environment.CurrentDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
+            var dir = AppContext.BaseDirectory;
+            if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
+            dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             var path = Path.Combine(dir, "star_api.log");
             lock (LogLock)
                 File.AppendAllText(path, line + Environment.NewLine);
