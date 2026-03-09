@@ -882,7 +882,11 @@ class OASISInventoryOverlayHandler : EventHandler
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
-			if (qCount > 0 && listStr.Length() > 0)
+			if (listStr.IndexOf("Error:") == 0)
+			{
+				screen.DrawText(f, Font.CR_RED, popupX + 8, popupY + 24, "Error loading quests. Check console or star_api.log for details.", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			else if (qCount > 0 && listStr.Length() > 0)
 			{
 				array<String> blocks;
 				listStr.Split(blocks, "---", false);
