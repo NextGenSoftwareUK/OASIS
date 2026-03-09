@@ -234,6 +234,9 @@ static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM. */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
+/* C = use health, F = use armor (like ODOOM); polled in draw path so they work regardless of config bindings. */
+static qboolean g_c_key_was_down = false;
+static qboolean g_f_key_was_down = false;
 static int star_initialized(void);
 static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab);
 static void OQ_RefreshInventoryCache(void);
@@ -988,6 +991,9 @@ static void OQ_RefreshOverlayFromClient(void) {
             q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
     }
     g_inventory_last_refresh = realtime;
+    /* Do not overwrite status when send is in progress so "Sending..." stays visible in bottom-right. */
+    if (star_sync_send_item_in_progress())
+        return;
     if (g_inventory_count == 0)
         q_strlcpy(g_inventory_status, "STAR inventory is empty.", sizeof(g_inventory_status));
     else if (!star_initialized())
@@ -3693,6 +3699,25 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
     }
 
+    /* C = use health, F = use armor (like ODOOM): poll in draw path so they work regardless of key bindings. */
+    if (key_dest != key_message && key_dest != key_console && key_dest != key_menu && g_star_initialized) {
+        static int s_c_key = -1, s_f_key = -1;
+        if (s_c_key < 0) s_c_key = Key_StringToKeynum("c");
+        if (s_f_key < 0) s_f_key = Key_StringToKeynum("f");
+        if (s_c_key >= 0 && s_c_key < MAX_KEYS && keydown[s_c_key] && !g_c_key_was_down) {
+            g_c_key_was_down = true;
+            OQ_UseHealth_f();
+        }
+        if (!(s_c_key >= 0 && s_c_key < MAX_KEYS && keydown[s_c_key]))
+            g_c_key_was_down = false;
+        if (s_f_key >= 0 && s_f_key < MAX_KEYS && keydown[s_f_key] && !g_f_key_was_down) {
+            g_f_key_was_down = true;
+            OQ_UseArmor_f();
+        }
+        if (!(s_f_key >= 0 && s_f_key < MAX_KEYS && keydown[s_f_key]))
+            g_f_key_was_down = false;
+    }
+
     if (g_inventory_open)
         OQ_PollInventoryHotkeys();
 
@@ -3731,7 +3756,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
         Draw_String(cbx, tab_name_x, tab_y, tab_name);
     }
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  Z=Send Avatar  X=Send Clan  I=Toggle  O/P=Switch Tabs");
+    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  C=Health  F=Armor  Z/X=Send  I=Toggle  O/P=Tabs");
 
     draw_y = panel_y + 54;
     grouped_count = OQ_BuildGroupedRows(
@@ -3823,7 +3848,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_Fill(cbx, qx, qy, qw, qh, 0, 0.75f);
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
         Draw_String(cbx, qx + 6, qy + qh - 14, "Q = Close");
-        if (n > 0 && quest_buf[0]) {
+        if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0 && (quest_buf[9] == '\0' || quest_buf[9] == '\n')) {
+            Draw_String(cbx, qx + 10, qy + 24, "Loading...");
+        } else if (n > 0 && quest_buf[0]) {
             int dy = qy + 24;
             char* p = quest_buf;
             char* end = p + n;
