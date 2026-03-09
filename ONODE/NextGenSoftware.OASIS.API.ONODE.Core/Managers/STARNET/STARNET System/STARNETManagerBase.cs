@@ -6902,9 +6902,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             List<T> holons = new List<T>();
 
+            if (results == null)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
+            if (results.IsError || results.Result == null)
+            {
+                result.Result = results.Result ?? Enumerable.Empty<T>();
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
+            }
+
             if (!showAllVersions)
             {
-                if (results.Result != null && !result.IsError)
+                if (results.Result != null && !results.IsError)
                 {
                     if (version == 0) //latest version
                     {
@@ -6915,10 +6923,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                         foreach (T oappSystemHolon in results.Result)
                         {
+                            if (oappSystemHolon == null)
+                                continue;
+                            if (oappSystemHolon.STARNETDNA == null || string.IsNullOrEmpty(oappSystemHolon.STARNETDNA.Version))
+                                continue;
                             if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey(STARNETHolonIdName) && oappSystemHolon.MetaData[STARNETHolonIdName] != null)
                                 dependencyId = oappSystemHolon.MetaData[STARNETHolonIdName].ToString();
 
-                            latestVersion = latestVersions.ContainsKey(dependencyId) ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", "")) : 0;
+                            latestVersion = latestVersions.ContainsKey(dependencyId) && latestVersions[dependencyId]?.STARNETDNA?.Version != null
+                                ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", ""))
+                                : 0;
                             currentVersion = Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""));
 
                             if (latestVersions.ContainsKey(dependencyId) &&
@@ -6937,7 +6951,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                         foreach (T oappSystemHolon in results.Result)
                         {
-                            if (oappSystemHolon.MetaData["VersionSequence"].ToString() == version.ToString())
+                            if (oappSystemHolon?.MetaData != null && oappSystemHolon.MetaData.ContainsKey("VersionSequence") && oappSystemHolon.MetaData["VersionSequence"]?.ToString() == version.ToString())
                                 filteredList.Add(oappSystemHolon);
                         }
 
@@ -6949,12 +6963,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.Result = results.Result;
 
             //Filter out any items that are not created by the avatar or published on STARNET.
-            if (results.Result != null)
+            if (results.Result != null && result.Result != null)
             {
                 holons = result.Result.ToList();
 
                 foreach (T oappSystemHolon in result.Result)
                 {
+                    if (oappSystemHolon?.STARNETDNA == null)
+                        continue;
                     if (oappSystemHolon.STARNETDNA.CreatedByAvatarId != avatarId)
                     {
                         if (oappSystemHolon.STARNETDNA.PublishedOn == DateTime.MinValue)
