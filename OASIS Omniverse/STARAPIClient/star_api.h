@@ -77,8 +77,10 @@ star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
-/** Write serialized quest list (InProgress) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. */
+/** Write serialized quest list (InProgress) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Uses cache; never blocks. */
 int star_api_get_quests_string(char* buf, size_t buf_size);
+/** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. Call when opening the quest popup so data is up to date. */
+void star_api_invalidate_quest_cache(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
@@ -110,6 +112,8 @@ int star_api_consume_last_background_error(char* buf, size_t size);
 int star_api_consume_console_log(char* buf, size_t size);
 /** Append a line to star_api.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
 void star_api_log_to_file(const char* message);
+/** Enable (1) or disable (0) STAR API debug logging in the client. When on, quest and other API requests log URI and response to star_api.log and console. Call when user toggles "star debug on|off". */
+void star_api_set_debug(int enabled);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus

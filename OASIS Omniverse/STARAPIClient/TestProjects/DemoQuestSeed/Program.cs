@@ -102,10 +102,10 @@ internal static class Program
             var start = await client.StartQuestAsync(quest.Id);
             if (start.IsError)
                 Console.WriteLine($"  Start quest failed: {start.Message}");
-            else if (firstStartedQuestId == null)
+            else
             {
-                firstStartedQuestId = quest.Id;
-                Console.WriteLine($"  Started (active for UI).");
+                if (firstStartedQuestId == null) firstStartedQuestId = quest.Id;
+                Console.WriteLine($"  Started (InProgress for UI).");
             }
             Console.WriteLine();
         }

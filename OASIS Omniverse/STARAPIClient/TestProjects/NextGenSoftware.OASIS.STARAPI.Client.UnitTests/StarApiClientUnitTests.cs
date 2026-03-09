@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.Common;
 
@@ -166,6 +167,48 @@ public class StarApiClientUnitTests
         using var client = new StarApiClient();
         var result = await client.SendItemToClanAsync("clan", "item", 1);
         AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetQuestsByStatusAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.GetQuestsByStatusAsync("InProgress");
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetActiveQuestsAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.GetActiveQuestsAsync();
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetQuestsByStatusAsync_WhenStatusEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com" });
+        var result = await client.GetQuestsByStatusAsync("");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
+    public void SerializeQuestsForGame_EmptyList_ReturnsEmptyString()
+    {
+        var serialized = StarApiClient.SerializeQuestsForGame(new List<StarQuestInfo>());
+        Assert.NotNull(serialized);
+        Assert.Empty(serialized);
+    }
+
+    [Fact]
+    public void SerializeQuestsForGame_NullList_ReturnsEmptyString()
+    {
+        var serialized = StarApiClient.SerializeQuestsForGame(null);
+        Assert.NotNull(serialized);
+        Assert.Empty(serialized);
     }
 
     [Fact]

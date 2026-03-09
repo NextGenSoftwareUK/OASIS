@@ -749,11 +749,20 @@ public sealed class StarApiClient : IDisposable
             try
             {
                 var result = await GetActiveQuestsAsync(ct).ConfigureAwait(false);
-                string? serialized = null;
-                if (result.Result is not null && result.Result.Count > 0)
-                    serialized = SerializeQuestsForGame(result.Result);
-                else
+                string serialized;
+                if (result.IsError)
+                {
+                    serialized = "Error: Error loading quests. Check console or star_api.log for details.";
+                    StarApiExports.StarApiLog($"[Quests] Load failed: {result.Message}");
+                }
+                else if (result.Result is null || result.Result.Count == 0)
+                {
                     serialized = string.Empty;
+                }
+                else
+                {
+                    serialized = SerializeQuestsForGame(result.Result);
+                }
                 lock (_questsCacheLock)
                 {
                     _questsCacheString = serialized;
@@ -761,10 +770,13 @@ public sealed class StarApiClient : IDisposable
                 }
                 return Success(true, StarApiResultCode.Success, "Quests cached.");
             }
-            catch
+            catch (Exception ex)
             {
+                var serialized = "Error: Error loading quests. Check console or star_api.log for details.";
+                StarApiExports.StarApiLog($"[Quests] Exception: {ex.Message}");
                 lock (_questsCacheLock)
                 {
+                    _questsCacheString = serialized;
                     _questsRefreshInProgress = false;
                 }
                 return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
@@ -1591,7 +1603,23 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(status))
             return FailAndCallback<List<StarQuestInfo>>("Quest status is required (e.g. InProgress, NotStarted, Completed).", StarApiResultCode.InvalidParam);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}", null, cancellationToken).ConfigureAwait(false);
+        var url = $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}";
+        if (StarApiExports.GetStarDebug())
+            StarApiExports.StarApiLog($"[Quests] GET {url}");
+
+        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
+
+        if (StarApiExports.GetStarDebug())
+        {
+            var bodyPreview = response.Result != null
+                ? (response.Result.Length <= 300 ? response.Result : response.Result.Substring(0, 300) + "...")
+                : "(null)";
+            var logLine = $"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={bodyPreview}";
+            if (logLine.Length > 450)
+                logLine = logLine.Substring(0, 447) + "...";
+            StarApiExports.StarApiLog(logLine);
+        }
+
         if (response.IsError)
             return FailAndCallback<List<StarQuestInfo>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -3593,6 +3621,10 @@ public static unsafe class StarApiExports
     private static byte* _lastError;
     private static delegate* unmanaged[Cdecl]<int, void*, void> _callback;
     private static void* _callbackUserData;
+    private static volatile int _starDebug;
+
+    /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
+    internal static bool GetStarDebug() => _starDebug != 0;
 
     /// <summary>Set the last background error (mint/add_item failure or pickup not queued). Consumed by star_api_consume_last_background_error for game console display.</summary>
     public static void SetLastBackgroundError(string message)
@@ -3796,6 +3828,13 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         client?.InvalidateInventoryCache();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_quest_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiInvalidateQuestCache()
+    {
+        var client = GetClient();
+        client?.InvalidateQuestCache();
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_clear_cache", CallConvs = [typeof(CallConvCdecl)])]
@@ -4294,6 +4333,12 @@ public static unsafe class StarApiExports
         }
         catch { /* ignore */ }
         EnqueueConsoleLog(msg);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_debug", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetDebug(int enabled)
+    {
+        _starDebug = enabled != 0 ? 1 : 0;
     }
 
     private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)

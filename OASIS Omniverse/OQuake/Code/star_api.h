@@ -108,6 +108,8 @@ int star_api_consume_last_background_error(char* buf, size_t size);
 int star_api_consume_console_log(char* buf, size_t size);
 /** Append a line to star_api.log (same file as C# StarApiLog). Use from game code so door-check and other STAR debug messages appear in the log for pasting. message can be NULL (no-op). */
 void star_api_log_to_file(const char* message);
+/** Enable (1) or disable (0) STAR API debug logging in the client (quest URI/response etc.). Call when user toggles "star debug on|off". */
+void star_api_set_debug(int enabled);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
 
 #ifdef __cplusplus
