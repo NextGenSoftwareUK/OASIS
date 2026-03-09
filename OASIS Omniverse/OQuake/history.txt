@@ -1,7 +1,5 @@
 star beamin dellams test!
 star config
-star beamin dellams test!
-star config
 star inventory
 star
 star beamin dellams test!
@@ -61,3 +59,4 @@ star debug on
 star beamin dellams test!
 star debug on
 star beamin dellams test!
+star debug on

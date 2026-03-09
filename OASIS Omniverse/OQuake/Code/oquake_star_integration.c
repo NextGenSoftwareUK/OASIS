@@ -3318,6 +3318,7 @@ void OQuake_STAR_Console_f(void) {
         }
         if (strcmp(Cmd_Argv(2), "on") == 0) {
             g_star_debug_logging = true;
+            star_api_set_debug(1);
             Con_Printf("STAR debug logging enabled. Check console and star_api.log (in id1 or exe dir).\n");
             OQ_StarDebugLog("STAR debug ON | max_health=%s max_armor=%s always_add=%s allow_pickup_if_max=%s use_health_on_pickup=%s use_armor_on_pickup=%s use_powerup_on_pickup=%s",
                 oquake_star_max_health.string, oquake_star_max_armor.string,
@@ -3325,7 +3326,7 @@ void OQuake_STAR_Console_f(void) {
                 oquake_star_use_health_on_pickup.string, oquake_star_use_armor_on_pickup.string, oquake_star_use_powerup_on_pickup.string);
             return;
         }
-        if (strcmp(Cmd_Argv(2), "off") == 0) { g_star_debug_logging = false; Con_Printf("STAR debug logging disabled.\n"); return; }
+        if (strcmp(Cmd_Argv(2), "off") == 0) { g_star_debug_logging = false; star_api_set_debug(0); Con_Printf("STAR debug logging disabled.\n"); return; }
         Con_Printf("Unknown debug option: %s. Use on|off|status.\n", Cmd_Argv(2));
         return;
     }
@@ -3692,6 +3693,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (s_q_key >= 0 && s_q_key < MAX_KEYS && key_dest != key_message && key_dest != key_console && key_dest != key_menu) {
             if (keydown[s_q_key] && !g_quest_key_was_down) {
                 g_quest_popup_open = !g_quest_popup_open;
+                if (g_quest_popup_open)
+                    star_api_invalidate_quest_cache();
                 g_quest_key_was_down = true;
             }
             if (!keydown[s_q_key])
@@ -3839,6 +3842,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (g_quest_popup_open) {
         static char quest_buf[4096];
         int n = star_api_get_quests_string(quest_buf, sizeof(quest_buf));
+        if (n < 0)
+            n = 0;
+        quest_buf[n] = '\0';
         int qw = q_min(glwidth - 48, 500);
         int qh = q_min(glheight - 96, 320);
         int qx = (glwidth - qw) / 2;
@@ -3850,6 +3856,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_String(cbx, qx + 6, qy + qh - 14, "Q = Close");
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0 && (quest_buf[9] == '\0' || quest_buf[9] == '\n')) {
             Draw_String(cbx, qx + 10, qy + 24, "Loading...");
+        } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
+            /* Generic message only; details are in console and star_api.log */
+            Draw_String(cbx, qx + 10, qy + 24, "Error loading quests. Check console or star_api.log for details.");
         } else if (n > 0 && quest_buf[0]) {
             int dy = qy + 24;
             char* p = quest_buf;
