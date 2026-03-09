@@ -771,28 +771,34 @@ static void ODOOM_RefreshQuestCVars(void) {
 		if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) { UCVarValue o; o.String = (char*)""; trackerObjVar->SetGenericRep(o, CVAR_String); }
 		return;
 	}
+	if (n >= (int)sizeof(questBuf))
+		n = (int)sizeof(questBuf) - 1;
 	questBuf[n] = '\0';
 
-	UCVarValue v; v.String = questBuf;
+	/* Use a static std::string so the CVar gets a pointer that remains valid until next refresh (engine may not copy). */
+	static std::string s_questListValue;
+	s_questListValue.assign(questBuf, (size_t)n);
+	UCVarValue v; v.String = (char*)s_questListValue.c_str();
 	listVar->SetGenericRep(v, CVAR_String);
 
 	/* Count quests (blocks separated by "---") and parse first quest for tracker. */
 	int questCount = 0;
 	std::string firstTitle, firstObjective;
 	const char* p = questBuf;
-	while (*p) {
-		const char* lineEnd = strchr(p, '\n');
-		size_t lineLen = lineEnd ? (size_t)(lineEnd - p) : strlen(p);
+	const char* endBuf = questBuf + n;
+	while (p < endBuf && *p) {
+		const char* lineEnd = (const char*)memchr(p, '\n', (size_t)(endBuf - p));
+		size_t lineLen = lineEnd ? (size_t)(lineEnd - p) : (size_t)(endBuf - p);
 		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
 			questCount++;
 			/* Tab-separated: Q, id, name, desc, status, pct. We want name (3rd field). */
 			int field = 0;
 			const char* start = p + 2;
 			const char* end = start;
-			for (; field < 2 && end <= p + lineLen; ) {
+			for (; field < 2 && end <= p + lineLen && end < endBuf; ) {
 				if (*end == '\t' || end == p + lineLen) {
 					if (field == 1 && start < end && firstTitle.empty()) {
-						firstTitle.assign(start, end - start);
+						firstTitle.assign(start, (size_t)(end - start));
 						if (firstTitle.size() > 120) firstTitle.resize(120);
 					}
 					field++;
@@ -804,14 +810,16 @@ static void ODOOM_RefreshQuestCVars(void) {
 		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && questCount == 1 && firstObjective.empty()) {
 			/* O, id, desc, done (tab-separated). We want first objective with done=0; desc is 3rd field. */
 			const char* f0 = p + 2;
-			const char* f1 = (const char*)memchr(f0, '\t', lineLen - (f0 - p));
+			size_t rest0 = (size_t)(f0 - p) <= lineLen ? lineLen - (size_t)(f0 - p) : 0;
+			const char* f1 = (const char*)memchr(f0, '\t', rest0);
 			if (f1 && f1 - p < (ptrdiff_t)lineLen) {
 				f1++;
-				const char* f2 = (const char*)memchr(f1, '\t', lineLen - (f1 - p));
+				size_t rest1 = (size_t)(f1 - p) <= lineLen ? lineLen - (size_t)(f1 - p) : 0;
+				const char* f2 = (const char*)memchr(f1, '\t', rest1);
 				if (f2 && f2 - p < (ptrdiff_t)lineLen) {
 					const char* doneStart = f2 + 1;
-					if (doneStart < p + lineLen && *doneStart == '0')
-						firstObjective.assign(f1, f2 - f1);
+					if (doneStart < p + lineLen && doneStart < endBuf && *doneStart == '0')
+						firstObjective.assign(f1, (size_t)(f2 - f1));
 				}
 			}
 		}
@@ -1147,7 +1155,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		if (star_api_consume_last_background_error(err_buf, sizeof(err_buf)))
 			Printf(PRINT_HIGH, "%s\n", err_buf);
 	}
-	/* Show STAR log messages in console only when star debug is on (XP refresh, monster kill, etc.). */
+	/* Show STAR log messages in console only when star debug is on. Quest logs are file-only to avoid crashes when consuming. */
+	star_api_set_debug(g_star_debug_logging ? 1 : 0);
 	if (g_star_debug_logging) {
 		char log_buf[512] = {};
 		for (int i = 0; i < 5; i++) {
@@ -1156,7 +1165,6 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			Printf(PRINT_HIGH, "[STAR] %s\n", log_buf);
 		}
 	} else {
-		/* Drain queue so it doesn't grow when debug is off */
 		char log_buf[512] = {};
 		while (star_api_consume_console_log(log_buf, sizeof(log_buf))) {}
 	}
@@ -1359,10 +1367,14 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
-	/* Quest tracker + popup: refresh quest list when popup open; periodically refresh tracker when beamed in. */
+	/* Quest tracker + popup: refresh every frame when popup open (like inventory), so when background load completes the popup updates. When closed, refresh every 60 frames for tracker. */
 	if (g_star_initialized) {
 		FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 		int questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int) ? questPopupVar->GetGenericRep(CVAR_Int).Int : 0;
+		static int s_quest_popup_was_open = 0;
+		if (questPopupOpen && !s_quest_popup_was_open)
+			star_api_invalidate_quest_cache();
+		s_quest_popup_was_open = questPopupOpen;
 		static int s_quest_refresh_frames = 0;
 		if (questPopupOpen || ++s_quest_refresh_frames >= 60) {
 			s_quest_refresh_frames = 0;
@@ -2736,12 +2748,14 @@ CCMD(star)
 		}
 		if (strcmp(argv[2], "on") == 0) {
 			g_star_debug_logging = true;
+			star_api_set_debug(1);
 			StarLogInfo("Debug logging enabled.");
 			Printf("\n");
 			return;
 		}
 		if (strcmp(argv[2], "off") == 0) {
 			g_star_debug_logging = false;
+			star_api_set_debug(0);
 			Printf("STAR API: Debug logging disabled.\n");
 			Printf("\n");
 			return;
