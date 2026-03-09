@@ -89,6 +89,12 @@ public sealed class StarApiClient : IDisposable
 {
     private readonly object _stateLock = new();
     private readonly object _inventoryCacheLock = new();
+    private readonly object _questsCacheLock = new();
+
+    /// <summary>Cached serialized quest list for star_api_get_quests_string. Populated by background refresh so the game thread never blocks.</summary>
+    private string? _questsCacheString;
+    /// <summary>True while a background quest refresh is running; prevents multiple concurrent refreshes.</summary>
+    private bool _questsRefreshInProgress;
 
     /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
     private List<StarItem>? _cachedInventory;
@@ -713,10 +719,73 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Clear all client caches (e.g. inventory). Next GetInventory/HasItem will hit the API.</summary>
+    /// <summary>Clear all client caches (e.g. inventory, quests). Next GetInventory/HasItem/GetQuests will hit the API.</summary>
     public void ClearCache()
     {
         InvalidateInventoryCache();
+        InvalidateQuestCache();
+    }
+
+    /// <summary>Clear the local quest cache. Next star_api_get_quests_string will trigger a background refresh. Call after completing objectives if you want the popup to show fresh data.</summary>
+    public void InvalidateQuestCache()
+    {
+        lock (_questsCacheLock)
+        {
+            _questsCacheString = null;
+        }
+    }
+
+    /// <summary>Ensure quest cache is populated in the background. Called from star_api_get_quests_string when cache is empty so the game thread never blocks.</summary>
+    private void EnsureQuestsCacheInBackground()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsCacheString != null || _questsRefreshInProgress)
+                return;
+            _questsRefreshInProgress = true;
+        }
+        _ = RunOnBackgroundAsync<bool>(async ct =>
+        {
+            try
+            {
+                var result = await GetActiveQuestsAsync(ct).ConfigureAwait(false);
+                string? serialized = null;
+                if (result.Result is not null && result.Result.Count > 0)
+                    serialized = SerializeQuestsForGame(result.Result);
+                else
+                    serialized = string.Empty;
+                lock (_questsCacheLock)
+                {
+                    _questsCacheString = serialized;
+                    _questsRefreshInProgress = false;
+                }
+                return Success(true, StarApiResultCode.Success, "Quests cached.");
+            }
+            catch
+            {
+                lock (_questsCacheLock)
+                {
+                    _questsRefreshInProgress = false;
+                }
+                return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+            }
+        }, default);
+    }
+
+    /// <summary>Get current quest cache for native star_api_get_quests_string. Returns cached string if available; otherwise starts background refresh and returns null (caller shows "Loading..."). Never blocks.</summary>
+    internal bool TryGetQuestsCache(out string? cached)
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsCacheString != null)
+            {
+                cached = _questsCacheString;
+                return true;
+            }
+        }
+        EnsureQuestsCacheInBackground();
+        cached = null;
+        return false;
     }
 
     public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
@@ -1363,6 +1432,7 @@ public sealed class StarApiClient : IDisposable
         if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
+        InvalidateQuestCache();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest objective completed successfully.");
     }
@@ -1379,6 +1449,7 @@ public sealed class StarApiClient : IDisposable
         if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
+        InvalidateQuestCache();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
     }
@@ -1856,9 +1927,16 @@ public sealed class StarApiClient : IDisposable
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, cancellationToken).ConfigureAwait(false);
+        /* Use 8s timeout so "avatar not found" returns quickly instead of waiting for full default timeout. */
+        using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        sendCts.CancelAfter(TimeSpan.FromSeconds(8));
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
+        {
+            if (response.Exception is OperationCanceledException)
+                return FailAndCallback<bool>("Request timed out (8s). Avatar may not exist or server is slow.", StarApiResultCode.Network, response.Exception);
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out _, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
@@ -1894,9 +1972,14 @@ public sealed class StarApiClient : IDisposable
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, cancellationToken).ConfigureAwait(false);
+        /* Use 8s timeout so "clan not found" returns quickly instead of waiting for full default timeout. */
+        using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        sendCts.CancelAfter(TimeSpan.FromSeconds(8));
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
         {
+            if (response.Exception is OperationCanceledException)
+                return FailAndCallback<bool>("Request timed out (8s). Clan may not exist or server is slow.", StarApiResultCode.Network, response.Exception);
             var msg = response.Message ?? string.Empty;
             if (msg.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
                 msg = "Clan not found.";
@@ -3684,7 +3767,7 @@ public static unsafe class StarApiExports
         NativeMemory.Free(itemList);
     }
 
-    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error.</summary>
+    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_quests_string", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetQuestsString(sbyte* buf, nuint bufSize)
     {
@@ -3695,25 +3778,17 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var result = client.GetActiveQuestsAsync().GetAwaiter().GetResult();
-        var resultCode = ExtractCode(result);
-        if (result.IsError || result.Result is null)
-        {
-            SetError(result.Message ?? "Failed to load quests.");
-            InvokeCallback(resultCode);
-            return -(int)resultCode;
-        }
+        if (!client.TryGetQuestsCache(out var str))
+            str = "Loading...";
 
-        var str = StarApiClient.SerializeQuestsForGame(result.Result);
-        var bytesArr = Encoding.UTF8.GetBytes(str);
+        var bytesArr = Encoding.UTF8.GetBytes(str ?? string.Empty);
         var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
         if (toCopy > 0)
             new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
         buf[toCopy] = 0;
-        var bytes = toCopy;
         SetError(string.Empty);
         InvokeCallback(StarApiResultCode.Success);
-        return bytes;
+        return toCopy;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]

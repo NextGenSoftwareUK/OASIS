@@ -22,7 +22,7 @@
 - **Implementation**:  
   - `AvatarController` → `AvatarManager.SendItemToAvatarAsync` / `SendItemToClanAsync`.  
   - Send-to-clan resolves clan by name via `ClanManager.LoadClanByNameAsync`, then `ClanManager.SendItemToClanAsync`.
-- **Storage provider**: Both flows use **ProviderType.Default** (the current OASIS storage provider). They do **not** force Arbitrum; they use whatever is configured as the default (e.g. in OASIS DNA).  
+- **Storage provider**: Both flows use **ProviderType.Default** (the current OASIS storage provider). They do **not** force Arbitrum; they use whatever is configured as the default (e.g. in OASIS DNA). If your APIs are configured to use **MongoDBOASIS** by default, set the default storage provider to **MongoDBOASIS** in OASIS DNA (e.g. in ONODE/STAR API config or appsettings). If the default is ArbitrumOASIS and that provider fails to activate, you will see "cannot activate Arbitrum"; switching the default to MongoDBOASIS avoids that.  
   - Load/save path: `LoadAvatarDetailAsync` / `SaveAvatarDetailAsync` (avatar), and for clan also `LoadClanAsync` / `HolonManager.SaveHolonAsync`.  
   - Each of these calls `ProviderManager.SetAndActivateCurrentStorageProviderAsync(providerType)`. If the default provider is **ArbitrumOASIS**, then:
     - **“Not being able to activate Arbitrum”**: The Arbitrum provider’s `ActivateProviderAsync()` failed (e.g. missing/invalid connection string, chain private key, or RPC endpoint in OASIS DNA).
