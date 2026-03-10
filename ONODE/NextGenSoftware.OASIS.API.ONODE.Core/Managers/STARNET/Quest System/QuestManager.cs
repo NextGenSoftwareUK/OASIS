@@ -737,7 +737,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
-                result.Message = "Quest started successfully";
+                result.Message = $"Quest started and saved (QuestId={questId}). If status does not update in the client, ensure the storage provider persists (e.g. MongoDB).";
             }
             catch (Exception ex)
             {

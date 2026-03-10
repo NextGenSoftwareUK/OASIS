@@ -993,7 +993,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					String status = parts[4];
 					String pctStr = parts.Size() > 5 ? parts[5] : "0";
 					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
-					if (qName.Length() > 14) qName = qName.Left(12) + "..";
+					if (qName.Length() > 14) qName = String.Format("%s..", qName.Left(12));
 					bool selected = (drawOffset + i == questSelectedIndex);
 					int cr = selected ? Font.CR_GOLD : Font.CR_WHITE;
 					if (status.Compare("Completed") == 0) cr = selected ? Font.CR_GREEN : Font.CR_GRAY;
