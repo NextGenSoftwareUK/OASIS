@@ -4025,10 +4025,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_quest_selected_index = q_filtered_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
 
-        /* Draw: width ~1/3 of previous (shrink by 2/3), space below toggles */
-        int qw = q_min(glwidth - 48, 320);
+        /* Draw: double width (640px), space below toggles */
+        int qw = q_min(glwidth - 48, 640);
         int qh = q_min(glheight - 96, 480);
-        if (qw < 280) qw = 280;
+        if (qw < 400) qw = 400;
         if (qh < 160) qh = 160;
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
@@ -4038,14 +4038,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
         /* Space beneath Quests heading */
 
-        /* Toggles always visible */
+        /* Toggles always visible, centre-aligned */
         {
             char cb[128];
+            int cb_len;
             q_snprintf(cb, sizeof(cb), "%s Not Started  %s In Progress  %s Completed",
                 g_quest_filter_not_started ? "[X]" : "[ ]",
                 g_quest_filter_in_progress ? "[X]" : "[ ]",
                 g_quest_filter_completed ? "[X]" : "[ ]");
-            Draw_String(cbx, qx + 8, qy + 24, cb);
+            cb_len = (int)strlen(cb);
+            Draw_String(cbx, qx + (qw - cb_len * 8) / 2, qy + 24, cb);
         }
 
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
@@ -4053,7 +4055,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
             Draw_String(cbx, qx + 10, qy + 48, "Error loading quests. Check console or star_api.log for details.");
         } else if (q_filtered_count > 0) {
-            /* Table: Name | % | Status (narrower columns for 320px) */
+            /* Table: Name | % | Status (wider columns for 640px popup) */
             char name_buf[64];
             char status_display[20];
             const char* status_str;
@@ -4061,8 +4063,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int idx;
             qboolean sel;
             int col1_x, col2_x, col3_x;
-            int col1_chars = 20;
-            int col2_chars = 5;
+            int col1_chars = 54;  /* name column ~50px wider again (54*8 = 432px) */
+            int col2_chars = 6;
             dy = qy + 48;  /* space below toggles */
             row_h = 12;
             max_rows = (qh - 84) / row_h;  /* heading + space + toggles + space + header + footer */
@@ -4114,12 +4116,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_String(cbx, qx + 10, qy + 48, "No Quests Found");
         }
 
-        Draw_String(cbx, qx + 6, qy + qh - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close");
-        /* Status message in bottom-right (e.g. "Starting quest...") like inventory panel */
+        /* Bottom info text centre-aligned */
+        {
+            const char* footer = "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close";
+            int footer_len = (int)strlen(footer);
+            Draw_String(cbx, qx + (qw - footer_len * 8) / 2, qy + qh - 20, footer);
+        }
+        /* Status message in bottom-right (e.g. "Starting quest..."), 10px higher than before */
         if (g_quest_status_frames > 0 && g_quest_status_message[0]) {
             int status_len = (int)strlen(g_quest_status_message);
             int status_x = qx + qw - (status_len * 8) - 8;
-            int status_y = qy + qh - 16;
+            int status_y = qy + qh - 36;  /* 10px higher than previous (qh - 26) */
             if (status_x < qx + 8) status_x = qx + 8;
             Draw_String(cbx, status_x, status_y, g_quest_status_message);
             g_quest_status_frames--;

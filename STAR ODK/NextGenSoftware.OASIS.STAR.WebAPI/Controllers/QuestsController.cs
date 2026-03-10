@@ -38,7 +38,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         protected override STARAPI GetStarAPI() => _starAPI;
-        private QuestManager CreateQuestManager() => new QuestManager(AvatarId, new STARDNA());
 
         /// <summary>
         /// Retrieves all quests in the system.
@@ -566,7 +565,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Add objectives (sub-quests) if provided.
                 if (request.Objectives != null && request.Objectives.Count > 0 && result.Result != null)
                 {
-                    var manager = CreateQuestManager();
                     int order = 0;
                     foreach (var obj in request.Objectives)
                     {
@@ -598,7 +596,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                         subQuest.MetaData ??= new Dictionary<string, object>();
                         subQuest.MetaData["CreatedByAvatarId"] = AvatarId.ToString();
                         subQuest.MetaData["Active"] = "1";
-                        var addResult = await manager.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
+                        var addResult = await _starAPI.Quests.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
                         if (addResult.IsError)
                             return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to add objective: {addResult.Message}" });
                         order++;
@@ -671,8 +669,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     ModifiedOn = DateTime.UtcNow
                 };
 
-                var manager = CreateQuestManager();
-                var result = await manager.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
+                var result = await _starAPI.Quests.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
 
                 if (result.IsError)
                     return BadRequest(result);
@@ -702,8 +699,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureStarApiBootedAsync();
                 EnsureLoggedInAvatar();
 
-                var manager = CreateQuestManager();
-                var result = await manager.RemoveQuestAsync(AvatarId, parentId, objectiveId, ProviderType.Default);
+                var result = await _starAPI.Quests.RemoveQuestAsync(AvatarId, parentId, objectiveId, ProviderType.Default);
 
                 if (result.IsError)
                     return BadRequest(result);
@@ -1097,7 +1093,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureStarApiBootedAsync();
                 EnsureLoggedInAvatar();
 
-                var result = await CreateQuestManager().CanStartQuestAsync(AvatarId, id);
+                var result = await _starAPI.Quests.CanStartQuestAsync(AvatarId, id);
                 if (result.IsError)
                     return BadRequest(result);
                 return Ok(result);
@@ -1119,11 +1115,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             _logger.LogInformation("[Quests] StartQuest: id={QuestId} AvatarId={AvatarId}", id, AvatarId);
             try
             {
-                var result = await CreateQuestManager().StartQuestAsync(AvatarId, id, startNotes);
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.StartQuestAsync(AvatarId, id, startNotes);
                 _logger.LogInformation("[Quests] StartQuest: result IsError={IsError} Message={Message}", result.IsError, result.Message ?? "(null)");
                 if (result.IsError)
                     return BadRequest(result);
-                
+                _logger.LogInformation("[Quests] StartQuest: quest start saved for QuestId={QuestId}. If client still shows NotStarted after reopening popup, ensure API uses a persistent storage provider (e.g. MongoDB).", id);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -1143,7 +1142,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await CreateQuestManager().CompleteQuestObjectiveAsync(
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.CompleteQuestObjectiveAsync(
                     AvatarId,
                     id,
                     objectiveId,
@@ -1176,7 +1178,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await CreateQuestManager().CompleteQuestAsync(AvatarId, id, completionNotes);
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.CompleteQuestAsync(AvatarId, id, completionNotes);
                 if (result.IsError)
                     return BadRequest(result);
                 
@@ -1203,7 +1208,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var managerResult = await CreateQuestManager().GetQuestLeaderboardAsync(id, limit);
+                var managerResult = await _starAPI.Quests.GetQuestLeaderboardAsync(id, limit);
                 var result = new OASISResult<IEnumerable<QuestLeaderboard>>
                 {
                     Result = managerResult.Result,
@@ -1243,7 +1248,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var managerResult = await CreateQuestManager().GetQuestRewardsAsync(id);
+                var managerResult = await _starAPI.Quests.GetQuestRewardsAsync(id);
                 var result = new OASISResult<IEnumerable<QuestReward>>
                 {
                     Result = managerResult.Result,
@@ -1282,7 +1287,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await CreateQuestManager().GetQuestStatsAsync(AvatarId);
+                var result = await _starAPI.Quests.GetQuestStatsAsync(AvatarId);
                 if (result.IsError)
                     return BadRequest(result);
 
