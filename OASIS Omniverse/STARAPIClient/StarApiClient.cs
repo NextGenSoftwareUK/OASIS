@@ -1416,15 +1416,27 @@ public sealed class StarApiClient : IDisposable
     public async Task<OASISResult<bool>> StartQuestAsync(string questId, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLog("[Quests] StartQuestAsync: client not initialized");
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         if (string.IsNullOrWhiteSpace(questId))
+        {
+            StarApiExports.StarApiLog("[Quests] StartQuestAsync: quest ID is empty");
             return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
+        }
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/start", null, cancellationToken).ConfigureAwait(false);
+        var url = $"{_baseApiUrl}/api/quests/{questId}/start";
+        StarApiExports.StarApiLog($"[Quests] StartQuestAsync: POST {url}");
+        var response = await SendRawAsync(HttpMethod.Post, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            StarApiExports.StarApiLog($"[Quests] StartQuestAsync: response IsError=True Message={response.Message}");
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
+        StarApiExports.StarApiLog("[Quests] StartQuestAsync: API returned success (quest start completed)");
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
@@ -4222,6 +4234,7 @@ public static unsafe class StarApiExports
         if (string.IsNullOrWhiteSpace(questIdStr))
             return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam);
 
+        StarApiExports.StarApiLog($"[Quests] Start quest requested: QuestId={questIdStr}");
         /* Run start-quest on background thread so UI does not hang. Do not invalidate cache so the popup keeps showing the current list and game can show "Starting quest..." in corner. */
         _ = client.QueueStartQuestAsync(questIdStr);
         SetError(string.Empty);

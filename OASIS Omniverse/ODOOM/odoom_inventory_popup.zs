@@ -945,16 +945,16 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (show) drawFilteredIndices.Push(b);
 			}
 			int qCount = drawFilteredIndices.Size();
-			int popupW = 304;
+			int popupW = 200;
 			int popupH = 200;
 			int popupX = 8;
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
-			int col2X = popupX + 8 + 24 * 8;
-			int col3X = popupX + 8 + 28 * 8;
-			int maxQuestRows = (popupH - 72) / rowH;
-			if (maxQuestRows < 10) maxQuestRows = 10;
+			int col2X = popupX + 8 + 16 * 8;
+			int col3X = popupX + 8 + 22 * 8;
+			int maxQuestRows = (popupH - 80) / rowH;
+			if (maxQuestRows < 8) maxQuestRows = 8;
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 4, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
 			String cb2 = (fi != 0) ? "[X] In Progress" : "[ ] In Progress";
@@ -965,19 +965,23 @@ class OASISInventoryOverlayHandler : EventHandler
 			int newScrollOffset = scrollFromCvar;
 			if (listStr.IndexOf("Error:") == 0)
 			{
-				screen.DrawText(f, Font.CR_RED, popupX + 8, popupY + 44, "Error loading quests. Check console or star_api.log for details.", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_RED, popupX + 8, popupY + 48, "Error loading quests. Check console or star_api.log for details.", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			else if (listStr.IndexOf("Loading") == 0)
+			{
+				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "Loading quests...", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else if (qCount > 0 && drawQuestLines.Size() > 0)
 			{
-				screen.DrawText(f, Font.CR_WHITE, col1X, popupY + 40, "Name", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-				screen.DrawText(f, Font.CR_WHITE, col2X, popupY + 40, "%", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-				screen.DrawText(f, Font.CR_WHITE, col3X, popupY + 40, "Status", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_WHITE, col1X, popupY + 48, "Name", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_WHITE, col2X, popupY + 48, "%", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_WHITE, col3X, popupY + 48, "Status", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				int drawOffset = scrollFromCvar;
 				if (drawOffset < 0) drawOffset = 0;
 				if (questSelectedIndex >= drawOffset + maxQuestRows) drawOffset = questSelectedIndex - maxQuestRows + 1;
 				if (questSelectedIndex < drawOffset) drawOffset = questSelectedIndex;
 				newScrollOffset = drawOffset;
-				int y = popupY + 40 + rowH;
+				int y = popupY + 48 + rowH;
 				for (int i = 0; i < maxQuestRows && drawOffset + i < drawFilteredIndices.Size(); i++)
 				{
 					int idx = drawFilteredIndices[drawOffset + i];
@@ -985,23 +989,23 @@ class OASISInventoryOverlayHandler : EventHandler
 					array<String> parts;
 					drawQuestLines[idx].Split(parts, "\t", false);
 					if (parts.Size() < 6) continue;
-					String name = parts[2];
+					String qName = parts[2];
 					String status = parts[4];
 					String pctStr = parts.Size() > 5 ? parts[5] : "0";
 					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
-					if (name.Length() > 22) name = name.Left(20) + "..";
+					if (qName.Length() > 14) qName = qName.Left(12) + "..";
 					bool selected = (drawOffset + i == questSelectedIndex);
 					int cr = selected ? Font.CR_GOLD : Font.CR_WHITE;
 					if (status.Compare("Completed") == 0) cr = selected ? Font.CR_GREEN : Font.CR_GRAY;
-					screen.DrawText(f, cr, col1X, y, name, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					screen.DrawText(f, cr, col1X, y, qName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 					screen.DrawText(f, cr, col2X, y, String.Format("%s%%", pctStr), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 					screen.DrawText(f, cr, col3X, y, statusDisplay, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 					y += rowH;
 				}
-				screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else
-				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 44, "No quests (toggle filters: Home, End, PgUp).", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				int msgW = f.StringWidth(questStatusMessage);
