@@ -48,6 +48,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
 int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
+/** Draw tracked quest on HUD when set from quest popup (Enter on In Progress). Call from same HUD path as DrawBeamedInStatus. */
+void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx);
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
 /** Draw avatar XP in top-right (when beamed in). Call from same HUD path as DrawVersionStatus. */
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx);

@@ -4218,8 +4218,16 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var result = client.StartQuestAsync(PtrToString(questId) ?? string.Empty).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        var questIdStr = PtrToString(questId) ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(questIdStr))
+            return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam);
+
+        /* Run start-quest on background thread so UI does not hang. Invalidate cache so next refresh shows updated list. */
+        client.InvalidateQuestCache();
+        _ = client.QueueStartQuestAsync(questIdStr);
+        SetError(string.Empty);
+        InvokeCallback(StarApiResultCode.Success);
+        return (int)StarApiResultCode.Success;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest_objective", CallConvs = [typeof(CallConvCdecl)])]
