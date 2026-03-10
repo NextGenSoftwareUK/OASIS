@@ -1437,11 +1437,13 @@ public sealed class StarApiClient : IDisposable
         }
 
         StarApiExports.StarApiLog("[Quests] StartQuestAsync: API returned success (quest start completed)");
+        InvalidateQuestCache();
+        StarApiExports.StarApiLog("[Quests] StartQuestAsync: cache invalidated so next popup open will refetch.");
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
 
-    /// <summary>Run start-quest on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run start-quest on the background worker so the calling thread does not block. On success, cache is invalidated in StartQuestAsync so the next refetch shows updated status.</summary>
     public Task<OASISResult<bool>> QueueStartQuestAsync(string questId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => StartQuestAsync(questId, ct), cancellationToken);
 
