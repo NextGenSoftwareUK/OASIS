@@ -3986,26 +3986,33 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
-        /* Key handling */
-        if (q_filtered_count > 0) {
-            if (OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_MWHEELUP)) {
-                g_quest_selected_index--;
-                if (g_quest_selected_index < 0) g_quest_selected_index = 0;
-            }
-            if (OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_MWHEELDOWN)) {
-                g_quest_selected_index++;
-                if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
-            }
-            if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
-                int idx = q_filtered_indices[g_quest_selected_index];
-                if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                    if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
-                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                        g_quest_status_frames = 105;  /* ~3 sec at 35 fps */
-                        star_api_start_quest(q_id[idx]);
-                    } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
-                        q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
-                        q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+        /* Key handling: use Key_StringToKeynum so Enter works regardless of engine key numbering */
+        {
+            static int s_enter_key = -2, s_kp_enter_key = -2;
+            if (s_enter_key == -2) s_enter_key = Key_StringToKeynum("enter");
+            if (s_kp_enter_key == -2) s_kp_enter_key = Key_StringToKeynum("kp_enter");
+            if (s_enter_key < 0) s_enter_key = K_ENTER;
+            if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
+            if (q_filtered_count > 0) {
+                if (OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_MWHEELUP)) {
+                    g_quest_selected_index--;
+                    if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+                }
+                if (OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_MWHEELDOWN)) {
+                    g_quest_selected_index++;
+                    if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
+                }
+                if (OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) {
+                    int idx = q_filtered_indices[g_quest_selected_index];
+                    if (idx >= 0 && idx < q_count && q_id[idx][0]) {
+                        if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
+                            q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+                            g_quest_status_frames = 105;  /* ~3 sec at 35 fps */
+                            star_api_start_quest(q_id[idx]);
+                        } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
+                            q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
+                            q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+                        }
                     }
                 }
             }
@@ -4018,10 +4025,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_quest_selected_index = q_filtered_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
 
-        /* Draw: same size as inventory panel (900x480) so popup matches */
-        int qw = q_min(glwidth - 48, 900);
+        /* Draw: width ~1/3 of previous (shrink by 2/3), space below toggles */
+        int qw = q_min(glwidth - 48, 320);
         int qh = q_min(glheight - 96, 480);
-        if (qw < 480) qw = 480;
+        if (qw < 280) qw = 280;
         if (qh < 160) qh = 160;
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
@@ -4031,13 +4038,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
         /* Space beneath Quests heading */
 
-        if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
-            Draw_String(cbx, qx + 10, qy + 32, "Loading quests...");
-        } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
-            Draw_String(cbx, qx + 10, qy + 32, "Error loading quests. Check console or star_api.log for details.");
-        } else if (q_filtered_count > 0) {
-            /* Filter checkboxes; table: Name | % | Status (fixed columns) */
+        /* Toggles always visible */
+        {
             char cb[128];
+            q_snprintf(cb, sizeof(cb), "%s Not Started  %s In Progress  %s Completed",
+                g_quest_filter_not_started ? "[X]" : "[ ]",
+                g_quest_filter_in_progress ? "[X]" : "[ ]",
+                g_quest_filter_completed ? "[X]" : "[ ]");
+            Draw_String(cbx, qx + 8, qy + 24, cb);
+        }
+
+        if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
+            Draw_String(cbx, qx + 10, qy + 48, "Loading quests...");
+        } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
+            Draw_String(cbx, qx + 10, qy + 48, "Error loading quests. Check console or star_api.log for details.");
+        } else if (q_filtered_count > 0) {
+            /* Table: Name | % | Status (narrower columns for 320px) */
             char name_buf[64];
             char status_display[20];
             const char* status_str;
@@ -4045,21 +4061,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int idx;
             qboolean sel;
             int col1_x, col2_x, col3_x;
-            int col1_chars = 38;
-            int col2_chars = 6;
-            dy = qy + 40;
+            int col1_chars = 20;
+            int col2_chars = 5;
+            dy = qy + 48;  /* space below toggles */
             row_h = 12;
-            max_rows = (qh - 76) / row_h;  /* leave room for heading space + header row + footer */
-            if (max_rows < 8) max_rows = 8;
+            max_rows = (qh - 84) / row_h;  /* heading + space + toggles + space + header + footer */
+            if (max_rows < 6) max_rows = 6;
             if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
             col1_x = qx + 10;
             col2_x = qx + 10 + col1_chars * 8;
             col3_x = qx + 10 + (col1_chars + col2_chars) * 8;
-            q_snprintf(cb, sizeof(cb), "%s Not Started  %s In Progress  %s Completed",
-                g_quest_filter_not_started ? "[X]" : "[ ]",
-                g_quest_filter_in_progress ? "[X]" : "[ ]",
-                g_quest_filter_completed ? "[X]" : "[ ]");
-            Draw_String(cbx, qx + 8, qy + 24, cb);
 
             /* Column headers */
             Draw_String(cbx, col1_x, dy, "Name");
@@ -4099,10 +4110,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 Draw_String(cbx, col3_x, dy, status_display);
                 dy += row_h;
             }
-            Draw_String(cbx, qx + 6, qy + qh - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close");
         } else {
-            Draw_String(cbx, qx + 10, qy + 32, "No quests (toggle filters: Home, End, PgUp).");
+            Draw_String(cbx, qx + 10, qy + 48, "No Quests Found");
         }
+
+        Draw_String(cbx, qx + 6, qy + qh - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close");
         /* Status message in bottom-right (e.g. "Starting quest...") like inventory panel */
         if (g_quest_status_frames > 0 && g_quest_status_message[0]) {
             int status_len = (int)strlen(g_quest_status_message);
@@ -4116,11 +4128,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
 }
 
-/** Draw current quest tracker on HUD (bottom-left, above "Beamed In") when user has set a tracked quest. Call from same HUD path as OQuake_STAR_DrawBeamedInStatus. */
+/** Draw current quest tracker on HUD at top-left when user has set a tracked quest (Enter on In Progress in popup). Call from same HUD path as OQuake_STAR_DrawBeamedInStatus. */
 void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
-    extern int glheight;
-
-    if (!g_star_initialized || !cbx || glheight <= 0)
+    if (!g_star_initialized || !cbx)
         return;
     if (!g_quest_tracker_id[0])
         return;
@@ -4131,7 +4141,7 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
             q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
-        Draw_String(cbx, 8, glheight - 40, buf);
+        Draw_String(cbx, 8, 8, buf);  /* top-left of screen */
     }
 }
 

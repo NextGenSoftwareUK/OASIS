@@ -1,7 +1,3 @@
-star beamin dellams test!
-star debug
-star debug on
-star beamin dellams test!
 STAR CONFI
 STAR CONFIG
 STAR
@@ -59,5 +55,9 @@ star debug on
 star beamin dellams test!
 star debug on
 star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star debug off
 star debug on
 star beamin dellams test!
