@@ -160,6 +160,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties (e.g. Status from MetaData["QuestStatus"]).</summary>
+        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = await LoadAllForAvatarAsync(avatarId, showAllVersions, version, providerType).ConfigureAwait(false);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties.</summary>
+        public OASISResult<IEnumerable<IQuest>> LoadAllQuestsForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = LoadAllForAvatar(avatarId, showAllVersions, version, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Promote MetaData to strongly-typed Quest properties. Prefer "Status" (used by HolonManager.MapMetaData); fallback to "QuestStatus" for backwards compatibility.</summary>
+        private static void PromoteQuestMetaDataToProperties(Quest q)
+        {
+            if (q?.MetaData == null) return;
+            var key = q.MetaData.ContainsKey("Status") ? "Status" : (q.MetaData.ContainsKey("QuestStatus") ? "QuestStatus" : null);
+            if (key == null) return;
+            var val = q.MetaData[key];
+            if (val == null) return;
+            var s = val.ToString();
+            if (string.IsNullOrEmpty(s)) return;
+            if (System.Enum.TryParse<QuestStatus>(s, true, out var status))
+                q.Status = status;
+        }
+
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
         //{
         //    OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -728,6 +772,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!string.IsNullOrWhiteSpace(startNotes))
                     quest.CompletionNotes = startNotes;
 
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+
                 var updateResult = await UpdateAsync(avatarId, quest);
                 if (updateResult.IsError)
                 {
@@ -809,6 +856,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     quest.Status = QuestStatus.InProgress;
                 }
 
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+
                 var updateResult = await UpdateAsync(avatarId, quest);
                 if (updateResult.IsError)
                 {
@@ -860,6 +910,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     questResult.Result.CompletionNotes = completionNotes;
                 }
+
+                if (questResult.Result.MetaData == null) questResult.Result.MetaData = new Dictionary<string, object>();
+                questResult.Result.MetaData["Status"] = questResult.Result.Status.ToString();
 
                 // Save the updated quest
                 var updateResult = await UpdateAsync(avatarId, questResult.Result);
