@@ -765,7 +765,16 @@ public sealed class StarApiClient : IDisposable
                 else
                 {
                     serialized = SerializeQuestsForGame(result.Result);
-                    StarApiExports.StarApiLog($"[Quests] OK ({result.Result.Count} quest(s))");
+                    var list = result.Result;
+                    StarApiExports.StarApiLog($"[Quests] OK ({list.Count} quest(s)) serialized length={serialized?.Length ?? 0}");
+                    for (var i = 0; i < list.Count && i < 24; i++)
+                    {
+                        var q = list[i];
+                        StarApiExports.StarApiLog($"[Quests]   [{i}] Id={q.Id} Name={q.Name?.Replace("\t", " ")} Status={q.Status}");
+                    }
+                    var previewLen = Math.Min(400, serialized?.Length ?? 0);
+                    var preview = previewLen > 0 ? serialized!.Substring(0, previewLen).Replace("\t", "|").Replace("\r", " ").Replace("\n", "\\n") : "";
+                    StarApiExports.StarApiLog($"[Quests] Serialized preview (first {previewLen} chars): {preview}");
                 }
                 lock (_questsCacheLock)
                 {
@@ -1729,7 +1738,7 @@ public sealed class StarApiClient : IDisposable
         {
             var name = EscapeForQuestLine(q.Name);
             var desc = EscapeForQuestLine(q.Description);
-            var status = NormalizeQuestStatus(q.Status ?? "InProgress");
+            var status = QuestStatusToGameString(q.Status);
             var objCount = q.Objectives?.Count ?? 0;
             var completed = q.Objectives?.Count(o => o.IsCompleted) ?? 0;
             var pct = objCount > 0 ? (completed * 100 / objCount) : 0;
@@ -1743,9 +1752,20 @@ public sealed class StarApiClient : IDisposable
                     sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
                 }
             }
-            sb.Append("\n---");
+            sb.Append("\n---\n");
         }
         return sb.ToString();
+    }
+
+    /// <summary>Map API status (enum number "0"/"1"/"2" or name) to game string: NotStarted, InProgress, Completed.</summary>
+    private static string QuestStatusToGameString(string? s)
+    {
+        if (string.IsNullOrEmpty(s)) return "InProgress";
+        var t = s.Trim();
+        if (t == "0" || string.Equals(t, "NotStarted", StringComparison.OrdinalIgnoreCase)) return "NotStarted";
+        if (t == "1" || string.Equals(t, "InProgress", StringComparison.OrdinalIgnoreCase)) return "InProgress";
+        if (t == "2" || string.Equals(t, "Completed", StringComparison.OrdinalIgnoreCase)) return "Completed";
+        return NormalizeQuestStatus(t);
     }
 
     /// <summary>Normalize status for game parsing: "Not Started" -> "NotStarted", "In Progress" -> "InProgress", "Completed" unchanged.</summary>
@@ -3709,6 +3729,7 @@ public static unsafe class StarApiExports
     private static delegate* unmanaged[Cdecl]<int, void*, void> _callback;
     private static void* _callbackUserData;
     private static volatile int _starDebug;
+    private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
 
     /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
     internal static bool GetStarDebug() => _starDebug != 0;
@@ -3907,6 +3928,23 @@ public static unsafe class StarApiExports
 
             var bytesArr = Encoding.UTF8.GetBytes(fallback);
             var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+            /* Log only when return length changes (e.g. once for Loading, once when cache fills) to avoid log spam */
+            try
+            {
+                if (toCopy != StarApiGetQuestsStringLastLoggedToCopy)
+                {
+                    StarApiGetQuestsStringLastLoggedToCopy = toCopy;
+                    if (fallback == "Loading...")
+                        StarApiLogFileOnly("[Quests] star_api_get_quests_string: cache miss, returning Loading...");
+                    else
+                    {
+                        var previewLen = Math.Min(250, fallback.Length);
+                        var preview = previewLen > 0 ? fallback.Substring(0, previewLen).Replace("\t", "|").Replace("\r", " ").Replace("\n", "\\n") : "";
+                        StarApiLogFileOnly($"[Quests] star_api_get_quests_string: cache HIT len={fallback.Length} toCopy={toCopy} preview={preview}");
+                    }
+                }
+            }
+            catch { /* ignore */ }
             if (toCopy > 0)
                 new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
             buf[toCopy] = 0;

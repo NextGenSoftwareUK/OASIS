@@ -114,7 +114,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 }
 
                 var list = result.Result ?? Enumerable.Empty<Quest>();
-                _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, list.Count());
+                var count = list.Count();
+                _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, count);
+                var enumerated = list.Take(24).ToList();
+                for (var idx = 0; idx < enumerated.Count; idx++)
+                    _logger.LogInformation("[Quests]   [{Index}] Id={Id} Name={Name} Status={Status}", idx, enumerated[idx].Id, enumerated[idx].Name ?? "(null)", enumerated[idx].Status.ToString());
                 return Ok(new OASISResult<IEnumerable<Quest>>
                 {
                     Result = list,

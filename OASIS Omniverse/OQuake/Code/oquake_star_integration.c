@@ -3864,7 +3864,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     /* Quest popup (Q key): filter by status (Home/End/PgUp), selection (Up/Down), Enter = Start (Not Started) or Set tracker (In Progress). */
     if (g_quest_popup_open) {
-        static char quest_buf[4096];
+        static char quest_buf[16384];
         static char q_id[OQ_QUEST_MAX][64];
         static char q_name[OQ_QUEST_MAX][128];
         static char q_status[OQ_QUEST_MAX][24];
@@ -3880,27 +3880,33 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
         q_count = 0;
         if (n > 0 && quest_buf[0] && (n < 9 || memcmp(quest_buf, "Loading...", 9) != 0) && (n < 6 || memcmp(quest_buf, "Error:", 6) != 0)) {
-            /* Parse blocks separated by "---"; each block starts with Q\tid\tname\tdesc\tstatus\tpct */
-            const char* bp = quest_buf;
-            const char* bend = quest_buf + n;
-            while (bp < bend && q_count < OQ_QUEST_MAX) {
-                const char* sep = (const char*)memmem(bp, (size_t)(bend - bp), "---", 3);
-                const char* block_end = sep && sep < bend ? sep : bend;
-                /* First line of block is Q line */
-                const char* line_end = (const char*)memchr(bp, '\n', (size_t)(block_end - bp));
-                if (!line_end) line_end = block_end;
-                if (line_end - bp >= 2 && bp[0] == 'Q' && bp[1] == '\t') {
-                    const char* f = bp + 2;
-                    const char* fe = line_end;
-                    /* id */
-                    const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+            /* Parse line by line: every line starting with Q\t is a quest (id, name, desc, status, pct) */
+            const char* p = quest_buf;
+            const char* end = quest_buf + n;
+            /* Skip UTF-8 BOM and leading newlines */
+            if (p + 3 <= end && (unsigned char)p[0] == 0xEF && (unsigned char)p[1] == 0xBB && (unsigned char)p[2] == 0xBF)
+                p += 3;
+            while (p < end && (*p == '\n' || *p == '\r')) p++;
+            while (p < end && q_count < OQ_QUEST_MAX) {
+                const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
+                if (!eol) eol = end;
+                /* Line may start with "Q\t" or "---Q\t" (legacy: separator and next quest on same line) */
+                const char* qstart = p;
+                if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') {
+                    qstart = p + 3;
+                    while (qstart < eol && (*qstart == ' ' || *qstart == '\t')) qstart++;
+                }
+                if (eol - qstart >= 2 && qstart[0] == 'Q' && qstart[1] == '\t') {
+                    const char* f = qstart + 2;
+                    const char* fe = eol;
+                    const char* t;
+                    t = (const char*)memchr(f, '\t', (size_t)(fe - f));
                     if (t && t - f < 63) {
                         int id_len = (int)(t - f);
                         memcpy(q_id[q_count], f, (size_t)id_len);
                         q_id[q_count][id_len] = '\0';
                         f = t + 1;
-                    } else { f = fe; q_id[q_count][0] = '\0'; }
-                    /* name */
+                    } else { q_id[q_count][0] = '\0'; f = fe; }
                     t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
                     if (t && t - f < 127) {
                         int name_len = (int)(t - f);
@@ -3908,40 +3914,75 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         q_name[q_count][name_len] = '\0';
                         f = t + 1;
                     } else { q_name[q_count][0] = '\0'; if (f < fe) f = fe; }
-                    /* skip desc */
                     t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
                     if (t) f = t + 1; else f = fe;
-                    /* status */
                     t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
                     if (t && t - f < 23) {
                         int st_len = (int)(t - f);
                         memcpy(q_status[q_count], f, (size_t)st_len);
                         q_status[q_count][st_len] = '\0';
+                        /* Strip \r and normalize: remove spaces so "Not Started" matches "NotStarted" */
+                        { int j, k; for (j = 0, k = 0; q_status[q_count][j]; j++) { if (q_status[q_count][j] == '\r') break; if (q_status[q_count][j] != ' ') q_status[q_count][k++] = q_status[q_count][j]; } q_status[q_count][k] = '\0'; }
                         f = t + 1;
                     } else { q_status[q_count][0] = '\0'; if (f < fe) f = fe; }
-                    /* pct */
                     if (fe - f < 7)
                         memcpy(q_pct[q_count], f, (size_t)(fe - f)), q_pct[q_count][(int)(fe - f)] = '\0';
                     else
                         q_pct[q_count][0] = '\0';
                     q_count++;
                 }
-                bp = block_end;
-                while (bp < bend && (*bp == '-' || *bp == '\n')) bp++;
+                p = eol + (eol < end && *eol == '\n' ? 1 : 0);
             }
         }
 
-        /* Build filtered list */
+        /* Build filtered list (accept status "0"/"1"/"2" or "NotStarted"/"InProgress"/"Completed") */
         q_filtered_count = 0;
         for (int i = 0; i < q_count && q_filtered_count < OQ_QUEST_MAX; i++) {
             qboolean show = false;
             if (q_status[i][0]) {
-                if (strcmp(q_status[i], "NotStarted") == 0 && g_quest_filter_not_started) show = true;
-                else if (strcmp(q_status[i], "InProgress") == 0 && g_quest_filter_in_progress) show = true;
-                else if (strcmp(q_status[i], "Completed") == 0 && g_quest_filter_completed) show = true;
+                if ((strcmp(q_status[i], "NotStarted") == 0 || strcmp(q_status[i], "0") == 0) && g_quest_filter_not_started) show = true;
+                else if ((strcmp(q_status[i], "InProgress") == 0 || strcmp(q_status[i], "1") == 0) && g_quest_filter_in_progress) show = true;
+                else if ((strcmp(q_status[i], "Completed") == 0 || strcmp(q_status[i], "2") == 0) && g_quest_filter_completed) show = true;
             }
             if (show)
                 q_filtered_indices[q_filtered_count++] = i;
+        }
+        /* If we parsed quests but filter hid them all (e.g. status mismatch), show all so list is visible */
+        if (q_filtered_count == 0 && q_count > 0) {
+            for (int i = 0; i < q_count && i < OQ_QUEST_MAX; i++)
+                q_filtered_indices[q_filtered_count++] = i;
+        }
+
+        /* Debug: log what we received and parsed (once per popup open, when we have data) */
+        {
+            static int s_last_log_n = -1;
+            static int s_last_log_count = -1;
+            if (n != s_last_log_n || q_count != s_last_log_count) {
+                s_last_log_n = n;
+                s_last_log_count = q_count;
+                OQ_StarDebugLog("Quest popup: bytes_from_api=%d q_parsed=%d q_filtered=%d", n, q_count, q_filtered_count);
+                if (q_count > 0) {
+                    int log_max = q_count > 24 ? 24 : q_count;
+                    int ii;
+                    for (ii = 0; ii < log_max; ii++)
+                        OQ_StarDebugLog("  [%d] id=%s name=%.60s status=%s", ii, q_id[ii], q_name[ii] ? q_name[ii] : "(null)", q_status[ii] ? q_status[ii] : "(null)");
+                } else if (n > 20) {
+                    char prev[420];
+                    int pi = 0;
+                    int ni = 0;
+                    prev[0] = '\0';
+                    for (ni = 0; ni < n && pi < 400; ni++) {
+                        char c = quest_buf[ni];
+                        if (c == '\n') { if (pi + 2 < (int)sizeof(prev)) { prev[pi++] = '\\'; prev[pi++] = 'n'; } }
+                        else if (c == '\r') { if (pi + 2 < (int)sizeof(prev)) { prev[pi++] = '\\'; prev[pi++] = 'r'; } }
+                        else if (c == '\t') { if (pi + 1 < (int)sizeof(prev)) prev[pi++] = '|'; }
+                        else if (c >= 32 && c < 127) { if (pi + 1 < (int)sizeof(prev)) prev[pi++] = c; }
+                        else { if (pi + 4 < (int)sizeof(prev)) pi += q_snprintf(prev + pi, (int)sizeof(prev) - pi, "\\x%02x", (unsigned char)c); }
+                    }
+                    prev[pi] = '\0';
+                    OQ_StarDebugLog("Quest buffer preview (q_count=0): %s", prev);
+                }
+            }
         }
 
         /* Key handling */
@@ -3957,9 +3998,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
                 int idx = q_filtered_indices[g_quest_selected_index];
                 if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                    if (strcmp(q_status[idx], "NotStarted") == 0)
+                    if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0)
                         star_api_start_quest(q_id[idx]);
-                    else if (strcmp(q_status[idx], "InProgress") == 0) {
+                    else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
                         q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
                     }
                 }
@@ -3983,8 +4024,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         Draw_Fill(cbx, qx, qy, qw, qh, 0, 0.75f);
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
 
-        if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0 && (quest_buf[9] == '\0' || quest_buf[9] == '\n')) {
-            Draw_String(cbx, qx + 10, qy + 28, "Loading...");
+        if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
+            Draw_String(cbx, qx + 10, qy + 28, "Loading quests...");
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
             Draw_String(cbx, qx + 10, qy + 28, "Error loading quests. Check console or star_api.log for details.");
         } else if (q_filtered_count > 0) {
