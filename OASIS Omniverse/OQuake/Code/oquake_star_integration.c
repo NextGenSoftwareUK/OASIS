@@ -26,6 +26,21 @@
 #include <sys/stat.h>
 #endif
 
+#if defined(_MSC_VER) || !defined(__GLIBC__)
+/* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
+static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
+    const unsigned char* h = (const unsigned char*)hay;
+    const unsigned char* n = (const unsigned char*)needle;
+    size_t i;
+    if (needlelen == 0) return (void*)h;
+    if (haylen < needlelen) return NULL;
+    for (i = 0; i <= haylen - needlelen; i++)
+        if (memcmp(h + i, n, needlelen) == 0) return (void*)(h + i);
+    return NULL;
+}
+#define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
+#endif
+
 #ifndef STAR_API_HAS_SEND_ITEM
 /* Forward declare send-item API when using an older star_api.h. Link with updated star_api.lib. */
 star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
@@ -231,9 +246,16 @@ static double g_oq_armor_applied_from_overlay_time = 0.0;
 #define OQ_TOAST_FRAMES_DEFAULT 175
 static char g_oq_toast_message[256] = "";
 static int g_oq_toast_frames = 0;
-/* Quest popup (Q key), same as ODOOM. */
+/* Quest popup (Q key), same as ODOOM: filter by status, Start (Not Started) or Set tracker (In Progress). */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
+#define OQ_QUEST_MAX 32
+static int g_quest_filter_not_started = 1;
+static int g_quest_filter_in_progress = 1;
+static int g_quest_filter_completed = 1;
+static int g_quest_selected_index = 0;
+static int g_quest_scroll = 0;
+static char g_quest_tracker_id[64] = "";  /* Which quest to show in tracker (when HUD tracker is added). */
 /* C = use health, F = use armor (like ODOOM); polled in draw path so they work regardless of config bindings. */
 static qboolean g_c_key_was_down = false;
 static qboolean g_f_key_was_down = false;
@@ -3840,87 +3862,168 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
     } /* end if (g_inventory_open) */
 
-    /* Quest popup (Q key): refresh every frame when open, like inventory (star_api_get_inventory). When background load completes, next frame shows the list. */
+    /* Quest popup (Q key): filter by status (Home/End/PgUp), selection (Up/Down), Enter = Start (Not Started) or Set tracker (In Progress). */
     if (g_quest_popup_open) {
         static char quest_buf[4096];
+        static char q_id[OQ_QUEST_MAX][64];
+        static char q_name[OQ_QUEST_MAX][128];
+        static char q_status[OQ_QUEST_MAX][24];
+        static char q_pct[OQ_QUEST_MAX][8];
+        static int q_count;
+        static int q_filtered_indices[OQ_QUEST_MAX];
+        static int q_filtered_count;
+
         int n = star_api_get_quests_string(quest_buf, sizeof(quest_buf));
-        if (n < 0)
-            n = 0;
-        if (n >= (int)sizeof(quest_buf))
-            n = (int)sizeof(quest_buf) - 1;
+        if (n < 0) n = 0;
+        if (n >= (int)sizeof(quest_buf)) n = (int)sizeof(quest_buf) - 1;
         quest_buf[n] = '\0';
+
+        q_count = 0;
+        if (n > 0 && quest_buf[0] && (n < 9 || memcmp(quest_buf, "Loading...", 9) != 0) && (n < 6 || memcmp(quest_buf, "Error:", 6) != 0)) {
+            /* Parse blocks separated by "---"; each block starts with Q\tid\tname\tdesc\tstatus\tpct */
+            const char* bp = quest_buf;
+            const char* bend = quest_buf + n;
+            while (bp < bend && q_count < OQ_QUEST_MAX) {
+                const char* sep = (const char*)memmem(bp, (size_t)(bend - bp), "---", 3);
+                const char* block_end = sep && sep < bend ? sep : bend;
+                /* First line of block is Q line */
+                const char* line_end = (const char*)memchr(bp, '\n', (size_t)(block_end - bp));
+                if (!line_end) line_end = block_end;
+                if (line_end - bp >= 2 && bp[0] == 'Q' && bp[1] == '\t') {
+                    const char* f = bp + 2;
+                    const char* fe = line_end;
+                    /* id */
+                    const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                    if (t && t - f < 63) {
+                        int id_len = (int)(t - f);
+                        memcpy(q_id[q_count], f, (size_t)id_len);
+                        q_id[q_count][id_len] = '\0';
+                        f = t + 1;
+                    } else { f = fe; q_id[q_count][0] = '\0'; }
+                    /* name */
+                    t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                    if (t && t - f < 127) {
+                        int name_len = (int)(t - f);
+                        memcpy(q_name[q_count], f, (size_t)name_len);
+                        q_name[q_count][name_len] = '\0';
+                        f = t + 1;
+                    } else { q_name[q_count][0] = '\0'; if (f < fe) f = fe; }
+                    /* skip desc */
+                    t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                    if (t) f = t + 1; else f = fe;
+                    /* status */
+                    t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                    if (t && t - f < 23) {
+                        int st_len = (int)(t - f);
+                        memcpy(q_status[q_count], f, (size_t)st_len);
+                        q_status[q_count][st_len] = '\0';
+                        f = t + 1;
+                    } else { q_status[q_count][0] = '\0'; if (f < fe) f = fe; }
+                    /* pct */
+                    if (fe - f < 7)
+                        memcpy(q_pct[q_count], f, (size_t)(fe - f)), q_pct[q_count][(int)(fe - f)] = '\0';
+                    else
+                        q_pct[q_count][0] = '\0';
+                    q_count++;
+                }
+                bp = block_end;
+                while (bp < bend && (*bp == '-' || *bp == '\n')) bp++;
+            }
+        }
+
+        /* Build filtered list */
+        q_filtered_count = 0;
+        for (int i = 0; i < q_count && q_filtered_count < OQ_QUEST_MAX; i++) {
+            qboolean show = false;
+            if (q_status[i][0]) {
+                if (strcmp(q_status[i], "NotStarted") == 0 && g_quest_filter_not_started) show = true;
+                else if (strcmp(q_status[i], "InProgress") == 0 && g_quest_filter_in_progress) show = true;
+                else if (strcmp(q_status[i], "Completed") == 0 && g_quest_filter_completed) show = true;
+            }
+            if (show)
+                q_filtered_indices[q_filtered_count++] = i;
+        }
+
+        /* Key handling */
+        if (q_filtered_count > 0) {
+            if (OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_MWHEELUP)) {
+                g_quest_selected_index--;
+                if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+            }
+            if (OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_MWHEELDOWN)) {
+                g_quest_selected_index++;
+                if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
+            }
+            if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
+                int idx = q_filtered_indices[g_quest_selected_index];
+                if (idx >= 0 && idx < q_count && q_id[idx][0]) {
+                    if (strcmp(q_status[idx], "NotStarted") == 0)
+                        star_api_start_quest(q_id[idx]);
+                    else if (strcmp(q_status[idx], "InProgress") == 0) {
+                        q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
+                    }
+                }
+            }
+        }
+        if (OQ_KeyPressed(K_HOME))   g_quest_filter_not_started = !g_quest_filter_not_started;
+        if (OQ_KeyPressed(K_END))   g_quest_filter_completed = !g_quest_filter_completed;
+        if (OQ_KeyPressed(K_PGUP))  g_quest_filter_in_progress = !g_quest_filter_in_progress;
+
+        if (g_quest_selected_index >= q_filtered_count && q_filtered_count > 0)
+            g_quest_selected_index = q_filtered_count - 1;
+        if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+
+        /* Draw */
         int qw = q_min(glwidth - 48, 500);
-        int qh = q_min(glheight - 96, 320);
+        int qh = q_min(glheight - 96, 340);
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
         if (qx < 0) qx = 0;
         if (qy < 0) qy = 0;
         Draw_Fill(cbx, qx, qy, qw, qh, 0, 0.75f);
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
-        Draw_String(cbx, qx + 6, qy + qh - 14, "Q = Close");
+
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0 && (quest_buf[9] == '\0' || quest_buf[9] == '\n')) {
-            Draw_String(cbx, qx + 10, qy + 24, "Loading...");
+            Draw_String(cbx, qx + 10, qy + 28, "Loading...");
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
-            /* Generic message only; details are in console and star_api.log */
-            Draw_String(cbx, qx + 10, qy + 24, "Error loading quests. Check console or star_api.log for details.");
-        } else if (n > 0 && quest_buf[0]) {
-            int dy = qy + 24;
-            char* p = quest_buf;
-            char* end = p + n;
-            while (p < end && dy < qy + qh - 24) {
-                char* eol = p;
-                while (eol < end && *eol != '\n' && *eol != '\0') eol++;
-                if (p < eol) {
-                    if (eol - p >= 2 && p[0] == 'Q' && p[1] == '\t') {
-                        /* Tab-separated: Q, id, name, desc, status, pct. Show name (2nd field). */
-                        char name[128];
-                        const char* f = p + 2;
-                        size_t seg0 = (eol > f) ? (size_t)(eol - f) : 0;
-                        const char* tab1 = (const char*)memchr(f, '\t', seg0);
-                        if (tab1 && tab1 < eol) {
-                            const char* name_start = tab1 + 1;
-                            size_t seg1 = (eol > name_start) ? (size_t)(eol - name_start) : 0;
-                            const char* tab2 = (const char*)memchr(name_start, '\t', seg1);
-                            const char* name_end = tab2 ? tab2 : eol;
-                            int len = (int)(name_end - name_start);
-                            if (len > 0 && len < (int)sizeof(name)) {
-                                memcpy(name, name_start, (size_t)len);
-                                name[len] = '\0';
-                                Draw_String(cbx, qx + 10, dy, name);
-                                dy += 10;
-                            }
-                        } else {
-                            q_strlcpy(name, f, sizeof(name));
-                            Draw_String(cbx, qx + 10, dy, name);
-                            dy += 10;
-                        }
-                    } else if (eol - p >= 2 && p[0] == 'O' && p[1] == '\t') {
-                        /* O, id, desc, done. Show desc (2nd field). */
-                        char obj[128];
-                        const char* f = p + 2;
-                        size_t seg0 = (eol > f) ? (size_t)(eol - f) : 0;
-                        const char* tab1 = (const char*)memchr(f, '\t', seg0);
-                        if (tab1 && tab1 < eol) {
-                            const char* desc_start = tab1 + 1;
-                            size_t seg1 = (eol > desc_start) ? (size_t)(eol - desc_start) : 0;
-                            const char* tab2 = (const char*)memchr(desc_start, '\t', seg1);
-                            const char* desc_end = tab2 ? tab2 : eol;
-                            int len = (int)(desc_end - desc_start);
-                            if (len > 0 && len < (int)sizeof(obj)) {
-                                memcpy(obj, desc_start, (size_t)len);
-                                obj[len] = '\0';
-                                Draw_String(cbx, qx + 18, dy, obj);
-                                dy += 8;
-                            }
-                        }
-                    }
-                }
-                /* Advance past newline or null so we never hang on a mid-buffer '\0' */
-                p = eol + (eol < end && (*eol == '\n' || *eol == '\0') ? 1 : 0);
+            Draw_String(cbx, qx + 10, qy + 28, "Error loading quests. Check console or star_api.log for details.");
+        } else if (q_filtered_count > 0) {
+            /* Filter checkboxes */
+            char cb[128];
+            char quest_line[200];
+            int i, dy, max_rows, row_h;
+            int idx;
+            qboolean sel;
+            const char* done = "";
+            dy = qy + 36;
+            max_rows = 10;
+            row_h = 12;
+            q_snprintf(cb, sizeof(cb), "%s Not Started  %s In Progress  %s Completed",
+                g_quest_filter_not_started ? "[X]" : "[ ]",
+                g_quest_filter_in_progress ? "[X]" : "[ ]",
+                g_quest_filter_completed ? "[X]" : "[ ]");
+            Draw_String(cbx, qx + 8, qy + 20, cb);
+
+            /* Scroll so selection is visible */
+            if (g_quest_selected_index < g_quest_scroll) g_quest_scroll = g_quest_selected_index;
+            if (g_quest_selected_index >= g_quest_scroll + max_rows) g_quest_scroll = g_quest_selected_index - max_rows + 1;
+            if (g_quest_scroll < 0) g_quest_scroll = 0;
+
+            for (i = 0; i < max_rows && g_quest_scroll + i < q_filtered_count; i++) {
+                idx = q_filtered_indices[g_quest_scroll + i];
+                sel = (g_quest_scroll + i == g_quest_selected_index);
+                if (sel)
+                    Draw_Fill(cbx, qx + 6, dy - 1, qw - 12, row_h, 224, 0.50f);
+                done = (strcmp(q_status[idx], "Completed") == 0) ? " (done)" : "";
+                q_snprintf(quest_line, (int)sizeof(quest_line), "%s [%s%%]%s", q_name[idx], q_pct[idx], done);
+                Draw_String(cbx, qx + 10, dy, quest_line);
+                dy += row_h;
             }
+            Draw_String(cbx, qx + 6, qy + qh - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close");
         } else {
-            Draw_String(cbx, qx + 10, qy + 24, "No active quests.");
+            Draw_String(cbx, qx + 10, qy + 28, "No quests (toggle filters: Home, End, PgUp).");
         }
+        Draw_String(cbx, qx + 6, qy + qh - 10, "Q = Close");
     }
 }
 

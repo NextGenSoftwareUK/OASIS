@@ -77,6 +77,63 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Retrieves all quests for the current avatar (no status filter).
+        /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
+        /// </summary>
+        /// <returns>List of all quests for the authenticated avatar.</returns>
+        /// <response code="200">Quests retrieved successfully</response>
+        /// <response code="400">Error retrieving quests</response>
+        [HttpGet("all-for-avatar")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllQuestsForAvatar()
+        {
+            _logger.LogInformation("[Quests] GET all-for-avatar");
+            try
+            {
+                await EnsureStarApiBootedAsync();
+
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null)
+                    return avatarCheck;
+
+                var avatarId = AvatarId;
+                OASISRequestContext.CurrentAvatarId = avatarId;
+                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                if (result.IsError)
+                    return BadRequest(result);
+                if (result.Result == null || !result.Result.Any())
+                {
+                    _logger.LogInformation("[Quests] LoadAllForAvatar returned 0; trying LoadAllAsync fallback.");
+                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
+                    if (result.IsError)
+                        return BadRequest(result);
+                }
+
+                var list = result.Result ?? Enumerable.Empty<Quest>();
+                _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, list.Count());
+                return Ok(new OASISResult<IEnumerable<Quest>>
+                {
+                    Result = list,
+                    IsError = false,
+                    Message = "Quests retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<Quest>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quests for avatar: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
         /// Retrieves a specific quest by its unique identifier.
         /// </summary>
         /// <param name="id">The unique identifier of the quest to retrieve.</param>
@@ -321,63 +378,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 {
                     IsError = true,
                     Message = $"Error retrieving quests by type: {ex.Message}",
-                    Exception = ex
-                });
-            }
-        }
-
-        /// <summary>
-        /// Retrieves all quests for the current avatar (no status filter).
-        /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
-        /// </summary>
-        /// <returns>List of all quests for the authenticated avatar.</returns>
-        /// <response code="200">Quests retrieved successfully</response>
-        /// <response code="400">Error retrieving quests</response>
-        [HttpGet("all-for-avatar")]
-        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(OASISResult<IEnumerable<Quest>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAllQuestsForAvatar()
-        {
-            _logger.LogInformation("[Quests] GET all-for-avatar");
-            try
-            {
-                await EnsureStarApiBootedAsync();
-
-                var avatarCheck = ValidateAvatarId<Quest>();
-                if (avatarCheck != null)
-                    return avatarCheck;
-
-                var avatarId = AvatarId;
-                OASISRequestContext.CurrentAvatarId = avatarId;
-                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
-                EnsureLoggedInAvatar();
-
-                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
-                if (result.IsError)
-                    return BadRequest(result);
-                if (result.Result == null || !result.Result.Any())
-                {
-                    _logger.LogInformation("[Quests] LoadAllForAvatar returned 0; trying LoadAllAsync fallback.");
-                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
-                    if (result.IsError)
-                        return BadRequest(result);
-                }
-
-                var list = result.Result ?? Enumerable.Empty<Quest>();
-                _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, list.Count());
-                return Ok(new OASISResult<IEnumerable<Quest>>
-                {
-                    Result = list,
-                    IsError = false,
-                    Message = "Quests retrieved successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new OASISResult<IEnumerable<Quest>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving quests for avatar: {ex.Message}",
                     Exception = ex
                 });
             }
