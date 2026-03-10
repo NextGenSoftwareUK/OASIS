@@ -752,12 +752,13 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 	star_api_free_item_list(list);
 }
 
-/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count, and when quests exist sets odoom_quest_tracker_title + odoom_quest_tracker_objective from first quest (first incomplete objective). */
+/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Tracker shows quest from odoom_quest_tracker_quest_id if set, else first quest. */
 static void ODOOM_RefreshQuestCVars(void) {
 	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
 	FBaseCVar* countVar = FindCVar("odoom_quest_count", nullptr);
 	FBaseCVar* trackerTitleVar = FindCVar("odoom_quest_tracker_title", nullptr);
 	FBaseCVar* trackerObjVar = FindCVar("odoom_quest_tracker_objective", nullptr);
+	FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
 	if (!listVar || !countVar) return;
 
 	static char questBuf[ODOOM_QUEST_LIST_MAX_BYTES];
@@ -775,67 +776,79 @@ static void ODOOM_RefreshQuestCVars(void) {
 		n = (int)sizeof(questBuf) - 1;
 	questBuf[n] = '\0';
 
-	/* Use a static std::string so the CVar gets a pointer that remains valid until next refresh (engine may not copy). */
 	static std::string s_questListValue;
 	s_questListValue.assign(questBuf, (size_t)n);
 	UCVarValue v; v.String = (char*)s_questListValue.c_str();
 	listVar->SetGenericRep(v, CVAR_String);
 
-	/* Count quests (blocks separated by "---") and parse first quest for tracker. */
+	std::string wantId;
+	if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+		const char* sid = trackerIdVar->GetGenericRep(CVAR_String).String;
+		if (sid && sid[0]) wantId.assign(sid);
+	}
+
 	int questCount = 0;
-	std::string firstTitle, firstObjective;
+	std::string trackerTitle, trackerObjective;
+	std::string currentId, currentTitle;
+	bool inTargetBlock = false;
 	const char* p = questBuf;
 	const char* endBuf = questBuf + n;
 	while (p < endBuf && *p) {
 		const char* lineEnd = (const char*)memchr(p, '\n', (size_t)(endBuf - p));
 		size_t lineLen = lineEnd ? (size_t)(lineEnd - p) : (size_t)(endBuf - p);
+		if (lineLen >= 3 && p[0] == '-' && p[1] == '-' && p[2] == '-') {
+			inTargetBlock = false;
+			p = lineEnd ? lineEnd + 1 : p + lineLen;
+			continue;
+		}
 		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
 			questCount++;
-			/* Tab-separated: Q, id, name, desc, status, pct. We want name (3rd field). */
-			int field = 0;
-			const char* start = p + 2;
-			const char* end = start;
-			for (; field < 2 && end <= p + lineLen && end < endBuf; ) {
-				if (*end == '\t' || end == p + lineLen) {
-					if (field == 1 && start < end && firstTitle.empty()) {
-						firstTitle.assign(start, (size_t)(end - start));
-						if (firstTitle.size() > 120) firstTitle.resize(120);
-					}
-					field++;
-					start = end + (end < p + lineLen ? 1 : 0);
-				}
-				end++;
+			currentId.clear();
+			currentTitle.clear();
+			/* Q, id, name, desc, status, pct - field 0=id, 1=name */
+			const char* f = p + 2;
+			const char* t0 = (const char*)memchr(f, '\t', (size_t)((p + lineLen) - f));
+			if (t0 && t0 - f > 0) currentId.assign(f, (size_t)(t0 - f));
+			if (t0 && t0 < p + lineLen) {
+				const char* t1 = (const char*)memchr(t0 + 1, '\t', (size_t)((p + lineLen) - (t0 + 1)));
+				if (t1 && t1 - (t0 + 1) > 0) currentTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 			}
+			if (currentTitle.size() > 120) currentTitle.resize(120);
+			inTargetBlock = wantId.empty() ? (questCount == 1) : (currentId == wantId);
+			if (inTargetBlock) {
+				trackerTitle = currentTitle;
+				trackerObjective.clear();
+			}
+			p = lineEnd ? lineEnd + 1 : p + lineLen;
+			continue;
 		}
-		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && questCount == 1 && firstObjective.empty()) {
-			/* O, id, desc, done (tab-separated). We want first objective with done=0; desc is 3rd field. */
+		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && inTargetBlock && trackerObjective.empty()) {
+			/* O, id, desc, done - first incomplete objective (done=0); desc is 2nd field after id */
 			const char* f0 = p + 2;
-			size_t rest0 = (size_t)(f0 - p) <= lineLen ? lineLen - (size_t)(f0 - p) : 0;
+			size_t rest0 = (size_t)((p + lineLen) - f0);
 			const char* f1 = (const char*)memchr(f0, '\t', rest0);
-			if (f1 && f1 - p < (ptrdiff_t)lineLen) {
+			if (f1 && f1 < p + lineLen) {
 				f1++;
-				size_t rest1 = (size_t)(f1 - p) <= lineLen ? lineLen - (size_t)(f1 - p) : 0;
+				size_t rest1 = (size_t)((p + lineLen) - f1);
 				const char* f2 = (const char*)memchr(f1, '\t', rest1);
-				if (f2 && f2 - p < (ptrdiff_t)lineLen) {
+				if (f2 && f2 < p + lineLen) {
 					const char* doneStart = f2 + 1;
-					if (doneStart < p + lineLen && doneStart < endBuf && *doneStart == '0')
-						firstObjective.assign(f1, (size_t)(f2 - f1));
+					if (doneStart < p + lineLen && *doneStart == '0')
+						trackerObjective.assign(f1, (size_t)(f2 - f1));
 				}
 			}
 		}
-		if (lineLen >= 3 && p[0] == '-' && p[1] == '-' && p[2] == '-')
-			;
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
 	}
 
 	UCVarValue c; c.Int = questCount;
 	countVar->SetGenericRep(c, CVAR_Int);
 	if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) {
-		UCVarValue t; t.String = (char*)(firstTitle.empty() ? "" : firstTitle.c_str());
+		UCVarValue t; t.String = (char*)(trackerTitle.empty() ? "" : trackerTitle.c_str());
 		trackerTitleVar->SetGenericRep(t, CVAR_String);
 	}
 	if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) {
-		UCVarValue o; o.String = (char*)(firstObjective.empty() ? "" : firstObjective.c_str());
+		UCVarValue o; o.String = (char*)(trackerObjective.empty() ? "" : trackerObjective.c_str());
 		trackerObjVar->SetGenericRep(o, CVAR_String);
 	}
 }
@@ -1191,7 +1204,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	}
 
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
+	FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
+	const bool questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int && questPopupVar->GetGenericRep(CVAR_Int).Int != 0);
+	const bool anyPopupOpen = open || questPopupOpen;
 
 	/* Refresh overlay from client every frame while open (merge is in-memory, so pickups show immediately). When not beamed in we push empty. */
 	if (open) {
@@ -1263,9 +1279,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
-	if (open && !g_odoom_inventory_bindings_captured)
+	if (anyPopupOpen && !g_odoom_inventory_bindings_captured)
 	{
-		/* Clear arrow, movement, and inventory key bindings so game doesn't receive them (OQuake-style). */
+		/* Clear arrow, movement, and inventory key bindings so game doesn't receive them (OQuake-style). Also when quest popup is open so arrows/Enter drive quest list. */
 		C_DoCommand("bind uparrow \"\"");
 		C_DoCommand("bind downarrow \"\"");
 		C_DoCommand("bind leftarrow \"\"");
@@ -1292,9 +1308,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind end \"\"");
 		g_odoom_inventory_bindings_captured = true;
 	}
-	else if (!open && g_odoom_inventory_bindings_captured)
+		else if (!anyPopupOpen && g_odoom_inventory_bindings_captured)
 	{
-		/* Restore bindings for keys we cleared when opening overlay. Do not touch 0-9; game handles weapon slots by default. */
+		/* Restore bindings for keys we cleared when opening overlay or quest popup. Do not touch 0-9; game handles weapon slots by default. */
 		C_DoCommand("bind uparrow \"+forward\"");
 		C_DoCommand("bind downarrow \"+back\"");
 		C_DoCommand("bind leftarrow \"+left\"");

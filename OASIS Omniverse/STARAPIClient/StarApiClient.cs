@@ -1729,7 +1729,7 @@ public sealed class StarApiClient : IDisposable
         {
             var name = EscapeForQuestLine(q.Name);
             var desc = EscapeForQuestLine(q.Description);
-            var status = EscapeForQuestLine(q.Status ?? "InProgress");
+            var status = NormalizeQuestStatus(q.Status ?? "InProgress");
             var objCount = q.Objectives?.Count ?? 0;
             var completed = q.Objectives?.Count(o => o.IsCompleted) ?? 0;
             var pct = objCount > 0 ? (completed * 100 / objCount) : 0;
@@ -1743,9 +1743,16 @@ public sealed class StarApiClient : IDisposable
                     sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
                 }
             }
-            sb.Append("---\n");
+            sb.Append("\n---");
         }
         return sb.ToString();
+    }
+
+    /// <summary>Normalize status for game parsing: "Not Started" -> "NotStarted", "In Progress" -> "InProgress", "Completed" unchanged.</summary>
+    private static string NormalizeQuestStatus(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "InProgress";
+        return EscapeForQuestLine(s).Replace(" ", "");
     }
 
     private static string EscapeForQuestLine(string s)
