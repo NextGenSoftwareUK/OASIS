@@ -1116,9 +1116,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> StartQuest(Guid id, [FromBody] string startNotes = null)
         {
+            _logger.LogInformation("[Quests] StartQuest: id={QuestId} AvatarId={AvatarId}", id, AvatarId);
             try
             {
                 var result = await CreateQuestManager().StartQuestAsync(AvatarId, id, startNotes);
+                _logger.LogInformation("[Quests] StartQuest: result IsError={IsError} Message={Message}", result.IsError, result.Message ?? "(null)");
                 if (result.IsError)
                     return BadRequest(result);
                 
@@ -1126,6 +1128,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogWarning(ex, "[Quests] StartQuest: exception QuestId={QuestId} AvatarId={AvatarId}", id, AvatarId);
                 return HandleException<bool>(ex, "starting quest");
             }
         }
