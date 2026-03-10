@@ -568,7 +568,7 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 /** Max bytes to pass to the inventory list CVar. Engine string CVars can have a small fixed buffer; exceeding it causes "attempted to write past end of stream". Use 1K to stay under typical limits. */
 static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
 /** Max bytes for quest list string (Q\tid\tname\tdesc\tstatus\tpct\n and O\t...\n lines). */
-static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 4096;
+static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 16384;
 /** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
 static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
 
@@ -752,6 +752,8 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 	star_api_free_item_list(list);
 }
 
+static void StarLogInfo(const char* fmt, ...);
+
 /** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Tracker shows quest from odoom_quest_tracker_quest_id if set, else first quest. */
 static void ODOOM_RefreshQuestCVars(void) {
 	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
@@ -776,6 +778,33 @@ static void ODOOM_RefreshQuestCVars(void) {
 		n = (int)sizeof(questBuf) - 1;
 	questBuf[n] = '\0';
 
+	/* Debug: log bytes received and quest count (throttle to avoid spam) */
+	{
+		static int s_last_n = -1;
+		static int s_last_quest_count = -1;
+		int questCountForLog = 0;
+		{ const char* pp = questBuf; const char* endBuf = questBuf + n; while (pp < endBuf && *pp) {
+			const char* lineEnd = (const char*)memchr(pp, '\n', (size_t)(endBuf - pp));
+			size_t lineLen = lineEnd ? (size_t)(lineEnd - pp) : (size_t)(endBuf - pp);
+			if (lineLen >= 2 && pp[0] == 'Q' && pp[1] == '\t') questCountForLog++;
+			if (lineLen >= 3 && pp[0] == '-' && pp[1] == '-' && pp[2] == '-') { pp += 3; if (pp < endBuf && *pp == '\n') pp++; continue; }
+			pp = lineEnd ? lineEnd + 1 : pp + lineLen;
+		} }
+		if (n != s_last_n || questCountForLog != s_last_quest_count) {
+			s_last_n = n; s_last_quest_count = questCountForLog;
+			std::string preview;
+			for (int i = 0; i < n && i < 280; i++) {
+				char c = questBuf[i];
+				if (c == '\n') preview += "\\n";
+				else if (c == '\r') preview += "\\r";
+				else if (c == '\t') preview += "|";
+				else if (c >= 32 && c < 127) preview += c;
+				else preview += ".";
+			}
+			StarLogInfo("[Quests] ODOOM: bytes_from_api=%d quest_lines_parsed=%d preview=%.260s", n, questCountForLog, preview.c_str());
+		}
+	}
+
 	static std::string s_questListValue;
 	s_questListValue.assign(questBuf, (size_t)n);
 	UCVarValue v; v.String = (char*)s_questListValue.c_str();
@@ -798,7 +827,8 @@ static void ODOOM_RefreshQuestCVars(void) {
 		size_t lineLen = lineEnd ? (size_t)(lineEnd - p) : (size_t)(endBuf - p);
 		if (lineLen >= 3 && p[0] == '-' && p[1] == '-' && p[2] == '-') {
 			inTargetBlock = false;
-			p = lineEnd ? lineEnd + 1 : p + lineLen;
+			p += 3;
+			if (p < endBuf && *p == '\n') p++;
 			continue;
 		}
 		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
