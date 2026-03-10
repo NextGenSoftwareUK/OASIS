@@ -1,7 +1,5 @@
 star beamin dellams test!
 star debug
-star beamin dellams test!
-star debug
 star debug on
 star beamin dellams test!
 STAR CONFI
@@ -58,3 +56,8 @@ star beamin dellams test!
 star debug on
 star beamin dellams test!
 star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
