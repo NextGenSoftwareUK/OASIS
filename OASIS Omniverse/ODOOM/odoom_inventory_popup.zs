@@ -243,6 +243,19 @@ class OASISInventoryOverlayHandler : EventHandler
 			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
 			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
 			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
+			/* Handle filter toggles whenever popup is open so they work even when list is empty (e.g. after turning off Not Started). */
+			if (keyHomePressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_not_started");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyEndPressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_completed");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyPgUpPressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_in_progress");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
 			array<int> filteredIndices;
 			for (int b = 0; b < questLines.Size(); b++)
 			{
@@ -256,18 +269,6 @@ class OASISInventoryOverlayHandler : EventHandler
 			int qCount = filteredIndices.Size();
 			if (qCount > 0)
 			{
-				if (keyHomePressed) {
-					CVar cv = CVar.FindCVar("odoom_quest_filter_not_started");
-					if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
-				}
-				if (keyEndPressed) {
-					CVar cv = CVar.FindCVar("odoom_quest_filter_completed");
-					if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
-				}
-				if (keyPgUpPressed) {
-					CVar cv = CVar.FindCVar("odoom_quest_filter_in_progress");
-					if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
-				}
 				if (keyDownPressed) { questSelectedIndex++; if (questSelectedIndex >= qCount) questSelectedIndex = qCount - 1; }
 				if (keyUpPressed) { questSelectedIndex--; if (questSelectedIndex < 0) questSelectedIndex = 0; }
 				if (keyEnterPressed)
