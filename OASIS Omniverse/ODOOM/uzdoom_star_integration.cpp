@@ -754,7 +754,7 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 
 static void StarLogInfo(const char* fmt, ...);
 
-/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Tracker shows quest from odoom_quest_tracker_quest_id if set, else first quest. */
+/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Tracker shows quest only when odoom_quest_tracker_quest_id is set (user selected a quest); no default to first quest. */
 static void ODOOM_RefreshQuestCVars(void) {
 	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
 	FBaseCVar* countVar = FindCVar("odoom_quest_count", nullptr);
@@ -844,7 +844,7 @@ static void ODOOM_RefreshQuestCVars(void) {
 				if (t1 && t1 - (t0 + 1) > 0) currentTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 			}
 			if (currentTitle.size() > 120) currentTitle.resize(120);
-			inTargetBlock = wantId.empty() ? (questCount == 1) : (currentId == wantId);
+			inTargetBlock = !wantId.empty() && (currentId == wantId);
 			if (inTargetBlock) {
 				trackerTitle = currentTitle;
 				trackerObjective.clear();

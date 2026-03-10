@@ -257,6 +257,8 @@ static int g_quest_selected_index = 0;
 static int g_quest_scroll = 0;
 static char g_quest_tracker_id[64] = "";
 static char g_quest_tracker_name[128] = "";  /* Display name for HUD tracker. */
+static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
+static int g_quest_status_frames = 0;
 /* C = use health, F = use armor (like ODOOM); polled in draw path so they work regardless of config bindings. */
 static qboolean g_c_key_was_down = false;
 static qboolean g_f_key_was_down = false;
@@ -3720,6 +3722,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open)
                     star_api_invalidate_quest_cache();
+                else
+                    g_quest_status_message[0] = '\0', g_quest_status_frames = 0;
                 g_quest_key_was_down = true;
             }
             if (!keydown[s_q_key])
@@ -3948,11 +3952,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (show)
                 q_filtered_indices[q_filtered_count++] = i;
         }
-        /* Only show-all fallback when at least one filter is on but no quests matched (e.g. status mismatch). If user turned all filters off, leave list empty so toggles work. */
-        if (q_filtered_count == 0 && q_count > 0 && (g_quest_filter_not_started || g_quest_filter_in_progress || g_quest_filter_completed)) {
-            for (int i = 0; i < q_count && i < OQ_QUEST_MAX; i++)
-                q_filtered_indices[q_filtered_count++] = i;
-        }
+        /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
         /* Debug: log what we received and parsed (once per popup open, when we have data) */
         {
@@ -3999,9 +3999,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (OQ_KeyPressed(K_ENTER) || OQ_KeyPressed(K_KP_ENTER)) {
                 int idx = q_filtered_indices[g_quest_selected_index];
                 if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                    if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0)
+                    if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
+                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+                        g_quest_status_frames = 105;  /* ~3 sec at 35 fps */
                         star_api_start_quest(q_id[idx]);
-                    else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
+                    } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
                         q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
                         q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
                     }
@@ -4027,29 +4029,43 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (qy < 0) qy = 0;
         Draw_Fill(cbx, qx, qy, qw, qh, 0, 0.75f);
         Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
+        /* Space beneath Quests heading */
 
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
-            Draw_String(cbx, qx + 10, qy + 28, "Loading quests...");
+            Draw_String(cbx, qx + 10, qy + 32, "Loading quests...");
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
-            Draw_String(cbx, qx + 10, qy + 28, "Error loading quests. Check console or star_api.log for details.");
+            Draw_String(cbx, qx + 10, qy + 32, "Error loading quests. Check console or star_api.log for details.");
         } else if (q_filtered_count > 0) {
-            /* Filter checkboxes; list fills most of panel (header ~36px, footer ~36px, rest for rows at 12px each) */
+            /* Filter checkboxes; table: Name | % | Status (fixed columns) */
             char cb[128];
-            char quest_line[200];
+            char name_buf[64];
+            char status_display[20];
+            const char* status_str;
             int i, dy, max_rows, row_h;
             int idx;
             qboolean sel;
-            const char* done = "";
-            dy = qy + 36;
+            int col1_x, col2_x, col3_x;
+            int col1_chars = 38;
+            int col2_chars = 6;
+            dy = qy + 40;
             row_h = 12;
-            max_rows = (qh - 56) / row_h;
+            max_rows = (qh - 76) / row_h;  /* leave room for heading space + header row + footer */
             if (max_rows < 8) max_rows = 8;
             if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
+            col1_x = qx + 10;
+            col2_x = qx + 10 + col1_chars * 8;
+            col3_x = qx + 10 + (col1_chars + col2_chars) * 8;
             q_snprintf(cb, sizeof(cb), "%s Not Started  %s In Progress  %s Completed",
                 g_quest_filter_not_started ? "[X]" : "[ ]",
                 g_quest_filter_in_progress ? "[X]" : "[ ]",
                 g_quest_filter_completed ? "[X]" : "[ ]");
-            Draw_String(cbx, qx + 8, qy + 20, cb);
+            Draw_String(cbx, qx + 8, qy + 24, cb);
+
+            /* Column headers */
+            Draw_String(cbx, col1_x, dy, "Name");
+            Draw_String(cbx, col2_x, dy, "%");
+            Draw_String(cbx, col3_x, dy, "Status");
+            dy += row_h;
 
             /* Scroll so selection is visible */
             if (g_quest_selected_index < g_quest_scroll) g_quest_scroll = g_quest_selected_index;
@@ -4061,16 +4077,42 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 sel = (g_quest_scroll + i == g_quest_selected_index);
                 if (sel)
                     Draw_Fill(cbx, qx + 6, dy - 1, qw - 12, row_h, 224, 0.50f);
-                done = (strcmp(q_status[idx], "Completed") == 0 || strcmp(q_status[idx], "2") == 0) ? " (done)" : "";
-                q_snprintf(quest_line, (int)sizeof(quest_line), "%s [%s%%]%s", q_name[idx], q_pct[idx], done);
-                Draw_String(cbx, qx + 10, dy, quest_line);
+                status_str = q_status[idx];
+                if (strcmp(status_str, "NotStarted") == 0 || strcmp(status_str, "0") == 0)
+                    status_str = "Not Started";
+                else if (strcmp(status_str, "InProgress") == 0 || strcmp(status_str, "1") == 0)
+                    status_str = "In Progress";
+                else if (strcmp(status_str, "Completed") == 0 || strcmp(status_str, "2") == 0)
+                    status_str = "Completed";
+                else
+                    status_str = status_str[0] ? status_str : "-";
+                q_strlcpy(status_display, status_str, sizeof(status_display));
+                q_strlcpy(name_buf, q_name[idx] ? q_name[idx] : "-", sizeof(name_buf));
+                if ((int)strlen(name_buf) > col1_chars - 2) {
+                    name_buf[col1_chars - 3] = '.';
+                    name_buf[col1_chars - 2] = '.';
+                    name_buf[col1_chars - 1] = '\0';
+                }
+                Draw_String(cbx, col1_x, dy, name_buf);
+                q_snprintf(name_buf, sizeof(name_buf), "%s%%", q_pct[idx] ? q_pct[idx] : "0");
+                Draw_String(cbx, col2_x, dy, name_buf);
+                Draw_String(cbx, col3_x, dy, status_display);
                 dy += row_h;
             }
             Draw_String(cbx, qx + 6, qy + qh - 20, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close");
         } else {
-            Draw_String(cbx, qx + 10, qy + 28, "No quests (toggle filters: Home, End, PgUp).");
+            Draw_String(cbx, qx + 10, qy + 32, "No quests (toggle filters: Home, End, PgUp).");
         }
-        Draw_String(cbx, qx + 6, qy + qh - 10, "Q = Close");
+        /* Status message in bottom-right (e.g. "Starting quest...") like inventory panel */
+        if (g_quest_status_frames > 0 && g_quest_status_message[0]) {
+            int status_len = (int)strlen(g_quest_status_message);
+            int status_x = qx + qw - (status_len * 8) - 8;
+            int status_y = qy + qh - 16;
+            if (status_x < qx + 8) status_x = qx + 8;
+            Draw_String(cbx, status_x, status_y, g_quest_status_message);
+            g_quest_status_frames--;
+            if (g_quest_status_frames <= 0) g_quest_status_message[0] = '\0';
+        }
     }
 }
 

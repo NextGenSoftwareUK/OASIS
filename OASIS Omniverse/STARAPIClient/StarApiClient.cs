@@ -4222,8 +4222,7 @@ public static unsafe class StarApiExports
         if (string.IsNullOrWhiteSpace(questIdStr))
             return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam);
 
-        /* Run start-quest on background thread so UI does not hang. Invalidate cache so next refresh shows updated list. */
-        client.InvalidateQuestCache();
+        /* Run start-quest on background thread so UI does not hang. Do not invalidate cache so the popup keeps showing the current list and game can show "Starting quest..." in corner. */
         _ = client.QueueStartQuestAsync(questIdStr);
         SetError(string.Empty);
         InvokeCallback(StarApiResultCode.Success);
