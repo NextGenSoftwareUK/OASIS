@@ -39,6 +39,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         protected override STARAPI GetStarAPI() => _starAPI;
 
+        /// <summary>Fallback: set quest.Status from MetaData when the load path did not go through HolonManager.MapMetaData (e.g. fallback LoadAllForAvatarAsync). Prefer "Status" (key used by HolonManager); support "QuestStatus" for backwards compatibility.</summary>
+        private static void NormalizeQuestStatusFromMetaData(Quest q)
+        {
+            if (q?.MetaData == null) return;
+            var key = q.MetaData.ContainsKey("Status") ? "Status" : (q.MetaData.ContainsKey("QuestStatus") ? "QuestStatus" : null);
+            if (key == null) return;
+            var val = q.MetaData[key];
+            if (val == null) return;
+            var s = val.ToString();
+            if (string.IsNullOrEmpty(s)) return;
+            if (System.Enum.TryParse<QuestStatus>(s, true, out var status))
+                q.Status = status;
+        }
+
         /// <summary>
         /// Retrieves all quests in the system.
         /// </summary>
@@ -101,19 +115,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
                 EnsureLoggedInAvatar();
 
-                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                // Use IQuest overload so MetaData is promoted to strongly-typed properties (e.g. Status from MetaData["QuestStatus"])
+                var result = await _starAPI.Quests.LoadAllQuestsForAvatarAsync(avatarId);
                 if (result.IsError)
                     return BadRequest(result);
                 if (result.Result == null || !result.Result.Any())
                 {
-                    _logger.LogInformation("[Quests] LoadAllForAvatar returned 0; trying LoadAllAsync fallback.");
-                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
-                    if (result.IsError)
-                        return BadRequest(result);
+                    _logger.LogInformation("[Quests] LoadAllQuestsForAvatar returned 0; trying LoadAllAsync fallback.");
+                    var fallback = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                    if (fallback.IsError)
+                        return BadRequest(fallback);
+                    var fallbackList = (fallback.Result ?? Enumerable.Empty<Quest>()).ToList();
+                    foreach (var q in fallbackList)
+                        NormalizeQuestStatusFromMetaData(q);
+                    result = new OASISResult<IEnumerable<IQuest>> { Result = fallbackList, IsError = false, Message = fallback.Message };
                 }
 
-                var list = result.Result ?? Enumerable.Empty<Quest>();
-                var count = list.Count();
+                var list = (result.Result ?? Enumerable.Empty<IQuest>()).Cast<Quest>().ToList();
+                var count = list.Count;
                 _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, count);
                 var enumerated = list.Take(24).ToList();
                 for (var idx = 0; idx < enumerated.Count; idx++)
