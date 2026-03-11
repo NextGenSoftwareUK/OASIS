@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton
@@ -10,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
     {
         private bool _isRegisterGuidBsonSerializer = false;
         private bool _isRegisterMetaDataSerializer = false;
+        private bool _isRegisterSTARNETDNADiscriminator = false;
         private static SerializerRegister _register;
 
         public static SerializerRegister GetInstance()
@@ -21,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         {
             _isRegisterGuidBsonSerializer = false;
             _isRegisterMetaDataSerializer = false;
+            _isRegisterSTARNETDNADiscriminator = false;
         }
         
         public void RegisterGuidBsonSerializer()
@@ -38,6 +41,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
             BsonSerializer.RegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
             
             _isRegisterMetaDataSerializer = true;
+        }
+
+        /// <summary>
+        /// Registers the STARNETDNA concrete type with the MongoDB driver so that ISTARNETDNA properties
+        /// (e.g. on STARNETHolon) deserialize correctly when the stored discriminator is "STARNETDNA".
+        /// Fixes: Unknown discriminator value 'STARNETDNA' when loading AvatarDetail with Inventory.
+        /// </summary>
+        public void RegisterSTARNETDNADiscriminator()
+        {
+            if (_isRegisterSTARNETDNADiscriminator) return;
+
+            if (!BsonClassMap.IsClassMapRegistered(typeof(STARNETDNA)))
+            {
+                BsonClassMap.RegisterClassMap<STARNETDNA>(cm =>
+                {
+                    cm.SetDiscriminator("STARNETDNA");
+                    cm.AutoMap();
+                });
+            }
+
+            _isRegisterSTARNETDNADiscriminator = true;
         }
     }
 }

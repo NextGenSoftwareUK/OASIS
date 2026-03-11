@@ -584,48 +584,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
-                // Add objectives (sub-quests) if provided.
+                // Add objectives (Option B: IObjective on Quest.Objectives) if provided.
                 if (request.Objectives != null && request.Objectives.Count > 0 && result.Result != null)
                 {
+                    var quest = result.Result;
+                    if (quest.Objectives == null)
+                        quest.Objectives = new List<Objective>();
                     int order = 0;
                     foreach (var obj in request.Objectives)
                     {
-                        var subQuest = new Quest
-                        {
-                            Id = Guid.NewGuid(),
-                            Name = string.IsNullOrWhiteSpace(obj.Name) ? (obj.Description?.Trim() ?? "Objective") : obj.Name,
-                            Description = obj.Description?.Trim() ?? "",
-                            Order = obj.Order >= 0 ? obj.Order : order,
-                            Status = QuestStatus.NotStarted,
-                            Type = QuestType.SideQuest,
-                            QuestType = QuestType.SideQuest,
-                            Requirements = new List<string>(),
-                            GameSource = obj.GameSource?.Trim() ?? "",
-                            ItemRequired = obj.ItemRequired?.Trim() ?? "",
-                            IsObjective = true
-                        };
-                        subQuest.STARNETDNA = new STARNETDNA
-                        {
-                            Id = subQuest.Id,
-                            Name = subQuest.Name,
-                            Description = subQuest.Description,
-                            Version = "1.0.0",
-                            CreatedByAvatarId = AvatarId,
-                            CreatedOn = DateTime.UtcNow,
-                            ModifiedOn = DateTime.UtcNow
-                        };
-                        subQuest.MetaData ??= new Dictionary<string, object>();
-                        subQuest.MetaData["CreatedByAvatarId"] = AvatarId.ToString();
-                        subQuest.MetaData["Active"] = "1";
-                        var addResult = await _starAPI.Quests.AddQuestAsync(AvatarId, result.Result.Id, subQuest, ProviderType.Default);
-                        if (addResult.IsError)
-                            return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to add objective: {addResult.Message}" });
+                        var objective = CreateObjectiveFromRequest(obj, order);
+                        quest.Objectives.Add((Objective)objective);
                         order++;
                     }
-                    // Reload quest so Result includes the new objectives.
-                    var reload = await _starAPI.Quests.LoadAsync(AvatarId, result.Result.Id, 0);
-                    if (!reload.IsError && reload.Result != null)
-                        result = reload;
+                    var updateResult = await _starAPI.Quests.UpdateAsync(AvatarId, quest);
+                    if (updateResult.IsError)
+                        return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to save objectives: {updateResult.Message}" });
+                    result = updateResult;
                 }
                 
                 return Ok(result);
@@ -664,32 +639,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (request == null)
                     return BadRequest(new OASISResult<Quest> { IsError = true, Message = "Request body is required." });
 
-                var subQuest = new Quest
-                {
-                    Id = Guid.NewGuid(),
-                    Name = string.IsNullOrWhiteSpace(request.Name) ? (request.Description?.Trim() ?? "Objective") : request.Name,
-                    Description = request.Description?.Trim() ?? "",
-                    Order = request.Order >= 0 ? request.Order : 0,
-                    Status = QuestStatus.NotStarted,
-                    Type = QuestType.SideQuest,
-                    QuestType = QuestType.SideQuest,
-                    Requirements = new List<string>(),
-                    GameSource = request.GameSource?.Trim() ?? "",
-                    ItemRequired = request.ItemRequired?.Trim() ?? "",
-                    IsObjective = true
-                };
-                subQuest.STARNETDNA = new STARNETDNA
-                {
-                    Id = subQuest.Id,
-                    Name = subQuest.Name,
-                    Description = subQuest.Description,
-                    Version = "1.0.0",
-                    CreatedByAvatarId = AvatarId,
-                    CreatedOn = DateTime.UtcNow,
-                    ModifiedOn = DateTime.UtcNow
-                };
+                var loadResult = await _starAPI.Quests.LoadAsync(AvatarId, id, 0);
+                if (loadResult.IsError || loadResult.Result == null)
+                    return BadRequest(new OASISResult<Quest> { IsError = true, Message = loadResult.Message ?? "Quest not found." });
 
-                var result = await _starAPI.Quests.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
+                var quest = loadResult.Result;
+                if (quest.Objectives == null)
+                    quest.Objectives = new List<Objective>();
+
+                var objective = CreateObjectiveFromRequest(new QuestObjectiveRequest
+                {
+                    Name = request.Name,
+                    Description = request.Description,
+                    GameSource = request.GameSource,
+                    ItemRequired = request.ItemRequired,
+                    Order = request.Order
+                }, quest.Objectives.Count);
+
+                quest.Objectives.Add((Objective)objective);
+                var result = await _starAPI.Quests.UpdateAsync(AvatarId, quest);
 
                 if (result.IsError)
                     return BadRequest(result);
@@ -719,8 +687,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureStarApiBootedAsync();
                 EnsureLoggedInAvatar();
 
-                var result = await _starAPI.Quests.RemoveQuestAsync(AvatarId, parentId, objectiveId, ProviderType.Default);
+                var loadResult = await _starAPI.Quests.LoadAsync(AvatarId, parentId, 0);
+                if (loadResult.IsError || loadResult.Result == null)
+                    return BadRequest(new OASISResult<Quest> { IsError = true, Message = loadResult.Message ?? "Quest not found." });
 
+                var quest = loadResult.Result;
+                if (quest.Objectives != null && quest.Objectives.Count > 0)
+                {
+                    var removed = quest.Objectives.FirstOrDefault(x => x.Id == objectiveId);
+                    if (removed != null)
+                    {
+                        quest.Objectives.Remove(removed);
+                        var updateResult = await _starAPI.Quests.UpdateAsync(AvatarId, quest);
+                        if (updateResult.IsError)
+                            return BadRequest(updateResult);
+                        return Ok(updateResult);
+                    }
+                }
+
+                var result = await _starAPI.Quests.RemoveQuestAsync(AvatarId, parentId, objectiveId, ProviderType.Default);
                 if (result.IsError)
                     return BadRequest(result);
                 return Ok(result);
@@ -1411,6 +1396,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Exception = ex
                 });
             }
+        }
+
+        /// <summary>Creates an Objective (Option B) from a create/add objective request. Populates requirement dicts so the computed Objective string is meaningful.</summary>
+        private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
+        {
+            var gameSource = string.IsNullOrWhiteSpace(request.GameSource) ? "Default" : request.GameSource.Trim();
+            var itemOrDesc = string.IsNullOrWhiteSpace(request.ItemRequired) ? (request.Description?.Trim() ?? request.Name?.Trim() ?? "Complete") : request.ItemRequired.Trim();
+            var objective = new Objective
+            {
+                Id = Guid.NewGuid(),
+                Order = request.Order >= 0 ? request.Order : order
+            };
+            objective.NeedToCollectItems[gameSource] = new List<string> { itemOrDesc };
+            return objective;
         }
     }
 

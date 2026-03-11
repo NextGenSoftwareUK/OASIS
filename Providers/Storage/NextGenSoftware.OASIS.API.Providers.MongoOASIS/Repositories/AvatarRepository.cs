@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
             SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+            SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
             _dbContext = dbContext;
         }
 

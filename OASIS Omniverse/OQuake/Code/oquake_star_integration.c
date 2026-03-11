@@ -259,10 +259,13 @@ static int g_quest_selected_index = 0;
 static int g_quest_scroll = 0;
 #define OQ_QUEST_FOCUS_MAIN 0
 #define OQ_QUEST_FOCUS_PREREQ 1
-#define OQ_QUEST_FOCUS_SUBQUEST 2
+#define OQ_QUEST_FOCUS_OBJECTIVES 2
+#define OQ_QUEST_FOCUS_SUBQUEST 3
 static int g_quest_focus = OQ_QUEST_FOCUS_MAIN;
 static int g_quest_prereq_selected = 0;
 static int g_quest_prereq_scroll = 0;
+static int g_quest_objectives_selected = 0;
+static int g_quest_objectives_scroll = 0;
 static int g_quest_subquest_selected = 0;
 static int g_quest_subquest_scroll = 0;
 static char g_quest_tracker_id[64] = "";
@@ -3739,6 +3742,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
                     g_quest_prereq_selected = 0;
                     g_quest_prereq_scroll = 0;
+                    g_quest_objectives_selected = 0;
+                    g_quest_objectives_scroll = 0;
                     g_quest_subquest_selected = 0;
                     g_quest_subquest_scroll = 0;
                 } else
@@ -4133,12 +4138,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static char pr_name[OQ_LINKS_MAX][128];
         static char pr_desc[OQ_LINKS_MAX][256];
         static int pr_count;
+        static char obj_id[OQ_LINKS_MAX][64];
+        static char obj_name[OQ_LINKS_MAX][128];
+        static char obj_desc[OQ_LINKS_MAX][256];
+        static int obj_count;
         static char sq_id[OQ_LINKS_MAX][64];
         static char sq_name[OQ_LINKS_MAX][128];
         static char sq_desc[OQ_LINKS_MAX][256];
-        static int sq_is_subquest[OQ_LINKS_MAX];  /* 1 = sub-quest (show "(SubQuest)", Enter drills down), 0 = objective */
         static int sq_count;
         pr_count = 0;
+        obj_count = 0;
         sq_count = 0;
         if (panel_quest_id[0]) {
             int nr = star_api_get_quest_prereqs_string(panel_quest_id, prereq_buf, sizeof(prereq_buf));
@@ -4184,50 +4193,80 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     p = eol + (eol < end && *eol == '\n' ? 1 : 0);
                 }
             }
-            /* Parse objectives_buf first (objectives = checklist), then append sub-quests from subquest_buf. Same Q-line format; sq_is_subquest 0 = objective, 1 = sub-quest. */
+            /* Parse objectives_buf into obj_* (objectives list only). */
             {
-                const char* bufs[2] = { objectives_buf, subquest_buf };
-                const int buf_lens[2] = { no > 0 ? no : 0, ns > 0 ? ns : 0 };
-                const int is_sub[2] = { 0, 1 };
-                int bi;
-                for (bi = 0; bi < 2 && sq_count < OQ_LINKS_MAX; bi++) {
-                    const char* p = bufs[bi];
-                    const char* end = p + buf_lens[bi];
-                    while (p < end && sq_count < OQ_LINKS_MAX) {
-                        const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
-                        if (!eol) eol = end;
-                        if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') { p = eol + (eol < end && *eol == '\n' ? 1 : 0); continue; }
-                        const char* lstart = p;
-                        if (eol - lstart >= 3 && lstart[0] == 'Q' && lstart[1] == '\t') {
-                            const char* f = lstart + 2;
-                            const char* fe = eol;
-                            const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
-                            if (t && t - f < 63) {
-                                int len = (int)(t - f);
-                                memcpy(sq_id[sq_count], f, (size_t)len);
-                                sq_id[sq_count][len] = '\0';
-                                f = t + 1;
-                            }
-                            t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
-                            if (t && t - f < 127) {
-                                int len = (int)(t - f);
-                                memcpy(sq_name[sq_count], f, (size_t)len);
-                                sq_name[sq_count][len] = '\0';
-                                f = t + 1;
-                            }
-                            t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
-                            if (t && t - f < 255) {
-                                int len = (int)(t - f);
-                                if (len > 255) len = 255;
-                                memcpy(sq_desc[sq_count], f, (size_t)len);
-                                sq_desc[sq_count][len] = '\0';
-                            } else
-                                sq_desc[sq_count][0] = '\0';
-                            sq_is_subquest[sq_count] = is_sub[bi];
-                            sq_count++;
+                const char* p = objectives_buf;
+                const char* end = p + (no > 0 ? no : 0);
+                while (p < end && obj_count < OQ_LINKS_MAX) {
+                    const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
+                    if (!eol) eol = end;
+                    if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') { p = eol + (eol < end && *eol == '\n' ? 1 : 0); continue; }
+                    if (eol - p >= 3 && p[0] == 'Q' && p[1] == '\t') {
+                        const char* f = p + 2;
+                        const char* fe = eol;
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (t && t - f < 63) {
+                            int len = (int)(t - f);
+                            memcpy(obj_id[obj_count], f, (size_t)len);
+                            obj_id[obj_count][len] = '\0';
+                            f = t + 1;
                         }
-                        p = eol + (eol < end && *eol == '\n' ? 1 : 0);
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 127) {
+                            int len = (int)(t - f);
+                            memcpy(obj_name[obj_count], f, (size_t)len);
+                            obj_name[obj_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 255) {
+                            int len = (int)(t - f);
+                            if (len > 255) len = 255;
+                            memcpy(obj_desc[obj_count], f, (size_t)len);
+                            obj_desc[obj_count][len] = '\0';
+                        } else
+                            obj_desc[obj_count][0] = '\0';
+                        obj_count++;
                     }
+                    p = eol + (eol < end && *eol == '\n' ? 1 : 0);
+                }
+            }
+            /* Parse subquest_buf into sq_* (sub-quests list only). */
+            {
+                const char* p = subquest_buf;
+                const char* end = p + (ns > 0 ? ns : 0);
+                while (p < end && sq_count < OQ_LINKS_MAX) {
+                    const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
+                    if (!eol) eol = end;
+                    if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') { p = eol + (eol < end && *eol == '\n' ? 1 : 0); continue; }
+                    if (eol - p >= 3 && p[0] == 'Q' && p[1] == '\t') {
+                        const char* f = p + 2;
+                        const char* fe = eol;
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (t && t - f < 63) {
+                            int len = (int)(t - f);
+                            memcpy(sq_id[sq_count], f, (size_t)len);
+                            sq_id[sq_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 127) {
+                            int len = (int)(t - f);
+                            memcpy(sq_name[sq_count], f, (size_t)len);
+                            sq_name[sq_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 255) {
+                            int len = (int)(t - f);
+                            if (len > 255) len = 255;
+                            memcpy(sq_desc[sq_count], f, (size_t)len);
+                            sq_desc[sq_count][len] = '\0';
+                        } else
+                            sq_desc[sq_count][0] = '\0';
+                        sq_count++;
+                    }
+                    p = eol + (eol < end && *eol == '\n' ? 1 : 0);
                 }
             }
         }
@@ -4266,9 +4305,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
         int left_list_count = g_quest_drill_parent_id[0] ? drill_q_filtered_count : q_filtered_count;
         int sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-        int n_prereq = pr_count;   /* from get_quest_prereqs_string */
-        int n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
-        int n_subquest_list = sq_count;  /* objectives + sub-quests for right panel */
+        int n_prereq = pr_count;
+        int n_objectives = obj_count;
+        int n_subquest_list = sq_count;
 
         /* Key handling: Space switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel */
         {
@@ -4284,18 +4323,20 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_selected_index = 0;
                 g_quest_scroll = 0;
             }
-            if (OQ_KeyPressed(s_space_key) && (n_prereq > 0 || n_subquest_list > 0)) {
+            if (OQ_KeyPressed(s_space_key) && (n_prereq > 0 || n_objectives > 0 || n_subquest_list > 0)) {
                 for (;;) {
                     g_quest_focus++;
                     if (g_quest_focus > OQ_QUEST_FOCUS_SUBQUEST) g_quest_focus = OQ_QUEST_FOCUS_MAIN;
                     if (g_quest_focus == OQ_QUEST_FOCUS_MAIN) break;
                     if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ && n_prereq > 0) break;
+                    if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES && n_objectives > 0) break;
                     if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST && n_subquest_list > 0) break;
                 }
             }
             {
-            int npr = n_prereq;   /* from API (pr_count) */
-            int nobj = n_subquest_list;   /* from API (sq_count) */
+            int npr = n_prereq;
+            int nobj = n_objectives;
+            int nsq = n_subquest_list;
 
             if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_prereq_selected--; if (g_quest_prereq_selected < 0) g_quest_prereq_selected = 0; }
@@ -4323,11 +4364,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         }
                     }
                 }
+            } else if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES) {
+                if (OQ_KeyPressed(K_UPARROW)) { g_quest_objectives_selected--; if (g_quest_objectives_selected < 0) g_quest_objectives_selected = 0; }
+                if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_objectives_selected++; if (g_quest_objectives_selected >= nobj) g_quest_objectives_selected = nobj > 0 ? nobj - 1 : 0; }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
-                /* Objectives + sub-quests: Enter on a sub-quest drills down (shows its children on the left list) */
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
-                if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nobj) g_quest_subquest_selected = nobj > 0 ? nobj - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nobj > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nobj && sq_is_subquest[g_quest_subquest_selected]) {
+                if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nsq) g_quest_subquest_selected = nsq > 0 ? nsq - 1 : 0; }
+                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nsq > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nsq) {
                     q_strlcpy(g_quest_drill_parent_id, sq_id[g_quest_subquest_selected], sizeof(g_quest_drill_parent_id));
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
@@ -4416,9 +4459,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_quest_selected_index = left_list_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
         sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-        /* n_prereq and n_subquest_list already set from API (pr_count, sq_count) above */
-        n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
         if (g_quest_prereq_selected >= n_prereq && n_prereq > 0) g_quest_prereq_selected = n_prereq - 1;
+        if (g_quest_objectives_selected >= n_objectives && n_objectives > 0) g_quest_objectives_selected = n_objectives - 1;
         if (g_quest_subquest_selected >= n_subquest_list && n_subquest_list > 0) g_quest_subquest_selected = n_subquest_list - 1;
 
         /* Draw: same size as inventory (900x480), slightly taller (540) for right panel; left = list (half name col), right = desc + prereq + subquest */
@@ -4497,10 +4539,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         status_str = status_str[0] ? status_str : "-";
                     q_strlcpy(status_display, status_str, sizeof(status_display));
                     q_strlcpy(name_buf, drill_q_name[idx] ? drill_q_name[idx] : "-", sizeof(name_buf));
-                    if (drill_q_is_subquest[idx]) {
-                        int nlen = (int)strlen(name_buf);
-                        if (nlen + 12 < (int)sizeof(name_buf)) q_snprintf(name_buf + nlen, sizeof(name_buf) - (size_t)nlen, " (SubQuest)");
-                    }
                     if ((int)strlen(name_buf) > col1_chars - 2) {
                         name_buf[col1_chars - 3] = '.';
                         name_buf[col1_chars - 2] = '.';
@@ -4541,29 +4579,31 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (left_list_count == 0 && g_quest_drill_parent_id[0])
                 Draw_String(cbx, col1_x, dy, "(No objectives or sub-quests)");
 
-            /* Right panel: fixed layout – desc = top half, prereq = next quarter (starts 1/2 down), subquest = bottom quarter (starts 3/4 down). Lists scroll within their fixed height. */
+            /* Right panel: description + 3 lists (Prerequisites, Objectives, Sub-quests), each 1/4 of height. */
             int rx = qx + list_left_w + 20;
             int rw = qw - list_left_w - 30;
             int right_panel_top = qy + 48;
-            int right_panel_height = qh - 48 - 40;  /* content area above footer */
+            int right_panel_height = qh - 48 - 40;
             if (right_panel_height < 0) right_panel_height = 0;
-            int desc_height = right_panel_height / 2;           /* description = first half */
-            int quarter_height = right_panel_height / 4;       /* each list section = quarter */
             int line_h = 10;
-            int desc_max_lines = desc_height / line_h;
-            if (desc_max_lines < 1) desc_max_lines = 1;
-            int pr_list_height = quarter_height - (line_h + 2);  /* after header */
-            if (pr_list_height < 0) pr_list_height = 0;
-            int pr_vis = pr_list_height / line_h;
+            int section_height = right_panel_height / 4;
+            if (section_height < 0) section_height = 0;
+            int desc_lines = section_height / line_h;
+            if (desc_lines < 1) desc_lines = 1;
+            int pr_list_h = section_height - (line_h + 2);
+            if (pr_list_h < 0) pr_list_h = 0;
+            int pr_vis = pr_list_h / line_h;
             if (pr_vis < 0) pr_vis = 0;
-            int sq_vis = pr_vis;  /* same fixed height for subquest list */
+            int obj_vis = pr_vis;
+            int sq_vis = pr_vis;
 
             if (rx + rw <= qx + qw) {
-                /* Description: main quest, or selected prereq, or selected sub-quest/objective; when drilled in, main = selected drill item */
                 int ry = right_panel_top;
                 const char* desc_text = "(No description)";
                 if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ && n_prereq > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < n_prereq && pr_desc[g_quest_prereq_selected][0])
                     desc_text = pr_desc[g_quest_prereq_selected];
+                else if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES && n_objectives > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < n_objectives && obj_desc[g_quest_objectives_selected][0])
+                    desc_text = obj_desc[g_quest_objectives_selected];
                 else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST && n_subquest_list > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < n_subquest_list && sq_desc[g_quest_subquest_selected][0])
                     desc_text = sq_desc[g_quest_subquest_selected];
                 else if (g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < drill_q_filtered_count) {
@@ -4572,13 +4612,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         desc_text = drill_q_desc[di];
                 } else if (sel_quest_idx >= 0 && sel_quest_idx < q_count && q_desc[sel_quest_idx][0])
                     desc_text = q_desc[sel_quest_idx];
-                int chars_per_line = rw / 8;
-                if (chars_per_line < 10) chars_per_line = 10;
                 {
+                    int chars_per_line = rw / 8;
+                    if (chars_per_line < 10) chars_per_line = 10;
                     const char* p = desc_text;
                     int line_num = 0;
                     char line_buf[128];
-                    while (*p && line_num < desc_max_lines) {
+                    while (*p && line_num < desc_lines) {
                         int c = 0;
                         while (c < chars_per_line && p[c] && p[c] != '\n') c++;
                         if (c > (int)sizeof(line_buf) - 1) c = (int)sizeof(line_buf) - 1;
@@ -4590,58 +4630,79 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         line_num++;
                     }
                 }
+                ry += section_height;
 
-                /* Prerequisites: starts halfway down popup (second quarter), fixed height, scroll within */
-                ry = right_panel_top + desc_height;
-                Draw_String(cbx, rx, ry, "Prerequisites (Enter=select in list)");
-                ry += line_h + 2;
-                if (n_prereq == 0)
-                    Draw_String(cbx, rx, ry, "(none)");
-                else {
-                    int pr_vis_use = pr_vis;
-                    if (pr_vis_use > n_prereq) pr_vis_use = n_prereq;
-                    if (g_quest_prereq_selected < g_quest_prereq_scroll) g_quest_prereq_scroll = g_quest_prereq_selected;
-                    if (g_quest_prereq_selected >= g_quest_prereq_scroll + pr_vis_use && pr_vis_use > 0) g_quest_prereq_scroll = g_quest_prereq_selected - pr_vis_use + 1;
-                    if (g_quest_prereq_scroll + pr_vis_use > n_prereq) g_quest_prereq_scroll = n_prereq - pr_vis_use;
-                    if (g_quest_prereq_scroll < 0) g_quest_prereq_scroll = 0;
-                    for (i = 0; i < pr_vis_use && g_quest_prereq_scroll + i < n_prereq; i++) {
-                        int pi = g_quest_prereq_scroll + i;
-                        const char* pname = pr_name[pi][0] ? pr_name[pi] : (pr_id[pi][0] ? pr_id[pi] : "(unknown)");
-                        if (pi == g_quest_prereq_selected && g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
-                            Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
-                        Draw_String(cbx, rx, ry, pname);
-                        ry += line_h;
+                /* Section 2: Prerequisites – 1/4 height */
+                {
+                    int sect_y = ry;
+                    Draw_String(cbx, rx, sect_y, "Prerequisites (Enter=select in list)");
+                    sect_y += line_h + 2;
+                    if (n_prereq == 0)
+                        Draw_String(cbx, rx, sect_y, "(none)");
+                    else {
+                        int pr_vis_use = pr_vis > n_prereq ? n_prereq : pr_vis;
+                        if (g_quest_prereq_selected < g_quest_prereq_scroll) g_quest_prereq_scroll = g_quest_prereq_selected;
+                        if (g_quest_prereq_selected >= g_quest_prereq_scroll + pr_vis_use && pr_vis_use > 0) g_quest_prereq_scroll = g_quest_prereq_selected - pr_vis_use + 1;
+                        if (g_quest_prereq_scroll + pr_vis_use > n_prereq) g_quest_prereq_scroll = n_prereq - pr_vis_use;
+                        if (g_quest_prereq_scroll < 0) g_quest_prereq_scroll = 0;
+                        for (i = 0; i < pr_vis_use && g_quest_prereq_scroll + i < n_prereq; i++) {
+                            int pi = g_quest_prereq_scroll + i;
+                            const char* pname = pr_name[pi][0] ? pr_name[pi] : (pr_id[pi][0] ? pr_id[pi] : "(unknown)");
+                            if (pi == g_quest_prereq_selected && g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
+                                Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
+                            Draw_String(cbx, rx, sect_y, pname);
+                            sect_y += line_h;
+                        }
                     }
                 }
+                ry += section_height;
 
-                /* Sub-quests / Objectives: starts 3/4 down popup (fourth quarter), fixed height, scroll within */
-                ry = right_panel_top + desc_height + quarter_height;
-                Draw_String(cbx, rx, ry, "Sub-quests / Objectives");
-                ry += line_h + 2;
-                if (n_subquest_list == 0)
-                    Draw_String(cbx, rx, ry, "(none)");
-                else {
-                    int sq_vis_use = sq_vis;
-                    if (sq_vis_use > n_subquest_list) sq_vis_use = n_subquest_list;
-                    if (g_quest_subquest_selected < g_quest_subquest_scroll) g_quest_subquest_scroll = g_quest_subquest_selected;
-                    if (g_quest_subquest_selected >= g_quest_subquest_scroll + sq_vis_use && sq_vis_use > 0) g_quest_subquest_scroll = g_quest_subquest_selected - sq_vis_use + 1;
-                    if (g_quest_subquest_scroll + sq_vis_use > n_subquest_list) g_quest_subquest_scroll = n_subquest_list - sq_vis_use;
-                    if (g_quest_subquest_scroll < 0) g_quest_subquest_scroll = 0;
-                    for (i = 0; i < sq_vis_use && g_quest_subquest_scroll + i < n_subquest_list; i++) {
-                        int si = g_quest_subquest_scroll + i;
-                        char sq_display_buf[128 + 16];
-                        const char* sq_display;
-                        if (sq_name[si][0]) sq_display = sq_name[si];
-                        else if (sq_id[si][0]) sq_display = sq_id[si];
-                        else sq_display = "(unknown)";
-                        if (sq_is_subquest[si]) {
-                            q_snprintf(sq_display_buf, sizeof(sq_display_buf), "%s (SubQuest)", sq_display);
-                            sq_display = sq_display_buf;
+                /* Section 3: Objectives – 1/4 height */
+                {
+                    int sect_y = ry;
+                    Draw_String(cbx, rx, sect_y, "Objectives");
+                    sect_y += line_h + 2;
+                    if (n_objectives == 0)
+                        Draw_String(cbx, rx, sect_y, "(none)");
+                    else {
+                        int obj_vis_use = obj_vis > n_objectives ? n_objectives : obj_vis;
+                        if (g_quest_objectives_selected < g_quest_objectives_scroll) g_quest_objectives_scroll = g_quest_objectives_selected;
+                        if (g_quest_objectives_selected >= g_quest_objectives_scroll + obj_vis_use && obj_vis_use > 0) g_quest_objectives_scroll = g_quest_objectives_selected - obj_vis_use + 1;
+                        if (g_quest_objectives_scroll + obj_vis_use > n_objectives) g_quest_objectives_scroll = n_objectives - obj_vis_use;
+                        if (g_quest_objectives_scroll < 0) g_quest_objectives_scroll = 0;
+                        for (i = 0; i < obj_vis_use && g_quest_objectives_scroll + i < n_objectives; i++) {
+                            int oi = g_quest_objectives_scroll + i;
+                            const char* oname = obj_name[oi][0] ? obj_name[oi] : (obj_id[oi][0] ? obj_id[oi] : "(unknown)");
+                            if (oi == g_quest_objectives_selected && g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES)
+                                Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
+                            Draw_String(cbx, rx, sect_y, oname);
+                            sect_y += line_h;
                         }
-                        if (si == g_quest_subquest_selected && g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST)
-                            Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
-                        Draw_String(cbx, rx, ry, sq_display);
-                        ry += line_h;
+                    }
+                }
+                ry += section_height;
+
+                /* Section 4: Sub-quests (no (SubQuest) suffix; they have their own list) – 1/4 height */
+                {
+                    int sect_y = ry;
+                    Draw_String(cbx, rx, sect_y, "Sub-quests (Enter=drill down)");
+                    sect_y += line_h + 2;
+                    if (n_subquest_list == 0)
+                        Draw_String(cbx, rx, sect_y, "(none)");
+                    else {
+                        int sq_vis_use = sq_vis > n_subquest_list ? n_subquest_list : sq_vis;
+                        if (g_quest_subquest_selected < g_quest_subquest_scroll) g_quest_subquest_scroll = g_quest_subquest_selected;
+                        if (g_quest_subquest_selected >= g_quest_subquest_scroll + sq_vis_use && sq_vis_use > 0) g_quest_subquest_scroll = g_quest_subquest_selected - sq_vis_use + 1;
+                        if (g_quest_subquest_scroll + sq_vis_use > n_subquest_list) g_quest_subquest_scroll = n_subquest_list - sq_vis_use;
+                        if (g_quest_subquest_scroll < 0) g_quest_subquest_scroll = 0;
+                        for (i = 0; i < sq_vis_use && g_quest_subquest_scroll + i < n_subquest_list; i++) {
+                            int si = g_quest_subquest_scroll + i;
+                            const char* sq_display = sq_name[si][0] ? sq_name[si] : (sq_id[si][0] ? sq_id[si] : "(unknown)");
+                            if (si == g_quest_subquest_selected && g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST)
+                                Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
+                            Draw_String(cbx, rx, sect_y, sq_display);
+                            sect_y += line_h;
+                        }
                     }
                 }
             }

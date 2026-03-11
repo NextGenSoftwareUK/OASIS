@@ -795,7 +795,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
-        /// Completes a quest objective (represented by a sub-quest entry) for the specified avatar.
+        /// Completes a quest objective. Uses Quest.Objectives (Option B) first; falls back to child Quests for backward compatibility.
         /// </summary>
         public async Task<OASISResult<bool>> CompleteQuestObjectiveAsync(Guid avatarId, Guid questId, Guid objectiveId, string gameSource = null, string completionNotes = null)
         {
@@ -812,36 +812,74 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 var quest = questResult.Result;
+                if (quest.Objectives == null)
+                    quest.Objectives = new List<Objective>();
                 quest.Status = quest.Status == QuestStatus.NotStarted ? QuestStatus.InProgress : quest.Status;
                 if (quest.StartedOn == DateTime.MinValue)
                     quest.StartedOn = DateTime.UtcNow;
                 quest.StartedBy = quest.StartedBy == Guid.Empty ? avatarId : quest.StartedBy;
 
+                // Option B: complete objective in Quest.Objectives
+                if (quest.Objectives.Count > 0)
+                {
+                    var objective = quest.Objectives.FirstOrDefault(x => x.Id == objectiveId);
+                    if (objective != null)
+                    {
+                        objective.IsCompleted = true;
+                        objective.CompletedAt = DateTime.UtcNow;
+                        objective.CompletedBy = avatarId;
+
+                        var updateResult = await UpdateAsync(avatarId, quest);
+                        if (updateResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResult.Message}");
+                            return result;
+                        }
+
+                        var allComplete = quest.Objectives.All(x => x.IsCompleted);
+                        if (allComplete)
+                        {
+                            quest.Status = QuestStatus.Completed;
+                            quest.CompletedOn = DateTime.UtcNow;
+                            quest.CompletedBy = avatarId;
+                            if (!string.IsNullOrWhiteSpace(completionNotes))
+                                quest.CompletionNotes = completionNotes;
+                            await UpdateAsync(avatarId, quest);
+                        }
+
+                        await UpdateQuestStatisticsAsync(avatarId);
+                        result.Result = true;
+                        result.Message = allComplete ? "Quest objective completed and quest is now complete." : "Quest objective completed successfully";
+                        return result;
+                    }
+                }
+
+                // Fallback: legacy objectives as child Quests
                 if (quest.Quests == null || quest.Quests.Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest has no objectives to complete.");
                     return result;
                 }
 
-                var objective = quest.Quests.FirstOrDefault(x => x.Id == objectiveId);
-                if (objective == null)
+                var subQuestObjective = quest.Quests.FirstOrDefault(x => x.Id == objectiveId);
+                if (subQuestObjective == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Objective {objectiveId} was not found for quest {questId}.");
                     return result;
                 }
 
-                objective.Status = QuestStatus.Completed;
-                objective.CompletedOn = DateTime.UtcNow;
-                objective.CompletedBy = avatarId;
-                objective.StartedBy = objective.StartedBy == Guid.Empty ? avatarId : objective.StartedBy;
-                if (objective.StartedOn == DateTime.MinValue)
-                    objective.StartedOn = DateTime.UtcNow;
+                subQuestObjective.Status = QuestStatus.Completed;
+                subQuestObjective.CompletedOn = DateTime.UtcNow;
+                subQuestObjective.CompletedBy = avatarId;
+                subQuestObjective.StartedBy = subQuestObjective.StartedBy == Guid.Empty ? avatarId : subQuestObjective.StartedBy;
+                if (subQuestObjective.StartedOn == DateTime.MinValue)
+                    subQuestObjective.StartedOn = DateTime.UtcNow;
 
                 if (!string.IsNullOrWhiteSpace(completionNotes))
-                    objective.CompletionNotes = completionNotes;
+                    subQuestObjective.CompletionNotes = completionNotes;
 
                 if (!string.IsNullOrWhiteSpace(gameSource))
-                    objective.Requirements = objective.Requirements?.Append($"CompletedFrom:{gameSource}").Distinct().ToList() ?? new List<string> { $"CompletedFrom:{gameSource}" };
+                    subQuestObjective.Requirements = subQuestObjective.Requirements?.Append($"CompletedFrom:{gameSource}").Distinct().ToList() ?? new List<string> { $"CompletedFrom:{gameSource}" };
 
                 if (quest.Quests.All(x => x.Status == QuestStatus.Completed))
                 {
@@ -859,10 +897,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
                 quest.MetaData["Status"] = quest.Status.ToString();
 
-                var updateResult = await UpdateAsync(avatarId, quest);
-                if (updateResult.IsError)
+                var updateResultLegacy = await UpdateAsync(avatarId, quest);
+                if (updateResultLegacy.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResultLegacy.Message}");
                     return result;
                 }
 

@@ -54,6 +54,8 @@ public class StarApiClientUnitTests
         var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", ItemRequired = "i" }]);
         var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
         var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
+        var addSubQuest = await client.AddSubQuestAsync("quest-id", "Sub-quest desc", gameSource: "ODOOM");
+        var setPrereqs = await client.SetQuestPrerequisitesAsync("quest-id", new[] { "prereq-id" });
         var activeQuests = await client.GetActiveQuestsAsync();
         var queueGetQuests = await client.QueueGetActiveQuestsAsync();
         var createMonsterNft = await client.CreateMonsterNftAsync("boss", "desc", "game", "{}");
@@ -84,9 +86,11 @@ public class StarApiClientUnitTests
         AssertNotInitialized(createQuest);
         AssertNotInitialized(addObjective);
         AssertNotInitialized(removeObjective);
+        AssertNotInitialized(addSubQuest);
+        AssertNotInitialized(setPrereqs);
         AssertNotInitialized(activeQuests);
         AssertNotInitialized(queueGetQuests);
-        AssertNotInitialized(createBossNft);
+        AssertNotInitialized(createMonsterNft);
         AssertNotInitialized(deployBossNft);
         AssertNotInitialized(nftCollection);
         AssertNotInitialized(setApiKey);
@@ -229,6 +233,22 @@ public class StarApiClientUnitTests
         var result = await client.RemoveQuestObjectiveAsync("quest-id", "");
         Assert.True(result.IsError);
         Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task AddSubQuestAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.AddSubQuestAsync("quest-id", "Sub-quest description", gameSource: "ODOOM");
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task SetQuestPrerequisitesAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.SetQuestPrerequisitesAsync("quest-id", new[] { "prereq-quest-id" });
+        AssertNotInitialized(result);
     }
 
     /// <summary>Contract for [NFT] prefix: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
