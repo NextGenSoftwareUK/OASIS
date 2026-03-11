@@ -71,7 +71,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public IList<IQuest> Quests { get; set; } = new List<IQuest>(); //TODO: Dont think is needed now because it is stored in the Dependencies.
 
-        /// <summary>Objectives belonging to this quest (Option B). Persisted as part of the Quest holon. Concrete type so storage/JSON deserialization populates list correctly.</summary>
+        /// <summary>Quest IDs that must be completed before this quest can be started. Persisted in MetaData so LoadHolonsByMetaData and client can read it.</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<string> PrerequisiteQuestIds { get; set; } = new List<string>();
+
+        /// <summary>Objectives belonging to this quest (Option B). Persisted as part of the Quest holon via MetaData (CustomOASISProperty + StoreAsJsonString).</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
         public List<Objective> Objectives { get; set; } = new List<Objective>();
 
         /// <summary>Explicit implementation for IQuestBase; delegates to Objectives so interface and serialization both work.</summary>

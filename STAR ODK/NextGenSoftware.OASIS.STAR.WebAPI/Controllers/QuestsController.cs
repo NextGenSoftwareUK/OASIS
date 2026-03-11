@@ -750,7 +750,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Requirements = new List<string>(),
                     GameSource = request.GameSource?.Trim() ?? "",
                     ItemRequired = request.ItemRequired?.Trim() ?? "",
-                    IsObjective = false
+                    IsObjective = false,
+                    ParentQuestId = id
                 };
                 subQuest.STARNETDNA = new STARNETDNA
                 {
