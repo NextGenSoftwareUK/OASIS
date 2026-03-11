@@ -72,6 +72,8 @@ public sealed class StarQuestInfo
     public string Description { get; init; } = string.Empty;
     public string Status { get; init; } = string.Empty;
     public List<StarQuestObjective> Objectives { get; init; } = new();
+    /// <summary>Quest IDs that must be completed before this quest can be started (from MetaData.PrerequisiteQuestIds).</summary>
+    public List<string> PrerequisiteQuestIds { get; init; } = new();
 }
 
 public sealed class StarNftInfo
@@ -1742,7 +1744,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
 
-    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective, then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
+    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective (sub-quests), then "P\tid1\tid2\n" (prereqs), then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
     public static string SerializeQuestsForGame(List<StarQuestInfo> quests)
     {
         if (quests is null || quests.Count == 0)
@@ -1766,6 +1768,8 @@ public sealed class StarApiClient : IDisposable
                     sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
                 }
             }
+            if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0)
+                sb.Append("P\t").AppendJoin("\t", q.PrerequisiteQuestIds).Append("\n");
             sb.Append("\n---\n");
         }
         return sb.ToString();
@@ -2648,6 +2652,25 @@ public sealed class StarApiClient : IDisposable
         };
     }
 
+    /// <summary>Get a list of strings from element, e.g. element.MetaData.PrerequisiteQuestIds (array of string).</summary>
+    private static List<string> GetStringListFromElement(JsonElement element, string parentKey, string arrayKey)
+    {
+        var list = new List<string>();
+        if (!TryGetProperty(element, parentKey, out var parent) || parent.ValueKind != JsonValueKind.Object)
+            return list;
+        if (!TryGetProperty(parent, arrayKey, out var arr))
+            return list;
+        if (arr.ValueKind != JsonValueKind.Array)
+            return list;
+        foreach (var item in arr.EnumerateArray())
+        {
+            var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+            if (!string.IsNullOrEmpty(s))
+                list.Add(s);
+        }
+        return list;
+    }
+
     private static bool GetBoolProperty(JsonElement element, string name)
     {
         if (!TryGetProperty(element, name, out var prop))
@@ -3398,13 +3421,16 @@ public sealed class StarApiClient : IDisposable
                 }
             }
 
+            var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
+
             quests.Add(new StarQuestInfo
             {
                 Id = GetStringProperty(questElement, "Id") ?? string.Empty,
                 Name = GetStringProperty(questElement, "Name") ?? string.Empty,
                 Description = GetStringProperty(questElement, "Description") ?? string.Empty,
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
-                Objectives = objectives
+                Objectives = objectives,
+                PrerequisiteQuestIds = prereqIds
             });
         }
 

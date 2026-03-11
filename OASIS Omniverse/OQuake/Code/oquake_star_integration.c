@@ -249,12 +249,22 @@ static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM: filter by status, Start (Not Started) or Set tracker (In Progress). */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
-#define OQ_QUEST_MAX 32
+#define OQ_QUEST_MAX 64
+#define OQ_LINKS_MAX 16   /* max prereq or sub-quest IDs per quest */
+#define OQ_OBJ_MAX 16    /* max objectives per quest */
 static int g_quest_filter_not_started = 1;
 static int g_quest_filter_in_progress = 1;
 static int g_quest_filter_completed = 1;
 static int g_quest_selected_index = 0;
 static int g_quest_scroll = 0;
+#define OQ_QUEST_FOCUS_MAIN 0
+#define OQ_QUEST_FOCUS_PREREQ 1
+#define OQ_QUEST_FOCUS_SUBQUEST 2
+static int g_quest_focus = OQ_QUEST_FOCUS_MAIN;
+static int g_quest_prereq_selected = 0;
+static int g_quest_prereq_scroll = 0;
+static int g_quest_subquest_selected = 0;
+static int g_quest_subquest_scroll = 0;
 static char g_quest_tracker_id[64] = "";
 static char g_quest_tracker_name[128] = "";  /* Display name for HUD tracker. */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
@@ -3720,9 +3730,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (s_q_key >= 0 && s_q_key < MAX_KEYS && key_dest != key_message && key_dest != key_console && key_dest != key_menu) {
             if (keydown[s_q_key] && !g_quest_key_was_down) {
                 g_quest_popup_open = !g_quest_popup_open;
-                if (g_quest_popup_open)
+                if (g_quest_popup_open) {
                     star_api_invalidate_quest_cache();
-                else
+                    g_quest_selected_index = 0;
+                    g_quest_scroll = 0;
+                    g_quest_focus = OQ_QUEST_FOCUS_MAIN;
+                    g_quest_prereq_selected = 0;
+                    g_quest_prereq_scroll = 0;
+                    g_quest_subquest_selected = 0;
+                    g_quest_subquest_scroll = 0;
+                } else
                     g_quest_status_message[0] = '\0', g_quest_status_frames = 0;
                 g_quest_key_was_down = true;
             }
@@ -3872,8 +3889,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static char quest_buf[16384];
         static char q_id[OQ_QUEST_MAX][64];
         static char q_name[OQ_QUEST_MAX][128];
+        static char q_desc[OQ_QUEST_MAX][256];
         static char q_status[OQ_QUEST_MAX][24];
         static char q_pct[OQ_QUEST_MAX][8];
+        static char q_prereq_ids[OQ_QUEST_MAX][OQ_LINKS_MAX][64];
+        static int q_prereq_count[OQ_QUEST_MAX];
+        static char q_obj_id[OQ_QUEST_MAX][OQ_OBJ_MAX][64];
+        static char q_obj_desc[OQ_QUEST_MAX][OQ_OBJ_MAX][128];
+        static int q_obj_done[OQ_QUEST_MAX][OQ_OBJ_MAX];
+        static int q_obj_count[OQ_QUEST_MAX];
         static int q_count;
         static int q_filtered_indices[OQ_QUEST_MAX];
         static int q_filtered_count;
@@ -3892,19 +3916,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (p + 3 <= end && (unsigned char)p[0] == 0xEF && (unsigned char)p[1] == 0xBB && (unsigned char)p[2] == 0xBF)
                 p += 3;
             while (p < end && (*p == '\n' || *p == '\r')) p++;
-            while (p < end && q_count < OQ_QUEST_MAX) {
+            while (p < end) {
                 const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
                 if (!eol) eol = end;
-                /* Line may start with "Q\t" or "---Q\t" (legacy: separator and next quest on same line) */
-                const char* qstart = p;
+                /* Line may start with "Q\t", "---Q\t", "O\t", "P\t", "S\t", or "---" */
+                const char* lstart = p;
                 if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') {
-                    qstart = p + 3;
-                    while (qstart < eol && (*qstart == ' ' || *qstart == '\t')) qstart++;
+                    lstart = p + 3;
+                    while (lstart < eol && (*lstart == ' ' || *lstart == '\t')) lstart++;
                 }
-                if (eol - qstart >= 2 && qstart[0] == 'Q' && qstart[1] == '\t') {
-                    const char* f = qstart + 2;
+                if (eol - lstart >= 2 && lstart[0] == 'Q' && lstart[1] == '\t' && q_count < OQ_QUEST_MAX) {
+                    const char* f = lstart + 2;
                     const char* fe = eol;
                     const char* t;
+                    q_prereq_count[q_count] = 0;
+                    q_subquest_count[q_count] = 0;
+                    q_obj_count[q_count] = 0;
                     t = (const char*)memchr(f, '\t', (size_t)(fe - f));
                     if (t && t - f < 63) {
                         int id_len = (int)(t - f);
@@ -3920,13 +3947,18 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         f = t + 1;
                     } else { q_name[q_count][0] = '\0'; if (f < fe) f = fe; }
                     t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
-                    if (t) f = t + 1; else f = fe;
+                    if (t && t - f < 255) {
+                        int desc_len = (int)(t - f);
+                        if (desc_len > 255) desc_len = 255;
+                        memcpy(q_desc[q_count], f, (size_t)desc_len);
+                        q_desc[q_count][desc_len] = '\0';
+                        f = t + 1;
+                    } else { q_desc[q_count][0] = '\0'; if (f < fe && t) f = t + 1; else f = fe; }
                     t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
                     if (t && t - f < 23) {
                         int st_len = (int)(t - f);
                         memcpy(q_status[q_count], f, (size_t)st_len);
                         q_status[q_count][st_len] = '\0';
-                        /* Strip \r and normalize: remove spaces so "Not Started" matches "NotStarted" */
                         { int j, k; for (j = 0, k = 0; q_status[q_count][j]; j++) { if (q_status[q_count][j] == '\r') break; if (q_status[q_count][j] != ' ') q_status[q_count][k++] = q_status[q_count][j]; } q_status[q_count][k] = '\0'; }
                         f = t + 1;
                     } else { q_status[q_count][0] = '\0'; if (f < fe) f = fe; }
@@ -3935,6 +3967,41 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     else
                         q_pct[q_count][0] = '\0';
                     q_count++;
+                } else if (eol - lstart >= 2 && lstart[0] == 'O' && lstart[1] == '\t' && q_count > 0) {
+                    int ci = q_count - 1;
+                    if (q_obj_count[ci] < OQ_OBJ_MAX) {
+                        const char* f = lstart + 2;
+                        const char* fe = eol;
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (t && t - f < 63) {
+                            int len = (int)(t - f);
+                            memcpy(q_obj_id[ci][q_obj_count[ci]], f, (size_t)len);
+                            q_obj_id[ci][q_obj_count[ci]][len] = '\0';
+                            f = t + 1;
+                        } else { q_obj_id[ci][q_obj_count[ci]][0] = '\0'; f = fe; }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 127) {
+                            int len = (int)(t - f);
+                            memcpy(q_obj_desc[ci][q_obj_count[ci]], f, (size_t)len);
+                            q_obj_desc[ci][q_obj_count[ci]][len] = '\0';
+                            f = t + 1;
+                        } else { q_obj_desc[ci][q_obj_count[ci]][0] = '\0'; if (f < fe) f = fe; }
+                        q_obj_done[ci][q_obj_count[ci]] = (f < fe && *f == '1') ? 1 : 0;
+                        q_obj_count[ci]++;
+                    }
+                } else if (eol - lstart >= 2 && lstart[0] == 'P' && lstart[1] == '\t' && q_count > 0) {
+                    int ci = q_count - 1;
+                    const char* f = lstart + 2;
+                    const char* fe = eol;
+                    while (f < fe && q_prereq_count[ci] < OQ_LINKS_MAX) {
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (!t) t = fe;
+                        if (t - f >= 63) { f = t + (t < fe ? 1 : 0); continue; }
+                        memcpy(q_prereq_ids[ci][q_prereq_count[ci]], f, (size_t)(t - f));
+                        q_prereq_ids[ci][q_prereq_count[ci]][(int)(t - f)] = '\0';
+                        q_prereq_count[ci]++;
+                        f = t + (t < fe ? 1 : 0);
+                    }
                 }
                 p = eol + (eol < end && *eol == '\n' ? 1 : 0);
             }
@@ -3986,35 +4053,73 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
-        /* Key handling: use Key_StringToKeynum so Enter works regardless of engine key numbering */
+        int sel_quest_idx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
+        int n_prereq = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_prereq_count[sel_quest_idx] : 0;
+        int n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
+        int n_subquest_list = n_obj;  /* sub-quests = objectives (same thing) */
+
+        /* Key handling: Tab cycles focus Tab cycles focus (main -> prereq -> subquest -> main); Up/Down/Enter act on focused panel */
         {
-            static int s_enter_key = -2, s_kp_enter_key = -2;
+            static int s_enter_key = -2, s_kp_enter_key = -2, s_tab_key = -2;
             if (s_enter_key == -2) s_enter_key = Key_StringToKeynum("enter");
             if (s_kp_enter_key == -2) s_kp_enter_key = Key_StringToKeynum("kp_enter");
+            if (s_tab_key == -2) s_tab_key = Key_StringToKeynum("tab");
             if (s_enter_key < 0) s_enter_key = K_ENTER;
             if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
-            if (q_filtered_count > 0) {
-                if (OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_MWHEELUP)) {
-                    g_quest_selected_index--;
-                    if (g_quest_selected_index < 0) g_quest_selected_index = 0;
-                }
-                if (OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_MWHEELDOWN)) {
-                    g_quest_selected_index++;
-                    if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
-                }
-                if (OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) {
-                    int idx = q_filtered_indices[g_quest_selected_index];
-                    if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                        if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
-                            q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                            g_quest_status_frames = 105;  /* ~3 sec at 35 fps */
-                            star_api_start_quest(q_id[idx]);
-                        } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
-                            q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
-                            q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+            if (s_tab_key < 0) s_tab_key = K_TAB;
+            if (OQ_KeyPressed(s_tab_key)) {
+                g_quest_focus++;
+                if (g_quest_focus > OQ_QUEST_FOCUS_SUBQUEST) g_quest_focus = OQ_QUEST_FOCUS_MAIN;
+            }
+            {
+            int sidx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
+            int npr = (sidx >= 0 && sidx < q_count) ? q_prereq_count[sidx] : 0;
+            int nobj = (sidx >= 0 && sidx < q_count) ? q_obj_count[sidx] : 0;
+
+            if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ) {
+                if (OQ_KeyPressed(K_UPARROW)) { g_quest_prereq_selected--; if (g_quest_prereq_selected < 0) g_quest_prereq_selected = 0; }
+                if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_prereq_selected++; if (g_quest_prereq_selected >= npr) g_quest_prereq_selected = npr > 0 ? npr - 1 : 0; }
+                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr && sidx >= 0) {
+                    const char* want_id = q_prereq_ids[sidx][g_quest_prereq_selected];
+                    int fi;
+                    for (fi = 0; fi < q_filtered_count; fi++) {
+                        int qi = q_filtered_indices[fi];
+                        if (qi >= 0 && qi < q_count && strcmp(q_id[qi], want_id) == 0) {
+                            g_quest_selected_index = fi;
+                            g_quest_focus = OQ_QUEST_FOCUS_MAIN;
+                            break;
                         }
                     }
                 }
+            } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
+                /* Sub-quests = objectives only; Enter does nothing (objectives aren't in main list) */
+                if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
+                if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nobj) g_quest_subquest_selected = nobj > 0 ? nobj - 1 : 0; }
+            } else {
+                if (q_filtered_count > 0) {
+                    if (OQ_KeyPressed(K_UPARROW) || OQ_KeyPressed(K_MWHEELUP)) {
+                        g_quest_selected_index--;
+                        if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+                    }
+                    if (OQ_KeyPressed(K_DOWNARROW) || OQ_KeyPressed(K_MWHEELDOWN)) {
+                        g_quest_selected_index++;
+                        if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
+                    }
+                    if (OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) {
+                        int idx = q_filtered_indices[g_quest_selected_index];
+                        if (idx >= 0 && idx < q_count && q_id[idx][0]) {
+                            if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
+                                q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+                                g_quest_status_frames = 105;
+                                star_api_start_quest(q_id[idx]);
+                            } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
+                                q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
+                                q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+                            }
+                        }
+                    }
+                }
+            }
             }
         }
         if (OQ_KeyPressed(K_HOME))   g_quest_filter_not_started = !g_quest_filter_not_started;
@@ -4024,12 +4129,18 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_quest_selected_index >= q_filtered_count && q_filtered_count > 0)
             g_quest_selected_index = q_filtered_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+        sel_quest_idx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
+        n_prereq = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_prereq_count[sel_quest_idx] : 0;
+        n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
+        n_subquest_list = n_obj;
+        if (g_quest_prereq_selected >= n_prereq && n_prereq > 0) g_quest_prereq_selected = n_prereq - 1;
+        if (g_quest_subquest_selected >= n_subquest_list && n_subquest_list > 0) g_quest_subquest_selected = n_subquest_list - 1;
 
-        /* Draw: double width (640px), space below toggles */
-        int qw = q_min(glwidth - 48, 640);
-        int qh = q_min(glheight - 96, 480);
-        if (qw < 400) qw = 400;
-        if (qh < 160) qh = 160;
+        /* Draw: same size as inventory (900x480), slightly taller (540) for right panel; left = list (half name col), right = desc + prereq + subquest */
+        int qw = q_min(glwidth - 48, 900);
+        int qh = q_min(glheight - 96, 540);
+        if (qw < 480) qw = 480;
+        if (qh < 200) qh = 200;
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
         if (qx < 0) qx = 0;
@@ -4055,7 +4166,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
             Draw_String(cbx, qx + 10, qy + 48, "Error loading quests. Check console or star_api.log for details.");
         } else if (q_filtered_count > 0) {
-            /* Table: Name | % | Status (wider columns for 640px popup) */
+            /* Left: table Name | % | Status (half name column: 27 chars) */
             char name_buf[64];
             char status_display[20];
             const char* status_str;
@@ -4063,24 +4174,23 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int idx;
             qboolean sel;
             int col1_x, col2_x, col3_x;
-            int col1_chars = 54;  /* name column ~50px wider again (54*8 = 432px) */
+            int list_left_w = 400;  /* left panel width; right panel = desc + prereq + subquest */
+            int col1_chars = 27;    /* half of previous 54 */
             int col2_chars = 6;
-            dy = qy + 48;  /* space below toggles */
+            dy = qy + 48;
             row_h = 12;
-            max_rows = (qh - 84) / row_h;  /* heading + space + toggles + space + header + footer */
+            max_rows = (qh - 84) / row_h;
             if (max_rows < 6) max_rows = 6;
             if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
             col1_x = qx + 10;
             col2_x = qx + 10 + col1_chars * 8;
             col3_x = qx + 10 + (col1_chars + col2_chars) * 8;
 
-            /* Column headers */
             Draw_String(cbx, col1_x, dy, "Name");
             Draw_String(cbx, col2_x, dy, "%");
             Draw_String(cbx, col3_x, dy, "Status");
             dy += row_h;
 
-            /* Scroll so selection is visible */
             if (g_quest_selected_index < g_quest_scroll) g_quest_scroll = g_quest_selected_index;
             if (g_quest_selected_index >= g_quest_scroll + max_rows) g_quest_scroll = g_quest_selected_index - max_rows + 1;
             if (g_quest_scroll < 0) g_quest_scroll = 0;
@@ -4089,7 +4199,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 idx = q_filtered_indices[g_quest_scroll + i];
                 sel = (g_quest_scroll + i == g_quest_selected_index);
                 if (sel)
-                    Draw_Fill(cbx, qx + 6, dy - 1, qw - 12, row_h, 224, 0.50f);
+                    Draw_Fill(cbx, qx + 6, dy - 1, list_left_w - 16, row_h, 224, 0.50f);
                 status_str = q_status[idx];
                 if (strcmp(status_str, "NotStarted") == 0 || strcmp(status_str, "0") == 0)
                     status_str = "Not Started";
@@ -4112,13 +4222,94 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 Draw_String(cbx, col3_x, dy, status_display);
                 dy += row_h;
             }
+
+            /* Right panel: description (top), prerequisites, sub-quests/objectives */
+            int rx = qx + list_left_w + 20;
+            int rw = qw - list_left_w - 30;
+            int ry = qy + 48;
+            if (sel_quest_idx >= 0 && sel_quest_idx < q_count && rx + rw <= qx + qw) {
+                int line_h = 10;
+                int desc_max_lines = 6;
+                const char* desc_text = q_desc[sel_quest_idx][0] ? q_desc[sel_quest_idx] : "(No description)";
+                int chars_per_line = rw / 8;
+                if (chars_per_line < 10) chars_per_line = 10;
+                { /* word-wrap description */
+                    const char* p = desc_text;
+                    int line_num = 0;
+                    char line_buf[128];
+                    while (*p && line_num < desc_max_lines) {
+                        int c = 0;
+                        while (c < chars_per_line && p[c] && p[c] != '\n') c++;
+                        if (c > (int)sizeof(line_buf) - 1) c = (int)sizeof(line_buf) - 1;
+                        memcpy(line_buf, p, (size_t)c);
+                        line_buf[c] = '\0';
+                        Draw_String(cbx, rx, ry + line_num * line_h, line_buf);
+                        p += c;
+                        if (*p == '\n') p++;
+                        line_num++;
+                    }
+                }
+                ry += desc_max_lines * line_h + 8;
+
+                Draw_String(cbx, rx, ry, "Prerequisites (Enter=select in list)");
+                ry += line_h + 2;
+                if (n_prereq == 0)
+                    Draw_String(cbx, rx, ry, "(none)");
+                else {
+                    int pr_vis = (qh - (ry - qy) - 120) / line_h;
+                    if (pr_vis > n_prereq) pr_vis = n_prereq;
+                    if (pr_vis < 0) pr_vis = 0;
+                    if (g_quest_prereq_selected < g_quest_prereq_scroll) g_quest_prereq_scroll = g_quest_prereq_selected;
+                    if (g_quest_prereq_selected >= g_quest_prereq_scroll + pr_vis && pr_vis > 0) g_quest_prereq_scroll = g_quest_prereq_selected - pr_vis + 1;
+                    if (g_quest_prereq_scroll + pr_vis > n_prereq) g_quest_prereq_scroll = n_prereq - pr_vis;
+                    if (g_quest_prereq_scroll < 0) g_quest_prereq_scroll = 0;
+                    for (i = 0; i < pr_vis && g_quest_prereq_scroll + i < n_prereq; i++) {
+                        int pi = g_quest_prereq_scroll + i;
+                        int qi;
+                        const char* pr_name = "(unknown)";
+                        for (qi = 0; qi < q_count; qi++) {
+                            if (strcmp(q_id[qi], q_prereq_ids[sel_quest_idx][pi]) == 0) {
+                                pr_name = q_name[qi] ? q_name[qi] : q_id[qi];
+                                break;
+                            }
+                        }
+                        if (pi == g_quest_prereq_selected && g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
+                            Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
+                        Draw_String(cbx, rx, ry, pr_name);
+                        ry += line_h;
+                    }
+                }
+                ry += 10;
+                Draw_String(cbx, rx, ry, "Sub-quests / Objectives");
+                ry += line_h + 2;
+                if (n_subquest_list == 0)
+                    Draw_String(cbx, rx, ry, "(none)");
+                else {
+                    int sq_vis = (qh - (ry - qy) - 40) / line_h;
+                    if (sq_vis > n_subquest_list) sq_vis = n_subquest_list;
+                    if (sq_vis < 0) sq_vis = 0;
+                    if (g_quest_subquest_selected < g_quest_subquest_scroll) g_quest_subquest_scroll = g_quest_subquest_selected;
+                    if (g_quest_subquest_selected >= g_quest_subquest_scroll + sq_vis && sq_vis > 0) g_quest_subquest_scroll = g_quest_subquest_selected - sq_vis + 1;
+                    if (g_quest_subquest_scroll + sq_vis > n_subquest_list) g_quest_subquest_scroll = n_subquest_list - sq_vis;
+                    if (g_quest_subquest_scroll < 0) g_quest_subquest_scroll = 0;
+                    for (i = 0; i < sq_vis && g_quest_subquest_scroll + i < n_subquest_list; i++) {
+                        int si = g_quest_subquest_scroll + i;
+                        char obj_buf[132];
+                        q_snprintf(obj_buf, sizeof(obj_buf), "%s %s", q_obj_done[sel_quest_idx][si] ? "[x]" : "[ ]", q_obj_desc[sel_quest_idx][si]);
+                        if (si == g_quest_subquest_selected && g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST)
+                            Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
+                        Draw_String(cbx, rx, ry, obj_buf);
+                        ry += line_h;
+                    }
+                }
+            }
         } else {
             Draw_String(cbx, qx + 10, qy + 48, "No Quests Found");
         }
 
         /* Bottom info text centre-aligned */
         {
-            const char* footer = "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close";
+            const char* footer = "Tab=Focus  Home/End/PgUp=Filter  Arrows=Select  Enter=Start/Set tracker  Q=Close";
             int footer_len = (int)strlen(footer);
             Draw_String(cbx, qx + (qw - footer_len * 8) / 2, qy + qh - 20, footer);
         }
