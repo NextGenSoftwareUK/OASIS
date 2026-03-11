@@ -237,6 +237,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddHttpContextAccessor();
             services.AddSingleton<ISubscriptionStore, SubscriptionStoreMongoDb>();
 
+            // A2A push delivery (webhook)
+            services.AddHttpClient("A2AWebhook");
+            services.AddSingleton<NextGenSoftware.OASIS.API.Core.Interfaces.Agent.IA2APushSender, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.A2AWebhookPushSender>();
+
+            // CRE Workflow Engine
+            services.AddHttpClient("WorkflowEngine");
+            services.AddSingleton<WorkflowProofGenerator>();
+            services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
+
             //services.AddCors(options =>
             //{
             //    options.AddPolicy(MyAllowSpecificOrigins,
@@ -277,11 +286,24 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
 
             // generated swagger json and swagger ui middleware
-            app.UseSwagger();
-            app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", VERSION));
+            // When behind a reverse proxy at /api (e.g. oasisweb4.one/api), set Swagger__BasePath=/api so the UI
+            // loads the OASIS spec from /api/swagger/v1/swagger.json instead of /swagger/v1/swagger.json (which
+            // nginx would send to STAR and show the wrong API).
+            var swaggerBasePath = (Configuration["Swagger:BasePath"] ?? Configuration["Swagger__BasePath"] ?? "").Trim().TrimEnd('/');
+            var specPath = string.IsNullOrEmpty(swaggerBasePath)
+                ? "/swagger/v1/swagger.json"
+                : $"{swaggerBasePath}/swagger/v1/swagger.json";
+            var routePrefix = string.IsNullOrEmpty(swaggerBasePath) ? "swagger" : $"{swaggerBasePath.TrimStart('/')}/swagger";
 
+            app.UseSwagger(options =>
+            {
+                if (!string.IsNullOrEmpty(swaggerBasePath))
+                    options.RouteTemplate = $"{swaggerBasePath.TrimStart('/')}/swagger/{{documentName}}/swagger.json";
+            });
             app.UseSwaggerUI(config =>
             {
+                config.SwaggerEndpoint(specPath, VERSION);
+                config.RoutePrefix = routePrefix;
                 config.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
                 {
                     ["activated"] = false
@@ -316,9 +338,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
-            app.UseMiddleware<SubscriptionMiddleware>();
+            //app.UseMiddleware<SubscriptionMiddleware>(); // Disabled - re-enable when billing is ready for external partners
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+            // Wire A2A push sender (webhook) so Core notifies recipients after message persist
+            var pushSender = app.ApplicationServices.GetService<NextGenSoftware.OASIS.API.Core.Interfaces.Agent.IA2APushSender>();
+            if (pushSender != null)
+                NextGenSoftware.OASIS.API.Core.Managers.A2AManager.SetPushSender(pushSender);
 
             //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 

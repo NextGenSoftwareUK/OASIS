@@ -85,7 +85,40 @@ The action is defined in:
 
 - **`.github/workflows/push-markdown-to-notion.yml`**
 
-It runs on push to `main`, `master`, or `max-build4` when files under `Docs/` or any `*.md` change. To restrict to only `Docs/`, you can narrow the `paths` in that file.
+It runs on push to `main`, `master`, or `max-build4` when files under `Docs/`, **OASIS Omniverse/Docs/**, or any `*.md` change. To restrict to only `Docs/`, you can narrow the `paths` in that file.
+
+---
+
+## Syncing OASIS Omniverse docs
+
+The same flow works for docs under **`OASIS Omniverse/Docs/`** (e.g. `ODOOM_LAUNCH_RESEARCH.md`, `DOOM_QUAKE_LORE_REFERENCE.md`):
+
+1. In Notion, create a parent page (e.g. “OASIS Omniverse” or “ODOOM Launch”) and child pages for each doc.
+2. Share each page with your integration (Connections).
+3. At the **top** of each Markdown file, add:
+
+```yaml
+---
+notion_page: https://www.notion.so/YourWorkspace/Page-Name-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+title: ODOOM Launch Research
+---
+```
+
+4. Push to `main` / `master` / `max-build4`. The workflow runs and updates Notion with the latest Markdown.
+
+**Result:** Edit in Cursor/VS Code → commit & push → Notion updates in about 1–2 minutes. No manual copy-paste.
+
+---
+
+## More “real-time” options
+
+| Goal | Option |
+|------|--------|
+| **Sync on demand** (without pushing) | Add `workflow_dispatch` to the workflow (see “Optional: Sync only on demand” below). Then run “Push Markdown to Notion” from GitHub **Actions** tab whenever you want. |
+| **Faster / more frequent sync** | Use a third-party service (e.g. [mdsync.app](https://mdsync.app)) that uses GitHub webhooks for near-instant sync on push, or run the action on a schedule (e.g. every 15 min) in addition to push. |
+| **Edit in Notion → update repo** | Current setup is **one-way** (repo → Notion). To sync **Notion → repo** you’d need a separate tool or script that polls the Notion API and writes Markdown back to the repo (e.g. [md-notion-sync](https://github.com/juliojimenez/md-notion-sync), or a custom GitHub Action that runs on schedule and pulls from Notion). |
+
+For most use cases, **edit in the repo → push → Notion updates** is enough for “real-time” collaboration: anyone with Notion access sees the latest doc within a couple of minutes of the push.
 
 ---
 

@@ -8,6 +8,14 @@ title: ODOOM Launch Research
 **Status:** Early thoughts, scattered; to be cohered and refined later.  
 **Purpose:** Capture launch vision, narrative hooks, and script/lore riffs for the interoperable DOOM↔Quake mission series.
 
+*The two worlds we're connecting:*
+
+![DOOM (1993) — id Software](https://upload.wikimedia.org/wikipedia/commons/c/cb/Doom_logo.png)
+
+![Quake (1996) — id Software](https://upload.wikimedia.org/wikipedia/commons/e/e6/Quake_Q_logo.png)
+
+*Logos: id Software / Wikimedia Commons.*
+
 > **Notion sync:** To push this doc to Notion on every git push, add at the very top of the file (above the title) a YAML frontmatter block with your Notion page URL. See [Docs/NOTION_SYNC_SETUP.md](../../Docs/NOTION_SYNC_SETUP.md) — section “Syncing OASIS Omniverse docs”.
 
 ---
@@ -30,6 +38,58 @@ title: ODOOM Launch Research
 - **Narrative hook (draft):** A **new portal has opened** between the world of DOOM and the world of Quake. Command needs **you** (the space marine) to get in there and **close it** before demons (and worse) spill into our dimension—or before something from the Quake dimensions spills into Hell.
 - **Continuity:** Story continues from **existing DOOM lore** (UAC, Phobos, Deimos, gateways, Hell). We can later tie in Quake lore (slipgates, Ranger, Shub-Niggurath’s dimensions) as the portal is explored.
 
+#### On-screen script (teaser / opening)
+
+*Display as scrolling or type-on text in the same style as DOOM's "Story So Far" or intermission screens. Use ALL CAPS for the mission block so it hits like the original episode endings.*
+
+**Part 1 — Briefing (mixed case, like the manual):**
+
+```
+You're the same marine.
+Phobos. Deimos. Hell.
+You've been through it.
+The UAC's gateways weren't the only doors—
+somewhere in the mess, a new one opened.
+Not to the moons. Not to Hell.
+To somewhere else.
+
+Intel calls it the slipgate dimension.
+The eggheads say it's the same space
+the enemy codenamed QUAKE used to hit our bases.
+Our gateways and their slipgates are bleeding into each other.
+Demons on one side.
+Whatever came through the slipgates on the other.
+If we don't close the rift, we get both.
+
+You're the only asset we have
+who's been through both kinds of hell.
+You beam in. One identity. One inventory.
+What you pick up here carries there.
+Keycards, runes, keys—they don't care which side you found them on.
+Find the keycards. Seal the portal.
+And watch your comms—we're broadcasting through whatever channels still work.
+Telegram. Discord. X.
+Check them for codes. Passwords. Next coordinates.
+```
+
+**Part 2 — Mission (ALL CAPS, like intermission):**
+
+```
+A NEW GATEWAY HAS OPENED.
+NOT PHOBOS. NOT DEIMOS. NOT HELL.
+ANOTHER DIMENSION—THE SLIPGATE SIDE.
+DEMONS ON ONE SIDE.
+QUAKE'S HORRORS ON THE OTHER.
+YOU BEAM IN. ONE IDENTITY. ONE INVENTORY.
+THE KEYCARD YOU GRAB HERE OPENS A DOOR THERE.
+CLOSE THE PORTAL BEFORE BOTH SIDES SPILL THROUGH.
+CHECK YOUR COMMS FOR THE NEXT LOCK.
+THE ONLY WAY OUT IS THROUGH.
+```
+
+- **Use:** Part 1 for a longer intro screen or briefing; Part 2 for a short punchy teaser or chapter-title card. Adjust line length to match your engine's text display (e.g. ~40 chars per line for classic DOOM-style).
+- **Animated type-on:** Open [odoom-teaser-animation.html](./odoom-teaser-animation.html) in a browser for a DOOM-style line-by-line reveal of both parts (or host the file to embed/link from Notion).
+
 ### Chapters
 
 - **Sequential release:** Chapters released **one after another**—not everything at once.
@@ -48,9 +108,11 @@ title: ODOOM Launch Research
 
 ## 3. Lore We Can Use (Summary)
 
-*(Full detail in [DOOM_QUAKE_LORE_REFERENCE.md](./DOOM_QUAKE_LORE_REFERENCE.md).)*
+*(Full detail in [DOOM_QUAKE_LORE_REFERENCE.md](https://github.com/NextGenSoftwareUK/OASIS/blob/max-build4/OASIS%20Omniverse/Docs/DOOM_QUAKE_LORE_REFERENCE.md).)*
 
 ### DOOM
+
+![DOOM logo](https://upload.wikimedia.org/wikipedia/commons/c/cb/Doom_logo.png)
 
 - **UAC**, Mars, **Phobos**, **Deimos**; **gateways** between moons and Hell; “Something fraggin’ evil is coming out of the Gateways!”
 - Marine: punished for refusing to fire on civilians; only survivor; **no name** (“it’s supposed to be YOU”).
@@ -59,6 +121,8 @@ title: ODOOM Launch Research
 - **DOOM II:** Hell on Earth; Icon of Sin / Baphomet; spaceport, flame barrier, evacuation ships.
 
 ### Quake
+
+![Quake logo](https://upload.wikimedia.org/wikipedia/commons/e/e6/Quake_Q_logo.png)
 
 - **Slipgates** = human tech for instant transport; **“Quake”** = enemy from **another dimension** using slipgates to attack Earth; **Operation Counterstrike**; player is **sole survivor**, uses Quake’s own slipgate to pursue.
 - **Ranger** (player); four **runes** (e.g. Rune of Black Magic) to reach **Shub-Niggurath’s Pit**.
@@ -196,6 +260,36 @@ LOT MORE FUN THAN RUINING IT WAS.
 | **Ch 3+** | Alternate; items in DOOM needed in Quake and vice versa. Introduce **password** lock: “CHECK COMMS FOR CODE.” |
 | **Later** | NFTs as keys or proof; Discord/Telegram/X drops codes, riddles, or NFT-gated content. |
 | **Final** | Climax that uses both games and community intel (e.g. final code assembled from all channels). |
+
+### User journey (flow)
+
+```mermaid
+flowchart LR
+  subgraph entry[" "]
+    A["Ch 0 / Teaser<br/><i>Portal DOOM↔Quake<br/>marine must close it</i>"]
+  end
+
+  subgraph one_game["One game"]
+    B["Ch 1<br/><b>DOOM</b><br/>OASIS identity, beam-in<br/>Get keycard →<br/>'FOR THE OTHER SIDE'"]
+  end
+
+  subgraph cross["First cross"]
+    C["Ch 2<br/><b>Quake</b><br/>Same identity<br/>Use keycard from Ch 1"]
+  end
+
+  subgraph alternate["Alternate & 4th wall"]
+    D["Ch 3+<br/>DOOM ↔ Quake<br/>Items cross over<br/>'CHECK COMMS FOR CODE'"]
+    E["Later<br/>Telegram / Discord / X<br/>NFTs, riddles, codes"]
+  end
+
+  subgraph endgame[" "]
+    F["Final<br/>Both games +<br/>community intel"]
+  end
+
+  A --> B --> C --> D --> E --> F
+```
+
+- **Same flow (top-to-bottom):** [odoom-chapter-journey.html](./odoom-chapter-journey.html) — open in a browser for a larger diagram with chapter details.
 
 ---
 

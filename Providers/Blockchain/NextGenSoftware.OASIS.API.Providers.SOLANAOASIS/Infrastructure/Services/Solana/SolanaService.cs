@@ -1124,8 +1124,14 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient, st
     /// Creates a plain fungible SPL token mint with the OASIS server wallet as the mint authority.
     /// Unlike mint-nft (which routes through Metaplex and sets a PDA as mint authority),
     /// this creates a standard SPL token that can be minted in arbitrary quantities via MintSplTokensAsync.
+    /// When name/symbol are provided, a follow-up step attaches Metaplex Token Metadata so wallets show a label.
     /// </summary>
-    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals, string cluster = "devnet")
+    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(
+        byte decimals,
+        string cluster = "devnet",
+        string name = null,
+        string symbol = null,
+        string metadataUri = null)
     {
         var response = new OASISResult<string>();
         var originalConsoleOut = Console.Out;
@@ -1204,6 +1210,62 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient, st
                                $"Decimals: {decimals}. Transaction: {txSig}";
 
             Console.WriteLine($"[CreateSplFungibleToken] Mint: {mintAccount.PublicKey.Key} | Authority: {oasisAccount.PublicKey.Key} | Decimals: {decimals} | Tx: {txSig}");
+
+            // Optional: attach Metaplex metadata so Phantom etc. show name/symbol instead of "Unknown Token".
+            // Mint authority remains OASIS wallet; metadata update authority should be OASIS for future updates.
+            if (!string.IsNullOrWhiteSpace(name) || !string.IsNullOrWhiteSpace(symbol))
+            {
+                string metaName = string.IsNullOrWhiteSpace(name) ? "Share Class Token" : name.Trim();
+                if (metaName.Length > 32)
+                    metaName = metaName.Substring(0, 32);
+                string metaSymbol = string.IsNullOrWhiteSpace(symbol) ? "SHARE" : symbol.Trim();
+                if (metaSymbol.Length > 10)
+                    metaSymbol = metaSymbol.Substring(0, 10);
+                string uri = string.IsNullOrWhiteSpace(metadataUri)
+                    ? "https://oasis.io/.well-known/spl-token-metadata.json"
+                    : metadataUri.Trim();
+
+                try
+                {
+                    Console.SetOut(new NullTextWriter());
+                    var metadataClient = new MetadataClient(rpc);
+                    var tokenMetadata = new Metadata
+                    {
+                        name = metaName,
+                        symbol = metaSymbol,
+                        sellerFeeBasisPoints = 0,
+                        uri = uri,
+                        creators = _creators
+                    };
+                    // FungibleAsset: Metaplex metadata for SPL mints that are minted as whole units (supply > 1).
+                    // mintAccount is already initialized as SPL mint; CreateNFT may still create metadata + master edition accounts.
+                    var metaResult = await metadataClient.CreateNFT(
+                        oasisAccount,
+                        mintAccount,
+                        TokenStandard.FungibleAsset,
+                        tokenMetadata,
+                        isMasterEdition: false,
+                        isMutable: true);
+                    Console.SetOut(originalConsoleOut);
+
+                    if (metaResult?.WasSuccessful == true)
+                    {
+                        response.Message += $" | Metaplex metadata attached (name={metaName}, symbol={metaSymbol}). Tx: {metaResult.Result}";
+                        Console.WriteLine($"[CreateSplFungibleToken] Metadata attached for mint {mintAccount.PublicKey.Key}");
+                    }
+                    else
+                    {
+                        response.Message += $" | Metadata attach skipped or failed: {metaResult?.Reason ?? "unknown"}. Mint is still valid for mint-tokens.";
+                        Console.WriteLine($"[CreateSplFungibleToken] Metadata attach failed: {metaResult?.Reason}");
+                    }
+                }
+                catch (Exception metaEx)
+                {
+                    Console.SetOut(originalConsoleOut);
+                    response.Message += $" | Metadata attach error (mint still usable): {metaEx.Message}";
+                    Console.WriteLine($"[CreateSplFungibleToken] Metadata exception: {metaEx.Message}");
+                }
+            }
         }
         catch (Exception ex)
         {
