@@ -16,6 +16,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     [Route("api/competition")]
     public class CompetitionController : STARControllerBase
     {
+        private static readonly NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI _starAPI = new NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI(new NextGenSoftware.OASIS.STAR.DNA.STARDNA());
+
+        protected override NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI GetStarAPI() => _starAPI;
+
         public CompetitionController()
         {
         }

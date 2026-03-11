@@ -1,172 +1,133 @@
-# OASIS STAR API - Doom & Quake Integration
+# OASIS Omniverse
+
+OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across classic FPS games.
+
+**ODOOM and OQuake are built to be 100% compatible with Windows, macOS, and Linux.** Use the platform-specific Getting Started guide below for your OS.
+
+---
+
+## New here? Start with a Getting Started guide
+
+Choose your platform for a clear, step-by-step setup:
+
+| Platform | Guide |
+|----------|--------|
+| **Windows** | **[Docs/GettingStarted_Windows.md](Docs/GettingStarted_Windows.md)** |
+| **Linux** | **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** |
+| **macOS** | **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)** |
+
+**→ [Developer Onboarding (ODOOM, OQuake & OASIS)](DEVELOPER_ONBOARDING.md)** – Deeper canonical setup (repos, tools, build, run, `oasisstar.json`). Use with the platform guide above.
+
+---
+
+## Repositories to clone
+
+To build ODOOM and OQuake you need the OASIS repo plus the game engines and Quake data. Clone into a common parent (e.g. `C:\Source\`):
+
+| Repository | Purpose |
+|------------|---------|
+| **OASIS** (this repo) | Backend, STARAPIClient, ODOOM/OQuake integration |
+| **UZDoom** | Doom engine used by ODOOM |
+| **vkQuake** | Quake engine used by OQuake (Vulkan) |
+| **quake-rerelease-qc** | QuakeC source used by OQuake |
+
+Example clone commands (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) for full setup):
+
+```bash
+git clone <OASIS-repo-url> C:\Source\OASIS-master
+git clone https://github.com/UZDoom/UZDoom.git C:\Source\UZDoom
+git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
+git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
+```
+
+Build scripts expect these paths by default; you can change them in the build script for your platform (`BUILD ODOOM.bat` / `BUILD_ODOOM.sh`, `BUILD_OQUAKE.bat` / `BUILD_OQUAKE.sh`).
+
+| Platform | ODOOM build | OQuake build |
+|----------|-------------|--------------|
+| **Windows** | `BUILD ODOOM.bat` | `BUILD_OQUAKE.bat` |
+| **Linux / macOS** | `./BUILD_ODOOM.sh` | `./BUILD_OQUAKE.sh` |
+
+---
 
 ## Overview
 
-This integration enables cross-game item sharing and quest systems between classic open-source games (Doom, Quake) using the OASIS STAR API. 
+- **ODOOM** – UZDoom-based Doom with STAR API integration (keycards, inventory, quests, SSO).
+- **OQuake** – vkQuake-based Quake with STAR API integration (keys, ammo, weapons, inventory, quests, SSO).
+- **STARAPIClient** – **The STAR API client used by ODOOM and OQuake.** C# client that implements the C ABI (`star_api_*`); builds `star_api.dll` and `star_api.lib`. Use this for all game integrations.
+- **NativeWrapper** – **Deprecated; do not use.** Legacy C++ wrapper kept for reference only. ODOOM and OQuake use **STARAPIClient** only.
+- **star_sync** – C layer (in ODOOM/OQuake folders) for async auth and inventory sync; sits between game code and STARAPIClient.
+- **OASIS Omniverse (Unity)** – Optional Unity host shell with hub, ODOOM/OQuake portals, and Control Center (inventory, quests, settings). See `OASIS Omniverse/README.md` inside the Unity project folder.
 
-**Phase 1 Features:**
-- Cross-game keycard/item sharing (collect a keycard in Doom, use it in Quake and vice versa)
-- Persistent inventory across games
-- Item tracking via STAR API
-
-**Future Phase 2 Features:**
-- Multi-game quests spanning Doom, Quake, and other games
-- NFT-based boss collection and deployment
-- Cross-game asset trading
-
-## Architecture
+## Directory structure
 
 ```
-┌─────────────┐         ┌─────────────┐
-│    Doom     │         │   Quake     │
-│  (C Engine) │         │ (C Engine)  │
-└──────┬──────┘         └──────┬──────┘
-       │                        │
-       └────────┬───────────────┘
-                │
-       ┌────────▼────────┐
-       │  C/C++ Wrapper  │
-       │  (star_api.h)   │
-       └────────┬────────┘
-                │
-       ┌────────▼────────┐
-       │  STAR API       │
-       │  Client (C#)    │
-       └────────┬────────┘
-                │
-       ┌────────▼────────┐
-       │  STAR API       │
-       │  (REST/HTTP)    │
-       └─────────────────┘
+OASIS Omniverse/
+├── README.md                    # This file
+├── DEVELOPER_ONBOARDING.md      # Onboarding – main setup guide; start here
+├── BUILD EVERYTHING.bat         # Build STARAPIClient + ODOOM + OQuake (no prompts, no launch)
+├── BUILD_AND_DEPLOY_STAR_CLIENT.bat
+├── STARAPIClient/               # STAR API client (used by ODOOM & OQuake) → star_api.dll / star_api.lib
+│   ├── README.md
+│   └── ...
+├── NativeWrapper/               # Deprecated; do not use. Use STARAPIClient.
+│   ├── BUILD_INSTRUCTIONS.md
+│   └── ...
+├── ODOOM/                       # ODOOM (UZDoom + STAR integration)
+│   ├── README.md
+│   ├── WINDOWS_INTEGRATION.md
+│   ├── BUILD ODOOM.bat
+│   ├── RUN ODOOM.bat
+│   └── build/                  # ODOOM.exe, oasisstar.json
+├── OQuake/                      # OQuake (vkQuake + STAR integration)
+│   ├── README.md
+│   ├── WINDOWS_INTEGRATION.md
+│   ├── BUILD_OQUAKE.bat
+│   ├── RUN OQUAKE.bat
+│   └── build/                  # OQUAKE.exe, star_api.dll, oasisstar.json
+├── Doom/                        # Doom integration notes/examples
+├── Quake/                       # Quake integration notes/examples
+├── INTEGRATION_GUIDE.md         # Detailed integration concepts
+├── QUICKSTART.md                # Short quick-start + checklist
+├── PHASE2_QUEST_SYSTEM.md       # Quest system design
+└── OASIS Omniverse/             # Unity hub project (optional)
+    └── README.md
 ```
 
-## Directory Structure
+## Quick reference
 
-```
-Game Integration/
-├── README.md                          # This file
-├── STARAPIClient/                     # C# client library
-│   ├── GameIntegrationClient.cs      # Main client for game integrations
-│   └── Models/                        # Data models
-│       ├── GameItem.cs
-│       └── CrossGameItem.cs
-├── NativeWrapper/                     # C/C++ wrapper for Doom/Quake
-│   ├── star_api.h                     # C header file
-│   ├── star_api.cpp                   # C++ implementation
-│   └── CMakeLists.txt                 # Build configuration
-├── Doom/                              # Doom integration examples
-│   ├── doom_star_integration.c        # Integration hooks
-│   ├── doom_star_integration.h        # Header file
-│   └── README.md                      # Doom-specific docs
-├── Quake/                             # Quake integration examples
-│   ├── quake_star_integration.c       # Integration hooks
-│   ├── quake_star_integration.h       # Header file
-│   └── README.md                      # Quake-specific docs
-├── Config/                            # Configuration files
-│   ├── star_api_config.json           # API configuration template
-│   └── game_items.json                # Item definitions
-└── Examples/                          # Example implementations
-    ├── keycard_example.c              # Keycard integration example
-    └── quest_example.c                 # Quest integration example
-```
+- **Build one thing at a time** – Do not run more than one build (or heavy test run) at a time; it can cause issues. Run each build or test suite separately and wait for it to finish before starting the next.
+- **First-time setup** – Follow **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
+- **Build everything (no prompts)** – From `OASIS Omniverse\`: run **BUILD EVERYTHING.bat** to build and deploy STARAPIClient, then build ODOOM and OQuake with no prompts and without launching. Use **RUN ODOOM.bat** / **RUN OQUAKE.bat** to launch afterward.
+- **Build STAR API client** – From `OASIS Omniverse\`: run **BUILD_AND_DEPLOY_STAR_CLIENT.bat** to build and copy `star_api.dll` / `star_api.lib` / `star_api.h` into Doom, Quake, ODOOM, OQuake, and (if present) UZDoom and vkQuake folders. Or at the start of **BUILD ODOOM.bat** or **BUILD_OQUAKE.bat** choose **Y** when asked “Build and deploy STARAPIClient first?”.
+- **Build ODOOM** – From `OASIS Omniverse\ODOOM\`: run **BUILD ODOOM.bat**.
+- **Build OQuake** – Run **"OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"** (use Developer Command Prompt for VS).
+- **Run ODOOM** – **"OASIS Omniverse\ODOOM\RUN ODOOM.bat"** (builds if needed, then launches).
+- **Run OQuake** – **"OASIS Omniverse\OQuake\RUN OQUAKE.bat"** (builds if needed, then launches).
+- **Run local APIs** – From OASIS repo root: `Scripts\start_web4_and_web5_apis.bat`.
+- **Game config** – Edit `ODOOM\build\oasisstar.json` and `OQuake\build\oasisstar.json` (see onboarding doc).
 
-## Quick Start
+## Features
 
-### 1. Configure STAR API
+- **Cross-game item sharing** – Collect keycards/keys in one game, use in another; persistent inventory via STAR API.
+- **Inventory NFT minting** – When enabled in `oasisstar.json` (e.g. `mint_weapons`, `mint_keys`), collecting items can mint an NFT (WEB4 NFTHolon) and attach it to the inventory item; optional per category (weapons, armor, powerups, keys).
+- **Avatar/SSO** – Log in with STAR username/password or API key + avatar ID.
+- **Multi-game quests** – Quests and objectives spanning ODOOM, OQuake, and more.
+- **Stacked/ammo quantities** – Ammo pickups (e.g. shells, nails) sync with correct quantities to the API so totals persist correctly after reload.
 
-Edit `Config/star_api_config.json`:
-```json
-{
-  "starApiBaseUrl": "https://star-api.oasisweb4.com/api",
-  "apiKey": "YOUR_STAR_API_KEY",
-  "avatarId": "YOUR_AVATAR_ID"
-}
-```
+## Documentation
 
-### 2. Build the Native Wrapper
-
-```bash
-cd NativeWrapper
-mkdir build && cd build
-cmake ..
-make
-```
-
-### 3. Integrate into Doom
-
-See `Doom/README.md` for detailed integration instructions.
-
-### 4. Integrate into Quake
-
-See `Quake/README.md` for detailed integration instructions.
-
-## Key Concepts
-
-### Cross-Game Items
-
-Items collected in one game are stored in the STAR API and can be accessed from any other integrated game. For example:
-- Collect "Red Keycard" in Doom → Available in Quake
-- Collect "Silver Key" in Quake → Available in Doom
-
-### Item Types
-
-- **Keycards**: Door-opening items that work across games
-- **Weapons**: Can be shared (if game mechanics allow)
-- **Power-ups**: Temporary items that persist across sessions
-- **Quest Items**: Items required for cross-game quests
-
-## API Usage
-
-### C/C++ API (for game engines)
-
-```c
-#include "star_api.h"
-
-// Initialize the STAR API client
-star_api_init("https://star-api.oasisweb4.com/api", "YOUR_API_KEY");
-
-// Check if player has a specific item
-bool has_keycard = star_api_has_item("red_keycard");
-
-// Add an item when collected
-star_api_add_item("red_keycard", "Red Keycard", "A red keycard from Doom");
-
-// Use an item (e.g., open a door)
-bool door_opened = star_api_use_item("red_keycard", "door_123");
-
-// Get all items for current player
-ItemList* items = star_api_get_inventory();
-```
-
-## Development
-
-### Building from Source
-
-1. Ensure you have .NET SDK installed (for C# client)
-2. Ensure you have CMake and a C++ compiler (for native wrapper)
-3. Build the C# client library
-4. Build the native wrapper
-5. Link the wrapper into your game engine
-
-### Testing
-
-Run the test suite:
-```bash
-cd Game Integration
-dotnet test
-```
-
-## Contributing
-
-When adding support for new games:
-1. Create a new directory under `Game Integration/`
-2. Add integration hooks following the Doom/Quake examples
-3. Update this README with game-specific instructions
-4. Add test cases
+- **Getting Started (by platform):** [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md)
+- **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Onboarding: repos, tools, build, run, config.
+- [QUICKSTART.md](QUICKSTART.md) – Minimal steps to build and run + checklist.
+- [LINUX_BUILD.md](LINUX_BUILD.md) – Linux/macOS build reference (env vars, scripts).
+- [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md) – Architecture, phases, API usage, troubleshooting.
+- [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md) – Quest system design and usage.
+- [STARAPIClient/README.md](STARAPIClient/README.md) – STAR API client, star_sync, cache, build, tests.
+- [ODOOM/README.md](ODOOM/README.md) – ODOOM-specific build and features.
+- [OQuake/README.md](OQuake/README.md) – OQuake-specific build and features.
+- [ODOOM/WINDOWS_INTEGRATION.md](ODOOM/WINDOWS_INTEGRATION.md) – ODOOM Windows build details.
+- [OQuake/WINDOWS_INTEGRATION.md](OQuake/WINDOWS_INTEGRATION.md) – OQuake Windows build details.
 
 ## License
 
 This integration follows the same license as the OASIS project.
-
-
-

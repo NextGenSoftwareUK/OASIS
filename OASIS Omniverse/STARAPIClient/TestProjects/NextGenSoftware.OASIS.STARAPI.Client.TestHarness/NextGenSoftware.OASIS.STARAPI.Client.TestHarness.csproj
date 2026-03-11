@@ -1,7 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\STARAPIClient.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\StarApiTestDefaults.cs" Link="StarApiTestDefaults.cs" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -244,7 +244,19 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
 
             if (method == "POST" && path == "/api/nft/mint-nft")
             {
-                await WriteJsonAsync(response, 200, new { IsError = false, Result = new { Id = "nft-harness-001" } }).ConfigureAwait(false);
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = new { Id = "nft-harness-001", Hash = "tx-harness-mint-001" } }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-avatar")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-clan")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
             }
 

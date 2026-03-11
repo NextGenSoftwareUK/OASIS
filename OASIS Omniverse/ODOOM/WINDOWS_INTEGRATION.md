@@ -16,7 +16,7 @@ This guide covers integrating the OASIS STAR API into **ODOOM** (UZDoom-based, a
 
 ## Automated build (recommended)
 
-**No separate client build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from **STARAPIClient** (ODOOM uses STARAPIClient, not NativeWrapper).
+**No separate client build** – the script uses the existing `star_api.dll` and `star_api.lib` from `OASIS Omniverse\Doom\` (same build used for the other Doom port). `star_api.h` is taken from **STARAPIClient**. ODOOM uses STARAPIClient only.
 
 From the OASIS repo, in `OASIS Omniverse\ODOOM\`, run the single script:
 
@@ -41,7 +41,27 @@ When building with STAR, the script also applies **ODOOM** branding and build/ve
 - **In-game HUD** – bottom-right shows “ODOOM” and version with UZDoom in brackets (e.g. “ODOOM 1.0 (Build 1) (UZDoom 1.2.3)”).
 - **Console** – at startup (and when you type `star`) you see the OASIS ODOOM banner and “Welcome to ODOOM!”; the `-version` flag shows ODOOM.
 
-The script copies `odoom_branding.h` and `odoom_version_generated.h` into UZDoom `src` and runs `apply_odoom_branding.ps1` to patch `version.h`, `common/startscreen/startscreen.cpp`, and `g_statusbar/shared_sbar.cpp` if not already patched. **To change ODOOM's version or build number**, edit **`OASIS Omniverse\ODOOM\odoom_version.txt`** (line 1 = version, line 2 = build). The build script regenerates the header from this file.
+The script copies `odoom_branding.h` and `odoom_version_generated.h` into UZDoom `src` and runs `patch_uzdoom_engine.ps1` to patch the engine (see below). **To change ODOOM's version or build number**, edit **`OASIS Omniverse\ODOOM\odoom_version.txt`** (line 1 = version, line 2 = build). The build script regenerates the header from this file.
+
+#### What patch_uzdoom_engine.ps1 does
+
+The script patches your UZDoom source tree so a normal UZDoom build produces ODOOM with STAR integration and branding. It is **idempotent** (safe to run multiple times; it skips files already patched). It does the following:
+
+| Step | File(s) | What it does |
+|------|---------|---------------|
+| 1 | `src/version.h` | Adds `#include "odoom_branding.h"` (when `OASIS_STAR_API` is defined) so ODOOM version/name macros are available. |
+| 2 | `src/common/startscreen/startscreen.cpp` | Loading screen header shows “ODOOM &lt;version&gt;” instead of “UZDoom” when STAR is enabled. |
+| 3 | `src/g_statusbar/shared_sbar.cpp` | Runs `ODOOM_InventoryInputCaptureFrame()` each frame; shows “ODOOM &lt;version&gt;” and “Beamed In: &lt;user&gt;” in the status bar. |
+| 3a1 | `src/d_main.cpp` | Calls `ODOOM_InventoryInputCaptureFrame()` at the start of the main loop so inventory key handling runs every frame. |
+| 3a2 | `src/g_game.cpp` | Same inventory capture at the start of `RunTic()` as a fallback. |
+| 3b | `src/g_statusbar/sbar_mugshot.cpp` | When “anorak face” is on, uses OASIS face (OASFACE) for the status bar mug shot; cleans up older face logic. |
+| 3c | `src/playsim/p_interaction.cpp` | In `AActor::Die()`, calls `UZDoom_STAR_OnBossKilled(...)` for Cyberdemon, SpiderMastermind, and BaronOfHell so boss kills can trigger boss NFT minting. |
+| 3c2 | `src/gamedata/a_keys.cpp` | In `P_CheckKeys`, calls `UZDoom_STAR_CheckDoorAccess` **only when the player actually tries to open a door** (E key). The engine passes `quiet==true` for probes (map load, status bar, automap); we only invoke STAR when `!quiet` so inventory is never touched on map start. |
+| 3d | `wadsrc/static/cvarinfo.txt` | Appends ODOOM inventory CVars (`odoom_inventory_open`, `odoom_key_*`) for ZScript/C++ coordination. |
+| 4 | `wadsrc/static/about.txt` | Updates release notes (ODOOM entry, UZDoom wording). |
+| 4b | `CMakeLists.txt` | Ensures `star_sync.c` is in the build when `OASIS_STAR_API` is on. |
+| 5–7 | ZScript, MAPINFO, Doom mapinfo | Registers OQuake keys/items, inventory overlay handler, and DoomEdNums for OQuake things. |
+| 8 | Launcher (button bar + window) | Adds the centre “Editor” button between Play and Exit and the code to launch `Editor\Builder.exe` on Windows. |
 
 ### OASIS banner (launcher and loading screen)
 
@@ -80,9 +100,17 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
    | `star quest complete <id>` | Complete a quest. |
    | `star bossnft <name> [desc]` | Create a boss NFT. |
    | `star deploynft <nft_id> <game> [loc]` | Deploy a boss NFT to a game. |
-   | `star pickup keycard <red\|blue\|yellow\|skull>` | Add a keycard to inventory (e.g. `star pickup keycard red`). |
+   | `star pickup ifmax <0\|1>` | At max health/armor: 1 = still pick up into STAR, 0 = original Doom (leave on floor). |
+   | `star pickup all <0\|1>` | 1 = always add pickups to STAR even when engine uses them; 0 = only add when at max / engine doesn't use. |
+   | `star pickup keycard <red\|blue\|yellow\|skull>` | Add a keycard to STAR inventory (admin only; e.g. `star pickup keycard red`). |
    | `star beamin` | Log in / authenticate (uses `STAR_USERNAME`/`STAR_PASSWORD` or API key from env). |
    | `star beamout` | Log out / disconnect from STAR. |
+   | `star config` | Show STAR config (URLs, stack, **mint NFT** options, **nft_provider**). |
+   | `star config save` | Write config to **oasisstar.json** (also saved on exit). |
+   | `star mint <armor\|weapons\|powerups\|keys> <0\|1>` | Turn **mint NFT** on (1) or off (0) when collecting that category. |
+   | `star nftprovider <name>` | Set default NFT mint provider (e.g. `SolanaOASIS`). |
+
+   **Config files:** STAR options are stored in **oasisstar.json** (when found) and in the engine config (**uzdoom.ini** or equivalent) via CVars. Keys: `star_api_url`, `oasis_api_url`, `beam_face`, `stack_armor`, `stack_weapons`, `stack_powerups`, `stack_keys`, **`mint_weapons`**, **`mint_armor`**, **`mint_powerups`**, **`mint_keys`** (0/1), **`nft_provider`** (default `SolanaOASIS`), **`send_to_address_after_minting`** (optional wallet address), **`always_allow_pickup_if_max`** (1 = pick up health/armor into STAR even when full, 0 = original Doom behavior), **`always_add_items_to_inventory`** (1 = always add to STAR even when engine uses the item; 0 = only when engine doesn't use it; same as OQuake), **`max_health`** (cap when using health from inventory, default 200), **`max_armor`** (cap when using armor from inventory, default 200). When mint is on for a category, picking up that item mints an NFT (WEB4 NFTHolon) and adds the inventory item with that NFT ID in metadata. In the **inventory popup**, NFT items show **[NFT]** at the front of the name and are grouped separately (e.g. “NFT Shotgun” x2 and “Shotgun” x2).
 
    **Quick checks:**  
    - `star version` — should show “Initialized: yes” if auth is set.  
@@ -90,6 +118,10 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
    - `star beamout` — log out; then `star beamin` to log in again.  
    - `star add red_keycard` — add a red keycard; then `star inventory` or `star has red_keycard` to verify.  
    - Pick up a keycard in-game and run `star inventory` to see it listed.
+
+   **Automatic quest objectives:** When you pick up a Doom keycard (red/blue/yellow) or an OQuake key (silver/gold) in ODOOM, the integration automatically calls the WEB5 STAR Quest API to complete the matching objective for the default cross-game quest (`cross_dimensional_keycard_hunt`). No console command needed.
+
+   **Boss NFT:** To mint a boss NFT when a boss is killed, the **UZDoom engine** must call **`UZDoom_STAR_OnBossKilled(const char* boss_name)`** from its actor death handling when the dying actor is a boss (e.g. Cyberdemon, SpiderMastermind). The integration provides this function. **When you run BUILD ODOOM.bat**, the engine patch script (`patch_uzdoom_engine.ps1`) automatically patches **`src/playsim/p_interaction.cpp`** in your UZDoom tree to add this call at the start of `AActor::Die()` for Cyberdemon, SpiderMastermind, and BaronOfHell, so a fresh UZDoom clone gets the hook with no manual edit. Until the patch is applied (or if you build UZDoom without the script), use the console: `star bossnft Cyberdemon`.
 
 3. **In-game behavior**  
    - Picking up keycards (red/blue/yellow/skull) should print a line like `STAR API: Added red_keycard to cross-game inventory.`  
@@ -104,7 +136,7 @@ When `oasis_banner.png` is present in `OASIS Omniverse\ODOOM\`, the build script
 
 ### Step 1: STAR API client (pre-built)
 
-Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\STARAPIClient\`. ODOOM uses **STARAPIClient** (not NativeWrapper). No need to build the client again if the Doom folder already has the lib/dll.
+Use the existing build from the other Doom port: `OASIS Omniverse\Doom\` should already contain `star_api.dll` and `star_api.lib`. The header `star_api.h` is in `OASIS Omniverse\STARAPIClient\`. ODOOM uses **STARAPIClient** only. No need to build the client again if the Doom folder already has the lib/dll.
 
 ### Step 2: Integration files in ODOOM source (UZDoom)
 
@@ -123,7 +155,7 @@ They should live in your UZDoom **src** folder (e.g. `C:\Source\UZDoom\src\`). I
 
 **Build:** Add `star_sync.c` to the UZDoom CMake source list when `OASIS_STAR_API` is ON (so it is compiled and linked with the game).
 
-The UZDoom source tree already has the hooks in `d_main.cpp`, `p_interaction.cpp`, and `gamedata/a_keys.cpp` guarded by `#ifdef OASIS_STAR_API`.
+When you run **BUILD ODOOM.bat**, the engine patch script also patches **`src/playsim/p_interaction.cpp`** to call `UZDoom_STAR_OnBossKilled` when a boss monster (Cyberdemon, SpiderMastermind, BaronOfHell) dies, so the engine hook is applied automatically. The UZDoom source may already have other hooks in `d_main.cpp`, `g_game.cpp`, and `gamedata/a_keys.cpp` guarded by `#ifdef OASIS_STAR_API`.
 
 ### Step 3: Configure ODOOM with STAR API
 
@@ -139,7 +171,7 @@ cmake .. -G "Visual Studio 17 2022" -A x64 `
   -DSTAR_API_LIB_DIR="C:/Source/OASIS-master/OASIS Omniverse/Doom"
 ```
 
-`STAR_API_DIR` = path to **STARAPIClient** (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper. `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
+`STAR_API_DIR` = path to **STARAPIClient** (for `star_api.h`). `STAR_API_LIB_DIR` = path to Doom folder (for pre-built `star_api.lib`). Use forward slashes.
 
 ### Step 4: Build ODOOM
 
@@ -178,7 +210,7 @@ $env:STAR_AVATAR_ID = "your_avatar_id"
 ### Step 7: Run and test
 
 1. Put your WAD (e.g. `doom2.wad`) in the same folder as **ODOOM.exe** (e.g. `OASIS Omniverse\ODOOM\build\`) or where the engine expects it.
-2. Run **ODOOM.exe** (or use `BUILD & RUN ODOOM.bat` to build and launch).
+2. Run **ODOOM.exe** (or use `RUN ODOOM.bat` to build and launch).
 3. In the console you should see either:
    - `STAR API: Authenticated via SSO. Cross-game features enabled.` or
    - `STAR API: No authentication configured...` if env vars are not set.
@@ -198,7 +230,7 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 ## Troubleshooting
 
 - **star_api.lib not found**  
-  Use pre-built client: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the **STARAPIClient** folder (for `star_api.h`). ODOOM uses STARAPIClient, not NativeWrapper.
+  Use pre-built client: set `STAR_API_LIB_DIR` to the Doom folder (`OASIS Omniverse\Doom`) that contains `star_api.lib` and `star_api.dll`. Set `STAR_API_DIR` to the **STARAPIClient** folder (for `star_api.h`).
 
 - **star_api.dll missing at runtime**  
   Copy `star_api.dll` from `OASIS Omniverse\Doom\` to the same directory as `ODOOM.exe`.
@@ -216,5 +248,5 @@ No `OASIS_STAR_API` or `STAR_API_DIR`; the STAR hooks are compiled out.
 - STAR integration is **optional** and enabled only when `OASIS_STAR_API=ON` and `STAR_API_DIR` is set.
 - Keycard pickups in ODOOM are reported to the STAR API; door/lock checks can use cross-game inventory (including **OQuake** silver_key/gold_key for red/blue/yellow doors).
 - UZDoom’s Windows port should give you correct sound, music, and mouse behavior compared to the older Linux Doom port.
-- **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **BUILD & RUN ODOOM.bat** to build and launch.
+- **ODOOM (UZDoom) is the supported Doom port** for STAR; use **BUILD ODOOM.bat** to build (output: **ODOOM.exe** in `ODOOM\build\`) or **RUN ODOOM.bat** to build and launch.
 - **Credits:** ODOOM is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) (GPL-3.0). See **CREDITS_AND_LICENSE.md** in this folder.

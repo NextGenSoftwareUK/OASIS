@@ -30,9 +30,9 @@ exit /b %ODOOM_BUILD_EXIT%
 
 set "UZDOOM_SRC=C:\Source\UZDoom"
 set "HERE=%~dp0"
-set "DOOM_FOLDER=%HERE%..\Doom"
-set "NATIVEWRAPPER=%HERE%..\NativeWrapper"
+set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "ODOOM_INTEGRATION=%HERE%"
+set "DOOM_FOLDER=%ODOOM_INTEGRATION%"
 set "ULTIMATE_DOOM_BUILDER_BUILD=C:\Source\UltimateDoomBuilder\Build"
 set "ULTIMATE_DOOM_BUILDER_ASSETS=C:\Source\UltimateDoomBuilder\Assets\Common\UDBScript\Scripts\OASIS\Sprites"
 set "OASIS_SPRITES_SRC=%ULTIMATE_DOOM_BUILDER_BUILD%\UDBScript\Scripts\OASIS\Sprites"
@@ -50,19 +50,21 @@ set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
+REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
+set "BUILD_STAR_CLIENT=0"
 set "QUAKE_PAK0=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK0.PAK"
 set "QUAKE_PAK1=C:\Program Files (x86)\Steam\steamapps\common\Quake\id1\PAK1.PAK"
 if /i not "%~1"=="run" (
     echo.
-    set /p "BUILD_CHOICE=  Full clean/rebuild (C) or incremental build (I)? [I]: "
+    set /p "BUILD_CHOICE=  Full clean/rebuild [C] or incremental build [I]? [I]: "
 )
 if not defined BUILD_CHOICE set "BUILD_CHOICE=I"
-if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
+if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1" & set "BUILD_STAR_CLIENT=1"
 if /i "%~1"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if /i "%~2"=="nosprites" set "DO_SPRITE_REGEN=0" & set "SKIP_SPRITE_PROMPT=1"
 if "%SKIP_SPRITE_PROMPT%"=="0" if /i not "%~1"=="run" (
     echo.
-    set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build (Y/N)? [Y]: "
+    set /p "SPRITE_CHOICE=  Regenerate sprites/icons this build [Y/N]? [Y]: "
     if not defined SPRITE_CHOICE set "SPRITE_CHOICE=Y"
     if /i "%SPRITE_CHOICE%"=="N" set "DO_SPRITE_REGEN=0"
     if /i "%SPRITE_CHOICE%"=="NO" set "DO_SPRITE_REGEN=0"
@@ -81,19 +83,27 @@ if not exist "%UZDOOM_SRC%\src\d_main.cpp" (
     pause
     exit /b 1
 )
-if not exist "%DOOM_FOLDER%\star_api.dll" (
-    echo star_api not found: %DOOM_FOLDER%
-    echo Build NativeWrapper or copy star_api.dll/lib from Doom folder.
+REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
+echo [ODOOM] Checking STARAPIClient - build if changed, deploy...
+if "%BUILD_STAR_CLIENT%"=="1" (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
+) else (
+    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+)
+if errorlevel 1 (echo [ODOOM] BUILD_AND_DEPLOY_STAR_CLIENT.bat failed. & pause & exit /b 1)
+if not exist "%ODOOM_INTEGRATION%\star_api.dll" (
+    echo star_api not found: %ODOOM_INTEGRATION%
+    echo Run BUILD_AND_DEPLOY_STAR_CLIENT.bat from OASIS Omniverse, or copy star_api.dll and star_api.lib into the ODOOM folder.
     pause
     exit /b 1
 )
-if not exist "%DOOM_FOLDER%\star_api.lib" (
-    echo star_api.lib not found: %DOOM_FOLDER%
+if not exist "%ODOOM_INTEGRATION%\star_api.lib" (
+    echo star_api.lib not found: %ODOOM_INTEGRATION%
     pause
     exit /b 1
 )
-if not exist "%NATIVEWRAPPER%\star_api.h" (
-    echo star_api.h not found: %NATIVEWRAPPER%
+if not exist "%STARAPICLIENT%\star_api.h" (
+    echo star_api.h not found: %STARAPICLIENT%
     pause
     exit /b 1
 )
@@ -127,6 +137,7 @@ copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_keys.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_keys.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_oquake_items.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\actors\doom\odoom_oquake_items.zs" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_inventory_popup.zs" "%UZDOOM_SRC%\wadsrc\static\zscript\ui\statusbar\odoom_inventory_popup.zs" >nul
+if exist "%ODOOM_INTEGRATION%KEYCONF.txt" copy /Y "%ODOOM_INTEGRATION%KEYCONF.txt" "%UZDOOM_SRC%\wadsrc\static\KEYCONF" >nul
 if not exist "%UZDOOM_SRC%\wadsrc\static\textures" mkdir "%UZDOOM_SRC%\wadsrc\static\textures"
 if exist "%ODOOM_INTEGRATION%face_anorak.png" (
     echo [ODOOM][STEP] Preparing anorak HUD face from face_anorak.png ^(target 34x30^)...
@@ -231,19 +242,19 @@ if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA1.png" (
 goto :after_quake_monsters
 
 :missing_quake_pak0
-echo [ODOOM][ERROR] Quake pak0 not found for MDL sprite generation.
-echo [ODOOM][ERROR] Expected path: "%QUAKE_PAK0%"
+echo "[ODOOM][ERROR] Quake pak0 not found for MDL sprite generation."
+echo "[ODOOM][ERROR] Expected path: %QUAKE_PAK0%"
 pause
 exit /b 1
 
 :missing_quake_pak1
-echo [ODOOM][ERROR] Quake pak1 not found for MDL sprite generation.
-echo [ODOOM][ERROR] Expected path: "%QUAKE_PAK1%"
+echo "[ODOOM][ERROR] Quake pak1 not found for MDL sprite generation."
+echo "[ODOOM][ERROR] Expected path: %QUAKE_PAK1%"
 pause
 exit /b 1
 
 :mdlgen_failed
-echo [ODOOM][ERROR] Failed to generate one or more Doom-profile OQ monster sprite sets.
+echo "[ODOOM][ERROR] Failed to generate one or more Doom-profile OQ monster sprite sets."
 pause
 exit /b 1
 
@@ -262,13 +273,13 @@ set "REQ_OQ_MISSING=0"
 set "OQW_COUNT=0"
 set "OQH_COUNT=0"
 set "OQM_COUNT=0"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" echo [ODOOM][ERROR] Missing required sprite: OQKGA0.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" echo [ODOOM][ERROR] Missing required sprite: OQKSA0.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" echo [ODOOM][ERROR] Missing required sprite: OQW1A0.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" echo [ODOOM][ERROR] Missing required sprite: OQH1A0.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A1.png" echo [ODOOM][ERROR] Missing required sprite: OQM1A1.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM2A1.png" echo [ODOOM][ERROR] Missing required sprite: OQM2A1.png & set "REQ_OQ_MISSING=1"
-if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA1.png" echo [ODOOM][ERROR] Missing required sprite: OQMAA1.png & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKGA0.png" echo "[ODOOM][ERROR] Missing required sprite: OQKGA0.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQKSA0.png" echo "[ODOOM][ERROR] Missing required sprite: OQKSA0.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQW1A0.png" echo "[ODOOM][ERROR] Missing required sprite: OQW1A0.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQH1A0.png" echo "[ODOOM][ERROR] Missing required sprite: OQH1A0.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM1A1.png" echo "[ODOOM][ERROR] Missing required sprite: OQM1A1.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQM2A1.png" echo "[ODOOM][ERROR] Missing required sprite: OQM2A1.png" & set "REQ_OQ_MISSING=1"
+if not exist "%UZDOOM_SRC%\wadsrc\static\sprites\OQMAA1.png" echo "[ODOOM][ERROR] Missing required sprite: OQMAA1.png" & set "REQ_OQ_MISSING=1"
 for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQW*A0.png") do set /a OQW_COUNT+=1
 for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQH*A0.png") do set /a OQH_COUNT+=1
 for %%I in ("%UZDOOM_SRC%\wadsrc\static\sprites\OQM*.png") do set /a OQM_COUNT+=1
@@ -277,13 +288,13 @@ if not defined OQH_COUNT set "OQH_COUNT=0"
 if not defined OQM_COUNT set "OQM_COUNT=0"
 echo [ODOOM][INFO] Sprite counts: OQW=%OQW_COUNT% OQH=%OQH_COUNT% OQM=%OQM_COUNT%
 if "%REQ_OQ_MISSING%"=="1" (
-    echo [ODOOM][ERROR] Required OQ sprites are missing. Re-run with sprite regeneration enabled.
+    echo "[ODOOM][ERROR] Required OQ sprites are missing. Re-run with sprite regeneration enabled."
     pause
     exit /b 1
 )
 echo [ODOOM][DONE] OQ runtime sprite verification passed.
 if exist "%ODOOM_INTEGRATION%odoom_version_generated.h" copy /Y "%ODOOM_INTEGRATION%odoom_version_generated.h" "%UZDOOM_SRC%\src\odoom_version_generated.h" >nul
-powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%apply_odoom_branding.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
+powershell -ExecutionPolicy Bypass -File "%ODOOM_INTEGRATION%patch_uzdoom_engine.ps1" -UZDOOM_SRC "%UZDOOM_SRC%"
 if exist "%ODOOM_INTEGRATION%oasis_banner.png" (
     copy /Y "%ODOOM_INTEGRATION%oasis_banner.png" "%UZDOOM_SRC%\wadsrc\static\ui\banner-dark.png" >nul
     copy /Y "%ODOOM_INTEGRATION%oasis_banner.png" "%UZDOOM_SRC%\wadsrc\static\ui\banner-light.png" >nul
@@ -299,18 +310,25 @@ echo [ODOOM][STEP] Configuring CMake and STAR API...
 cd /d "%UZDOOM_SRC%"
 if not exist build mkdir build
 cd build
-set "STAR_API_DIR=%NATIVEWRAPPER%"
+set "STAR_API_DIR=%STARAPICLIENT%"
 set "STAR_API_LIB_DIR=%DOOM_FOLDER%"
-echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR%"
-echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR%"
-echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE%"
-cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE%"
-if errorlevel 1 (echo [ODOOM][ERROR] CMake failed. & pause & exit /b 1)
+REM Use short (8.3) paths for cmake so paths with spaces (e.g. OASIS Omniverse) do not break the linker
+for %%I in ("%STAR_API_DIR%") do set "STAR_API_DIR_CMAKE=%%~sI"
+for %%I in ("%STAR_API_LIB_DIR%") do set "STAR_API_LIB_DIR_CMAKE=%%~sI"
+for %%I in ("%PYTHON3_EXE%") do set "PYTHON3_EXE_CMAKE=%%~sI"
+if not defined STAR_API_DIR_CMAKE set "STAR_API_DIR_CMAKE=%STAR_API_DIR%"
+if not defined STAR_API_LIB_DIR_CMAKE set "STAR_API_LIB_DIR_CMAKE=%STAR_API_LIB_DIR%"
+if not defined PYTHON3_EXE_CMAKE set "PYTHON3_EXE_CMAKE=%PYTHON3_EXE%"
+echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR_CMAKE%"
+echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE_CMAKE%"
+cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%"
+if errorlevel 1 (echo "[ODOOM][ERROR] CMake failed." & pause & exit /b 1)
 
 echo.
 echo [ODOOM][STEP] Building Release...
 cmake --build . --config Release
-if errorlevel 1 (echo [ODOOM][ERROR] Build failed. & pause & exit /b 1)
+if errorlevel 1 (echo "[ODOOM][ERROR] Build failed." & pause & exit /b 1)
 
 echo.
 echo [ODOOM][STEP] Packaging output...

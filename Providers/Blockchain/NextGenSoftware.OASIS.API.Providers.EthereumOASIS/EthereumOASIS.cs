@@ -41,7 +41,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using Nethereum.Contracts;
 using Nethereum.ABI.FunctionEncoding.Attributes;
 using System.IO;
+using System.Reflection;
 using System.Text;
+using Nethereum.RPC.Accounts;
 // using Nethereum.StandardTokenEIP20; // Commented out - type doesn't exist
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
@@ -116,7 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 if (!string.IsNullOrEmpty(HostURI) && !string.IsNullOrEmpty(ChainPrivateKey) && ChainId > 0)
                 {
                     _oasisAccount = new Account(ChainPrivateKey, ChainId);
-                    Web3Client = new Web3(_oasisAccount, HostURI);
+                    Web3Client = CreateWeb3WithAccount(_oasisAccount, HostURI);
 
                     _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, ContractAddress);
                 }
@@ -135,6 +137,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             //    return result;
 
             //return await base.ActivateProviderAsync();
+        }
+
+        /// <summary>
+        /// Create Web3 using only the 2-parameter (IAccount, string) constructor to avoid MissingMethodException
+        /// when Nethereum 4.4+ changed the 4-param overload from Common.Logging.ILog to ILogger.
+        /// </summary>
+        private static Web3 CreateWeb3WithAccount(IAccount account, string url)
+        {
+            var ctor = typeof(Web3).GetConstructor(BindingFlags.Public | BindingFlags.Instance, null, new[] { typeof(IAccount), typeof(string) }, null);
+            if (ctor == null)
+                throw new InvalidOperationException("Nethereum.Web3.Web3 (IAccount, string) constructor not found. Check Nethereum.Web3 package version.");
+            return (Web3)ctor.Invoke(new object[] { account, url ?? "" });
         }
 
         public override OASISResult<bool> ActivateProvider()
@@ -2916,7 +2930,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var senderEthAccount = new Account(senderAccountPrivateKey);
-                var web3Client = new Web3(senderEthAccount);
+                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
                 
                 var transactionResult = await web3Client.Eth.GetEtherTransferService()
                     .TransferEtherAndWaitForReceiptAsync(receiverAccountAddress, amount);
@@ -3413,7 +3427,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var senderEthAccount = new Account(senderAccountPrivateKey);
-                var web3Client = new Web3(senderEthAccount);
+                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
 
                 // Use Nethereum's ERC20 token service
                 var erc20Abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
@@ -3746,7 +3760,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var senderEthAccount = new Account(keysResult.Result[0]);
-                var web3Client = new Web3(senderEthAccount);
+                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
 
                 // ERC20 mint function ABI
                 var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
@@ -3809,7 +3823,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var senderEthAccount = new Account(request.OwnerPrivateKey);
-                var web3Client = new Web3(senderEthAccount);
+                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
 
                 // ERC20 burn function ABI - need to get amount from token balance or request
                 var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
@@ -4109,7 +4123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var account = new Account(senderPrivateKey, ChainId);
-                var web3 = new Web3(account, HostURI);
+                var web3 = CreateWeb3WithAccount(account, HostURI);
 
                 // For bridge withdrawals, send to OASIS bridge pool address
                 var bridgePoolAddress = _oasisAccount?.Address ?? ContractAddress;
@@ -4313,7 +4327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var senderAccount = new Account(privateKey, ChainId);
-                var web3 = new Web3(senderAccount, HostURI);
+                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
                 // ERC-721 transferFrom function ABI
                 var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
@@ -4393,7 +4407,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var senderAccount = new Account(keysResult.Result[0], ChainId);
-                var web3 = new Web3(senderAccount, HostURI);
+                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
                 // Use contract address or default NFT contract
                 var nftContractAddress = _contractAddress ?? ContractAddress ?? "0x0000000000000000000000000000000000000000";
@@ -4480,7 +4494,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 var senderAccount = new Account(keysResult.Result[0], ChainId);
-                var web3 = new Web3(senderAccount, HostURI);
+                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
 
                 // ERC-721 burn function ABI (assuming contract has burn function)
                 var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
@@ -4634,7 +4648,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
                 // Use OASIS account to send from bridge pool
                 var oasisAccount = _oasisAccount ?? new Account(ChainPrivateKey, ChainId);
-                var web3 = new Web3(oasisAccount, HostURI);
+                var web3 = CreateWeb3WithAccount(oasisAccount, HostURI);
                 
                 var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_from"",""type"":""address""},{""name"":""_to"",""type"":""address""},{""name"":""_tokenId"",""type"":""uint256""}],""name"":""transferFrom"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
                 var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);

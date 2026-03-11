@@ -92,11 +92,5 @@
       { "id": "fish", "name": "Fish", "quakeClassname": "monster_fish", "category": "monster" },
       { "id": "spawn", "name": "Spawn", "quakeClassname": "monster_spawn", "category": "monster" }
     ]
-  },
-  "crossGameMapping": {
-    "key_silver_to_doom": 13,
-    "key_gold_to_doom": 5,
-    "red_keycard_to_quake": "key_silver",
-    "blue_keycard_to_quake": "key_gold"
   }
 }

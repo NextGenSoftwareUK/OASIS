@@ -26,6 +26,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         /// <summary>
         /// Retrieves all libraries in the system.
         /// </summary>
@@ -297,8 +299,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateLibraryWithOptions([FromBody] CreateLibraryWithOptionsRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Library> { IsError = true, Message = "The request body is required." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<Library>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Libraries.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }

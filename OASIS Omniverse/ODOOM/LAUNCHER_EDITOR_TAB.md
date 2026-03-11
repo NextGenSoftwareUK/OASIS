@@ -17,7 +17,7 @@ The **Release notes** tab content comes from **releasepage.cpp**. The **About** 
 
 ## Editor button (ODOOM)
 
-ODOOM adds an **Editor** button in the **centre** of the button bar, between **Play Game** and **Exit**. This is applied by **apply_odoom_branding.ps1** (step 5):
+ODOOM adds an **Editor** button in the **centre** of the button bar, between **Play Game** and **Exit**. This is applied by **patch_uzdoom_engine.ps1** (step 8):
 
 - **launcherbuttonbar.h** – `EditorButton` member and `OnEditorButtonClicked()`.
 - **launcherbuttonbar.cpp** – Create and lay out `EditorButton`, wire click to `GetLauncher()->OnEditorButtonClicked()`.

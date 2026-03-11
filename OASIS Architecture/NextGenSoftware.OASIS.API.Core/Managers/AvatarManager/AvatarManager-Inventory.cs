@@ -14,6 +14,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         #region Avatar Inventory Management
 
+        /// <summary>When loading avatar detail from provider, promote MetaData.NFTId to NftId on each inventory item so GET inventory returns NftId and Quake/Doom show [NFT] prefix.</summary>
+        private static void PromoteInventoryNftIdFromMetaData(IAvatarDetail detail)
+        {
+            if (detail?.Inventory == null) return;
+            foreach (var item in detail.Inventory)
+            {
+                if (!string.IsNullOrWhiteSpace(item.NftId)) continue;
+                if (item is IHolonBase hb && hb.MetaData != null)
+                {
+                    if (hb.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                    else if (hb.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                }
+            }
+        }
+
         /// <summary>
         /// Gets all inventory items owned by the avatar
         /// This is the avatar's actual inventory (items they own), not items they created
@@ -65,6 +82,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
                 return result;
             }
+            // Promote MetaData to first-class GameSource/ItemType/NftId so the holon persists them (STAR client may send only MetaData)
+            if (item is IHolonBase holonBase && holonBase.MetaData != null)
+            {
+                if (string.IsNullOrWhiteSpace(item.ItemType) && holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
+                    item.ItemType = typeObj.ToString();
+                if (string.IsNullOrWhiteSpace(item.GameSource) && holonBase.MetaData.TryGetValue("GameSource", out var gsObj) && gsObj != null)
+                    item.GameSource = gsObj.ToString();
+                if (string.IsNullOrWhiteSpace(item.NftId))
+                {
+                    if (holonBase.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                    else if (holonBase.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+                        item.NftId = nftObj.ToString();
+                }
+            }
+            /* Ensure NftId is in MetaData so providers that persist custom fields via MetaData return it on GET (Quake/Doom [NFT] prefix). */
+            if (!string.IsNullOrWhiteSpace(item.NftId) && item is IHolonBase hb && hb.MetaData != null)
+                hb.MetaData["NFTId"] = item.NftId;
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
@@ -83,6 +118,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (item.Id == Guid.Empty)
                     item.Id = Guid.NewGuid();
 
+                int addQty = item.Quantity > 0 ? item.Quantity : 1;
+                bool stack = item.Stack;
+
                 // Check if item already exists by ID (client sent an explicit id that is already in inventory)
                 var existingById = avatarDetail.Inventory.FirstOrDefault(i => i.Id == item.Id);
                 if (existingById != null)
@@ -93,25 +131,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Optionally treat add-by-name as idempotent: if same name exists, return success with existing item
+                // If same name exists: stack = increment quantity; !stack = return error
                 var existingByName = avatarDetail.Inventory.FirstOrDefault(i =>
                     i.Name?.Equals(item.Name, StringComparison.OrdinalIgnoreCase) == true);
                 if (existingByName != null)
                 {
+                    if (!stack)
+                    {
+                        result.IsError = true;
+                        result.Message = "Item already exists";
+                        result.Result = existingByName;
+                        return result;
+                    }
+                    int existingQty = existingByName.Quantity > 0 ? existingByName.Quantity : 1;
+                    existingByName.Quantity = existingQty + addQty;
                     result.Result = existingByName;
-                    result.Message = "Item already exists in avatar inventory (matched by name)";
+                    result.Message = $"Item quantity updated; total quantity: {existingByName.Quantity}";
+                    var saveResult = await SaveAvatarDetailAsync(avatarDetail);
+                    if (saveResult.IsError)
+                    {
+                        result.IsError = true;
+                        result.Message = $"Error saving avatar detail: {saveResult.Message}";
+                        return result;
+                    }
                     return result;
                 }
 
-                // Add the item
+                // New item: set quantity and add
+                item.Quantity = addQty;
                 avatarDetail.Inventory.Add(item);
 
                 // Save the updated avatar detail
-                var saveResult = await SaveAvatarDetailAsync(avatarDetail);
-                if (saveResult.IsError)
+                var addSaveResult = await SaveAvatarDetailAsync(avatarDetail);
+                if (addSaveResult.IsError)
                 {
                     result.IsError = true;
-                    result.Message = $"Error saving avatar detail: {saveResult.Message}";
+                    result.Message = $"Error saving avatar detail: {addSaveResult.Message}";
                     return result;
                 }
 
@@ -137,13 +192,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Removes an item from the avatar's inventory
+        /// Decrements an item's quantity in the avatar's inventory. quantity must be 1 or greater. The item is removed only when its quantity reaches 0 after the decrement.
         /// </summary>
-        public async Task<OASISResult<bool>> RemoveItemFromAvatarInventoryAsync(Guid avatarId, Guid itemId, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<bool>> RemoveItemFromAvatarInventoryAsync(Guid avatarId, Guid itemId, int quantity = 1, ProviderType providerType = ProviderType.Default)
         {
             var result = new OASISResult<bool>();
             try
             {
+                if (quantity < 1)
+                {
+                    result.IsError = true;
+                    result.Message = "Quantity must be 1 or greater.";
+                    return result;
+                }
+
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
                 if (avatarDetailResult.IsError || avatarDetailResult.Result == null)
                 {
@@ -160,18 +222,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Find and remove the item
-                var itemToRemove = avatarDetail.Inventory.FirstOrDefault(i => i.Id == itemId);
-                if (itemToRemove == null)
+                var itemToChange = avatarDetail.Inventory.FirstOrDefault(i => i.Id == itemId);
+                if (itemToChange == null)
                 {
                     result.IsError = true;
                     result.Message = "Item not found in avatar inventory";
                     return result;
                 }
 
-                avatarDetail.Inventory.Remove(itemToRemove);
+                int currentQty = itemToChange.Quantity > 0 ? itemToChange.Quantity : 1;
+                itemToChange.Quantity = currentQty - quantity;
+                if (itemToChange.Quantity <= 0)
+                    avatarDetail.Inventory.Remove(itemToChange);
 
-                // Save the updated avatar detail
                 var saveResult = await SaveAvatarDetailAsync(avatarDetail);
                 if (saveResult.IsError)
                 {
@@ -181,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 result.Result = true;
-                result.Message = "Item removed from avatar inventory successfully";
+                result.Message = "Item quantity decremented in avatar inventory.";
             }
             catch (Exception ex)
             {
@@ -194,11 +257,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Removes an item from the avatar's inventory (synchronous version)
+        /// Decrements an item's quantity in the avatar's inventory (synchronous version). quantity must be 1 or greater.
         /// </summary>
-        public OASISResult<bool> RemoveItemFromAvatarInventory(Guid avatarId, Guid itemId, ProviderType providerType = ProviderType.Default)
+        public OASISResult<bool> RemoveItemFromAvatarInventory(Guid avatarId, Guid itemId, int quantity = 1, ProviderType providerType = ProviderType.Default)
         {
-            return RemoveItemFromAvatarInventoryAsync(avatarId, itemId, providerType).Result;
+            return RemoveItemFromAvatarInventoryAsync(avatarId, itemId, quantity, providerType).Result;
         }
 
         /// <summary>
@@ -474,7 +537,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         Name = template.Name,
                         Description = template.Description,
                         HolonType = template.HolonType,
-                        MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null
+                        MetaData = template.MetaData != null ? new Dictionary<string, object>(template.MetaData) : null,
+                        Quantity = 1,
+                        NftId = template.NftId,
+                        GameSource = template.GameSource,
+                        ItemType = template.ItemType
                     };
                     targetDetail.Inventory.Add(newItem);
                 }

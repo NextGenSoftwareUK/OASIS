@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -158,6 +158,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
+        }
+
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties (e.g. Status from MetaData["QuestStatus"]).</summary>
+        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = await LoadAllForAvatarAsync(avatarId, showAllVersions, version, providerType).ConfigureAwait(false);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties.</summary>
+        public OASISResult<IEnumerable<IQuest>> LoadAllQuestsForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = LoadAllForAvatar(avatarId, showAllVersions, version, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Promote MetaData to strongly-typed Quest properties. Prefer "Status" (used by HolonManager.MapMetaData); fallback to "QuestStatus" for backwards compatibility.</summary>
+        private static void PromoteQuestMetaDataToProperties(Quest q)
+        {
+            if (q?.MetaData == null) return;
+            var key = q.MetaData.ContainsKey("Status") ? "Status" : (q.MetaData.ContainsKey("QuestStatus") ? "QuestStatus" : null);
+            if (key == null) return;
+            var val = q.MetaData[key];
+            if (val == null) return;
+            var s = val.ToString();
+            if (string.IsNullOrEmpty(s)) return;
+            if (System.Enum.TryParse<QuestStatus>(s, true, out var status))
+                q.Status = status;
         }
 
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
@@ -611,7 +655,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
-        /// Starts a quest for the specified avatar.
+        /// Returns whether the avatar can start the quest (quest is NotStarted and any MetaData PrerequisiteQuestIds are completed). ParentQuestId is for sub-quests/objectives only, not prerequisites.
+        /// </summary>
+        public async Task<OASISResult<bool>> CanStartQuestAsync(Guid avatarId, Guid questId)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CanStartQuestAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    result.Result = false;
+                    result.Message = "Quest not found or could not be loaded.";
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already completed.";
+                    return result;
+                }
+                if (quest.Status == QuestStatus.InProgress)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already in progress.";
+                    return result;
+                }
+
+                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                    {
+                        foreach (var item in prereqIds)
+                        {
+                            Guid prereqId = Guid.Empty;
+                            if (item is Guid g) prereqId = g;
+                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
+                            if (prereqId == Guid.Empty) continue;
+                            var prereqResult = await LoadAsync(avatarId, prereqId);
+                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                            {
+                                result.Result = false;
+                                result.Message = "Prerequisites not met. Complete all required quests first.";
+                                return result;
+                            }
+                        }
+                    }
+                }
+
+                result.Result = true;
+                result.Message = "Quest can be started.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Starts a quest for the specified avatar. Validates prerequisites: if the quest has PrerequisiteQuestIds in MetaData, those quests must be completed first. (ParentQuestId is used for sub-quests/objectives; when all are complete the parent is marked complete.)
         /// </summary>
         public async Task<OASISResult<bool>> StartQuestAsync(Guid avatarId, Guid questId, string startNotes = null)
         {
@@ -634,6 +743,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
+                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                    {
+                        foreach (var item in prereqIds)
+                        {
+                            Guid prereqId = Guid.Empty;
+                            if (item is Guid g) prereqId = g;
+                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
+                            if (prereqId == Guid.Empty) continue;
+                            var prereqResult = await LoadAsync(avatarId, prereqId);
+                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                            {
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Prerequisites not met. Complete all required quests first.");
+                                return result;
+                            }
+                        }
+                    }
+                }
+
                 quest.Status = QuestStatus.InProgress;
                 quest.StartedBy = avatarId;
                 if (quest.StartedOn == DateTime.MinValue)
@@ -641,6 +771,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 if (!string.IsNullOrWhiteSpace(startNotes))
                     quest.CompletionNotes = startNotes;
+
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
 
                 var updateResult = await UpdateAsync(avatarId, quest);
                 if (updateResult.IsError)
@@ -651,7 +784,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
-                result.Message = "Quest started successfully";
+                result.Message = $"Quest started and saved (QuestId={questId}). If status does not update in the client, ensure the storage provider persists (e.g. MongoDB).";
             }
             catch (Exception ex)
             {
@@ -723,6 +856,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     quest.Status = QuestStatus.InProgress;
                 }
 
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+
                 var updateResult = await UpdateAsync(avatarId, quest);
                 if (updateResult.IsError)
                 {
@@ -774,6 +910,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     questResult.Result.CompletionNotes = completionNotes;
                 }
+
+                if (questResult.Result.MetaData == null) questResult.Result.MetaData = new Dictionary<string, object>();
+                questResult.Result.MetaData["Status"] = questResult.Result.Status.ToString();
 
                 // Save the updated quest
                 var updateResult = await UpdateAsync(avatarId, questResult.Result);

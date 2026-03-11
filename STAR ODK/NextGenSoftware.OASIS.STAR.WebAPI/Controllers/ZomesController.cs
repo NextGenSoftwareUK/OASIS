@@ -25,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         /// <summary>
         /// Retrieves all zomes in the system.
         /// </summary>
@@ -205,8 +207,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             var validationError = ValidateCreateRequest(request.Name, request.Description);
             if (validationError != null)
                 return validationError;
+            var avatarCheck = ValidateAvatarId<STARZome>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Zomes.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
