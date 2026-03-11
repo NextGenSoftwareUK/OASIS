@@ -1,4 +1,6 @@
-# Building the STAR API Native Wrapper
+# Building the STAR API Native Wrapper — **DEPRECATED**
+
+**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. Build the STAR API client from `OASIS Omniverse/STARAPIClient` (see `OASIS Omniverse/STARAPIClient/README.md`). This file is kept for reference only.
 
 ## Windows Build Options
 
@@ -12,7 +14,7 @@
 
 3. **Navigate to wrapper directory**:
    ```cmd
-   cd C:\Source\OASIS-master\Game Integration\NativeWrapper
+   cd C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper
    ```
 
 4. **Build using CMake** (if installed):
@@ -34,7 +36,7 @@
 
 2. **Build**:
    ```cmd
-   cd C:\Source\OASIS-master\Game Integration\NativeWrapper
+   cd C:\Source\OASIS-master\OASIS Omniverse\NativeWrapper
    mkdir build
    cd build
    g++ -shared -fPIC -O2 -I.. -o star_api.dll ..\star_api.cpp -lwinhttp

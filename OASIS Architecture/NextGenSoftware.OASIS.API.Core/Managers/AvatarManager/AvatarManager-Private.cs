@@ -777,6 +777,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -825,6 +826,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -873,6 +875,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else

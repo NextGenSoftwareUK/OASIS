@@ -1,10 +1,12 @@
-﻿using System.Text.Json;
+using System;
+using System.Text.Json;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core.Holons
 {
@@ -46,13 +48,52 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         {
             get
             {
-                if (_STARNETDNA == null && MetaData != null &&
-                    MetaData.TryGetValue(_STARNETDNAJSONName, out var dnaJsonObj) &&
-                    dnaJsonObj != null &&
-                    !string.IsNullOrEmpty(dnaJsonObj.ToString()))
+                if (_STARNETDNA == null && MetaData != null && !string.IsNullOrEmpty(_STARNETDNAJSONName))
                 {
-                    _STARNETDNA = JsonConvert.DeserializeObject<STARNETDNA>(dnaJsonObj.ToString());
-                    //_STARNETDNA = JsonSerializer.Deserialize<STARNETDNA>(dnaJsonObj.ToString());
+                    if (MetaData.TryGetValue(_STARNETDNAJSONName, out var dnaJsonObj) && dnaJsonObj != null)
+                    {
+                        string jsonString = null;
+                        if (dnaJsonObj is string s && !string.IsNullOrWhiteSpace(s))
+                            jsonString = s;
+                        else if (dnaJsonObj is JToken jToken)
+                            jsonString = jToken.ToString();
+                        else
+                            jsonString = dnaJsonObj.ToString();
+
+                        if (!string.IsNullOrWhiteSpace(jsonString))
+                        {
+                            try
+                            {
+                                _STARNETDNA = JsonConvert.DeserializeObject<STARNETDNA>(jsonString);
+                            }
+                            catch (Newtonsoft.Json.JsonException)
+                            {
+                                _STARNETDNA = null;
+                            }
+                        }
+                    }
+                }
+
+                if (_STARNETDNA == null)
+                {
+                    _STARNETDNA = new STARNETDNA
+                    {
+                        Version = "1.0.0"
+                    };
+                    if (Id != Guid.Empty)
+                        _STARNETDNA.Id = Id;
+                    if (!string.IsNullOrEmpty(Name))
+                        _STARNETDNA.Name = Name;
+                    if (!string.IsNullOrEmpty(Description))
+                        _STARNETDNA.Description = Description;
+                    if (CreatedByAvatarId != Guid.Empty)
+                        _STARNETDNA.CreatedByAvatarId = CreatedByAvatarId;
+                    if (ModifiedByAvatarId != Guid.Empty)
+                        _STARNETDNA.ModifiedByAvatarId = ModifiedByAvatarId;
+                    _STARNETDNA.CreatedOn = CreatedDate;
+                    _STARNETDNA.ModifiedOn = ModifiedDate;
+                    MetaData ??= new Dictionary<string, object>();
+                    MetaData[_STARNETDNAJSONName] = JsonConvert.SerializeObject(_STARNETDNA);
                 }
 
                 return _STARNETDNA;

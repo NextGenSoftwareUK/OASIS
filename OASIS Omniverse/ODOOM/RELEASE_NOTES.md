@@ -12,7 +12,7 @@ All notable changes and releases are listed here. Version and build are defined 
 - Keycard pickups reported to STAR API; door/lock checks use cross-game inventory.
 - Cross-game keys with **OQuake**: red ↔ silver, blue/yellow ↔ gold.
 - Loading screen, HUD, and console show ODOOM branding and version.
-- Build and run scripts: **BUILD ODOOM.bat**, **BUILD & RUN ODOOM.bat**.
+- Build and run scripts: **BUILD ODOOM.bat**, **RUN ODOOM.bat**.
 - Documentation: WINDOWS_INTEGRATION.md, CREDITS_AND_LICENSE.md, README.md.
 
 By NextGen World Ltd. Full credit to the [UZDoom](https://github.com/UZDoom/UZDoom) project (GPL-3.0).

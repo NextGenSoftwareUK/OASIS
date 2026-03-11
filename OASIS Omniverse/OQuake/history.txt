@@ -1,60 +1,61 @@
-oasis_inventory_toggle#
-oasis_inventory_toggle
-star beamin
-star beamin anorak test!
-star beamin
-star beamin anorak test!
-star
-star beamin anorak test!
-star beamin anorak teat!
-star beamin anorak test!
-star
-star face
-star face status
-star face off
-star
-star beamin anorak test!
-star face off
-star face on
-star beamout
-star face off
-star face
-star beamin anorak test!
-star face on
-exec config.cfg
-star config
-star
-exec config.cfg
-star config
-exec config.cfg
-star config
+STAR
+STAR CONFIG
 star beamin dellams test!
-star beamin dellans test!
-star config
-star beamin dellams test!
-star
+STAR CONFIG
+STAR
+STAR CONFIG
 star beamin dellams test!
 star
 star config
-star face
-star face off
-star face on
 star beamin dellams test!
-star face
-star face off
-star face on
-star beamin anroak test!
-star beamin anorak test!
-star beamin dellams test!
-str
-star
 star config
 star beamin dellams test!
-star
-star inventory
-star beamin
+star debug on
 star beamin dellams test!
-star beamin dellams
+star quest
 star beamin dellams test!
-star beamin dellams test
+star log
+star debug
+star debug on
+star beamin dellams test!
+star debug on
+star debug off
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star beamin dellams test!
+star debug on
+star debug off
+star debug on
 star beamin dellams test!

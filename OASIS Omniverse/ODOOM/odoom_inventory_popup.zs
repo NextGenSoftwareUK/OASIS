@@ -28,7 +28,17 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyIDown;
 	private bool wasKeyODown;
 	private bool wasKeyPDown;
+	private bool wasKeyQDown;
 	private bool wasKeyEnterDown;
+	private bool wasKeyPgUpDown;
+	private bool wasKeyPgDownDown;
+	private bool wasKeyHomeDown;
+	private bool wasKeyEndDown;
+	private bool questPopupOpen;
+	private int questSelectedIndex;
+	private int questScrollOffset;
+	private String questStatusMessage;
+	private int questStatusFrames;
 
 	// Send popup (OQuake-style)
 	private int sendPopupMode;   // 0=none, 1=avatar, 2=clan
@@ -40,7 +50,8 @@ class OASISInventoryOverlayHandler : EventHandler
 	private String sendInputLine;  // name built from odoom_send_last_char (C++ sets one char per frame)
 
 	// Cached list for RenderOverlay (ui cannot call play-context; no array members in this ZScript build)
-	private int cachedStarCount;
+	private int cachedStarCount;       // number of rows in current window (from C++)
+	private int cachedStarTotalCount;  // total STAR item count (for scroll math; C++ sends window + total)
 	private String cachedStarListForTab;   // "name\tdesc\tgame\n" per STAR item in current tab
 	private int cachedLocalCount;
 	private String cachedLocalListForTab;  // "displayName\tamount\n" per actor item in current tab
@@ -51,8 +62,12 @@ class OASISInventoryOverlayHandler : EventHandler
 	const TAB_AMMO = 3;
 	const TAB_ARMOR = 4;
 	const TAB_ITEMS = 5;
-	const TAB_COUNT = 6;
-	const MAX_VISIBLE_ROWS = 7;
+	const TAB_MONSTERS = 6;
+	const TAB_COUNT = 7;
+	const MAX_VISIBLE_ROWS = 6;
+	// Cap STAR list size so we never overflow engine CVar or ZScript string buffers ("attempted to write past end of stream").
+	const MAX_STAR_ITEMS_TO_PARSE = 32;
+	const MAX_STAR_GROUPS_TO_CACHE = 32;
 
 	override void OnRegister()
 	{
@@ -70,10 +85,46 @@ class OASISInventoryOverlayHandler : EventHandler
 		CVar openVar = CVar.FindCVar("odoom_inventory_open");
 		if (openVar != null)
 			openVar.SetInt(popupOpen ? 1 : 0);
+		// Quest popup state is owned by ZScript (same as inventory). Only write to CVar so C++ knows for refresh; do not read from CVar.
+		CVar questPopupCv = CVar.FindCVar("odoom_quest_popup_open");
+		if (questPopupCv != null)
+			questPopupCv.SetInt(questPopupOpen ? 1 : 0);
+		if (questPopupOpen && questStatusFrames > 0) {
+			questStatusFrames--;
+			if (questStatusFrames <= 0) questStatusMessage = "";
+		}
+		// Tell C++ which scroll offset and tab we want so it sends the right window of items (avoids CVar overflow)
+		if (popupOpen)
+		{
+			CVar scrollCv = CVar.FindCVar("odoom_star_inventory_scroll_offset");
+			if (scrollCv != null) scrollCv.SetInt(scrollOffset);
+			CVar tabCv = CVar.FindCVar("odoom_star_inventory_tab");
+			if (tabCv != null) tabCv.SetInt(activeTab);
+		}
 		// Tell C++ whether send popup is open every frame so it can capture name typing
 		CVar sendOpenVar = CVar.FindCVar("odoom_send_popup_open");
 		if (sendOpenVar != null)
 			sendOpenVar.SetInt(sendPopupMode != 0 ? 1 : 0);
+
+		// Only when beamed in: give OQuake key actors so HUD shows them (left). When not beamed in, remove them.
+		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
+		int beamedIn = (beamedVar != null) ? beamedVar.GetInt() : 0;
+		if (beamedIn != 0)
+		{
+			CVar hasGoldVar = CVar.FindCVar("odoom_star_has_gold_key");
+			CVar hasSilverVar = CVar.FindCVar("odoom_star_has_silver_key");
+			if (hasGoldVar != null && hasGoldVar.GetInt() != 0 && p.mo.FindInventory("OQGoldKey") == null)
+				p.mo.GiveInventory("OQGoldKey", 1);
+			if (hasSilverVar != null && hasSilverVar.GetInt() != 0 && p.mo.FindInventory("OQSilverKey") == null)
+				p.mo.GiveInventory("OQSilverKey", 1);
+		}
+		else
+		{
+			Inventory oqGold = p.mo.FindInventory("OQGoldKey");
+			if (oqGold != null) p.mo.RemoveInventory(oqGold);
+			Inventory oqSilver = p.mo.FindInventory("OQSilverKey");
+			if (oqSilver != null) p.mo.RemoveInventory(oqSilver);
+		}
 
 		int buttons = p.cmd.buttons;
 		bool user1Down = (buttons & BT_USER1) != 0;
@@ -90,12 +141,17 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool crouchDown = (buttons & BT_CROUCH) != 0;
 
 		// Keys captured by C++ when inventory open (odoom_key_* CVars). Read every frame so wasKey* stay in sync when closed.
-		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyEnter = 0;
+		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyQ = 0, keyEnter = 0;
+		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0;
 		CVar v;
 		v = CVar.FindCVar("odoom_key_up"); if (v != null) keyUp = v.GetInt();
 		v = CVar.FindCVar("odoom_key_down"); if (v != null) keyDown = v.GetInt();
 		v = CVar.FindCVar("odoom_key_left"); if (v != null) keyLeft = v.GetInt();
 		v = CVar.FindCVar("odoom_key_right"); if (v != null) keyRight = v.GetInt();
+		v = CVar.FindCVar("odoom_key_pgup"); if (v != null) keyPgUp = v.GetInt();
+		v = CVar.FindCVar("odoom_key_pgdown"); if (v != null) keyPgDown = v.GetInt();
+		v = CVar.FindCVar("odoom_key_home"); if (v != null) keyHome = v.GetInt();
+		v = CVar.FindCVar("odoom_key_end"); if (v != null) keyEnd = v.GetInt();
 		v = CVar.FindCVar("odoom_key_use"); if (v != null) keyUse = v.GetInt();
 		v = CVar.FindCVar("odoom_key_a"); if (v != null) keyA = v.GetInt();
 		v = CVar.FindCVar("odoom_key_c"); if (v != null) keyC = v.GetInt();
@@ -104,8 +160,13 @@ class OASISInventoryOverlayHandler : EventHandler
 		v = CVar.FindCVar("odoom_key_i"); if (v != null) keyI = v.GetInt();
 		v = CVar.FindCVar("odoom_key_o"); if (v != null) keyO = v.GetInt();
 		v = CVar.FindCVar("odoom_key_p"); if (v != null) keyP = v.GetInt();
+		v = CVar.FindCVar("odoom_key_q"); if (v != null) keyQ = v.GetInt();
 		v = CVar.FindCVar("odoom_key_enter"); if (v != null) keyEnter = v.GetInt();
 		bool keyUpPressed = (keyUp != 0) && !wasKeyUpDown;
+		bool keyPgUpPressed = (keyPgUp != 0) && !wasKeyPgUpDown;
+		bool keyPgDownPressed = (keyPgDown != 0) && !wasKeyPgDownDown;
+		bool keyHomePressed = (keyHome != 0) && !wasKeyHomeDown;
+		bool keyEndPressed = (keyEnd != 0) && !wasKeyEndDown;
 		bool keyDownPressed = (keyDown != 0) && !wasKeyDownDown;
 		bool keyLeftPressed = (keyLeft != 0) && !wasKeyLeftDown;
 		bool keyRightPressed = (keyRight != 0) && !wasKeyRightDown;
@@ -117,6 +178,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyIPressed = (keyI != 0) && !wasKeyIDown;
 		bool keyOPressed = (keyO != 0) && !wasKeyODown;
 		bool keyPPressed = (keyP != 0) && !wasKeyPDown;
+		bool keyQPressed = (keyQ != 0) && !wasKeyQDown;
 		bool keyEnterPressed = (keyEnter != 0) && !wasKeyEnterDown;
 		wasKeyUpDown = (keyUp != 0);
 		wasKeyDownDown = (keyDown != 0);
@@ -130,7 +192,12 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyIDown = (keyI != 0);
 		wasKeyODown = (keyO != 0);
 		wasKeyPDown = (keyP != 0);
+		wasKeyQDown = (keyQ != 0);
 		wasKeyEnterDown = (keyEnter != 0);
+		wasKeyPgUpDown = (keyPgUp != 0);
+		wasKeyPgDownDown = (keyPgDown != 0);
+		wasKeyHomeDown = (keyHome != 0);
+		wasKeyEndDown = (keyEnd != 0);
 
 		if ((user1Down && !wasUser1Down) || keyIPressed)
 		{
@@ -139,6 +206,108 @@ class OASISInventoryOverlayHandler : EventHandler
 			{
 				scrollOffset = 0;
 				selectedAbsolute = 0;
+			}
+		}
+		// Q toggles quest popup (same technique as I for inventory: one place, edge-triggered toggle)
+		if (keyQPressed)
+		{
+			questPopupOpen = !questPopupOpen;
+			if (questPopupOpen) {
+				questSelectedIndex = 0;
+				questScrollOffset = 0;
+				questStatusMessage = "";
+				questStatusFrames = 0;
+				CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
+				if (scrollCv != null) scrollCv.SetInt(0);
+			}
+			if (questPopupCv != null) questPopupCv.SetInt(questPopupOpen ? 1 : 0);
+		}
+		// Pressing I while quest popup is open closes quest (I will also toggle inventory)
+		if (questPopupOpen && keyIPressed)
+		{
+			questPopupOpen = false;
+			questStatusMessage = "";
+			questStatusFrames = 0;
+			if (questPopupCv != null) questPopupCv.SetInt(0);
+		}
+		if (questPopupOpen)
+		{
+			CVar scrollCvSync = CVar.FindCVar("odoom_quest_scroll_offset");
+			if (scrollCvSync != null) questScrollOffset = scrollCvSync.GetInt();
+			CVar listCv = CVar.FindCVar("odoom_quest_list");
+			String listStr = (listCv != null) ? listCv.GetString() : "";
+			array<String> questLines;
+			if (listStr.Length() > 0 && listStr.IndexOf("Error:") != 0 && listStr.IndexOf("Loading") != 0)
+			{
+				array<String> allLines;
+				listStr.Split(allLines, "\n", false);
+				for (int L = 0; L < allLines.Size(); L++)
+				{
+					if (allLines[L].Length() >= 2 && allLines[L].IndexOf("Q\t") == 0)
+						questLines.Push(allLines[L]);
+				}
+			}
+			CVar fnCv = CVar.FindCVar("odoom_quest_filter_not_started");
+			CVar fiCv = CVar.FindCVar("odoom_quest_filter_in_progress");
+			CVar fcCv = CVar.FindCVar("odoom_quest_filter_completed");
+			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
+			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
+			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
+			/* Handle filter toggles whenever popup is open so they work even when list is empty (e.g. after turning off Not Started). */
+			if (keyHomePressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_not_started");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyEndPressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_completed");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyPgUpPressed) {
+				CVar cv = CVar.FindCVar("odoom_quest_filter_in_progress");
+				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
+			}
+			array<int> filteredIndices;
+			for (int b = 0; b < questLines.Size(); b++)
+			{
+				array<String> parts;
+				questLines[b].Split(parts, "\t", false);
+				if (parts.Size() < 5) continue;
+				String st = parts[4];
+				bool show = ((st.Compare("NotStarted") == 0 || st.Compare("Not Started") == 0) && fn != 0) || ((st.Compare("InProgress") == 0 || st.Compare("In Progress") == 0) && fi != 0) || (st.Compare("Completed") == 0 && fc != 0);
+				if (show) filteredIndices.Push(b);
+			}
+			int qCount = filteredIndices.Size();
+			if (qCount > 0)
+			{
+				if (keyDownPressed) { questSelectedIndex++; if (questSelectedIndex >= qCount) questSelectedIndex = qCount - 1; }
+				if (keyUpPressed) { questSelectedIndex--; if (questSelectedIndex < 0) questSelectedIndex = 0; }
+				if (keyEnterPressed)
+				{
+					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
+					{
+						array<String> parts;
+						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", false);
+						if (parts.Size() >= 5)
+						{
+							String qid = parts[1];
+							String status = parts[4];
+							if ((status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0) && qid.Length() > 0)
+							{
+								questStatusMessage = "Starting quest...";
+								questStatusFrames = 105;
+								CVar idCv = CVar.FindCVar("odoom_quest_set_active_id");
+								CVar doCv = CVar.FindCVar("odoom_quest_set_active_do_it");
+								if (idCv != null) idCv.SetString(qid);
+								if (doCv != null) doCv.SetInt(1);
+							}
+							else if ((status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0) && qid.Length() > 0)
+							{
+								CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
+								if (trackerIdCv != null) trackerIdCv.SetString(qid);
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -161,79 +330,71 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			int starCount = 0;
 			array<String> starNames, starDescs, starTypes, starGames;
-			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames);
+			array<int> starQuantities;
+			starCount = BuildStarItemsForTab(starNames, starDescs, starTypes, starGames, starQuantities);
+			// Total count from C++ (so we can scroll through all items; list CVar only has current window)
+			cachedStarTotalCount = 0;
+			CVar countCv = CVar.FindCVar("odoom_star_inventory_count");
+			if (countCv != null) cachedStarTotalCount = countCv.GetInt();
+			if (cachedStarTotalCount < 0) cachedStarTotalCount = 0;
+
 			array<Inventory> tabItems;
 			BuildTabInventory(p.mo, tabItems);
 
-			// Group STAR by short label (like OQuake): same label = one row, sum count; keep first raw name per group for send
+			// One row per item in the window (no grouping) so scroll/selection indices match full list
 			array<String> starGroupLabels;
 			array<int> starGroupCounts;
 			array<String> starGroupFirstNames;
+			array<String> starGroupTypes;
+			array<String> starGroupDescs;
 			for (int i = 0; i < starCount; i++)
 			{
-				String label = StarItemShortLabel(starNames[i], starGames[i]);
-				int r = 0;
-				for (r = 0; r < starGroupLabels.Size(); r++)
-					if (starGroupLabels[r] == label) break;
-				if (r >= starGroupLabels.Size())
-				{
-					starGroupLabels.Push(label);
-					starGroupCounts.Push(1);
-					starGroupFirstNames.Push(starNames[i]);
-				}
-				else
-					starGroupCounts[r]++;
+				int qty = (i < starQuantities.Size() && starQuantities[i] > 0) ? starQuantities[i] : 1;
+				// Monster items already have game in the name (e.g. "Dog (OQUAKE)"); don't append game again.
+				String desc = (i < starDescs.Size()) ? starDescs[i] : "";
+				String label = (i < starTypes.Size() && starTypes[i].Compare("Monster") == 0)
+					? starNames[i]
+					: StarItemShortLabelWithAmount(starNames[i], starGames[i], desc);
+				starGroupLabels.Push(String.Format("%s x%d", label, qty));
+				starGroupCounts.Push(qty);
+				starGroupFirstNames.Push(starNames[i]);
+				starGroupTypes.Push((i < starTypes.Size()) ? starTypes[i] : "Item");
+				starGroupDescs.Push((i < starDescs.Size()) ? starDescs[i] : "");
 			}
 			int starGroupCount = starGroupLabels.Size();
+			if (starGroupCount > MAX_STAR_GROUPS_TO_CACHE) starGroupCount = MAX_STAR_GROUPS_TO_CACHE;
 			cachedStarCount = starGroupCount;
 			cachedStarListForTab = "";
 			for (int i = 0; i < starGroupCount; i++)
 			{
-				String line = (starGroupCounts[i] > 1) ? String.Format("%s x%d", starGroupLabels[i], starGroupCounts[i]) : starGroupLabels[i];
-				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, line);
+				cachedStarListForTab = String.Format("%s%s\n", cachedStarListForTab, starGroupLabels[i]);
 			}
 
-			// Group local items by class name (like OQuake): same item type = one row, sum amounts
+			// Show only shared (STAR/ODOOM) inventory; do not show local Doom actor items to avoid duplicates.
+			int localGroupCount = 0;
+			cachedLocalCount = 0;
+			cachedLocalListForTab = "";
 			array<String> localGroupClass;
 			array<String> localGroupDisp;
 			array<int> localGroupAmount;
 			array<int> localGroupRepIdx;
-			for (int i = 0; i < tabItems.Size(); i++)
-			{
-				String cls = tabItems[i].GetClassName();
-				int amt = tabItems[i].Amount;
-				int r = 0;
-				for (r = 0; r < localGroupClass.Size(); r++)
-					if (localGroupClass[r] == cls) break;
-				if (r >= localGroupClass.Size())
-				{
-					localGroupClass.Push(cls);
-					localGroupDisp.Push(GetItemDisplayNamePlay(tabItems[i]));
-					localGroupAmount.Push(amt);
-					localGroupRepIdx.Push(i);
-				}
-				else
-					localGroupAmount[r] += amt;
-			}
-			int localGroupCount = localGroupClass.Size();
-			cachedLocalCount = localGroupCount;
-			cachedLocalListForTab = "";
-			for (int i = 0; i < localGroupCount; i++)
-			{
-				String line = (localGroupAmount[i] > 1) ? String.Format("%s  x%d", localGroupDisp[i], localGroupAmount[i]) : localGroupDisp[i];
-				cachedLocalListForTab = String.Format("%s%s\n", cachedLocalListForTab, line);
-			}
 
-			int listCount = starGroupCount + localGroupCount;
+			// listCount = total STAR items (so scroll covers all) + local
+			int listCount = cachedStarTotalCount + localGroupCount;
 			int maxOffset = listCount - MAX_VISIBLE_ROWS;
 			if (maxOffset < 0) maxOffset = 0;
 			if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
 			if (selectedAbsolute < 0) selectedAbsolute = 0;
+			// Keep selection inside current window so use/send can resolve starGroupFirstNames[selectedAbsolute - scrollOffset]
+			if (cachedStarTotalCount > 0 && selectedAbsolute < scrollOffset) selectedAbsolute = scrollOffset;
+			if (cachedStarTotalCount > 0 && starGroupCount > 0 && selectedAbsolute >= scrollOffset + starGroupCount)
+				selectedAbsolute = scrollOffset + starGroupCount - 1;
 			Inventory selectedItem = null;
 			int groupAmountForSend = 0;
-			if (selectedAbsolute >= starGroupCount && selectedAbsolute - starGroupCount < localGroupCount)
+			int starWindowIdx = (cachedStarTotalCount > 0) ? (selectedAbsolute - scrollOffset) : selectedAbsolute;
+			if (selectedAbsolute >= (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && selectedAbsolute - (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) < localGroupCount)
 			{
-				int gidx = selectedAbsolute - starGroupCount;
+				int gidx = selectedAbsolute - (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount);
 				selectedItem = tabItems[localGroupRepIdx[gidx]];
 				groupAmountForSend = localGroupAmount[gidx];
 			}
@@ -261,27 +422,112 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (scrollOffset > maxOffset) scrollOffset = maxOffset;
 			}
 
+			// PgUp / PgDn / Home / End with bounds checks so we never scroll out of range
+			if (keyPgUpPressed)
+			{
+				scrollOffset -= MAX_VISIBLE_ROWS;
+				if (scrollOffset < 0) scrollOffset = 0;
+				selectedAbsolute = scrollOffset;
+				if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
+			}
+			if (keyPgDownPressed)
+			{
+				scrollOffset += MAX_VISIBLE_ROWS;
+				if (scrollOffset > maxOffset) scrollOffset = maxOffset;
+				selectedAbsolute = scrollOffset + MAX_VISIBLE_ROWS - 1;
+				if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
+				if (selectedAbsolute < 0) selectedAbsolute = 0;
+			}
+			if (keyHomePressed)
+			{
+				scrollOffset = 0;
+				selectedAbsolute = 0;
+			}
+			if (keyEndPressed)
+			{
+				scrollOffset = maxOffset;
+				if (scrollOffset < 0) scrollOffset = 0;
+				selectedAbsolute = listCount - 1;
+				if (selectedAbsolute < 0) selectedAbsolute = 0;
+			}
+
+			bool canUseStar = (selectedAbsolute < (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && starGroupCount > 0 && starWindowIdx >= 0 && starWindowIdx < starGroupCount && starGroupCounts[starWindowIdx] > 0);
 			if ((useDown && !wasUseDown) || keyUsePressed)
 			{
-				if (selectedItem != null && selectedItem.Amount > 0)
+				if (canUseStar)
 				{
-					p.mo.UseInventory(selectedItem);
+					String starType = starGroupTypes[starWindowIdx];
+					// STAR weapons: switch to that weapon if player has it locally (do not consume from STAR).
+					if (starType.IndexOf("Weapon") >= 0)
+					{
+						String wname = starGroupFirstNames[starWindowIdx];
+						// Match by class name (wname may be "Shotgun" or "Shotgun (ODOOM)")
+						for (let inv = p.mo.Inv; inv != null; inv = inv.Inv)
+						{
+							if (inv is "Weapon")
+							{
+								String cname = inv.GetClassName();
+								if (cname.IndexOf(wname) >= 0 || wname.IndexOf(cname) >= 0)
+								{
+									p.PendingWeapon = Weapon(inv);
+									break;
+								}
+							}
+						}
+					}
+					// STAR ammo: pressing E has no effect (cannot use/consume ammo from inventory).
+					else if (starType.IndexOf("Ammo") >= 0)
+					{
+						// no-op
+					}
+					// STAR keys/keycards: pressing E has no effect; keys can only be used when pressing E on a door.
+					else if (starType.IndexOf("Key") >= 0)
+					{
+						// no-op
+					}
+					else
+					{
+						CVar nameCv = CVar.FindCVar("odoom_star_use_item_name");
+						CVar typeCv = CVar.FindCVar("odoom_star_use_item_type");
+						CVar descCv = CVar.FindCVar("odoom_star_use_item_description");
+						CVar doCv = CVar.FindCVar("odoom_star_use_do_it");
+						if (nameCv != null) nameCv.SetString(starGroupFirstNames[starWindowIdx]);
+						if (typeCv != null) typeCv.SetString(starType);
+						if (descCv != null && starWindowIdx < starGroupDescs.Size()) descCv.SetString(starGroupDescs[starWindowIdx]);
+						if (doCv != null) doCv.SetInt(1);
+					}
+				}
+				else if (selectedItem != null && selectedItem.Amount > 0)
+				{
+					// Weapons: switch to that weapon (do not consume); Ammo and Keys: no effect (use only on door for keys).
+					if (selectedItem is "Weapon")
+					{
+						Weapon w = Weapon(selectedItem);
+						if (w != null)
+						{
+							p.PendingWeapon = w;
+						}
+					}
+					else if (!(selectedItem is "Ammo") && !(selectedItem is "Key"))
+					{
+						p.mo.UseInventory(selectedItem);
+					}
 					if (selectedAbsolute >= listCount && listCount > 0) selectedAbsolute = listCount - 1;
 					if (selectedAbsolute < 0) selectedAbsolute = 0;
 				}
 			}
 
 			// A or Z = Send to Avatar, C or X = Send to Clan - open send popup for STAR or local items
-			bool canSendStar = (selectedAbsolute < starGroupCount && starGroupCount > 0 && starGroupCounts[selectedAbsolute] > 0);
+			bool canSendStar = (selectedAbsolute < (cachedStarTotalCount > 0 ? cachedStarTotalCount : starGroupCount) && starGroupCount > 0 && starWindowIdx >= 0 && starWindowIdx < starGroupCount && starGroupCounts[starWindowIdx] > 0);
 			bool canSendLocal = (selectedItem != null && (selectedItem.Amount > 0 || groupAmountForSend > 0));
 			if ((keyAPressed || keyZPressed) && (canSendStar || canSendLocal))
 			{
 				sendPopupMode = 1;
 				if (canSendStar)
 				{
-					sendMaxQty = starGroupCounts[selectedAbsolute];
-					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
-					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+					sendMaxQty = starGroupCounts[starWindowIdx];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[starWindowIdx]);
+					sendItemDisplayLabel = (starGroupCounts[starWindowIdx] > 1) ? String.Format("%s x%d", starGroupLabels[starWindowIdx], starGroupCounts[starWindowIdx]) : starGroupLabels[starWindowIdx];
 				}
 				else
 				{
@@ -291,7 +537,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					String dispName = GetItemDisplayNamePlay(selectedItem);
 					sendItemDisplayLabel = (sendMaxQty > 1) ? String.Format("%s x%d", dispName, sendMaxQty) : dispName;
 				}
-				sendQuantity = sendMaxQty;
+				sendQuantity = 1;
 				sendButtonFocus = 0;
 				sendInputLine = "";
 				CVar lineVar = CVar.FindCVar("odoom_send_input_line");
@@ -304,9 +550,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				sendPopupMode = 2;
 				if (canSendStar)
 				{
-					sendMaxQty = starGroupCounts[selectedAbsolute];
-					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[selectedAbsolute]);
-					sendItemDisplayLabel = (starGroupCounts[selectedAbsolute] > 1) ? String.Format("%s x%d", starGroupLabels[selectedAbsolute], starGroupCounts[selectedAbsolute]) : starGroupLabels[selectedAbsolute];
+					sendMaxQty = starGroupCounts[starWindowIdx];
+					sendItemClass = String.Format("STAR:%s", starGroupFirstNames[starWindowIdx]);
+					sendItemDisplayLabel = (starGroupCounts[starWindowIdx] > 1) ? String.Format("%s x%d", starGroupLabels[starWindowIdx], starGroupCounts[starWindowIdx]) : starGroupLabels[starWindowIdx];
 				}
 				else
 				{
@@ -316,7 +562,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					String dispName = GetItemDisplayNamePlay(selectedItem);
 					sendItemDisplayLabel = (sendMaxQty > 1) ? String.Format("%s x%d", dispName, sendMaxQty) : dispName;
 				}
-				sendQuantity = sendMaxQty;
+				sendQuantity = 1;
 				sendButtonFocus = 0;
 				sendInputLine = "";
 				CVar lineVar = CVar.FindCVar("odoom_send_input_line");
@@ -361,6 +607,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			if (keyRightPressed) sendButtonFocus = 1;
 			if (keyUpPressed && sendQuantity < sendMaxQty) sendQuantity++;
 			if (keyDownPressed && sendQuantity > 1) sendQuantity--;
+			if (keyPgUpPressed && sendQuantity < sendMaxQty) { sendQuantity += 10; if (sendQuantity > sendMaxQty) sendQuantity = sendMaxQty; }
+			if (keyPgDownPressed && sendQuantity > 1) { sendQuantity -= 10; if (sendQuantity < 1) sendQuantity = 1; }
 			// I = close popup without sending (cancel)
 			if (keyIPressed)
 			{
@@ -447,6 +695,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		case TAB_WEAPONS: return "Weapons";
 		case TAB_AMMO: return "Ammo";
 		case TAB_ARMOR: return "Armor";
+		case TAB_MONSTERS: return "Monsters";
 		default: return "Items";
 		}
 	}
@@ -459,6 +708,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return item is "Weapon";
 		if (tabIndex == TAB_AMMO) return item is "Ammo";
 		if (tabIndex == TAB_ARMOR) return item is "Armor";
+		if (tabIndex == TAB_MONSTERS) return false;  // Monster NFTs are STAR-only, no local actor
 		return !(item is "Key") && !(item is "Powerup") && !(item is "Weapon") && !(item is "Armor") && !(item is "Ammo");
 	}
 
@@ -472,51 +722,23 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
-		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, or Armor
+		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0;
+		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, Armor, or Monsters
 		if (tabIndex == TAB_ITEMS)
-			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor");
+			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor") && (t != "Monster" && t.IndexOf("Monster") < 0);
 		return true;
 	}
 
-	// Short display label for STAR items (like OQuake): "Shotgun (OQUAKE)" instead of "quake_pickup_weapon_shotgun".
+	// Short display label for STAR items: "Shells (OQUAKE)" – item name (game in brackets). Names are already short (Shells, Shotgun, etc.).
+	// If name already contains " (OQUAKE)" or " (ODOOM)" (e.g. monster kills), show as-is to avoid duplicating game.
 	private String StarItemShortLabel(String name, String game)
 	{
 		String n = name;
+		if (n.IndexOf(" (OQUAKE)") >= 0 || n.IndexOf(" (ODOOM)") >= 0)
+			return n;
 		String g = (game.Length() > 0) ? game : "STAR";
 		if (g == "QUAKE" || g == "Quake" || g == "quake") g = "OQUAKE";
-		if (n.IndexOf("quake_pickup_shells") >= 0) return String.Format("Shells (%s)", g);
-		if (n.IndexOf("quake_pickup_nails") >= 0) return String.Format("Nails (%s)", g);
-		if (n.IndexOf("quake_pickup_rockets") >= 0) return String.Format("Rockets (%s)", g);
-		if (n.IndexOf("quake_pickup_cells") >= 0) return String.Format("Cells (%s)", g);
-		if (n.IndexOf("quake_pickup_armor_green") >= 0 || n == "quake_armor_green") return String.Format("Green Armor (%s)", g);
-		if (n.IndexOf("quake_pickup_armor_yellow") >= 0 || n == "quake_armor_yellow") return String.Format("Yellow Armor (%s)", g);
-		if (n.IndexOf("quake_pickup_armor_red") >= 0 || n == "quake_armor_red") return String.Format("Red Armor (%s)", g);
-		if (n.IndexOf("quake_pickup_health") >= 0) return String.Format("Health (%s)", g);
-		if (n.IndexOf("quake_pickup_quad") >= 0 || n == "quake_powerup_quad") return String.Format("Quad Damage (%s)", g);
-		if (n.IndexOf("quake_pickup_suit") >= 0 || n == "quake_powerup_suit") return String.Format("Biosuit (%s)", g);
-		if (n.IndexOf("quake_pickup_invisibility") >= 0 || n == "quake_powerup_invisibility") return String.Format("Ring of Shadows (%s)", g);
-		if (n.IndexOf("quake_pickup_invulnerability") >= 0 || n == "quake_powerup_invulnerability") return String.Format("Pentagram of Protection (%s)", g);
-		if (n.IndexOf("quake_pickup_megahealth") >= 0 || n == "quake_powerup_megahealth") return String.Format("Megahealth (%s)", g);
-		if (n.IndexOf("super_shotgun") >= 0) return String.Format("Super Shotgun (%s)", g);
-		if (n.IndexOf("shotgun") >= 0) return String.Format("Shotgun (%s)", g);
-		if (n.IndexOf("super_nailgun") >= 0) return String.Format("Super Nailgun (%s)", g);
-		if (n.IndexOf("nailgun") >= 0) return String.Format("Nailgun (%s)", g);
-		if (n.IndexOf("grenade_launcher") >= 0 || n.IndexOf("grenade") >= 0) return String.Format("Grenade Launcher (%s)", g);
-		if (n.IndexOf("rocket_launcher") >= 0 || n.IndexOf("rocket") >= 0) return String.Format("Rocket Launcher (%s)", g);
-		if (n.IndexOf("super_lightning") >= 0) return String.Format("Super Lightning (%s)", g);
-		if (n.IndexOf("lightning") >= 0) return String.Format("Lightning Gun (%s)", g);
-		if (n.IndexOf("quake_pickup_sigil_1") >= 0 || n == "quake_sigil_1") return String.Format("Sigil Piece 1 (%s)", g);
-		if (n.IndexOf("quake_pickup_sigil_2") >= 0 || n == "quake_sigil_2") return String.Format("Sigil Piece 2 (%s)", g);
-		if (n.IndexOf("quake_pickup_sigil_3") >= 0 || n == "quake_sigil_3") return String.Format("Sigil Piece 3 (%s)", g);
-		if (n.IndexOf("quake_pickup_sigil_4") >= 0 || n == "quake_sigil_4") return String.Format("Sigil Piece 4 (%s)", g);
-		// OQuake keys: silver_key = Silver Key, gold_key = Gold Key (OQUAKE_ITEM_* in OQuake)
-		if (n.IndexOf("silver_key") >= 0 || n.IndexOf("key_silver") >= 0 || n.IndexOf("Silver") >= 0) return String.Format("Silver Key (%s)", g);
-		if (n.IndexOf("gold_key") >= 0 || n.IndexOf("key_gold") >= 0 || n.IndexOf("Gold") >= 0) return String.Format("Gold Key (%s)", g);
-		if (n.IndexOf("red_keycard") >= 0 || n.IndexOf("red_key") >= 0) return String.Format("Red Keycard (%s)", g);
-		if (n.IndexOf("blue_keycard") >= 0 || n.IndexOf("blue_key") >= 0) return String.Format("Blue Keycard (%s)", g);
-		if (n.IndexOf("yellow_keycard") >= 0 || n.IndexOf("yellow_key") >= 0) return String.Format("Yellow Keycard (%s)", g);
-		if (n.IndexOf("keycard") >= 0 || n.IndexOf("key") >= 0) return String.Format("Key (%s)", g);  // generic key (OQuake uses Silver Key / Gold Key)
-		// ODOOM/Doom: clip, bulletbox, shell, etc. (check after Quake rockets/lightning)
+		// ODOOM/Doom-specific mappings
 		if (n.IndexOf("Clip") >= 0 || n.IndexOf("clip") >= 0 || n.IndexOf("Bullet") >= 0) return String.Format("Bullets (%s)", g);
 		if (n.IndexOf("Shell") >= 0 || n.IndexOf("shell") >= 0) return String.Format("Shells (%s)", g);
 		if (n.IndexOf("Cell") >= 0 || n.IndexOf("cell") >= 0) return String.Format("Cells (%s)", g);
@@ -525,8 +747,28 @@ class OASISInventoryOverlayHandler : EventHandler
 		if (n.IndexOf("Medikit") >= 0 || n.IndexOf("medikit") >= 0) return String.Format("Medikit (%s)", g);
 		if (n.IndexOf("Backpack") >= 0 || n.IndexOf("backpack") >= 0) return String.Format("Backpack (%s)", g);
 		if (n.IndexOf("Weapon") >= 0 || n.IndexOf("weapon") >= 0) return String.Format("Weapon (%s)", g);
+		if (n.IndexOf("red_keycard") >= 0 || n.IndexOf("red_key") >= 0) return String.Format("Red Keycard (%s)", g);
+		if (n.IndexOf("blue_keycard") >= 0 || n.IndexOf("blue_key") >= 0) return String.Format("Blue Keycard (%s)", g);
+		if (n.IndexOf("yellow_keycard") >= 0 || n.IndexOf("yellow_key") >= 0) return String.Format("Yellow Keycard (%s)", g);
 		if (n.Length() > 24) return String.Format("%s (%s)", n.Left(21), g);
 		return String.Format("%s (%s)", n, g);
+	}
+
+	// Like StarItemShortLabel but if desc contains "(+N)" appends " +N" before game tag (e.g. "Green Armor +100 (OQUAKE)").
+	private String StarItemShortLabelWithAmount(String name, String game, String desc)
+	{
+		String base = StarItemShortLabel(name, game);
+		if (desc.Length() == 0) return base;
+		int plusIdx = desc.IndexOf("(+");
+		if (plusIdx < 0) return base;
+		int numStart = plusIdx + 2;
+		int numEnd = desc.IndexOf(")", numStart);
+		if (numEnd <= numStart) return base;
+		String amount = desc.Mid(numStart, numEnd - numStart);
+		int insertAt = base.IndexOf(" (");
+		if (insertAt >= 0)
+			return String.Format("%s +%s%s", base.Left(insertAt), amount, base.Mid(insertAt));
+		return String.Format("%s +%s", base, amount);
 	}
 
 	private void BuildTabInventory(Actor owner, out array<Inventory> outItems)
@@ -543,21 +785,24 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 	}
 
-	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\n" per line) and append STAR items for active tab to display list.
-	// Returns number of STAR rows added. Row data appended to starNames, starDescs, starTypes, starGames.
-	private int BuildStarItemsForTab(out array<String> starNames, out array<String> starDescs, out array<String> starTypes, out array<String> starGames)
+	// Parse odoom_star_inventory_list (format "name\tdesc\ttype\tgame\tquantity\n" per line, quantity optional) and append STAR items for active tab.
+	// Returns number of STAR rows. Row data in starNames, starDescs, starTypes, starGames, starQuantities (qty per row, for grouping).
+	private int BuildStarItemsForTab(out array<String> starNames, out array<String> starDescs, out array<String> starTypes, out array<String> starGames, out array<int> starQuantities)
 	{
 		starNames.Clear();
 		starDescs.Clear();
 		starTypes.Clear();
 		starGames.Clear();
+		starQuantities.Clear();
 		CVar listVar = CVar.FindCVar("odoom_star_inventory_list");
 		if (listVar == null) return 0;
 		String listStr = listVar.GetString();
 		if (listStr.Length() == 0) return 0;
 		array<String> lines;
 		listStr.Split(lines, "\n", false);
-		for (int i = 0; i < lines.Size(); i++)
+		int maxLines = lines.Size();
+		if (maxLines > MAX_STAR_ITEMS_TO_PARSE) maxLines = MAX_STAR_ITEMS_TO_PARSE;
+		for (int i = 0; i < maxLines; i++)
 		{
 			array<String> parts;
 			lines[i].Split(parts, "\t", false);
@@ -566,11 +811,18 @@ class OASISInventoryOverlayHandler : EventHandler
 			String desc = parts[1];
 			String typ = parts[2];
 			String game = parts[3];
+			int qty = 1;
+			if (parts.Size() >= 5 && parts[4].Length() > 0)
+			{
+				qty = parts[4].ToInt();
+				if (qty < 1) qty = 1;
+			}
 			if (!IsStarItemInTab(typ, name, activeTab)) continue;
 			starNames.Push(name);
 			starDescs.Push(desc);
 			starTypes.Push(typ);
 			starGames.Push(game);
+			starQuantities.Push(qty);
 		}
 		return starNames.Size();
 	}
@@ -598,11 +850,178 @@ class OASISInventoryOverlayHandler : EventHandler
 
 	override void RenderOverlay(RenderEvent e)
 	{
-		if (!popupOpen) return;
 		let p = players[consoleplayer];
 		if (!p || !p.mo) return;
 
 		Font f = "SmallFont";
+
+		// XP at far right of screen when beamed in (always visible during play)
+		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
+		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
+		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null)
+		{
+			int xp = xpVar.GetInt();
+			String xpText = String.Format("XP: %d", xp);
+			int xpW = f.StringWidth(xpText);
+			int xpX = 320 - xpW - 2 + 50;  // 50px to the right of original position
+			screen.DrawText(f, Font.CR_GOLD, xpX, 2, xpText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		}
+
+		// Toast message at top center (~3 seconds when C++ sets odoom_star_toast_message and odoom_star_toast_frames). Scaled down so it fits on screen.
+		CVar toastFramesCv = CVar.FindCVar("odoom_star_toast_frames");
+		CVar toastMsgCv = CVar.FindCVar("odoom_star_toast_message");
+		if (toastFramesCv != null && toastFramesCv.GetInt() > 0 && toastMsgCv != null)
+		{
+			String toastMsg = toastMsgCv.GetString();
+			if (toastMsg.Length() > 0)
+			{
+				double toastScale = 0.5;
+				int tw = int(f.StringWidth(toastMsg) * toastScale);
+				int tx = 160 - (tw / 2);
+				if (tx < 2) tx = 2;
+				screen.DrawText(f, Font.CR_GOLD, tx, 4, toastMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, toastScale, DTA_ScaleY, toastScale);
+			}
+		}
+
+		// Pickup toast: "Picked up X" in red at top-left when we take health/armor/ammo into STAR (same style as engine pickup message).
+		CVar pickupFramesCv = CVar.FindCVar("odoom_star_pickup_toast_frames");
+		CVar pickupMsgCv = CVar.FindCVar("odoom_star_pickup_toast_message");
+		if (pickupFramesCv != null && pickupFramesCv.GetInt() > 0 && pickupMsgCv != null)
+		{
+			String pickupMsg = pickupMsgCv.GetString();
+			if (pickupMsg.Length() > 0)
+			{
+				double pickupScale = 0.5;
+				screen.DrawText(f, Font.CR_RED, 2, 4, pickupMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, pickupScale, DTA_ScaleY, pickupScale);
+			}
+		}
+
+		// Quest Tracker: left side, just below "Beamed In:" (like Quake). "Current Quest: <title>". Hide when quest popup is open.
+		if (!questPopupOpen)
+		{
+			CVar trackerTitleCv = CVar.FindCVar("odoom_quest_tracker_title");
+			CVar trackerObjCv = CVar.FindCVar("odoom_quest_tracker_objective");
+			bool beamedIn = (beamedVar != null && beamedVar.GetInt() != 0);
+			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
+			if (beamedIn && qTitle.Length() > 0)
+			{
+				int trackX = 0;   // top-left of screen
+				int trackY = 12;  // just below "Beamed In: <username>" (drawn at y=2 in status bar)
+				double trackScale = 0.5;
+				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
+				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+				String qObj = (trackerObjCv != null) ? trackerObjCv.GetString() : "";
+				if (qObj.Length() > 0)
+					screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+			}
+		}
+
+		// Quest popup (Q key): same layout as OQuake - table Name | % | Status, left-aligned, "Starting quest..." bottom-right
+		if (questPopupOpen)
+		{
+			CVar listCv = CVar.FindCVar("odoom_quest_list");
+			String listStr = (listCv != null) ? listCv.GetString() : "";
+			array<String> drawQuestLines;
+			if (listStr.Length() > 0 && listStr.IndexOf("Error:") != 0 && listStr.IndexOf("Loading") != 0)
+			{
+				array<String> allLines;
+				listStr.Split(allLines, "\n", false);
+				for (int L = 0; L < allLines.Size(); L++)
+				{
+					if (allLines[L].Length() >= 2 && allLines[L].IndexOf("Q\t") == 0)
+						drawQuestLines.Push(allLines[L]);
+				}
+			}
+			CVar fnCv = CVar.FindCVar("odoom_quest_filter_not_started");
+			CVar fiCv = CVar.FindCVar("odoom_quest_filter_in_progress");
+			CVar fcCv = CVar.FindCVar("odoom_quest_filter_completed");
+			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
+			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
+			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
+			array<int> drawFilteredIndices;
+			for (int b = 0; b < drawQuestLines.Size(); b++)
+			{
+				array<String> parts;
+				drawQuestLines[b].Split(parts, "\t", false);
+				if (parts.Size() < 5) continue;
+				String st = parts[4];
+				bool show = ((st.Compare("NotStarted") == 0 || st.Compare("Not Started") == 0) && fn != 0) || ((st.Compare("InProgress") == 0 || st.Compare("In Progress") == 0) && fi != 0) || (st.Compare("Completed") == 0 && fc != 0);
+				if (show) drawFilteredIndices.Push(b);
+			}
+			int qCount = drawFilteredIndices.Size();
+			int popupW = 320;  // full width of screen (virtual 320), left-aligned
+			int popupH = 200;
+			int popupX = 0;    // fully align to left edge
+			int popupY = 0;
+			int rowH = 12;
+			int col1X = popupX + 8;
+			int col2X = popupX + 8 + 32 * 8;  // name column doubled (was 16 chars, now 32)
+			int col3X = popupX + 8 + 32 * 8 + 6 * 8;  // % then Status
+			int maxQuestRows = (popupH - 80) / rowH - 3; // show 3 fewer quest rows (1 less visible than previous)
+			if (maxQuestRows < 5) maxQuestRows = 5;
+			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 4, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
+			String cb2 = (fi != 0) ? "[X] In Progress" : "[ ] In Progress";
+			String cb3 = (fc != 0) ? "[X] Completed" : "[ ] Completed";
+			screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 24, String.Format("%s  %s  %s", cb1, cb2, cb3), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
+			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
+			int newScrollOffset = scrollFromCvar;
+			if (listStr.IndexOf("Error:") == 0)
+			{
+				screen.DrawText(f, Font.CR_RED, popupX + 8, popupY + 48, "Error loading quests. Check console or star_api.log for details.", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			else if (listStr.IndexOf("Loading") == 0)
+			{
+				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "Loading quests...", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			else if (qCount > 0 && drawQuestLines.Size() > 0)
+			{
+				screen.DrawText(f, Font.CR_WHITE, col1X, popupY + 48, "Name", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_WHITE, col2X, popupY + 48, "%", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_WHITE, col3X, popupY + 48, "Status", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				int drawOffset = scrollFromCvar;
+				if (drawOffset < 0) drawOffset = 0;
+				if (questSelectedIndex >= drawOffset + maxQuestRows) drawOffset = questSelectedIndex - maxQuestRows + 1;
+				if (questSelectedIndex < drawOffset) drawOffset = questSelectedIndex;
+				newScrollOffset = drawOffset;
+				int y = popupY + 48 + rowH;
+				for (int i = 0; i < maxQuestRows && drawOffset + i < drawFilteredIndices.Size(); i++)
+				{
+					int idx = drawFilteredIndices[drawOffset + i];
+					if (idx < 0 || idx >= drawQuestLines.Size()) continue;
+					array<String> parts;
+					drawQuestLines[idx].Split(parts, "\t", false);
+					if (parts.Size() < 6) continue;
+					String qName = parts[2];
+					String status = parts[4];
+					String pctStr = parts.Size() > 5 ? parts[5] : "0";
+					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
+					if (qName.Length() > 32) qName = String.Format("%s..", qName.Left(30));
+					bool selected = (drawOffset + i == questSelectedIndex);
+					int cr = selected ? Font.CR_GOLD : Font.CR_WHITE;
+					if (status.Compare("Completed") == 0) cr = selected ? Font.CR_GREEN : Font.CR_GRAY;
+					screen.DrawText(f, cr, col1X, y, qName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					screen.DrawText(f, cr, col2X, y, String.Format("%s%%", pctStr), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					screen.DrawText(f, cr, col3X, y, statusDisplay, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					y += rowH;
+				}
+			}
+			else
+				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 45, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
+			{
+				int msgW = f.StringWidth(questStatusMessage);
+				int statusX = popupX + popupW - msgW - 8;
+				if (statusX < popupX + 8) statusX = popupX + 8;
+				screen.DrawText(f, Font.CR_GREEN, statusX, popupY + popupH - 41, questStatusMessage, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			if (scrollCv != null) scrollCv.SetInt(newScrollOffset);
+			return;
+		}
+
+		if (!popupOpen) return;
 
 		// When send popup is open, draw only the send popup (no inventory list behind it)
 		if (sendPopupMode != 0)
@@ -612,9 +1031,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		else
 		{
 		// Use cached list from WorldTick (ui cannot call play-context; cache is string-based)
-		int starCount = cachedStarCount;
+		int starCount = cachedStarCount;       // window size
+		int starTotal = cachedStarTotalCount;  // total for scroll math
 		int tabSize = cachedLocalCount;
-		int listCount = starCount + tabSize;
+		int listCount = (starTotal > 0) ? (starTotal + tabSize) : (starCount + tabSize);
 		int maxOffset = listCount - MAX_VISIBLE_ROWS;
 		if (maxOffset < 0) maxOffset = 0;
 		int drawOffset = scrollOffset;
@@ -629,27 +1049,30 @@ class OASISInventoryOverlayHandler : EventHandler
 		screen.DrawText(f, Font.CR_GOLD, headerX, 18, "OASIS Inventory", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		int tabGap = 10;
-		int tabX = 6;
+		int tabX = -37;  // 5px further left (was -32)
 		String tab0 = "Keys";
 		String tab1 = "Powerups";
 		String tab2 = "Weapons";
 		String tab3 = "Ammo";
 		String tab4 = "Armor";
 		String tab5 = "Items";
+		String tab6 = "Monsters";
 		int tab0X = tabX;
 		int tab1X = tab0X + f.StringWidth(tab0) + tabGap;
 		int tab2X = tab1X + f.StringWidth(tab1) + tabGap;
 		int tab3X = tab2X + f.StringWidth(tab2) + tabGap;
 		int tab4X = tab3X + f.StringWidth(tab3) + tabGap;
 		int tab5X = tab4X + f.StringWidth(tab4) + tabGap;
+		int tab6X = tab5X + f.StringWidth(tab5) + tabGap;
 		screen.DrawText(f, activeTab == TAB_KEYS ? Font.CR_GREEN : Font.CR_GRAY, tab0X, 33, tab0, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_POWERUPS ? Font.CR_GREEN : Font.CR_GRAY, tab1X, 33, tab1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_WEAPONS ? Font.CR_GREEN : Font.CR_GRAY, tab2X, 33, tab2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_AMMO ? Font.CR_GREEN : Font.CR_GRAY, tab3X, 33, tab3, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_ARMOR ? Font.CR_GREEN : Font.CR_GRAY, tab4X, 33, tab4, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		screen.DrawText(f, activeTab == TAB_ITEMS ? Font.CR_GREEN : Font.CR_GRAY, tab5X, 33, tab5, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, activeTab == TAB_MONSTERS ? Font.CR_GREEN : Font.CR_GRAY, tab6X, 33, tab6, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
-		screen.DrawText(f, Font.CR_DARKGRAY, -16, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_DARKGRAY, -26, 46, "Arrows=Select E=Use A=Avatar C=Clan I=Close O/P=Tabs", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 
 		// Parse cache strings into lines for indexing (local arrays only; no array members)
 		array<String> starLines;
@@ -665,14 +1088,16 @@ class OASISInventoryOverlayHandler : EventHandler
 
 			bool selected = (i == selectedRow);
 
-			if (idx < starCount && idx < starLines.Size())
+			// In windowed mode cache holds [scrollOffset..scrollOffset+N); row i = cache index i. Else full list = cache, row i = drawOffset+i.
+			int starLineIdx = (starTotal > 0) ? i : idx;
+			if (idx < (starTotal > 0 ? starTotal : starCount) && starLineIdx < starLines.Size())
 			{
-				String line = starLines[idx];
-				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_TAN, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				String line = starLines[starLineIdx];
+				screen.DrawText(f, selected ? Font.CR_GOLD : Font.CR_RED, 54, y + 1, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else
 			{
-				int localIdx = idx - starCount;
+				int localIdx = idx - (starTotal > 0 ? starTotal : starCount);
 				if (localIdx >= 0 && localIdx < localLines.Size())
 				{
 					String line = localLines[localIdx];
@@ -681,6 +1106,10 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			y += 16;
 		}
+
+		String keyLine2 = "PgUp/PgDn=Page Home=Top End=Bottom";
+		int keyLine2X = 160 - (f.StringWidth(keyLine2) / 2);
+		screen.DrawText(f, Font.CR_DARKGRAY, keyLine2X, 156, keyLine2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 		}
 
 		// Send popup overlay (OQuake-style): show Sending... / Item sent. / Send failed like Quake
@@ -710,7 +1139,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (sendItemDisplayLabel.Length() > 0)
 					screen.DrawText(f, Font.CR_WHITE, popupX + 8, popupY + 16, String.Format("Item: %s", sendItemDisplayLabel), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 26, String.Format("%s: %s_", label, sendInputLine), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-				String qtyText = String.Format("Quantity: %d / %d (Arrows)", sendQuantity, sendMaxQty);
+				String qtyText = String.Format("Quantity: %d / %d (PgUp/PgDn=10 Arrows=1)", sendQuantity, sendMaxQty);
 				screen.DrawText(f, Font.CR_UNTRANSLATED, popupX + 8, popupY + 38, qtyText, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + 50, "Left=Send  Right=Cancel  Enter=Confirm", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				if (sendButtonFocus == 0)

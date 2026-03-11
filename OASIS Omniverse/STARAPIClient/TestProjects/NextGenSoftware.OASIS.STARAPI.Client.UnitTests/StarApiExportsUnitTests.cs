@@ -60,6 +60,43 @@ public unsafe class StarApiExportsUnitTests
         Assert.Contains("itemList", err ?? string.Empty, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public void StarApiConsumeLastMintResult_WhenNoMint_ReturnsZero()
+    {
+        delegate* unmanaged[Cdecl]<void> cleanupPtr = &StarApiExports.StarApiCleanup;
+        delegate* unmanaged[Cdecl]<star_api_config_t*, int> initPtr = &StarApiExports.StarApiInit;
+        delegate* unmanaged[Cdecl]<sbyte*, nuint, sbyte*, nuint, sbyte*, nuint, int> consumePtr = &StarApiExports.StarApiConsumeLastMintResult;
+
+        cleanupPtr();
+        var baseUrlPtr = StringToNativeUtf8("https://web5.example.com/api");
+        try
+        {
+            var config = new star_api_config_t { base_url = baseUrlPtr, timeout_seconds = 30 };
+            initPtr(&config);
+
+            const int bufSize = 128;
+            var itemBuf = (sbyte*)NativeMemory.AllocZeroed(bufSize);
+            var nftBuf = (sbyte*)NativeMemory.AllocZeroed(bufSize);
+            var hashBuf = (sbyte*)NativeMemory.AllocZeroed(bufSize);
+            try
+            {
+                var code = consumePtr(itemBuf, bufSize, nftBuf, bufSize, hashBuf, bufSize);
+                Assert.Equal(0, code);
+            }
+            finally
+            {
+                NativeMemory.Free(itemBuf);
+                NativeMemory.Free(nftBuf);
+                NativeMemory.Free(hashBuf);
+                cleanupPtr();
+            }
+        }
+        finally
+        {
+            NativeMemory.Free((void*)baseUrlPtr);
+        }
+    }
+
     private static sbyte* StringToNativeUtf8(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value);

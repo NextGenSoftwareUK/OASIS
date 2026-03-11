@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.STAR.WebAPI.JsonConverters;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
@@ -32,6 +33,7 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.MaxDepth = 64;
         options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
     });
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();

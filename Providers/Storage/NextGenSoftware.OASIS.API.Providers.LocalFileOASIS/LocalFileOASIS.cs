@@ -22,6 +22,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
     //public class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider
     public class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider
     {
+        private static readonly JsonSerializerSettings AvatarDeserializeSettings = new JsonSerializerSettings
+        {
+            Converters = { new ProviderWalletsJsonConverter() }
+        };
         //private string _filePath = "wallets.json";
         private string _filePath = "";
         private string _basePath = "";
@@ -427,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatar != null && avatar.ProviderUniqueStorageKey != null && 
                                 avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
@@ -483,7 +487,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 if (File.Exists(avatarFilePath))
                 {
                     var jsonContent = await File.ReadAllTextAsync(avatarFilePath);
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent);
+                    var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                     
                     if (avatar != null && avatar.Version == version)
                     {
@@ -542,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatar != null && avatar.Email != null && 
                                 avatar.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
@@ -603,7 +607,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatar != null && avatar.Username != null && 
                                 avatar.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
@@ -665,7 +669,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent);
+                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatar != null && avatar.Version == version)
                             {

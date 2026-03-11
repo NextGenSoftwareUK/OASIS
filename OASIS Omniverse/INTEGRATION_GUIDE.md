@@ -1,51 +1,51 @@
-# OASIS STAR API - Game Integration Guide
+# OASIS STAR API – Game Integration Guide
 
 ## Overview
 
-This guide provides comprehensive instructions for integrating classic open-source games (Doom, Quake) with the OASIS STAR API to enable cross-game item sharing, quest systems, and future NFT-based features.
+This guide describes how **ODOOM** and **OQuake** (and other games) integrate with the OASIS STAR API for cross-game item sharing, quests, and avatar/SSO. For setup (repos, tools, build, config), use **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)**.
+
+**Architecture principle:** The **C# STARAPIClient does all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers) so integration is **generic** and **minimal**. Games only call a small C API (`star_api_*` and optionally `star_sync_*`); they do not implement API threads, sync logic, or inventory merging. This makes it quicker and easier to port other games. See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full design, layer diagram, and porting checklist.
 
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
 2. [Phase 1: Cross-Game Item Sharing](#phase-1-cross-game-item-sharing)
 3. [Phase 2: Multi-Game Quests](#phase-2-multi-game-quests)
-4. [Future: NFT Boss Collection](#future-nft-boss-collection)
-5. [Setup Instructions](#setup-instructions)
-6. [API Reference](#api-reference)
-7. [Troubleshooting](#troubleshooting)
+4. [Inventory NFT minting](#inventory-nft-minting)
+5. [Future: NFT Boss Collection](#future-nft-boss-collection)
+6. [Setup Instructions](#setup-instructions)
+7. [API Reference](#api-reference)
+8. [Troubleshooting](#troubleshooting)
 
 ## Architecture Overview
 
+Games call the C API; the **C# STARAPIClient** implements it and performs all HTTP, caching, and background work (add_item queue, pickup-with-mint, use_item, etc.). See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the full client-centric design and minimal-hooks porting guide.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Game Engines (C/C++)                      │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
-│  │   Doom   │  │  Quake   │  │  Doom II │  │  Others  │    │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘    │
-└───────┼─────────────┼─────────────┼─────────────┼──────────┘
+│                    Game Engines (C/C++)                     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │
+│  │  ODOOM   │  │  OQuake  │  │  Doom II │  │  Others  │     │
+│  │ (UZDoom) │  │(vkQuake) │  │          │  │          │     │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘     │
+└───────┼─────────────┼─────────────┼─────────────┼───────────┘
         │             │             │             │
         └─────────────┴─────────────┴─────────────┘
                       │
         ┌─────────────▼─────────────┐
-        │   C/C++ Wrapper Library   │
-        │    (star_api.h/cpp)       │
+        │   STARAPIClient (C#)      │
+        │   Cache, queues, workers │
+        │   Mint + add_item in C#   │
         └─────────────┬─────────────┘
                       │
-        ┌─────────────▼─────────────┐
-        │   HTTP REST Client       │
-        │   (WinHTTP / libcurl)     │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   OASIS STAR API          │
-        │   (REST/HTTP)             │
-        └─────────────┬─────────────┘
-                      │
-        ┌─────────────▼─────────────┐
-        │   Inventory System        │
-        │   Quest System            │
-        │   NFT System              │
-        └───────────────────────────┘
+         ┌────────────┴────────────┐
+         │                         │
+┌────────▼────────┐    ┌───────────▼─────────┐
+│  OASIS API      │    │  OASIS STAR API     │
+│  (WEB4)         │    │  (WEB5)             │
+│  Avatar / SSO   │    │  Inventory • Quests │
+│  NFT mint       │    │  REST/HTTP          │
+└─────────────────┘    └─────────────────────┘
 ```
 
 ## Phase 1: Cross-Game Item Sharing
@@ -70,7 +70,7 @@ Quake_STAR_OnKeyPickup("silver_key");  // Adds to STAR API
 
 #### 2. Cross-Game Item Usage
 
-When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory:
+When a player tries to use an item (e.g., open a door), the game checks both local and cross-game inventory. The **local inventory cache** lives in the **STAR API client** (STARAPIClient): `star_api_get_inventory`, `star_api_has_item`, and `star_api_use_item` use the client’s cache first and only hit the API when the cache is null or the item is not found. Games (ODOOM, OQuake, etc.) can call these APIs directly; no need to keep a separate game-side inventory list for door/has/use. See STARAPIClient README for “STARAPIClient vs star_sync” and “Local inventory cache”.
 
 ```c
 // In Quake: Check if player can open door
@@ -180,6 +180,15 @@ if (objective1_complete && objective2_complete) {
    - Master keycard reward given
    - Available in all games!
 
+## Inventory NFT minting
+
+When enabled in **oasisstar.json** (ODOOM and OQuake), collecting items can **mint an NFT** (WEB4 NFTHolon) and attach it to the inventory item. Config keys:
+
+- **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint when collecting that category; `0` to disable.
+- **nft_provider** – Provider name (e.g. `SolanaOASIS`).
+
+The **game** calls `star_api_queue_pickup_with_mint` when mint is on for the item type; the **C# client** performs the mint (WEB4 OASIS API) and add_item in the background (no blocking in the game). In the in-game inventory popup, minted items show **[NFT]** and can be grouped separately. See [ARCHITECTURE.md](ARCHITECTURE.md) for the client-centric design.
+
 ## Future: NFT Boss Collection
 
 ### Goal
@@ -188,14 +197,14 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
 
 ### Concept
 
-1. **Boss Collection:**
+1. **Monster/Boss Collection:**
    ```c
-   // Player defeats boss in Doom
-   star_api_create_boss_nft(
+   // Player defeats monster/boss in Doom
+   star_api_create_monster_nft(
        "cyberdemon",
        "Cyberdemon from Doom",
-       boss_stats,
-       boss_model_data
+       monster_stats,
+       monster_model_data
    );
    ```
 
@@ -246,15 +255,15 @@ Enable players to collect bosses as NFTs in one game and deploy them as allies i
    - On Linux/Mac: libcurl development libraries
    - On Windows: Windows SDK (for WinHTTP)
 
-### Step 1: Build Native Wrapper
+### Step 1: Build STAR API client (STARAPIClient)
 
-```bash
-cd Game Integration/NativeWrapper
-mkdir build && cd build
-cmake ..
-make
-# Windows: cmake .. && cmake --build . --config Release
+ODOOM and OQuake use **STARAPIClient** only. Build from OASIS repo root:
+
+```powershell
+dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" -c Release -r win-x64 -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 ```
+
+Or use the game build scripts (`BUILD ODOOM.bat` / `BUILD_OQUAKE.bat`), which use or build STARAPIClient. Do not use NativeWrapper.
 
 ### Step 2: Configure API Credentials
 
@@ -426,30 +435,17 @@ printf("Last error: %s\n", error);
    - Document item mappings
    - Use descriptive names
 
-## Next Steps
+## Next steps
 
-1. **Complete Phase 1:**
-   - Integrate Doom
-   - Integrate Quake
-   - Test cross-game item sharing
-
-2. **Implement Phase 2:**
-   - Create quest system
-   - Implement quest tracking
-   - Add quest rewards
-
-3. **Plan Phase 3:**
-   - Design NFT boss system
-   - Implement boss collection
-   - Implement boss deployment
+1. **Setup:** Use [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) to clone repos, install tools, and build ODOOM/OQuake.
+2. **Phase 1:** Build and run ODOOM and OQuake; test cross-game item sharing (keycards, keys, ammo).
+3. **Phase 2:** Use the quest system; see [PHASE2_QUEST_SYSTEM.md](PHASE2_QUEST_SYSTEM.md).
+4. **Phase 3:** NFT boss collection (foundation in place).
 
 ## Support
 
-For issues or questions:
-- Check game-specific README files
-- Review API documentation
-- Check STAR API logs
-- Contact OASIS support
+- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](ODOOM/README.md), [OQuake/README.md](OQuake/README.md), [STARAPIClient/README.md](STARAPIClient/README.md)
+- **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `star_api.log` in game exe folder)
 
 ## License
 

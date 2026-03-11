@@ -25,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         /// <summary>
         /// Retrieves all celestial bodies in the system.
         /// </summary>
@@ -280,8 +282,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             var validationError = ValidateCreateRequest(request.Name, request.Description);
             if (validationError != null)
                 return validationError;
+            var avatarCheck = ValidateAvatarId<STARCelestialBody>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.CelestialBodies.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
