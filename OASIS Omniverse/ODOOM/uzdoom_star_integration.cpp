@@ -1394,9 +1394,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int home  = ODOOM_GetRawKeyDown(ODOOM_K_HOME);
 		int endkey= ODOOM_GetRawKeyDown(ODOOM_K_END);
 		int q     = ODOOM_GetRawKeyDown('Q');
-		int keyB  = ODOOM_GetRawKeyDown('b');
-		int keyN  = ODOOM_GetRawKeyDown('n');
-		int keyM  = ODOOM_GetRawKeyDown('m');
+		/* Use uppercase so GetAsyncKeyState gets correct VK (0x42/0x4E/0x4D on Windows) */
+		int keyB  = ODOOM_GetRawKeyDown('B');
+		int keyN  = ODOOM_GetRawKeyDown('N');
+		int keyM  = ODOOM_GetRawKeyDown('M');
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM);

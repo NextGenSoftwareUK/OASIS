@@ -22,6 +22,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public string GameSource { get; set; }
         /// <summary>Item or action required to complete (e.g. Key, Health). Used when quest is a sub-quest/objective.</summary>
         public string ItemRequired { get; set; }
+        /// <summary>True when this quest is a checklist item (objective) under a parent; false when it is a full sub-quest that can have its own children. Enables a parent to have both objectives and sub-quests.</summary>
+        public bool IsObjective { get; set; }
         public string CompletionNotes { get; set; }
         public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.
     }

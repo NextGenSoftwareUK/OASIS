@@ -81,8 +81,10 @@ star_api_result_t star_api_complete_quest(const char* quest_id);
 int star_api_get_quests_string(char* buf, size_t buf_size);
 /** Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as star_api_get_quests_string. */
 int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
-/** Write serialized sub-quests of parent_quest_id to buf for right panel. parent_quest_id must be non-NULL. */
+/** Write serialized sub-quests (IsObjective=false) of parent_quest_id to buf for right panel. parent_quest_id must be non-NULL. */
 int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Write serialized objectives (IsObjective=true) of parent_quest_id to buf for right panel. parent_quest_id must be non-NULL. */
+int star_api_get_quest_objectives_string(const char* parent_quest_id, char* buf, size_t buf_size);
 /** Write serialized prerequisite quests for quest_id to buf for right panel. quest_id must be non-NULL. */
 int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. */
