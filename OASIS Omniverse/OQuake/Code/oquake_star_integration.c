@@ -3884,7 +3884,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
     } /* end if (g_inventory_open) */
 
-    /* Quest popup (Q key): filter by status (Home/End/PgUp), selection (Up/Down), Enter = Start (Not Started) or Set tracker (In Progress). */
+    /* Quest popup (Q key): filter by status (B/N/M), list nav (Home/End/PgUp/PgDn), selection (Up/Down), Enter = Start or Set tracker. */
     if (g_quest_popup_open) {
         static char quest_buf[16384];
         static char q_id[OQ_QUEST_MAX][64];
@@ -3902,7 +3902,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static int q_filtered_indices[OQ_QUEST_MAX];
         static int q_filtered_count;
 
-        int n = star_api_get_quests_string(quest_buf, sizeof(quest_buf));
+        /* Left list: top-level quests only (no sub-quests). Same format so parsing unchanged. */
+        int n = star_api_get_top_level_quests_string(quest_buf, sizeof(quest_buf));
         if (n < 0) n = 0;
         if (n >= (int)sizeof(quest_buf)) n = (int)sizeof(quest_buf) - 1;
         quest_buf[n] = '\0';
@@ -4020,6 +4021,103 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
+        /* Right panel: prereqs and sub-quests from API for selected quest (so we have name/desc for description when selected). */
+        static char prereq_buf[4096];
+        static char subquest_buf[4096];
+        static char pr_id[OQ_LINKS_MAX][64];
+        static char pr_name[OQ_LINKS_MAX][128];
+        static char pr_desc[OQ_LINKS_MAX][256];
+        static int pr_count;
+        static char sq_id[OQ_LINKS_MAX][64];
+        static char sq_name[OQ_LINKS_MAX][128];
+        static char sq_desc[OQ_LINKS_MAX][256];
+        static int sq_count;
+        int sel_for_panel = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
+        pr_count = 0;
+        sq_count = 0;
+        if (sel_for_panel >= 0 && sel_for_panel < q_count && q_id[sel_for_panel][0]) {
+            int nr = star_api_get_quest_prereqs_string(q_id[sel_for_panel], prereq_buf, sizeof(prereq_buf));
+            if (nr > 0) prereq_buf[nr] = '\0';
+            int ns = star_api_get_quest_sub_quests_string(q_id[sel_for_panel], subquest_buf, sizeof(subquest_buf));
+            if (ns > 0) subquest_buf[ns] = '\0';
+            /* Parse prereq_buf: lines "Q\tid\tname\tdesc\tstatus\tpct" */
+            {
+                const char* p = prereq_buf;
+                const char* end = p + (nr > 0 ? nr : 0);
+                while (p < end && pr_count < OQ_LINKS_MAX) {
+                    const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
+                    if (!eol) eol = end;
+                    if (eol - p >= 2 && p[0] == 'Q' && p[1] == '\t') {
+                        const char* f = p + 2;
+                        const char* fe = eol;
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (t && t - f < 63) {
+                            int len = (int)(t - f);
+                            memcpy(pr_id[pr_count], f, (size_t)len);
+                            pr_id[pr_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 127) {
+                            int len = (int)(t - f);
+                            memcpy(pr_name[pr_count], f, (size_t)len);
+                            pr_name[pr_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 255) {
+                            int len = (int)(t - f);
+                            if (len > 255) len = 255;
+                            memcpy(pr_desc[pr_count], f, (size_t)len);
+                            pr_desc[pr_count][len] = '\0';
+                        } else
+                            pr_desc[pr_count][0] = '\0';
+                        pr_count++;
+                    }
+                    p = eol + (eol < end && *eol == '\n' ? 1 : 0);
+                }
+            }
+            /* Parse subquest_buf: same Q-line format */
+            {
+                const char* p = subquest_buf;
+                const char* end = p + (ns > 0 ? ns : 0);
+                while (p < end && sq_count < OQ_LINKS_MAX) {
+                    const char* eol = (const char*)memchr(p, '\n', (size_t)(end - p));
+                    if (!eol) eol = end;
+                    if (eol - p >= 5 && p[0] == '-' && p[1] == '-' && p[2] == '-') { p = eol + (eol < end && *eol == '\n' ? 1 : 0); continue; }
+                    const char* lstart = p;
+                    if (eol - lstart >= 3 && lstart[0] == 'Q' && lstart[1] == '\t') {
+                        const char* f = lstart + 2;
+                        const char* fe = eol;
+                        const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+                        if (t && t - f < 63) {
+                            int len = (int)(t - f);
+                            memcpy(sq_id[sq_count], f, (size_t)len);
+                            sq_id[sq_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 127) {
+                            int len = (int)(t - f);
+                            memcpy(sq_name[sq_count], f, (size_t)len);
+                            sq_name[sq_count][len] = '\0';
+                            f = t + 1;
+                        }
+                        t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL;
+                        if (t && t - f < 255) {
+                            int len = (int)(t - f);
+                            if (len > 255) len = 255;
+                            memcpy(sq_desc[sq_count], f, (size_t)len);
+                            sq_desc[sq_count][len] = '\0';
+                        } else
+                            sq_desc[sq_count][0] = '\0';
+                        sq_count++;
+                    }
+                    p = eol + (eol < end && *eol == '\n' ? 1 : 0);
+                }
+            }
+        }
+
         /* Debug: log what we received and parsed (once per popup open, when we have data) */
         {
             static int s_last_log_n = -1;
@@ -4053,9 +4151,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         int sel_quest_idx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-        int n_prereq = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_prereq_count[sel_quest_idx] : 0;
+        int n_prereq = pr_count;   /* from get_quest_prereqs_string */
         int n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
-        int n_subquest_list = n_obj;  /* sub-quests = objectives (same thing) */
+        int n_subquest_list = sq_count;  /* from get_quest_sub_quests_string; if 0, quest has no sub-quests */
 
         /* Key handling: Space switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel */
         {
@@ -4066,25 +4164,24 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (s_enter_key < 0) s_enter_key = K_ENTER;
             if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
             if (s_space_key < 0) s_space_key = K_SPACE;
-            if (OQ_KeyPressed(s_space_key) && (n_prereq > 0 || n_obj > 0)) {
+            if (OQ_KeyPressed(s_space_key) && (n_prereq > 0 || n_subquest_list > 0)) {
                 for (;;) {
                     g_quest_focus++;
                     if (g_quest_focus > OQ_QUEST_FOCUS_SUBQUEST) g_quest_focus = OQ_QUEST_FOCUS_MAIN;
                     if (g_quest_focus == OQ_QUEST_FOCUS_MAIN) break;
                     if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ && n_prereq > 0) break;
-                    if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST && n_obj > 0) break;
+                    if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST && n_subquest_list > 0) break;
                 }
             }
             {
-            int sidx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-            int npr = (sidx >= 0 && sidx < q_count) ? q_prereq_count[sidx] : 0;
-            int nobj = (sidx >= 0 && sidx < q_count) ? q_obj_count[sidx] : 0;
+            int npr = n_prereq;   /* from API (pr_count) */
+            int nobj = n_subquest_list;   /* from API (sq_count) */
 
             if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_prereq_selected--; if (g_quest_prereq_selected < 0) g_quest_prereq_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_prereq_selected++; if (g_quest_prereq_selected >= npr) g_quest_prereq_selected = npr > 0 ? npr - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr && sidx >= 0) {
-                    const char* want_id = q_prereq_ids[sidx][g_quest_prereq_selected];
+                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr) {
+                    const char* want_id = pr_id[g_quest_prereq_selected];
                     int fi;
                     for (fi = 0; fi < q_filtered_count; fi++) {
                         int qi = q_filtered_indices[fi];
@@ -4096,7 +4193,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     }
                 }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
-                /* Sub-quests = objectives only; Enter does nothing (objectives aren't in main list) */
+                /* Sub-quests from API; Enter does nothing (just show desc in top right) */
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nobj) g_quest_subquest_selected = nobj > 0 ? nobj - 1 : 0; }
             } else {
@@ -4126,17 +4223,49 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
             }
         }
-        if (OQ_KeyPressed(K_HOME))   g_quest_filter_not_started = !g_quest_filter_not_started;
-        if (OQ_KeyPressed(K_END))   g_quest_filter_completed = !g_quest_filter_completed;
-        if (OQ_KeyPressed(K_PGUP))  g_quest_filter_in_progress = !g_quest_filter_in_progress;
+        /* Toggles: 1=Not Started, 2=In Progress, 3=Completed */
+        {
+            static int s_kb = -2, s_kn = -2, s_km = -2;
+            if (s_kb == -2) s_kb = Key_StringToKeynum("b"); if (s_kb < 0) s_kb = 'b';
+            if (s_kn == -2) s_kn = Key_StringToKeynum("n"); if (s_kn < 0) s_kn = 'n';
+            if (s_km == -2) s_km = Key_StringToKeynum("m"); if (s_km < 0) s_km = 'm';
+            if (OQ_KeyPressed(s_kb)) g_quest_filter_not_started = !g_quest_filter_not_started;
+            if (OQ_KeyPressed(s_kn)) g_quest_filter_in_progress = !g_quest_filter_in_progress;
+            if (OQ_KeyPressed(s_km)) g_quest_filter_completed = !g_quest_filter_completed;
+        }
+        /* List navigation: Home=first, End=last, PgUp/PgDn=one screen */
+        if (g_quest_focus == OQ_QUEST_FOCUS_MAIN && q_filtered_count > 0) {
+            int qh_key = q_min(glheight - 96, 540);
+            if (qh_key < 200) qh_key = 200;
+            int max_rows_key = (qh_key - 96) / 12;
+            if (max_rows_key < 6) max_rows_key = 6;
+            if (OQ_KeyPressed(K_HOME)) {
+                g_quest_selected_index = 0;
+                g_quest_scroll = 0;
+            }
+            if (OQ_KeyPressed(K_END)) {
+                g_quest_selected_index = q_filtered_count - 1;
+                g_quest_scroll = (g_quest_selected_index - max_rows_key + 1) > 0 ? (g_quest_selected_index - max_rows_key + 1) : 0;
+            }
+            if (OQ_KeyPressed(K_PGUP)) {
+                g_quest_selected_index -= max_rows_key;
+                if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+                g_quest_scroll = g_quest_selected_index;
+            }
+            if (OQ_KeyPressed(K_PGDN)) {
+                g_quest_selected_index += max_rows_key;
+                if (g_quest_selected_index >= q_filtered_count) g_quest_selected_index = q_filtered_count - 1;
+                if (g_quest_scroll + max_rows_key <= g_quest_selected_index) g_quest_scroll = g_quest_selected_index - max_rows_key + 1;
+                if (g_quest_scroll < 0) g_quest_scroll = 0;
+            }
+        }
 
         if (g_quest_selected_index >= q_filtered_count && q_filtered_count > 0)
             g_quest_selected_index = q_filtered_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
         sel_quest_idx = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-        n_prereq = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_prereq_count[sel_quest_idx] : 0;
+        /* n_prereq and n_subquest_list already set from API (pr_count, sq_count) above */
         n_obj = (sel_quest_idx >= 0 && sel_quest_idx < q_count) ? q_obj_count[sel_quest_idx] : 0;
-        n_subquest_list = n_obj;
         if (g_quest_prereq_selected >= n_prereq && n_prereq > 0) g_quest_prereq_selected = n_prereq - 1;
         if (g_quest_subquest_selected >= n_subquest_list && n_subquest_list > 0) g_quest_subquest_selected = n_subquest_list - 1;
 
@@ -4245,9 +4374,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int sq_vis = pr_vis;  /* same fixed height for subquest list */
 
             if (rx + rw <= qx + qw) {
-                /* Description: top half of right panel (fixed height) */
+                /* Description: main quest, or selected prereq, or selected sub-quest */
                 int ry = right_panel_top;
-                const char* desc_text = (sel_quest_idx >= 0 && sel_quest_idx < q_count && q_desc[sel_quest_idx][0]) ? q_desc[sel_quest_idx] : "(No description)";
+                const char* desc_text = "(No description)";
+                if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ && n_prereq > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < n_prereq && pr_desc[g_quest_prereq_selected][0])
+                    desc_text = pr_desc[g_quest_prereq_selected];
+                else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST && n_subquest_list > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < n_subquest_list && sq_desc[g_quest_subquest_selected][0])
+                    desc_text = sq_desc[g_quest_subquest_selected];
+                else if (sel_quest_idx >= 0 && sel_quest_idx < q_count && q_desc[sel_quest_idx][0])
+                    desc_text = q_desc[sel_quest_idx];
                 int chars_per_line = rw / 8;
                 if (chars_per_line < 10) chars_per_line = 10;
                 {
@@ -4282,17 +4417,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     if (g_quest_prereq_scroll < 0) g_quest_prereq_scroll = 0;
                     for (i = 0; i < pr_vis_use && g_quest_prereq_scroll + i < n_prereq; i++) {
                         int pi = g_quest_prereq_scroll + i;
-                        int qi;
-                        const char* pr_name = "(unknown)";
-                        for (qi = 0; qi < q_count; qi++) {
-                            if (strcmp(q_id[qi], q_prereq_ids[sel_quest_idx][pi]) == 0) {
-                                pr_name = q_name[qi] ? q_name[qi] : q_id[qi];
-                                break;
-                            }
-                        }
+                        const char* pname = pr_name[pi][0] ? pr_name[pi] : (pr_id[pi][0] ? pr_id[pi] : "(unknown)");
                         if (pi == g_quest_prereq_selected && g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
                             Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
-                        Draw_String(cbx, rx, ry, pr_name);
+                        Draw_String(cbx, rx, ry, pname);
                         ry += line_h;
                     }
                 }
@@ -4312,11 +4440,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     if (g_quest_subquest_scroll < 0) g_quest_subquest_scroll = 0;
                     for (i = 0; i < sq_vis_use && g_quest_subquest_scroll + i < n_subquest_list; i++) {
                         int si = g_quest_subquest_scroll + i;
-                        char obj_buf[132];
-                        q_snprintf(obj_buf, sizeof(obj_buf), "%s %s", q_obj_done[sel_quest_idx][si] ? "[x]" : "[ ]", q_obj_desc[sel_quest_idx][si]);
+                        const char* sq_display = sq_name[si][0] ? sq_name[si] : (sq_id[si][0] ? sq_id[si] : "(unknown)");
                         if (si == g_quest_subquest_selected && g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST)
                             Draw_Fill(cbx, rx - 2, ry - 1, rw + 4, line_h, 180, 0.45f);
-                        Draw_String(cbx, rx, ry, obj_buf);
+                        Draw_String(cbx, rx, ry, sq_display);
                         ry += line_h;
                     }
                 }
@@ -4327,7 +4454,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
         /* Bottom info text centre-aligned */
         {
-            const char* footer = "Space=Switch Lists  Home/End/PgUp=Filter  Arrows=Select  Enter=Start/Set tracker  Q=Close";
+            const char* footer = "B/N/M=Filter  Space=Switch  PgUp/PgDn=Page  Home/End=Top/Bottom  Enter=Start/Set  Q=Close";
             int footer_len = (int)strlen(footer);
             Draw_String(cbx, qx + (qw - footer_len * 8) / 2, qy + qh - 20, footer);
         }

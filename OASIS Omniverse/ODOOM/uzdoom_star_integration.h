@@ -87,7 +87,7 @@ void ODOOM_PostTic(void);
 void ODOOM_PostOneTic(void);
 
 /** Call from engine input when building ticcmd: set odoom_key_* CVars from raw key state (for ZScript). q = key Q for quest popup. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey);
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM);
 
 /** Whether to show OASIS anorak face in status bar. Only set by star face on/off and beam-in/out. */
 int UZDoom_STAR_GetShowAnorakFace(void);
