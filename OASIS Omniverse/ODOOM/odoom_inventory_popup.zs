@@ -896,7 +896,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
-		// Quest Tracker: left side near top, only when beamed in and we have a quest title. Hide when quest popup is open to avoid small yellow title overlapping the popup.
+		// Quest Tracker: left side, just below "Beamed In:" (like Quake). "Current Quest: <title>". Hide when quest popup is open.
 		if (!questPopupOpen)
 		{
 			CVar trackerTitleCv = CVar.FindCVar("odoom_quest_tracker_title");
@@ -905,10 +905,11 @@ class OASISInventoryOverlayHandler : EventHandler
 			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
 			if (beamedIn && qTitle.Length() > 0)
 			{
-				int trackX = 4;
-				int trackY = 22;
+				int trackX = 0;   // 50px left of previous (4 - 50), clamped to 0
+				int trackY = 188; // just below "Beamed In:" line in status bar (virtual 200 height)
 				double trackScale = 0.5;
-				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, qTitle, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
+				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
 				String qObj = (trackerObjCv != null) ? trackerObjCv.GetString() : "";
 				if (qObj.Length() > 0)
 					screen.DrawText(f, Font.CR_WHITE, trackX, trackY + 10, qObj, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
@@ -950,7 +951,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int qCount = drawFilteredIndices.Size();
 			int popupW = 200;
 			int popupH = 200;
-			int popupX = 8;
+			int popupX = 0;   // 50px left of previous (8 - 50), clamped to 0
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
