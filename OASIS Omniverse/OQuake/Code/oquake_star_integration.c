@@ -3698,9 +3698,36 @@ void OQuake_STAR_Console_f(void) {
     Con_Printf("Unknown STAR subcommand: '%s'. Type 'star' for list.\n", sub ? sub : "(null)");
 }
 
+/** Clear movement/look keydown when quest popup is open. Call at frame start (before movement) for instant blocking; also called at start of draw. */
+void OQuake_STAR_ClearMovementKeysIfPopupOpen(void) {
+    if (!g_quest_popup_open)
+        return;
+    if (K_UPARROW >= 0 && K_UPARROW < MAX_KEYS) keydown[K_UPARROW] = false;
+    if (K_DOWNARROW >= 0 && K_DOWNARROW < MAX_KEYS) keydown[K_DOWNARROW] = false;
+    if (K_LEFTARROW >= 0 && K_LEFTARROW < MAX_KEYS) keydown[K_LEFTARROW] = false;
+    if (K_RIGHTARROW >= 0 && K_RIGHTARROW < MAX_KEYS) keydown[K_RIGHTARROW] = false;
+    if (K_PGUP >= 0 && K_PGUP < MAX_KEYS) keydown[K_PGUP] = false;
+    if (K_PGDN >= 0 && K_PGDN < MAX_KEYS) keydown[K_PGDN] = false;
+    if (K_HOME >= 0 && K_HOME < MAX_KEYS) keydown[K_HOME] = false;
+    if (K_END >= 0 && K_END < MAX_KEYS) keydown[K_END] = false;
+    {
+        static int s_w = -2, s_a = -2, s_s = -2, s_d = -2;
+        if (s_w == -2) { s_w = Key_StringToKeynum("w"); if (s_w < 0) s_w = Key_StringToKeynum("W"); }
+        if (s_a == -2) { s_a = Key_StringToKeynum("a"); if (s_a < 0) s_a = Key_StringToKeynum("A"); }
+        if (s_s == -2) { s_s = Key_StringToKeynum("s"); if (s_s < 0) s_s = Key_StringToKeynum("S"); }
+        if (s_d == -2) { s_d = Key_StringToKeynum("d"); if (s_d < 0) s_d = Key_StringToKeynum("D"); }
+        if (s_w >= 0 && s_w < MAX_KEYS) keydown[s_w] = false;
+        if (s_a >= 0 && s_a < MAX_KEYS) keydown[s_a] = false;
+        if (s_s >= 0 && s_s < MAX_KEYS) keydown[s_s] = false;
+        if (s_d >= 0 && s_d < MAX_KEYS) keydown[s_d] = false;
+    }
+}
+
 void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     if (!cbx)
         return;
+    /* Clear movement keys as early as possible when popup is open (reduces one-frame lag if engine calls OQuake_STAR_ClearMovementKeysIfPopupOpen at frame start). */
+    OQuake_STAR_ClearMovementKeysIfPopupOpen();
     int panel_w;
     int panel_h;
     int panel_x;
@@ -3737,11 +3764,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
                     star_api_invalidate_quest_cache();
-                    /* Clear movement/look keys so opening the popup does not move or pan the player */
-                    if (K_UPARROW >= 0 && K_UPARROW < MAX_KEYS) keydown[K_UPARROW] = false;
-                    if (K_DOWNARROW >= 0 && K_DOWNARROW < MAX_KEYS) keydown[K_DOWNARROW] = false;
-                    if (K_LEFTARROW >= 0 && K_LEFTARROW < MAX_KEYS) keydown[K_LEFTARROW] = false;
-                    if (K_RIGHTARROW >= 0 && K_RIGHTARROW < MAX_KEYS) keydown[K_RIGHTARROW] = false;
+                    /* Clear all movement/look keys immediately so this frame (and next) do not move or pan */
+                    OQuake_STAR_ClearMovementKeysIfPopupOpen();
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -3754,26 +3778,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 } else {
                     g_quest_status_message[0] = '\0';
                     g_quest_status_frames = 0;
-                    /* Clear movement/look keys once on close so they are not "stuck"; next press will work. */
-                    if (K_UPARROW >= 0 && K_UPARROW < MAX_KEYS) keydown[K_UPARROW] = false;
-                    if (K_DOWNARROW >= 0 && K_DOWNARROW < MAX_KEYS) keydown[K_DOWNARROW] = false;
-                    if (K_LEFTARROW >= 0 && K_LEFTARROW < MAX_KEYS) keydown[K_LEFTARROW] = false;
-                    if (K_RIGHTARROW >= 0 && K_RIGHTARROW < MAX_KEYS) keydown[K_RIGHTARROW] = false;
-                    if (K_PGUP >= 0 && K_PGUP < MAX_KEYS) keydown[K_PGUP] = false;
-                    if (K_PGDN >= 0 && K_PGDN < MAX_KEYS) keydown[K_PGDN] = false;
-                    if (K_HOME >= 0 && K_HOME < MAX_KEYS) keydown[K_HOME] = false;
-                    if (K_END >= 0 && K_END < MAX_KEYS) keydown[K_END] = false;
-                    {
-                        static int s_w = -2, s_a = -2, s_s = -2, s_d = -2;
-                        if (s_w == -2) { s_w = Key_StringToKeynum("w"); if (s_w < 0) s_w = Key_StringToKeynum("W"); }
-                        if (s_a == -2) { s_a = Key_StringToKeynum("a"); if (s_a < 0) s_a = Key_StringToKeynum("A"); }
-                        if (s_s == -2) { s_s = Key_StringToKeynum("s"); if (s_s < 0) s_s = Key_StringToKeynum("S"); }
-                        if (s_d == -2) { s_d = Key_StringToKeynum("d"); if (s_d < 0) s_d = Key_StringToKeynum("D"); }
-                        if (s_w >= 0 && s_w < MAX_KEYS) keydown[s_w] = false;
-                        if (s_a >= 0 && s_a < MAX_KEYS) keydown[s_a] = false;
-                        if (s_s >= 0 && s_s < MAX_KEYS) keydown[s_s] = false;
-                        if (s_d >= 0 && s_d < MAX_KEYS) keydown[s_d] = false;
-                    }
+                    /* Do not clear keys on close; we stop clearing when popup closes so next key press is recognized immediately without lag. */
                 }
                 g_quest_key_was_down = true;
             }
@@ -4756,26 +4761,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (g_quest_status_frames <= 0) g_quest_status_message[0] = '\0';
         }
 
-        /* Block arrow keys, WASD, and look keys (PGUP/PGDN/END/HOME) from moving/panning the player while popup is open. */
-        if (K_UPARROW >= 0 && K_UPARROW < MAX_KEYS) keydown[K_UPARROW] = false;
-        if (K_DOWNARROW >= 0 && K_DOWNARROW < MAX_KEYS) keydown[K_DOWNARROW] = false;
-        if (K_LEFTARROW >= 0 && K_LEFTARROW < MAX_KEYS) keydown[K_LEFTARROW] = false;
-        if (K_RIGHTARROW >= 0 && K_RIGHTARROW < MAX_KEYS) keydown[K_RIGHTARROW] = false;
-        if (K_PGUP >= 0 && K_PGUP < MAX_KEYS) keydown[K_PGUP] = false;
-        if (K_PGDN >= 0 && K_PGDN < MAX_KEYS) keydown[K_PGDN] = false;
-        if (K_HOME >= 0 && K_HOME < MAX_KEYS) keydown[K_HOME] = false;
-        if (K_END >= 0 && K_END < MAX_KEYS) keydown[K_END] = false;
-        {
-            static int s_w = -2, s_a = -2, s_s = -2, s_d = -2;
-            if (s_w == -2) { s_w = Key_StringToKeynum("w"); if (s_w < 0) s_w = Key_StringToKeynum("W"); }
-            if (s_a == -2) { s_a = Key_StringToKeynum("a"); if (s_a < 0) s_a = Key_StringToKeynum("A"); }
-            if (s_s == -2) { s_s = Key_StringToKeynum("s"); if (s_s < 0) s_s = Key_StringToKeynum("S"); }
-            if (s_d == -2) { s_d = Key_StringToKeynum("d"); if (s_d < 0) s_d = Key_StringToKeynum("D"); }
-            if (s_w >= 0 && s_w < MAX_KEYS) keydown[s_w] = false;
-            if (s_a >= 0 && s_a < MAX_KEYS) keydown[s_a] = false;
-            if (s_s >= 0 && s_s < MAX_KEYS) keydown[s_s] = false;
-            if (s_d >= 0 && s_d < MAX_KEYS) keydown[s_d] = false;
-        }
+        /* Key clearing is done at start of overlay (OQuake_STAR_ClearMovementKeysIfPopupOpen) so no duplicate block here. */
     }
 }
 
