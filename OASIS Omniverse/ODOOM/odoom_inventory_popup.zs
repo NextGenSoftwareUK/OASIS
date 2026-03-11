@@ -905,7 +905,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
 			if (beamedIn && qTitle.Length() > 0)
 			{
-				int trackX = 0;   // top-left of screen
+				int trackX = -55; // 55px left so tracker is left-aligned to screen edge
 				int trackY = 12;  // just below "Beamed In: <username>" (drawn at y=2 in status bar)
 				double trackScale = 0.5;
 				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
@@ -951,7 +951,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int qCount = drawFilteredIndices.Size();
 			int popupW = 320;  // full width of screen (virtual 320), left-aligned
 			int popupH = 200;
-			int popupX = 0;    // fully align to left edge
+			int popupX = -55;  // 55px left so popup is left-aligned to screen edge
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
