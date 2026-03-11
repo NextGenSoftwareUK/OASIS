@@ -382,7 +382,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
         /// <summary>
         /// Checks if a result is empty or has an error, indicating test data should be used
         /// </summary>
-        public static bool ShouldUseTestData<T>(OASISResult<T> result)
+        public static bool ShouldUseTestData<T>(OASISResult<T>? result)
         {
             return result == null || result.IsError || result.Result == null;
         }
@@ -390,7 +390,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
         /// <summary>
         /// Checks if a result collection is empty or has an error, indicating test data should be used
         /// </summary>
-        public static bool ShouldUseTestData<T>(OASISResult<IEnumerable<T>> result)
+        public static bool ShouldUseTestData<T>(OASISResult<IEnumerable<T>>? result)
         {
             return result == null || result.IsError || result.Result == null || !result.Result.Any();
         }
@@ -398,7 +398,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
         /// <summary>
         /// Checks if test data should be used based on the setting and result state
         /// </summary>
-        public static bool ShouldUseTestData<T>(bool useTestDataSetting, OASISResult<T> result)
+        public static bool ShouldUseTestData<T>(bool useTestDataSetting, OASISResult<T>? result)
         {
             return useTestDataSetting && ShouldUseTestData(result);
         }
@@ -406,7 +406,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
         /// <summary>
         /// Checks if test data should be used based on the setting and result state
         /// </summary>
-        public static bool ShouldUseTestData<T>(bool useTestDataSetting, OASISResult<IEnumerable<T>> result)
+        public static bool ShouldUseTestData<T>(bool useTestDataSetting, OASISResult<IEnumerable<T>>? result)
         {
             return useTestDataSetting && ShouldUseTestData(result);
         }

@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -55,7 +56,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             //services.AddCors(); //Needed twice? It is below too...
             // Add exception filter with configuration
             services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {

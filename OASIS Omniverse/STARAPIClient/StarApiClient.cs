@@ -2056,8 +2056,8 @@ public sealed class StarApiClient : IDisposable
         if (!parseResult)
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
-        var quests = ParseQuestInfos(resultElement);
-        if (quests != null && quests.Count > 0)
+        var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
+        if (quests.Count > 0)
             StarApiExports.StarApiLog($"[Quests] OK ({quests.Count} quests) Ids={string.Join(", ", quests.Select(q => q.Id ?? "(null)"))}");
         else
             StarApiExports.StarApiLog("[Quests] OK (0 quests)");
@@ -2073,7 +2073,7 @@ public sealed class StarApiClient : IDisposable
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
 
     /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective (sub-quests), then "P\tid1\tid2\n" (prereqs), then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
-    public static string SerializeQuestsForGame(List<StarQuestInfo> quests)
+    public static string SerializeQuestsForGame(List<StarQuestInfo>? quests)
     {
         if (quests is null || quests.Count == 0)
             return string.Empty;
@@ -3741,7 +3741,7 @@ public sealed class StarApiClient : IDisposable
                     objectives.Add(new StarQuestObjective
                     {
                         Id = GetStringProperty(objective, "Id") ?? string.Empty,
-                        Description = GetStringProperty(objective, "Description") ?? string.Empty,
+                        Description = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? string.Empty,
                         GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
                         ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
                         IsCompleted = GetBoolProperty(objective, "IsCompleted")
@@ -3787,7 +3787,7 @@ public sealed class StarApiClient : IDisposable
                 objectives.Add(new StarQuestObjective
                 {
                     Id = GetStringProperty(objective, "Id") ?? string.Empty,
-                    Description = GetStringProperty(objective, "Description") ?? string.Empty,
+                    Description = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? string.Empty,
                     GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
                     ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
                     IsCompleted = GetBoolProperty(objective, "IsCompleted")
