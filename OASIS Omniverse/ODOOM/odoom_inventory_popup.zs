@@ -905,8 +905,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
 			if (beamedIn && qTitle.Length() > 0)
 			{
-				int trackX = 0;   // 50px left of previous (4 - 50), clamped to 0
-				int trackY = 188; // just below "Beamed In:" line in status bar (virtual 200 height)
+				int trackX = 0;   // top-left of screen
+				int trackY = 12;  // just below "Beamed In: <username>" (drawn at y=2 in status bar)
 				double trackScale = 0.5;
 				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
 				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
@@ -949,14 +949,14 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (show) drawFilteredIndices.Push(b);
 			}
 			int qCount = drawFilteredIndices.Size();
-			int popupW = 200;
+			int popupW = 320;  // full width of screen (virtual 320), left-aligned
 			int popupH = 200;
-			int popupX = 0;   // 50px left of previous (8 - 50), clamped to 0
+			int popupX = 0;    // fully align to left edge
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
-			int col2X = popupX + 8 + 16 * 8;
-			int col3X = popupX + 8 + 22 * 8;
+			int col2X = popupX + 8 + 32 * 8;  // name column doubled (was 16 chars, now 32)
+			int col3X = popupX + 8 + 32 * 8 + 6 * 8;  // % then Status
 			int maxQuestRows = (popupH - 80) / rowH - 3; // show 3 fewer quest rows (1 less visible than previous)
 			if (maxQuestRows < 5) maxQuestRows = 5;
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 4, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
@@ -997,7 +997,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					String status = parts[4];
 					String pctStr = parts.Size() > 5 ? parts[5] : "0";
 					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
-					if (qName.Length() > 14) qName = String.Format("%s..", qName.Left(12));
+					if (qName.Length() > 32) qName = String.Format("%s..", qName.Left(30));
 					bool selected = (drawOffset + i == questSelectedIndex);
 					int cr = selected ? Font.CR_GOLD : Font.CR_WHITE;
 					if (status.Compare("Completed") == 0) cr = selected ? Font.CR_GREEN : Font.CR_GRAY;
