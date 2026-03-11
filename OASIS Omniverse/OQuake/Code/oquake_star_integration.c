@@ -3930,7 +3930,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     const char* fe = eol;
                     const char* t;
                     q_prereq_count[q_count] = 0;
-                    q_subquest_count[q_count] = 0;
                     q_obj_count[q_count] = 0;
                     t = (const char*)memchr(f, '\t', (size_t)(fe - f));
                     if (t && t - f < 63) {
