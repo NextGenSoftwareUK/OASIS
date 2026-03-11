@@ -905,7 +905,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
 			if (beamedIn && qTitle.Length() > 0)
 			{
-				int trackX = -55; // 55px left so tracker is left-aligned to screen edge
+				int trackX = -50; // 55px left + 5px right; left-aligned to screen edge
 				int trackY = 12;  // just below "Beamed In: <username>" (drawn at y=2 in status bar)
 				double trackScale = 0.5;
 				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
@@ -963,7 +963,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
 			String cb2 = (fi != 0) ? "[X] In Progress" : "[ ] In Progress";
 			String cb3 = (fc != 0) ? "[X] Completed" : "[ ] Completed";
-			screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 24, String.Format("%s  %s  %s", cb1, cb2, cb3), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			String toggleStr = String.Format("%s  %s  %s", cb1, cb2, cb3);
+			int toggleW = f.StringWidth(toggleStr);
+			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 24, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
@@ -1009,7 +1011,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			else
 				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 45, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start or Set tracker  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 45, "Home/End/PgUp=Filter  Arrows=Select  Enter=Start/Select Active  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				int msgW = f.StringWidth(questStatusMessage);

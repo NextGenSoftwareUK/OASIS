@@ -5,7 +5,7 @@
 #define OQUAKE_VERSION_H
 
 #define OQUAKE_VERSION "1.1"
-#define OQUAKE_BUILD   "112"
+#define OQUAKE_BUILD   "114"
 #define OQUAKE_VERSION_STR "OQuake " OQUAKE_VERSION " (Build " OQUAKE_BUILD ")"
 
 #endif
