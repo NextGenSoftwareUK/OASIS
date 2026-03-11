@@ -4478,7 +4478,12 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
     /// Do NOT use mint-nft with NFTStandardType=SPL for fungible tokens — that goes through
     /// Metaplex and sets a PDA (not the OASIS wallet) as mint authority, causing OwnerMismatch errors.
     /// </summary>
-    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals = 0, string cluster = "devnet")
+    public async Task<OASISResult<string>> CreateSplFungibleTokenAsync(
+        byte decimals = 0,
+        string cluster = "devnet",
+        string name = null,
+        string symbol = null,
+        string metadataUri = null)
     {
         var result = new OASISResult<string>();
 
@@ -4488,7 +4493,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
             return result;
         }
 
-        return await _solanaService.CreateSplFungibleTokenAsync(decimals, cluster);
+        return await _solanaService.CreateSplFungibleTokenAsync(decimals, cluster, name, symbol, metadataUri);
     }
     }
     #endregion

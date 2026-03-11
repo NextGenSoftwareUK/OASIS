@@ -12,7 +12,6 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
-using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -31,26 +30,18 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                // Use OAPPTemplates instead of Templates since Templates doesn't exist in STARAPI
                 var result = await _starAPI.OAPPTemplates.LoadAllAsync(AvatarId, null);
-
-                // Return test data if setting is enabled and result is null, has error, or is empty
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
-                {
-                    var testTemplates = new List<object>();
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testTemplates, "Templates retrieved successfully (using test data)"));
-                }
-
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
+                return BadRequest(new OASISResult<IEnumerable<object>>
                 {
-                    var testTemplates = new List<object>();
-                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testTemplates, "Templates retrieved successfully (using test data)"));
-                }
-                return HandleException<IEnumerable<object>>(ex, "GetAllTemplates");
+                    IsError = true,
+                    Message = $"Error loading templates: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -69,23 +60,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPTemplates.LoadAsync(AvatarId, id, 0);
-
-                // Return test data if setting is enabled and result is null, has error, or result is null
-                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
-                {
-                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Template retrieved successfully (using test data)"));
-                }
-
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Return test data if setting is enabled, otherwise return error
-                if (UseTestDataWhenLiveDataNotAvailable)
+                return BadRequest(new OASISResult<object>
                 {
-                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Template retrieved successfully (using test data)"));
-                }
-                return HandleException<object>(ex, "GetTemplate");
+                    IsError = true,
+                    Message = $"Error loading template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -101,11 +85,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateTemplate([FromBody] CreateTemplateRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, TemplateType, and optional Content." });
-            var validationError = ValidateCreateRequest(request.Name, request.Description);
-            if (validationError != null)
-                return validationError;
             try
             {
                 // Create a new template using the TemplateManager
@@ -122,15 +101,18 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "creating template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error creating template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTemplate(Guid id, [FromBody] UpdateTemplateRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and/or Description." });
             try
             {
                 // Load existing template
@@ -157,7 +139,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "updating template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error updating template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -171,7 +158,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<bool>(ex, "deleting template");
+                return BadRequest(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error deleting template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -273,8 +265,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneTemplate(Guid id, [FromBody] CloneTemplateRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.OAPPTemplates.CloneAsync(AvatarId, id, request.NewName);
@@ -282,7 +272,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "cloning template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error cloning template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -298,11 +293,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateTemplateWithOptions([FromBody] CreateTemplateWithOptionsRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
-            var validationError = ValidateCreateRequest(request.Name, request.Description);
-            if (validationError != null)
-                return validationError;
             try
             {
                 var result = await _starAPI.OAPPTemplates.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
@@ -310,7 +300,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "creating template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error creating template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -333,7 +328,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "loading template from path");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading template from path: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -356,7 +356,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "loading template from published");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading template from published: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -399,11 +404,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<object>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchTemplates([FromBody] SearchRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<IEnumerable<object>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
-                var result = await _starAPI.OAPPTemplates.SearchAsync<OAPPTemplate>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
+                var result = await _starAPI.OAPPTemplates.SearchAsync<OAPPTemplate>(AvatarId, request.SearchTerm, default(Guid), null, MetaKeyValuePairMatchMode.All, true, false, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -430,8 +433,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishTemplate(Guid id, [FromBody] PublishRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.OAPPTemplates.PublishAsync(
@@ -448,7 +449,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "publishing template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error publishing template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -465,8 +471,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadTemplate(Guid id, [FromBody] DownloadTemplateRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath and optional Overwrite." });
             try
             {
                 var result = await _starAPI.OAPPTemplates.DownloadAsync(AvatarId, id, 0, request.DestinationPath, request.Overwrite);
@@ -474,7 +478,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "downloading template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error downloading template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -526,7 +535,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "loading template version");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error loading template version: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -543,8 +557,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditTemplate(Guid id, [FromBody] EditTemplateRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.OAPPTemplates.EditAsync(id, request.NewDNA, AvatarId);
@@ -552,7 +564,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "editing template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error editing template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -575,7 +592,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "unpublishing template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error unpublishing template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -592,8 +614,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> RepublishTemplate(Guid id, [FromBody] PublishRequest request)
         {
-            if (request == null)
-                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body for republish options." });
             try
             {
                 var result = await _starAPI.OAPPTemplates.RepublishAsync(AvatarId, id, 0);
@@ -601,7 +621,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "republishing template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error republishing template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -624,7 +649,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "activating template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error activating template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
 
@@ -647,7 +677,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HandleException<object>(ex, "deactivating template");
+                return BadRequest(new OASISResult<object>
+                {
+                    IsError = true,
+                    Message = $"Error deactivating template: {ex.Message}",
+                    Exception = ex
+                });
             }
         }
     }

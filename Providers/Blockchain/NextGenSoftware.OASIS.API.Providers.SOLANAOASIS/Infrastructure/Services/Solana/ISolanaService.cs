@@ -44,6 +44,14 @@ public interface ISolanaService
     /// </summary>
     /// <param name="decimals">Number of decimal places for the token (e.g. 6 for USDC-like, 0 for whole-unit shares).</param>
     /// <param name="cluster">Solana cluster: "devnet" (default) or "mainnet-beta".</param>
+    /// <param name="name">Optional. Metaplex metadata name (max 32 chars); wallets use this instead of "Unknown Token".</param>
+    /// <param name="symbol">Optional. Metaplex metadata symbol (max 10 chars).</param>
+    /// <param name="metadataUri">Optional. Metadata JSON URI; if null/empty a minimal placeholder URI may be used when name/symbol are set.</param>
     /// <returns>The mint address of the newly created SPL token.</returns>
-    Task<OASISResult<string>> CreateSplFungibleTokenAsync(byte decimals, string cluster = "devnet");
+    Task<OASISResult<string>> CreateSplFungibleTokenAsync(
+        byte decimals,
+        string cluster = "devnet",
+        string name = null,
+        string symbol = null,
+        string metadataUri = null);
 }

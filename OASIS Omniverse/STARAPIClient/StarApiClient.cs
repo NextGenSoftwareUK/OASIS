@@ -5,6 +5,8 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Net.Sockets;
+using System.Net;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
@@ -139,7 +141,13 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock)
         {
             _httpClient?.Dispose();
-            _httpClient = new HttpClient
+            // Disable SSL validation and automatic HTTPS redirect for localhost dev APIs.
+            var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+            };
+            _httpClient = new HttpClient(handler)
             {
                 BaseAddress = new Uri(normalizedBaseUrl + "/"),
                 Timeout = TimeSpan.FromSeconds(timeout)
@@ -164,6 +172,51 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API client initialized successfully.");
     }
 
+    /// <summary>
+    /// Blocking raw-socket HTTP POST. Bypasses HttpClient/CFNetwork entirely so it works
+    /// when called from a bare pthread inside a non-.NET host process (e.g. DOOM on macOS).
+    /// Returns the response body string, or throws on error.
+    /// </summary>
+    private static string BlockingHttpPost(string url, string jsonBody, int timeoutMs = 15000)
+    {
+        var uri = new Uri(url);
+        var host = uri.Host;
+        var port = uri.Port > 0 ? uri.Port : (uri.Scheme == "https" ? 443 : 80);
+        var path = string.IsNullOrEmpty(uri.PathAndQuery) ? "/" : uri.PathAndQuery;
+
+        var bodyBytes = Encoding.UTF8.GetBytes(jsonBody);
+        var request =
+            $"POST {path} HTTP/1.0\r\n" +
+            $"Host: {host}:{port}\r\n" +
+            "Content-Type: application/json\r\n" +
+            $"Content-Length: {bodyBytes.Length}\r\n" +
+            "Accept: application/json\r\n" +
+            "Connection: close\r\n" +
+            "\r\n";
+        var requestBytes = Encoding.ASCII.GetBytes(request);
+
+        var addresses = Dns.GetHostAddresses(host);
+        if (addresses.Length == 0) throw new Exception($"Could not resolve host: {host}");
+
+        using var sock = new Socket(addresses[0].AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        sock.SendTimeout = timeoutMs;
+        sock.ReceiveTimeout = timeoutMs;
+        sock.Connect(new IPEndPoint(addresses[0], port));
+        sock.Send(requestBytes);
+        sock.Send(bodyBytes);
+
+        var responseBuilder = new StringBuilder();
+        var buf = new byte[8192];
+        int received;
+        while ((received = sock.Receive(buf)) > 0)
+            responseBuilder.Append(Encoding.UTF8.GetString(buf, 0, received));
+
+        var raw = responseBuilder.ToString();
+        // Split off HTTP headers — find double CRLF
+        var headerEnd = raw.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+        return headerEnd >= 0 ? raw[(headerEnd + 4)..] : raw;
+    }
+
     public async Task<OASISResult<bool>> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -182,7 +235,21 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
 
-            var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
+            // Use raw blocking socket POST instead of HttpClient — HttpClient deadlocks
+            // when called from a pthread inside a non-.NET host process on macOS because
+            // .NET's socket event loop (kevent) never gets dispatched back to the caller.
+            string responseBody;
+            try
+            {
+                responseBody = BlockingHttpPost($"{_oasisBaseUrl}/api/avatar/authenticate", payload);
+            }
+            catch (Exception ex)
+            {
+                return FailAndCallback<bool>($"Network call failed: {ex.Message}", StarApiResultCode.Network, ex);
+            }
+
+            // Wrap into OASISResult<string> matching what SendRawAsync returns
+            var response = new OASISResult<string> { Result = responseBody, IsError = false, Message = "" };
             if (response.IsError)
                 return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -199,10 +266,15 @@ public sealed class StarApiClient : IDisposable
             try
             {
                 using var rawDoc = JsonDocument.Parse(response.Result);
-                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token")
+                var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "jwtToken")
+                    ?? FindStringRecursive(rawDoc.RootElement, "Token") ?? FindStringRecursive(rawDoc.RootElement, "token")
                     ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token");
-                var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
-                var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
+                var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken") ?? FindStringRecursive(rawDoc.RootElement, "refreshToken");
+                // OASIS API returns lowercase "id" and "avatarId" — try all case variants
+                var rawId = FindStringRecursive(rawDoc.RootElement, "avatarId")
+                    ?? FindStringRecursive(rawDoc.RootElement, "id")
+                    ?? FindStringRecursive(rawDoc.RootElement, "Id")
+                    ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
 
                 if (string.IsNullOrWhiteSpace(auth.JwtToken) && !string.IsNullOrWhiteSpace(rawJwt))
                     auth.JwtToken = rawJwt;
@@ -214,68 +286,6 @@ public sealed class StarApiClient : IDisposable
             catch
             {
                 // Keep parsed envelope values if raw parsing fails.
-            }
-
-            // Keep local WEB5 STAR API session state in sync after WEB4 OASIS authentication.
-            // Some local controllers resolve avatar context from their own auth flow.
-            try
-            {
-                // Ensure WEB5 STAR API runtime is ignited before using manager-backed routes.
-                var starStatusResponse = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/star/status", null, cancellationToken).ConfigureAwait(false);
-                if (!starStatusResponse.IsError)
-                {
-                    var needsIgnite = true;
-                    try
-                    {
-                        using var statusDoc = JsonDocument.Parse(starStatusResponse.Result);
-                        if (statusDoc.RootElement.ValueKind == JsonValueKind.Object &&
-                            statusDoc.RootElement.TryGetProperty("isIgnited", out var ignitedProp) &&
-                            ignitedProp.ValueKind is JsonValueKind.True or JsonValueKind.False)
-                        {
-                            needsIgnite = !ignitedProp.GetBoolean();
-                        }
-                    }
-                    catch
-                    {
-                        needsIgnite = true;
-                    }
-
-                    if (needsIgnite)
-                    {
-                        var ignitePayload = BuildJson(writer =>
-                        {
-                            writer.WriteStartObject();
-                            writer.WriteString("userName", username);
-                            writer.WriteString("password", password);
-                            writer.WriteEndObject();
-                        });
-
-                        _ = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/star/ignite", ignitePayload, cancellationToken).ConfigureAwait(false);
-                    }
-                }
-
-                var web5AuthResponse = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
-                if (!web5AuthResponse.IsError)
-                {
-                    var web5Parsed = ParseEnvelopeOrPayload(web5AuthResponse.Result, out var web5ResultElement, out _, out _);
-                    if (web5Parsed)
-                    {
-                        var web5Auth = ParseAvatarAuthResponse(web5ResultElement);
-                        if (web5Auth is not null)
-                        {
-                            if (string.IsNullOrWhiteSpace(auth.JwtToken) && !string.IsNullOrWhiteSpace(web5Auth.JwtToken))
-                                auth.JwtToken = web5Auth.JwtToken;
-                            if (string.IsNullOrWhiteSpace(auth.RefreshToken) && !string.IsNullOrWhiteSpace(web5Auth.RefreshToken))
-                                auth.RefreshToken = web5Auth.RefreshToken;
-                            if (auth.Id == Guid.Empty && web5Auth.Id != Guid.Empty)
-                                auth.Id = web5Auth.Id;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Best effort only: WEB4 auth remains the source of truth.
             }
 
             if (auth.Id == Guid.Empty)
@@ -323,6 +333,13 @@ public sealed class StarApiClient : IDisposable
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
+    }
+
+    /// <summary>Return the cached avatar ID without making any network call. Safe to call from any thread.</summary>
+    public string? GetCachedAvatarId()
+    {
+        lock (_stateLock)
+            return string.IsNullOrWhiteSpace(_avatarId) ? null : _avatarId;
     }
 
     /// <summary>Set avatar ID for subsequent API calls (e.g. after SSO when C++ has avatar_id from auth result). Does not change JWT.</summary>
@@ -2181,7 +2198,10 @@ public static unsafe class StarApiExports
 
         var user = PtrToString(username);
         var pass = PtrToString(password);
-        var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
+        // Run on .NET thread pool so HttpClient/CFNetwork has a valid execution context on macOS.
+        // Calling async methods directly on a bare pthread (from DOOM) silently hangs because
+        // CFNetwork requires an NSRunLoop on the originating thread.
+        var result = Task.Run(() => client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty)).GetAwaiter().GetResult();
         return (int)FinalizeResult(result);
     }
 
@@ -2470,14 +2490,9 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        // Get avatar_id by calling GetCurrentAvatarAsync which will ensure it's set
-        var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
-        if (result.IsError || result.Result is null)
-        {
-            return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
-        }
-
-        var avatarId = result.Result.Id.ToString();
+        // Use cached avatar ID — no network call here (calling GetCurrentAvatarAsync from a bare
+        // pthread deadlocks on macOS because CFNetwork requires an NSRunLoop on the calling thread).
+        var avatarId = client.GetCachedAvatarId();
         if (string.IsNullOrWhiteSpace(avatarId))
             return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized);
 
@@ -2506,6 +2521,29 @@ public static unsafe class StarApiExports
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         var result = client.SetAvatarId(PtrToString(avatarId) ?? string.Empty);
+        return (int)FinalizeResult(result);
+    }
+
+    /// <summary>
+    /// Set a pre-obtained JWT token and avatar ID directly — skips the network auth call entirely.
+    /// Used when the C++ host performs auth via raw POSIX sockets and passes the result in.
+    /// </summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_jwt_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetJwtToken(sbyte* jwtToken, sbyte* avatarId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        var jwt = PtrToString(jwtToken);
+        var id = PtrToString(avatarId);
+        if (string.IsNullOrWhiteSpace(jwt))
+            return (int)SetErrorAndReturn("JWT token must not be empty.", StarApiResultCode.InvalidParam);
+
+        var result = client.SetApiKey(jwt, id ?? string.Empty);
+        // Also store avatar ID separately so GetCachedAvatarId() works
+        if (!string.IsNullOrWhiteSpace(id))
+            client.SetAvatarId(id);
         return (int)FinalizeResult(result);
     }
 

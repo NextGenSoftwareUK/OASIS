@@ -481,6 +481,127 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Register or update the A2A delivery webhook URL for the authenticated agent.
+        /// When a new A2A message is stored, the API POSTs the message payload to this URL (with optional HMAC signature).
+        /// </summary>
+        /// <remarks>
+        /// **Authentication Required:** Yes (Bearer Token). Avatar must be of type Agent.
+        /// **Body:** { "url": "https://your-server.com/oasis-a2a", "secret": "optional-signing-secret" }
+        /// HTTPS required in production; HTTP allowed for localhost when A2A:Webhook:AllowHttp is true.
+        /// </remarks>
+        [HttpPut("agent/delivery/webhook")]
+        [HttpPost("agent/delivery/webhook")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> SetWebhookDelivery([FromBody] WebhookDeliveryRequest request)
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                    return Unauthorized(new { error = "Authentication required" });
+                if (Avatar.AvatarType?.Value != AvatarType.Agent)
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+
+                if (request != null && request.Url == null)
+                {
+                    await AvatarManager.Instance.SaveDataAsync("A2A_WebhookUrl", "", Avatar.Id);
+                    await AvatarManager.Instance.SaveDataAsync("A2A_WebhookSecret", "", Avatar.Id);
+                    return Ok(new { success = true, message = "Webhook removed", configured = false });
+                }
+
+                var url = request?.Url?.Trim();
+                if (string.IsNullOrWhiteSpace(url))
+                    return BadRequest(new { error = "Url is required" });
+
+                if (!IsWebhookUrlAllowed(url))
+                    return BadRequest(new { error = "URL must be HTTPS in production; HTTP only allowed for localhost when A2A:Webhook:AllowHttp is true" });
+
+                var secret = request?.Secret?.Trim() ?? "";
+                await AvatarManager.Instance.SaveDataAsync("A2A_WebhookUrl", url, Avatar.Id);
+                await AvatarManager.Instance.SaveDataAsync("A2A_WebhookSecret", secret, Avatar.Id);
+                return Ok(new { success = true, message = "Webhook registered", configured = true, url });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Remove the A2A delivery webhook for the authenticated agent.
+        /// </summary>
+        [HttpDelete("agent/delivery/webhook")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> DeleteWebhookDelivery()
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                    return Unauthorized(new { error = "Authentication required" });
+                if (Avatar.AvatarType?.Value != AvatarType.Agent)
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+
+                await AvatarManager.Instance.SaveDataAsync("A2A_WebhookUrl", "", Avatar.Id);
+                await AvatarManager.Instance.SaveDataAsync("A2A_WebhookSecret", "", Avatar.Id);
+                return Ok(new { success = true, message = "Webhook removed", configured = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// Get the current A2A delivery webhook configuration for the authenticated agent (URL only; secret is never returned).
+        /// </summary>
+        [HttpGet("agent/delivery/webhook")]
+        [Authorize]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> GetWebhookDelivery()
+        {
+            try
+            {
+                if (Avatar == null || Avatar.Id == Guid.Empty)
+                    return Unauthorized(new { error = "Authentication required" });
+                if (Avatar.AvatarType?.Value != AvatarType.Agent)
+                    return BadRequest(new { error = "Avatar must be of type Agent" });
+
+                var loadResult = await AvatarManager.Instance.LoadAvatarAsync(Avatar.Id, false, true);
+                if (loadResult.IsError || loadResult.Result?.MetaData == null || !loadResult.Result.MetaData.ContainsKey("A2A_WebhookUrl"))
+                    return Ok(new { configured = false, url = (string)null });
+                var url = loadResult.Result.MetaData["A2A_WebhookUrl"]?.ToString();
+                return Ok(new { configured = !string.IsNullOrWhiteSpace(url), url = string.IsNullOrWhiteSpace(url) ? null : url });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = $"Internal error: {ex.Message}" });
+            }
+        }
+
+        private bool IsWebhookUrlAllowed(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return false;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || !uri.IsAbsoluteUri)
+                return false;
+            var config = HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration)) as Microsoft.Extensions.Configuration.IConfiguration;
+            var allowHttp = bool.TryParse(config?["A2A:Webhook:AllowHttp"], out var allow) && allow;
+            if (uri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (uri.Scheme.Equals("http", StringComparison.OrdinalIgnoreCase) && allowHttp &&
+                (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || uri.Host == "127.0.0.1"))
+                return true;
+            return false;
+        }
+
+        /// <summary>
         /// Register A2A agent as SERV service
         /// </summary>
         /// <remarks>

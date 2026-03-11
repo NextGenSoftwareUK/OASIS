@@ -169,6 +169,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Optional path base for deployments at /star/api (e.g. oasisweb4.one/star/api)
+var pathBase = Environment.GetEnvironmentVariable("ASPNETCORE_PATHBASE");
+if (!string.IsNullOrEmpty(pathBase))
+    app.UsePathBase(pathBase);
+
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI(c =>

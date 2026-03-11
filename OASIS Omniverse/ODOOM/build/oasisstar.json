@@ -1,9 +1,11 @@
 {
-  "star_api_url": "http://localhost:5556",
-  "oasis_api_url": "http://localhost:5555",
+  "star_api_url": "http://localhost:50564",
+  "oasis_api_url": "http://localhost:5003",
   "beam_face": 1,
   "stack_armor": 1,
   "stack_weapons": 1,
   "stack_powerups": 1,
-  "stack_keys": 1
+  "stack_keys": 1,
+  "username": "OASIS_ADMIN",
+  "password": "Uppermall1!"
 }

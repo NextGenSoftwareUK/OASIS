@@ -95,18 +95,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>
         ///     Verify a newly created avatar by passing in the validation token sent in the verify email. This method is used by
-        ///     the link in the email.
+        ///     the link in the email. When the request Accepts text/html (e.g. browser click from email), returns a simple
+        ///     success or error page instead of JSON.
         /// </summary>
         /// <param name="token">The verification token sent via email.</param>
-        /// <returns>OASIS result indicating whether email verification was successful.</returns>
+        /// <returns>OASIS result (JSON) or HTML page for browser requests.</returns>
         /// <response code="200">Email verification completed (success or failure)</response>
         /// <response code="400">Invalid or expired verification token</response>
         [HttpGet("verify-email")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token)
+        public async Task<IActionResult> VerifyEmail(string token)
         {
-            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
+            var result = AvatarManager.VerifyEmail(token);
+            bool acceptsHtml = Request.Headers["Accept"].ToString().Contains("text/html", StringComparison.OrdinalIgnoreCase);
+            if (acceptsHtml)
+            {
+                bool success = !result.IsError && result.Result;
+                string message = success
+                    ? "Verification successful. You can now log in."
+                    : (result.Message ?? "This link is invalid or has expired.");
+                string signInUrl = $"{Request.Scheme}://{Request.Host}/api/swagger/index.html";
+                string html = EmailTemplates.GetVerifyEmailResultPageHtml(success, message, signInUrl);
+                int status = success ? (int)HttpStatusCode.OK : (int)HttpStatusCode.BadRequest;
+                return new ContentResult { Content = html, ContentType = "text/html; charset=utf-8", StatusCode = status };
+            }
+            return new ObjectResult(HttpResponseHelper.FormatResponse(result)) { StatusCode = (int)HttpStatusCode.OK };
         }
 
         /// <summary>
@@ -124,10 +138,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("verify-email/{providerType}/{setGlobally}")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
+        public async Task<IActionResult> VerifyEmail(string token, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
-            return HttpResponseHelper.FormatResponse(AvatarManager.VerifyEmail(token));
+            return await VerifyEmail(token);
         }
 
         /// <summary>
@@ -142,9 +156,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("verify-email")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model)
+        public Task<IActionResult> VerifyEmail(VerifyEmailRequest model)
         {
-            return await VerifyEmail(model.Token);
+            return VerifyEmail(model.Token);
         }
 
         /// <summary>
@@ -162,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("verify-email/{providerType}/{setGlobally}")]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISHttpResponseMessage<bool>> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
+        public async Task<IActionResult> VerifyEmail(VerifyEmailRequest model, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await VerifyEmail(model);

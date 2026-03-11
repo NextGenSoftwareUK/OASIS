@@ -1,4 +1,4 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using MimeKit.Text;
@@ -30,8 +30,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public static void Send(string to, string subject, string html, string from = null)
         {
-            if (_OASISDNA.OASIS.Email.DisableAllEmails)
+            if (_OASISDNA == null)
+            {
+                LoggingManager.Log($"Email not sent: EmailManager not initialized (OASISDNA is null). Would have sent to: {to}", LogType.Error);
                 return;
+            }
+            if (_OASISDNA.OASIS?.Email?.DisableAllEmails == true)
+            {
+                LoggingManager.Log($"Email not sent (DisableAllEmails=true). Would have sent to: {to}, subject: {subject}", LogType.Warning);
+                return;
+            }
 
             // For some unknown reason the emails sent from the code below (using mailkit) never arrive, the standard .net code after works! lol ;-)
             
@@ -68,10 +76,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             try
             {
                 client.Send(message);
+                LoggingManager.Log($"Email sent successfully to: {to}, subject: {subject}", LogType.Info);
             }
             catch (SmtpException ex)
             {
-                LoggingManager.Log(string.Concat("ERROR Sending Email. Exception: ", ex.ToString()), LogType.Error);
+                LoggingManager.Log(string.Concat("ERROR Sending Email to ", to, ". Subject: ", subject, ". Exception: ", ex.ToString()), LogType.Error);
             }
         }
     }

@@ -16,6 +16,7 @@ using System.Text;
 using System.Linq;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -65,6 +66,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
+            LoggingManager.Log($"Sending verification email to: {avatar.Email}, link: {OASISWebSiteURL.TrimEnd('/')}/avatar/verify-email?token=...", LogType.Info);
             EmailManager.Send(to: avatar.Email, subject: "OASIS - Verify your email", html: html);
         }
 
@@ -433,9 +435,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     // Agent detected but auto-verification disabled in config
                     result.Message = "Agent avatar created. Please check your email for verification.";
                 }
-                else
+                else if (!skipEmailForAgent && OASISDNA.OASIS?.Email?.SendVerificationEmail == true)
                 {
                     result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
+                }
+                else
+                {
+                    result.Message = "Avatar Created Successfully. Please contact support to activate your account.";
                 }
             }
 

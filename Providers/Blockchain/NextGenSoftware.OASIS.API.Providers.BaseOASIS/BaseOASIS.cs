@@ -3262,6 +3262,81 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
+    /// <summary>
+    /// Deploy a minimal mintable ERC-20 token on Base. Optionally mints initial supply to an address.
+    /// </summary>
+    public async Task<OASISResult<CreateErc20TokenResult>> CreateErc20TokenAsync(string name, string symbol, byte decimals, decimal? initialSupply = null, string initialHolderAddress = null)
+    {
+        var result = new OASISResult<CreateErc20TokenResult>(new CreateErc20TokenResult());
+        string errorMessage = "Error in CreateErc20TokenAsync method in BaseOASIS. Reason: ";
+
+        try
+        {
+            if (!_isActivated || _web3Client == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(symbol))
+            {
+                OASISErrorHandling.HandleError(ref result, "Name and symbol are required");
+                return result;
+            }
+
+            var deployment = new ContractDefinition.MinimalMintableErc20Deployment
+            {
+                Name = name,
+                Symbol = symbol,
+                Decimals = decimals
+            };
+
+            var receipt = await _web3Client.Eth.GetContractDeploymentHandler<ContractDefinition.MinimalMintableErc20Deployment>()
+                .SendRequestAndWaitForReceiptAsync(deployment);
+
+            if (receipt == null || string.IsNullOrWhiteSpace(receipt.ContractAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Deployment receipt missing or no contract address."));
+                return result;
+            }
+
+            if (receipt.HasErrors() == true)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Deployment transaction failed."));
+                return result;
+            }
+
+            result.Result.ContractAddress = receipt.ContractAddress;
+            result.Result.TransactionHash = receipt.TransactionHash;
+            result.IsError = false;
+            result.Message = "ERC-20 token deployed successfully on Base.";
+
+            if (initialSupply.HasValue && initialSupply.Value > 0 && !string.IsNullOrWhiteSpace(initialHolderAddress))
+            {
+                var mintRequest = new MintWeb3TokenRequest
+                {
+                    MetaData = new Dictionary<string, string>
+                    {
+                        { "TokenAddress", receipt.ContractAddress },
+                        { "MintToWalletAddress", initialHolderAddress },
+                        { "Amount", initialSupply.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) }
+                    }
+                };
+                var mintResult = await MintTokenAsync(mintRequest);
+                if (mintResult.IsError)
+                {
+                    result.Message = "Token deployed but initial mint failed: " + (mintResult.Message ?? "");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        }
+
+        return result;
+    }
+
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
     {
         return BurnTokenAsync(request).Result;
