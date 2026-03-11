@@ -85,6 +85,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     Database = new MongoDbContext(ConnectionString, DBName);
                     SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
                     SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);
@@ -143,6 +144,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     Database = new MongoDbContext(ConnectionString, DBName);
                     SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
                     SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);

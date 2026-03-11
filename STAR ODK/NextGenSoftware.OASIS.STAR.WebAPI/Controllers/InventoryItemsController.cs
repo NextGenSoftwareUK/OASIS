@@ -39,7 +39,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                OASISResult<IEnumerable<InventoryItem>> result = null;
+                OASISResult<IEnumerable<InventoryItem>>? result = null;
                 if (AvatarId != Guid.Empty)
                 {
                     await EnsureStarApiBootedAsync();

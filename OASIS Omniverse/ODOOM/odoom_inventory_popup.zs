@@ -1006,7 +1006,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String cb3 = (fc != 0) ? "[X] Completed" : "[ ] Completed";
 			String toggleStr = String.Format("%s  %s  %s", cb1, cb2, cb3);
 			int toggleW = f.StringWidth(toggleStr);
-			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 34, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2 + 70, popupY + 34, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
@@ -1056,7 +1056,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String hint2 = "Arrows=Select  Enter=Start/Select Active  Q=Close";
 			int hint1W = f.StringWidth(hint1);
 			int hint2W = f.StringWidth(hint2);
-			int hintRight = popupX + popupW - 8;  // right-align both hint lines (aligned to right edge)
+			int hintRight = popupX + popupW - 8 + 70;  // right-align both hint lines, 70px right of popup edge
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - hint1W, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
