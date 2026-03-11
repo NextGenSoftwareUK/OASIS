@@ -107,9 +107,10 @@ If you apply OQuake manually, add this in **`_Host_Frame`** (in host.c), right a
 
 ```c
 OQuake_STAR_PollItems ();
+OQuake_STAR_ClearMovementKeysIfPopupOpen ();  /* so quest popup blocks arrow/WASD/PgUp/PgDn/Home/End before movement runs */
 ```
 
-Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
+Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init`, `OQuake_STAR_PollItems`, and `OQuake_STAR_ClearMovementKeysIfPopupOpen`).
 
 ---
 
