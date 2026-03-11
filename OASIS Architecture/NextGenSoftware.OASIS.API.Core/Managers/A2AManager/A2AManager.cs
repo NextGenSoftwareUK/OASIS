@@ -18,8 +18,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     public partial class A2AManager : OASISManager
     {
         private static A2AManager _instance;
+        private static IA2APushSender _pushSender;
         private readonly Dictionary<Guid, List<IA2AMessage>> _messageQueue = new Dictionary<Guid, List<IA2AMessage>>();
         private readonly Dictionary<Guid, IA2AMessage> _pendingMessages = new Dictionary<Guid, IA2AMessage>();
+
+        /// <summary>
+        /// Optional push sender (e.g. webhook) registered by the host. When set, the manager notifies the recipient after persisting a message.
+        /// </summary>
+        public static void SetPushSender(IA2APushSender sender) => _pushSender = sender;
 
         public static A2AManager Instance
         {
@@ -85,6 +91,13 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 _messageQueue[message.ToAgentId].Add(message);
                 _pendingMessages[message.MessageId] = message;
 
+                // Persist to storage (e.g. MongoDB) so message survives restarts and works across API instances
+                await SaveA2AMessageToStorageAsync(message);
+
+                // Push to recipient (webhook/WebSocket) if sender is registered; fire-and-forget so send response is not blocked
+                if (_pushSender != null)
+                    _ = NotifyRecipientOfNewMessageAsync(message);
+
                 // Create notification for recipient agent
                 await MessagingManager.Instance.SendMessageToAvatarAsync(
                     message.FromAgentId,
@@ -111,23 +124,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<List<IA2AMessage>>();
             try
             {
-                if (_messageQueue.ContainsKey(agentId))
-                {
-                    // Filter out expired messages
-                    var validMessages = _messageQueue[agentId]
-                        .Where(m => m.ExpiresAt == null || m.ExpiresAt > DateTime.UtcNow)
-                        .OrderBy(m => m.Priority)
-                        .ThenBy(m => m.Timestamp)
-                        .ToList();
+                // Load from storage (e.g. MongoDB) so we see messages from any API instance
+                var fromStorage = await LoadPendingA2AMessagesFromStorageAsync(agentId);
+                var inMemory = _messageQueue.ContainsKey(agentId) ? _messageQueue[agentId] : new List<IA2AMessage>();
+                var combined = inMemory
+                    .Union(fromStorage)
+                    .GroupBy(m => m.MessageId)
+                    .Select(g => g.First())
+                    .Where(m => m.ExpiresAt == null || m.ExpiresAt > DateTime.UtcNow)
+                    .OrderBy(m => m.Priority)
+                    .ThenBy(m => m.Timestamp)
+                    .ToList();
 
-                    result.Result = validMessages;
-                    result.Message = $"Found {validMessages.Count} pending messages";
-                }
-                else
-                {
-                    result.Result = new List<IA2AMessage>();
-                    result.Message = "No pending messages";
-                }
+                result.Result = combined;
+                result.Message = combined.Count > 0 ? $"Found {combined.Count} pending messages" : "No pending messages";
             }
             catch (Exception ex)
             {
@@ -151,6 +161,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     {
                         _messageQueue[agentId].Remove(message);
                         _pendingMessages.Remove(messageId);
+                        await DeleteA2AMessageFromStorageAsync(messageId, agentId);
                         result.Result = true;
                         result.Message = "Message marked as processed";
                     }
@@ -161,7 +172,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"No message queue found for agent {agentId}");
+                    // Message might only exist in storage (e.g. received on another instance)
+                    await DeleteA2AMessageFromStorageAsync(messageId, agentId);
+                    result.Result = true;
+                    result.Message = "Message marked as processed";
                 }
             }
             catch (Exception ex)
@@ -245,6 +259,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending payment request: {ex.Message}", ex);
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// Notify the recipient via the registered push sender (webhook/WebSocket). Fire-and-forget; exceptions are logged and not propagated.
+        /// </summary>
+        private static async Task NotifyRecipientOfNewMessageAsync(IA2AMessage message)
+        {
+            if (_pushSender == null) return;
+            try
+            {
+                await _pushSender.NotifyNewMessageAsync(message.ToAgentId, message).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"A2A push: failed to notify recipient {message.ToAgentId} for message {message.MessageId}: {ex.Message}", ex);
             }
         }
     }

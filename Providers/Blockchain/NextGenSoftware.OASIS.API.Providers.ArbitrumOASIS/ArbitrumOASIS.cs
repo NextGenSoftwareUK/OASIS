@@ -3265,24 +3265,43 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
                 return result;
             }
 
-            // Get token address from contract address or use default
-            var tokenAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            
-            // Get private key from KeyManager using MintedByAvatarId
-            var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(request.MintedByAvatarId, Core.Enums.ProviderType.ArbitrumOASIS);
-            if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+            Account senderAccount;
+            string tokenAddress;
+            string mintToAddress;
+            decimal mintAmount;
+
+            // Support MetaData path (e.g. from ONODE mint-erc20-tokens): TokenAddress, MintToWalletAddress, Amount
+            if (request.MetaData != null &&
+                request.MetaData.ContainsKey("TokenAddress") && !string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) &&
+                request.MetaData.ContainsKey("MintToWalletAddress") && !string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
             {
-                OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                return result;
+                tokenAddress = request.MetaData["TokenAddress"].ToString();
+                mintToAddress = request.MetaData["MintToWalletAddress"].ToString();
+                mintAmount = request.MetaData.ContainsKey("Amount") && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
+                if (mintAmount <= 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero when using MetaData");
+                    return result;
+                }
+                senderAccount = new Account(_chainPrivateKey, _chainId);
+            }
+            else
+            {
+                // Legacy path: KeyManager + MintedByAvatarId
+                tokenAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
+                var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(request.MintedByAvatarId, Core.Enums.ProviderType.ArbitrumOASIS);
+                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
+                    return result;
+                }
+                senderAccount = new Account(keysResult.Result[0], _chainId);
+                mintToAddress = senderAccount.Address;
+                mintAmount = 1m;
             }
 
-            var senderAccount = new Account(keysResult.Result[0]);
             var web3Client = new Web3(senderAccount, _hostURI);
-            var mintToAddress = senderAccount.Address; // Use sender address as default
-            var mintAmount = 1m; // Default amount
-
-            // ERC20 mint function ABI
-            var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
+            var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_amount\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
             var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenAddress);
             var decimalsFunction = erc20Contract.GetFunction("decimals");
             var decimals = await decimalsFunction.CallAsync<byte>();
@@ -3290,11 +3309,11 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
             var amountBigInt = new BigInteger(mintAmount * (decimal)multiplier);
             var mintFunction = erc20Contract.GetFunction("mint");
             var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
-                senderAccount.Address, 
-                _gasLimit, 
-                null, 
-                null, 
-                mintToAddress, 
+                senderAccount.Address,
+                _gasLimit,
+                null,
+                null,
+                mintToAddress,
                 amountBigInt);
 
             if (receipt.HasErrors() == true)
@@ -3305,13 +3324,88 @@ public sealed class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStoragePro
 
             result.Result.TransactionResult = receipt.TransactionHash;
             result.IsError = false;
-            result.Message = "Token minted successfully.";
+            result.Message = "Token minted successfully on Arbitrum.";
             TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
         }
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         }
+        return result;
+    }
+
+    /// <summary>
+    /// Deploy a minimal mintable ERC-20 token on Arbitrum. Optionally mints initial supply to an address.
+    /// </summary>
+    public async Task<OASISResult<CreateErc20TokenResult>> CreateErc20TokenAsync(string name, string symbol, byte decimals, decimal? initialSupply = null, string initialHolderAddress = null)
+    {
+        var result = new OASISResult<CreateErc20TokenResult>(new CreateErc20TokenResult());
+        string errorMessage = "Error in CreateErc20TokenAsync method in ArbitrumOASIS. Reason: ";
+
+        try
+        {
+            if (!IsProviderActivated || _web3Client == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "Arbitrum provider is not activated");
+                return result;
+            }
+
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(symbol))
+            {
+                OASISErrorHandling.HandleError(ref result, "Name and symbol are required");
+                return result;
+            }
+
+            var deployment = new ContractDefinition.MinimalMintableErc20Deployment
+            {
+                Name = name,
+                Symbol = symbol,
+                Decimals = decimals
+            };
+
+            var receipt = await _web3Client.Eth.GetContractDeploymentHandler<ContractDefinition.MinimalMintableErc20Deployment>()
+                .SendRequestAndWaitForReceiptAsync(deployment);
+
+            if (receipt == null || string.IsNullOrWhiteSpace(receipt.ContractAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Deployment receipt missing or no contract address."));
+                return result;
+            }
+
+            if (receipt.HasErrors() == true)
+            {
+                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Deployment transaction failed."));
+                return result;
+            }
+
+            result.Result.ContractAddress = receipt.ContractAddress;
+            result.Result.TransactionHash = receipt.TransactionHash;
+            result.IsError = false;
+            result.Message = "ERC-20 token deployed successfully on Arbitrum.";
+
+            if (initialSupply.HasValue && initialSupply.Value > 0 && !string.IsNullOrWhiteSpace(initialHolderAddress))
+            {
+                var mintRequest = new MintWeb3TokenRequest
+                {
+                    MetaData = new Dictionary<string, string>
+                    {
+                        { "TokenAddress", receipt.ContractAddress },
+                        { "MintToWalletAddress", initialHolderAddress },
+                        { "Amount", initialSupply.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) }
+                    }
+                };
+                var mintResult = await MintTokenAsync(mintRequest);
+                if (mintResult.IsError)
+                {
+                    result.Message = "Token deployed but initial mint failed: " + (mintResult.Message ?? "");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+        }
+
         return result;
     }
 

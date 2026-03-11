@@ -17,7 +17,10 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -71,6 +74,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (result.Result == null)
                 OASISErrorHandling.HandleError(ref result, "The registered SolanaOASIS provider could not be cast to SolanaOASIS.");
+
+            return result;
+        }
+
+        private OASISResult<BaseOASIS> GetBaseProvider()
+        {
+            var result = new OASISResult<BaseOASIS>();
+            IOASISProvider provider = ProviderManager.Instance.GetProvider(ProviderType.BaseOASIS);
+
+            if (provider == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "BaseOASIS provider is not registered.");
+                return result;
+            }
+
+            if (!provider.IsProviderActivated)
+            {
+                var activateResult = provider.ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate BaseOASIS provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = provider as BaseOASIS;
+
+            if (result.Result == null)
+                OASISErrorHandling.HandleError(ref result, "The registered BaseOASIS provider could not be cast to BaseOASIS.");
+
+            return result;
+        }
+
+        private OASISResult<ArbitrumOASIS> GetArbitrumProvider()
+        {
+            var result = new OASISResult<ArbitrumOASIS>();
+            IOASISProvider provider = ProviderManager.Instance.GetProvider(ProviderType.ArbitrumOASIS);
+
+            if (provider == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "ArbitrumOASIS provider is not registered.");
+                return result;
+            }
+
+            if (!provider.IsProviderActivated)
+            {
+                var activateResult = provider.ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate ArbitrumOASIS provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = provider as ArbitrumOASIS;
+
+            if (result.Result == null)
+                OASISErrorHandling.HandleError(ref result, "The registered ArbitrumOASIS provider could not be cast to ArbitrumOASIS.");
 
             return result;
         }
@@ -943,7 +1004,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// setting the OASIS server wallet as both mint authority and freeze authority, so
         /// mint-tokens will work immediately without any set-mint-authority call.
         /// </summary>
-        /// <param name="request">Decimals (default 0 for whole-unit share tokens) and Cluster.</param>
+        /// <param name="request">Decimals, Cluster, and optional Name/Symbol/MetadataUri for wallet-visible metadata.</param>
         /// <returns>The mint address of the newly created fungible SPL token.</returns>
         [Authorize]
         [HttpPost]
@@ -959,7 +1020,142 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (providerResult.IsError)
                 return new OASISResult<string> { IsError = true, Message = providerResult.Message };
 
-            return await providerResult.Result.CreateSplFungibleTokenAsync(request.Decimals, request.Cluster ?? "devnet");
+            return await providerResult.Result.CreateSplFungibleTokenAsync(
+                request.Decimals,
+                request.Cluster ?? "devnet",
+                request.Name,
+                request.Symbol,
+                request.MetadataUri);
+        }
+
+        /// <summary>
+        /// Create a minimal mintable ERC-20 token on an EVM chain. Supported: BaseOASIS, ArbitrumOASIS.
+        /// The deployer (OASIS account) is the minter; use mint-erc20-tokens to mint more.
+        /// </summary>
+        /// <param name="request">ProviderType (BaseOASIS or ArbitrumOASIS), Name, Symbol, Decimals, optional InitialSupply and InitialHolderAddress.</param>
+        /// <returns>Contract address and deployment transaction hash.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-erc20-token")]
+        [ProducesResponseType(typeof(OASISResult<Models.NFT.CreateErc20TokenResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<Models.NFT.CreateErc20TokenResponse>> CreateErc20TokenAsync([FromBody] Models.NFT.CreateErc20TokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = "Request body is required." };
+
+            if (request.ProviderType != ProviderType.BaseOASIS && request.ProviderType != ProviderType.ArbitrumOASIS)
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = "Only BaseOASIS and ArbitrumOASIS are supported for create-erc20-token." };
+
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Symbol))
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = "Name and Symbol are required." };
+
+            if (request.ProviderType == ProviderType.BaseOASIS)
+            {
+                var providerResult = GetBaseProvider();
+                if (providerResult.IsError)
+                    return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = providerResult.Message };
+
+                var createResult = await providerResult.Result.CreateErc20TokenAsync(
+                    request.Name,
+                    request.Symbol,
+                    request.Decimals,
+                    request.InitialSupply,
+                    request.InitialHolderAddress);
+
+                if (createResult.IsError)
+                    return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = createResult.Message };
+
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse>
+                {
+                    Result = new Models.NFT.CreateErc20TokenResponse
+                    {
+                        ContractAddress = createResult.Result.ContractAddress,
+                        TransactionHash = createResult.Result.TransactionHash
+                    },
+                    IsError = false,
+                    Message = createResult.Message
+                };
+            }
+
+            var arbitrumResult = GetArbitrumProvider();
+            if (arbitrumResult.IsError)
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = arbitrumResult.Message };
+
+            var arbitrumCreateResult = await arbitrumResult.Result.CreateErc20TokenAsync(
+                request.Name,
+                request.Symbol,
+                request.Decimals,
+                request.InitialSupply,
+                request.InitialHolderAddress);
+
+            if (arbitrumCreateResult.IsError)
+                return new OASISResult<Models.NFT.CreateErc20TokenResponse> { IsError = true, Message = arbitrumCreateResult.Message };
+
+            return new OASISResult<Models.NFT.CreateErc20TokenResponse>
+            {
+                Result = new Models.NFT.CreateErc20TokenResponse
+                {
+                    ContractAddress = arbitrumCreateResult.Result.ContractAddress,
+                    TransactionHash = arbitrumCreateResult.Result.TransactionHash
+                },
+                IsError = false,
+                Message = arbitrumCreateResult.Message
+            };
+        }
+
+        /// <summary>
+        /// Mint ERC-20 tokens to a wallet on an EVM chain. Supported: BaseOASIS, ArbitrumOASIS.
+        /// The token contract must have been created via create-erc20-token (or another minter); the OASIS account must be the minter.
+        /// </summary>
+        /// <param name="request">ProviderType (BaseOASIS or ArbitrumOASIS), TokenAddress, ToWalletAddress, Amount.</param>
+        /// <returns>Transaction hash.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("mint-erc20-tokens")]
+        [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<ITransactionResponse>> MintErc20TokensAsync([FromBody] Models.NFT.MintErc20TokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Request body is required. Provide TokenAddress, ToWalletAddress, and Amount." };
+
+            if (request.ProviderType != ProviderType.BaseOASIS && request.ProviderType != ProviderType.ArbitrumOASIS)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Only BaseOASIS and ArbitrumOASIS are supported for mint-erc20-tokens." };
+
+            if (string.IsNullOrWhiteSpace(request.TokenAddress))
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "TokenAddress is required." };
+
+            if (string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "ToWalletAddress is required." };
+
+            if (request.Amount <= 0)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = "Amount must be greater than zero." };
+
+            var mintRequest = new MintWeb3TokenRequest
+            {
+                MetaData = new Dictionary<string, string>
+                {
+                    { "TokenAddress", request.TokenAddress },
+                    { "MintToWalletAddress", request.ToWalletAddress },
+                    { "Amount", request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture) }
+                }
+            };
+
+            if (request.ProviderType == ProviderType.BaseOASIS)
+            {
+                var providerResult = GetBaseProvider();
+                if (providerResult.IsError)
+                    return new OASISResult<ITransactionResponse> { IsError = true, Message = providerResult.Message };
+                return await providerResult.Result.MintTokenAsync(mintRequest);
+            }
+
+            var arbitrumResult = GetArbitrumProvider();
+            if (arbitrumResult.IsError)
+                return new OASISResult<ITransactionResponse> { IsError = true, Message = arbitrumResult.Message };
+            return await arbitrumResult.Result.MintTokenAsync(mintRequest);
         }
 
         // ─────────────────────────────────────────────────────────────────────

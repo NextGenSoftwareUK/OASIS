@@ -71,6 +71,8 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         Web5GeoNFT,
         Web4NFTCollection,
         Web5NFTCollection,
+        Web4Token,
+        Web4Vault,
         Web4GeoNFTCollection,
         Web5GeoNFTCollection,
         GeoHotSpot,
@@ -128,6 +130,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         InstalledPlugin,
         Proposal,
         LiquidityPool,
+        A2AMessage,
         None
         //Custom,
         //DataObject
