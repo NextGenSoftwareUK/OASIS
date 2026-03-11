@@ -945,8 +945,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			String qTitle = (trackerTitleCv != null) ? trackerTitleCv.GetString() : "";
 			if (beamedIn && qTitle.Length() > 0)
 			{
-				int trackX = -50; // 5px left of -45; left-aligned to screen edge
-				int trackY = 12;  // just below "Beamed In: <username>" (drawn at y=2 in status bar)
+				int trackX = -53; // 3px further left (was -50)
+				int trackY = 7;   // 5px up from 12; just below "Beamed In: <username>" (drawn at y=2 in status bar)
 				double trackScale = 0.5;
 				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
 				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
@@ -995,17 +995,18 @@ class OASISInventoryOverlayHandler : EventHandler
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
-			int col2X = popupX + 8 + 32 * 8;  // name column doubled (was 16 chars, now 32)
-			int col3X = popupX + 8 + 32 * 8 + 6 * 8;  // % then Status
+			int nameColW = 32 * 8 + 20;  // name column: 32 chars + 20px wider
+			int col2X = popupX + 8 + nameColW;
+			int col3X = col2X + 6 * 8;  // % then Status
 			int maxQuestRows = (popupH - 80) / rowH - 4; // one fewer row to make room for 2-line hint
 			if (maxQuestRows < 5) maxQuestRows = 5;
-			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 4, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 14, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
 			String cb2 = (fi != 0) ? "[X] In Progress" : "[ ] In Progress";
 			String cb3 = (fc != 0) ? "[X] Completed" : "[ ] Completed";
 			String toggleStr = String.Format("%s  %s  %s", cb1, cb2, cb3);
 			int toggleW = f.StringWidth(toggleStr);
-			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 24, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 29, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
@@ -1051,8 +1052,12 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			else
 				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 58, "B/N/M=Filter  PgUp/PgDn=Page  Home/End=Top/Bottom  Arrows=Select", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 43, "Enter=Start/Select Active  Q=Close", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			String hint1 = "B/N/M=Filter  PgUp/PgDn=Page  Home/End=Top/Bottom";
+			String hint2 = "Arrows=Select  Enter=Start/Select Active  Q=Close";
+			int hint1W = f.StringWidth(hint1);
+			int hint2W = f.StringWidth(hint2);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + (popupW - hint1W) / 2, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + (popupW - hint2W) / 2, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				int msgW = f.StringWidth(questStatusMessage);
