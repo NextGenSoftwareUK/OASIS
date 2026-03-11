@@ -4183,7 +4183,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int col2_chars = 6;
             dy = qy + 48;
             row_h = 12;
-            max_rows = (qh - 84) / row_h;
+            max_rows = (qh - 96) / row_h;  /* one fewer row to leave space before bottom hint text */
             if (max_rows < 6) max_rows = 6;
             if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
             col1_x = qx + 10;
