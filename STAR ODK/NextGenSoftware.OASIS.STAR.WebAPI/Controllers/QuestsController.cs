@@ -91,9 +91,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         /// <summary>
         /// Retrieves all quests for the current avatar (no status filter).
-        /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
+        /// Returns a flat list of every quest where CreatedByAvatarId matches and Active=1: top-level quests, sub-quests, and objectives (child quests with ParentQuestId set).
+        /// Use this for the quest popup; the client filters by status (Not Started, In Progress, Completed) and by ParentQuestId for sub-quests/objectives.
         /// </summary>
-        /// <returns>List of all quests for the authenticated avatar.</returns>
+        /// <returns>List of all quests for the authenticated avatar (including sub-quests and objectives).</returns>
         /// <response code="200">Quests retrieved successfully</response>
         /// <response code="400">Error retrieving quests</response>
         [HttpGet("all-for-avatar")]
@@ -220,6 +221,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 await EnsureStarApiBootedAsync();
                 EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
+                // Cast to Quest so UpdateAsync uses generic SaveHolonAsync<Quest> and HolonManager mapping runs.
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
                 
                 if (result.IsError)
@@ -271,6 +273,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 await EnsureStarApiBootedAsync();
                 quest.Id = id;
+                // UpdateAsync uses generic SaveHolonAsync<Quest> so HolonManager.PrepareHolonForSaving runs.
                 var result = await _starAPI.Quests.UpdateAsync(AvatarId, quest);
                 
                 if (result.IsError)
@@ -598,7 +601,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                             QuestType = QuestType.SideQuest,
                             Requirements = new List<string>(),
                             GameSource = obj.GameSource?.Trim() ?? "",
-                            ItemRequired = obj.ItemRequired?.Trim() ?? ""
+                            ItemRequired = obj.ItemRequired?.Trim() ?? "",
+                            IsObjective = true
                         };
                         subQuest.STARNETDNA = new STARNETDNA
                         {
@@ -671,7 +675,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     QuestType = QuestType.SideQuest,
                     Requirements = new List<string>(),
                     GameSource = request.GameSource?.Trim() ?? "",
-                    ItemRequired = request.ItemRequired?.Trim() ?? ""
+                    ItemRequired = request.ItemRequired?.Trim() ?? "",
+                    IsObjective = true
                 };
                 subQuest.STARNETDNA = new STARNETDNA
                 {
@@ -723,6 +728,95 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             catch (Exception ex)
             {
                 return HandleException<Quest>(ex, "removing quest objective");
+            }
+        }
+
+        /// <summary>
+        /// Adds a sub-quest (full child quest with IsObjective=false) to an existing quest. Use for nested quests that can have their own objectives; use POST objectives for checklist items.
+        /// </summary>
+        /// <param name="id">The parent quest ID.</param>
+        /// <param name="request">Sub-quest name, description, and optional game source / item required.</param>
+        /// <returns>The created sub-quest with its ID.</returns>
+        [HttpPost("{id}/subquests")]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddSubQuest(Guid id, [FromBody] AddSubQuestRequest request)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                if (request == null)
+                    return BadRequest(new OASISResult<Quest> { IsError = true, Message = "Request body is required." });
+
+                var subQuest = new Quest
+                {
+                    Id = Guid.NewGuid(),
+                    Name = string.IsNullOrWhiteSpace(request.Name) ? (request.Description?.Trim() ?? "Sub-quest") : request.Name,
+                    Description = request.Description?.Trim() ?? "",
+                    Order = request.Order >= 0 ? request.Order : 0,
+                    Status = QuestStatus.NotStarted,
+                    Type = QuestType.SideQuest,
+                    QuestType = QuestType.SideQuest,
+                    Requirements = new List<string>(),
+                    GameSource = request.GameSource?.Trim() ?? "",
+                    ItemRequired = request.ItemRequired?.Trim() ?? "",
+                    IsObjective = false
+                };
+                subQuest.STARNETDNA = new STARNETDNA
+                {
+                    Id = subQuest.Id,
+                    Name = subQuest.Name,
+                    Description = subQuest.Description,
+                    Version = "1.0.0",
+                    CreatedByAvatarId = AvatarId,
+                    CreatedOn = DateTime.UtcNow,
+                    ModifiedOn = DateTime.UtcNow
+                };
+
+                var result = await _starAPI.Quests.AddQuestAsync(AvatarId, id, subQuest, ProviderType.Default);
+
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<Quest>(ex, "adding sub-quest");
+            }
+        }
+
+        /// <summary>
+        /// Removes a sub-quest (child quest with IsObjective=false) from a quest.
+        /// </summary>
+        /// <param name="parentId">The parent quest ID.</param>
+        /// <param name="subQuestId">The sub-quest ID to remove.</param>
+        [HttpDelete("{parentId}/subquests/{subQuestId}")]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RemoveSubQuest(Guid parentId, Guid subQuestId)
+        {
+            try
+            {
+                var avatarCheck = ValidateAvatarId<Quest>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.RemoveQuestAsync(AvatarId, parentId, subQuestId, ProviderType.Default);
+
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<Quest>(ex, "removing sub-quest");
             }
         }
 
@@ -1342,6 +1436,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     }
 
     public class AddQuestObjectiveRequest
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string GameSource { get; set; } = "";
+        public string ItemRequired { get; set; } = "";
+        public int Order { get; set; } = -1;
+    }
+
+    /// <summary>Request body for adding a sub-quest (full child quest; IsObjective=false).</summary>
+    public class AddSubQuestRequest
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
