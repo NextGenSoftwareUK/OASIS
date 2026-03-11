@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
@@ -59,6 +59,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public long RewardKarma { get; set; }
         public long RewardXP { get; set; }
         public List<string> Requirements { get; set; } = new List<string>();
+        /// <summary>Game (e.g. Doom, Quake) this quest/objective applies to. Used when quest is a sub-quest/objective.</summary>
+        public string GameSource { get; set; }
+        /// <summary>Item or action required to complete (e.g. Key, Health). Used when quest is a sub-quest/objective.</summary>
+        public string ItemRequired { get; set; }
         public string CompletionNotes { get; set; }
 
 

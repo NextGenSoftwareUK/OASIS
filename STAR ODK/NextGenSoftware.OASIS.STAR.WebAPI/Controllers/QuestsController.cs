@@ -596,12 +596,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                             Status = QuestStatus.NotStarted,
                             Type = QuestType.SideQuest,
                             QuestType = QuestType.SideQuest,
-                            Requirements = new List<string>()
+                            Requirements = new List<string>(),
+                            GameSource = obj.GameSource?.Trim() ?? "",
+                            ItemRequired = obj.ItemRequired?.Trim() ?? ""
                         };
-                        if (!string.IsNullOrWhiteSpace(obj.GameSource))
-                            subQuest.Requirements.Add($"GameSource:{obj.GameSource}");
-                        if (!string.IsNullOrWhiteSpace(obj.ItemRequired))
-                            subQuest.Requirements.Add($"ItemRequired:{obj.ItemRequired}");
                         subQuest.STARNETDNA = new STARNETDNA
                         {
                             Id = subQuest.Id,
@@ -671,12 +669,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Status = QuestStatus.NotStarted,
                     Type = QuestType.SideQuest,
                     QuestType = QuestType.SideQuest,
-                    Requirements = new List<string>()
+                    Requirements = new List<string>(),
+                    GameSource = request.GameSource?.Trim() ?? "",
+                    ItemRequired = request.ItemRequired?.Trim() ?? ""
                 };
-                if (!string.IsNullOrWhiteSpace(request.GameSource))
-                    subQuest.Requirements.Add($"GameSource:{request.GameSource}");
-                if (!string.IsNullOrWhiteSpace(request.ItemRequired))
-                    subQuest.Requirements.Add($"ItemRequired:{request.ItemRequired}");
                 subQuest.STARNETDNA = new STARNETDNA
                 {
                     Id = subQuest.Id,

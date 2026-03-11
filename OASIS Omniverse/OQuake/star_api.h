@@ -79,6 +79,12 @@ star_api_result_t star_api_complete_quest_objective(const char* quest_id, const 
 star_api_result_t star_api_complete_quest(const char* quest_id);
 /** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
 int star_api_get_quests_string(char* buf, size_t buf_size);
+/** Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as star_api_get_quests_string. Use for main quest list so sub-quests do not appear in the left panel. */
+int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
+/** Write serialized sub-quests of the given parent_quest_id to buf for right panel. Same format as star_api_get_quests_string. parent_quest_id must be non-NULL. */
+int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Write serialized prerequisite quests (id, name, desc) for the given quest_id to buf for right panel. Same format as star_api_get_quests_string. quest_id must be non-NULL. */
+int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. Call when opening the quest popup so data is up to date. */
 void star_api_invalidate_quest_cache(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */

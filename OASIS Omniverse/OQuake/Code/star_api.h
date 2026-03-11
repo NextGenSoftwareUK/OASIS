@@ -77,6 +77,16 @@ star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
+/** Write serialized quest list (all quests for avatar) to buf. Returns bytes written, or negative on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Uses cache; never blocks. */
+int star_api_get_quests_string(char* buf, size_t buf_size);
+/** Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as star_api_get_quests_string. */
+int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
+/** Write serialized sub-quests of parent_quest_id to buf for right panel. parent_quest_id must be non-NULL. */
+int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Write serialized prerequisite quests for quest_id to buf for right panel. quest_id must be non-NULL. */
+int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
+/** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. */
+void star_api_invalidate_quest_cache(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);

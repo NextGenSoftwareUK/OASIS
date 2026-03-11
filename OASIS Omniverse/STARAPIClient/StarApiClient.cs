@@ -75,6 +75,8 @@ public sealed class StarQuestInfo
     public List<StarQuestObjective> Objectives { get; init; } = new();
     /// <summary>Quest IDs that must be completed before this quest can be started (from MetaData.PrerequisiteQuestIds).</summary>
     public List<string> PrerequisiteQuestIds { get; init; } = new();
+    /// <summary>Parent quest ID when this quest is a sub-quest. Empty Guid string for top-level quests.</summary>
+    public string ParentQuestId { get; init; } = string.Empty;
 }
 
 public sealed class StarNftInfo
@@ -96,6 +98,8 @@ public sealed class StarApiClient : IDisposable
 
     /// <summary>Cached serialized quest list for star_api_get_quests_string. Populated by background refresh so the game thread never blocks.</summary>
     private string? _questsCacheString;
+    /// <summary>Cached full quest list from last successful load. Used by GetTopLevelQuestsFromCache, GetQuestSubQuestsFromCache, GetQuestPrereqsFromCache.</summary>
+    private List<StarQuestInfo>? _cachedQuestList;
     /// <summary>True while a background quest refresh is running; prevents multiple concurrent refreshes.</summary>
     private bool _questsRefreshInProgress;
 
@@ -737,6 +741,43 @@ public sealed class StarApiClient : IDisposable
         lock (_questsCacheLock)
         {
             _questsCacheString = null;
+            _cachedQuestList = null;
+        }
+    }
+
+    /// <summary>Filter cached quest list to top-level only (no ParentQuestId or empty). Returns empty list if cache not ready.</summary>
+    public List<StarQuestInfo> GetTopLevelQuestsFromCache()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            return _cachedQuestList.Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString()).ToList();
+        }
+    }
+
+    /// <summary>Filter cached quest list to sub-quests of the given parent quest ID. Returns empty list if cache not ready.</summary>
+    public List<StarQuestInfo> GetQuestSubQuestsFromCache(string parentQuestId)
+    {
+        if (string.IsNullOrWhiteSpace(parentQuestId)) return new List<StarQuestInfo>();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            var id = parentQuestId.Trim();
+            return _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    /// <summary>Resolve prerequisite quest IDs for the given quest to full StarQuestInfo from cache. Returns empty list if cache not ready or quest not found.</summary>
+    public List<StarQuestInfo> GetQuestPrereqsFromCache(string questId)
+    {
+        if (string.IsNullOrWhiteSpace(questId)) return new List<StarQuestInfo>();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest?.PrerequisiteQuestIds == null || quest.PrerequisiteQuestIds.Count == 0) return new List<StarQuestInfo>();
+            var set = new HashSet<string>(quest.PrerequisiteQuestIds, StringComparer.OrdinalIgnoreCase);
+            return _cachedQuestList.Where(q => set.Contains(q.Id)).ToList();
         }
     }
 
@@ -782,7 +823,26 @@ public sealed class StarApiClient : IDisposable
                 lock (_questsCacheLock)
                 {
                     _questsCacheString = serialized;
+                    _cachedQuestList = result.Result;
                     _questsRefreshInProgress = false;
+                }
+                /* Log filtering-relevant fields so we can verify API returns ParentQuestId and PrerequisiteQuestIds (e.g. from demo seed). */
+                if (result.Result != null && result.Result.Count > 0)
+                {
+                    var list = result.Result;
+                    int topLevel = 0, withPrereqs = 0, withParent = 0;
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        var q = list[i];
+                        var isTop = string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString();
+                        if (isTop) topLevel++;
+                        if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0) withPrereqs++;
+                        if (!isTop) withParent++;
+                        var parentInfo = isTop ? "(top-level)" : q.ParentQuestId;
+                        var prereqInfo = (q.PrerequisiteQuestIds?.Count ?? 0) == 0 ? "0" : $"{q.PrerequisiteQuestIds!.Count}=[{string.Join(", ", q.PrerequisiteQuestIds.Take(3))}{(q.PrerequisiteQuestIds.Count > 3 ? "..." : "")}]";
+                        StarApiExports.StarApiLog($"[Quests] Cached[{i}] Id={q.Id} Name={q.Name?.Replace("\t", " ")} ParentQuestId={parentInfo} PrereqIds={prereqInfo}");
+                    }
+                    StarApiExports.StarApiLog($"[Quests] Filter summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs}");
                 }
                 return Success(true, StarApiResultCode.Success, "Quests cached.");
             }
@@ -793,6 +853,7 @@ public sealed class StarApiClient : IDisposable
                 lock (_questsCacheLock)
                 {
                     _questsCacheString = serialized;
+                    _cachedQuestList = null;
                     _questsRefreshInProgress = false;
                 }
                 return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
@@ -814,6 +875,89 @@ public sealed class StarApiClient : IDisposable
         EnsureQuestsCacheInBackground();
         cached = null;
         return false;
+    }
+
+    /// <summary>Get serialized top-level-only quest list for left panel. Filters from cache; returns null if cache not ready.</summary>
+    internal bool TryGetTopLevelQuestsCache(out string? cached)
+    {
+        cached = null;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var top = _cachedQuestList.Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString()).ToList();
+            StarApiExports.StarApiLogFileOnly($"[Quests] Filter: top-level count={top.Count} from total {_cachedQuestList.Count}");
+            cached = top.Count == 0 ? string.Empty : SerializeQuestsForGame(top);
+            return true;
+        }
+    }
+
+    /// <summary>Get serialized sub-quests for a parent quest for right panel. When the quest has no child quests (ParentQuestId), returns its Objectives in the same Q-line format so the UI can show "Sub-quests / Objectives" as one list (objectives = checklist items on the quest).</summary>
+    internal bool TryGetQuestSubQuestsCache(string? parentQuestId, out string? cached)
+    {
+        cached = null;
+        if (string.IsNullOrWhiteSpace(parentQuestId)) { cached = string.Empty; return true; }
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var id = parentQuestId.Trim();
+            var sub = _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (sub.Count > 0)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: sub-quests for parent {id}: count={sub.Count}");
+                cached = SerializeQuestsForGame(sub);
+                return true;
+            }
+            /* No child quests: show this quest's objectives in the same list (objectives = checklist = "sub-quests" in the UI). */
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
+            cached = quest != null && quest.Objectives != null && quest.Objectives.Count > 0
+                ? SerializeObjectivesAsQuestLines(quest)
+                : string.Empty;
+            if (quest != null && (quest.Objectives?.Count ?? 0) > 0)
+                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: sub-quests for parent {id}: 0 child quests, using {quest.Objectives!.Count} objectives");
+            return true;
+        }
+    }
+
+    /// <summary>Serialize a quest's objectives as Q-lines (id, name, desc, status, pct) so the right panel can display them in the "Sub-quests / Objectives" list.</summary>
+    private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
+    {
+        if (quest.Objectives == null || quest.Objectives.Count == 0) return string.Empty;
+        var sb = new StringBuilder();
+        for (var i = 0; i < quest.Objectives.Count; i++)
+        {
+            var o = quest.Objectives[i];
+            var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
+            var name = EscapeForQuestLine(o.Description ?? "");
+            var desc = name;
+            var status = o.IsCompleted ? "Completed" : "InProgress";
+            var pct = o.IsCompleted ? 100 : 0;
+            sb.Append("Q\t").Append(oid).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Get serialized prerequisite quests (id, name, desc) for right panel. Returns null if cache not ready.</summary>
+    internal bool TryGetQuestPrereqsCache(string? questId, out string? cached)
+    {
+        cached = null;
+        if (string.IsNullOrWhiteSpace(questId)) { cached = string.Empty; return true; }
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var qid = questId.Trim();
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, qid, StringComparison.OrdinalIgnoreCase));
+            if (quest?.PrerequisiteQuestIds == null || quest.PrerequisiteQuestIds.Count == 0)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: prereqs for quest {qid}: 0 (quest has no PrerequisiteQuestIds in cache)");
+                cached = string.Empty;
+                return true;
+            }
+            var set = new HashSet<string>(quest.PrerequisiteQuestIds, StringComparer.OrdinalIgnoreCase);
+            var prereqs = _cachedQuestList.Where(q => set.Contains(q.Id)).ToList();
+            StarApiExports.StarApiLogFileOnly($"[Quests] Filter: prereqs for quest {qid}: count={prereqs.Count} (quest had {quest.PrerequisiteQuestIds.Count} prereq IDs)");
+            cached = prereqs.Count == 0 ? string.Empty : SerializeQuestsForGame(prereqs);
+            return true;
+        }
     }
 
     public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
@@ -3467,6 +3611,12 @@ public sealed class StarApiClient : IDisposable
             }
 
             var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
+            var parentQuestId = GetStringProperty(questElement, "ParentQuestId");
+            if (string.IsNullOrWhiteSpace(parentQuestId) && TryGetProperty(questElement, "ParentQuestId", out var parentEl))
+            {
+                if (parentEl.ValueKind == JsonValueKind.String)
+                    parentQuestId = parentEl.GetString();
+            }
 
             quests.Add(new StarQuestInfo
             {
@@ -3475,7 +3625,8 @@ public sealed class StarApiClient : IDisposable
                 Description = GetStringProperty(questElement, "Description") ?? string.Empty,
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
                 Objectives = objectives,
-                PrerequisiteQuestIds = prereqIds
+                PrerequisiteQuestIds = prereqIds,
+                ParentQuestId = (parentQuestId ?? string.Empty).Trim()
             });
         }
 
@@ -3525,7 +3676,8 @@ public sealed class StarApiClient : IDisposable
             Name = GetStringProperty(element, "Name") ?? string.Empty,
             Description = GetStringProperty(element, "Description") ?? string.Empty,
             Status = GetStringProperty(element, "Status") ?? string.Empty,
-            Objectives = objectives
+            Objectives = objectives,
+            ParentQuestId = GetStringProperty(element, "ParentQuestId") ?? string.Empty
         };
     }
 
@@ -4063,6 +4215,113 @@ public static unsafe class StarApiExports
                 }
                 return 0;
             }
+        }
+    }
+
+    /// <summary>Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_top_level_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetTopLevelQuestsString(sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            string fallback;
+            if (!client.TryGetTopLevelQuestsCache(out var str))
+                fallback = "Loading...";
+            else
+                fallback = str ?? string.Empty;
+            var bytesArr = Encoding.UTF8.GetBytes(fallback);
+            var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+            if (toCopy > 0)
+                new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+            buf[toCopy] = 0;
+            SetError(string.Empty);
+            return toCopy;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_top_level_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+        }
+    }
+
+    /// <summary>Write serialized sub-quests of parent_quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_sub_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestSubQuestsString(sbyte* parentQuestId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            var parentId = parentQuestId != null ? Marshal.PtrToStringUTF8((IntPtr)parentQuestId) : null;
+            if (!client.TryGetQuestSubQuestsCache(parentId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_sub_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+        }
+    }
+
+    /// <summary>Write serialized prerequisite quests (id, name, desc) for quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_prereqs_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestPrereqsString(sbyte* questId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestPrereqsCache(qId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_prereqs_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
         }
     }
 
