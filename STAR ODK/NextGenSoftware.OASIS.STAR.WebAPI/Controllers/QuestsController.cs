@@ -253,7 +253,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(OASISResult<IQuest>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IQuest>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateIQuest(Guid id, [FromBody] IQuest quest)
+        public async Task<IActionResult> UpdateIQuest(Guid id, [FromBody] Quest quest)
         {
             try
             {
@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 await EnsureStarApiBootedAsync();
                 quest.Id = id;
-                var result = await _starAPI.Quests.UpdateAsync(AvatarId, (Quest)quest);
+                var result = await _starAPI.Quests.UpdateAsync(AvatarId, quest);
                 
                 if (result.IsError)
                     return BadRequest(result);

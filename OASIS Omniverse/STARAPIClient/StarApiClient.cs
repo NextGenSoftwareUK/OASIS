@@ -7,6 +7,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
@@ -1657,6 +1658,50 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Run remove-quest-objective on the background worker so the calling thread does not block.</summary>
     public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
+
+    /// <summary>Sets prerequisite quest IDs on a quest (MetaData.PrerequisiteQuestIds). Loads the quest via GET, merges metaData, then PUTs. Use for seed data so the UI can show prerequisite chains.</summary>
+    public async Task<OASISResult<bool>> SetQuestPrerequisitesAsync(string questId, IReadOnlyList<string> prerequisiteQuestIds, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(questId))
+            return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
+
+        var getResponse = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}", null, cancellationToken).ConfigureAwait(false);
+        if (getResponse.IsError)
+            return FailAndCallback<bool>(getResponse.Message ?? "GET quest failed", ParseCode(getResponse.ErrorCode, StarApiResultCode.ApiError), getResponse.Exception);
+
+        JsonNode? root;
+        try
+        {
+            root = JsonNode.Parse(getResponse.Result ?? "{}");
+        }
+        catch (Exception ex)
+        {
+            return FailAndCallback<bool>($"Failed to parse quest response: {ex.Message}", StarApiResultCode.ApiError, ex);
+        }
+
+        var quest = root?["result"] ?? root?["Result"];
+        if (quest is not JsonObject questObj)
+            return FailAndCallback<bool>("Quest response did not contain a result object.", StarApiResultCode.ApiError);
+
+        var metaData = questObj["metaData"] ?? questObj["MetaData"];
+        if (metaData is not JsonObject metaObj)
+        {
+            metaObj = new JsonObject();
+            questObj["metaData"] = metaObj;
+        }
+        var arr = new JsonArray(prerequisiteQuestIds.Select(s => (JsonNode?)s).ToArray());
+        metaObj["PrerequisiteQuestIds"] = arr;
+
+        var putBody = questObj.ToJsonString();
+        var putResponse = await SendRawAsync(HttpMethod.Put, $"{_baseApiUrl}/api/quests/{questId}", putBody, cancellationToken).ConfigureAwait(false);
+        if (putResponse.IsError)
+            return FailAndCallback<bool>(putResponse.Message ?? "PUT quest failed", ParseCode(putResponse.ErrorCode, StarApiResultCode.ApiError), putResponse.Exception);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Quest prerequisites set.");
+    }
 
     /// <summary>
     /// Gets all quests for the current avatar (no status filter).

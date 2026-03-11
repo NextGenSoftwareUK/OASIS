@@ -117,6 +117,86 @@ internal static class Program
             Console.WriteLine();
         }
 
+        // Create quests with prerequisites and multiple objectives for testing the right-panel lists (Prerequisites, Sub-quests/Objectives).
+        var step1 = new DemoQuest(
+            "Step 1: First Quest",
+            "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup.",
+            new[]
+            {
+                new StarQuestObjective { Description = "Get a key in any game", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
+                new StarQuestObjective { Description = "Pick up health once", GameSource = "Quake", ItemRequired = "Health", IsCompleted = false }
+            });
+        var step2 = new DemoQuest(
+            "Step 2: Unlock Second",
+            "Requires Step 1 completed. Tests prerequisites list and objectives in the UI.",
+            new[]
+            {
+                new StarQuestObjective { Description = "Find armor in Doom", GameSource = "Doom", ItemRequired = "Armor", IsCompleted = false },
+                new StarQuestObjective { Description = "Kill one enemy in Quake", GameSource = "Quake", ItemRequired = "Kill", IsCompleted = false }
+            });
+        var step3 = new DemoQuest(
+            "Step 3: Final Step",
+            "Requires Step 2 completed. Full chain: Step 1 -> Step 2 -> Step 3.",
+            new[]
+            {
+                new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "Doom", ItemRequired = "Stimpack", IsCompleted = false },
+                new StarQuestObjective { Description = "Find Mega Health in Quake", GameSource = "Quake", ItemRequired = "Megahealth", IsCompleted = false }
+            });
+
+        string? step1Id = null;
+        string? step2Id = null;
+        foreach (var q in new[] { step1, step2, step3 })
+        {
+            var objectivesList = q.Objectives.ToList();
+            var create = await client.CreateCrossGameQuestAsync(q.Name, q.Description, objectivesList);
+            if (create.IsError)
+            {
+                Console.WriteLine($"Create quest \"{q.Name}\" failed: {create.Message}");
+                continue;
+            }
+            var quest = create.Result;
+            if (quest == null || string.IsNullOrEmpty(quest.Id))
+            {
+                Console.WriteLine($"Create quest \"{q.Name}\" returned no ID.");
+                continue;
+            }
+            Console.WriteLine($"Created quest (with objectives): {q.Name} (Id: {quest.Id})");
+
+            if (q == step1)
+            {
+                step1Id = quest.Id;
+                var start = await client.StartQuestAsync(quest.Id);
+                if (start.IsError)
+                    Console.WriteLine($"  Start quest failed: {start.Message}");
+                else
+                    Console.WriteLine($"  Started (InProgress).");
+            }
+            else if (q == step2)
+            {
+                step2Id = quest.Id;
+                if (!string.IsNullOrEmpty(step1Id))
+                {
+                    var setPrereq = await client.SetQuestPrerequisitesAsync(quest.Id, new[] { step1Id });
+                    if (setPrereq.IsError)
+                        Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
+                    else
+                        Console.WriteLine($"  Prerequisite set: Step 1.");
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(step2Id))
+                {
+                    var setPrereq = await client.SetQuestPrerequisitesAsync(quest.Id, new[] { step2Id });
+                    if (setPrereq.IsError)
+                        Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
+                    else
+                        Console.WriteLine($"  Prerequisite set: Step 2.");
+                }
+            }
+            Console.WriteLine();
+        }
+
         var active = await client.GetQuestsByStatusAsync("InProgress");
         if (!active.IsError && active.Result != null && active.Result.Count > 0)
         {
