@@ -3734,7 +3734,7 @@ public sealed class StarApiClient : IDisposable
                 continue;
 
             var objectives = new List<StarQuestObjective>();
-            if (TryGetProperty(questElement, "Objectives", out var objectiveElement) && objectiveElement.ValueKind == JsonValueKind.Array)
+            if ((TryGetProperty(questElement, "Objectives", out var objectiveElement) || TryGetProperty(questElement, "objectives", out objectiveElement)) && objectiveElement.ValueKind == JsonValueKind.Array)
             {
                 foreach (var objective in objectiveElement.EnumerateArray())
                 {
@@ -3749,12 +3749,25 @@ public sealed class StarApiClient : IDisposable
                 }
             }
 
+            // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData
             var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
-            var parentQuestId = GetStringProperty(questElement, "ParentQuestId");
-            if (string.IsNullOrWhiteSpace(parentQuestId) && TryGetProperty(questElement, "ParentQuestId", out var parentEl))
+            if (prereqIds.Count == 0 && TryGetProperty(questElement, "PrerequisiteQuestIds", out var prereqArr) && prereqArr.ValueKind == JsonValueKind.Array)
             {
-                if (parentEl.ValueKind == JsonValueKind.String)
-                    parentQuestId = parentEl.GetString();
+                foreach (var item in prereqArr.EnumerateArray())
+                {
+                    var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+                    if (!string.IsNullOrEmpty(s))
+                        prereqIds.Add(s);
+                }
+            }
+            var parentQuestId = GetStringProperty(questElement, "ParentQuestId") ?? GetStringProperty(questElement, "parentQuestId");
+            if (string.IsNullOrWhiteSpace(parentQuestId))
+            {
+                if (TryGetProperty(questElement, "ParentQuestId", out var parentEl) || TryGetProperty(questElement, "parentQuestId", out parentEl))
+                {
+                    if (parentEl.ValueKind == JsonValueKind.String)
+                        parentQuestId = parentEl.GetString();
+                }
             }
 
             quests.Add(new StarQuestInfo
@@ -3779,7 +3792,7 @@ public sealed class StarApiClient : IDisposable
             return null;
 
         var objectives = new List<StarQuestObjective>();
-        if (TryGetProperty(element, "Objectives", out var objElement) && objElement.ValueKind == JsonValueKind.Array)
+        if ((TryGetProperty(element, "Objectives", out var objElement) || TryGetProperty(element, "objectives", out objElement)) && objElement.ValueKind == JsonValueKind.Array)
         {
             foreach (var objective in objElement.EnumerateArray())
             {

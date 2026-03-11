@@ -101,55 +101,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: Would ideally like to find a better way to do this so we can avoid reflection if possible because of the potential overhead!
             // Need to do some perfomrnace tests with reflection turned on/off (so with this code enabled/disabled) to see what the overhead is exactly...
 
-            bool storeAsJsonString = false;
-
             // We only want to extract the meta data for sub-classes of Holon that are calling the Generic overloads.
             if (holon.GetType() != typeof(Holon) && extractMetaData)
             {
                 PropertyInfo[] props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                var classAttributes = holon.GetType().GetCustomAttributes();
-
-                //foreach (CustomOASISProperty attribute in classAttributes)
-                //{
-                //    Console.WriteLine($"StoreAsJsonString: {attribute.StoreAsJsonString}");
-
-                //    storeAsJsonString = attribute.StoreAsJsonString;
-
-
-                //}
 
                 foreach (PropertyInfo propertyInfo in props)
                 {
-                    foreach (CustomAttributeData data in propertyInfo.CustomAttributes)
+                    var customAttr = propertyInfo.GetCustomAttribute<CustomOASISProperty>();
+                    if (customAttr != null)
                     {
-                        if (data.AttributeType == (typeof(CustomOASISProperty)))
-                        {
-                            //if (data.NamedArguments)
-
-                            for (int i = 0; i < data.NamedArguments.Count() ; i++)
-                            {
-                                if (data.NamedArguments[i].MemberName == propertyInfo.Name)
-                                {
-                                    if (Convert.ToBoolean(data.NamedArguments[i].TypedValue.Value))
-                                    {
-
-                                    }
-                                }
-                            }
-
-                           //ustomOASISProperty oasisProperty = data as CustomOASISProperty;
-
-                            //holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon).ToString();
-                            if (storeAsJsonString)
-                                holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(propertyInfo.GetValue(holon)) ;
-                            else
-                                holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon);
-
-                            break;
-                        }
+                        bool useJson = customAttr.StoreAsJsonString;
+                        var value = propertyInfo.GetValue(holon);
+                        if (useJson && value != null)
+                            holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(value);
+                        else
+                            holon.MetaData[propertyInfo.Name] = value;
                     }
                 }
             }
+
+            /* Ensure CreatedByAvatarId and Active are in MetaData so LoadHolonsByMetaData (e.g. by CreatedByAvatarId + Active) returns this holon, including child quests/sub-quests saved via SaveAsync (not only via STARNETManagerBase.CreateAsync). */
+            if (holon.MetaData == null)
+                holon.MetaData = new Dictionary<string, object>();
+            holon.MetaData["CreatedByAvatarId"] = holon.CreatedByAvatarId.ToString();
+            holon.MetaData["Active"] = holon.IsActive ? "1" : "0";
 
             //if (holon.AllChildren == null)
             //    holon.AllChildren = new List<IHolon>(holon.Children);
@@ -565,11 +541,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public IHolon MapMetaData<T>(IHolon holon) where T : IHolon
         {
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+            var type = typeof(T);
+            var properties = type.GetProperties(flags);
+
             foreach (string key in holon.MetaData.Keys)
             {
                 try
                 {
-                    PropertyInfo propInfo = typeof(T).GetProperty(key);
+                    // Case-insensitive match so MetaData keys like "objectives" (from MongoDB/JSON camelCase) match property "Objectives"
+                    PropertyInfo propInfo = properties.FirstOrDefault(p => string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase));
 
                     if (propInfo != null && holon.MetaData[key] != null)
                     {
@@ -627,6 +608,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         else if (propInfo.PropertyType == typeof(string) && holon.MetaData[key] != null)
                             propInfo.SetValue(holon, holon.MetaData[key].ToString());
 
+                        else if (holon.MetaData[key] is string jsonStr && propInfo.PropertyType != typeof(string))
+                        {
+                            try
+                            {
+                                var deserialized = JsonSerializer.Deserialize(jsonStr, propInfo.PropertyType);
+                                if (deserialized != null)
+                                    propInfo.SetValue(holon, deserialized);
+                            }
+                            catch { /* leave property unchanged if JSON deserialize fails */ }
+                        }
                         else
                             propInfo.SetValue(holon, holon.MetaData[key]);
                     }
