@@ -995,7 +995,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
-			int nameColW = 32 * 8 + 20;  // name column: 32 chars + 20px wider
+			int nameColW = 32 * 8 + 20 + 5;  // name column: 32 chars + 20px + 5px wider
 			int col2X = popupX + 8 + nameColW;
 			int col3X = col2X + 6 * 8;  // % then Status
 			int maxQuestRows = (popupH - 80) / rowH - 4; // one fewer row to make room for 2-line hint
@@ -1006,7 +1006,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String cb3 = (fc != 0) ? "[X] Completed" : "[ ] Completed";
 			String toggleStr = String.Format("%s  %s  %s", cb1, cb2, cb3);
 			int toggleW = f.StringWidth(toggleStr);
-			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 29, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2, popupY + 34, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
@@ -1056,8 +1056,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			String hint2 = "Arrows=Select  Enter=Start/Select Active  Q=Close";
 			int hint1W = f.StringWidth(hint1);
 			int hint2W = f.StringWidth(hint2);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + (popupW - hint1W) / 2, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + (popupW - hint2W) / 2, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int hintRight = popupX + popupW - 8;  // right-align both hint lines (aligned to right edge)
+			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - hint1W, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				int msgW = f.StringWidth(questStatusMessage);
