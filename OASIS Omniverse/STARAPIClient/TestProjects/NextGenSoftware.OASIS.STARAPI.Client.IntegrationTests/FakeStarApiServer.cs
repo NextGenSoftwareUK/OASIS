@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests;
 
@@ -15,6 +16,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
     private readonly object _sync = new();
     private readonly ConcurrentDictionary<string, int> _routeHits = new(StringComparer.OrdinalIgnoreCase);
     private readonly Guid _avatarId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private int _avatarXp;
 
     public FakeStarApiServer()
     {
@@ -127,8 +129,34 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                         Username = "integration_user",
                         Email = "integration@example.com",
                         FirstName = "Integration",
-                        LastName = "User"
+                        LastName = "User",
+                        XP = _avatarXp
                     }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/add-xp")
+            {
+                var body = await ReadBodyAsync(request).ConfigureAwait(false);
+                var amount = 0;
+                if (!string.IsNullOrWhiteSpace(body))
+                {
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(body);
+                        if (doc.RootElement.TryGetProperty("amount", out var amountEl))
+                            amount = amountEl.GetInt32();
+                    }
+                    catch { /* use 0 */ }
+                }
+                if (amount >= 0)
+                    Interlocked.Add(ref _avatarXp, amount);
+                var newTotal = _avatarXp;
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new { newTotal }
                 }).ConfigureAwait(false);
                 return;
             }
@@ -139,17 +167,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 lock (_sync)
                 {
                     snapshot = _inventory
-                        .Select(x => (object)new
-                        {
-                            Id = x.Id,
-                            Name = x.Name,
-                            Description = x.Description,
-                            MetaData = new Dictionary<string, string>
-                            {
-                                ["GameSource"] = x.GameSource,
-                                ["ItemType"] = x.ItemType
-                            }
-                        }).ToList();
+                        .Select(x => BuildInventoryItemResponse(x))
+                        .ToList();
                 }
 
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
@@ -162,17 +181,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 lock (_sync)
                 {
                     snapshot = _inventory
-                        .Select(x => (object)new
-                        {
-                            Id = x.Id,
-                            Name = x.Name,
-                            Description = x.Description,
-                            MetaData = new Dictionary<string, string>
-                            {
-                                ["GameSource"] = x.GameSource,
-                                ["ItemType"] = x.ItemType
-                            }
-                        }).ToList();
+                        .Select(x => BuildInventoryItemResponse(x))
+                        .ToList();
                 }
 
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = snapshot }).ConfigureAwait(false);
@@ -187,29 +197,18 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 var itemId = Guid.NewGuid();
                 var name = GetProperty(root, "Name")?.GetString() ?? "Unnamed";
                 var description = GetProperty(root, "Description")?.GetString() ?? string.Empty;
-                var gameSource = GetProperty(GetProperty(root, "MetaData"), "GameSource")?.GetString() ?? "Unknown";
-                var itemType = GetProperty(GetProperty(root, "MetaData"), "ItemType")?.GetString() ?? "KeyItem";
+                var meta = GetProperty(root, "MetaData");
+                var gameSource = GetProperty(meta, "GameSource")?.GetString() ?? "Unknown";
+                var itemType = GetProperty(meta, "ItemType")?.GetString() ?? "KeyItem";
+                var nftId = GetProperty(meta, "NFTId")?.GetString();
 
                 lock (_sync)
                 {
-                    _inventory.Add(new InventoryItemRecord(itemId, name, description, gameSource, itemType));
+                    _inventory.Add(new InventoryItemRecord(itemId, name, description, gameSource, itemType, nftId));
                 }
 
-                await WriteJsonAsync(response, 200, new
-                {
-                    IsError = false,
-                    Result = new
-                    {
-                        Id = itemId,
-                        Name = name,
-                        Description = description,
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["GameSource"] = gameSource,
-                            ["ItemType"] = itemType
-                        }
-                    }
-                }).ConfigureAwait(false);
+                var record = new InventoryItemRecord(itemId, name, description, gameSource, itemType, nftId);
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = BuildInventoryItemResponse(record) }).ConfigureAwait(false);
                 return;
             }
 
@@ -224,24 +223,11 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
 
                 lock (_sync)
                 {
-                    _inventory.Add(new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem"));
+                    _inventory.Add(new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem", null));
                 }
 
-                await WriteJsonAsync(response, 200, new
-                {
-                    IsError = false,
-                    Result = new
-                    {
-                        Id = itemId,
-                        Name = name,
-                        Description = description,
-                        MetaData = new Dictionary<string, string>
-                        {
-                            ["GameSource"] = "Unknown",
-                            ["ItemType"] = "KeyItem"
-                        }
-                    }
-                }).ConfigureAwait(false);
+                var createRecord = new InventoryItemRecord(itemId, name, description, "Unknown", "KeyItem", null);
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = BuildInventoryItemResponse(createRecord) }).ConfigureAwait(false);
                 return;
             }
 
@@ -293,6 +279,45 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
 
             if (method == "POST" && path == "/api/quests/create")
             {
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new
+                    {
+                        Id = "quest-fake-001",
+                        Name = "Fake Quest",
+                        Description = "Fake quest with objectives",
+                        Status = "NotStarted",
+                        Objectives = new[]
+                        {
+                            new { Id = "obj-fake-1", Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
+                            new { Id = "obj-fake-2", Description = "Objective 2", GameSource = "Doom", ItemRequired = "BossKill", IsCompleted = false }
+                        }
+                    }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path.StartsWith("/api/quests/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/objectives", StringComparison.OrdinalIgnoreCase))
+            {
+                var id = "obj-fake-added-" + Guid.NewGuid().ToString("N")[..8];
+                await WriteJsonAsync(response, 200, new
+                {
+                    IsError = false,
+                    Result = new
+                    {
+                        Id = id,
+                        Name = "Added Objective",
+                        Description = "Fake added objective",
+                        Status = "NotStarted",
+                        Objectives = Array.Empty<object>()
+                    }
+                }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "DELETE" && path.Contains("/objectives/", StringComparison.OrdinalIgnoreCase))
+            {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
             }
@@ -325,8 +350,20 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 await WriteJsonAsync(response, 200, new
                 {
                     IsError = false,
-                    Result = new { Id = "nft-001" }
+                    Result = new { Id = "nft-001", Hash = "tx-integration-mint-001" }
                 }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-avatar")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && path == "/api/avatar/inventory/send-to-clan")
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;
             }
 
@@ -428,6 +465,25 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
         return null;
     }
 
-    private readonly record struct InventoryItemRecord(Guid Id, string Name, string Description, string GameSource, string ItemType);
+    private static object BuildInventoryItemResponse(InventoryItemRecord x)
+    {
+        var meta = new Dictionary<string, string>
+        {
+            ["GameSource"] = x.GameSource,
+            ["ItemType"] = x.ItemType
+        };
+        if (!string.IsNullOrWhiteSpace(x.NftId))
+            meta["NFTId"] = x.NftId!;
+        return new
+        {
+            x.Id,
+            x.Name,
+            x.Description,
+            MetaData = meta,
+            NftId = x.NftId
+        };
+    }
+
+    private readonly record struct InventoryItemRecord(Guid Id, string Name, string Description, string GameSource, string ItemType, string? NftId);
 }
 

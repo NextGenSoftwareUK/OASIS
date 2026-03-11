@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.Common;
 
@@ -33,9 +34,12 @@ public class StarApiClientUnitTests
         using var client = new StarApiClient();
 
         var auth = await client.AuthenticateAsync("user", "pass");
+        var queueAuth = await client.QueueAuthenticateAsync("user", "pass");
         var getCurrentAvatar = await client.GetCurrentAvatarAsync();
+        var queueGetAvatar = await client.QueueGetCurrentAvatarAsync();
         var hasItem = await client.HasItemAsync("item");
         var getInventory = await client.GetInventoryAsync();
+        var queueGetInventory = await client.QueueGetInventoryAsync();
         var addItem = await client.AddItemAsync("item", "desc", "game");
         var queueAddItem = await client.QueueAddItemAsync("item", "desc", "game");
         var flushAdd = await client.FlushAddItemJobsAsync();
@@ -48,8 +52,11 @@ public class StarApiClientUnitTests
         var flushObjective = await client.FlushQuestObjectiveJobsAsync();
         var completeQuest = await client.CompleteQuestAsync("quest");
         var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", ItemRequired = "i" }]);
+        var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
+        var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var activeQuests = await client.GetActiveQuestsAsync();
-        var createBossNft = await client.CreateBossNftAsync("boss", "desc", "game", "{}");
+        var queueGetQuests = await client.QueueGetActiveQuestsAsync();
+        var createMonsterNft = await client.CreateMonsterNftAsync("boss", "desc", "game", "{}");
         var deployBossNft = await client.DeployBossNftAsync("nft", "game");
         var nftCollection = await client.GetNftCollectionAsync();
         var setApiKey = client.SetApiKey("key", "avatar");
@@ -57,9 +64,12 @@ public class StarApiClientUnitTests
         var setWeb5 = client.SetWeb5StarApiBaseUrl("https://web5.example.com");
 
         AssertNotInitialized(auth);
+        AssertNotInitialized(queueAuth);
         AssertNotInitialized(getCurrentAvatar);
+        AssertNotInitialized(queueGetAvatar);
         AssertNotInitialized(hasItem);
         AssertNotInitialized(getInventory);
+        AssertNotInitialized(queueGetInventory);
         AssertNotInitialized(addItem);
         AssertNotInitialized(queueAddItem);
         AssertNotInitialized(flushAdd);
@@ -72,7 +82,10 @@ public class StarApiClientUnitTests
         AssertNotInitialized(flushObjective);
         AssertNotInitialized(completeQuest);
         AssertNotInitialized(createQuest);
+        AssertNotInitialized(addObjective);
+        AssertNotInitialized(removeObjective);
         AssertNotInitialized(activeQuests);
+        AssertNotInitialized(queueGetQuests);
         AssertNotInitialized(createBossNft);
         AssertNotInitialized(deployBossNft);
         AssertNotInitialized(nftCollection);
@@ -107,6 +120,129 @@ public class StarApiClientUnitTests
 
         Assert.False(initResult.IsError);
         Assert.False(cleanupResult.IsError);
+    }
+
+    [Fact]
+    public void ConsumeLastMintResult_WhenNoMint_ReturnsFalse()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com/api" });
+
+        var consumed = client.ConsumeLastMintResult(out var itemName, out var nftId, out var hash);
+        Assert.False(consumed);
+        Assert.Null(itemName);
+        Assert.Null(nftId);
+        Assert.Null(hash);
+    }
+
+    [Fact]
+    public void EnqueuePickupWithMintJobOnly_WhenNotInitialized_DoesNotThrow()
+    {
+        using var client = new StarApiClient();
+        client.EnqueuePickupWithMintJobOnly("Item", "Desc", "Game", "KeyItem", doMint: true, quantity: 1);
+    }
+
+    [Fact]
+    public async Task MintInventoryItemNftAsync_WhenWeb4UrlNotSet_ReturnsError()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com/api" });
+
+        var mint = await client.MintInventoryItemNftAsync("Key", "Desc", "Game", "KeyItem");
+        Assert.True(mint.IsError);
+        Assert.Contains("WEB4", mint.Message ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SendItemToAvatarAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.SendItemToAvatarAsync("target", "item", 1);
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task SendItemToClanAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.SendItemToClanAsync("clan", "item", 1);
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetQuestsByStatusAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.GetQuestsByStatusAsync("InProgress");
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetActiveQuestsAsync_WhenNotInitialized_ReturnsNotInitialized()
+    {
+        using var client = new StarApiClient();
+        var result = await client.GetActiveQuestsAsync();
+        AssertNotInitialized(result);
+    }
+
+    [Fact]
+    public async Task GetQuestsByStatusAsync_WhenStatusEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "https://web5.example.com" });
+        var result = await client.GetQuestsByStatusAsync("");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
+    public void SerializeQuestsForGame_EmptyList_ReturnsEmptyString()
+    {
+        var serialized = StarApiClient.SerializeQuestsForGame(new List<StarQuestInfo>());
+        Assert.NotNull(serialized);
+        Assert.Empty(serialized);
+    }
+
+    [Fact]
+    public void SerializeQuestsForGame_NullList_ReturnsEmptyString()
+    {
+        var serialized = StarApiClient.SerializeQuestsForGame(null);
+        Assert.NotNull(serialized);
+        Assert.Empty(serialized);
+    }
+
+    [Fact]
+    public async Task AddQuestObjectiveAsync_WhenQuestIdEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        var result = await client.AddQuestObjectiveAsync("", "Objective description");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
+    public async Task RemoveQuestObjectiveAsync_WhenQuestIdOrObjectiveIdEmpty_ReturnsInvalidParam()
+    {
+        using var client = new StarApiClient();
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        var result = await client.RemoveQuestObjectiveAsync("quest-id", "");
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
+    }
+
+    /// <summary>Contract for [NFT] prefix: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
+    [Fact]
+    public void ItemWithNftId_DisplayNameForOverlay_StartsWithNftPrefix()
+    {
+        var withNft = new StarItem { Name = "Red Keycard", NftId = "nft-123", Quantity = 1 };
+        var withoutNft = new StarItem { Name = "Blue Keycard", NftId = "", Quantity = 1 };
+
+        var displayWith = string.IsNullOrEmpty(withNft.NftId) ? withNft.Name : "[NFT] " + withNft.Name;
+        var displayWithout = string.IsNullOrEmpty(withoutNft.NftId) ? withoutNft.Name : "[NFT] " + withoutNft.Name;
+
+        Assert.Equal("[NFT] Red Keycard", displayWith);
+        Assert.Equal("Blue Keycard", displayWithout);
     }
 
     private static void AssertNotInitialized<T>(OASISResult<T> result)

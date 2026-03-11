@@ -1,10 +1,12 @@
-# Quick Visual Studio Build Guide
+# Quick Visual Studio Build Guide (legacy)
+
+**Do not use NativeWrapper.** ODOOM and OQuake use **STARAPIClient** only. This guide is for reference only.
 
 ## 🚀 Fastest Method (3 Steps)
 
 ### 1. Open Project
 - **Visual Studio** → **File** → **Open** → **Project**
-- Navigate to: `C:\Source\OASIS-master\Game Integration\NativeWrapper\`
+- Navigate to: `C:\Source\OASIS-master\OASIS Omniverse\STARAPIClient\` (use STARAPIClient; NativeWrapper is deprecated)
 - Open: **star_api.vcxproj**
 
 ### 2. Set Configuration

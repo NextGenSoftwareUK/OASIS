@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Guid WalletId { get; set; }
 
         public string Name { get; set; }
-        public string Description { get; set; }
+        public new string Description { get; set; }
         public string PrivateKey { get; set; }
         public string PublicKey { get; set; }
         public string WalletAddress { get; set; } //Hash of Public Key (shorter version).

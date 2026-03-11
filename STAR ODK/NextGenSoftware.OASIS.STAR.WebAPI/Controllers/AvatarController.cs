@@ -33,29 +33,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
         // STARAPI implementation for inventory endpoints (Web4 doesn't have /api/avatar/inventory)
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private async Task EnsureStarApiBootedAsync()
-        {
-            if (_starAPI.IsOASISBooted)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                if (_starAPI.IsOASISBooted)
-                    return;
-
-                var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                if (boot.IsError)
-                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Forwards a request to WEB4 OASIS API and returns the response.
@@ -347,17 +326,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the current authenticated avatar. Delegates to WEB4 OASIS API.
+        /// Gets the current authenticated avatar with XP (for STAR client refresh). Delegates to WEB4 get-logged-in-avatar-with-xp so response includes AvatarDetail.XP.
         /// </summary>
-        /// <returns>
-        /// 200 OK with <see cref="IAvatar"/> when authenticated; 401 Unauthorized if no JWT present.
-        /// </returns>
         [HttpGet("current")]
-        [ProducesResponseType(typeof(OASISResult<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCurrentAvatar()
         {
-            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/get-logged-in-avatar");
+            return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/get-logged-in-avatar-with-xp");
         }
 
         #region Avatar Inventory Management
@@ -462,6 +438,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Add experience points to the authenticated avatar (e.g. from game actions like killing monsters). Amount 0 is allowed (returns current XP without change; used to refresh cache after beam-in). Forwards to WEB4 OASIS API.
+        /// </summary>
+        [HttpPost("add-xp")]
+        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddXp([FromBody] AddXpRequest request)
+        {
+            if (request == null || request.Amount < 0)
+                return BadRequest(new OASISResult<string> { IsError = true, Message = "Amount must be a non-negative integer." });
+            var json = System.Text.Json.JsonSerializer.Serialize(request);
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/add-xp", content);
+        }
+
+        /// <summary>
         /// Sends an item from the authenticated avatar's inventory to another avatar.
         /// Target is the recipient's username or avatar Id. Forwards to WEB4 OASIS API.
         /// </summary>
@@ -526,6 +517,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string RefreshToken { get; set; }
         public bool IsBeamedIn { get; set; }
         public DateTime? LastBeamedIn { get; set; }
+    }
+
+    /// <summary>Request body for adding XP to the authenticated avatar (STAR forwards to WEB4 add-xp).</summary>
+    public class AddXpRequest
+    {
+        public int Amount { get; set; }
     }
 }
 

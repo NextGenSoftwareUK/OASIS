@@ -1,0 +1,73 @@
+/**
+ * OQuake - OASIS STAR API Integration
+ *
+ * Integrates Quake with the OASIS STAR API so keys collected in ODOOM
+ * can open doors in OQuake and vice versa.
+ *
+ * Integration Points:
+ * - Key pickup -> add to STAR inventory (silver_key, gold_key)
+ * - Door touch -> check local key first, then cross-game (Doom keycards)
+ */
+
+#ifndef OQUAKE_STAR_INTEGRATION_H
+#define OQUAKE_STAR_INTEGRATION_H
+
+#include "star_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define OQUAKE_ITEM_SILVER_KEY "silver_key"
+#define OQUAKE_ITEM_GOLD_KEY   "gold_key"
+
+typedef struct cb_context_s cb_context_t;
+
+void OQuake_STAR_Init(void);
+void OQuake_STAR_Cleanup(void);
+void OQuake_STAR_OnKeyPickup(const char* key_name);
+/** Only report pickups when in_real_game is 1 (e.g. sv.active && !cls.demoplayback). Use from engine to avoid tracking during demos/menu. */
+void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items, int in_real_game);
+void OQuake_STAR_OnItemsChanged(unsigned int old_items, unsigned int new_items);
+void OQuake_STAR_OnStatsChangedEx(
+    int old_shells, int new_shells, int old_nails, int new_nails,
+    int old_rockets, int new_rockets, int old_cells, int new_cells,
+    int old_health, int new_health, int old_armor, int new_armor, int in_real_game);
+void OQuake_STAR_OnStatsChanged(
+    int old_shells, int new_shells,
+    int old_nails, int new_nails,
+    int old_rockets, int new_rockets,
+    int old_cells, int new_cells,
+    int old_health, int new_health,
+    int old_armor, int new_armor);
+/** Call every frame (e.g. from Host_Frame) so item/stats pickups are reported even if sbar isn't drawn. No-op when not in game or during demo. */
+void OQuake_STAR_PollItems(void);
+int  OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name);
+void OQuake_STAR_Console_f(void); /* in-game console "star" command - registered by Init */
+void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
+int OQuake_STAR_ShouldUseAnorakFace(void);
+const char* OQuake_STAR_GetUsername(void);
+void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);
+/** Draw tracked quest on HUD when set from quest popup (Enter on In Progress). Call from same HUD path as DrawBeamedInStatus. */
+void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx);
+void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx);
+/** Draw avatar XP in top-right (when beamed in). Call from same HUD path as DrawVersionStatus. */
+void OQuake_STAR_DrawXpStatus(cb_context_t* cbx);
+/** Draw toast message at top center when set (e.g. "Already at max health"). Call from same HUD path as DrawInventoryOverlay. */
+void OQuake_STAR_DrawToast(cb_context_t* cbx);
+/** Call from engine or QuakeC when a monster is killed: queues XP + optional mint + add to inventory (async). */
+void OQuake_STAR_OnMonsterKilled(const char* monster_name);
+/** Call from engine or QuakeC when a boss is killed (same as OnMonsterKilled; kept for backward compat). */
+void OQuake_STAR_OnBossKilled(const char* boss_name);
+/** Safe hook for ED_Free: call from engine before ED_Free(ent). Only reports monster kills when sv.active && !demoplayback; no PR_GetString in engine. Pass entity pointer (edict_t*). */
+void OQuake_STAR_OnEntityFreed(void* ed);
+/** Call from engine or QuakeC when the player touches a health/armor/ammo pickup but the engine does NOT apply it (e.g. player already at max). Same as ODOOM: only add to STAR when the item would normally be left on the floor. Engine should remove the entity after calling so the item is not left on the floor. */
+void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity, const char* optional_description);
+/** Call from engine before running the touch function for (e1, e2). Returns 0 = no intercept; 1 = intercept, free e1 (first arg) and skip touch; 2 = intercept, free e2 (second arg) and skip touch. Engine must handle both orderings: (player, item) and (item, player). When (player, item), return 2 so caller frees e2 (the item) and must not run item's touch. */
+int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* OQUAKE_STAR_INTEGRATION_H */

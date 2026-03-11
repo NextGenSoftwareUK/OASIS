@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -132,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             try
             {
                 //TODO: Dont want UI in the backend!
-                if (Directory.Exists(fullPathToSourceFolder) && createOptions != null && createOptions.CheckIfSourcePathExists)
+                if (!string.IsNullOrWhiteSpace(fullPathToSourceFolder) && Directory.Exists(fullPathToSourceFolder) && createOptions != null && createOptions.CheckIfSourcePathExists)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToSourceFolder} already exists! Please either delete it or choose a different name.");
                     return result;
@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.OASISRuntimeVersion = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
-                    STARNETDNA.SourcePath = fullPathToSourceFolder;
+                    STARNETDNA.SourcePath = fullPathToSourceFolder ?? string.Empty;
                     //STARNETDNA.MetaData = metaData; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //STARNETDNA.MetaTagMappings.MetaHolonTags = createOptions != null ? createOptions.MetaTagMappings
                     //STARNETDNA.MetaTagMappings.MetaTags = metaTagMappings;
@@ -257,9 +257,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    MetaData = dependency //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
-                    OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToSourceFolder);
+                    bool writeDnaOk;
+                    if (string.IsNullOrWhiteSpace(fullPathToSourceFolder))
+                    {
+                        // No folder path (e.g. cross-game quest from API): skip disk DNA write; holon is saved to provider only.
+                        writeDnaOk = true;
+                    }
+                    else
+                    {
+                        OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(STARNETDNA, fullPathToSourceFolder);
+                        writeDnaOk = writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError;
+                        if (!writeDnaOk)
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the {STARNETHolonUIName} DNA. Reason: {writeSTARNETDNAResult?.Message}");
+                    }
 
-                    if (writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError)
+                    if (writeDnaOk)
                     {
                         holon.STARNETDNA = STARNETDNA;
                         OASISResult<T1> saveHolonResult = await Data.SaveHolonAsync<T1>(holon, avatarId, true, true, 0, true, false, providerType);
@@ -270,10 +282,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             result.Message = $"Successfully created the {STARNETHolonUIName} on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for {STARNETHolonTypeName} {Enum.GetName(holonSubTypeType, holonSubType)}.";
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {STARNETHolonUIName} to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {STARNETHolonUIName} to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult?.Message}");
                     }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the {STARNETHolonUIName} DNA. Reason: {writeSTARNETDNAResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatarAsync on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
@@ -295,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             try
             {
                 //TODO: Dont want UI in the backend!
-                if (Directory.Exists(fullPathToSourceFolder) && checkIfSourcePathExists)
+                if (!string.IsNullOrWhiteSpace(fullPathToSourceFolder) && Directory.Exists(fullPathToSourceFolder) && checkIfSourcePathExists)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} The directory {fullPathToSourceFolder} already exists! Please either delete it or choose a different name.");
                     return result;
@@ -394,7 +404,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     STARNETDNA.OASISRuntimeVersion = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion;
                     STARNETDNA.COSMICVersion = OASISBootLoader.OASISBootLoader.COSMICVersion;
                     STARNETDNA.DotNetVersion = OASISBootLoader.OASISBootLoader.DotNetVersion;
-                    STARNETDNA.SourcePath = fullPathToSourceFolder;
+                    STARNETDNA.SourcePath = fullPathToSourceFolder ?? string.Empty;
                     STARNETDNA.MetaData = dependency; //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
 
 
@@ -416,9 +426,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                     //    MetaData = dependency //TODO: Not sure if we need this? It works without it, but may be useful to view in the DNA.json file for users?
                     //};
 
-                    OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToSourceFolder);
+                    bool writeDnaOkSync;
+                    if (string.IsNullOrWhiteSpace(fullPathToSourceFolder))
+                    {
+                        writeDnaOkSync = true;
+                    }
+                    else
+                    {
+                        OASISResult<bool> writeSTARNETDNAResult = WriteDNA(STARNETDNA, fullPathToSourceFolder);
+                        writeDnaOkSync = writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError;
+                        if (!writeDnaOkSync)
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the {STARNETHolonUIName} DNA. Reason: {writeSTARNETDNAResult?.Message}");
+                    }
 
-                    if (writeSTARNETDNAResult != null && writeSTARNETDNAResult.Result && !writeSTARNETDNAResult.IsError)
+                    if (writeDnaOkSync)
                     {
                         holon.STARNETDNA = STARNETDNA;
                         OASISResult<T1> saveHolonResult = Data.SaveHolon<T1>(holon, avatarId, true, true, 0, true, false, providerType);
@@ -429,10 +450,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                             result.Message = $"Successfully created the {STARNETHolonUIName} on the {Enum.GetName(typeof(ProviderType), providerType)} provider by AvatarId {avatarId} for {STARNETHolonTypeName} {Enum.GetName(holonSubTypeType, holonSubType)}.";
                         }
                         else
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {STARNETHolonUIName} to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult.Message}");
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the {STARNETHolonUIName} to the {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {saveHolonResult?.Message}");
                     }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured writing the {STARNETHolonUIName} DNA. Reason: {writeSTARNETDNAResult.Message}");
                 }
                 else
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured calling LoadAvatar on {Enum.GetName(typeof(ProviderType), providerType)} provider. Reason: {avatarResult.Message}");
@@ -450,8 +469,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
-            if (!Directory.Exists(holon.STARNETDNA.SourcePath))
-                Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            if (!string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
+            {
+                if (!Directory.Exists(holon.STARNETDNA.SourcePath))
+                    Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            }
 
             if (STARNETDNAJSONName == "Default")
                 STARNETDNAJSONName = this.STARNETDNAJSONName;
@@ -459,7 +481,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             //holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
             holon.MetaData[STARNETDNAJSONName] = JsonConvert.SerializeObject(holon.STARNETDNA);
 
-            if (updateDNAJSONFile)
+            if (updateDNAJSONFile && !string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
             {
                 OASISResult<bool> writeSTARNETDNAResult = WriteDNA(holon.STARNETDNA, holon.STARNETDNA.SourcePath);
 
@@ -479,8 +501,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
-            if (!Directory.Exists(holon.STARNETDNA.SourcePath))
-                Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            if (!string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
+            {
+                if (!Directory.Exists(holon.STARNETDNA.SourcePath))
+                    Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            }
 
             if (STARNETDNAJSONName == "Default")
                 STARNETDNAJSONName = this.STARNETDNAJSONName;
@@ -488,7 +513,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             //holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
             holon.MetaData[STARNETDNAJSONName] = JsonConvert.SerializeObject(holon.STARNETDNA);
 
-            if (updateDNAJSONFile)
+            if (updateDNAJSONFile && !string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
             {
                 OASISResult<bool> writeSTARNETDNAResult = WriteDNA(holon.STARNETDNA, holon.STARNETDNA.SourcePath);
 
@@ -508,8 +533,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
-            if (!Directory.Exists(holon.STARNETDNA.SourcePath))
-                Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            if (!string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
+            {
+                if (!Directory.Exists(holon.STARNETDNA.SourcePath))
+                    Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            }
 
             if (STARNETDNAJSONName == "Default")
                 STARNETDNAJSONName = this.STARNETDNAJSONName;
@@ -517,7 +545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             //holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
             holon.MetaData[STARNETDNAJSONName] = JsonConvert.SerializeObject(holon.STARNETDNA);
 
-            if (updateDNAJSONFile)
+            if (updateDNAJSONFile && !string.IsNullOrWhiteSpace(holon.InstalledPath))
             {
                 OASISResult<bool> writeSTARNETDNAResult = await WriteDNAAsync(holon.STARNETDNA, holon.InstalledPath);
 
@@ -537,8 +565,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
         {
             OASISResult<T3> result = new OASISResult<T3>();
 
-            if (!Directory.Exists(holon.STARNETDNA.SourcePath))
-                Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            if (!string.IsNullOrWhiteSpace(holon.STARNETDNA?.SourcePath))
+            {
+                if (!Directory.Exists(holon.STARNETDNA.SourcePath))
+                    Directory.CreateDirectory(holon.STARNETDNA.SourcePath);
+            }
 
             if (STARNETDNAJSONName == "Default")
                 STARNETDNAJSONName = this.STARNETDNAJSONName;
@@ -546,7 +577,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             //holon.MetaData[STARNETDNAJSONName] = JsonSerializer.Serialize(holon.STARNETDNA);
             holon.MetaData[STARNETDNAJSONName] = JsonConvert.SerializeObject(holon.STARNETDNA);
 
-            if (updateDNAJSONFile)
+            if (updateDNAJSONFile && !string.IsNullOrWhiteSpace(holon.InstalledPath))
             {
                 OASISResult<bool> writeSTARNETDNAResult = WriteDNA(holon.STARNETDNA, holon.InstalledPath);
 
@@ -4924,6 +4955,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
+                if (string.IsNullOrWhiteSpace(fullPathToSTARNETHolon))
+                {
+                    result.Result = true;
+                    return result;
+                }
+
                 //JsonSerializerOptions options = new()
                 //{
                 //    ReferenceHandler = ReferenceHandler.Preserve,
@@ -4962,6 +4999,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
             try
             {
+                if (string.IsNullOrWhiteSpace(fullPathToSTARNETHolon))
+                {
+                    result.Result = true;
+                    return result;
+                }
+
                 if (!Directory.Exists(fullPathToSTARNETHolon))
                     Directory.CreateDirectory(fullPathToSTARNETHolon);
 
@@ -6859,9 +6902,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             OASISResult<IEnumerable<T>> result = new OASISResult<IEnumerable<T>>();
             List<T> holons = new List<T>();
 
+            if (results == null)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
+            if (results.IsError || results.Result == null)
+            {
+                result.Result = results.Result ?? Enumerable.Empty<T>();
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(results, result);
+            }
+
             if (!showAllVersions)
             {
-                if (results.Result != null && !result.IsError)
+                if (results.Result != null && !results.IsError)
                 {
                     if (version == 0) //latest version
                     {
@@ -6872,15 +6923,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                         foreach (T oappSystemHolon in results.Result)
                         {
+                            if (oappSystemHolon == null)
+                                continue;
                             if (oappSystemHolon.MetaData != null && oappSystemHolon.MetaData.ContainsKey(STARNETHolonIdName) && oappSystemHolon.MetaData[STARNETHolonIdName] != null)
                                 dependencyId = oappSystemHolon.MetaData[STARNETHolonIdName].ToString();
 
-                            latestVersion = latestVersions.ContainsKey(dependencyId) ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", "")) : 0;
-                            currentVersion = Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""));
+                            latestVersion = latestVersions.ContainsKey(dependencyId) && latestVersions[dependencyId]?.STARNETDNA?.Version != null
+                                ? Convert.ToInt32(latestVersions[dependencyId].STARNETDNA.Version.Replace(".", ""))
+                                : 0;
+                            currentVersion = (oappSystemHolon.STARNETDNA != null && !string.IsNullOrEmpty(oappSystemHolon.STARNETDNA.Version))
+                                ? Convert.ToInt32(oappSystemHolon.STARNETDNA.Version.Replace(".", ""))
+                                : 0;
 
                             if (latestVersions.ContainsKey(dependencyId) &&
                                 currentVersion > latestVersion
-                                //oappSystemHolon.STARNETDNA.CreatedOn > latestVersions[dependencyId].STARNETDNA.CreatedOn)
                                 || !latestVersions.ContainsKey(dependencyId))
                                 latestVersions[dependencyId] = oappSystemHolon;
                         }
@@ -6894,7 +6950,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
 
                         foreach (T oappSystemHolon in results.Result)
                         {
-                            if (oappSystemHolon.MetaData["VersionSequence"].ToString() == version.ToString())
+                            if (oappSystemHolon?.MetaData != null && oappSystemHolon.MetaData.ContainsKey("VersionSequence") && oappSystemHolon.MetaData["VersionSequence"]?.ToString() == version.ToString())
                                 filteredList.Add(oappSystemHolon);
                         }
 
@@ -6906,12 +6962,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                 result.Result = results.Result;
 
             //Filter out any items that are not created by the avatar or published on STARNET.
-            if (results.Result != null)
+            if (results.Result != null && result.Result != null)
             {
                 holons = result.Result.ToList();
 
                 foreach (T oappSystemHolon in result.Result)
                 {
+                    if (oappSystemHolon?.STARNETDNA == null)
+                        continue;
                     if (oappSystemHolon.STARNETDNA.CreatedByAvatarId != avatarId)
                     {
                         if (oappSystemHolon.STARNETDNA.PublishedOn == DateTime.MinValue)

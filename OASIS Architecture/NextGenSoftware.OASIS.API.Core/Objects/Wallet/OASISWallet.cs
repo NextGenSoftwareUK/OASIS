@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
@@ -19,9 +19,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
             return new OASISResult<ISendWeb4NFTResponse>();
         }
 
-        public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(ISendWeb4NFTRequest transation)
+        public Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(ISendWeb4NFTRequest transation)
         {
-            return new OASISResult<ISendWeb4NFTResponse>();
+            return Task.FromResult(new OASISResult<ISendWeb4NFTResponse>());
         }
 
         public OASISResult<ISendWeb4TokenResponse> SendToken(ISendWeb4TokenRequest transation)

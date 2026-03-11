@@ -24,45 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class MissionsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
-        private static readonly SemaphoreSlim _bootLock = new(1, 1);
 
-        private IActionResult ValidateAvatarId<T>()
-        {
-            // Skip validation if test mode is enabled - let the method try to execute and return test data on failure
-            if (UseTestDataWhenLiveDataNotAvailable)
-                return null;
-                
-            if (AvatarId == Guid.Empty)
-            {
-                return BadRequest(new OASISResult<T>
-                {
-                    IsError = true,
-                    Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
-                });
-            }
-            return null;
-        }
-
-        private static async Task EnsureStarApiBootedAsync()
-        {
-            if (_starAPI.IsOASISBooted)
-                return;
-
-            await _bootLock.WaitAsync();
-            try
-            {
-                if (_starAPI.IsOASISBooted)
-                    return;
-
-                var boot = await _starAPI.BootOASISAsync("admin", "admin");
-                if (boot.IsError)
-                    throw new OASISException(boot.Message ?? "Failed to ignite WEB5 STAR API runtime.");
-            }
-            finally
-            {
-                _bootLock.Release();
-            }
-        }
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all missions in the system.
@@ -479,8 +442,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             var validationError = ValidateCreateRequest(request.Name, request.Description);
             if (validationError != null)
                 return validationError;
+            var avatarCheck = ValidateAvatarId<Mission>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Missions.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -885,7 +852,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
+        public Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
         {
             try
             {
@@ -897,11 +864,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission completed successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return HandleException<bool>(ex, "completing mission");
+                return Task.FromResult(HandleException<bool>(ex, "completing mission"));
             }
         }
 
@@ -916,7 +883,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/leaderboard")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
+        public Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
         {
             try
             {
@@ -927,16 +894,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission leaderboard retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission leaderboard: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -950,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/rewards")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionRewards(Guid id)
+        public Task<IActionResult> GetMissionRewards(Guid id)
         {
             try
             {
@@ -961,16 +928,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission rewards retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionReward>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionReward>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission rewards: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -983,7 +950,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("stats")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionStats()
+        public Task<IActionResult> GetMissionStats()
         {
             try
             {
@@ -1002,16 +969,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission statistics retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Dictionary<string, object>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<Dictionary<string, object>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission statistics: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
     }

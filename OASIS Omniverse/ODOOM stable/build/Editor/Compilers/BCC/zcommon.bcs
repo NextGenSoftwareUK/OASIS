@@ -1,3 +1,0 @@
-#include "std.acs"
-
-import upmost: region = std;

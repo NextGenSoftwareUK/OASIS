@@ -25,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
 
+        protected override STARAPI GetStarAPI() => _starAPI;
+
         /// <summary>
         /// Retrieves all parks in the system.
         /// </summary>
@@ -661,25 +663,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("search")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<IPark>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> SearchParks([FromBody] SearchRequest request)
+        public Task<IActionResult> SearchParks([FromBody] SearchRequest request)
         {
             try
             {
-                return Ok(new OASISResult<IEnumerable<IPark>>
+                return Task.FromResult<IActionResult>(Ok(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Parks feature not implemented yet",
                     Result = new List<IPark>()
-                });
+                }));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<IPark>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = true,
                     Message = $"Error searching parks: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
     }

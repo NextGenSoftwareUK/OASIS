@@ -645,3 +645,120 @@ class OQMonsterKnight : HellKnight
 	}
 }
 
+class OQMonsterScrag : Cacodemon
+{
+	Default
+	{
+		Tag "Scrag";
+		-FLOAT;
+		-INFLOAT;
+		-NOGRAVITY;
+	}
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		double s = GetCVar("odoom_oq_monster_scale_global") * GetCVar("odoom_oq_monster_scale_scrag");
+		if (s < 0.05) s = 0.05;
+		Scale.X = s;
+		Scale.Y = s;
+	}
+	States
+	{
+	Spawn:
+		OQMB A 10 A_Look;
+		Loop;
+	See:
+		OQMB B 4 A_Chase;
+		OQMB C 4 A_Chase;
+		OQMB D 4 A_Chase;
+		OQMB E 4 A_Chase;
+		Loop;
+	Missile:
+		OQMB F 8 A_FaceTarget;
+		OQMB G 8 A_HeadAttack;
+		OQMB H 8;
+		Goto See;
+	Pain:
+		OQMB I 3 A_Pain;
+		Goto See;
+	Death:
+		OQMB J 5 A_Scream;
+		OQMB K 5 A_NoBlocking;
+		OQMB L 5;
+		OQMB M 5;
+		OQMB N -1;
+		Stop;
+	XDeath:
+		OQMB O 5 A_XScream;
+		OQMB P 5 A_NoBlocking;
+		OQMB Q 5;
+		OQMB R 5;
+		OQMB S 5;
+		OQMB T 5;
+		OQMB U 5;
+		OQMB V 5;
+		OQMB W -1;
+		Stop;
+	}
+}
+
+class OQMonsterShub : BaronOfHell
+{
+	Default
+	{
+		Tag "Shub-Niggurath";
+		Health 800;
+	}
+	override void PostBeginPlay()
+	{
+		Super.PostBeginPlay();
+		double s = GetCVar("odoom_oq_monster_scale_global") * GetCVar("odoom_oq_monster_scale_shub");
+		if (s < 0.05) s = 0.05;
+		Scale.X = s;
+		Scale.Y = s;
+	}
+	States
+	{
+	Spawn:
+		OQMC A 10 A_Look;
+		Loop;
+	See:
+		OQMC B 4 A_Chase;
+		OQMC C 4 A_Chase;
+		OQMC D 4 A_Chase;
+		OQMC E 4 A_Chase;
+		Loop;
+	Melee:
+		OQMC F 8 A_FaceTarget;
+		OQMC G 8 A_BruisAttack;
+		OQMC H 8;
+		Goto See;
+	Missile:
+		OQMC F 8 A_FaceTarget;
+		OQMC G 8 A_BruisAttack;
+		OQMC H 8;
+		Goto See;
+	Pain:
+		OQMC I 3 A_Pain;
+		Goto See;
+	Death:
+		OQMC J 5 A_Scream;
+		OQMC K 5 A_NoBlocking;
+		OQMC L 5;
+		OQMC M 5;
+		OQMC N -1;
+		Stop;
+	XDeath:
+		OQMC O 5 A_XScream;
+		OQMC P 5 A_NoBlocking;
+		OQMC Q 5;
+		OQMC R 5;
+		OQMC S 5;
+		OQMC T 5;
+		OQMC U 5;
+		OQMC V 5;
+		OQMC W -1;
+		Stop;
+	}
+}
+
