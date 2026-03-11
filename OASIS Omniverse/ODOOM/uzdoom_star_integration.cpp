@@ -569,6 +569,8 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
 /** Max bytes for quest list string (Q\tid\tname\tdesc\tstatus\tpct\n and O\t...\n lines). */
 static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 16384;
+/** Max bytes to assign to odoom_quest_list CVar. Engine string CVars have a fixed buffer; exceeding it causes "Attempted to write past end of stream". */
+static const size_t ODOOM_QUEST_CVAR_MAX_BYTES = 4096;
 /** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
 static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
 
@@ -778,6 +780,18 @@ static void ODOOM_RefreshQuestCVars(void) {
 		n = (int)sizeof(questBuf) - 1;
 	questBuf[n] = '\0';
 
+	/* Truncate to CVar-safe length so engine does not overflow ("Attempted to write past end of stream"). */
+	size_t assignLen = (size_t)n;
+	if (assignLen > ODOOM_QUEST_CVAR_MAX_BYTES) {
+		assignLen = ODOOM_QUEST_CVAR_MAX_BYTES;
+		/* Find last newline in [0, assignLen) so we don't cut mid-line */
+		size_t lastNl = 0;
+		for (size_t i = 0; i < assignLen; i++)
+			if (questBuf[i] == '\n') lastNl = i + 1;
+		if (lastNl > 0)
+			assignLen = lastNl;
+	}
+
 	/* Debug: log bytes received and quest count (throttle to avoid spam) */
 	{
 		static int s_last_n = -1;
@@ -801,12 +815,12 @@ static void ODOOM_RefreshQuestCVars(void) {
 				else if (c >= 32 && c < 127) preview += c;
 				else preview += ".";
 			}
-			StarLogInfo("[Quests] ODOOM: bytes_from_api=%d quest_lines_parsed=%d preview=%.260s", n, questCountForLog, preview.c_str());
+			StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d preview=%.260s", n, assignLen, questCountForLog, preview.c_str());
 		}
 	}
 
 	static std::string s_questListValue;
-	s_questListValue.assign(questBuf, (size_t)n);
+	s_questListValue.assign(questBuf, assignLen);
 	UCVarValue v; v.String = (char*)s_questListValue.c_str();
 	listVar->SetGenericRep(v, CVAR_String);
 
@@ -869,6 +883,20 @@ static void ODOOM_RefreshQuestCVars(void) {
 			}
 		}
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
+	}
+
+	/* When list was truncated for CVar, report only the number of quests in the truncated list so ZScript scroll/count match. */
+	if (assignLen < (size_t)n) {
+		int listCount = 0;
+		const char* pp = questBuf;
+		const char* endAssign = questBuf + assignLen;
+		while (pp < endAssign && *pp) {
+			const char* lineEnd = (const char*)memchr(pp, '\n', (size_t)(endAssign - pp));
+			size_t lineLen = lineEnd ? (size_t)(lineEnd - pp) : (size_t)(endAssign - pp);
+			if (lineLen >= 2 && pp[0] == 'Q' && pp[1] == '\t') listCount++;
+			pp = lineEnd ? lineEnd + 1 : pp + lineLen;
+		}
+		questCount = listCount;
 	}
 
 	UCVarValue c; c.Int = questCount;

@@ -686,24 +686,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                var prereqIdList = (quest as Quest)?.PrerequisiteQuestIds;
+                if (prereqIdList == null && quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
                 {
                     var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
                     if (prereqIds != null)
+                        prereqIdList = prereqIds.Cast<object>().Select(x => x?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+                }
+                if (prereqIdList != null && prereqIdList.Count > 0)
+                {
+                    foreach (var item in prereqIdList)
                     {
-                        foreach (var item in prereqIds)
+                        if (!Guid.TryParse(item, out var prereqId) || prereqId == Guid.Empty) continue;
+                        var prereqResult = await LoadAsync(avatarId, prereqId);
+                        if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
                         {
-                            Guid prereqId = Guid.Empty;
-                            if (item is Guid g) prereqId = g;
-                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
-                            if (prereqId == Guid.Empty) continue;
-                            var prereqResult = await LoadAsync(avatarId, prereqId);
-                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
-                            {
-                                result.Result = false;
-                                result.Message = "Prerequisites not met. Complete all required quests first.";
-                                return result;
-                            }
+                            result.Result = false;
+                            result.Message = "Prerequisites not met. Complete all required quests first.";
+                            return result;
                         }
                     }
                 }
@@ -743,23 +743,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                if (quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                var prereqIdListStart = (quest as Quest)?.PrerequisiteQuestIds;
+                if (prereqIdListStart == null && quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
                 {
                     var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
                     if (prereqIds != null)
+                        prereqIdListStart = prereqIds.Cast<object>().Select(x => x?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+                }
+                if (prereqIdListStart != null && prereqIdListStart.Count > 0)
+                {
+                    foreach (var item in prereqIdListStart)
                     {
-                        foreach (var item in prereqIds)
+                        if (!Guid.TryParse(item, out var prereqId) || prereqId == Guid.Empty) continue;
+                        var prereqResult = await LoadAsync(avatarId, prereqId);
+                        if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
                         {
-                            Guid prereqId = Guid.Empty;
-                            if (item is Guid g) prereqId = g;
-                            else if (item is string s && Guid.TryParse(s, out var parsed)) prereqId = parsed;
-                            if (prereqId == Guid.Empty) continue;
-                            var prereqResult = await LoadAsync(avatarId, prereqId);
-                            if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Prerequisites not met. Complete all required quests first.");
-                                return result;
-                            }
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Prerequisites not met. Complete all required quests first.");
+                            return result;
                         }
                     }
                 }
