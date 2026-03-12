@@ -249,30 +249,10 @@ static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM: filter by status, Start (Not Started) or Set tracker (In Progress). */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
-/* Frames to keep clearing movement/look keys after closing quest popup (avoids stuck movement from SDL repeat). */
-static int g_quest_clear_keys_frames = 0;
 
-static void OQ_ClearMovementAndLookKeys(void)
+int OQuake_STAR_IsQuestPopupOpen(void)
 {
-    if (K_UPARROW >= 0 && K_UPARROW < MAX_KEYS) keydown[K_UPARROW] = false;
-    if (K_DOWNARROW >= 0 && K_DOWNARROW < MAX_KEYS) keydown[K_DOWNARROW] = false;
-    if (K_LEFTARROW >= 0 && K_LEFTARROW < MAX_KEYS) keydown[K_LEFTARROW] = false;
-    if (K_RIGHTARROW >= 0 && K_RIGHTARROW < MAX_KEYS) keydown[K_RIGHTARROW] = false;
-    if (K_PGUP >= 0 && K_PGUP < MAX_KEYS) keydown[K_PGUP] = false;
-    if (K_PGDN >= 0 && K_PGDN < MAX_KEYS) keydown[K_PGDN] = false;
-    if (K_HOME >= 0 && K_HOME < MAX_KEYS) keydown[K_HOME] = false;
-    if (K_END >= 0 && K_END < MAX_KEYS) keydown[K_END] = false;
-    {
-        static int s_w = -2, s_a = -2, s_s = -2, s_d = -2;
-        if (s_w == -2) { s_w = Key_StringToKeynum("w"); if (s_w < 0) s_w = Key_StringToKeynum("W"); }
-        if (s_a == -2) { s_a = Key_StringToKeynum("a"); if (s_a < 0) s_a = Key_StringToKeynum("A"); }
-        if (s_s == -2) { s_s = Key_StringToKeynum("s"); if (s_s < 0) s_s = Key_StringToKeynum("S"); }
-        if (s_d == -2) { s_d = Key_StringToKeynum("d"); if (s_d < 0) s_d = Key_StringToKeynum("D"); }
-        if (s_w >= 0 && s_w < MAX_KEYS) keydown[s_w] = false;
-        if (s_a >= 0 && s_a < MAX_KEYS) keydown[s_a] = false;
-        if (s_s >= 0 && s_s < MAX_KEYS) keydown[s_s] = false;
-        if (s_d >= 0 && s_d < MAX_KEYS) keydown[s_d] = false;
-    }
+    return g_quest_popup_open ? 1 : 0;
 }
 
 #define OQ_QUEST_MAX 64
@@ -3753,12 +3733,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     OQ_CheckAuthenticationComplete();
     OQ_CheckInventoryRefreshComplete();
 
-    /* Clear movement/look keys for a few frames after closing quest popup so SDL repeat doesn't leave keys "stuck". */
-    if (!g_quest_popup_open && g_quest_clear_keys_frames > 0) {
-        OQ_ClearMovementAndLookKeys();
-        g_quest_clear_keys_frames--;
-    }
-
     /* Q key: edge-triggered toggle for quest popup (same pattern as I for inventory - poll in draw path so it works regardless of binding) */
     {
         static int s_q_key = -1;
@@ -3769,7 +3743,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
                     star_api_invalidate_quest_cache();
-                    OQ_ClearMovementAndLookKeys();
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -3782,8 +3755,6 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 } else {
                     g_quest_status_message[0] = '\0';
                     g_quest_status_frames = 0;
-                    OQ_ClearMovementAndLookKeys();
-                    g_quest_clear_keys_frames = 3;  /* Keep clearing for 3 frames so SDL repeat doesn't stick keys */
                 }
                 g_quest_key_was_down = true;
             }
@@ -4766,8 +4737,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (g_quest_status_frames <= 0) g_quest_status_message[0] = '\0';
         }
 
-        /* Block arrow keys, WASD, and look keys (PGUP/PGDN/END/HOME) from moving/panning the player while popup is open. */
-        OQ_ClearMovementAndLookKeys();
+        /* Movement/look blocking is done by the engine: when OQuake_STAR_IsQuestPopupOpen() returns 1, the engine should not apply movement so keys are never cleared and work immediately after close. */
     }
 }
 
