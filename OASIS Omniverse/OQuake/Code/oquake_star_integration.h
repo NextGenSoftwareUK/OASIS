@@ -67,6 +67,8 @@ void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_typ
 int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
 /** Returns 1 if the quest popup (Q key) is open, 0 otherwise. Engine should call this when building the movement/usercmd: if it returns 1, do not apply movement (forwardmove/sidemove/upmove and optionally +left/+right/+lookup/+lookdown) so the player does not move while the popup is open, and keys are never cleared so movement works immediately after closing. Declare in header so engine can call it. */
 int OQuake_STAR_IsQuestPopupOpen(void);
+/** Returns 1 if the inventory popup (I key) is open, 0 otherwise. Engine should use the same movement/view blocking as for the quest popup when either popup is open. */
+int OQuake_STAR_IsInventoryPopupOpen(void);
 
 #ifdef __cplusplus
 }

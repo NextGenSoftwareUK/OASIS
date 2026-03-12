@@ -1482,10 +1482,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int keyB  = ODOOM_GetRawKeyDown('B');
 		int keyN  = ODOOM_GetRawKeyDown('N');
 		int keyM  = ODOOM_GetRawKeyDown('M');
+		int keyV  = ODOOM_GetRawKeyDown('V');
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyV, backspace);
 		/* Quest popup is driven by ZScript only (same as inventory I key): ZScript reads odoom_key_q and toggles; C++ does not set odoom_quest_popup_open. */
 	}
 
@@ -1781,7 +1782,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyV, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1807,6 +1808,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_p", p);
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
+	SET_KEY_CVAR("odoom_key_v", keyV);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
 }

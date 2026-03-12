@@ -121,13 +121,13 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 ---
 
-## 4c. Quest popup and movement (apply script does this)
+## 4c. Quest popup and inventory popup – movement and view blocking (apply script does this)
 
-So that the player **does not move** while the quest popup (Q) is open and **movement keys work immediately** after closing, the engine must not apply movement when the popup is open. The integration exposes **`OQuake_STAR_IsQuestPopupOpen()`** and does **not** modify `keydown[]`, so key state is preserved.
+So that the player **does not move** and **arrow keys, HOME, PGDOWN, etc. do not pan the view** while the quest popup (Q) or inventory popup (I) is open, and **keys work immediately** after closing, the engine must not apply movement or view angles when either popup is open. The integration exposes **`OQuake_STAR_IsQuestPopupOpen()`** and **`OQuake_STAR_IsInventoryPopupOpen()`** and does **not** modify `keydown[]`, so key state is preserved.
 
-**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_star_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when `OQuake_STAR_IsQuestPopupOpen()` returns 1. No manual patch is needed unless your vkQuake layout differs.
+**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_star_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when **either** `OQuake_STAR_IsQuestPopupOpen()` or `OQuake_STAR_IsInventoryPopupOpen()` returns 1. It also patches **CL_AdjustAngles** to return early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). No manual patch is needed unless your vkQuake layout differs.
 
-**If you patch by hand:** in **cl_input.c**, add the include and in `CL_BaseMove` right after `VectorCopy (cl.viewangles, cmd->viewangles);` add: `if (OQuake_STAR_IsQuestPopupOpen ()) return;`
+**If you patch by hand:** in **cl_input.c**, add the include; in `CL_BaseMove` right after `VectorCopy (cl.viewangles, cmd->viewangles);` add: `if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()) return;` and at the start of `CL_AdjustAngles` add the same condition so view angles are not adjusted while either popup is open.
 
 ---
 
@@ -140,7 +140,7 @@ When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatic
 3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
 4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
 5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
-6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"` and in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** is true so the player does not move while the quest popup is open and keys work after closing.
+6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"`; in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** or **OQuake_STAR_IsInventoryPopupOpen()** is true (so no movement); in **CL_AdjustAngles** returns early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). Keys work after closing.
 7. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
 
 No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
