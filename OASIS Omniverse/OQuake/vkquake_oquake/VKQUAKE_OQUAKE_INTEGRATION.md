@@ -121,6 +121,16 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 ---
 
+## 4c. Quest popup and movement (apply script does this)
+
+So that the player **does not move** while the quest popup (Q) is open and **movement keys work immediately** after closing, the engine must not apply movement when the popup is open. The integration exposes **`OQuake_STAR_IsQuestPopupOpen()`** and does **not** modify `keydown[]`, so key state is preserved.
+
+**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_star_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when `OQuake_STAR_IsQuestPopupOpen()` returns 1. No manual patch is needed unless your vkQuake layout differs.
+
+**If you patch by hand:** in **cl_input.c**, add the include and in `CL_BaseMove` right after `VectorCopy (cl.viewangles, cmd->viewangles);` add: `if (OQuake_STAR_IsQuestPopupOpen ()) return;`
+
+---
+
 ## 5. What the build script does (BUILD_OQUAKE.bat / apply_oquake_to_vkquake.ps1)
 
 When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatically** does everything (like ODOOM):
@@ -130,7 +140,8 @@ When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatic
 3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
 4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
 5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
-6. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
+6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"` and in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** is true so the player does not move while the quest popup is open and keys work after closing.
+7. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
 
 No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
 
