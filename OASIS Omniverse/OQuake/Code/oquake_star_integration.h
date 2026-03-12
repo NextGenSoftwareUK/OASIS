@@ -45,8 +45,6 @@ void OQuake_STAR_PollItems(void);
 int  OQuake_STAR_CheckDoorAccess(const char* door_targetname, const char* required_key_name);
 void OQuake_STAR_Console_f(void); /* in-game console "star" command - registered by Init */
 void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx);
-/** Call at the start of each frame (before movement/look) so the quest popup blocks arrow/WASD/PgUp/PgDn/Home/End immediately. If not called, keys are cleared in the draw path and may still move the player for one frame. */
-void OQuake_STAR_ClearMovementKeysIfPopupOpen(void);
 int OQuake_STAR_ShouldUseAnorakFace(void);
 const char* OQuake_STAR_GetUsername(void);
 void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx);

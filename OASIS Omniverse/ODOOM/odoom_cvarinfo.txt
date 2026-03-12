@@ -85,3 +85,8 @@ server int odoom_quest_filter_in_progress = 1;
 server int odoom_quest_filter_completed = 1;
 // Quest popup list scroll offset (UI writes here; play context syncs to class field for drawing).
 server int odoom_quest_scroll_offset = 0;
+// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the three list CVars from STAR API.
+server string odoom_quest_detail_quest_id = "";
+server string odoom_quest_detail_prereqs = "";
+server string odoom_quest_detail_objectives = "";
+server string odoom_quest_detail_subquests = "";
