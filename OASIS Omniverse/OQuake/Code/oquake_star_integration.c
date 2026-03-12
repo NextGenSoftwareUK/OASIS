@@ -255,6 +255,11 @@ int OQuake_STAR_IsQuestPopupOpen(void)
     return g_quest_popup_open ? 1 : 0;
 }
 
+int OQuake_STAR_IsInventoryPopupOpen(void)
+{
+    return g_inventory_open ? 1 : 0;
+}
+
 #define OQ_QUEST_MAX 64
 #define OQ_LINKS_MAX 16   /* max prereq or sub-quest IDs per quest */
 #define OQ_OBJ_MAX 16    /* max objectives per quest */
@@ -4497,9 +4502,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
-            Draw_String(cbx, qx + 10, qy + 48, "Loading quests...");
+            Draw_String(cbx, qx + 30, qy + 48, "Loading quests...");
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
-            Draw_String(cbx, qx + 10, qy + 48, "Error loading quests. Check console or star_api.log for details.");
+            Draw_String(cbx, qx + 30, qy + 48, "Error loading quests. Check console or star_api.log for details.");
         } else if (left_list_count > 0 || g_quest_drill_parent_id[0]) {
             /* Left: table Name | % | Status (half name column: 27 chars) */
             char name_buf[64];
@@ -4718,13 +4723,18 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             Draw_String(cbx, qx + 10, qy + 48, "No Quests Found");
         }
 
-        /* Bottom info text centre-aligned */
+        /* Bottom info text: main list = centre minus 10 (left 10); detail/drill = centre plus 10 (right 10) */
         {
             const char* footer = g_quest_drill_parent_id[0]
                 ? "B/N/M=Filter  Space=Switch  PgUp/PgDn=Page  Home/End  Enter=Start/Set  Escape=Back  Q=Close"
                 : "B/N/M=Filter  Space=Switch  PgUp/PgDn=Page  Home/End=Top/Bottom  Enter=Start/Set  Q=Close";
             int footer_len = (int)strlen(footer);
-            Draw_String(cbx, qx + (qw - footer_len * 8) / 2, qy + qh - 20, footer);
+            int footer_x = qx + (qw - footer_len * 8) / 2;
+            if (g_quest_drill_parent_id[0])
+                footer_x += 10;   /* detail quest popup: hint right 10 */
+            else
+                footer_x -= 10;   /* main list: hint left 10 */
+            Draw_String(cbx, footer_x, qy + qh - 20, footer);
         }
         /* Status message in bottom-right (e.g. "Starting quest..."), 10px higher than before */
         if (g_quest_status_frames > 0 && g_quest_status_message[0]) {

@@ -30,6 +30,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyPDown;
 	private bool wasKeyQDown;
 	private bool wasKeyEnterDown;
+	private bool wasKeyVDown;
 	private bool wasKeyBackspaceDown;
 	private bool wasKeyPgUpDown;
 	private bool wasKeyPgDownDown;
@@ -159,7 +160,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool crouchDown = (buttons & BT_CROUCH) != 0;
 
 		// Keys captured by C++ when inventory open (odoom_key_* CVars). Read every frame so wasKey* stay in sync when closed.
-		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
+		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyV = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
 		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0, keyB = 0, keyN = 0, keyM = 0;
 		CVar v;
 		v = CVar.FindCVar("odoom_key_up"); if (v != null) keyUp = v.GetInt();
@@ -183,6 +184,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		v = CVar.FindCVar("odoom_key_p"); if (v != null) keyP = v.GetInt();
 		v = CVar.FindCVar("odoom_key_q"); if (v != null) keyQ = v.GetInt();
 		v = CVar.FindCVar("odoom_key_enter"); if (v != null) keyEnter = v.GetInt();
+		v = CVar.FindCVar("odoom_key_v"); if (v != null) keyV = v.GetInt();
 		v = CVar.FindCVar("odoom_key_backspace"); if (v != null) keyBackspace = v.GetInt();
 		bool keyUpPressed = (keyUp != 0) && !wasKeyUpDown;
 		bool keyPgUpPressed = (keyPgUp != 0) && !wasKeyPgUpDown;
@@ -205,6 +207,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyPPressed = (keyP != 0) && !wasKeyPDown;
 		bool keyQPressed = (keyQ != 0) && !wasKeyQDown;
 		bool keyEnterPressed = (keyEnter != 0) && !wasKeyEnterDown;
+		bool keyVPressed = (keyV != 0) && !wasKeyVDown;
 		bool keyBackspacePressed = (keyBackspace != 0) && !wasKeyBackspaceDown;
 		wasKeyUpDown = (keyUp != 0);
 		wasKeyDownDown = (keyDown != 0);
@@ -220,6 +223,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyPDown = (keyP != 0);
 		wasKeyQDown = (keyQ != 0);
 		wasKeyEnterDown = (keyEnter != 0);
+		wasKeyVDown = (keyV != 0);
 		wasKeyBackspaceDown = (keyBackspace != 0);
 		wasKeyPgUpDown = (keyPgUp != 0);
 		wasKeyPgDownDown = (keyPgDown != 0);
@@ -369,8 +373,8 @@ class OASISInventoryOverlayHandler : EventHandler
 						}
 					}
 				}
-				// Space = Start (Not Started) or Set tracker (In Progress) on selected quest
-				if (keyUsePressed && !questDetailPopupOpen)
+				// V = Start (Not Started) or Set tracker (In Progress) on selected quest (Space is jump)
+				if (keyVPressed && !questDetailPopupOpen)
 				{
 					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
 					{
@@ -487,8 +491,8 @@ class OASISInventoryOverlayHandler : EventHandler
 						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 					}
 				}
-				// Space in detail = Start or Set tracker for this quest
-				if (keyUsePressed)
+				// V in detail = Start or Set tracker for this quest
+				if (keyVPressed)
 				{
 					if (questDetailQuestId.Length() > 0)
 					{
@@ -1138,7 +1142,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int rightXSub = rightX + rightW / 2 + 42;  // Subquests column
 			int rightWHalf = rightW / 2 - 2;
 			String questTitle = questDetailQuestName;
-			if (questTitle.Length() > 18) questTitle = String.Format("%s..", questTitle.Left(16));
+			if (questTitle.Length() > 28) questTitle = String.Format("%s..", questTitle.Left(26));
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 8, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String desc = questDetailQuestDesc;
 			if (desc.Length() > 200) desc = String.Format("%s..", desc.Left(198));
@@ -1214,7 +1218,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				screen.DrawText(f, cr, rightXSub, rowY, rowName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightXSub, sect1Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 49, "Arrows=Move  Enter=Go to  Space=Start/Set  Backspace=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 3, popupY + popupH - 49, "Arrows=Move  Enter=Go to  V=Start/Set  Backspace=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)
@@ -1276,7 +1280,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			else if (listStr.IndexOf("Loading") == 0)
 			{
-				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "Loading quests...", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				String loadMsg = "Loading quests...";
+				int loadMsgW = f.StringWidth(loadMsg);
+				screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - loadMsgW) / 2, popupY + 48, loadMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			else if (qCount > 0 && drawQuestLines.Size() > 0)
 			{
@@ -1313,12 +1319,12 @@ class OASISInventoryOverlayHandler : EventHandler
 			else
 				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String hint1 = "B/N/M=Filter  PgUp/PgDn=Page  Home/End=Top/Bottom";
-			String hint2 = "Arrows=Select  Enter=Details  Space=Start/Set  Q=Close";
+			String hint2 = "Arrows=Select  Enter=Details  V=Start/Set  Q=Close";
 			int hint1W = f.StringWidth(hint1);
 			int hint2W = f.StringWidth(hint2);
-			int hintRight = popupX + popupW - 8 + 90;  // right-align: top hint 10px left, bottom hint 10px right
+			int hintRight = popupX + popupW - 8 + 90;  // right-align: top hint 10px left, bottom hint 5px right (moved left 5)
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 10 - hint1W, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, hintRight + 10 - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, hintRight + 5 - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				int msgW = f.StringWidth(questStatusMessage);

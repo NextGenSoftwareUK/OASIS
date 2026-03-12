@@ -27,6 +27,7 @@ server int odoom_key_p = 0;
 server int odoom_key_q = 0;
 server int odoom_key_enter = 0;
 server int odoom_key_backspace = 0;
+server int odoom_key_v = 0;
 
 // Send popup (OQuake-style): name input buffer and execute
 server int odoom_send_popup_open = 0;
