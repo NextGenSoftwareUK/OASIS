@@ -837,14 +837,17 @@ public sealed class StarApiClient : IDisposable
                     serialized = SerializeQuestsForGame(result.Result);
                     var list = result.Result;
                     StarApiExports.StarApiLog($"[Quests] OK ({list.Count} quest(s)) serialized length={serialized?.Length ?? 0}");
-                    for (var i = 0; i < list.Count && i < 24; i++)
+                    int topLevel = 0, withPrereqs = 0, withParent = 0;
+                    for (var i = 0; i < list.Count; i++)
                     {
                         var q = list[i];
-                        StarApiExports.StarApiLog($"[Quests]   [{i}] Id={q.Id} Name={q.Name?.Replace("\t", " ")} Status={q.Status}");
+                        var isTop = string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString();
+                        if (isTop) topLevel++;
+                        if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0) withPrereqs++;
+                        if (!isTop) withParent++;
                     }
-                    var previewLen = Math.Min(400, serialized?.Length ?? 0);
-                    var preview = previewLen > 0 ? serialized!.Substring(0, previewLen).Replace("\t", "|").Replace("\r", " ").Replace("\n", "\\n") : "";
-                    StarApiExports.StarApiLog($"[Quests] Serialized preview (first {previewLen} chars): {preview}");
+                    var idSummary = list.Count > 0 ? string.Join(", ", list.Take(10).Select(q => q.Id ?? "(null)")) + (list.Count > 10 ? "..." : "") : "(none)";
+                    StarApiExports.StarApiLog($"[Quests] Cache summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs} Ids={idSummary}");
                 }
                 lock (_questsCacheLock)
                 {
@@ -855,24 +858,6 @@ public sealed class StarApiClient : IDisposable
                     _questsFilterLastLogObjectives = ("", -1);
                     _questsFilterLastLogSubQuests = ("", -1);
                     _questsFilterLastLogPrereqs = ("", -1);
-                }
-                /* Log filtering-relevant fields so we can verify API returns ParentQuestId and PrerequisiteQuestIds (e.g. from demo seed). */
-                if (result.Result != null && result.Result.Count > 0)
-                {
-                    var list = result.Result;
-                    int topLevel = 0, withPrereqs = 0, withParent = 0;
-                    for (var i = 0; i < list.Count; i++)
-                    {
-                        var q = list[i];
-                        var isTop = string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString();
-                        if (isTop) topLevel++;
-                        if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0) withPrereqs++;
-                        if (!isTop) withParent++;
-                        var parentInfo = isTop ? "(top-level)" : q.ParentQuestId;
-                        var prereqInfo = (q.PrerequisiteQuestIds?.Count ?? 0) == 0 ? "0" : $"{q.PrerequisiteQuestIds!.Count}=[{string.Join(", ", q.PrerequisiteQuestIds.Take(3))}{(q.PrerequisiteQuestIds.Count > 3 ? "..." : "")}]";
-                        StarApiExports.StarApiLog($"[Quests] Cached[{i}] Id={q.Id} Name={q.Name?.Replace("\t", " ")} ParentQuestId={parentInfo} PrereqIds={prereqInfo}");
-                    }
-                    StarApiExports.StarApiLog($"[Quests] Filter summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs}");
                 }
                 return Success(true, StarApiResultCode.Success, "Quests cached.");
             }
@@ -2006,8 +1991,6 @@ public sealed class StarApiClient : IDisposable
         StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"})");
 
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
-        var fullBody = response.Result ?? "(null)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={fullBody}");
         if (response.IsError)
             return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
@@ -2016,6 +1999,8 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
         var quests = ParseQuestInfos(resultElement);
+        var idSummary = quests != null && quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests?.Count ?? 0} Ids={idSummary}");
         InvokeCallback(StarApiResultCode.Success);
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests?.Count ?? 0} quest(s) for avatar.");
     }
@@ -2041,10 +2026,6 @@ public sealed class StarApiClient : IDisposable
 
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
 
-        /* Full body to log file only (no truncation). */
-        var fullBody = response.Result ?? "(null)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"} BodyPreview={fullBody}");
-        /* Short line to file + console for visibility. */
         StarApiExports.StarApiLog($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"}");
         if (response.IsError)
             StarApiExports.StarApiLog($"[Quests] Error: {response.Message ?? "Request failed"}");
@@ -2059,6 +2040,8 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
         var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
+        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] by-status parsed: Count={quests.Count} Ids={idSummary}");
         if (quests.Count > 0)
             StarApiExports.StarApiLog($"[Quests] OK ({quests.Count} quests) Ids={string.Join(", ", quests.Select(q => q.Id ?? "(null)"))}");
         else
@@ -3010,13 +2993,19 @@ public sealed class StarApiClient : IDisposable
             foreach (var objective in element.EnumerateArray())
             {
                 if (objective.ValueKind != JsonValueKind.Object) continue;
+                /* Try PascalCase and camelCase so API serialization (e.g. System.Text.Json camelCase) is handled. */
+                var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
+                var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective") ?? string.Empty;
+                var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
+                var itemRequired = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
+                var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
                 objectives.Add(new StarQuestObjective
                 {
-                    Id = GetStringProperty(objective, "Id") ?? string.Empty,
-                    Description = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? string.Empty,
-                    GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
-                    ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
-                    IsCompleted = GetBoolProperty(objective, "IsCompleted")
+                    Id = id,
+                    Description = desc,
+                    GameSource = gameSource,
+                    ItemRequired = itemRequired,
+                    IsCompleted = isCompleted
                 });
             }
             return objectives;
@@ -3762,6 +3751,9 @@ public sealed class StarApiClient : IDisposable
     {
         if (element.ValueKind == JsonValueKind.Object && TryGetProperty(element, "Quests", out var questsElement))
             element = questsElement;
+        /* Some APIs wrap the list as { "result": [ ... ] }; unwrap so we always parse the array. */
+        if (element.ValueKind == JsonValueKind.Object && (TryGetProperty(element, "Result", out var resultArr) || TryGetProperty(element, "result", out resultArr)) && resultArr.ValueKind == JsonValueKind.Array)
+            element = resultArr;
 
         var quests = new List<StarQuestInfo>();
         if (element.ValueKind != JsonValueKind.Array)
@@ -3780,10 +3772,34 @@ public sealed class StarApiClient : IDisposable
                 if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj))
                     objectives = ParseObjectivesFromElement(metaObj);
             }
+            /* Fallback: API may use "Quest" or "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
+            if (objectives.Count == 0 && (TryGetProperty(questElement, "Quests", out var qArr) || TryGetProperty(questElement, "Quest", out qArr)) && qArr.ValueKind == JsonValueKind.Array)
+            {
+                var first = qArr.EnumerateArray().FirstOrDefault();
+                var hasName = !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name"));
+                if (first.ValueKind == JsonValueKind.Object && !hasName &&
+                    (GetStringProperty(first, "Description") ?? GetStringProperty(first, "description") ?? GetStringProperty(first, "Objective") ?? GetStringProperty(first, "objective")) != null)
+                {
+                    foreach (var sub in qArr.EnumerateArray())
+                    {
+                        if (sub.ValueKind != JsonValueKind.Object) continue;
+                        objectives.Add(new StarQuestObjective
+                        {
+                            Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                            Description = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "objective") ?? string.Empty,
+                            GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
+                            ItemRequired = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty,
+                            IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted")
+                        });
+                    }
+                }
+            }
 
-            // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData
+            // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData; support PascalCase and camelCase
             var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
-            if (prereqIds.Count == 0 && TryGetProperty(questElement, "PrerequisiteQuestIds", out var prereqArr) && prereqArr.ValueKind == JsonValueKind.Array)
+            if (prereqIds.Count == 0)
+                prereqIds = GetStringListFromElement(questElement, "metaData", "prerequisiteQuestIds");
+            if (prereqIds.Count == 0 && (TryGetProperty(questElement, "PrerequisiteQuestIds", out var prereqArr) || TryGetProperty(questElement, "prerequisiteQuestIds", out prereqArr)) && prereqArr.ValueKind == JsonValueKind.Array)
             {
                 foreach (var item in prereqArr.EnumerateArray())
                 {
@@ -3798,17 +3814,62 @@ public sealed class StarApiClient : IDisposable
             if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(questElement, "MetaData", out var metaForParent) || TryGetProperty(questElement, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
                 parentQuestId = GetStringProperty(metaForParent, "ParentQuestId") ?? GetStringProperty(metaForParent, "parentQuestId") ?? string.Empty;
 
+            var parentId = GetStringProperty(questElement, "Id") ?? string.Empty;
             quests.Add(new StarQuestInfo
             {
-                Id = GetStringProperty(questElement, "Id") ?? string.Empty,
+                Id = parentId,
                 Name = GetStringProperty(questElement, "Name") ?? string.Empty,
                 Description = GetStringProperty(questElement, "Description") ?? string.Empty,
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
                 Objectives = objectives,
                 PrerequisiteQuestIds = prereqIds,
                 ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
-                IsObjective = GetBoolProperty(questElement, "IsObjective")
+                IsObjective = GetBoolProperty(questElement, "IsObjective") || GetBoolProperty(questElement, "isObjective")
             });
+
+            /* Flatten nested sub-quests: SubQuests or Quest/Quests array of full quest objects (have Id + Name) so right-panel subquest list is populated. */
+            if (string.IsNullOrEmpty(parentId)) continue;
+            IEnumerable<JsonElement>? childElements = null;
+            if (TryGetProperty(questElement, "SubQuests", out var subQuestsEl) && subQuestsEl.ValueKind == JsonValueKind.Array)
+                childElements = subQuestsEl.EnumerateArray();
+            else if (TryGetProperty(questElement, "Quests", out var questsArr) && questsArr.ValueKind == JsonValueKind.Array)
+            {
+                var first = questsArr.EnumerateArray().FirstOrDefault();
+                if (first.ValueKind == JsonValueKind.Object && !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name")))
+                    childElements = questsArr.EnumerateArray();
+            }
+            else if (TryGetProperty(questElement, "Quest", out var singleQuest) && singleQuest.ValueKind == JsonValueKind.Object)
+                childElements = new[] { singleQuest };
+
+            if (childElements != null)
+            {
+                foreach (var childEl in childElements)
+                {
+                    if (childEl.ValueKind != JsonValueKind.Object) continue;
+                    var childId = GetStringProperty(childEl, "Id") ?? GetStringProperty(childEl, "id");
+                    if (string.IsNullOrEmpty(childId)) continue;
+                    var childObj = new List<StarQuestObjective>();
+                    if (TryGetProperty(childEl, "Objectives", out var coEl) || TryGetProperty(childEl, "objectives", out coEl))
+                        childObj = ParseObjectivesFromElement(coEl);
+                    if (childObj.Count == 0 && (TryGetProperty(childEl, "MetaData", out var cMeta) || TryGetProperty(childEl, "metaData", out cMeta)) && cMeta.ValueKind == JsonValueKind.Object
+                        && (TryGetProperty(cMeta, "Objectives", out var cMetaObj) || TryGetProperty(cMeta, "objectives", out cMetaObj)))
+                        childObj = ParseObjectivesFromElement(cMetaObj);
+                    var childPrereqIds = GetStringListFromElement(childEl, "MetaData", "PrerequisiteQuestIds");
+                    if (childPrereqIds.Count == 0)
+                        childPrereqIds = GetStringListFromElement(childEl, "metaData", "prerequisiteQuestIds");
+                    quests.Add(new StarQuestInfo
+                    {
+                        Id = childId,
+                        Name = GetStringProperty(childEl, "Name") ?? GetStringProperty(childEl, "name") ?? string.Empty,
+                        Description = GetStringProperty(childEl, "Description") ?? GetStringProperty(childEl, "description") ?? string.Empty,
+                        Status = GetStringProperty(childEl, "Status") ?? GetStringProperty(childEl, "status") ?? string.Empty,
+                        Objectives = childObj,
+                        PrerequisiteQuestIds = childPrereqIds,
+                        ParentQuestId = parentId,
+                        IsObjective = GetBoolProperty(childEl, "IsObjective") || GetBoolProperty(childEl, "isObjective")
+                    });
+                }
+            }
         }
 
         return quests;

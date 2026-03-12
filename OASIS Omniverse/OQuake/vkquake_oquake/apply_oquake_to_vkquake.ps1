@@ -312,12 +312,24 @@ if (Test-Path $ClInputC) {
         $clInputPatched = $true
         Write-Host "[OQuake] Patched cl_input.c: added #include oquake_star_integration.h" -ForegroundColor Green
     }
+    # Block movement when quest popup (Q) or inventory popup (I) is open so keys work after close
     if ($content -notmatch 'OQuake_STAR_IsQuestPopupOpen') {
-        # In CL_BaseMove, after VectorCopy (cl.viewangles, cmd->viewangles); return early when quest popup is open so movement is zeroed and keys are never cleared
         if ($content -match 'VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;') {
-            $content = $content -replace '(VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;\s*\r?\n)(\r?\n)(\s+)(if\s*\(\s*cls\.signon\s*!=\s*SIGNONS\s*\))', "`$1`$2`tif (OQuake_STAR_IsQuestPopupOpen ())`r`n`t`treturn;`r`n`$2`$3`$4"
+            $content = $content -replace '(VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;\s*\r?\n)(\r?\n)(\s+)(if\s*\(\s*cls\.signon\s*!=\s*SIGNONS\s*\))', "`$1`$2`tif (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())`r`n`t`treturn;`r`n`$2`$3`$4"
             $clInputPatched = $true
-            Write-Host "[OQuake] Patched cl_input.c: block movement when quest popup open (OQuake_STAR_IsQuestPopupOpen)" -ForegroundColor Green
+            Write-Host "[OQuake] Patched cl_input.c: block movement when quest or inventory popup open" -ForegroundColor Green
+        }
+    } elseif ($content -notmatch 'OQuake_STAR_IsInventoryPopupOpen') {
+        # Already had quest check; add inventory check so both popups block movement
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\)', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())'
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: added inventory popup to movement block" -ForegroundColor Green
+    }
+    if ($content -notmatch 'CL_AdjustAngles[\s\S]{0,120}OQuake_STAR_IsQuestPopupOpen') {
+        if ($content -match 'void CL_AdjustAngles\s*\(\s*void\s*\)\s*\r?\n\s*\{') {
+            $content = $content -replace '(void CL_AdjustAngles\s*\(\s*void\s*\)\s*\r?\n\s*\{\s*\r?\n)(\s+)(float\s+speed;)', "`$1`tif (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())`r`n`t`treturn;`r`n`r`n`$2`$3"
+            $clInputPatched = $true
+            Write-Host "[OQuake] Patched cl_input.c: block view angles when quest or inventory popup open" -ForegroundColor Green
         }
     }
     if ($clInputPatched) {
