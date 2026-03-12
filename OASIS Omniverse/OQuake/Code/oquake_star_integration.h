@@ -65,6 +65,8 @@ void OQuake_STAR_OnEntityFreed(void* ed);
 void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_type, int quantity, const char* optional_description);
 /** Call from engine before running the touch function for (e1, e2). Returns 0 = no intercept; 1 = intercept, free e1 (first arg) and skip touch; 2 = intercept, free e2 (second arg) and skip touch. Engine must handle both orderings: (player, item) and (item, player). When (player, item), return 2 so caller frees e2 (the item) and must not run item's touch. */
 int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict);
+/** Returns 1 if the quest popup (Q key) is open, 0 otherwise. Engine should call this when building the movement/usercmd: if it returns 1, do not apply movement (forwardmove/sidemove/upmove and optionally +left/+right/+lookup/+lookdown) so the player does not move while the popup is open, and keys are never cleared so movement works immediately after closing. Declare in header so engine can call it. */
+int OQuake_STAR_IsQuestPopupOpen(void);
 
 #ifdef __cplusplus
 }

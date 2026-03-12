@@ -302,6 +302,32 @@ if (Test-Path $SbarC) {
     }
 }
 
+# --- cl_input.c: block movement when quest popup is open (so keys work after close) ---
+$ClInputC = Join-Path $QuakeDir "cl_input.c"
+if (Test-Path $ClInputC) {
+    $content = Get-Content $ClInputC -Raw
+    $clInputPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    if ($content -notmatch 'OQuake_STAR_IsQuestPopupOpen') {
+        # In CL_BaseMove, after VectorCopy (cl.viewangles, cmd->viewangles); return early when quest popup is open so movement is zeroed and keys are never cleared
+        if ($content -match 'VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;') {
+            $content = $content -replace '(VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;\s*\r?\n)(\r?\n)(\s+)(if\s*\(\s*cls\.signon\s*!=\s*SIGNONS\s*\))', "`$1`$2`tif (OQuake_STAR_IsQuestPopupOpen ())`r`n`t`treturn;`r`n`$2`$3`$4"
+            $clInputPatched = $true
+            Write-Host "[OQuake] Patched cl_input.c: block movement when quest popup open (OQuake_STAR_IsQuestPopupOpen)" -ForegroundColor Green
+        }
+    }
+    if ($clInputPatched) {
+        Set-Content $ClInputC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (cl_input.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
 # --- Monster kill hook: hook inside ED_Free() in pr_edict.c so EVERY caller is caught (unconditional, no #ifdef). ---
 function Add-MonsterHookInsideEDFree {
     param([string]$FilePath, [string]$FileLabel)

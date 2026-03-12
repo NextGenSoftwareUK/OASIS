@@ -74,6 +74,7 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #define ODOOM_K_PAGEDOWN  VK_NEXT
 #define ODOOM_K_HOME      VK_HOME
 #define ODOOM_K_END       VK_END
+#define ODOOM_K_BACKSPACE VK_BACK
 #else
 /* Use engine key codes (GK_*) so code compiles on Linux and macOS. Provided by engine keydef headers. */
 #define ODOOM_K_UP        GK_UP
@@ -94,6 +95,11 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #endif
 #define ODOOM_K_HOME      GK_HOME
 #define ODOOM_K_END       GK_END
+#if defined(GK_BACKSPACE)
+#define ODOOM_K_BACKSPACE GK_BACKSPACE
+#else
+#define ODOOM_K_BACKSPACE 0
+#endif
 #endif
 
 static star_api_config_t g_star_config;
@@ -1476,9 +1482,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int keyB  = ODOOM_GetRawKeyDown('B');
 		int keyN  = ODOOM_GetRawKeyDown('N');
 		int keyM  = ODOOM_GetRawKeyDown('M');
+		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, backspace);
 		/* Quest popup is driven by ZScript only (same as inventory I key): ZScript reads odoom_key_q and toggles; C++ does not set odoom_quest_popup_open. */
 	}
 
@@ -1774,7 +1781,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1800,6 +1807,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_p", p);
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
+	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
 }
 
