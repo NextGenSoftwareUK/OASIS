@@ -911,6 +911,56 @@ static void ODOOM_RefreshQuestCVars(void) {
 	}
 }
 
+/** Max bytes for each quest detail list CVar (prereqs, objectives, subquests). */
+static const size_t ODOOM_QUEST_DETAIL_CVAR_MAX = 1024;
+
+/** When odoom_quest_detail_quest_id is set, fill prereqs/objectives/subquests CVars from STAR API for the 2nd (detail) popup. */
+static void ODOOM_RefreshQuestDetailCVars(void) {
+	FBaseCVar* idVar = FindCVar("odoom_quest_detail_quest_id", nullptr);
+	if (!idVar || idVar->GetRealType() != CVAR_String) return;
+	const char* id = idVar->GetGenericRep(CVAR_String).String;
+	if (!id || !id[0]) return;
+
+	FBaseCVar* prereqVar = FindCVar("odoom_quest_detail_prereqs", nullptr);
+	FBaseCVar* objVar = FindCVar("odoom_quest_detail_objectives", nullptr);
+	FBaseCVar* subVar = FindCVar("odoom_quest_detail_subquests", nullptr);
+	if (!prereqVar || !objVar || !subVar) return;
+
+	static char buf[1024];
+	int nr = star_api_get_quest_prereqs_string(id, buf, sizeof(buf));
+	if (nr < 0) nr = 0;
+	if (nr >= (int)sizeof(buf)) nr = (int)sizeof(buf) - 1;
+	buf[nr] = '\0';
+	size_t len = (size_t)nr;
+	if (len > ODOOM_QUEST_DETAIL_CVAR_MAX) len = ODOOM_QUEST_DETAIL_CVAR_MAX;
+	static std::string s_prereqs;
+	s_prereqs.assign(buf, len);
+	UCVarValue vp; vp.String = (char*)s_prereqs.c_str();
+	prereqVar->SetGenericRep(vp, CVAR_String);
+
+	int no = star_api_get_quest_objectives_string(id, buf, sizeof(buf));
+	if (no < 0) no = 0;
+	if (no >= (int)sizeof(buf)) no = (int)sizeof(buf) - 1;
+	buf[no] = '\0';
+	len = (size_t)no;
+	if (len > ODOOM_QUEST_DETAIL_CVAR_MAX) len = ODOOM_QUEST_DETAIL_CVAR_MAX;
+	static std::string s_obj;
+	s_obj.assign(buf, len);
+	UCVarValue vo; vo.String = (char*)s_obj.c_str();
+	objVar->SetGenericRep(vo, CVAR_String);
+
+	int ns = star_api_get_quest_sub_quests_string(id, buf, sizeof(buf));
+	if (ns < 0) ns = 0;
+	if (ns >= (int)sizeof(buf)) ns = (int)sizeof(buf) - 1;
+	buf[ns] = '\0';
+	len = (size_t)ns;
+	if (len > ODOOM_QUEST_DETAIL_CVAR_MAX) len = ODOOM_QUEST_DETAIL_CVAR_MAX;
+	static std::string s_sub;
+	s_sub.assign(buf, len);
+	UCVarValue vs; vs.String = (char*)s_sub.c_str();
+	subVar->SetGenericRep(vs, CVAR_String);
+}
+
 static void ODOOM_OnAuthDone(void* user_data);
 static void ODOOM_OnSendItemDone(void* user_data);
 static void ODOOM_OnUseItemDone(void* user_data);
@@ -1469,6 +1519,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				s_quest_refresh_frames = 0;
 				ODOOM_RefreshQuestCVars();
 			}
+			/* Refresh detail popup lists (prereqs, objectives, subquests) when 2nd popup is open (ZScript sets odoom_quest_detail_quest_id). */
+			ODOOM_RefreshQuestDetailCVars();
 		}
 	}
 

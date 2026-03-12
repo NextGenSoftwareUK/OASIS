@@ -42,6 +42,20 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int questScrollOffset;
 	private String questStatusMessage;
 	private int questStatusFrames;
+	// Quest detail (2nd) popup: desc left, prereqs/objectives/subquests right (like Quake). Enter on prereq/subquest = close and select in main list.
+	private bool questDetailPopupOpen;
+	private String questDetailQuestId;
+	private String questDetailQuestName;
+	private String questDetailQuestDesc;
+	private String questDetailQuestStatus;  // for Start/Set tracker in detail
+	private int questDetailFocus;  // 0=prereqs, 1=objectives, 2=subquests
+	private int questDetailPrereqSelected;
+	private int questDetailObjSelected;
+	private int questDetailSubSelected;
+	private int questDetailPrereqScroll;
+	private int questDetailObjScroll;
+	private int questDetailSubScroll;
+	private String questGotoId;  // when set, next frame in 1st popup select this quest id in main list
 
 	// Send popup (OQuake-style)
 	private int sendPopupMode;   // 0=none, 1=avatar, 2=clan
@@ -229,8 +243,12 @@ class OASISInventoryOverlayHandler : EventHandler
 				questScrollOffset = 0;
 				questStatusMessage = "";
 				questStatusFrames = 0;
+				questDetailPopupOpen = false;
+				questGotoId = "";
 				CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 				if (scrollCv != null) scrollCv.SetInt(0);
+				CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id");
+				if (detailIdCv != null) detailIdCv.SetString("");
 			}
 			if (questPopupCv != null) questPopupCv.SetInt(questPopupOpen ? 1 : 0);
 		}
@@ -291,7 +309,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int qCount = filteredIndices.Size();
 			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match maxQuestRows (one fewer for 2-line hint)
 			if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
-			if (qCount > 0)
+			if (qCount > 0 && !questDetailPopupOpen)
 			{
 				if (keyDownPressed) { questSelectedIndex++; if (questSelectedIndex >= qCount) questSelectedIndex = qCount - 1; }
 				if (keyUpPressed) { questSelectedIndex--; if (questSelectedIndex < 0) questSelectedIndex = 0; }
@@ -321,7 +339,34 @@ class OASISInventoryOverlayHandler : EventHandler
 					CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 					if (scrollCv != null) scrollCv.SetInt(so);
 				}
+				// Enter = open detail (2nd) popup with desc + prereqs/objectives/subquests
 				if (keyEnterPressed)
+				{
+					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
+					{
+						array<String> parts;
+						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", false);
+						if (parts.Size() >= 5)
+						{
+							questDetailQuestId = parts[1];
+							questDetailQuestName = parts[2];
+							questDetailQuestDesc = parts.Size() > 3 ? parts[3] : "";
+							questDetailQuestStatus = parts[4];
+							questDetailPopupOpen = true;
+							questDetailFocus = 0;
+							questDetailPrereqSelected = 0;
+							questDetailObjSelected = 0;
+							questDetailSubSelected = 0;
+							questDetailPrereqScroll = 0;
+							questDetailObjScroll = 0;
+							questDetailSubScroll = 0;
+							CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id");
+							if (detailIdCv != null) detailIdCv.SetString(questDetailQuestId);
+						}
+					}
+				}
+				// Space = Start (Not Started) or Set tracker (In Progress) on selected quest
+				if (keyUsePressed && !questDetailPopupOpen)
 				{
 					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
 					{
@@ -345,6 +390,115 @@ class OASISInventoryOverlayHandler : EventHandler
 								CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
 								if (trackerIdCv != null) trackerIdCv.SetString(qid);
 							}
+						}
+					}
+				}
+			}
+			// Resolve drill-down: when we closed detail with a selected prereq/subquest, select that quest in main list
+			if (questPopupOpen && !questDetailPopupOpen && questGotoId.Length() > 0)
+			{
+				for (int b = 0; b < filteredIndices.Size(); b++)
+				{
+					if (filteredIndices[b] < 0 || filteredIndices[b] >= questLines.Size()) continue;
+					array<String> parts;
+					questLines[filteredIndices[b]].Split(parts, "\t", false);
+					if (parts.Size() >= 2 && parts[1].Compare(questGotoId) == 0)
+					{
+						questSelectedIndex = b;
+						int maxQuestRowsKey = (200 - 80) / 12 - 4;
+						if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
+						int so = questSelectedIndex - maxQuestRowsKey + 1;
+						if (so < 0) so = 0;
+						CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
+						if (scrollCv != null) scrollCv.SetInt(so);
+						break;
+					}
+				}
+				questGotoId = "";
+			}
+			// Detail (2nd) popup input
+			if (questDetailPopupOpen)
+			{
+				CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
+				CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
+				CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
+				String prereqStr = (prereqCv != null) ? prereqCv.GetString() : "";
+				String objStr = (objCv != null) ? objCv.GetString() : "";
+				String subStr = (subCv != null) ? subCv.GetString() : "";
+				array<String> prereqLines; array<String> objLines; array<String> subLines;
+				if (prereqStr.Length() > 0) prereqStr.Split(prereqLines, "\n", false);
+				if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);
+				if (subStr.Length() > 0) subStr.Split(subLines, "\n", false);
+				array<int> prereqQ; array<int> objQ; array<int> subQ;
+				for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
+				for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && objLines[i].IndexOf("Q\t") == 0) objQ.Push(i);
+				for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
+				int nPrereq = prereqQ.Size(); int nObj = objQ.Size(); int nSub = subQ.Size();
+				int maxRows = 4;
+				if (keyUpPressed) {
+					if (questDetailFocus == 0 && questDetailPrereqSelected > 0) questDetailPrereqSelected--;
+					else if (questDetailFocus == 1 && questDetailObjSelected > 0) questDetailObjSelected--;
+					else if (questDetailFocus == 2 && questDetailSubSelected > 0) questDetailSubSelected--;
+				}
+				if (keyDownPressed) {
+					if (questDetailFocus == 0 && questDetailPrereqSelected < nPrereq - 1) questDetailPrereqSelected++;
+					else if (questDetailFocus == 1 && questDetailObjSelected < nObj - 1) questDetailObjSelected++;
+					else if (questDetailFocus == 2 && questDetailSubSelected < nSub - 1) questDetailSubSelected++;
+				}
+				if (questDetailPrereqSelected < questDetailPrereqScroll) questDetailPrereqScroll = questDetailPrereqSelected;
+				if (questDetailPrereqSelected >= questDetailPrereqScroll + maxRows && nPrereq > maxRows) questDetailPrereqScroll = questDetailPrereqSelected - maxRows + 1;
+				if (questDetailObjSelected < questDetailObjScroll) questDetailObjScroll = questDetailObjSelected;
+				if (questDetailObjSelected >= questDetailObjScroll + maxRows && nObj > maxRows) questDetailObjScroll = questDetailObjSelected - maxRows + 1;
+				if (questDetailSubSelected < questDetailSubScroll) questDetailSubScroll = questDetailSubSelected;
+				if (questDetailSubSelected >= questDetailSubScroll + maxRows && nSub > maxRows) questDetailSubScroll = questDetailSubSelected - maxRows + 1;
+				if (keyLeftPressed) { questDetailFocus--; if (questDetailFocus < 0) questDetailFocus = 2; }
+				if (keyRightPressed) { questDetailFocus++; if (questDetailFocus > 2) questDetailFocus = 0; }
+				if (keyPgUpPressed) {
+					if (questDetailFocus == 0) { questDetailPrereqSelected -= maxRows; if (questDetailPrereqSelected < 0) questDetailPrereqSelected = 0; questDetailPrereqScroll = questDetailPrereqSelected; }
+					else if (questDetailFocus == 1) { questDetailObjSelected -= maxRows; if (questDetailObjSelected < 0) questDetailObjSelected = 0; questDetailObjScroll = questDetailObjSelected; }
+					else { questDetailSubSelected -= maxRows; if (questDetailSubSelected < 0) questDetailSubSelected = 0; questDetailSubScroll = questDetailSubSelected; }
+				}
+				if (keyPgDownPressed) {
+					if (questDetailFocus == 0) { questDetailPrereqSelected += maxRows; if (questDetailPrereqSelected >= nPrereq) questDetailPrereqSelected = nPrereq - 1; questDetailPrereqScroll = questDetailPrereqSelected - maxRows + 1; if (questDetailPrereqScroll < 0) questDetailPrereqScroll = 0; }
+					else if (questDetailFocus == 1) { questDetailObjSelected += maxRows; if (questDetailObjSelected >= nObj) questDetailObjSelected = nObj - 1; questDetailObjScroll = questDetailObjSelected - maxRows + 1; if (questDetailObjScroll < 0) questDetailObjScroll = 0; }
+					else { questDetailSubSelected += maxRows; if (questDetailSubSelected >= nSub) questDetailSubSelected = nSub - 1; questDetailSubScroll = questDetailSubSelected - maxRows + 1; if (questDetailSubScroll < 0) questDetailSubScroll = 0; }
+				}
+				// Escape (Back) = close detail
+				if (backDown && !wasBackDown) { questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
+				// Enter on prereq or subquest = drill down (close detail, select that in main list)
+				if (keyEnterPressed)
+				{
+					if (questDetailFocus == 0 && nPrereq > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
+					{
+						array<String> parts;
+						prereqLines[prereqQ[questDetailPrereqSelected]].Split(parts, "\t", false);
+						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
+					}
+					else if (questDetailFocus == 2 && nSub > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
+					{
+						array<String> parts;
+						subLines[subQ[questDetailSubSelected]].Split(parts, "\t", false);
+						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
+					}
+				}
+				// Space in detail = Start or Set tracker for this quest
+				if (keyUsePressed)
+				{
+					if (questDetailQuestId.Length() > 0)
+					{
+						if (questDetailQuestStatus.Compare("NotStarted") == 0 || questDetailQuestStatus.Compare("Not Started") == 0)
+						{
+							questStatusMessage = "Starting quest...";
+							questStatusFrames = 105;
+							CVar idCv = CVar.FindCVar("odoom_quest_set_active_id");
+							CVar doCv = CVar.FindCVar("odoom_quest_set_active_do_it");
+							if (idCv != null) idCv.SetString(questDetailQuestId);
+							if (doCv != null) doCv.SetInt(1);
+						}
+						else if (questDetailQuestStatus.Compare("InProgress") == 0 || questDetailQuestStatus.Compare("In Progress") == 0)
+						{
+							CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
+							if (trackerIdCv != null) trackerIdCv.SetString(questDetailQuestId);
 						}
 					}
 				}
@@ -956,7 +1110,100 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
-		// Quest popup (Q key): same layout as OQuake - table Name | % | Status, left-aligned, "Starting quest..." bottom-right
+		// Quest popup (Q key): 1st = list only; 2nd = detail (desc + prereqs/objectives/subquests) when Enter on a quest
+		if (questPopupOpen && questDetailPopupOpen)
+		{
+			// 2nd popup: desc left, 3 lists right (Prereqs, Objectives, Sub-quests) evenly spaced
+			int popupW = 320;
+			int popupH = 200;
+			int popupX = -55;
+			int popupY = 0;
+			int leftW = 120;
+			int rightX = popupX + leftW + 8;
+			int rightW = popupW - leftW - 16;
+			int sectH = (popupH - 56) / 3;
+			int rowH = 10;
+			String questTitle = questDetailQuestName;
+			if (questTitle.Length() > 18) questTitle = String.Format("%s..", questTitle.Left(16));
+			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 8, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			String desc = questDetailQuestDesc;
+			if (desc.Length() > 200) desc = String.Format("%s..", desc.Left(198));
+			int descY = popupY + 24;
+			int descMaxW = leftW - 8;
+			array<String> descWords;
+			desc.Split(descWords, " ", false);
+			String descLine = "";
+			int ly = descY;
+			for (int w = 0; w < descWords.Size(); w++)
+			{
+				String nextLine = descLine.Length() > 0 ? String.Format("%s %s", descLine, descWords[w]) : descWords[w];
+				if (f.StringWidth(nextLine) > descMaxW && descLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, descLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; descLine = descWords[w]; }
+				else descLine = nextLine;
+			}
+			if (descLine.Length() > 0) screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, descLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
+			CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
+			CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
+			String prereqStr = (prereqCv != null) ? prereqCv.GetString() : "";
+			String objStr = (objCv != null) ? objCv.GetString() : "";
+			String subStr = (subCv != null) ? subCv.GetString() : "";
+			array<String> prereqLines; array<String> objLines; array<String> subLines;
+			if (prereqStr.Length() > 0) prereqStr.Split(prereqLines, "\n", false);
+			if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);
+			if (subStr.Length() > 0) subStr.Split(subLines, "\n", false);
+			array<int> prereqQ; array<int> objQ; array<int> subQ;
+			for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
+			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && objLines[i].IndexOf("Q\t") == 0) objQ.Push(i);
+			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
+			int maxRows = 4;
+			int sect0Y = popupY + 24;
+			int sect1Y = sect0Y + sectH;
+			int sect2Y = sect1Y + sectH;
+			screen.DrawText(f, Font.CR_GOLD, rightX, sect0Y - 2, "Prerequisites", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			for (int i = 0; i < maxRows && questDetailPrereqScroll + i < prereqQ.Size(); i++)
+			{
+				int idx = prereqQ[questDetailPrereqScroll + i];
+				if (idx >= prereqLines.Size()) break;
+				array<String> parts;
+				prereqLines[idx].Split(parts, "\t", false);
+				String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
+				if (rowName.Length() > 14) rowName = String.Format("%s..", rowName.Left(12));
+				int cr = (questDetailFocus == 0 && questDetailPrereqSelected == questDetailPrereqScroll + i) ? Font.CR_GOLD : Font.CR_WHITE;
+				int rowY = sect0Y + (10 + i * rowH);
+				screen.DrawText(f, cr, rightX, rowY, rowName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			if (prereqQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GOLD, rightX, sect1Y - 2, "Objectives", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			for (int i = 0; i < maxRows && questDetailObjScroll + i < objQ.Size(); i++)
+			{
+				int idx = objQ[questDetailObjScroll + i];
+				if (idx >= objLines.Size()) break;
+				array<String> parts;
+				objLines[idx].Split(parts, "\t", false);
+				String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
+				if (rowName.Length() > 14) rowName = String.Format("%s..", rowName.Left(12));
+				int cr = (questDetailFocus == 1 && questDetailObjSelected == questDetailObjScroll + i) ? Font.CR_GOLD : Font.CR_WHITE;
+				int rowY = sect1Y + (10 + i * rowH);
+				screen.DrawText(f, cr, rightX, rowY, rowName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			if (objQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect1Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GOLD, rightX, sect2Y - 2, "Sub-quests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			for (int i = 0; i < maxRows && questDetailSubScroll + i < subQ.Size(); i++)
+			{
+				int idx = subQ[questDetailSubScroll + i];
+				if (idx >= subLines.Size()) break;
+				array<String> parts;
+				subLines[idx].Split(parts, "\t", false);
+				String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
+				if (rowName.Length() > 14) rowName = String.Format("%s..", rowName.Left(12));
+				int cr = (questDetailFocus == 2 && questDetailSubSelected == questDetailSubScroll + i) ? Font.CR_GOLD : Font.CR_WHITE;
+				int rowY = sect2Y + (10 + i * rowH);
+				screen.DrawText(f, cr, rightX, rowY, rowName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			}
+			if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect2Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 24, "Arrows=Move  Enter=Go to  Space=Start/Set  Escape=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			return;
+		}
 		if (questPopupOpen)
 		{
 			CVar listCv = CVar.FindCVar("odoom_quest_list");
@@ -1053,7 +1300,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			else
 				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String hint1 = "B/N/M=Filter  PgUp/PgDn=Page  Home/End=Top/Bottom";
-			String hint2 = "Arrows=Select  Enter=Start/Select Active  Q=Close";
+			String hint2 = "Arrows=Select  Enter=Details  Space=Start/Set  Q=Close";
 			int hint1W = f.StringWidth(hint1);
 			int hint2W = f.StringWidth(hint2);
 			int hintRight = popupX + popupW - 8 + 80;  // right-align both hint lines, 80px right of popup edge

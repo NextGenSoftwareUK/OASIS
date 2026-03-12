@@ -160,16 +160,9 @@ if (Test-Path $HostC) {
     # Call OQuake STAR item poll every frame so pickups are reported even if sbar isn't drawn
     if ($content -notmatch 'OQuake_STAR_PollItems') {
         if ($content -match '(\s+CL_ReadFromServer\s*\(\)\s*;)') {
-            $content = $content -replace '(\s+CL_ReadFromServer\s*\(\)\s*;)', "`$1`r`n		OQuake_STAR_PollItems ();`r`n		OQuake_STAR_ClearMovementKeysIfPopupOpen ();"
+            $content = $content -replace '(\s+CL_ReadFromServer\s*\(\)\s*;)', "`$1`r`n		OQuake_STAR_PollItems ();"
             $patched = $true
-            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_PollItems() and OQuake_STAR_ClearMovementKeysIfPopupOpen()" -ForegroundColor Green
-        }
-    } elseif ($content -notmatch 'OQuake_STAR_ClearMovementKeysIfPopupOpen') {
-        # Add key-clear call after PollItems for existing patches that only have PollItems
-        if ($content -match '(OQuake_STAR_PollItems\s*\(\)\s*;)') {
-            $content = $content -replace '(OQuake_STAR_PollItems\s*\(\)\s*;)', "`$1`r`n		OQuake_STAR_ClearMovementKeysIfPopupOpen ();"
-            $patched = $true
-            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_ClearMovementKeysIfPopupOpen() after PollItems" -ForegroundColor Green
+            Write-Host "[OQuake] Patched host.c: added OQuake_STAR_PollItems() call" -ForegroundColor Green
         }
     }
 
