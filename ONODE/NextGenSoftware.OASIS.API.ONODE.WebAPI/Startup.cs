@@ -246,6 +246,24 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<WorkflowProofGenerator>();
             services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
 
+            // Telegram NFT mint / SAINTS bot (webhook, ordain, baptise)
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(Configuration.GetSection("TelegramNftMint"));
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions>(Configuration.GetSection("HallVerificationNft"));
+            services.AddSingleton<ISaintMintRecordService, SaintMintRecordService>();
+            services.AddSingleton<ITelegramFlowStateStore, TelegramFlowStateStore>();
+            services.AddSingleton<IBaptiseSaintMintStore, BaptiseSaintMintStore>();
+            services.AddSingleton<IBaptiseRunAuditStore, BaptiseRunAuditStore>();
+            services.AddSingleton<IHallVerificationNftSentStore, HallVerificationNftSentStore>();
+            services.AddSingleton<ISaintClaimCodeStore, SaintClaimCodeStore>();
+            services.AddSingleton<ISaintNameStore, SaintNameStore>();
+            services.AddSingleton<ITokenMetadataByMintService, TokenMetadataByMintService>();
+            services.AddSingleton<ISolanaSplTokenBalanceService, SolanaSplTokenBalanceService>();
+            services.AddSingleton<ITopTokenHoldersService, TopTokenHoldersService>();
+            services.AddSingleton<IRecentTokenRecipientsService, RecentTokenRecipientsService>();
+            services.AddSingleton<TelegramNftMintFlowService>();
+            services.AddSingleton<IHallVerificationNftSenderService, HallVerificationNftSenderService>();
+            services.AddSingleton<DropToHoldersExecutionService>();
+
             //services.AddCors(options =>
             //{
             //    options.AddPolicy(MyAllowSpecificOrigins,

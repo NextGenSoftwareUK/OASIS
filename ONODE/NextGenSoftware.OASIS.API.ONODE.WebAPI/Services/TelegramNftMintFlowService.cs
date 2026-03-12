@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ITelegramFlowStateStore _flowStateStore;
         private readonly IHallVerificationNftSentStore _hallVerificationNftSentStore;
-        private readonly IHallVerificationNftSenderService _hallVerificationNftSender;
+        // Resolved lazily from IServiceProvider to avoid circular dependency with HallVerificationNftSenderService -> TelegramNftMintFlowService
         private readonly HallVerificationNftOptions _hallVerificationNftOptions;
         private string _dropSaintMetadataUrlCache;
         private readonly ConcurrentDictionary<(long ChatId, long UserId), DropHoldersFlowState> _dropState = new ConcurrentDictionary<(long, long), DropHoldersFlowState>();
@@ -74,7 +74,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             IServiceProvider serviceProvider = null,
             ITelegramFlowStateStore flowStateStore = null,
             IHallVerificationNftSentStore hallVerificationNftSentStore = null,
-            IHallVerificationNftSenderService hallVerificationNftSender = null,
             IOptions<HallVerificationNftOptions> hallVerificationNftOptions = null)
         {
             _httpClientFactory = httpClientFactory;
@@ -89,9 +88,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             _serviceProvider = serviceProvider;
             _flowStateStore = flowStateStore;
             _hallVerificationNftSentStore = hallVerificationNftSentStore;
-            _hallVerificationNftSender = hallVerificationNftSender;
             _hallVerificationNftOptions = hallVerificationNftOptions?.Value;
         }
+
+        private IHallVerificationNftSenderService GetHallVerificationNftSender() => _serviceProvider?.GetService<IHallVerificationNftSenderService>();
 
         /// <summary>
         /// Process incoming Telegram update (message or photo). Updates state and returns the reply text to send.
@@ -546,7 +546,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         /// <summary>When a user sends a message in the SAINTS group: if they have a linked wallet (from mint), are in top 20 $SAINT holders, and we haven't sent the Hall verification NFT yet, send the NFT and DM them. Returns reply to send in the group (or null).</summary>
         private async Task<string> TrySendHallVerificationNftToGroupMemberAsync(long telegramUserId)
         {
-            if (_saintMintRecordService == null || _topTokenHoldersService == null || _hallVerificationNftSentStore == null || _hallVerificationNftSender == null)
+            var hallSender = GetHallVerificationNftSender();
+            if (_saintMintRecordService == null || _topTokenHoldersService == null || _hallVerificationNftSentStore == null || hallSender == null)
                 return null;
             var saintMint = _options?.SaintTokenMint?.Trim();
             if (string.IsNullOrEmpty(saintMint))
@@ -583,7 +584,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 return null;
             }
 
-            var (sent, error) = await _hallVerificationNftSender.SendToWalletAsync(wallet, baseUrl).ConfigureAwait(false);
+            var (sent, error) = await hallSender.SendToWalletAsync(wallet, baseUrl).ConfigureAwait(false);
             if (!sent)
             {
                 _logger?.LogWarning("[TelegramNftMint] SAINTS group: failed to send verification NFT to {Wallet}: {Error}", wallet, error);
@@ -1106,7 +1107,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                 var clusterForLink = string.IsNullOrWhiteSpace(_options?.SolanaCluster) ? "devnet" : _options.SolanaCluster.Trim();
                 var txLink = $"https://solscan.io/tx/{txHash}?cluster={clusterForLink}";
                 var nftLink = string.IsNullOrEmpty(nftAddress) ? txLink : $"https://solscan.io/account/{nftAddress}?cluster={clusterForLink}";
-                var successMsg = $"✅ **NFT minted!**\n\n🔗 [View transaction]({txLink})\n📍 [View NFT]({nftLink})\n\nCheck your Solana wallet. Mint a SAINT? Use /join_saints in a private chat to get the secret group link.";
+                // Use plain URLs (no Markdown link syntax) so Telegram never returns 400 due to URL characters breaking parse_mode=Markdown
+                var successMsg = $"✅ **NFT minted!**\n\n🔗 View transaction: {txLink}\n📍 View NFT: {nftLink}\n\nCheck your Solana wallet. Mint a SAINT? Use /join_saints in a private chat to get the secret group link.";
                 if (!string.IsNullOrWhiteSpace(_options?.SaintsMintSuccessLine))
                     successMsg += "\n\n" + _options.SaintsMintSuccessLine.Trim();
                 return successMsg;
@@ -1384,7 +1386,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     var response = await _httpClient.PostAsync(url, content).ConfigureAwait(false);
                     if (response.IsSuccessStatusCode)
                         return true;
-                    _logger?.LogWarning("[TelegramNftMint] SendMessage attempt {Attempt} returned {StatusCode}", attempt, response.StatusCode);
+                    var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    _logger?.LogWarning("[TelegramNftMint] SendMessage attempt {Attempt} returned {StatusCode} {Body}", attempt, response.StatusCode, body.Length > 200 ? body.Substring(0, 200) + "..." : body);
+                    if ((int)response.StatusCode == 400 && attempt == 1)
+                    {
+                        var plainPayload = new { chat_id = chatId, text };
+                        var plainJson = JsonSerializer.Serialize(plainPayload);
+                        using var plainContent = new StringContent(plainJson, Encoding.UTF8, "application/json");
+                        var plainResponse = await _httpClient.PostAsync(url, plainContent).ConfigureAwait(false);
+                        if (plainResponse.IsSuccessStatusCode)
+                            return true;
+                        _logger?.LogWarning("[TelegramNftMint] SendMessage fallback (no parse_mode) returned {StatusCode}", plainResponse.StatusCode);
+                    }
                 }
                 catch (Exception ex)
                 {
