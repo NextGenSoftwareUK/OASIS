@@ -762,7 +762,7 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 
 static void StarLogInfo(const char* fmt, ...);
 
-/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Tracker shows quest only when odoom_quest_tracker_quest_id is set (user selected a quest); no default to first quest. */
+/** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Uses top-level quests only (like Quake) so main list shows parents; sub-quests appear in detail panel. Tracker shows quest only when odoom_quest_tracker_quest_id is set. */
 static void ODOOM_RefreshQuestCVars(void) {
 	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
 	FBaseCVar* countVar = FindCVar("odoom_quest_count", nullptr);
@@ -772,7 +772,7 @@ static void ODOOM_RefreshQuestCVars(void) {
 	if (!listVar || !countVar) return;
 
 	static char questBuf[ODOOM_QUEST_LIST_MAX_BYTES];
-	int n = star_api_get_quests_string(questBuf, sizeof(questBuf));
+	int n = star_api_get_top_level_quests_string(questBuf, sizeof(questBuf));
 	if (n < 0 || !g_star_initialized) {
 		UCVarValue v; v.String = (char*)"";
 		listVar->SetGenericRep(v, CVAR_String);

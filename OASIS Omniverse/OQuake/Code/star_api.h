@@ -85,6 +85,9 @@ int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
 int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
 /** Write serialized objectives (IsObjective=true) of parent_quest_id to buf for right panel. parent_quest_id must be non-NULL. */
 int star_api_get_quest_objectives_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Objectives cache version; increments when on-demand fetch merges objectives. Poll each frame and re-call get_quest_objectives_string when this changes to refresh the right-panel list. Define STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION when linking with a STAR API that exports this. */
+#define STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION 1
+int star_api_get_quest_objectives_cache_version(void);
 /** Write serialized prerequisite quests for quest_id to buf for right panel. quest_id must be non-NULL. */
 int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. */

@@ -98,10 +98,10 @@ public sealed class StarApiClient : IDisposable
     private readonly object _inventoryCacheLock = new();
     private readonly object _questsCacheLock = new();
 
-    /// <summary>Cached serialized quest list for star_api_get_quests_string. Populated by background refresh so the game thread never blocks.</summary>
+    /// <summary>Cached serialized full quest list (game format: "Q\tid\tname\t...\n"). Returned as-is by TryGetQuestsCache for star_api_get_quests_string so the game thread never blocks or re-serializes.</summary>
     private string? _questsCacheString;
-    /// <summary>Cached full quest list from last successful load. Used by GetTopLevelQuestsFromCache, GetQuestSubQuestsFromCache, GetQuestPrereqsFromCache.</summary>
-    private List<StarQuestInfo>? _cachedQuestList; //TODO: Why are there 2 caches?
+    /// <summary>Cached structured quest list from last successful load. Used to filter and re-serialize: top-level only (TryGetTopLevelQuestsCache), objectives (TryGetQuestObjectivesCache), sub-quests (TryGetQuestSubQuestsCache), prereqs (TryGetQuestPrereqsCache). We need both: the string for fast full-list return; the list for filtering by ParentQuestId/Objectives without re-parsing.</summary>
+    private List<StarQuestInfo>? _cachedQuestList;
     /// <summary>True while a background quest refresh is running; prevents multiple concurrent refreshes.</summary>
     private bool _questsRefreshInProgress;
     /// <summary>Last (total, top) logged for TryGetTopLevelQuestsCache; log only when changed to avoid spam.</summary>
@@ -112,6 +112,15 @@ public sealed class StarApiClient : IDisposable
     private (string id, int count) _questsFilterLastLogSubQuests = ("", -1);
     /// <summary>Last (questId, count) logged for prereqs; log only when changed.</summary>
     private (string id, int count) _questsFilterLastLogPrereqs = ("", -1);
+
+    /// <summary>Quest ids we're currently fetching for on-demand objectives; avoids duplicate concurrent fetches. Result is merged into _cachedQuestList.</summary>
+    private readonly HashSet<string> _questObjectivesHydrating = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Incremented when objectives are merged into the cache (on-demand fetch). UI can poll this and re-call get_quest_objectives_string when it changes to refresh the list.</summary>
+    private int _questObjectivesCacheVersion;
+    /// <summary>True after we've done one full quest-list refresh to backfill objectives (same endpoint as demo). Stops repeated refreshes.</summary>
+    private bool _questCacheRefreshedForObjectives;
+    /// <summary>True while the one-time full refresh for objectives is in progress.</summary>
+    private bool _questCacheRefreshingForObjectives;
 
     /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
     private List<StarItem>? _cachedInventory;
@@ -756,6 +765,9 @@ public sealed class StarApiClient : IDisposable
             _questsFilterLastLogObjectives = ("", -1);
             _questsFilterLastLogSubQuests = ("", -1);
             _questsFilterLastLogPrereqs = ("", -1);
+            _questObjectivesHydrating.Clear();
+            _questCacheRefreshedForObjectives = false;
+            _questCacheRefreshingForObjectives = false;
         }
     }
 
@@ -852,7 +864,8 @@ public sealed class StarApiClient : IDisposable
                 {
                     serialized = SerializeQuestsForGame(result.Result);
                     var list = result.Result;
-                    StarApiExports.StarApiLog($"[Quests] OK ({list.Count} quest(s)) serialized length={serialized?.Length ?? 0}");
+                    int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+                    StarApiExports.StarApiLog($"[Quests] OK ({list.Count} quest(s)) serialized length={serialized?.Length ?? 0} withObjectives={withObjectives}");
                     int topLevel = 0, withPrereqs = 0, withParent = 0;
                     for (var i = 0; i < list.Count; i++)
                     {
@@ -863,7 +876,7 @@ public sealed class StarApiClient : IDisposable
                         if (!isTop) withParent++;
                     }
                     var idSummary = list.Count > 0 ? string.Join(", ", list.Take(10).Select(q => q.Id ?? "(null)")) + (list.Count > 10 ? "..." : "") : "(none)";
-                    StarApiExports.StarApiLog($"[Quests] Cache summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs} Ids={idSummary}");
+                    StarApiExports.StarApiLog($"[Quests] Cache summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs} withObjectives={withObjectives} Ids={idSummary}");
                 }
                 lock (_questsCacheLock)
                 {
@@ -931,16 +944,21 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Get serialized objectives for a parent quest from the quest's Objectives collection (Quest.Objectives). Objectives are a property on Quest, not separate child quests.</summary>
+    /// <summary>Get serialized objectives for a parent quest. We do NOT cache a single "right panel" list: every call is filtered by the requested parentQuestId.
+    /// Data path: Game passes the selected quest id → TryGetQuestObjectivesCache(id) → find that quest in _cachedQuestList by Id → return that quest's Objectives only.
+    /// If the main cache has 0 objectives for that quest, we start an on-demand fetch and merge the result into _cachedQuestList so the next call (next frame) returns them.</summary>
     internal bool TryGetQuestObjectivesCache(string? parentQuestId, out string? cached)
     {
         cached = null;
         if (string.IsNullOrWhiteSpace(parentQuestId)) { cached = string.Empty; return true; }
+        var id = parentQuestId.Trim();
         lock (_questsCacheLock)
         {
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
-            var id = parentQuestId.Trim();
-            var parent = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
+            // 1) Find the requested quest in the cache by Id (not by index – selection change always uses the new id). On-demand fetch merges objectives into this list.
+            var parent = _cachedQuestList.Where(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(q => q.Objectives?.Count ?? 0)
+                .FirstOrDefault();
             if (parent != null && parent.Objectives != null && parent.Objectives.Count > 0)
             {
                 cached = SerializeObjectivesAsQuestLines(parent);
@@ -948,20 +966,104 @@ public sealed class StarApiClient : IDisposable
                 if (_questsFilterLastLogObjectives != (id, count))
                 {
                     _questsFilterLastLogObjectives = (id, count);
-                    StarApiExports.StarApiLogFileOnly($"[Quests] Objectives for parent {id}: count={count} (from Quest.Objectives)");
+                    StarApiExports.StarApiLog($"[Quests] get_quest_objectives_string(id={id}) → returning {count} objectives from cache");
                 }
+                return true;
             }
-            else
+            // 2) Quest in cache but 0 objectives – trigger one full quest-list refresh (same endpoint as demo: all-for-avatar) so we bind the same data; then next get_quest_objectives_string uses the updated cache.
+            if (parent != null && (parent.Objectives == null || parent.Objectives.Count == 0))
             {
-                if (parent != null && (parent.Objectives == null || parent.Objectives.Count == 0) && _questsFilterLastLogObjectives != (id, 0))
+                if (_questsFilterLastLogObjectives != (id, 0))
                 {
                     _questsFilterLastLogObjectives = (id, 0);
-                    StarApiExports.StarApiLogFileOnly($"[Quests] Objectives: parent {id} found in cache but has 0 objectives (check API returns Quest.Objectives)");
+                    StarApiExports.StarApiLog($"[Quests] get_quest_objectives_string(id={id}) → 0 objectives in cache; will trigger one full quest-list refresh (same as demo) to bind data.");
                 }
-                cached = string.Empty;
+                if (!_questCacheRefreshedForObjectives && !_questCacheRefreshingForObjectives)
+                {
+                    _questCacheRefreshingForObjectives = true;
+                    _ = RunOnBackgroundAsync<bool>(async ct =>
+                    {
+                        try
+                        {
+                            var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
+                            if (!result.IsError && result.Result != null && result.Result.Count > 0)
+                            {
+                                var list = result.Result;
+                                var withObj = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+                                UpdateQuestsCache(list);
+                                lock (_questsCacheLock)
+                                {
+                                    _questCacheRefreshedForObjectives = true;
+                                    _questCacheRefreshingForObjectives = false;
+                                    _questsFilterLastLogObjectives = ("", -1);
+                                    _questObjectivesCacheVersion++;
+                                }
+                                StarApiExports.StarApiLog($"[Quests] Full refresh completed: {list.Count} quest(s), {withObj} with objectives; cache updated – list should now show objectives.");
+                                InvokeCallback(StarApiResultCode.Success);
+                            }
+                            else
+                            {
+                                lock (_questsCacheLock) { _questCacheRefreshingForObjectives = false; }
+                                StarApiExports.StarApiLog($"[Quests] Full refresh completed with no quests or error – list unchanged.");
+                            }
+                            return Success(true, StarApiResultCode.Success, "Quests refreshed.");
+                        }
+                        catch (Exception ex)
+                        {
+                            lock (_questsCacheLock) { _questCacheRefreshingForObjectives = false; }
+                            StarApiExports.StarApiLog($"[Quests] Full refresh failed: {ex.Message}");
+                            return FailAndCallback<bool>(ex.Message, StarApiResultCode.Network, ex);
+                        }
+                    }, default);
+                }
             }
+            cached = string.Empty;
+            StarApiExports.StarApiLogFileOnly($"[Quests] get_quest_objectives_string(id={id}) → returning empty (fetch in progress or parent not in cache)");
             return true;
         }
+    }
+
+    /// <summary>Replace the quest in _cachedQuestList with a copy that has the given objectives, so the next TryGetQuestObjectivesCache lookup returns them. Caller must hold _questsCacheLock. Increments _questObjectivesCacheVersion so UI can re-read.</summary>
+    private void MergeObjectivesIntoCachedQuest(string questId, List<StarQuestObjective> objectives)
+    {
+        if (_cachedQuestList == null || objectives == null || objectives.Count == 0) return;
+        for (var i = 0; i < _cachedQuestList.Count; i++)
+        {
+            var q = _cachedQuestList[i];
+            if (!string.Equals(q.Id, questId, StringComparison.OrdinalIgnoreCase)) continue;
+            var updated = new StarQuestInfo
+            {
+                Id = q.Id,
+                Name = q.Name,
+                Description = q.Description,
+                Status = q.Status,
+                Objectives = objectives,
+                PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                ParentQuestId = q.ParentQuestId ?? string.Empty
+            };
+            _cachedQuestList[i] = updated;
+            _questObjectivesCacheVersion++;
+            StarApiExports.StarApiLog($"[Quests] Merged {objectives.Count} objectives into cached quest {questId}; cache version now {_questObjectivesCacheVersion}. UI should re-call get_quest_objectives_string to refresh.");
+            break;
+        }
+    }
+
+    /// <summary>Objectives cache version; increments when on-demand fetch merges objectives. UI polls this each frame and re-calls get_quest_objectives_string when it changes so the list refreshes.</summary>
+    internal int GetQuestObjectivesCacheVersion()
+    {
+        lock (_questsCacheLock) { return _questObjectivesCacheVersion; }
+    }
+
+    /// <summary>Fetch a single quest by id and return its Objectives (for on-demand fill when all-for-avatar had 0).</summary>
+    private async Task<List<StarQuestObjective>?> FetchSingleQuestObjectivesAsync(string questId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrEmpty(_baseApiUrl)) return null;
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError || string.IsNullOrWhiteSpace(response.Result)) return null;
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out _, out _);
+        if (!parseResult || resultElement.ValueKind != JsonValueKind.Object) return null;
+        var quest = ParseSingleQuestInfo(resultElement);
+        return quest?.Objectives;
     }
 
     /// <summary>Get serialized sub-quests (child quests with ParentQuestId set) for a parent quest for right panel. Objectives are on Quest.Objectives, not in this list.</summary>
@@ -2011,11 +2113,31 @@ public sealed class StarApiClient : IDisposable
 
         var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
         var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} Ids={idSummary}");
+        int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
+        StarApiExports.StarApiLog($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} total objectives (if 0, API may not be returning Objectives or parsing failed)");
+        // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
+        UpdateQuestsCache(quests);
         InvokeCallback(StarApiResultCode.Success);
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) for avatar.");
     }
 
+    /// <summary>Write a quest list into the in-memory cache so native/game cache readers (get_quests_string, get_quest_objectives_string, etc.) see it. Used after GetAllQuestsForAvatarAsync and by the background refresh.</summary>
+    private void UpdateQuestsCache(List<StarQuestInfo> list)
+    {
+        if (list == null) return;
+        lock (_questsCacheLock)
+        {
+            _questsCacheString = list.Count == 0 ? string.Empty : SerializeQuestsForGame(list);
+            _cachedQuestList = list;
+            _questsFilterLastLogTop = (0, 0);
+            _questsFilterLastLogObjectives = ("", -1);
+            _questsFilterLastLogSubQuests = ("", -1);
+            _questsFilterLastLogPrereqs = ("", -1);
+        }
+    }
+
+    //TODO: Use Enum for status, try to use enums instead of strings generally.
     public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -2995,6 +3117,35 @@ public sealed class StarApiClient : IDisposable
         return list;
     }
 
+    /// <summary>Scan a quest object for objectives in any property (root, MetaData, MapMetaData, or any array). Binds whatever the API sends so we don't miss objectives.</summary>
+    private static List<StarQuestObjective> TryParseObjectivesFromAnyProperty(JsonElement questElement)
+    {
+        if (questElement.ValueKind != JsonValueKind.Object) return new List<StarQuestObjective>();
+        foreach (var prop in questElement.EnumerateObject())
+        {
+            var list = ParseObjectivesFromElement(prop.Value);
+            if (list.Count > 0) return list;
+        }
+        if (TryGetProperty(questElement, "MetaData", out var meta) || TryGetProperty(questElement, "metaData", out meta))
+        {
+            if (meta.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var prop in meta.EnumerateObject())
+                {
+                    var list = ParseObjectivesFromElement(prop.Value);
+                    if (list.Count > 0) return list;
+                }
+                if (TryGetProperty(meta, "MapMetaData", out var mapMeta) || TryGetProperty(meta, "mapMetaData", out mapMeta)) if (mapMeta.ValueKind == JsonValueKind.Object)
+                    foreach (var prop in mapMeta.EnumerateObject())
+                    {
+                        var list = ParseObjectivesFromElement(prop.Value);
+                        if (list.Count > 0) return list;
+                    }
+            }
+        }
+        return new List<StarQuestObjective>();
+    }
+
     /// <summary>Parse objectives from a JsonElement that may be an array or a JSON string containing an array (e.g. from MetaData).</summary>
     private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element)
     {
@@ -3813,6 +3964,9 @@ public sealed class StarApiClient : IDisposable
                     }
                 }
             }
+            /* Last resort: scan every property on the quest (and MetaData) for any array that parses as objectives – bind whatever the API sends. */
+            if (objectives.Count == 0)
+                objectives = TryParseObjectivesFromAnyProperty(questElement);
 
             // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData; support PascalCase and camelCase
             var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
@@ -3917,9 +4071,16 @@ public sealed class StarApiClient : IDisposable
         }
         if (objectives.Count == 0 && (TryGetProperty(element, "MetaData", out var metaEl) || TryGetProperty(element, "metaData", out metaEl)) && metaEl.ValueKind == JsonValueKind.Object)
         {
-            if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj))
+            if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj)
+                || TryGetProperty(metaEl, "QuestObjectives", out metaObj) || TryGetProperty(metaEl, "questObjectives", out metaObj))
                 objectives = ParseObjectivesFromElement(metaObj);
+            if (objectives.Count == 0 && (TryGetProperty(metaEl, "MapMetaData", out var mapMeta) || TryGetProperty(metaEl, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object
+                && (TryGetProperty(mapMeta, "Objectives", out var mapObj) || TryGetProperty(mapMeta, "objectives", out mapObj)
+                    || TryGetProperty(mapMeta, "QuestObjectives", out mapObj) || TryGetProperty(mapMeta, "questObjectives", out mapObj)))
+                objectives = ParseObjectivesFromElement(mapObj);
         }
+        if (objectives.Count == 0)
+            objectives = TryParseObjectivesFromAnyProperty(element);
 
         var parentQuestId = GetStringProperty(element, "ParentQuestId") ?? GetStringProperty(element, "parentQuestId");
         if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(element, "MetaData", out var metaForParent) || TryGetProperty(element, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
@@ -4562,6 +4723,7 @@ public static unsafe class StarApiExports
                 if (toCopy > 0)
                     new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
                 buf[toCopy] = 0;
+                StarApiExports.StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string(id={parentId ?? "(null)"}) → {toCopy} bytes (Loading...)");
                 return toCopy;
             }
             var fallback = str ?? string.Empty;
@@ -4571,6 +4733,8 @@ public static unsafe class StarApiExports
                 new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
             buf[toCopyVal] = 0;
             SetError(string.Empty);
+            var lineCount = fallback.Split('\n').Count(s => s.TrimStart().StartsWith("Q\t", StringComparison.Ordinal));
+            StarApiExports.StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string(id={parentId ?? "(null)"}) → {toCopyVal} bytes ({lineCount} objective lines)");
             return toCopyVal;
         }
         catch (Exception ex)
@@ -4578,6 +4742,18 @@ public static unsafe class StarApiExports
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
             return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
         }
+    }
+
+    /// <summary>Return objectives cache version; increments when on-demand fetch merges objectives. UI should poll each frame and re-call get_quest_objectives_string when this changes to refresh the list.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objectives_cache_version", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestObjectivesCacheVersion()
+    {
+        try
+        {
+            var client = GetClient();
+            return client?.GetQuestObjectivesCacheVersion() ?? 0;
+        }
+        catch { return 0; }
     }
 
     /// <summary>Write serialized prerequisite quests (id, name, desc) for quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
