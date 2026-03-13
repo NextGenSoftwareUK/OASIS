@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public string ProposedHolonDescription { get; set; }
 
         [CustomOASISProperty]
-        public Guid ParentUniverseId { get; set; } // Parent universe ID (top level for proposals)
+        public new Guid ParentUniverseId { get; set; } // Parent universe ID (top level for proposals)
 
         /// <summary>
         /// The actual holon being proposed (loaded separately if needed)

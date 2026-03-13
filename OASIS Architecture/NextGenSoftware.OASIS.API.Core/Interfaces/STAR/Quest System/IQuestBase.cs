@@ -20,10 +20,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public List<string> Requirements { get; set; }
         /// <summary>Game (e.g. Doom, Quake) this quest/objective applies to. Used when quest is a sub-quest/objective.</summary>
         public string GameSource { get; set; }
-        /// <summary>Item or action required to complete (e.g. Key, Health). Used when quest is a sub-quest/objective.</summary>
-        public string ItemRequired { get; set; }
-        /// <summary>True when this quest is a checklist item (objective) under a parent; false when it is a full sub-quest that can have its own children. Enables a parent to have both objectives and sub-quests.</summary>
-        public bool IsObjective { get; set; }
+        // Obsolete: use Objective-level data or GameSource. Not used – objectives are Quest.Objectives collection.
+        //public string ItemRequired { get; set; }
+        // Obsolete: objectives are now Quest.Objectives collection, not child quests with a flag.
+        //public bool IsObjective { get; set; }
         public string CompletionNotes { get; set; }
         public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.
         /// <summary>Objectives belonging to this quest (Option B: own class, not child Quests). Persisted as part of the Quest holon.</summary>

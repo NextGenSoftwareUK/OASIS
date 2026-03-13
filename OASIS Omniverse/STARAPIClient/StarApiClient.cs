@@ -117,11 +117,6 @@ public sealed class StarApiClient : IDisposable
     private readonly HashSet<string> _questObjectivesHydrating = new(StringComparer.OrdinalIgnoreCase);
     /// <summary>Incremented when objectives are merged into the cache (on-demand fetch). UI can poll this and re-call get_quest_objectives_string when it changes to refresh the list.</summary>
     private int _questObjectivesCacheVersion;
-    /// <summary>True after we've done one full quest-list refresh to backfill objectives (same endpoint as demo). Stops repeated refreshes.</summary>
-    private bool _questCacheRefreshedForObjectives;
-    /// <summary>True while the one-time full refresh for objectives is in progress.</summary>
-    private bool _questCacheRefreshingForObjectives;
-
     /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
     private List<StarItem>? _cachedInventory;
     /// <summary>Single-flight fetch: when cache is null, only one HTTP get_inventory runs; other callers wait on this task.</summary>
@@ -766,8 +761,6 @@ public sealed class StarApiClient : IDisposable
             _questsFilterLastLogSubQuests = ("", -1);
             _questsFilterLastLogPrereqs = ("", -1);
             _questObjectivesHydrating.Clear();
-            _questCacheRefreshedForObjectives = false;
-            _questCacheRefreshingForObjectives = false;
         }
     }
 
@@ -865,18 +858,7 @@ public sealed class StarApiClient : IDisposable
                     serialized = SerializeQuestsForGame(result.Result);
                     var list = result.Result;
                     int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
-                    StarApiExports.StarApiLog($"[Quests] OK ({list.Count} quest(s)) serialized length={serialized?.Length ?? 0} withObjectives={withObjectives}");
-                    int topLevel = 0, withPrereqs = 0, withParent = 0;
-                    for (var i = 0; i < list.Count; i++)
-                    {
-                        var q = list[i];
-                        var isTop = string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString();
-                        if (isTop) topLevel++;
-                        if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0) withPrereqs++;
-                        if (!isTop) withParent++;
-                    }
-                    var idSummary = list.Count > 0 ? string.Join(", ", list.Take(10).Select(q => q.Id ?? "(null)")) + (list.Count > 10 ? "..." : "") : "(none)";
-                    StarApiExports.StarApiLog($"[Quests] Cache summary: total={list.Count} top-level={topLevel} withParent={withParent} withPrereqs={withPrereqs} withObjectives={withObjectives} Ids={idSummary}");
+                    StarApiExports.StarApiLog($"[Quests] Cache updated: {list.Count} quests, {withObjectives} with objectives");
                 }
                 lock (_questsCacheLock)
                 {
@@ -937,7 +919,6 @@ public sealed class StarApiClient : IDisposable
             if (_questsFilterLastLogTop != (total, top.Count))
             {
                 _questsFilterLastLogTop = (total, top.Count);
-                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: top-level count={top.Count} from total {total}");
             }
             cached = top.Count == 0 ? string.Empty : SerializeQuestsForGame(top);
             return true;
@@ -962,63 +943,14 @@ public sealed class StarApiClient : IDisposable
             if (parent != null && parent.Objectives != null && parent.Objectives.Count > 0)
             {
                 cached = SerializeObjectivesAsQuestLines(parent);
-                var count = parent.Objectives.Count;
-                if (_questsFilterLastLogObjectives != (id, count))
-                {
-                    _questsFilterLastLogObjectives = (id, count);
-                    StarApiExports.StarApiLog($"[Quests] get_quest_objectives_string(id={id}) → returning {count} objectives from cache");
-                }
                 return true;
             }
-            // 2) Quest in cache but 0 objectives – trigger one full quest-list refresh (same endpoint as demo: all-for-avatar) so we bind the same data; then next get_quest_objectives_string uses the updated cache.
-            if (parent != null && (parent.Objectives == null || parent.Objectives.Count == 0))
+            if (parent != null)
             {
-                if (_questsFilterLastLogObjectives != (id, 0))
-                {
-                    _questsFilterLastLogObjectives = (id, 0);
-                    StarApiExports.StarApiLog($"[Quests] get_quest_objectives_string(id={id}) → 0 objectives in cache; will trigger one full quest-list refresh (same as demo) to bind data.");
-                }
-                if (!_questCacheRefreshedForObjectives && !_questCacheRefreshingForObjectives)
-                {
-                    _questCacheRefreshingForObjectives = true;
-                    _ = RunOnBackgroundAsync<bool>(async ct =>
-                    {
-                        try
-                        {
-                            var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
-                            if (!result.IsError && result.Result != null && result.Result.Count > 0)
-                            {
-                                var list = result.Result;
-                                var withObj = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
-                                UpdateQuestsCache(list);
-                                lock (_questsCacheLock)
-                                {
-                                    _questCacheRefreshedForObjectives = true;
-                                    _questCacheRefreshingForObjectives = false;
-                                    _questsFilterLastLogObjectives = ("", -1);
-                                    _questObjectivesCacheVersion++;
-                                }
-                                StarApiExports.StarApiLog($"[Quests] Full refresh completed: {list.Count} quest(s), {withObj} with objectives; cache updated – list should now show objectives.");
-                                InvokeCallback(StarApiResultCode.Success);
-                            }
-                            else
-                            {
-                                lock (_questsCacheLock) { _questCacheRefreshingForObjectives = false; }
-                                StarApiExports.StarApiLog($"[Quests] Full refresh completed with no quests or error – list unchanged.");
-                            }
-                            return Success(true, StarApiResultCode.Success, "Quests refreshed.");
-                        }
-                        catch (Exception ex)
-                        {
-                            lock (_questsCacheLock) { _questCacheRefreshingForObjectives = false; }
-                            StarApiExports.StarApiLog($"[Quests] Full refresh failed: {ex.Message}");
-                            return FailAndCallback<bool>(ex.Message, StarApiResultCode.Network, ex);
-                        }
-                    }, default);
-                }
+                cached = SerializeObjectivesAsQuestLines(parent);
+                return true;
             }
             cached = string.Empty;
-            StarApiExports.StarApiLogFileOnly($"[Quests] get_quest_objectives_string(id={id}) → returning empty (fetch in progress or parent not in cache)");
             return true;
         }
     }
@@ -1079,7 +1011,6 @@ public sealed class StarApiClient : IDisposable
             if (_questsFilterLastLogSubQuests != (id, sub.Count))
             {
                 _questsFilterLastLogSubQuests = (id, sub.Count);
-                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: sub-quests for parent {id}: count={sub.Count}");
             }
             cached = sub.Count == 0 ? string.Empty : SerializeQuestsForGame(sub);
             return true;
@@ -1119,7 +1050,6 @@ public sealed class StarApiClient : IDisposable
                 if (_questsFilterLastLogPrereqs != (qid, 0))
                 {
                     _questsFilterLastLogPrereqs = (qid, 0);
-                    StarApiExports.StarApiLogFileOnly($"[Quests] Filter: prereqs for quest {qid}: 0 (quest has no PrerequisiteQuestIds in cache)");
                 }
                 cached = string.Empty;
                 return true;
@@ -1129,7 +1059,6 @@ public sealed class StarApiClient : IDisposable
             if (_questsFilterLastLogPrereqs != (qid, prereqs.Count))
             {
                 _questsFilterLastLogPrereqs = (qid, prereqs.Count);
-                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: prereqs for quest {qid}: count={prereqs.Count} (quest had {quest.PrerequisiteQuestIds.Count} prereq IDs)");
             }
             cached = prereqs.Count == 0 ? string.Empty : SerializeQuestsForGame(prereqs);
             return true;
@@ -2115,7 +2044,7 @@ public sealed class StarApiClient : IDisposable
         var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
         int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
         StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
-        StarApiExports.StarApiLog($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} total objectives (if 0, API may not be returning Objectives or parsing failed)");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} objectives");
         // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
         UpdateQuestsCache(quests);
         InvokeCallback(StarApiResultCode.Success);
@@ -3117,32 +3046,94 @@ public sealed class StarApiClient : IDisposable
         return list;
     }
 
-    /// <summary>Scan a quest object for objectives in any property (root, MetaData, MapMetaData, or any array). Binds whatever the API sends so we don't miss objectives.</summary>
-    private static List<StarQuestObjective> TryParseObjectivesFromAnyProperty(JsonElement questElement)
+    /// <summary>Log once per session which JSON key supplied objectives (objectives vs children). File-only so we can see why "objectives" is sometimes empty in the API response.</summary>
+    private static void LogObjectivesSourceOnce(string path, int count)
+    {
+        if (string.IsNullOrEmpty(path) || count <= 0) return;
+        try
+        {
+            var key = $"{path}:{count}";
+            if (!_objectivesSourceLogged.Add(key)) return;
+            var expected = path.IndexOf("objectives", StringComparison.OrdinalIgnoreCase) >= 0
+                ? " (backend is serializing Quest.Objectives correctly)"
+                : " (API sent empty 'objectives'; data came from 'children' – backend PromoteQuestMetaDataToProperties or serialization may not be populating objectives)";
+            StarApiExports.StarApiLogFileOnly($"[Quests] Objectives source: path={path} count={count}{expected}");
+        }
+        catch { /* ignore */ }
+    }
+    private static readonly HashSet<string> _objectivesSourceLogged = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Get objectives from a quest element. Path in API response: Result[i].objectives or Result[i].children (each quest in the array).
+    /// We try: Objectives, objectives, QuestObjectives, questObjectives, Children, children (root then MetaData/MapMetaData) and use the first that yields a non-empty list.
+    /// Backend (QuestManager.PromoteQuestMetaDataToProperties) should populate Quest.Objectives from MetaData so "objectives" is in the JSON; if the API sends empty "objectives" and data in "children", we use children.</summary>
+    private static List<StarQuestObjective> GetObjectivesFromQuestElement(JsonElement questElement)
     {
         if (questElement.ValueKind != JsonValueKind.Object) return new List<StarQuestObjective>();
-        foreach (var prop in questElement.EnumerateObject())
+
+        /* Try each known key and use the first that yields a non-empty list. If API returns both "objectives": [] and "children": [...], we must not stop at the empty objectives. */
+        static bool TryKnownKeys(JsonElement parent, out List<StarQuestObjective> list, out string? usedKey)
         {
-            var list = ParseObjectivesFromElement(prop.Value);
-            if (list.Count > 0) return list;
-        }
-        if (TryGetProperty(questElement, "MetaData", out var meta) || TryGetProperty(questElement, "metaData", out meta))
-        {
-            if (meta.ValueKind == JsonValueKind.Object)
+            list = new List<StarQuestObjective>();
+            usedKey = null;
+            var keys = new[] { "Objectives", "objectives", "QuestObjectives", "questObjectives", "Children", "children" };
+            foreach (var key in keys)
             {
-                foreach (var prop in meta.EnumerateObject())
+                if (!TryGetProperty(parent, key, out var el)) continue;
+                var parsed = ParseObjectivesFromElement(el);
+                if (parsed.Count > 0)
                 {
-                    var list = ParseObjectivesFromElement(prop.Value);
-                    if (list.Count > 0) return list;
+                    list = parsed;
+                    usedKey = key;
+                    return true;
                 }
-                if (TryGetProperty(meta, "MapMetaData", out var mapMeta) || TryGetProperty(meta, "mapMetaData", out mapMeta)) if (mapMeta.ValueKind == JsonValueKind.Object)
-                    foreach (var prop in mapMeta.EnumerateObject())
-                    {
-                        var list = ParseObjectivesFromElement(prop.Value);
-                        if (list.Count > 0) return list;
-                    }
+            }
+            return false;
+        }
+
+        if (TryKnownKeys(questElement, out var fromRoot, out var keyUsed))
+        {
+            LogObjectivesSourceOnce(keyUsed, fromRoot.Count);
+            return fromRoot;
+        }
+        if ((TryGetProperty(questElement, "MetaData", out var meta) || TryGetProperty(questElement, "metaData", out meta)) && meta.ValueKind == JsonValueKind.Object)
+        {
+            if (TryKnownKeys(meta, out var fromMeta, out keyUsed))
+            {
+                LogObjectivesSourceOnce("MetaData." + keyUsed, fromMeta.Count);
+                return fromMeta;
+            }
+            if ((TryGetProperty(meta, "MapMetaData", out var mapMeta) || TryGetProperty(meta, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object)
+                if (TryKnownKeys(mapMeta, out var fromMap, out keyUsed))
+                {
+                    LogObjectivesSourceOnce("MetaData.MapMetaData." + keyUsed, fromMap.Count);
+                    return fromMap;
+                }
+        }
+
+        /* Safe fallback: only keys that contain "objective" (case-insensitive), so we never bind SubQuests/PrerequisiteQuestIds. Handles provider/API key variants. */
+        static List<StarQuestObjective> TryKeysContainingObjective(JsonElement parent)
+        {
+            foreach (var prop in parent.EnumerateObject())
+            {
+                if (!prop.Name.Contains("objective", StringComparison.OrdinalIgnoreCase)) continue;
+                var list = ParseObjectivesFromElement(prop.Value);
+                if (list.Count > 0) return list;
+            }
+            return new List<StarQuestObjective>();
+        }
+        var fromScan = TryKeysContainingObjective(questElement);
+        if (fromScan.Count > 0) return fromScan;
+        if ((TryGetProperty(questElement, "MetaData", out var meta2) || TryGetProperty(questElement, "metaData", out meta2)) && meta2.ValueKind == JsonValueKind.Object)
+        {
+            fromScan = TryKeysContainingObjective(meta2);
+            if (fromScan.Count > 0) return fromScan;
+            if ((TryGetProperty(meta2, "MapMetaData", out var mapMeta2) || TryGetProperty(meta2, "mapMetaData", out mapMeta2)) && mapMeta2.ValueKind == JsonValueKind.Object)
+            {
+                fromScan = TryKeysContainingObjective(mapMeta2);
+                if (fromScan.Count > 0) return fromScan;
             }
         }
+
         return new List<StarQuestObjective>();
     }
 
@@ -3927,22 +3918,9 @@ public sealed class StarApiClient : IDisposable
             if (questElement.ValueKind != JsonValueKind.Object)
                 continue;
 
-            var objectives = new List<StarQuestObjective>();
-            if (TryGetProperty(questElement, "Objectives", out var objectiveElement) || TryGetProperty(questElement, "objectives", out objectiveElement)
-                || TryGetProperty(questElement, "QuestObjectives", out objectiveElement) || TryGetProperty(questElement, "questObjectives", out objectiveElement))
-                objectives = ParseObjectivesFromElement(objectiveElement);
-            if (objectives.Count == 0 && (TryGetProperty(questElement, "MetaData", out var metaEl) || TryGetProperty(questElement, "metaData", out metaEl)) && metaEl.ValueKind == JsonValueKind.Object)
-            {
-                if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj)
-                    || TryGetProperty(metaEl, "QuestObjectives", out metaObj) || TryGetProperty(metaEl, "questObjectives", out metaObj))
-                    objectives = ParseObjectivesFromElement(metaObj);
-                /* Backend may nest objectives under MetaData.MapMetaData (e.g. custom OASIS property storage). */
-                if (objectives.Count == 0 && (TryGetProperty(metaEl, "MapMetaData", out var mapMeta) || TryGetProperty(metaEl, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object
-                    && (TryGetProperty(mapMeta, "Objectives", out var mapObj) || TryGetProperty(mapMeta, "objectives", out mapObj)
-                        || TryGetProperty(mapMeta, "QuestObjectives", out mapObj) || TryGetProperty(mapMeta, "questObjectives", out mapObj)))
-                    objectives = ParseObjectivesFromElement(mapObj);
-            }
-            /* Fallback: API may use "Quest" or "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
+            /* Only read from known objective property names (Objectives, objectives, QuestObjectives, questObjectives at root/MetaData/MapMetaData) so we never bind SubQuests or PrerequisiteQuestIds. */
+            var objectives = GetObjectivesFromQuestElement(questElement);
+            /* Fallback: API may use "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
             if (objectives.Count == 0 && (TryGetProperty(questElement, "Quests", out var qArr) || TryGetProperty(questElement, "Quest", out qArr)) && qArr.ValueKind == JsonValueKind.Array)
             {
                 var first = qArr.EnumerateArray().FirstOrDefault();
@@ -3964,9 +3942,6 @@ public sealed class StarApiClient : IDisposable
                     }
                 }
             }
-            /* Last resort: scan every property on the quest (and MetaData) for any array that parses as objectives – bind whatever the API sends. */
-            if (objectives.Count == 0)
-                objectives = TryParseObjectivesFromAnyProperty(questElement);
 
             // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData; support PascalCase and camelCase
             var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
@@ -4051,36 +4026,26 @@ public sealed class StarApiClient : IDisposable
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        var objectives = new List<StarQuestObjective>();
-        if (TryGetProperty(element, "Objectives", out var objElement) || TryGetProperty(element, "objectives", out objElement))
-            objectives = ParseObjectivesFromElement(objElement);
+        /* Only read from known objective property names so we never bind SubQuests or PrerequisiteQuestIds. */
+        var objectives = GetObjectivesFromQuestElement(element);
+        /* Fallback: single-quest response may have "Quests" array of objective-like items. */
         if (objectives.Count == 0 && TryGetProperty(element, "Quests", out var questsElement) && questsElement.ValueKind == JsonValueKind.Array)
         {
             foreach (var sub in questsElement.EnumerateArray())
             {
                 if (sub.ValueKind != JsonValueKind.Object) continue;
+                var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "objective");
+                if (string.IsNullOrEmpty(desc)) continue; /* Skip items that look like full quests (no Description/Objective). */
                 objectives.Add(new StarQuestObjective
                 {
-                    Id = GetStringProperty(sub, "Id") ?? string.Empty,
-                    Description = GetStringProperty(sub, "Description") ?? string.Empty,
-                    GameSource = GetStringProperty(sub, "GameSource") ?? string.Empty,
-                    ItemRequired = GetStringProperty(sub, "ItemRequired") ?? string.Empty,
-                    IsCompleted = GetBoolProperty(sub, "IsCompleted")
+                    Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                    Description = desc,
+                    GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
+                    ItemRequired = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty,
+                    IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted")
                 });
             }
         }
-        if (objectives.Count == 0 && (TryGetProperty(element, "MetaData", out var metaEl) || TryGetProperty(element, "metaData", out metaEl)) && metaEl.ValueKind == JsonValueKind.Object)
-        {
-            if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj)
-                || TryGetProperty(metaEl, "QuestObjectives", out metaObj) || TryGetProperty(metaEl, "questObjectives", out metaObj))
-                objectives = ParseObjectivesFromElement(metaObj);
-            if (objectives.Count == 0 && (TryGetProperty(metaEl, "MapMetaData", out var mapMeta) || TryGetProperty(metaEl, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object
-                && (TryGetProperty(mapMeta, "Objectives", out var mapObj) || TryGetProperty(mapMeta, "objectives", out mapObj)
-                    || TryGetProperty(mapMeta, "QuestObjectives", out mapObj) || TryGetProperty(mapMeta, "questObjectives", out mapObj)))
-                objectives = ParseObjectivesFromElement(mapObj);
-        }
-        if (objectives.Count == 0)
-            objectives = TryParseObjectivesFromAnyProperty(element);
 
         var parentQuestId = GetStringProperty(element, "ParentQuestId") ?? GetStringProperty(element, "parentQuestId");
         if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(element, "MetaData", out var metaForParent) || TryGetProperty(element, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
@@ -4723,7 +4688,6 @@ public static unsafe class StarApiExports
                 if (toCopy > 0)
                     new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
                 buf[toCopy] = 0;
-                StarApiExports.StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string(id={parentId ?? "(null)"}) → {toCopy} bytes (Loading...)");
                 return toCopy;
             }
             var fallback = str ?? string.Empty;
@@ -4734,7 +4698,6 @@ public static unsafe class StarApiExports
             buf[toCopyVal] = 0;
             SetError(string.Empty);
             var lineCount = fallback.Split('\n').Count(s => s.TrimStart().StartsWith("Q\t", StringComparison.Ordinal));
-            StarApiExports.StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string(id={parentId ?? "(null)"}) → {toCopyVal} bytes ({lineCount} objective lines)");
             return toCopyVal;
         }
         catch (Exception ex)
