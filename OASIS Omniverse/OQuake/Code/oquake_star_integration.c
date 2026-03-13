@@ -4481,7 +4481,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 if (g_quest_scroll < 0) g_quest_scroll = 0;
             }
         }
-        /* Tab is used for list switch above. Do NOT clear keydown[Tab] here: that runs in the draw path after the engine has read input, which can desync the engine's key state and make the scoreboard stay open until the popup is closed. The engine should check OQuake_STAR_IsQuestPopupOpen() before handling Tab for scoreboard/+showscores so Tab does not open the scoreboard while the quest popup is open. */
+        /* Tab is used for list switch above. The engine (keys.c) skips executing the Tab binding when the quest or inventory popup is open, so the scoreboard does not open; same technique as arrow keys in cl_input.c (engine does not use the key). */
 
         if (g_quest_selected_index >= left_list_count && left_list_count > 0)
             g_quest_selected_index = left_list_count - 1;
