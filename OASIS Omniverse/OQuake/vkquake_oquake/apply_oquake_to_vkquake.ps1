@@ -312,13 +312,19 @@ if (Test-Path $ClInputC) {
         $clInputPatched = $true
         Write-Host "[OQuake] Patched cl_input.c: added #include oquake_star_integration.h" -ForegroundColor Green
     }
-    # Block movement when quest popup (Q) or inventory popup (I) is open so keys work after close
+    # Block movement when quest popup (Q) or inventory popup (I) is open (same as arrow/Home/PgDn: engine just does not use keys). Tab/scoreboard is blocked in keys.c.
     if ($content -notmatch 'OQuake_STAR_IsQuestPopupOpen') {
         if ($content -match 'VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;') {
             $content = $content -replace '(VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;\s*\r?\n)(\r?\n)(\s+)(if\s*\(\s*cls\.signon\s*!=\s*SIGNONS\s*\))', "`$1`$2`tif (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())`r`n`t`treturn;`r`n`$2`$3`$4"
             $clInputPatched = $true
             Write-Host "[OQuake] Patched cl_input.c: block movement when quest or inventory popup open" -ForegroundColor Green
         }
+    } elseif ($content -match 'OQuake_STAR_ClearTabKeyIfPopupOpen|keydown\[K_TAB\]\s*=\s*false') {
+        # Revert old Tab-clear approach: leave only early return (Tab is now blocked in keys.c)
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\|\|\s*OQuake_STAR_IsInventoryPopupOpen\s*\(\s*\)\s*\)\s*\{\s*OQuake_STAR_ClearTabKeyIfPopupOpen\s*\(\s*\)\s*;\s*return\s*;\s*\}', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()) return;'
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\|\|\s*OQuake_STAR_IsInventoryPopupOpen\s*\(\s*\)\s*\)\s*\{\s*keydown\[K_TAB\]\s*=\s*false\s*;\s*return\s*;\s*\}', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()) return;'
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: removed Tab clear (Tab handled in keys.c)" -ForegroundColor Green
     } elseif ($content -notmatch 'OQuake_STAR_IsInventoryPopupOpen') {
         # Already had quest check; add inventory check so both popups block movement
         $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\)', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())'
@@ -336,6 +342,35 @@ if (Test-Path $ClInputC) {
         Set-Content $ClInputC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (cl_input.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# --- keys.c: skip Tab binding when quest/inventory popup open (same technique as arrow keys in cl_input: do not use key) ---
+$KeysC = Join-Path $QuakeDir "keys.c"
+if (Test-Path $KeysC) {
+    $content = Get-Content $KeysC -Raw
+    $keysPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $keysPatched = $true
+        Write-Host "[OQuake] Patched keys.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    if ($content -notmatch 'K_TAB.*OQuake_STAR_IsQuestPopupOpen|OQuake_STAR_IsQuestPopupOpen.*K_TAB') {
+        # In Key_Event, when about to run binding for key_game etc., skip Tab so scoreboard does not open (same as not using arrow keys in CL_BaseMove)
+        if ($content -match '!consolekeys\[key\]\)\)\)') {
+            $orig = $content
+            $content = $content -replace '(\)\)\)\s*\r?\n\s*\{\s*\r?\n)(\s*)(kb\s*=\s*keybindings\[key\];)', "`$1`$2if (key == K_TAB && (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()))`r`n`$2 return;`r`n`$2`$3"
+            if ($content -ne $orig) {
+                $keysPatched = $true
+                Write-Host "[OQuake] Patched keys.c: skip Tab binding when quest or inventory popup open" -ForegroundColor Green
+            }
+        }
+    }
+    if ($keysPatched) {
+        Set-Content $KeysC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (keys.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
