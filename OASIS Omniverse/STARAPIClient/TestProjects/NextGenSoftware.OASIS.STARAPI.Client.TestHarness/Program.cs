@@ -82,6 +82,17 @@ internal static class Program
         Check("GetQuestsByStatusAsync(InProgress)", await client.GetQuestsByStatusAsync("InProgress"));
         Check("GetQuestsByStatusAsync(NotStarted)", await client.GetQuestsByStatusAsync("NotStarted"));
 
+        var allQuestsResult = await client.GetAllQuestsForAvatarAsync();
+        Check("GetAllQuestsForAvatarAsync", allQuestsResult);
+        if (!allQuestsResult.IsError && allQuestsResult.Result != null)
+        {
+            var allQuests = allQuestsResult.Result;
+            int topLevel = allQuests.Count(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString());
+            int withObjectives = allQuests.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+            int subquests = allQuests.Count(q => !string.IsNullOrWhiteSpace(q.ParentQuestId) && q.ParentQuestId != Guid.Empty.ToString());
+            Console.WriteLine($"  [Quests] total={allQuests.Count} top-level={topLevel} withObjectives={withObjectives} subquests={subquests}");
+        }
+
         var suffix = DateTime.UtcNow.Ticks.ToString()[^6..];
         var itemA = $"HarnessKeyA-{suffix}";
         var itemB = $"HarnessKeyB-{suffix}";

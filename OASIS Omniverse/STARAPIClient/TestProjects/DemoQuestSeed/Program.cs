@@ -5,7 +5,8 @@ namespace DemoQuestSeed;
 
 /// <summary>
 /// Seeds the STAR API with demo quests and objectives for testing ODOOM and OQuake quest UIs.
-/// Uses same env vars as TestHarness: STARAPI_WEB5_BASE_URL, STARAPI_WEB4_BASE_URL, STARAPI_USERNAME, STARAPI_PASSWORD.
+/// Objectives are created as the Quest.Objectives collection (CreateCrossGameQuestAsync name, description, objectivesList).
+/// Sub-quests are added separately via AddSubQuestAsync. Uses same env vars as TestHarness.
 /// </summary>
 internal static class Program
 {
