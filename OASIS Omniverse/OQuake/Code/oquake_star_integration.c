@@ -283,6 +283,7 @@ static char g_quest_tracker_id[64] = "";
 static char g_quest_tracker_name[128] = "";  /* Display name for HUD tracker. */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
+static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
 /* When non-empty, left list shows children (objectives+sub-quests) of this quest; Escape clears. */
 static char g_quest_drill_parent_id[64] = "";
 /* C = use health, F = use armor (like ODOOM); polled in draw path so they work regardless of config bindings. */
@@ -3760,6 +3761,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 } else {
                     g_quest_status_message[0] = '\0';
                     g_quest_status_frames = 0;
+                    g_quest_start_pending_id[0] = '\0';
                 }
                 g_quest_key_was_down = true;
             }
@@ -4129,6 +4131,31 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
+        /* Clear "Starting quest..." when list shows the quest as InProgress (cache updated). */
+        if (g_quest_start_pending_id[0]) {
+            int ii;
+            for (ii = 0; ii < q_count; ii++) {
+                if (strcmp(q_id[ii], g_quest_start_pending_id) == 0 &&
+                    (strcmp(q_status[ii], "InProgress") == 0 || strcmp(q_status[ii], "1") == 0)) {
+                    g_quest_status_message[0] = '\0';
+                    g_quest_status_frames = 0;
+                    g_quest_start_pending_id[0] = '\0';
+                    break;
+                }
+            }
+            if (g_quest_start_pending_id[0]) {
+                for (ii = 0; ii < drill_q_count; ii++) {
+                    if (strcmp(drill_q_id[ii], g_quest_start_pending_id) == 0 &&
+                        (strcmp(drill_q_status[ii], "InProgress") == 0 || strcmp(drill_q_status[ii], "1") == 0)) {
+                        g_quest_status_message[0] = '\0';
+                        g_quest_status_frames = 0;
+                        g_quest_start_pending_id[0] = '\0';
+                        break;
+                    }
+                }
+            }
+        }
+
         /* Quest id used for right panel (prereqs / objectives+subquests). When drilling, use selected drill item or drill parent; else use selected top-level quest. */
         static char panel_quest_id[64];
         panel_quest_id[0] = '\0';
@@ -4420,7 +4447,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                             if (di >= 0 && di < drill_q_count && drill_q_id[di][0]) {
                                 if (strcmp(drill_q_status[di], "NotStarted") == 0 || strcmp(drill_q_status[di], "0") == 0) {
                                     q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                    g_quest_status_frames = 105;
+                                    g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
+                                    q_strlcpy(g_quest_start_pending_id, drill_q_id[di], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(drill_q_id[di]);
                                 } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0) {
                                     q_strlcpy(g_quest_tracker_id, drill_q_id[di], sizeof(g_quest_tracker_id));
@@ -4432,7 +4460,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                             if (idx >= 0 && idx < q_count && q_id[idx][0]) {
                                 if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
                                     q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                    g_quest_status_frames = 105;
+                                    g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
+                                    q_strlcpy(g_quest_start_pending_id, q_id[idx], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(q_id[idx]);
                                 } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
                                     q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
@@ -4517,7 +4546,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
-            Draw_String(cbx, qx + 30, qy + 48, "Loading quests...");
+            const char *load_msg = "Loading quests...";
+            int load_len = (int)strlen(load_msg);
+            Draw_String(cbx, qx + (qw - load_len * 8) / 2, qy + (qh - 8) / 2, load_msg);
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
             Draw_String(cbx, qx + 30, qy + 48, "Error loading quests. Check console or star_api.log for details.");
         } else if (left_list_count > 0 || g_quest_drill_parent_id[0]) {
@@ -4751,15 +4782,26 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 footer_x -= 10;   /* main list: hint left 10 */
             Draw_String(cbx, footer_x, qy + qh - 20, footer);
         }
-        /* Status message in bottom-right (e.g. "Starting quest..."), 10px higher than before */
+        /* Status message in bottom-right (e.g. "Starting quest..."); stays until list updates or timeout */
         if (g_quest_status_frames > 0 && g_quest_status_message[0]) {
             int status_len = (int)strlen(g_quest_status_message);
             int status_x = qx + qw - (status_len * 8) - 8;
-            int status_y = qy + qh - 36;  /* 10px higher than previous (qh - 26) */
+            int status_y = qy + qh - 41;  /* 5px higher than before (was qh - 36) */
             if (status_x < qx + 8) status_x = qx + 8;
             Draw_String(cbx, status_x, status_y, g_quest_status_message);
-            g_quest_status_frames--;
-            if (g_quest_status_frames <= 0) g_quest_status_message[0] = '\0';
+            /* Decrement timeout only once per game frame (draw can run multiple times per frame). */
+            {
+                extern int host_framecount;
+                static int s_quest_status_last_frame = -1;
+                if (host_framecount != s_quest_status_last_frame) {
+                    s_quest_status_last_frame = host_framecount;
+                    g_quest_status_frames--;
+                    if (g_quest_status_frames <= 0) {
+                        g_quest_status_message[0] = '\0';
+                        g_quest_start_pending_id[0] = '\0';
+                    }
+                }
+            }
         }
 
         /* Movement/look blocking is done by the engine: when OQuake_STAR_IsQuestPopupOpen() returns 1, the engine should not apply movement so keys are never cleared and work immediately after close. */

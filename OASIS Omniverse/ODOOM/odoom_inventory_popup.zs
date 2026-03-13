@@ -456,7 +456,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (subStr.Length() > 0) subStr.Split(subLines, "\n", false);
 				array<int> prereqQ; array<int> objQ; array<int> subQ;
 				for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
-				for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && objLines[i].IndexOf("Q\t") == 0) objQ.Push(i);
+				for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 				for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 				int nPrereq = prereqQ.Size(); int nObj = objQ.Size(); int nSub = subQ.Size();
 				int maxRowsObj = 6;     // objectives take top half
@@ -1161,7 +1161,49 @@ class OASISInventoryOverlayHandler : EventHandler
 			String questTitle = questDetailQuestName;
 			if (questTitle.Length() > 28) questTitle = String.Format("%s..", questTitle.Left(26));
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 8, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
+			CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
+			CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
+			String prereqStr = (prereqCv != null) ? prereqCv.GetString() : "";
+			String objStr = (objCv != null) ? objCv.GetString() : "";
+			String subStr = (subCv != null) ? subCv.GetString() : "";
+			array<String> prereqLines; array<String> objLines; array<String> subLines;
+			if (prereqStr.Length() > 0) prereqStr.Split(prereqLines, "\n", false);
+			if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);
+			if (subStr.Length() > 0) subStr.Split(subLines, "\n", false);
+			array<int> prereqQ; array<int> objQ; array<int> subQ;
+			for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
+			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
+			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
+			// Left pane description: show selected objective/prereq/subquest desc when focused (like Quake), else quest desc
 			String desc = questDetailQuestDesc;
+			if (questDetailFocus == 0 && objQ.Size() > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
+			{
+				int idx = objQ[questDetailObjSelected];
+				if (idx < objLines.Size()) {
+					array<String> parts;
+					objLines[idx].Split(parts, "\t", false);
+					if (parts.Size() >= 3) desc = parts[2];
+				}
+			}
+			else if (questDetailFocus == 1 && prereqQ.Size() > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
+			{
+				int idx = prereqQ[questDetailPrereqSelected];
+				if (idx < prereqLines.Size()) {
+					array<String> parts;
+					prereqLines[idx].Split(parts, "\t", false);
+					if (parts.Size() >= 3) desc = parts[2];
+				}
+			}
+			else if (questDetailFocus == 2 && subQ.Size() > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
+			{
+				int idx = subQ[questDetailSubSelected];
+				if (idx < subLines.Size()) {
+					array<String> parts;
+					subLines[idx].Split(parts, "\t", false);
+					if (parts.Size() >= 3) desc = parts[2];
+				}
+			}
 			if (desc.Length() > 200) desc = String.Format("%s..", desc.Left(198));
 			int descY = popupY + 24;
 			int descMaxW = leftW - 8;
@@ -1176,21 +1218,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else descLine = nextLine;
 			}
 			if (descLine.Length() > 0) screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, descLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
-			CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
-			CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
-			String prereqStr = (prereqCv != null) ? prereqCv.GetString() : "";
-			String objStr = (objCv != null) ? objCv.GetString() : "";
-			String subStr = (subCv != null) ? subCv.GetString() : "";
-			array<String> prereqLines; array<String> objLines; array<String> subLines;
-			if (prereqStr.Length() > 0) prereqStr.Split(prereqLines, "\n", false);
-			if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);
-			if (subStr.Length() > 0) subStr.Split(subLines, "\n", false);
-			array<int> prereqQ; array<int> objQ; array<int> subQ;
-			for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
-			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && objLines[i].IndexOf("Q\t") == 0) objQ.Push(i);
-			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
-			// Objectives: top half of right pane (focus 0)
+			// Objectives: top half of right pane (focus 0), full width to screen edge
 			screen.DrawText(f, Font.CR_GOLD, rightX, sect0Y - 2, "Objectives", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			for (int i = 0; i < maxRowsObj && questDetailObjScroll + i < objQ.Size(); i++)
 			{
@@ -1199,7 +1227,10 @@ class OASISInventoryOverlayHandler : EventHandler
 				array<String> parts;
 				objLines[idx].Split(parts, "\t", false);
 				String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
-				if (rowName.Length() > 14) rowName = String.Format("%s..", rowName.Left(12));
+				// Use full right pane width (rightW) to screen edge; truncate only if text exceeds pixel width
+				String origName = rowName;
+				while (rowName.Length() > 0 && f.StringWidth(rowName) > rightW) rowName = rowName.Left(rowName.Length() - 1);
+				if (rowName.Length() < origName.Length()) rowName = String.Format("%s..", rowName);
 				int cr = (questDetailFocus == 0 && questDetailObjSelected == questDetailObjScroll + i) ? Font.CR_GOLD : Font.CR_WHITE;
 				int rowY = sect0Y + (10 + i * rowH);
 				screen.DrawText(f, cr, rightX, rowY, rowName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
@@ -1344,10 +1375,12 @@ class OASISInventoryOverlayHandler : EventHandler
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 15 - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
-				int msgW = f.StringWidth(questStatusMessage);
-				int statusX = popupX + popupW - msgW - 8;
-				if (statusX < popupX + 8) statusX = popupX + 8;
-				screen.DrawText(f, Font.CR_GREEN, statusX, popupY + popupH - 41, questStatusMessage, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				// Same position as toast: top centre of screen
+				double statusScale = 0.5;
+				int msgW = int(f.StringWidth(questStatusMessage) * statusScale);
+				int statusX = 160 - (msgW / 2);
+				if (statusX < 2) statusX = 2;
+				screen.DrawText(f, Font.CR_GREEN, statusX, 4, questStatusMessage, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, statusScale, DTA_ScaleY, statusScale);
 			}
 			if (scrollCv != null) scrollCv.SetInt(newScrollOffset);
 			return;
