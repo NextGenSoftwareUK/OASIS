@@ -1317,6 +1317,27 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
+	/* Quest: set active from popup first (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1 last frame). Process before key capture so we don't miss the one-frame edge. */
+	{
+		FBaseCVar* setActiveDoVar = FindCVar("odoom_quest_set_active_do_it", nullptr);
+		FBaseCVar* setActiveIdVar = FindCVar("odoom_quest_set_active_id", nullptr);
+		if (g_star_initialized && setActiveDoVar && setActiveDoVar->GetRealType() == CVAR_Int && setActiveDoVar->GetGenericRep(CVAR_Int).Int != 0) {
+			const char* questId = nullptr;
+			if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String)
+				questId = setActiveIdVar->GetGenericRep(CVAR_String).String;
+			if (questId && questId[0]) {
+				star_api_start_quest(questId);
+				ODOOM_RefreshQuestCVars();
+			}
+			UCVarValue zero; zero.Int = 0;
+			setActiveDoVar->SetGenericRep(zero, CVAR_Int);
+			if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String) {
+				UCVarValue empty; empty.String = (char*)"";
+				setActiveIdVar->SetGenericRep(empty, CVAR_String);
+			}
+		}
+	}
+
 	FBaseCVar* openVar = FindCVar("odoom_inventory_open", nullptr);
 	FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 	const bool open = (openVar && openVar->GetRealType() == CVAR_Int && openVar->GetGenericRep(CVAR_Int).Int != 0);
@@ -1420,6 +1441,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
 		C_DoCommand("bind end \"\"");
+		C_DoCommand("bind K \"\"");  /* K = Start quest / Set tracker in quest popup; prevent engine from using it */
 		C_DoCommand("bind \"1\" \"\"");
 		C_DoCommand("bind \"2\" \"\"");
 		C_DoCommand("bind \"3\" \"\"");
@@ -1448,6 +1470,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind enter \"+use\"");
 		C_DoCommand("bind \"KP-Enter\" \"+use\"");
 		C_DoCommand("bind Q \"odoom_quest_toggle\"");  /* Q opens quest popup (fallback if raw key not available) */
+		C_DoCommand("bind K \"\"");  /* leave K unbound so user can bind for quest Start/Set if desired */
 		C_DoCommand("bind pgup \"\"");
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
@@ -1482,31 +1505,37 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int keyB  = ODOOM_GetRawKeyDown('B');
 		int keyN  = ODOOM_GetRawKeyDown('N');
 		int keyM  = ODOOM_GetRawKeyDown('M');
-		int keyV  = ODOOM_GetRawKeyDown('V');
+		int keyK  = ODOOM_GetRawKeyDown('K');
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyV, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
+		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
+		{
+			static int s_key_k_was_down = 0;
+			if (g_star_initialized && keyK)
+			{
+				FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
+				int qOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int && questPopupVar->GetGenericRep(CVAR_Int).Int != 0);
+				if (!s_key_k_was_down && qOpen)
+				{
+					FBaseCVar* selIdVar = FindCVar("odoom_quest_selected_id", nullptr);
+					if (selIdVar && selIdVar->GetRealType() == CVAR_String)
+					{
+						const char* id = selIdVar->GetGenericRep(CVAR_String).String;
+						if (id && id[0])
+						{
+							star_api_start_quest(id);
+							ODOOM_RefreshQuestCVars();
+						}
+					}
+				}
+				s_key_k_was_down = 1;
+			}
+			else
+				s_key_k_was_down = 0;
+		}
 		/* Quest popup is driven by ZScript only (same as inventory I key): ZScript reads odoom_key_q and toggles; C++ does not set odoom_quest_popup_open. */
-	}
-
-	/* Quest: set active from popup (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1) */
-	FBaseCVar* setActiveDoVar = FindCVar("odoom_quest_set_active_do_it", nullptr);
-	FBaseCVar* setActiveIdVar = FindCVar("odoom_quest_set_active_id", nullptr);
-	if (g_star_initialized && setActiveDoVar && setActiveDoVar->GetRealType() == CVAR_Int && setActiveDoVar->GetGenericRep(CVAR_Int).Int != 0) {
-		const char* questId = nullptr;
-		if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String)
-			questId = setActiveIdVar->GetGenericRep(CVAR_String).String;
-		if (questId && questId[0]) {
-			star_api_start_quest(questId);
-			ODOOM_RefreshQuestCVars();
-		}
-		UCVarValue zero; zero.Int = 0;
-		setActiveDoVar->SetGenericRep(zero, CVAR_Int);
-		if (setActiveIdVar && setActiveIdVar->GetRealType() == CVAR_String) {
-			UCVarValue empty; empty.String = (char*)"";
-			setActiveIdVar->SetGenericRep(empty, CVAR_String);
-		}
 	}
 
 	/* Quest: invalidate when popup opens and refresh once to trigger single API request; then refresh every 60 frames only while popup is open so API is hit once. */
@@ -1782,7 +1811,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyV, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1808,7 +1837,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_p", p);
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
-	SET_KEY_CVAR("odoom_key_v", keyV);
+	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
 }
