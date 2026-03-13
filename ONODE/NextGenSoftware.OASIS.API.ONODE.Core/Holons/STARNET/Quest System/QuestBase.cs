@@ -75,15 +75,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public string GameSource { get; set; }
 
-        //[Obsolete]
-        /// <summary>Item or action required to complete (e.g. Key, Health). Used when quest is a sub-quest/objective.</summary>
-        //[CustomOASISProperty()]
+        //[Obsolete] Not used – objectives are Quest.Objectives collection; use Objective-level data or GameSource.
         //public string ItemRequired { get; set; }
 
-        //[Obsolete]
-        /// <summary>True when this quest is a checklist item (objective) under a parent; false when it is a full sub-quest that can have its own children. Enables a parent to have both objectives and sub-quests.</summary>
+        //[Obsolete] Objectives are now Quest.Objectives collection, not child quests with a flag.
         //public bool IsObjective { get; set; }
-        
+
         [CustomOASISProperty()]
         public string CompletionNotes { get; set; }
 

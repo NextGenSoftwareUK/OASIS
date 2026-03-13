@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public Guid? CompletedBy { get; set; }
 
-        /// <summary>Human-readable description built from the requirement dictionaries. Serialized as "Objective" in JSON.</summary>
+        /// <summary>Human-readable description built from the requirement dictionaries (or set explicitly when building from Children). Serialized as "Objective" in JSON.</summary>
         [JsonPropertyName("Objective")]
         public string ObjectiveText
         {
@@ -39,6 +39,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                     _objectiveStringDirty = false;
                 }
                 return _cachedObjectiveString ?? string.Empty;
+            }
+            set
+            {
+                _cachedObjectiveString = value ?? string.Empty;
+                _objectiveStringDirty = false;
             }
         }
 
