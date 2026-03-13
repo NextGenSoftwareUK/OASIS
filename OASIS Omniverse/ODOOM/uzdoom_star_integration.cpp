@@ -1327,7 +1327,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				questId = setActiveIdVar->GetGenericRep(CVAR_String).String;
 			if (questId && questId[0]) {
 				star_api_start_quest(questId);
-				ODOOM_RefreshQuestCVars();
+				/* Do not refresh here: C# client updates cache when StartQuestAsync completes (UpdateQuestStatusInCache). Next 60-frame refresh or cache read will show updated list (like Quake). */
 			}
 			UCVarValue zero; zero.Int = 0;
 			setActiveDoVar->SetGenericRep(zero, CVAR_Int);
