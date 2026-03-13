@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Contracts;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
 
@@ -55,30 +56,6 @@ public sealed class StarAvatarProfile
     public string LastName { get; init; } = string.Empty;
     /// <summary>Experience points (from avatar detail). Updated by get-current-avatar and add-xp responses.</summary>
     public int XP { get; init; }
-}
-
-public sealed class StarQuestObjective
-{
-    public string Id { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string GameSource { get; init; } = string.Empty;
-    public string ItemRequired { get; init; } = string.Empty;
-    public bool IsCompleted { get; init; }
-}
-
-public sealed class StarQuestInfo
-{
-    public string Id { get; init; } = string.Empty;
-    public string Name { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string Status { get; init; } = string.Empty;
-    public List<StarQuestObjective> Objectives { get; init; } = new();
-    /// <summary>Quest IDs that must be completed before this quest can be started (from MetaData.PrerequisiteQuestIds).</summary>
-    public List<string> PrerequisiteQuestIds { get; init; } = new();
-    /// <summary>Parent quest ID when this quest is a sub-quest. Empty Guid string for top-level quests.</summary>
-    public string ParentQuestId { get; init; } = string.Empty;
-    // Obsolete: objectives are the Quest.Objectives collection; no longer separate child quests.
-    // public bool IsObjective { get; init; }
 }
 
 public sealed class StarNftInfo
@@ -791,11 +768,14 @@ public sealed class StarApiClient : IDisposable
                 list.Add(new StarQuestInfo
                 {
                     Id = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id,
-                    Name = o.Description ?? "",
-                    Description = o.Description ?? "",
+                    Name = o.Description ?? o.SummaryText ?? "",
+                    Description = o.Description ?? o.SummaryText ?? "",
                     Status = o.IsCompleted ? "Completed" : "InProgress",
+                    Order = o.Order,
+                    GameSource = o.GameSource ?? string.Empty,
                     Objectives = new List<StarQuestObjective>(),
-                    ParentQuestId = id
+                    ParentQuestId = id,
+                    Dictionaries = o.Dictionaries
                 });
             }
             return list;
@@ -969,9 +949,17 @@ public sealed class StarApiClient : IDisposable
                 Name = q.Name,
                 Description = q.Description,
                 Status = q.Status,
+                Order = q.Order,
+                GameSource = q.GameSource ?? string.Empty,
+                Requirements = q.Requirements ?? new List<string>(),
+                RewardKarma = q.RewardKarma,
+                RewardXP = q.RewardXP,
+                CompletionNotes = q.CompletionNotes,
+                ParentMissionId = q.ParentMissionId ?? string.Empty,
+                ParentQuestId = q.ParentQuestId ?? string.Empty,
                 Objectives = objectives,
                 PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
-                ParentQuestId = q.ParentQuestId ?? string.Empty
+                Dictionaries = q.Dictionaries
             };
             _cachedQuestList[i] = updated;
             _questObjectivesCacheVersion++;
@@ -1026,7 +1014,7 @@ public sealed class StarApiClient : IDisposable
         {
             var o = quest.Objectives[i];
             var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
-            var name = EscapeForQuestLine(o.Description ?? "");
+            var name = EscapeForQuestLine(o.Description ?? o.SummaryText ?? "");
             var desc = name;
             var status = o.IsCompleted ? "Completed" : "InProgress";
             var pct = o.IsCompleted ? 100 : 0;
@@ -1689,13 +1677,12 @@ public sealed class StarApiClient : IDisposable
         }
 
         StarApiExports.StarApiLog("[Quests] StartQuestAsync: API returned success (quest start completed)");
-        InvalidateQuestCache();
-        StarApiExports.StarApiLog("[Quests] StartQuestAsync: cache invalidated so next popup open will refetch.");
+        UpdateQuestStatusInCache(questId, "InProgress");
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
 
-    /// <summary>Run start-quest on the background worker so the calling thread does not block. On success, cache is invalidated in StartQuestAsync so the next refetch shows updated status.</summary>
+    /// <summary>Run start-quest on the background worker so the calling thread does not block. On success, the cached quest's status is updated in-place so the UI refreshes from cache instantly without a full refetch.</summary>
     public Task<OASISResult<bool>> QueueStartQuestAsync(string questId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => StartQuestAsync(questId, ct), cancellationToken);
 
@@ -1822,8 +1809,12 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteStartObject();
                 writer.WriteString("Description", o.Description ?? string.Empty);
                 writer.WriteString("GameSource", o.GameSource ?? string.Empty);
-                writer.WriteString("ItemRequired", o.ItemRequired ?? string.Empty);
-                writer.WriteNumber("Order", i);
+                writer.WriteString("ItemRequired", (o.Description ?? o.SummaryText) ?? string.Empty);
+                writer.WriteNumber("Order", o.Order >= 0 ? o.Order : i);
+                writer.WriteBoolean("IsCompleted", o.IsCompleted);
+                if (o.CompletedAt.HasValue) writer.WriteString("CompletedAt", o.CompletedAt.Value.ToString("O"));
+                if (!string.IsNullOrEmpty(o.CompletedBy)) writer.WriteString("CompletedBy", o.CompletedBy);
+                if (o.Dictionaries != null) WriteObjectiveDictionaries(writer, o.Dictionaries);
                 writer.WriteEndObject();
             }
             writer.WriteEndArray();
@@ -2066,6 +2057,47 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Update a single quest's status in the cached list and re-serialize so the UI sees the change immediately without a full refetch. Call after start-quest API success.</summary>
+    private void UpdateQuestStatusInCache(string questId, string newStatus)
+    {
+        if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrWhiteSpace(newStatus)) return;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return;
+            for (var i = 0; i < _cachedQuestList.Count; i++)
+            {
+                var q = _cachedQuestList[i];
+                if (!string.Equals(q.Id, questId, StringComparison.OrdinalIgnoreCase)) continue;
+                var updated = new StarQuestInfo
+                {
+                    Id = q.Id,
+                    Name = q.Name,
+                    Description = q.Description,
+                    Status = newStatus,
+                    Order = q.Order,
+                    GameSource = q.GameSource ?? string.Empty,
+                    Requirements = q.Requirements ?? new List<string>(),
+                    RewardKarma = q.RewardKarma,
+                    RewardXP = q.RewardXP,
+                    CompletionNotes = q.CompletionNotes,
+                    ParentMissionId = q.ParentMissionId ?? string.Empty,
+                    ParentQuestId = q.ParentQuestId ?? string.Empty,
+                    Objectives = q.Objectives ?? new List<StarQuestObjective>(),
+                    PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                    Dictionaries = q.Dictionaries
+                };
+                _cachedQuestList[i] = updated;
+                _questsCacheString = _cachedQuestList.Count == 0 ? string.Empty : SerializeQuestsForGame(_cachedQuestList);
+                _questsFilterLastLogTop = (0, 0);
+                _questsFilterLastLogObjectives = ("", -1);
+                _questsFilterLastLogSubQuests = ("", -1);
+                _questsFilterLastLogPrereqs = ("", -1);
+                StarApiExports.StarApiLog($"[Quests] Updated cached quest {questId} status to {newStatus}; UI will refresh from cache.");
+                return;
+            }
+        }
+    }
+
     //TODO: Use Enum for status, try to use enums instead of strings generally.
     public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
     {
@@ -2140,7 +2172,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     var o = q.Objectives[i];
                     var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
-                    sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
+                    sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description ?? o.SummaryText ?? "")).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
                 }
             }
             if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0)
@@ -3137,30 +3169,166 @@ public sealed class StarApiClient : IDisposable
         return new List<StarQuestObjective>();
     }
 
+    /// <summary>Parse a single game-keyed dictionary from JSON (object with string keys and array-of-string values).</summary>
+    private static Dictionary<string, List<string>> ParseStringListDictionary(JsonElement element)
+    {
+        var dict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in element.EnumerateObject())
+            {
+                var list = new List<string>();
+                if (prop.Value.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in prop.Value.EnumerateArray())
+                    {
+                        var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+                        if (!string.IsNullOrEmpty(s)) list.Add(s);
+                    }
+                }
+                if (list.Count > 0) dict[prop.Name] = list;
+            }
+        }
+        return dict;
+    }
+
+    /// <summary>Parse Objective requirement/progress dictionaries from a JSON object (backend Objective / IQuestObjectiveDictionaries).</summary>
+    private static StarQuestObjectiveDictionaries? ParseObjectiveDictionaries(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object) return null;
+        var names = new[] { "NeedToCollectArmor", "NeedToCollectAmmo", "NeedToCollectHealth", "NeedToCollectWeapons", "NeedToCollectPowerups", "NeedToCollectItems", "NeedToCollectKeys", "NeedToKillMonsters", "NeedToCompleteInMins", "NeedToEarnKarma", "NeedToEarnXP", "NeedToGoToGeoHotSpots", "NeedToCompleteLevel", "NeedToUseWeapons", "NeedToUsePowerups", "NeedToVisitLocations", "NeedToSurviveMins", "ArmorCollected", "AmmoCollected", "HealthCollected", "WeaponsCollected", "PowerupsCollected", "ItemsCollected", "KeysCollected", "MonstersKilled", "TimeStarted", "TimeEnded", "TimeTaken", "KarmaEarnt", "XPEarnt", "GeoHotSpotsArrived", "LevelsCompleted" };
+        var dicts = new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in names)
+        {
+            var camel = char.ToLowerInvariant(name[0]) + name[1..];
+            if (TryGetProperty(element, name, out var el) || TryGetProperty(element, camel, out el))
+            {
+                var d = ParseStringListDictionary(el);
+                if (d.Count > 0) dicts[name] = d;
+            }
+        }
+        if (dicts.Count == 0) return null;
+        return new StarQuestObjectiveDictionaries
+        {
+            NeedToCollectArmor = dicts.GetValueOrDefault("NeedToCollectArmor") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectAmmo = dicts.GetValueOrDefault("NeedToCollectAmmo") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectHealth = dicts.GetValueOrDefault("NeedToCollectHealth") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectWeapons = dicts.GetValueOrDefault("NeedToCollectWeapons") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectPowerups = dicts.GetValueOrDefault("NeedToCollectPowerups") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectItems = dicts.GetValueOrDefault("NeedToCollectItems") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectKeys = dicts.GetValueOrDefault("NeedToCollectKeys") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToKillMonsters = dicts.GetValueOrDefault("NeedToKillMonsters") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCompleteInMins = dicts.GetValueOrDefault("NeedToCompleteInMins") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToEarnKarma = dicts.GetValueOrDefault("NeedToEarnKarma") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToEarnXP = dicts.GetValueOrDefault("NeedToEarnXP") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToGoToGeoHotSpots = dicts.GetValueOrDefault("NeedToGoToGeoHotSpots") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCompleteLevel = dicts.GetValueOrDefault("NeedToCompleteLevel") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToUseWeapons = dicts.GetValueOrDefault("NeedToUseWeapons") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToUsePowerups = dicts.GetValueOrDefault("NeedToUsePowerups") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToVisitLocations = dicts.GetValueOrDefault("NeedToVisitLocations") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToSurviveMins = dicts.GetValueOrDefault("NeedToSurviveMins") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            ArmorCollected = dicts.GetValueOrDefault("ArmorCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            AmmoCollected = dicts.GetValueOrDefault("AmmoCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            HealthCollected = dicts.GetValueOrDefault("HealthCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            WeaponsCollected = dicts.GetValueOrDefault("WeaponsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            PowerupsCollected = dicts.GetValueOrDefault("PowerupsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            ItemsCollected = dicts.GetValueOrDefault("ItemsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            KeysCollected = dicts.GetValueOrDefault("KeysCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            MonstersKilled = dicts.GetValueOrDefault("MonstersKilled") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeStarted = dicts.GetValueOrDefault("TimeStarted") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeEnded = dicts.GetValueOrDefault("TimeEnded") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeTaken = dicts.GetValueOrDefault("TimeTaken") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            KarmaEarnt = dicts.GetValueOrDefault("KarmaEarnt") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            XPEarnt = dicts.GetValueOrDefault("XPEarnt") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            GeoHotSpotsArrived = dicts.GetValueOrDefault("GeoHotSpotsArrived") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            LevelsCompleted = dicts.GetValueOrDefault("LevelsCompleted") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+        };
+    }
+
+    private static void WriteObjectiveDictionaries(Utf8JsonWriter writer, StarQuestObjectiveDictionaries dicts)
+    {
+        void WriteDict(string name, Dictionary<string, List<string>> d)
+        {
+            if (d == null || d.Count == 0) return;
+            writer.WritePropertyName(name);
+            writer.WriteStartObject();
+            foreach (var kv in d)
+            {
+                writer.WritePropertyName(kv.Key);
+                writer.WriteStartArray();
+                foreach (var s in kv.Value ?? new List<string>())
+                    writer.WriteStringValue(s);
+                writer.WriteEndArray();
+            }
+            writer.WriteEndObject();
+        }
+        WriteDict("NeedToCollectArmor", dicts.NeedToCollectArmor);
+        WriteDict("NeedToCollectAmmo", dicts.NeedToCollectAmmo);
+        WriteDict("NeedToCollectHealth", dicts.NeedToCollectHealth);
+        WriteDict("NeedToCollectWeapons", dicts.NeedToCollectWeapons);
+        WriteDict("NeedToCollectPowerups", dicts.NeedToCollectPowerups);
+        WriteDict("NeedToCollectItems", dicts.NeedToCollectItems);
+        WriteDict("NeedToCollectKeys", dicts.NeedToCollectKeys);
+        WriteDict("NeedToKillMonsters", dicts.NeedToKillMonsters);
+        WriteDict("NeedToCompleteInMins", dicts.NeedToCompleteInMins);
+        WriteDict("NeedToEarnKarma", dicts.NeedToEarnKarma);
+        WriteDict("NeedToEarnXP", dicts.NeedToEarnXP);
+        WriteDict("NeedToGoToGeoHotSpots", dicts.NeedToGoToGeoHotSpots);
+        WriteDict("NeedToCompleteLevel", dicts.NeedToCompleteLevel);
+        WriteDict("NeedToUseWeapons", dicts.NeedToUseWeapons);
+        WriteDict("NeedToUsePowerups", dicts.NeedToUsePowerups);
+        WriteDict("NeedToVisitLocations", dicts.NeedToVisitLocations);
+        WriteDict("NeedToSurviveMins", dicts.NeedToSurviveMins);
+        WriteDict("ArmorCollected", dicts.ArmorCollected);
+        WriteDict("AmmoCollected", dicts.AmmoCollected);
+        WriteDict("HealthCollected", dicts.HealthCollected);
+        WriteDict("WeaponsCollected", dicts.WeaponsCollected);
+        WriteDict("PowerupsCollected", dicts.PowerupsCollected);
+        WriteDict("ItemsCollected", dicts.ItemsCollected);
+        WriteDict("KeysCollected", dicts.KeysCollected);
+        WriteDict("MonstersKilled", dicts.MonstersKilled);
+        WriteDict("TimeStarted", dicts.TimeStarted);
+        WriteDict("TimeEnded", dicts.TimeEnded);
+        WriteDict("TimeTaken", dicts.TimeTaken);
+        WriteDict("KarmaEarnt", dicts.KarmaEarnt);
+        WriteDict("XPEarnt", dicts.XPEarnt);
+        WriteDict("GeoHotSpotsArrived", dicts.GeoHotSpotsArrived);
+        WriteDict("LevelsCompleted", dicts.LevelsCompleted);
+    }
+
     /// <summary>Parse objectives from a JsonElement that may be an array or a JSON string containing an array (e.g. from MetaData).</summary>
     private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element)
     {
         var objectives = new List<StarQuestObjective>();
         if (element.ValueKind == JsonValueKind.Array)
         {
+            var index = 0;
             foreach (var objective in element.EnumerateArray())
             {
                 if (objective.ValueKind != JsonValueKind.Object) continue;
-                /* Try PascalCase and camelCase so API serialization (e.g. System.Text.Json camelCase) is handled. */
                 var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
                 var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective")
                     ?? GetStringProperty(objective, "Text") ?? GetStringProperty(objective, "text") ?? GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? string.Empty;
+                var itemRequiredLegacy = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(itemRequiredLegacy)) desc = itemRequiredLegacy;
                 var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
-                var itemRequired = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
+                var order = GetIntProperty(objective, "Order") ?? GetIntProperty(objective, "order") ?? index;
                 var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
+                var completedAt = GetDateTimeProperty(objective, "CompletedAt") ?? GetDateTimeProperty(objective, "completedAt");
+                var completedBy = GetStringProperty(objective, "CompletedBy") ?? GetStringProperty(objective, "completedBy");
+                var dicts = ParseObjectiveDictionaries(objective);
                 objectives.Add(new StarQuestObjective
                 {
                     Id = id,
-                    Description = desc,
+                    Description = desc ?? string.Empty,
                     GameSource = gameSource,
-                    ItemRequired = itemRequired,
-                    IsCompleted = isCompleted
+                    Order = order,
+                    IsCompleted = isCompleted,
+                    CompletedAt = completedAt,
+                    CompletedBy = completedBy,
+                    Dictionaries = dicts
                 });
+                index++;
             }
             return objectives;
         }
@@ -3204,6 +3372,23 @@ public sealed class StarApiClient : IDisposable
             return n;
         var text = GetStringProperty(element, name);
         return int.TryParse(text, out var parsed) ? parsed : null;
+    }
+
+    private static DateTime? GetDateTimeProperty(JsonElement element, string name)
+    {
+        var text = GetStringProperty(element, name);
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        return DateTime.TryParse(text, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt) ? dt : null;
+    }
+
+    private static long? GetLongProperty(JsonElement element, string name)
+    {
+        if (!TryGetProperty(element, name, out var prop))
+            return null;
+        if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var n))
+            return n;
+        var text = GetStringProperty(element, name);
+        return long.TryParse(text, out var parsed) ? parsed : null;
     }
 
     /// <summary>Try common WEB4/OASIS mint response property names for tx hash. Also checks Result.Web3NFTs[0].MintTransactionHash (WEB4 mint returns hash on the Web3NFT).</summary>
@@ -3928,17 +4113,23 @@ public sealed class StarApiClient : IDisposable
                 if (first.ValueKind == JsonValueKind.Object && !hasName &&
                     (GetStringProperty(first, "Description") ?? GetStringProperty(first, "description") ?? GetStringProperty(first, "Objective") ?? GetStringProperty(first, "objective")) != null)
                 {
+                    var idx = 0;
                     foreach (var sub in qArr.EnumerateArray())
                     {
                         if (sub.ValueKind != JsonValueKind.Object) continue;
+                        var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "objective") ?? string.Empty;
+                        var ir = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(ir)) desc = ir;
                         objectives.Add(new StarQuestObjective
                         {
                             Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
-                            Description = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "objective") ?? string.Empty,
+                            Description = desc,
                             GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
-                            ItemRequired = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty,
-                            IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted")
+                            Order = GetIntProperty(sub, "Order") ?? idx,
+                            IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                            Dictionaries = ParseObjectiveDictionaries(sub)
                         });
+                        idx++;
                     }
                 }
             }
@@ -3963,15 +4154,32 @@ public sealed class StarApiClient : IDisposable
                 parentQuestId = GetStringProperty(metaForParent, "ParentQuestId") ?? GetStringProperty(metaForParent, "parentQuestId") ?? string.Empty;
 
             var parentId = GetStringProperty(questElement, "Id") ?? string.Empty;
+            var order = GetIntProperty(questElement, "Order") ?? GetIntProperty(questElement, "order") ?? 0;
+            var gameSource = GetStringProperty(questElement, "GameSource") ?? GetStringProperty(questElement, "gameSource") ?? string.Empty;
+            var requirements = new List<string>();
+            if (TryGetProperty(questElement, "Requirements", out var reqEl) || TryGetProperty(questElement, "requirements", out reqEl))
+            { if (reqEl.ValueKind == JsonValueKind.Array) foreach (var item in reqEl.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) requirements.Add(s); } }
+            var rewardKarma = GetLongProperty(questElement, "RewardKarma") ?? GetLongProperty(questElement, "rewardKarma") ?? 0L;
+            var rewardXP = GetLongProperty(questElement, "RewardXP") ?? GetLongProperty(questElement, "rewardXP") ?? 0L;
+            var completionNotes = GetStringProperty(questElement, "CompletionNotes") ?? GetStringProperty(questElement, "completionNotes");
+            var parentMissionId = GetStringProperty(questElement, "ParentMissionId") ?? GetStringProperty(questElement, "parentMissionId") ?? string.Empty;
             quests.Add(new StarQuestInfo
             {
                 Id = parentId,
                 Name = GetStringProperty(questElement, "Name") ?? string.Empty,
                 Description = GetStringProperty(questElement, "Description") ?? string.Empty,
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
+                Order = order,
+                GameSource = gameSource,
+                Requirements = requirements,
+                RewardKarma = rewardKarma,
+                RewardXP = rewardXP,
+                CompletionNotes = completionNotes,
+                ParentMissionId = parentMissionId,
+                ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
                 Objectives = objectives,
                 PrerequisiteQuestIds = prereqIds,
-                ParentQuestId = (parentQuestId ?? string.Empty).Trim()
+                Dictionaries = ParseObjectiveDictionaries(questElement)
             });
 
             /* Flatten nested sub-quests: SubQuests or Quest/Quests array of full quest objects (have Id + Name) so right-panel subquest list is populated. */
@@ -4004,15 +4212,32 @@ public sealed class StarApiClient : IDisposable
                     var childPrereqIds = GetStringListFromElement(childEl, "MetaData", "PrerequisiteQuestIds");
                     if (childPrereqIds.Count == 0)
                         childPrereqIds = GetStringListFromElement(childEl, "metaData", "prerequisiteQuestIds");
+                    var childOrder = GetIntProperty(childEl, "Order") ?? GetIntProperty(childEl, "order") ?? 0;
+                    var childGameSource = GetStringProperty(childEl, "GameSource") ?? GetStringProperty(childEl, "gameSource") ?? string.Empty;
+                    var childReqs = new List<string>();
+                    if (TryGetProperty(childEl, "Requirements", out var creq) || TryGetProperty(childEl, "requirements", out creq))
+                    { if (creq.ValueKind == JsonValueKind.Array) foreach (var item in creq.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) childReqs.Add(s); } }
+                    var childRewardKarma = GetLongProperty(childEl, "RewardKarma") ?? 0L;
+                    var childRewardXP = GetLongProperty(childEl, "RewardXP") ?? 0L;
+                    var childNotes = GetStringProperty(childEl, "CompletionNotes") ?? GetStringProperty(childEl, "completionNotes");
+                    var childMissionId = GetStringProperty(childEl, "ParentMissionId") ?? string.Empty;
                     quests.Add(new StarQuestInfo
                     {
                         Id = childId,
                         Name = GetStringProperty(childEl, "Name") ?? GetStringProperty(childEl, "name") ?? string.Empty,
                         Description = GetStringProperty(childEl, "Description") ?? GetStringProperty(childEl, "description") ?? string.Empty,
                         Status = GetStringProperty(childEl, "Status") ?? GetStringProperty(childEl, "status") ?? string.Empty,
+                        Order = childOrder,
+                        GameSource = childGameSource,
+                        Requirements = childReqs,
+                        RewardKarma = childRewardKarma,
+                        RewardXP = childRewardXP,
+                        CompletionNotes = childNotes,
+                        ParentMissionId = childMissionId,
+                        ParentQuestId = parentId,
                         Objectives = childObj,
                         PrerequisiteQuestIds = childPrereqIds,
-                        ParentQuestId = parentId
+                        Dictionaries = ParseObjectiveDictionaries(childEl)
                     });
                 }
             }
@@ -4041,8 +4266,9 @@ public sealed class StarApiClient : IDisposable
                     Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
                     Description = desc,
                     GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
-                    ItemRequired = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty,
-                    IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted")
+                    Order = GetIntProperty(sub, "Order") ?? GetIntProperty(sub, "order") ?? 0,
+                    IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                    Dictionaries = ParseObjectiveDictionaries(sub)
                 });
             }
         }
@@ -4050,15 +4276,30 @@ public sealed class StarApiClient : IDisposable
         var parentQuestId = GetStringProperty(element, "ParentQuestId") ?? GetStringProperty(element, "parentQuestId");
         if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(element, "MetaData", out var metaForParent) || TryGetProperty(element, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
             parentQuestId = GetStringProperty(metaForParent, "ParentQuestId") ?? GetStringProperty(metaForParent, "parentQuestId");
-
+        var prereqIds = GetStringListFromElement(element, "MetaData", "PrerequisiteQuestIds");
+        if (prereqIds.Count == 0) prereqIds = GetStringListFromElement(element, "metaData", "prerequisiteQuestIds");
+        if (prereqIds.Count == 0 && (TryGetProperty(element, "PrerequisiteQuestIds", out var prereqArr) || TryGetProperty(element, "prerequisiteQuestIds", out prereqArr)) && prereqArr.ValueKind == JsonValueKind.Array)
+        { foreach (var item in prereqArr.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) prereqIds.Add(s); } }
+        var requirements = new List<string>();
+        if (TryGetProperty(element, "Requirements", out var reqEl) || TryGetProperty(element, "requirements", out reqEl))
+        { if (reqEl.ValueKind == JsonValueKind.Array) foreach (var item in reqEl.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) requirements.Add(s); } }
         return new StarQuestInfo
         {
             Id = GetStringProperty(element, "Id") ?? string.Empty,
             Name = GetStringProperty(element, "Name") ?? string.Empty,
             Description = GetStringProperty(element, "Description") ?? string.Empty,
             Status = GetStringProperty(element, "Status") ?? string.Empty,
-            Objectives = objectives,
+            Order = GetIntProperty(element, "Order") ?? GetIntProperty(element, "order") ?? 0,
+            GameSource = GetStringProperty(element, "GameSource") ?? GetStringProperty(element, "gameSource") ?? string.Empty,
+            Requirements = requirements,
+            RewardKarma = GetLongProperty(element, "RewardKarma") ?? GetLongProperty(element, "rewardKarma") ?? 0L,
+            RewardXP = GetLongProperty(element, "RewardXP") ?? GetLongProperty(element, "rewardXP") ?? 0L,
+            CompletionNotes = GetStringProperty(element, "CompletionNotes") ?? GetStringProperty(element, "completionNotes"),
+            ParentMissionId = GetStringProperty(element, "ParentMissionId") ?? GetStringProperty(element, "parentMissionId") ?? string.Empty,
             ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
+            Objectives = objectives,
+            PrerequisiteQuestIds = prereqIds,
+            Dictionaries = ParseObjectiveDictionaries(element)
         };
     }
 

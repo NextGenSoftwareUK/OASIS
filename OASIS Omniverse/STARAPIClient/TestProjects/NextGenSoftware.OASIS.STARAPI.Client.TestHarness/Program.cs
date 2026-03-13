@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Contracts;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.STARAPI.Client.Tests;
 using NextGenSoftware.OASIS.Common;
@@ -118,7 +119,7 @@ internal static class Program
         var createQuestResult = await client.CreateCrossGameQuestAsync(
             $"HarnessCrossQuest-{suffix}",
             "Quest created by test harness",
-            [new StarQuestObjective { Description = "Collect harness key", GameSource = "Harness", ItemRequired = "KeyItem", IsCompleted = false }]);
+            [new StarQuestObjective { Description = "Collect harness key", GameSource = "Harness", Order = 0, IsCompleted = false }]);
         if (createQuestResult.IsError)
         {
             Console.WriteLine($"[SKIP] Quest block (CreateCrossGameQuest failed: {createQuestResult.Message}; backend may not support quest creation)");
