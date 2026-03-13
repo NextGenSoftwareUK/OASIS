@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Contracts;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.STARAPI.Client.Tests;
@@ -114,25 +115,25 @@ internal static class Program
                 "Complete objectives in both Doom and Quake to earn rewards.",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Kill 5 monsters in Doom", GameSource = "ODOOM", ItemRequired = "Kill", IsCompleted = false },
-                    new StarQuestObjective { Description = "Collect a key in Doom", GameSource = "ODOOM", ItemRequired = "Key", IsCompleted = false },
-                    new StarQuestObjective { Description = "Pick up health in Quake", GameSource = "OQUAKE", ItemRequired = "Health", IsCompleted = false }
+                    new StarQuestObjective { Description = "Kill 5 monsters in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                    new StarQuestObjective { Description = "Collect a key in Doom", GameSource = "ODOOM", Order = 1, IsCompleted = false },
+                    new StarQuestObjective { Description = "Pick up health in Quake", GameSource = "OQUAKE", Order = 2, IsCompleted = false }
                 }),
             new DemoQuest(
                 "Demo: Quake Explorer",
                 "Explore Quake and complete these objectives.",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Find a Mega Health in Quake", GameSource = "OQUAKE", ItemRequired = "Megahealth", IsCompleted = false },
-                    new StarQuestObjective { Description = "Kill an enemy in Quake", GameSource = "OQUAKE", ItemRequired = "Kill", IsCompleted = false }
+                    new StarQuestObjective { Description = "Find a Mega Health in Quake", GameSource = "OQUAKE", Order = 0, IsCompleted = false },
+                    new StarQuestObjective { Description = "Kill an enemy in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
                 }),
             new DemoQuest(
                 "Demo: Doom Runner",
                 "Quick Doom objectives for testing the quest UI.",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Collect armor in Doom", GameSource = "ODOOM", ItemRequired = "Armor", IsCompleted = false },
-                    new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", ItemRequired = "Stimpack", IsCompleted = false }
+                    new StarQuestObjective { Description = "Collect armor in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                    new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", Order = 1, IsCompleted = false }
                 })
         };
 
@@ -171,8 +172,8 @@ internal static class Program
             "This quest has embedded objectives and child sub-quests for testing all three right-panel lists.",
             new[]
             {
-                new StarQuestObjective { Description = "Collect Red key in ODOOM", GameSource = "ODOOM", ItemRequired = "Red key", IsCompleted = false },
-                new StarQuestObjective { Description = "Earn 100 XP in OQUAKE", GameSource = "OQUAKE", ItemRequired = "100 XP", IsCompleted = false }
+                new StarQuestObjective { Description = "Collect Red key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                new StarQuestObjective { Description = "Earn 100 XP in OQUAKE", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
             });
         var parentCreate = await client.CreateCrossGameQuestAsync(parentWithSub.Name, parentWithSub.Description, parentWithSub.Objectives.ToList());
         if (!parentCreate.IsError && parentCreate.Result != null && !string.IsNullOrEmpty(parentCreate.Result.Id))
@@ -200,24 +201,24 @@ internal static class Program
             "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup.",
             new[]
             {
-                new StarQuestObjective { Description = "Get a key in any game", GameSource = "ODOOM", ItemRequired = "Key", IsCompleted = false },
-                new StarQuestObjective { Description = "Pick up health once", GameSource = "OQUAKE", ItemRequired = "Health", IsCompleted = false }
+                new StarQuestObjective { Description = "Get a key in any game", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                new StarQuestObjective { Description = "Pick up health once", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
             });
         var step2 = new DemoQuest(
             "Step 2: Unlock Second",
             "Requires Step 1 completed. Tests prerequisites list and objectives in the UI.",
             new[]
             {
-                new StarQuestObjective { Description = "Find armor in Doom", GameSource = "ODOOM", ItemRequired = "Armor", IsCompleted = false },
-                new StarQuestObjective { Description = "Kill one enemy in Quake", GameSource = "OQUAKE", ItemRequired = "Kill", IsCompleted = false }
+                new StarQuestObjective { Description = "Find armor in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                new StarQuestObjective { Description = "Kill one enemy in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
             });
         var step3 = new DemoQuest(
             "Step 3: Final Step",
             "Requires Step 2 completed. Full chain: Step 1 -> Step 2 -> Step 3.",
             new[]
             {
-                new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", ItemRequired = "Stimpack", IsCompleted = false },
-                new StarQuestObjective { Description = "Find Mega Health in Quake", GameSource = "OQUAKE", ItemRequired = "Megahealth", IsCompleted = false }
+                new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                new StarQuestObjective { Description = "Find Mega Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
             });
 
         string? step1Id = null;
