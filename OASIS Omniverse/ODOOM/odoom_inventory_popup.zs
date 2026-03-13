@@ -1146,7 +1146,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int popupY = 6;  // align "Quest: ..." heading with "QUESTS" on main popup (main uses popupY+14)
 			int leftW = 120;
 			int rightX = popupX + leftW + 8;
-			int rightW = popupW - leftW - 16;
+			int rightW = (320 - 8) - rightX;  // full width to screen edge so objectives are not truncated
 			int rowH = 10;
 			int rightPaneH = popupH - 56;
 			int topHalfH = rightPaneH / 2;
@@ -1175,16 +1175,44 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
-			// Left pane description: show selected objective/prereq/subquest desc when focused (like Quake), else quest desc
-			String desc = questDetailQuestDesc;
+			// Left pane: top half = quest desc (fixed), bottom half = selected objective/prereq/subquest desc
+			int leftContentH = popupH - 49 - 24;
+			int leftTopH = leftContentH / 2;
+			int leftBottomY = popupY + 24 + leftTopH;
+			int descMaxW = leftW - 8;
+			int maxLinesTop = leftTopH / rowH;
+			if (maxLinesTop < 1) maxLinesTop = 1;
+			// Objective desc aligned with Prereqs/Subquests (sect1Y); space from sect1Y+10 to footer
+			int objSectionY = sect1Y - 2;  // same as "Prerequisites" / "Sub-quests" label
+			int maxLinesBottom = (popupY + popupH - 49 - (sect1Y + 10)) / rowH;
+			if (maxLinesBottom < 1) maxLinesBottom = 1;
+			// Top left: quest description only (word wrap, clip to half height)
+			String questDesc = questDetailQuestDesc;
+			if (questDesc.Length() > 200) questDesc = String.Format("%s..", questDesc.Left(198));
+			array<String> questWords;
+			questDesc.Split(questWords, " ", false);
+			String questLine = "";
+			int ly = popupY + 24;
+			int lineCount = 0;
+			for (int w = 0; w < questWords.Size() && lineCount < maxLinesTop; w++)
+			{
+				String nextLine = questLine.Length() > 0 ? String.Format("%s %s", questLine, questWords[w]) : questWords[w];
+				if (f.StringWidth(nextLine) > descMaxW && questLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, questLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; lineCount++; questLine = questWords[w]; }
+				else questLine = nextLine;
+			}
+			if (questLine.Length() > 0 && lineCount < maxLinesTop) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, questLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); lineCount++; }
+			// Bottom left: selected objective (or prereq/subquest) description
+			String objDesc = "";
+			String objLabel = "Objective";
 			if (questDetailFocus == 0 && objQ.Size() > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
 			{
 				int idx = objQ[questDetailObjSelected];
 				if (idx < objLines.Size()) {
 					array<String> parts;
 					objLines[idx].Split(parts, "\t", false);
-					if (parts.Size() >= 3) desc = parts[2];
+					if (parts.Size() >= 3) objDesc = parts[2];
 				}
+				objLabel = "Objective";
 			}
 			else if (questDetailFocus == 1 && prereqQ.Size() > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
 			{
@@ -1192,8 +1220,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (idx < prereqLines.Size()) {
 					array<String> parts;
 					prereqLines[idx].Split(parts, "\t", false);
-					if (parts.Size() >= 3) desc = parts[2];
+					if (parts.Size() >= 3) objDesc = parts[2];
 				}
+				objLabel = "Prerequisite";
 			}
 			else if (questDetailFocus == 2 && subQ.Size() > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
 			{
@@ -1201,23 +1230,25 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (idx < subLines.Size()) {
 					array<String> parts;
 					subLines[idx].Split(parts, "\t", false);
-					if (parts.Size() >= 3) desc = parts[2];
+					if (parts.Size() >= 3) objDesc = parts[2];
 				}
+				objLabel = "Sub-quest";
 			}
-			if (desc.Length() > 200) desc = String.Format("%s..", desc.Left(198));
-			int descY = popupY + 24;
-			int descMaxW = leftW - 8;
-			array<String> descWords;
-			desc.Split(descWords, " ", false);
-			String descLine = "";
-			int ly = descY;
-			for (int w = 0; w < descWords.Size(); w++)
+			screen.DrawText(f, Font.CR_GOLD, popupX + 8, objSectionY, objLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int objDescY = sect1Y + 10;  // line up with first row of Prereqs/Subquests
+			if (objDesc.Length() > 200) objDesc = String.Format("%s..", objDesc.Left(198));
+			array<String> objWords;
+			objDesc.Split(objWords, " ", false);
+			String objLine = "";
+			ly = objDescY;
+			lineCount = 0;
+			for (int w = 0; w < objWords.Size() && lineCount < maxLinesBottom; w++)
 			{
-				String nextLine = descLine.Length() > 0 ? String.Format("%s %s", descLine, descWords[w]) : descWords[w];
-				if (f.StringWidth(nextLine) > descMaxW && descLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, descLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; descLine = descWords[w]; }
-				else descLine = nextLine;
+				String nextLine = objLine.Length() > 0 ? String.Format("%s %s", objLine, objWords[w]) : objWords[w];
+				if (f.StringWidth(nextLine) > descMaxW && objLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, objLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; lineCount++; objLine = objWords[w]; }
+				else objLine = nextLine;
 			}
-			if (descLine.Length() > 0) screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, descLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			if (objLine.Length() > 0 && lineCount < maxLinesBottom) screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, objLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			// Objectives: top half of right pane (focus 0), full width to screen edge
 			screen.DrawText(f, Font.CR_GOLD, rightX, sect0Y - 2, "Objectives", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			for (int i = 0; i < maxRowsObj && questDetailObjScroll + i < objQ.Size(); i++)
@@ -1319,6 +1350,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			String toggleStr = String.Format("%s  %s  %s", cb1, cb2, cb3);
 			int toggleW = f.StringWidth(toggleStr);
 			screen.DrawText(f, Font.CR_GRAY, popupX + (popupW - toggleW) / 2 + 60, popupY + 34, toggleStr, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
+			String trackerQuestId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : 0;
 			int newScrollOffset = scrollFromCvar;
@@ -1356,7 +1389,8 @@ class OASISInventoryOverlayHandler : EventHandler
 					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
 					if (qName.Length() > 32) qName = String.Format("%s..", qName.Left(30));
 					bool selected = (drawOffset + i == questSelectedIndex);
-					int cr = selected ? Font.CR_GOLD : Font.CR_WHITE;
+					bool isTracker = (trackerQuestId.Length() > 0 && parts[1].Compare(trackerQuestId) == 0);
+					int cr = selected ? Font.CR_GOLD : (isTracker ? Font.CR_GREEN : Font.CR_WHITE);
 					if (status.Compare("Completed") == 0) cr = selected ? Font.CR_GREEN : Font.CR_GRAY;
 					screen.DrawText(f, cr, col1X, y, qName, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 					screen.DrawText(f, cr, col2X, y, String.Format("%s%%", pctStr), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
