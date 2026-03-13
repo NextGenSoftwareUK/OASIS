@@ -216,6 +216,47 @@ public class StarApiClientUnitTests
     }
 
     [Fact]
+    public void SerializeQuestsForGame_WithObjectives_IncludesObjectiveLines()
+    {
+        var quests = new List<StarQuestInfo>
+        {
+            new()
+            {
+                Id = "q1",
+                Name = "Quest With Objs",
+                Description = "Desc",
+                Status = "InProgress",
+                Objectives = new List<StarQuestObjective>
+                {
+                    new() { Id = "o1", Description = "Objective 1", IsCompleted = false },
+                    new() { Id = "o2", Description = "Objective 2", IsCompleted = true }
+                }
+            }
+        };
+        var serialized = StarApiClient.SerializeQuestsForGame(quests);
+        Assert.NotNull(serialized);
+        Assert.Contains("Q\tq1\t", serialized);
+        Assert.Contains("O\t", serialized);
+        Assert.Contains("Objective 1", serialized);
+        Assert.Contains("Objective 2", serialized);
+    }
+
+    [Fact]
+    public void SerializeQuestsForGame_WithSubquestParentId_PreservesParentQuestId()
+    {
+        var quests = new List<StarQuestInfo>
+        {
+            new() { Id = "parent-1", Name = "Parent", Description = "P", Status = "InProgress", ParentQuestId = "" },
+            new() { Id = "child-1", Name = "Sub", Description = "S", Status = "NotStarted", ParentQuestId = "parent-1" }
+        };
+        var serialized = StarApiClient.SerializeQuestsForGame(quests);
+        Assert.NotNull(serialized);
+        Assert.Contains("parent-1", serialized);
+        Assert.Contains("child-1", serialized);
+        Assert.Contains("Sub", serialized);
+    }
+
+    [Fact]
     public async Task AddQuestObjectiveAsync_WhenQuestIdEmpty_ReturnsInvalidParam()
     {
         using var client = new StarApiClient();

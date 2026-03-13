@@ -77,8 +77,8 @@ public sealed class StarQuestInfo
     public List<string> PrerequisiteQuestIds { get; init; } = new();
     /// <summary>Parent quest ID when this quest is a sub-quest. Empty Guid string for top-level quests.</summary>
     public string ParentQuestId { get; init; } = string.Empty;
-    /// <summary>True when this quest is a checklist objective under a parent; false when it is a full sub-quest. From API IsObjective.</summary>
-    public bool IsObjective { get; init; }
+    // Obsolete: objectives are the Quest.Objectives collection; no longer separate child quests.
+    // public bool IsObjective { get; init; }
 }
 
 public sealed class StarNftInfo
@@ -101,7 +101,7 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Cached serialized quest list for star_api_get_quests_string. Populated by background refresh so the game thread never blocks.</summary>
     private string? _questsCacheString;
     /// <summary>Cached full quest list from last successful load. Used by GetTopLevelQuestsFromCache, GetQuestSubQuestsFromCache, GetQuestPrereqsFromCache.</summary>
-    private List<StarQuestInfo>? _cachedQuestList;
+    private List<StarQuestInfo>? _cachedQuestList; //TODO: Why are there 2 caches?
     /// <summary>True while a background quest refresh is running; prevents multiple concurrent refreshes.</summary>
     private bool _questsRefreshInProgress;
     /// <summary>Last (total, top) logged for TryGetTopLevelQuestsCache; log only when changed to avoid spam.</summary>
@@ -769,7 +769,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Filter cached quest list to objectives (child quests with IsObjective=true) of the given parent. Returns empty list if cache not ready.</summary>
+    /// <summary>Get objectives for a parent quest from the quest's Objectives collection (Quest.Objectives). Returns one StarQuestInfo per objective so callers get a list; objectives are no longer separate child quests.</summary>
     public List<StarQuestInfo> GetQuestObjectivesFromCache(string parentQuestId)
     {
         if (string.IsNullOrWhiteSpace(parentQuestId)) return new List<StarQuestInfo>();
@@ -777,11 +777,27 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedQuestList == null) return new List<StarQuestInfo>();
             var id = parentQuestId.Trim();
-            return _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase) && q.IsObjective).ToList();
+            var parent = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (parent?.Objectives == null || parent.Objectives.Count == 0) return new List<StarQuestInfo>();
+            var list = new List<StarQuestInfo>();
+            for (var i = 0; i < parent.Objectives.Count; i++)
+            {
+                var o = parent.Objectives[i];
+                list.Add(new StarQuestInfo
+                {
+                    Id = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id,
+                    Name = o.Description ?? "",
+                    Description = o.Description ?? "",
+                    Status = o.IsCompleted ? "Completed" : "InProgress",
+                    Objectives = new List<StarQuestObjective>(),
+                    ParentQuestId = id
+                });
+            }
+            return list;
         }
     }
 
-    /// <summary>Filter cached quest list to sub-quests (child quests with IsObjective=false) of the given parent. Returns empty list if cache not ready.</summary>
+    /// <summary>Filter cached quest list to sub-quests (child quests with ParentQuestId set). Sub-quests are full nested quests; objectives are on Quest.Objectives.</summary>
     public List<StarQuestInfo> GetQuestSubQuestsFromCache(string parentQuestId)
     {
         if (string.IsNullOrWhiteSpace(parentQuestId)) return new List<StarQuestInfo>();
@@ -789,7 +805,7 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedQuestList == null) return new List<StarQuestInfo>();
             var id = parentQuestId.Trim();
-            return _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase) && !q.IsObjective).ToList();
+            return _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
 
@@ -915,7 +931,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Get serialized objectives (child quests with IsObjective=true) for a parent quest. Same Q-line format as sub-quests. If API returned no child quests, fall back to parent's embedded Objectives array.</summary>
+    /// <summary>Get serialized objectives for a parent quest from the quest's Objectives collection (Quest.Objectives). Objectives are a property on Quest, not separate child quests.</summary>
     internal bool TryGetQuestObjectivesCache(string? parentQuestId, out string? cached)
     {
         cached = null;
@@ -924,36 +940,31 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
             var id = parentQuestId.Trim();
-            var objectives = _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase) && q.IsObjective).ToList();
-            if (_questsFilterLastLogObjectives != (id, objectives.Count))
-            {
-                _questsFilterLastLogObjectives = (id, objectives.Count);
-                StarApiExports.StarApiLogFileOnly($"[Quests] Filter: objectives for parent {id}: count={objectives.Count}");
-            }
-            if (objectives.Count > 0)
-            {
-                cached = SerializeQuestsForGame(objectives);
-                return true;
-            }
-            /* Fallback: API often returns only top-level quests with embedded Objectives array (no child Quest holons). Use that so the right panel shows checklist items. */
             var parent = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
-            if (parent?.Objectives != null && parent.Objectives.Count > 0)
+            if (parent != null && parent.Objectives != null && parent.Objectives.Count > 0)
             {
                 cached = SerializeObjectivesAsQuestLines(parent);
-                var fallbackCount = parent.Objectives.Count;
-                if (_questsFilterLastLogObjectives != (id, fallbackCount))
+                var count = parent.Objectives.Count;
+                if (_questsFilterLastLogObjectives != (id, count))
                 {
-                    _questsFilterLastLogObjectives = (id, fallbackCount);
-                    StarApiExports.StarApiLogFileOnly($"[Quests] Objectives fallback: parent {id} has {fallbackCount} embedded objectives");
+                    _questsFilterLastLogObjectives = (id, count);
+                    StarApiExports.StarApiLogFileOnly($"[Quests] Objectives for parent {id}: count={count} (from Quest.Objectives)");
                 }
             }
             else
+            {
+                if (parent != null && (parent.Objectives == null || parent.Objectives.Count == 0) && _questsFilterLastLogObjectives != (id, 0))
+                {
+                    _questsFilterLastLogObjectives = (id, 0);
+                    StarApiExports.StarApiLogFileOnly($"[Quests] Objectives: parent {id} found in cache but has 0 objectives (check API returns Quest.Objectives)");
+                }
                 cached = string.Empty;
+            }
             return true;
         }
     }
 
-    /// <summary>Get serialized sub-quests (child quests with IsObjective=false) for a parent quest for right panel.</summary>
+    /// <summary>Get serialized sub-quests (child quests with ParentQuestId set) for a parent quest for right panel. Objectives are on Quest.Objectives, not in this list.</summary>
     internal bool TryGetQuestSubQuestsCache(string? parentQuestId, out string? cached)
     {
         cached = null;
@@ -962,7 +973,7 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
             var id = parentQuestId.Trim();
-            var sub = _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase) && !q.IsObjective).ToList();
+            var sub = _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
             if (_questsFilterLastLogSubQuests != (id, sub.Count))
             {
                 _questsFilterLastLogSubQuests = (id, sub.Count);
@@ -973,7 +984,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Serialize a quest's objectives as Q-lines (id, name, desc, status, pct). Used when mapping from embedded Objectives array; cache path uses child quests with IsObjective.</summary>
+    /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI.</summary>
     private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
     {
         if (quest.Objectives == null || quest.Objectives.Count == 0) return string.Empty;
@@ -1866,7 +1877,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
 
-    /// <summary>Adds a sub-quest (full child quest with IsObjective=false) to an existing quest. Use for nested quests; use AddQuestObjectiveAsync for checklist objectives.</summary>
+    /// <summary>Adds a sub-quest (full child quest) to an existing quest. Use for nested quests; use AddQuestObjectiveAsync for checklist objectives (Quest.Objectives).</summary>
     public async Task<OASISResult<StarQuestInfo?>> AddSubQuestAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1906,7 +1917,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<StarQuestInfo?>> QueueAddSubQuestAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => AddSubQuestAsync(questId, description, name, gameSource, itemRequired, order, ct), cancellationToken);
 
-    /// <summary>Removes a sub-quest (child quest with IsObjective=false) from a quest.</summary>
+    /// <summary>Removes a sub-quest (child quest) from a quest.</summary>
     public async Task<OASISResult<bool>> RemoveSubQuestAsync(string parentQuestId, string subQuestId, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1998,11 +2009,11 @@ public sealed class StarApiClient : IDisposable
         if (!parseResult)
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
 
-        var quests = ParseQuestInfos(resultElement);
-        var idSummary = quests != null && quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests?.Count ?? 0} Ids={idSummary}");
+        var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
+        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} Ids={idSummary}");
         InvokeCallback(StarApiResultCode.Success);
-        return Success(quests, StarApiResultCode.Success, $"Loaded {quests?.Count ?? 0} quest(s) for avatar.");
+        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) for avatar.");
     }
 
     public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
@@ -2995,7 +3006,8 @@ public sealed class StarApiClient : IDisposable
                 if (objective.ValueKind != JsonValueKind.Object) continue;
                 /* Try PascalCase and camelCase so API serialization (e.g. System.Text.Json camelCase) is handled. */
                 var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
-                var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective") ?? string.Empty;
+                var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective")
+                    ?? GetStringProperty(objective, "Text") ?? GetStringProperty(objective, "text") ?? GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? string.Empty;
                 var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
                 var itemRequired = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
                 var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
@@ -3765,12 +3777,19 @@ public sealed class StarApiClient : IDisposable
                 continue;
 
             var objectives = new List<StarQuestObjective>();
-            if (TryGetProperty(questElement, "Objectives", out var objectiveElement) || TryGetProperty(questElement, "objectives", out objectiveElement))
+            if (TryGetProperty(questElement, "Objectives", out var objectiveElement) || TryGetProperty(questElement, "objectives", out objectiveElement)
+                || TryGetProperty(questElement, "QuestObjectives", out objectiveElement) || TryGetProperty(questElement, "questObjectives", out objectiveElement))
                 objectives = ParseObjectivesFromElement(objectiveElement);
             if (objectives.Count == 0 && (TryGetProperty(questElement, "MetaData", out var metaEl) || TryGetProperty(questElement, "metaData", out metaEl)) && metaEl.ValueKind == JsonValueKind.Object)
             {
-                if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj))
+                if (TryGetProperty(metaEl, "Objectives", out var metaObj) || TryGetProperty(metaEl, "objectives", out metaObj)
+                    || TryGetProperty(metaEl, "QuestObjectives", out metaObj) || TryGetProperty(metaEl, "questObjectives", out metaObj))
                     objectives = ParseObjectivesFromElement(metaObj);
+                /* Backend may nest objectives under MetaData.MapMetaData (e.g. custom OASIS property storage). */
+                if (objectives.Count == 0 && (TryGetProperty(metaEl, "MapMetaData", out var mapMeta) || TryGetProperty(metaEl, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object
+                    && (TryGetProperty(mapMeta, "Objectives", out var mapObj) || TryGetProperty(mapMeta, "objectives", out mapObj)
+                        || TryGetProperty(mapMeta, "QuestObjectives", out mapObj) || TryGetProperty(mapMeta, "questObjectives", out mapObj)))
+                    objectives = ParseObjectivesFromElement(mapObj);
             }
             /* Fallback: API may use "Quest" or "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
             if (objectives.Count == 0 && (TryGetProperty(questElement, "Quests", out var qArr) || TryGetProperty(questElement, "Quest", out qArr)) && qArr.ValueKind == JsonValueKind.Array)
@@ -3823,8 +3842,7 @@ public sealed class StarApiClient : IDisposable
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
                 Objectives = objectives,
                 PrerequisiteQuestIds = prereqIds,
-                ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
-                IsObjective = GetBoolProperty(questElement, "IsObjective") || GetBoolProperty(questElement, "isObjective")
+                ParentQuestId = (parentQuestId ?? string.Empty).Trim()
             });
 
             /* Flatten nested sub-quests: SubQuests or Quest/Quests array of full quest objects (have Id + Name) so right-panel subquest list is populated. */
@@ -3865,8 +3883,7 @@ public sealed class StarApiClient : IDisposable
                         Status = GetStringProperty(childEl, "Status") ?? GetStringProperty(childEl, "status") ?? string.Empty,
                         Objectives = childObj,
                         PrerequisiteQuestIds = childPrereqIds,
-                        ParentQuestId = parentId,
-                        IsObjective = GetBoolProperty(childEl, "IsObjective") || GetBoolProperty(childEl, "isObjective")
+                        ParentQuestId = parentId
                     });
                 }
             }
@@ -3916,7 +3933,6 @@ public sealed class StarApiClient : IDisposable
             Status = GetStringProperty(element, "Status") ?? string.Empty,
             Objectives = objectives,
             ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
-            IsObjective = GetBoolProperty(element, "IsObjective")
         };
     }
 
@@ -4526,7 +4542,7 @@ public static unsafe class StarApiExports
         }
     }
 
-    /// <summary>Write serialized objectives (child quests with IsObjective=true) of parent_quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    /// <summary>Write serialized objectives from the quest's Objectives collection (Quest.Objectives) for parent_quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objectives_string", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetQuestObjectivesString(sbyte* parentQuestId, sbyte* buf, nuint bufSize)
     {
