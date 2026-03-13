@@ -4159,6 +4159,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static char sq_name[OQ_LINKS_MAX][128];
         static char sq_desc[OQ_LINKS_MAX][256];
         static int sq_count;
+#ifdef STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION
+        static int s_quest_objectives_cache_version = -1;
+#endif
         pr_count = 0;
         obj_count = 0;
         sq_count = 0;
@@ -4167,6 +4170,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (nr > 0) prereq_buf[nr] = '\0';
             int no = star_api_get_quest_objectives_string(panel_quest_id, objectives_buf, sizeof(objectives_buf));
             if (no > 0) objectives_buf[no] = '\0';
+#ifdef STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION
+            /* When objectives cache version changes (on-demand fetch merged), re-fetch so the list refreshes immediately. */
+            {
+                int obj_ver = star_api_get_quest_objectives_cache_version();
+                if (obj_ver != s_quest_objectives_cache_version) {
+                    s_quest_objectives_cache_version = obj_ver;
+                    no = star_api_get_quest_objectives_string(panel_quest_id, objectives_buf, sizeof(objectives_buf));
+                    if (no > 0) objectives_buf[no] = '\0';
+                }
+            }
+#endif
             int ns = star_api_get_quest_sub_quests_string(panel_quest_id, subquest_buf, sizeof(subquest_buf));
             if (ns > 0) subquest_buf[ns] = '\0';
             /* Parse prereq_buf: lines "Q\tid\tname\tdesc\tstatus\tpct" */

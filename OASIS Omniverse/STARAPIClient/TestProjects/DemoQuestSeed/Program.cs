@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.STARAPI.Client.Tests;
 
@@ -52,8 +53,54 @@ internal static class Program
         }
         Console.WriteLine("Authenticated.");
 
-        // Resolve avatar ID so create/start requests send X-Avatar-Id (same avatar as when game fetches quests).
-        var activeCheck = await client.GetActiveQuestsAsync();
+
+        OASISResult<List<StarQuestInfo>> quests = await client.GetAllQuestsForAvatarAsync();
+
+        if (quests != null && quests.Result != null && !quests.IsError)
+        {
+            var list = quests.Result;
+            int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+            int subQuests = list.Count(q => !string.IsNullOrWhiteSpace(q.ParentQuestId));
+            int topLevel = list.Count(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString());
+
+            Console.WriteLine($"Loaded {list.Count} quest(s): {topLevel} top-level, {subQuests} sub-quests, {withObjectives} with objectives.");
+            Console.WriteLine();
+
+            foreach (StarQuestInfo quest in list)
+            {
+                if (quest.Objectives != null && quest.Objectives.Count > 0)
+                {
+                    Console.WriteLine($"  [{quest.Id}] {quest.Name}: {quest.Objectives.Count} objective(s)");
+                    foreach (var obj in quest.Objectives)
+                        Console.WriteLine($"      - {obj.Description} (GameSource: {obj.GameSource}, Done: {obj.IsCompleted})");
+                }
+            }
+
+            string qstring = StarApiClient.SerializeQuestsForGame(list);
+            Console.WriteLine();
+            Console.WriteLine($"Serialized quest list: {qstring?.Length ?? 0} chars.");
+            if (!string.IsNullOrEmpty(qstring))
+            {
+                int previewLen = Math.Min(400, qstring.Length);
+                Console.WriteLine($"  Preview: {qstring[..previewLen].Replace("\t", "|").Replace("\n", " ")}...");
+            }
+
+            // Verify cache path: objectives for first quest that has them (same path Doom/Quake use for detail panel).
+            var firstWithObjectives = list.FirstOrDefault(q => q.Objectives != null && q.Objectives.Count > 0);
+            if (firstWithObjectives != null)
+            {
+                var fromCache = client.GetQuestObjectivesFromCache(firstWithObjectives.Id);
+                Console.WriteLine();
+                Console.WriteLine($"Cache check (objectives for {firstWithObjectives.Id}): GetQuestObjectivesFromCache returned {fromCache?.Count ?? 0} line(s).");
+            }
+            Console.WriteLine();
+        }
+        else
+            Console.WriteLine($"Error Loading Quests: {quests?.Message ?? "Unknown"}");
+
+
+            // Resolve avatar ID so create/start requests send X-Avatar-Id (same avatar as when game fetches quests).
+            var activeCheck = await client.GetActiveQuestsAsync();
         if (activeCheck.IsError)
             Console.WriteLine($"Warning: Could not resolve avatar ID: {activeCheck.Message}. Quests will use JWT avatar.");
         else
