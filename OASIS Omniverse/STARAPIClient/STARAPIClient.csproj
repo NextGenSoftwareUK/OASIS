@@ -1,15 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>star_api</AssemblyName>
+    <!-- NativeAOT: required for native publish; NETSDK1207 fix when using SDK 9 -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <!-- When not publishing AOT, use ProjectReference. When PublishAot=true, use Reference to avoid NETSDK1207 (netstandard2.1 in graph). -->
+    <ProjectReference Condition="'$(PublishAot)' != 'true'" Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <Reference Condition="'$(PublishAot)' == 'true'" Include="NextGenSoftware.OASIS.API.Contracts">
+      <HintPath>..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\bin\Release\netstandard2.1\NextGenSoftware.OASIS.API.Contracts.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

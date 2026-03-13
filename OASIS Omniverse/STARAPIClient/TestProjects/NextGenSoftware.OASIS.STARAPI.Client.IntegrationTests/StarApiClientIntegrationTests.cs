@@ -1,3 +1,4 @@
+using NextGenSoftware.OASIS.API.Contracts;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.STARAPI.Client.Tests;
 
@@ -131,7 +132,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             var createQuestFirst = await client.CreateCrossGameQuestAsync(
                 "Cross Quest",
                 "Integration quest",
-                [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false }]);
+                [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
             questBlockSucceeded = !createQuestFirst.IsError;
             createdQuest = createQuestFirst.Result;
         }
@@ -192,7 +193,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
                 var createQuest = await client.CreateCrossGameQuestAsync(
                     "Cross Quest",
                     "Integration quest",
-                    [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false }]);
+                    [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
                 Assert.False(createQuest.IsError);
             }
         }
@@ -387,8 +388,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var unique = Guid.NewGuid().ToString("N")[..8];
         var objectives = new List<StarQuestObjective>
         {
-            new() { Description = "RealAPI Obj A " + unique, GameSource = "ODOOM", ItemRequired = "Key", IsCompleted = false },
-            new() { Description = "RealAPI Obj B " + unique, GameSource = "OQUAKE", ItemRequired = "Health", IsCompleted = false }
+            new() { Description = "RealAPI Obj A " + unique, GameSource = "ODOOM", Order = 0, IsCompleted = false },
+            new() { Description = "RealAPI Obj B " + unique, GameSource = "OQUAKE", Order = 1, IsCompleted = false }
         };
         var create = await client.CreateCrossGameQuestAsync($"RealApiObjTest-{unique}", "Real API objectives/subquests test", objectives);
         if (create.IsError)
@@ -563,8 +564,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var unique = Guid.NewGuid().ToString("N")[..8];
         var objectives = new List<StarQuestObjective>
         {
-            new() { Description = "Collect key in Doom", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
-            new() { Description = "Defeat boss", GameSource = "Doom", ItemRequired = "BossKill", IsCompleted = false }
+            new() { Description = "Collect key in Doom", GameSource = "Doom", Order = 0, IsCompleted = false },
+            new() { Description = "Defeat boss", GameSource = "Doom", Order = 1, IsCompleted = false }
         };
 
         var create = await client.CreateCrossGameQuestAsync($"ObjTestQuest-{unique}", "Quest objectives test", objectives);
@@ -622,7 +623,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create = await client.CreateCrossGameQuestAsync(
             "Fake Quest",
             "Fake quest with objectives",
-            [new StarQuestObjective { Description = "Obj 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false }]);
+            [new StarQuestObjective { Description = "Obj 1", GameSource = "Doom", Order = 0, IsCompleted = false }]);
         Assert.False(create.IsError);
         Assert.NotNull(create.Result);
         Assert.False(string.IsNullOrEmpty(create.Result.Id));
@@ -657,7 +658,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create1 = await client.CreateCrossGameQuestAsync(
             $"PrereqQuest-{unique}",
             "First quest (will be prerequisite)",
-            [new StarQuestObjective { Description = "Get key in ODOOM", GameSource = "ODOOM", ItemRequired = "Key", IsCompleted = false }]);
+            [new StarQuestObjective { Description = "Get key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false }]);
         if (create1.IsError || create1.Result == null)
             return;
 
@@ -665,8 +666,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             $"MainQuest-{unique}",
             "Quest with objectives and sub-quest",
             [
-                new StarQuestObjective { Description = "Collect armor", GameSource = "ODOOM", ItemRequired = "Armor", IsCompleted = false },
-                new StarQuestObjective { Description = "Health in Quake", GameSource = "OQUAKE", ItemRequired = "Health", IsCompleted = false }
+                new StarQuestObjective { Description = "Collect armor", GameSource = "ODOOM", Order = 0, IsCompleted = false },
+                new StarQuestObjective { Description = "Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
             ]);
         Assert.False(create2.IsError, create2.Message ?? "Create main quest failed");
         Assert.NotNull(create2.Result);

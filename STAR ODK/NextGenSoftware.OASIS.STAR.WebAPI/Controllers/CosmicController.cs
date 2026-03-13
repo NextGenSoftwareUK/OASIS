@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     [Route("api/[controller]")]
     public class CosmicController : STARControllerBase
     {
-        private COSMICManager _cosmicManager = null;
+        private COSMICManager? _cosmicManager = null;
         private static readonly SemaphoreSlim _bootLock = new(1, 1);
         private static readonly NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI _starAPI = new NextGenSoftware.OASIS.API.Native.EndPoint.STARAPI(new NextGenSoftware.OASIS.STAR.DNA.STARDNA());
 

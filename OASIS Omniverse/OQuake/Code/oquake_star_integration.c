@@ -4336,21 +4336,21 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         int n_objectives = obj_count;
         int n_subquest_list = sq_count;
 
-        /* Key handling: Space switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel */
+        /* Key handling: Tab switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel. Tab is blocked from engine while popup is open. */
         {
-            static int s_enter_key = -2, s_kp_enter_key = -2, s_space_key = -2;
+            static int s_enter_key = -2, s_kp_enter_key = -2, s_tab_key = -2;
             if (s_enter_key == -2) s_enter_key = Key_StringToKeynum("enter");
             if (s_kp_enter_key == -2) s_kp_enter_key = Key_StringToKeynum("kp_enter");
-            if (s_space_key == -2) s_space_key = Key_StringToKeynum("space");
+            if (s_tab_key == -2) s_tab_key = Key_StringToKeynum("tab");
             if (s_enter_key < 0) s_enter_key = K_ENTER;
             if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
-            if (s_space_key < 0) s_space_key = K_SPACE;
+            if (s_tab_key < 0) s_tab_key = 9;  /* K_TAB fallback if key lookup fails */
             if (g_quest_drill_parent_id[0] && OQ_KeyPressed(K_ESCAPE)) {
                 g_quest_drill_parent_id[0] = '\0';
                 g_quest_selected_index = 0;
                 g_quest_scroll = 0;
             }
-            if (OQ_KeyPressed(s_space_key) && (n_prereq > 0 || n_objectives > 0 || n_subquest_list > 0)) {
+            if (OQ_KeyPressed(s_tab_key) && (n_prereq > 0 || n_objectives > 0 || n_subquest_list > 0)) {
                 for (;;) {
                     g_quest_focus++;
                     if (g_quest_focus > OQ_QUEST_FOCUS_SUBQUEST) g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -4481,6 +4481,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 if (g_quest_scroll < 0) g_quest_scroll = 0;
             }
         }
+        /* Tab is used for list switch above. Do NOT clear keydown[Tab] here: that runs in the draw path after the engine has read input, which can desync the engine's key state and make the scoreboard stay open until the popup is closed. The engine should check OQuake_STAR_IsQuestPopupOpen() before handling Tab for scoreboard/+showscores so Tab does not open the scoreboard while the quest popup is open. */
 
         if (g_quest_selected_index >= left_list_count && left_list_count > 0)
             g_quest_selected_index = left_list_count - 1;
@@ -4740,8 +4741,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         /* Bottom info text: main list = centre minus 10 (left 10); detail/drill = centre plus 10 (right 10) */
         {
             const char* footer = g_quest_drill_parent_id[0]
-                ? "B/N/M=Filter  Space=Switch  PgUp/PgDn=Page  Home/End  Enter=Start/Set  Escape=Back  Q=Close"
-                : "B/N/M=Filter  Space=Switch  PgUp/PgDn=Page  Home/End=Top/Bottom  Enter=Start/Set  Q=Close";
+                ? "B/N/M=Filter  Tab=Switch  PgUp/PgDn=Page  Home/End  Enter=Start/Set  Escape=Back  Q=Close"
+                : "B/N/M=Filter  Tab=Switch  PgUp/PgDn=Page  Home/End=Top/Bottom  Enter=Start/Set  Q=Close";
             int footer_len = (int)strlen(footer);
             int footer_x = qx + (qw - footer_len * 8) / 2;
             if (g_quest_drill_parent_id[0])

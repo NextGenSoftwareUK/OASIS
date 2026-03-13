@@ -28,8 +28,8 @@ function Copy-FileWithRetry {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectDir = Join-Path $scriptDir ".."
 $projectPath = Join-Path $projectDir "STARAPIClient.csproj"
-$publishDir = Join-Path $projectDir "bin/Release/net8.0/$Runtime/publish"
-$nativeDir = Join-Path $projectDir "bin/Release/net8.0/$Runtime/native"
+$publishDir = Join-Path $projectDir "bin/Release/net9.0/$Runtime/publish"
+$nativeDir = Join-Path $projectDir "bin/Release/net9.0/$Runtime/native"
 $dllPath = Join-Path $publishDir "star_api.dll"
 $libPath = Join-Path $nativeDir "star_api.lib"
 $headerPath = Join-Path $projectDir "star_api.h"
@@ -52,6 +52,14 @@ if (!$needBuild -and (Test-Path $dllPath)) {
     Write-Host "STARAPIClient unchanged (star_api.dll is up to date), skipping build."
 } else {
     if (!(Test-Path $dllPath)) { Write-Host "STARAPIClient not built yet or output missing; building..." }
+    # Build Contracts first so STARAPIClient can Reference the DLL when PublishAot=true (avoids NETSDK1207 from netstandard2.1 in graph).
+    $contractsPath = Join-Path $projectDir "..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj"
+    $contractsPath = [System.IO.Path]::GetFullPath($contractsPath)
+    if (Test-Path $contractsPath) {
+        Write-Host "Building OASIS.API.Contracts (required for NativeAOT publish)..."
+        dotnet build $contractsPath -c Release --verbosity quiet
+        if ($LASTEXITCODE -ne 0) { throw "Contracts build failed." }
+    }
     Write-Host "Publishing NativeAOT WEB5 STAR API wrapper..."
     dotnet publish $projectPath -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 }

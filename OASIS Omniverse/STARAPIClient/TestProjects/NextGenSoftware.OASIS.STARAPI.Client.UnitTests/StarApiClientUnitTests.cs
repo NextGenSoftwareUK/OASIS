@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.API.Contracts;
 using NextGenSoftware.OASIS.STARAPI.Client;
 using NextGenSoftware.OASIS.Common;
 
@@ -51,7 +52,7 @@ public class StarApiClientUnitTests
         var queueObjective = await client.QueueCompleteQuestObjectiveAsync("quest", "objective", "game");
         var flushObjective = await client.FlushQuestObjectiveJobsAsync();
         var completeQuest = await client.CompleteQuestAsync("quest");
-        var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", ItemRequired = "i" }]);
+        var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", Order = 0, IsCompleted = false }]);
         var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
         var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var addSubQuest = await client.AddSubQuestAsync("quest-id", "Sub-quest desc", gameSource: "ODOOM");

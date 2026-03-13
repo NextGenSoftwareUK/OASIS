@@ -717,7 +717,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Adds a sub-quest (full child quest with IsObjective=false) to an existing quest. Use for nested quests that can have their own objectives; use POST objectives for checklist items.
+        /// Adds a sub-quest (full child quest) to an existing quest. Use for nested quests that can have their own objectives; use POST objectives for checklist items.
         /// </summary>
         /// <param name="id">The parent quest ID.</param>
         /// <param name="request">Sub-quest name, description, and optional game source / item required.</param>
@@ -749,8 +749,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     QuestType = QuestType.SideQuest,
                     Requirements = new List<string>(),
                     GameSource = request.GameSource?.Trim() ?? "",
-                    ItemRequired = request.ItemRequired?.Trim() ?? "",
-                    IsObjective = false,
                     ParentQuestId = id
                 };
                 subQuest.STARNETDNA = new STARNETDNA
@@ -777,7 +775,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Removes a sub-quest (child quest with IsObjective=false) from a quest.
+        /// Removes a sub-quest (child quest) from a quest.
         /// </summary>
         /// <param name="parentId">The parent quest ID.</param>
         /// <param name="subQuestId">The sub-quest ID to remove.</param>
@@ -1399,18 +1397,66 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
-        /// <summary>Creates an Objective (Option B) from a create/add objective request. Populates requirement dicts so the computed Objective string is meaningful.</summary>
+        /// <summary>Creates an Objective (Option B) from a create/add objective request. Uses Dictionaries when present; otherwise populates from ItemRequired/Description to match backend Objective.</summary>
         private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
         {
             var gameSource = string.IsNullOrWhiteSpace(request.GameSource) ? "Default" : request.GameSource.Trim();
-            var itemOrDesc = string.IsNullOrWhiteSpace(request.ItemRequired) ? (request.Description?.Trim() ?? request.Name?.Trim() ?? "Complete") : request.ItemRequired.Trim();
             var objective = new Objective
             {
                 Id = Guid.NewGuid(),
-                Order = request.Order >= 0 ? request.Order : order
+                Order = request.Order >= 0 ? request.Order : order,
+                IsCompleted = request.IsCompleted,
+                CompletedAt = request.CompletedAt,
+                CompletedBy = request.CompletedBy
             };
-            objective.NeedToCollectItems[gameSource] = new List<string> { itemOrDesc };
+            if (!string.IsNullOrWhiteSpace(request.Description))
+                objective.ObjectiveText = request.Description.Trim();
+            if (request.Dictionaries != null)
+            {
+                CopyDictionariesToObjective(request.Dictionaries, objective);
+            }
+            else
+            {
+                var itemOrDesc = string.IsNullOrWhiteSpace(request.ItemRequired) ? (request.Description?.Trim() ?? request.Name?.Trim() ?? "Complete") : request.ItemRequired.Trim();
+                objective.NeedToCollectItems[gameSource] = new List<string> { itemOrDesc };
+            }
             return objective;
+        }
+
+        private static void CopyDictionariesToObjective(QuestObjectiveDictionariesRequest from, Objective to)
+        {
+            if (from.NeedToCollectArmor != null) foreach (var kv in from.NeedToCollectArmor) to.NeedToCollectArmor[kv.Key] = kv.Value;
+            if (from.NeedToCollectAmmo != null) foreach (var kv in from.NeedToCollectAmmo) to.NeedToCollectAmmo[kv.Key] = kv.Value;
+            if (from.NeedToCollectHealth != null) foreach (var kv in from.NeedToCollectHealth) to.NeedToCollectHealth[kv.Key] = kv.Value;
+            if (from.NeedToCollectWeapons != null) foreach (var kv in from.NeedToCollectWeapons) to.NeedToCollectWeapons[kv.Key] = kv.Value;
+            if (from.NeedToCollectPowerups != null) foreach (var kv in from.NeedToCollectPowerups) to.NeedToCollectPowerups[kv.Key] = kv.Value;
+            if (from.NeedToCollectItems != null) foreach (var kv in from.NeedToCollectItems) to.NeedToCollectItems[kv.Key] = kv.Value;
+            if (from.NeedToCollectKeys != null) foreach (var kv in from.NeedToCollectKeys) to.NeedToCollectKeys[kv.Key] = kv.Value;
+            if (from.NeedToKillMonsters != null) foreach (var kv in from.NeedToKillMonsters) to.NeedToKillMonsters[kv.Key] = kv.Value;
+            if (from.NeedToCompleteInMins != null) foreach (var kv in from.NeedToCompleteInMins) to.NeedToCompleteInMins[kv.Key] = kv.Value;
+            if (from.NeedToEarnKarma != null) foreach (var kv in from.NeedToEarnKarma) to.NeedToEarnKarma[kv.Key] = kv.Value;
+            if (from.NeedToEarnXP != null) foreach (var kv in from.NeedToEarnXP) to.NeedToEarnXP[kv.Key] = kv.Value;
+            if (from.NeedToGoToGeoHotSpots != null) foreach (var kv in from.NeedToGoToGeoHotSpots) to.NeedToGoToGeoHotSpots[kv.Key] = kv.Value;
+            if (from.NeedToCompleteLevel != null) foreach (var kv in from.NeedToCompleteLevel) to.NeedToCompleteLevel[kv.Key] = kv.Value;
+            if (from.NeedToUseWeapons != null) foreach (var kv in from.NeedToUseWeapons) to.NeedToUseWeapons[kv.Key] = kv.Value;
+            if (from.NeedToUsePowerups != null) foreach (var kv in from.NeedToUsePowerups) to.NeedToUsePowerups[kv.Key] = kv.Value;
+            if (from.NeedToVisitLocations != null) foreach (var kv in from.NeedToVisitLocations) to.NeedToVisitLocations[kv.Key] = kv.Value;
+            if (from.NeedToSurviveMins != null) foreach (var kv in from.NeedToSurviveMins) to.NeedToSurviveMins[kv.Key] = kv.Value;
+            if (from.ArmorCollected != null) foreach (var kv in from.ArmorCollected) to.ArmorCollected[kv.Key] = kv.Value;
+            if (from.AmmoCollected != null) foreach (var kv in from.AmmoCollected) to.AmmoCollected[kv.Key] = kv.Value;
+            if (from.HealthCollected != null) foreach (var kv in from.HealthCollected) to.HealthCollected[kv.Key] = kv.Value;
+            if (from.WeaponsCollected != null) foreach (var kv in from.WeaponsCollected) to.WeaponsCollected[kv.Key] = kv.Value;
+            if (from.PowerupsCollected != null) foreach (var kv in from.PowerupsCollected) to.PowerupsCollected[kv.Key] = kv.Value;
+            if (from.ItemsCollected != null) foreach (var kv in from.ItemsCollected) to.ItemsCollected[kv.Key] = kv.Value;
+            if (from.KeysCollected != null) foreach (var kv in from.KeysCollected) to.KeysCollected[kv.Key] = kv.Value;
+            if (from.MonstersKilled != null) foreach (var kv in from.MonstersKilled) to.MonstersKilled[kv.Key] = kv.Value;
+            if (from.TimeStarted != null) foreach (var kv in from.TimeStarted) to.TimeStarted[kv.Key] = kv.Value;
+            if (from.TimeEnded != null) foreach (var kv in from.TimeEnded) to.TimeEnded[kv.Key] = kv.Value;
+            if (from.TimeTaken != null) foreach (var kv in from.TimeTaken) to.TimeTaken[kv.Key] = kv.Value;
+            if (from.KarmaEarnt != null) foreach (var kv in from.KarmaEarnt) to.KarmaEarnt[kv.Key] = kv.Value;
+            if (from.XPEarnt != null) foreach (var kv in from.XPEarnt) to.XPEarnt[kv.Key] = kv.Value;
+            if (from.GeoHotSpotsArrived != null) foreach (var kv in from.GeoHotSpotsArrived) to.GeoHotSpotsArrived[kv.Key] = kv.Value;
+            if (from.LevelsCompleted != null) foreach (var kv in from.LevelsCompleted) to.LevelsCompleted[kv.Key] = kv.Value;
         }
     }
 
@@ -1425,7 +1471,44 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public List<QuestObjectiveRequest>? Objectives { get; set; }
     }
 
-    /// <summary>Objective (sub-quest) payload for create or add objective.</summary>
+    /// <summary>Game-keyed requirement/progress dictionaries for objectives (matches backend IQuestObjectiveDictionaries). All optional.</summary>
+    public class QuestObjectiveDictionariesRequest
+    {
+        public Dictionary<string, List<string>>? NeedToCollectArmor { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectAmmo { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectHealth { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectWeapons { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectPowerups { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectItems { get; set; }
+        public Dictionary<string, List<string>>? NeedToCollectKeys { get; set; }
+        public Dictionary<string, List<string>>? NeedToKillMonsters { get; set; }
+        public Dictionary<string, List<string>>? NeedToCompleteInMins { get; set; }
+        public Dictionary<string, List<string>>? NeedToEarnKarma { get; set; }
+        public Dictionary<string, List<string>>? NeedToEarnXP { get; set; }
+        public Dictionary<string, List<string>>? NeedToGoToGeoHotSpots { get; set; }
+        public Dictionary<string, List<string>>? NeedToCompleteLevel { get; set; }
+        public Dictionary<string, List<string>>? NeedToUseWeapons { get; set; }
+        public Dictionary<string, List<string>>? NeedToUsePowerups { get; set; }
+        public Dictionary<string, List<string>>? NeedToVisitLocations { get; set; }
+        public Dictionary<string, List<string>>? NeedToSurviveMins { get; set; }
+        public Dictionary<string, List<string>>? ArmorCollected { get; set; }
+        public Dictionary<string, List<string>>? AmmoCollected { get; set; }
+        public Dictionary<string, List<string>>? HealthCollected { get; set; }
+        public Dictionary<string, List<string>>? WeaponsCollected { get; set; }
+        public Dictionary<string, List<string>>? PowerupsCollected { get; set; }
+        public Dictionary<string, List<string>>? ItemsCollected { get; set; }
+        public Dictionary<string, List<string>>? KeysCollected { get; set; }
+        public Dictionary<string, List<string>>? MonstersKilled { get; set; }
+        public Dictionary<string, List<string>>? TimeStarted { get; set; }
+        public Dictionary<string, List<string>>? TimeEnded { get; set; }
+        public Dictionary<string, List<string>>? TimeTaken { get; set; }
+        public Dictionary<string, List<string>>? KarmaEarnt { get; set; }
+        public Dictionary<string, List<string>>? XPEarnt { get; set; }
+        public Dictionary<string, List<string>>? GeoHotSpotsArrived { get; set; }
+        public Dictionary<string, List<string>>? LevelsCompleted { get; set; }
+    }
+
+    /// <summary>Objective (sub-quest) payload for create or add objective. Matches backend Objective; optional Dictionaries for full requirement/progress.</summary>
     public class QuestObjectiveRequest
     {
         public string Name { get; set; } = "";
@@ -1433,6 +1516,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string GameSource { get; set; } = "";
         public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
+        public bool IsCompleted { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public Guid? CompletedBy { get; set; }
+        public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
     public class AddQuestObjectiveRequest
@@ -1442,9 +1529,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string GameSource { get; set; } = "";
         public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
+        public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
-    /// <summary>Request body for adding a sub-quest (full child quest; IsObjective=false).</summary>
+    /// <summary>Request body for adding a sub-quest (full child quest).</summary>
     public class AddSubQuestRequest
     {
         public string Name { get; set; } = "";
@@ -1452,6 +1540,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string GameSource { get; set; } = "";
         public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
+        public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
     public class EditQuestRequest

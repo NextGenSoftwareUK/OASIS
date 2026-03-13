@@ -4,6 +4,21 @@ This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games
 
 **Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../ARCHITECTURE.md)** in the OASIS Omniverse folder for the full architecture and porting checklist.
 
+### Where do StarQuestInfo, StarQuestObjective come from?
+
+The quest/objective DTOs (**StarQuestInfo**, **StarQuestObjective**, **StarQuestObjectiveDictionaries**) are defined in the shared **OASIS.API.Contracts** project (`NextGenSoftware.OASIS.API.Contracts`). Both STARAPIClient and the STAR ODK Web API reference this project so the API contract stays in one place and the client stays light (no dependency on ONODE or OASIS.API.Core).
+
+### Why contract types instead of reusing backend domain types (Quest, Objective)?
+
+The client (and API responses) use these contract DTOs rather than the backend domain types (**Quest**, **Objective**, **QuestBase** in ONODE/Core). Reasons:
+
+1. **Dependency weight** – STARAPIClient is used by native games (Quake, Doom) via P/Invoke and only references **OASIS.Common**. The backend types live in **ONODE.Core** and **OASIS.API.Core**, which pull in HolonManager, storage providers, OASISBootLoader, and many packages (e.g. NBitcoin, AutoMapper, SQL client). Adding a reference to those would bloat the client and can cause version/conflict issues for a thin HTTP client.
+2. **Different roles** – Backend types have domain behavior (e.g. `Objective.BuildObjectiveString()`, persistence attributes, inheritance from TaskBase/Holon). The client only needs data transfer and JSON serialization; init-only DTOs and a flat shape are enough and keep the client simple.
+3. **API contract** – The real contract is the **wire format** (JSON). Client and server can each have their own in-memory representation. Keeping client DTOs in sync with that contract (and with backend model *shapes*) is done via documentation and the same property/dictionary names; we don’t need to share the same .NET types.
+4. **Versioning** – Client and server can ship on different schedules. Shared .NET types would force a client release for every backend model change; with separate DTOs, only the JSON contract and client parsing need to stay compatible.
+
+**If you want less duplication:** You could introduce a small **shared contracts** assembly (e.g. under OASIS Architecture) that only defines DTOs and is referenced by both STARAPIClient and the STAR ODK/ONODE. The backend would map between those DTOs and its rich domain types (Quest, Objective). The client would reference only that light contracts project, not ONODE or API.Core. That’s a refactor option; the current design avoids any dependency on the backend implementation.
+
 ## STARAPIClient vs star_sync (why both?)
 
 **STARAPIClient** (this project)
@@ -135,8 +150,8 @@ dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" \
 
 Outputs:
 
-- `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/publish/star_api.dll`
-- `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
+- `OASIS Omniverse/STARAPIClient/bin/Release/net9.0/win-x64/publish/star_api.dll`
+- `OASIS Omniverse/STARAPIClient/bin/Release/net9.0/win-x64/native/star_api.lib`
 
 Drop `star_api.dll` (and `star_api.lib`) next to the game exe. Use `star_api.h` from this folder. ODOOM and OQuake use STARAPIClient only.
 
