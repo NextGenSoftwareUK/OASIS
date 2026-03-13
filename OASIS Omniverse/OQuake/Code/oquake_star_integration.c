@@ -4585,6 +4585,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 if (g_quest_drill_parent_id[0]) {
                     idx = drill_q_filtered_indices[g_quest_scroll + i];
                     sel = (g_quest_scroll + i == g_quest_selected_index);
+                    if (g_quest_tracker_id[0] && strcmp(drill_q_id[idx], g_quest_tracker_id) == 0)
+                        Draw_Fill(cbx, qx + 6, dy - 1, list_left_w - 16, row_h, 56, 0.55f);  /* Quake palette green: active quest */
                     if (sel)
                         Draw_Fill(cbx, qx + 6, dy - 1, list_left_w - 16, row_h, 224, 0.50f);
                     status_str = drill_q_status[idx];
@@ -4610,6 +4612,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 } else {
                     idx = q_filtered_indices[g_quest_scroll + i];
                     sel = (g_quest_scroll + i == g_quest_selected_index);
+                    if (g_quest_tracker_id[0] && strcmp(q_id[idx], g_quest_tracker_id) == 0)
+                        Draw_Fill(cbx, qx + 6, dy - 1, list_left_w - 16, row_h, 56, 0.55f);  /* Quake palette green: active quest */
                     if (sel)
                         Draw_Fill(cbx, qx + 6, dy - 1, list_left_w - 16, row_h, 224, 0.50f);
                     status_str = q_status[idx];
