@@ -190,18 +190,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        /// <summary>Promote MetaData to strongly-typed Quest properties. Prefer "Status" (used by HolonManager.MapMetaData); fallback to "QuestStatus" for backwards compatibility.</summary>
+        /// <summary>Promote MetaData to strongly-typed Quest properties so API returns quests with Objectives (and Status) populated on first load.
+        /// Status: prefer "Status" (HolonManager.MapMetaData), fallback "QuestStatus".
+        /// Objectives: (1) promote from MetaData so all-for-avatar response includes them; (2) if still empty, populate from Children so "objectives" in JSON matches what the client sees in "children".</summary>
         private static void PromoteQuestMetaDataToProperties(Quest q)
         {
-            if (q?.MetaData == null) return;
-            var key = q.MetaData.ContainsKey("Status") ? "Status" : (q.MetaData.ContainsKey("QuestStatus") ? "QuestStatus" : null);
-            if (key == null) return;
-            var val = q.MetaData[key];
-            if (val == null) return;
-            var s = val.ToString();
-            if (string.IsNullOrEmpty(s)) return;
-            if (System.Enum.TryParse<QuestStatus>(s, true, out var status))
-                q.Status = status;
+            if (q == null) return;
+
+            if (q.MetaData != null)
+            {
+                var statusKey = q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "Status", StringComparison.OrdinalIgnoreCase))
+                    ?? q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "QuestStatus", StringComparison.OrdinalIgnoreCase));
+                if (statusKey != null && q.MetaData[statusKey] != null)
+                {
+                    var s = q.MetaData[statusKey].ToString();
+                    if (!string.IsNullOrEmpty(s) && System.Enum.TryParse<QuestStatus>(s, true, out var status))
+                        q.Status = status;
+                }
+
+                var objectivesKey = q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "Objectives", StringComparison.OrdinalIgnoreCase));
+                if (objectivesKey != null && q.MetaData[objectivesKey] != null && (q.Objectives == null || q.Objectives.Count == 0))
+                {
+                    try
+                    {
+                        var raw = q.MetaData[objectivesKey];
+                        if (raw is string jsonStr)
+                        {
+                            var list = System.Text.Json.JsonSerializer.Deserialize<List<Objective>>(jsonStr);
+                            if (list != null && list.Count > 0)
+                                q.Objectives = list;
+                        }
+                    }
+                    catch { /* leave Objectives unchanged if deserialize fails */ }
+                }
+            }
+
+            /* When Objectives is still empty but Children is populated (e.g. provider loaded child holons), fill Objectives from Children so the API serializes "objectives" and the client does not rely only on "children". */
+            if ((q.Objectives == null || q.Objectives.Count == 0) && q.Children != null && q.Children.Count > 0)
+            {
+                q.Objectives ??= new List<Objective>();
+                for (var i = 0; i < q.Children.Count; i++)
+                {
+                    if (q.Children[i] is Quest cq)
+                    {
+                        q.Objectives.Add(new Objective
+                        {
+                            Id = cq.Id,
+                            Order = i,
+                            IsCompleted = cq.CompletedOn != default,
+                            ObjectiveText = cq.Description ?? cq.Name ?? string.Empty
+                        });
+                    }
+                }
+            }
         }
 
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
