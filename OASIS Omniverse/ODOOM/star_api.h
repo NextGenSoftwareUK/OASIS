@@ -89,6 +89,10 @@ int star_api_get_quest_objectives_string(const char* parent_quest_id, char* buf,
 int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Write requirement/progress lines for quest (and optional objective_id) to buf. One line per requirement e.g. "Killed 3/10 monsters in ODOOM". objective_id may be NULL for quest-level only. */
 int star_api_get_quest_objective_requirements_string(const char* quest_id, const char* objective_id, char* buf, size_t buf_size);
+/** Write one progress line per objective for the tracker (newline-separated). For HUD cycle 1,2,3,All. quest_id must be non-NULL. */
+int star_api_get_quest_tracker_objectives_string(const char* quest_id, char* buf, size_t buf_size);
+/** Return 0-based index of first incomplete objective for the tracked quest, or 0 if all complete. */
+int star_api_get_quest_tracker_active_objective_index(const char* quest_id);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. Call when opening the quest popup so data is up to date. */
 void star_api_invalidate_quest_cache(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
