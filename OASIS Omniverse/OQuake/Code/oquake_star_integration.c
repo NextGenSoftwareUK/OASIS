@@ -298,6 +298,9 @@ static int g_quest_tracker_objective_index = 0;  /* 0..n-1 = single obj, n = All
 static int g_quest_tracker_show = 1;            /* 0 = hide (when cycle on Hide). */
 static char g_quest_tracker_active_objective_id[64] = "";  /* Enter on objective in popup sets this; highlighted green. */
 static int g_quest_tracker_active_display_index = -1;  /* Index of active objective for green in All view; -1 = use API first-incomplete. */
+/* Cached objective count for O key cycle when API returns empty (avoids reverting to on/off toggle). */
+static int g_quest_tracker_last_n_obj = 0;
+static char g_quest_tracker_last_n_obj_id[64] = "";
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
 static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
@@ -3806,7 +3809,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_f_key_was_down = false;
     }
 
-    /* When quest popup is closed: O = cycle tracker (obj 1, 2, 3, ..., All, Hide). Same behaviour as ODOOM. */
+    /* When quest popup is closed: O = cycle tracker (obj 1, 2, 3, ..., All, Hide, then repeat). Same behaviour as ODOOM. */
     if (!g_quest_popup_open && key_dest != key_message && key_dest != key_console && key_dest != key_menu && g_quest_tracker_id[0] && g_star_initialized) {
         static int s_o_key = -1;
         static qboolean g_quest_o_key_was_down = false;
@@ -3820,16 +3823,39 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 int n_obj = 0;
                 if (tr_buf[0]) {
                     const char* p = tr_buf;
-                    while (*p) {
-                        if (*p == '\n') n_obj++;
-                        p++;
-                    }
-                    if (p > tr_buf && p[-1] != '\n') n_obj++;
+                    while (*p) { if (*p == '\n') n_obj++; p++; }
+                    if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
                 }
+                /* Fallback: if tracker API returned no lines, count objectives from get_quest_objectives_string so cycle has correct steps */
+                if (n_obj == 0) {
+                    static char obj_buf[1024];
+                    int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
+                    if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
+                    else obj_buf[0] = '\0';
+                    if (obj_buf[0]) {
+                        const char* obj_line = obj_buf;
+                        while (obj_line[0]) {
+                            const char* eol = strchr(obj_line, '\n');
+                            size_t line_len = eol ? (size_t)(eol - obj_line) : strlen(obj_line);
+                            if (line_len >= (size_t)3 && (obj_line[0] == 'Q' || obj_line[0] == 'O') && obj_line[1] == '\t')
+                                n_obj++;
+                            obj_line = eol ? eol + 1 : obj_line + line_len;
+                        }
+                    }
+                }
+                /* Use cached count when API returned empty so cycle stays 1,2,3,All,Hide instead of reverting to on/off */
+                if (n_obj == 0 && strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) == 0 && g_quest_tracker_last_n_obj > 0)
+                    n_obj = g_quest_tracker_last_n_obj;
                 /* choices: 0..n_obj-1 = single, n_obj = All, n_obj+1 = Hide */
                 int choices = n_obj + 2;
                 if (choices < 2) choices = 2;
-                g_quest_tracker_objective_index = (g_quest_tracker_objective_index + 1) % choices;
+                int next = (g_quest_tracker_objective_index + 1) % choices;
+                /* When leaving Hide: restore to popup-selected objective instead of resetting to 0 */
+                if (g_quest_tracker_objective_index == n_obj + 1 && next == 0) {
+                    if (g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
+                        next = g_quest_tracker_active_display_index;
+                }
+                g_quest_tracker_objective_index = next;
                 g_quest_tracker_show = (g_quest_tracker_objective_index == n_obj + 1) ? 0 : 1;
                 g_quest_o_key_was_down = true;
             }
@@ -4888,6 +4914,9 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (!g_quest_tracker_show)
         return;
 
+    if (strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) != 0)
+        g_quest_tracker_last_n_obj = 0;
+
     static char tr_buf[1024];
     int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
     if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
@@ -4897,7 +4926,62 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (tr_buf[0]) {
         const char* p = tr_buf;
         while (*p) { if (*p == '\n') n_obj++; p++; }
-        if (p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
+        if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
+    }
+
+    /* Fallback: if tracker API returned no lines (e.g. stub or cache not ready), use quest objectives string and show objective names */
+    if (n_obj == 0) {
+        static char obj_buf[1024];
+        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
+        if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
+        else obj_buf[0] = '\0';
+        if (obj_buf[0]) {
+            char* out = tr_buf;
+            size_t out_left = sizeof(tr_buf);
+            const char* line = obj_buf;
+            n_obj = 0;
+            while (line[0] && out_left > 1) {
+                const char* eol = strchr(line, '\n');
+                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                /* Format: Q\tid\tname\tdesc\tstatus\tpct - take column 2 (name) or 3 (desc) for display */
+                if (line_len >= 3 && (line[0] == 'Q' || line[0] == 'O') && line[1] == '\t') {
+                    const char* col0 = line + 2;
+                    const char* col1 = (const char*)memchr(col0, '\t', line_len - (col0 - line));
+                    const char* col2 = col1 && col1 + 1 < line + line_len ? col1 + 1 : col0;
+                    const char* col2_end = col2;
+                    if (col2_end < line + line_len) {
+                        col2_end = (const char*)memchr(col2, '\t', (size_t)((line + line_len) - col2));
+                        if (!col2_end) col2_end = line + line_len;
+                    }
+                    const char* col3 = (col2_end && col2_end < line + line_len) ? col2_end + 1 : col2;
+                    const char* col3_end = col3;
+                    if (col3 < line + line_len) {
+                        col3_end = (const char*)memchr(col3, '\t', (size_t)((line + line_len) - col3));
+                        if (!col3_end) col3_end = line + line_len;
+                    }
+                    size_t name_len = (size_t)(col2_end - col2);
+                    size_t desc_len = (size_t)(col3_end - col3);
+                    const char* use = col2;
+                    size_t use_len = name_len;
+                    if (use_len == 0 && desc_len > 0) { use = col3; use_len = desc_len; }
+                    if (use_len > 0 && use_len < out_left - 1) {
+                        if (n_obj > 0) { *out++ = '\n'; out_left--; }
+                        if (use_len >= out_left) use_len = out_left - 1;
+                        memcpy(out, use, use_len);
+                        out += use_len;
+                        out_left -= use_len;
+                        n_obj++;
+                    }
+                }
+                line = eol ? eol + 1 : line + line_len;
+            }
+            if (out_left > 0) *out = '\0';
+        }
+    }
+
+    if (n_obj > 0) {
+        g_quest_tracker_last_n_obj = n_obj;
+        q_strlcpy(g_quest_tracker_last_n_obj_id, g_quest_tracker_id, sizeof(g_quest_tracker_last_n_obj_id));
     }
 
     int disp_idx = g_quest_tracker_objective_index;
