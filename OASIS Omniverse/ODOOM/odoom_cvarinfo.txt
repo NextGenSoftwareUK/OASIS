@@ -24,6 +24,7 @@ server int odoom_key_x = 0;
 server int odoom_key_i = 0;
 server int odoom_key_o = 0;
 server int odoom_key_p = 0;
+server int odoom_key_s = 0;
 server int odoom_key_q = 0;
 server int odoom_key_enter = 0;
 server int odoom_key_backspace = 0;
@@ -89,8 +90,11 @@ server int odoom_quest_filter_in_progress = 1;
 server int odoom_quest_filter_completed = 1;
 // Quest popup list scroll offset (UI writes here; play context syncs to class field for drawing).
 server int odoom_quest_scroll_offset = 0;
-// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the three list CVars from STAR API.
+// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the list CVars from STAR API. P=Prereqs, O=Objectives, S=Subquests (separate views).
 server string odoom_quest_detail_quest_id = "";
 server string odoom_quest_detail_prereqs = "";
 server string odoom_quest_detail_objectives = "";
 server string odoom_quest_detail_subquests = "";
+// ZScript sets selected objective id when in Objectives view; C++ fills requirement/progress lines (e.g. "Killed 3/10 monsters in ODOOM").
+server string odoom_quest_detail_selected_objective_id = "";
+server string odoom_quest_detail_requirements = "";
