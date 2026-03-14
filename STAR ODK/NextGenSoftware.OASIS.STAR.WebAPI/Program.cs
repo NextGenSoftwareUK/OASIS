@@ -214,9 +214,12 @@ app.Use(async (context, next) =>
             errorResult.DetailedMessage = ex.ToString();
         }
         
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
     catch (OASISException ex)
     {
@@ -239,9 +242,12 @@ app.Use(async (context, next) =>
             errorResult.DetailedMessage = ex.ToString();
         }
         
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
     catch (Exception ex)
     {
@@ -292,8 +298,11 @@ app.Use(async (context, next) =>
             context.Response.StatusCode = 500;
         }
         
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
 });
 
