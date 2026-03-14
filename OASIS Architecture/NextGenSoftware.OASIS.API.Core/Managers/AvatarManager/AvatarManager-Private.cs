@@ -625,6 +625,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
@@ -674,6 +676,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
@@ -723,6 +727,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }

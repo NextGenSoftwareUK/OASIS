@@ -347,6 +347,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.AllChildIdListCache = avatar.Result.AllChildIdListCache;
             oasisAvatar.ChildIdListCache = avatar.Result.ChildIdListCache;
 
+            if (avatar.Result.MetaData != null && avatar.Result.MetaData.Count > 0)
+                oasisAvatar.MetaData = new Dictionary<string, object>(avatar.Result.MetaData);
+
             //oasisAvatar.Children = avatar.Result.Children;
             //oasisAvatar.CustomKey = avatar.Result.CustomKey;
             //oasisAvatar.Nodes = avatar.Result.Nodes;

@@ -14,5 +14,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
         public string LastName { get; set; } = string.Empty;
         /// <summary>Experience points from AvatarDetail. Used by STAR client to refresh XP after beam-in.</summary>
         public int XP { get; set; }
+        /// <summary>Quest currently tracked in the game HUD. Persisted on AvatarDetail; restored after beam-in.</summary>
+        public Guid? ActiveQuestId { get; set; }
+        /// <summary>Objective currently active within the tracked quest. Persisted on AvatarDetail; restored after beam-in.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
     }
 }
