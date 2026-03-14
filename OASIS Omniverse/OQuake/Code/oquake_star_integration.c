@@ -24,6 +24,7 @@
 #include <windows.h>
 #else
 #include <sys/stat.h>
+#include <dlfcn.h>
 #endif
 
 #if defined(_MSC_VER) || !defined(__GLIBC__)
@@ -61,6 +62,47 @@ int star_api_get_quest_tracker_active_objective_index(const char* quest_id) {
 void star_api_refresh_quest_cache_in_background(void) {
 	/* no-op when using older star_api.lib */
 }
+int star_api_get_active_quest_id(char* buf, size_t buf_size) {
+	(void)buf_size;
+	if (buf && buf_size > 0) buf[0] = '\0';
+	return 0;
+}
+int star_api_get_active_objective_id(char* buf, size_t buf_size) {
+	(void)buf_size;
+	if (buf && buf_size > 0) buf[0] = '\0';
+	return 0;
+}
+star_api_result_t star_api_set_active_quest(const char* quest_id, const char* objective_id) {
+	(void)quest_id;
+	(void)objective_id;
+	return STAR_API_SUCCESS;
+}
+#endif
+
+/* When OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL is defined, provide star_api_refresh_avatar_profile (forward to DLL at runtime). Use when the linked star_api.lib does not export it (e.g. Native AOT import lib quirk or old lib). Remove the define once the lib exports it. */
+#ifdef OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL
+#ifdef _WIN32
+void star_api_refresh_avatar_profile(void) {
+	typedef void (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_refresh_avatar_profile");
+	}
+	if (fn) fn();
+}
+#else
+void star_api_refresh_avatar_profile(void) {
+	typedef void (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_refresh_avatar_profile");
+	}
+	if (fn) fn();
+}
+#endif
 #endif
 
 #ifdef OQUAKE_DRAW_STRING_COLORED
@@ -113,8 +155,10 @@ static star_api_config_t g_star_config;
 static int g_star_initialized = 0;
 /** 1 only after user has run "star beamin" and it succeeded (or async auth callback). Used to gate mint/add so we do not mint shells/shotgun etc. at startup before beamin. */
 static int g_star_beamed_in = 0;
-/** 1 after we have called star_api_refresh_avatar_xp() once for this beam-in; reset on beam out so we only hit the endpoint once per login. */
+/** Obsolete: was used to avoid calling star_api_refresh_avatar_xp() twice; now we only call star_api_refresh_avatar_profile() on beam-in. */
 static int g_star_refresh_xp_called_this_session = 0;
+/** Set by STAR API callback when profile refresh (XP + active quest/objective) completes. Main thread reads this in OQuake_STAR_PollItems and restores tracker + invalidates quest cache. */
+static volatile int g_star_profile_loaded_pending = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
@@ -1010,9 +1054,24 @@ static void OQ_OnAuthDone(void* user_data) {
             Con_Printf("Warning: Could not get avatar ID: %s\n", error_msg[0] ? error_msg : "Unknown error");
         }
         OQ_ApplyBeamFacePreference();
-        if (!g_star_refresh_xp_called_this_session) {
-            g_star_refresh_xp_called_this_session = 1;
-            star_api_refresh_avatar_xp();
+        /* Obsolete: star_api_refresh_avatar_xp() redundant with star_api_refresh_avatar_profile() which does same GET and also loads quest/objective + callback. */
+        // if (!g_star_refresh_xp_called_this_session) {
+        //     g_star_refresh_xp_called_this_session = 1;
+        //     star_api_refresh_avatar_xp();
+        // }
+        /* Load avatar (XP + active quest/objective) and restore tracker state. */
+        star_api_refresh_avatar_profile();
+        star_api_log_to_file("[OQuake] Beamin (auth callback): profile refresh started");
+        {
+            char qid[64] = {0};
+            char oid[64] = {0};
+            if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
+                q_strlcpy(g_quest_tracker_id, qid, sizeof(g_quest_tracker_id));
+                g_quest_tracker_name[0] = '\0';  /* Filled when quest list loads */
+                g_quest_tracker_show = 1;
+            }
+            if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0])
+                q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
         }
         g_star_beamed_in = 1;
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
@@ -1020,6 +1079,18 @@ static void OQ_OnAuthDone(void* user_data) {
     } else {
         Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
     }
+}
+
+/** STAR API callback: profile refresh (XP + active quest/objective) completed. Runs on client background thread; we only set a flag so main thread restores tracker in OQuake_STAR_PollItems. */
+static void OQ_StarApiCallback(star_api_result_t result, void* user_data) {
+    (void)user_data;
+    {
+        char buf[128];
+        q_snprintf(buf, sizeof(buf), "[OQuake] STAR API callback result=%d (%s)", (int)result, result == STAR_API_SUCCESS ? "Success" : "other");
+        star_api_log_to_file(buf);
+    }
+    if (result == STAR_API_SUCCESS)
+        g_star_profile_loaded_pending = 1;
 }
 
 /** Called from main thread by star_sync_pump() when send-item completes. */
@@ -2386,6 +2457,8 @@ void OQuake_STAR_Init(void) {
     if (result != STAR_API_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
+        star_api_set_callback(OQ_StarApiCallback, NULL);
+        star_api_log_to_file("[OQuake] STAR API callback registered (profile refresh -> restore tracker)");
         /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
         if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
             star_api_set_oasis_base_url(oquake_oasis_api_url.string);
@@ -2404,12 +2477,18 @@ void OQuake_STAR_Init(void) {
             result = star_api_authenticate(username, password);
             if (result == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
+                g_star_beamed_in = 1;
+                star_api_refresh_avatar_profile();
+                star_api_log_to_file("[OQuake] Init (username+password): beamed_in=1, profile refresh started");
                 printf("OQuake STAR API: Authenticated. Cross-game assets enabled.\n");
             } else {
                 printf("OQuake STAR API: SSO failed: %s\n", star_api_get_last_error());
             }
         } else if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
+            g_star_beamed_in = 1;
+            star_api_refresh_avatar_profile();
+            star_api_log_to_file("[OQuake] Init (API key+avatar_id): beamed_in=1, profile refresh started");
             printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
         } else {
             printf("OQuake STAR API: Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID for cross-game keys.\n");
@@ -3022,6 +3101,27 @@ void OQuake_STAR_PollItems(void) {
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
 
+    /* When profile refresh (XP + active quest/objective) completed, restore tracker from cache and invalidate quest list so it refetches. */
+    if (g_star_profile_loaded_pending) {
+        g_star_profile_loaded_pending = 0;
+        {
+            char qid[64] = {0};
+            char oid[64] = {0};
+            if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
+                q_strlcpy(g_quest_tracker_id, qid, sizeof(g_quest_tracker_id));
+                g_quest_tracker_name[0] = '\0';
+                g_quest_tracker_show = 1;
+                star_api_log_to_file("[OQuake] Profile loaded: restored quest tracker from cache");
+            } else {
+                star_api_log_to_file("[OQuake] Profile loaded: no active quest in cache");
+            }
+            if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0])
+                q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
+        }
+        star_api_invalidate_quest_cache();
+        star_api_log_to_file("[OQuake] Profile loaded: quest cache invalidated, list will refetch");
+    }
+
     /* Show mint result in console when background pickup-with-mint completes (NFT ID + Hash). */
     {
         char item_buf[256] = {0}, nft_buf[128] = {0}, hash_buf[256] = {0};
@@ -3525,11 +3625,14 @@ void OQuake_STAR_Console_f(void) {
         }
         if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
-            if (!g_star_refresh_xp_called_this_session) {
-                g_star_refresh_xp_called_this_session = 1;
-                star_api_refresh_avatar_xp();
-            }
+            /* Obsolete: star_api_refresh_avatar_xp() redundant; use star_api_refresh_avatar_profile() on beam-in (done in SSO beamin path). */
+            // if (!g_star_refresh_xp_called_this_session) {
+            //     g_star_refresh_xp_called_this_session = 1;
+            //     star_api_refresh_avatar_xp();
+            // }
+            star_api_refresh_avatar_profile();
             g_star_beamed_in = 1;
+            star_api_log_to_file("[OQuake] Beamin (API key): profile refresh started");
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
                 q_strlcpy(g_star_username, "API User", sizeof(g_star_username));
@@ -4506,6 +4609,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
                     g_quest_tracker_objective_index = g_quest_objectives_selected;
                     g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                 }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
@@ -4543,6 +4647,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                     g_quest_tracker_active_display_index = -1;
                                     g_quest_tracker_objective_index = 0;
                                     g_quest_tracker_show = 1;
+                                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                                 }
                             }
                         } else {
@@ -4560,6 +4665,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                     g_quest_tracker_active_display_index = -1;
                                     g_quest_tracker_objective_index = 0;
                                     g_quest_tracker_show = 1;
+                                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                                 }
                             }
                         }
@@ -5126,6 +5232,7 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     extern int glwidth, glheight;
+    static double s_last_xp_log_time;
     int xp = 0;
     char buf[64];
     int x, y;
@@ -5134,8 +5241,27 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
         return;
     if (!g_star_initialized || !g_star_beamed_in)
         return;
-    if (!star_api_get_avatar_xp(&xp))
+    if (!star_api_get_avatar_xp(&xp)) {
+        static double s_last_no_xp_log;
+        extern double realtime;
+        if (realtime - s_last_no_xp_log >= 5.0) {
+            s_last_no_xp_log = realtime;
+            star_api_log_to_file("[OQuake] DrawXpStatus: star_api_get_avatar_xp returned false, not drawing XP");
+        }
         return;
+    }
+    /* Log XP value occasionally so we can see when HUD gets 0 vs real value (throttle to ~every 5s) */
+    {
+        extern double realtime;
+        if (realtime - s_last_xp_log_time >= 5.0) {
+            s_last_xp_log_time = realtime;
+            {
+                char log_buf[80];
+                q_snprintf(log_buf, sizeof(log_buf), "[OQuake] DrawXpStatus: displaying XP=%d", xp);
+                star_api_log_to_file(log_buf);
+            }
+        }
+    }
     q_snprintf(buf, sizeof(buf), "XP: %d", xp);
     /* Top right: same horizontal alignment as version, a bit below top edge */
     x = glwidth - (int)strlen(buf) * 8 - 8;

@@ -71,6 +71,7 @@ if (!(Test-Path $headerPath)) { throw "Missing header: $headerPath" }
 $targets = @(
     (Join-Path $scriptDir "..\..\ODOOM"),
     (Join-Path $scriptDir "..\..\OQuake"),
+    (Join-Path $scriptDir "..\..\OQuake\Code"),
     "C:\Source\UZDoom\src",
     "C:\Source\vkQuake\Quake"
 )

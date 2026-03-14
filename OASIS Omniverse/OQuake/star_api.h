@@ -113,10 +113,16 @@ void star_api_queue_add_xp(int amount);
 void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
 /** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
 int star_api_get_avatar_xp(int* xp_out);
-/** Refresh avatar XP from API (GET /api/avatar/current; server returns avatar with XP). Call once after beam-in. */
-void star_api_refresh_avatar_xp(void);
-/** Block until avatar XP is loaded from API. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately. */
-void star_api_refresh_avatar_xp_blocking(void);
+/* REDUNDANT: removed. Use star_api_refresh_avatar_profile() only. */
+/* void star_api_refresh_avatar_xp(void); */
+/** Kick off avatar profile refresh (XP + quest/objective) in background; callback when done. Call on beam-in. */
+void star_api_refresh_avatar_profile(void);
+/** Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise. */
+int star_api_get_active_quest_id(char* buf, size_t buf_size);
+/** Get last active objective ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise. */
+int star_api_get_active_objective_id(char* buf, size_t buf_size);
+/** Persist active quest and objective on avatar detail. quest_id and objective_id can be NULL/empty to clear. Call when user sets tracker in game. */
+star_api_result_t star_api_set_active_quest(const char* quest_id, const char* objective_id);
 const char* star_api_get_last_error(void);
 /** Consume last mint result from background pickup-with-mint. Writes item name, NFT ID, and hash to buffers (null-terminated). Returns 1 if a result was available, 0 otherwise. Call from game pump/frame to show mint results in console. */
 #define STAR_API_HAS_CONSUME_LAST_MINT 1

@@ -755,9 +755,9 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
     }
 
-    /// <summary>RefreshAvatarXp() must call real API; cache must match server newTotal once the async call completes.</summary>
+    /// <summary>RefreshAvatarProfileInBackground() must call real API; cache must match server newTotal once the async call completes.</summary>
     [Fact]
-    public async Task RefreshAvatarXp_UpdatesCacheWhenServerReturnsNewTotal()
+    public async Task RefreshAvatarProfileInBackground_UpdatesCacheWhenServerReturnsNewTotal()
     {
         using var client = new StarApiClient();
         client.Init(new StarApiConfig { Web5StarApiBaseUrl = _web5BaseUrl, Web4OasisApiBaseUrl = _web4BaseUrl });
@@ -772,10 +772,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         await client.AddXpAsync(1);
         var afterAdd = client.GetCachedAvatarXp();
 
-        client.RefreshAvatarXp();
+        client.RefreshAvatarProfileInBackground();
         await Task.Delay(1500);
         var afterRefresh = client.GetCachedAvatarXp();
-        Assert.True(afterRefresh >= 0, "GetCachedAvatarXp() should be non-negative after RefreshAvatarXp");
+        Assert.True(afterRefresh >= 0, "GetCachedAvatarXp() should be non-negative after RefreshAvatarProfileInBackground");
         Assert.Equal(afterAdd, afterRefresh);
 
         if (_useFakeServer && _web5Server is not null)

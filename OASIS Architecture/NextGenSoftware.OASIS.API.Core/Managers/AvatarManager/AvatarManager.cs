@@ -857,6 +857,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (!providerResult.IsError && providerResult.Result != null)
                 {
+                    HolonManager.Instance.ExtractCustomPropertiesToMetaData(avatar);
                     var task = providerResult.Result.SaveAvatarDetailAsync(avatar);
 
                     if (await Task.WhenAny(task, Task.Delay(OASISDNA.OASIS.StorageProviders.ProviderMethodCallTimeOutSeconds * 1000)) == task)
