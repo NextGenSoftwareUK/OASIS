@@ -58,6 +58,17 @@ int star_api_get_quest_tracker_active_objective_index(const char* quest_id) {
 	(void)quest_id;
 	return 0;
 }
+void star_api_refresh_quest_cache_in_background(void) {
+	/* no-op when using older star_api.lib */
+}
+#endif
+
+#ifdef OQUAKE_DRAW_STRING_COLORED
+/* Optional: engine provides Draw_StringColored(cbx, x, y, palette_index, str) so quest tracker title can use a different text colour. */
+extern void Draw_StringColored(cb_context_t* cbx, float x, float y, int palette_index, const char* str);
+#ifndef OQUAKE_QUEST_TRACKER_TITLE_PALETTE
+#define OQUAKE_QUEST_TRACKER_TITLE_PALETTE 216  /* Quake palette index for gold/yellow title */
+#endif
 #endif
 
 /* Forward declare callbacks so they can be used before their definitions. */
@@ -3768,7 +3779,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (keydown[s_q_key] && !g_quest_key_was_down) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
-                    star_api_invalidate_quest_cache();
+                    star_api_refresh_quest_cache_in_background();
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -3846,16 +3857,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 /* Use cached count when API returned empty so cycle stays 1,2,3,All,Hide instead of reverting to on/off */
                 if (n_obj == 0 && strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) == 0 && g_quest_tracker_last_n_obj > 0)
                     n_obj = g_quest_tracker_last_n_obj;
-                /* choices: 0..n_obj-1 = single, n_obj = All, n_obj+1 = Hide */
+                /* choices: 0..n_obj-1 = single, n_obj = All, n_obj+1 = Hide. Always cycle 1,2,3,...,All,Hide,1,... */
                 int choices = n_obj + 2;
                 if (choices < 2) choices = 2;
-                int next = (g_quest_tracker_objective_index + 1) % choices;
-                /* When leaving Hide: restore to popup-selected objective instead of resetting to 0 */
-                if (g_quest_tracker_objective_index == n_obj + 1 && next == 0) {
-                    if (g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
-                        next = g_quest_tracker_active_display_index;
-                }
-                g_quest_tracker_objective_index = next;
+                g_quest_tracker_objective_index = (g_quest_tracker_objective_index + 1) % choices;
                 g_quest_tracker_show = (g_quest_tracker_objective_index == n_obj + 1) ? 0 : 1;
                 g_quest_o_key_was_down = true;
             }
@@ -4999,13 +5004,23 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
 
     int y = 8;
     if (disp_idx >= n_obj) {
-        /* All: show quest title then each progress line; highlight active in green */
+        /* All: quest title with same brown background as inventory selected tab, then each progress line; highlight active in green */
         char buf[160];
         if (g_quest_tracker_name[0])
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
             q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
+        {
+            int title_len = (int)strlen(buf);
+            int title_w = title_len * 8 + 4;
+            if (title_w > 320) title_w = 320;
+            Draw_Fill(cbx, 6, y - 1, title_w, 10, 224, 0.60f);  /* same brown as inventory popup selected tab */
+        }
+#ifdef OQUAKE_DRAW_STRING_COLORED
+        Draw_StringColored(cbx, 8, y, OQUAKE_QUEST_TRACKER_TITLE_PALETTE, buf);
+#else
         Draw_String(cbx, 8, y, buf);
+#endif
         y += 10;
         const char* line = tr_buf;
         int idx = 0;
@@ -5023,13 +5038,23 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
             line = eol ? eol + 1 : line + len;
         }
     } else {
-        /* Single objective: show quest title and one progress line */
+        /* Single objective: quest title with same brown background as inventory selected tab, then one progress line */
         char buf[160];
         if (g_quest_tracker_name[0])
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
             q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
+        {
+            int title_len = (int)strlen(buf);
+            int title_w = title_len * 8 + 4;
+            if (title_w > 320) title_w = 320;
+            Draw_Fill(cbx, 6, y - 1, title_w, 10, 224, 0.60f);  /* same brown as inventory popup selected tab */
+        }
+#ifdef OQUAKE_DRAW_STRING_COLORED
+        Draw_StringColored(cbx, 8, y, OQUAKE_QUEST_TRACKER_TITLE_PALETTE, buf);
+#else
         Draw_String(cbx, 8, y, buf);
+#endif
         y += 10;
         const char* line = tr_buf;
         int idx = 0;

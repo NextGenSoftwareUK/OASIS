@@ -343,9 +343,9 @@ public sealed class StarApiClient : IDisposable
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler; only one refresh to avoid duplicate add-xp. */
-            /* RefreshAvatarXp(); */
+            ScheduleBackgroundTokenRefresh();
 
+            /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler. */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
@@ -739,6 +739,63 @@ public sealed class StarApiClient : IDisposable
             _questsFilterLastLogPrereqs = ("", -1);
             _questObjectivesHydrating.Clear();
         }
+    }
+
+    /// <summary>Start a background refresh of the quest cache without clearing it. When the fetch completes, the cache is updated. Use when opening the quest popup so the UI shows the previous list immediately and updates when the callback returns.</summary>
+    public void RequestQuestCacheRefreshInBackground()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsRefreshInProgress)
+                return;
+            _questsRefreshInProgress = true;
+        }
+        _ = RunOnBackgroundAsync<bool>(async ct =>
+        {
+            try
+            {
+                var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
+                if (result.IsError)
+                {
+                    StarApiExports.StarApiLog($"[Quests] Refresh failed: {result.Message}");
+                    lock (_questsCacheLock) { _questsRefreshInProgress = false; }
+                    return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+                }
+                if (result.Result is null || result.Result.Count == 0)
+                {
+                    StarApiExports.StarApiLog("[Quests] Refresh OK (0 quests)");
+                }
+                else
+                {
+                    var list = result.Result;
+                    int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+                    StarApiExports.StarApiLog($"[Quests] Cache refreshed: {list.Count} quests, {withObjectives} with objectives");
+                }
+                var serialized = result.Result is null || result.Result.Count == 0
+                    ? string.Empty
+                    : SerializeQuestsForGame(result.Result);
+                lock (_questsCacheLock)
+                {
+                    _questsCacheString = serialized;
+                    _cachedQuestList = result.Result;
+                    _questsRefreshInProgress = false;
+                    _questsFilterLastLogTop = (0, 0);
+                    _questsFilterLastLogObjectives = ("", -1);
+                    _questsFilterLastLogSubQuests = ("", -1);
+                    _questsFilterLastLogPrereqs = ("", -1);
+                }
+                return Success(true, StarApiResultCode.Success, "Quests cache refreshed.");
+            }
+            catch (Exception ex)
+            {
+                StarApiExports.StarApiLog($"[Quests] Refresh exception: {ex.Message}");
+                lock (_questsCacheLock)
+                {
+                    _questsRefreshInProgress = false;
+                }
+                return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+            }
+        }, default);
     }
 
     /// <summary>Filter cached quest list to top-level only (no ParentQuestId or empty). Returns empty list if cache not ready.</summary>
@@ -2685,6 +2742,131 @@ public sealed class StarApiClient : IDisposable
         Cleanup();
     }
 
+    /// <summary>Try to refresh JWT using refresh token so play is not interrupted when token expires. Uses OASIS refresh-token endpoint (cookie or body). Tries _oasisBaseUrl first, then _baseApiUrl for STAR API–only setups.</summary>
+    private async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)
+    {
+        string? refreshToken;
+        string oasisBase;
+        string starBase;
+        lock (_stateLock)
+        {
+            refreshToken = _refreshToken;
+            oasisBase = _oasisBaseUrl ?? string.Empty;
+            starBase = _baseApiUrl ?? string.Empty;
+        }
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            return false;
+        /* Prefer OASIS (Web4) URL; fall back to STAR API (Web5) so refresh works when only _baseApiUrl is set. */
+        var baseUrl = !string.IsNullOrWhiteSpace(oasisBase) ? oasisBase.TrimEnd('/') : !string.IsNullOrWhiteSpace(starBase) ? starBase.TrimEnd('/') : null;
+        if (string.IsNullOrWhiteSpace(baseUrl))
+            return false;
+        if (_httpClient is null)
+            return false;
+
+        try
+        {
+            var url = $"{baseUrl}/api/avatar/refresh-token";
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("Cookie", "refreshToken=" + Uri.EscapeDataString(refreshToken));
+            request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                StarApiExports.StarApiLog($"[Auth] Token refresh failed: HTTP {(int)response.StatusCode}");
+                return false;
+            }
+
+            var parseResult = ParseEnvelopeOrPayload(responseBody, out var resultElement, out _, out _);
+            if (!parseResult)
+                return false;
+            var auth = ParseAvatarAuthResponse(resultElement);
+            if (auth is null || string.IsNullOrWhiteSpace(auth.JwtToken))
+                return false;
+
+            lock (_stateLock)
+            {
+                _jwtToken = auth.JwtToken;
+                if (!string.IsNullOrWhiteSpace(auth.RefreshToken))
+                    _refreshToken = auth.RefreshToken;
+                if (_httpClient is not null)
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+            }
+            StarApiExports.StarApiLog("[Auth] JWT refreshed successfully.");
+            ScheduleBackgroundTokenRefresh();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            StarApiExports.StarApiLog($"[Auth] Token refresh exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static readonly object _tokenRefreshScheduledLock = new();
+    private static bool _tokenRefreshScheduled;
+
+    /// <summary>Schedule a single background refresh shortly before JWT expiry so play is not interrupted.</summary>
+    private void ScheduleBackgroundTokenRefresh()
+    {
+        lock (_tokenRefreshScheduledLock)
+        {
+            if (_tokenRefreshScheduled)
+                return;
+            _tokenRefreshScheduled = true;
+        }
+        _ = RunOnBackgroundAsync<bool>(async ct =>
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(10), ct).ConfigureAwait(false);
+                for (int i = 0; i < 30; i++)
+                {
+                    if (ct.IsCancellationRequested) return Success(true, StarApiResultCode.Success, "Cancelled");
+                    string? jwt;
+                    lock (_stateLock) { jwt = _jwtToken; }
+                    if (string.IsNullOrWhiteSpace(jwt)) return Success(true, StarApiResultCode.Success, "No token");
+                    var exp = GetJwtExpirationUtc(jwt);
+                    if (exp.HasValue && exp.Value > DateTime.UtcNow && (exp.Value - DateTime.UtcNow).TotalMinutes < 5)
+                    {
+                        var refreshed = await TryRefreshTokenAsync(ct).ConfigureAwait(false);
+                        if (refreshed) StarApiExports.StarApiLog("[Auth] Background token refresh completed.");
+                        return Success(true, StarApiResultCode.Success, "Refreshed or skipped");
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(20), ct).ConfigureAwait(false);
+                }
+                return Success(true, StarApiResultCode.Success, "Done");
+            }
+            finally
+            {
+                lock (_tokenRefreshScheduledLock) { _tokenRefreshScheduled = false; }
+            }
+        }, default);
+    }
+
+    private static DateTime? GetJwtExpirationUtc(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length != 3) return null;
+            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
+            var decoded = Convert.FromBase64String(payload);
+            using var doc = JsonDocument.Parse(decoded);
+            if (doc.RootElement.TryGetProperty("exp", out var expProp) && expProp.ValueKind == JsonValueKind.Number)
+            {
+                if (expProp.TryGetInt64(out var unix))
+                    return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime;
+            }
+        }
+        catch { /* ignore */ }
+        return null;
+    }
+
     private async Task<OASISResult<string>> SendRawAsync(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
     {
         if (_httpClient is null)
@@ -2692,38 +2874,7 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            using var request = new HttpRequestMessage(method, url);
-            if (!string.IsNullOrWhiteSpace(bodyJson))
-                request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
-            
-            lock (_stateLock)
-            {
-                if (!string.IsNullOrWhiteSpace(_avatarId))
-                    request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
-
-                /* Always set Authorization on the request so it is sent (some gateways return 405 when missing). */
-                var bearerToken = _jwtToken;
-                if (string.IsNullOrWhiteSpace(bearerToken) && _httpClient.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
-                    bearerToken = _httpClient.DefaultRequestHeaders.Authorization.Parameter;
-                if (!string.IsNullOrWhiteSpace(bearerToken))
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            }
-
-            using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            /* Read as bytes then decode to avoid "Error copying to stream" when connection is closed mid-transfer. */
-            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-            var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
-                if (!string.IsNullOrWhiteSpace(responseBody))
-                    failureMessage += $" Body: {responseBody}";
-
-                return Fail<string>(failureMessage, StarApiResultCode.ApiError);
-            }
-
-            return Success(responseBody ?? string.Empty, StarApiResultCode.Success, "Request completed successfully.");
+            return await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -2732,6 +2883,42 @@ public sealed class StarApiClient : IDisposable
                 : $"Network call failed: {ex.Message}";
             return Fail<string>(msg, StarApiResultCode.Network, ex);
         }
+    }
+
+    private async Task<OASISResult<string>> SendRawAsyncCore(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    {
+        if (_httpClient is null)
+            return Fail<string>("HTTP client is not initialized.", StarApiResultCode.NotInitialized);
+
+        using var request = new HttpRequestMessage(method, url);
+        if (!string.IsNullOrWhiteSpace(bodyJson))
+            request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+
+        lock (_stateLock)
+        {
+            if (!string.IsNullOrWhiteSpace(_avatarId))
+                request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
+
+            var bearerToken = _jwtToken;
+            if (string.IsNullOrWhiteSpace(bearerToken) && _httpClient.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
+                bearerToken = _httpClient.DefaultRequestHeaders.Authorization.Parameter;
+            if (!string.IsNullOrWhiteSpace(bearerToken))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        }
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+        var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
+            if (!string.IsNullOrWhiteSpace(responseBody))
+                failureMessage += $" Body: {responseBody}";
+            return Fail<string>(failureMessage, StarApiResultCode.ApiError);
+        }
+
+        return Success(responseBody ?? string.Empty, StarApiResultCode.Success, "Request completed successfully.");
     }
 
     private async Task<OASISResult<string>> EnsureAvatarIdAsync(CancellationToken cancellationToken)
@@ -5201,6 +5388,21 @@ public static unsafe class StarApiExports
         {
             var client = GetClient();
             client?.InvalidateQuestCache();
+        }
+        catch
+        {
+            /* Must not throw - native caller can crash. */
+        }
+    }
+
+    /// <summary>Start a background refresh of the quest cache without clearing it. UI can show existing cache immediately and will update when the callback returns.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_quest_cache_in_background", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRefreshQuestCacheInBackground()
+    {
+        try
+        {
+            var client = GetClient();
+            client?.RequestQuestCacheRefreshInBackground();
         }
         catch
         {
