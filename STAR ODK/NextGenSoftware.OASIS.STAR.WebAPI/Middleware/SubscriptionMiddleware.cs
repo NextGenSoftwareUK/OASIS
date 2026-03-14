@@ -115,7 +115,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in SubscriptionMiddleware");
-                await _next(context);
+                if (!context.Response.HasStarted)
+                    await _next(context);
             }
         }
 
