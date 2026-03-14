@@ -60,6 +60,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int questDetailPrereqScroll;
 	private int questDetailObjScroll;
 	private int questDetailSubScroll;
+	private bool questDetailSyncSelectionOnce;  // when true, sync questDetailObjSelected from tracker index (scroll clamped so list stays visible)
 	private String questGotoId;  // when set, next frame in 1st popup select this quest id in main list
 
 	// Send popup (OQuake-style)
@@ -418,6 +419,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							questDetailPrereqScroll = 0;
 							questDetailObjScroll = 0;
 							questDetailSubScroll = 0;
+							questDetailSyncSelectionOnce = true;
 							CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id");
 							if (detailIdCv != null) detailIdCv.SetString(questDetailQuestId);
 						}
@@ -496,8 +498,30 @@ class OASISInventoryOverlayHandler : EventHandler
 				int nPrereq = prereqQ.Size(); int nObj = objQ.Size(); int nSub = subQ.Size();
 				int maxRowsObj = 8;     // objectives list rows in mode 0 (above Requirements section)
 				int maxRowsSingle = 13; // full-height list rows in mode 1 (Prereqs) or mode 2 (Subquests)
+				// Once when detail opens: sync objective selection to tracker (clamp scroll so list stays visible)
+				if (questDetailSyncSelectionOnce && nObj > 0)
+				{
+					CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
+					CVar trackerIdxCv = CVar.FindCVar("odoom_quest_tracker_objective_index");
+					String trackerQuestId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
+					if (questDetailQuestId.Compare(trackerQuestId) == 0 && trackerIdxCv != null)
+					{
+						int idx = trackerIdxCv.GetInt();
+						if (idx < 0) idx = 0;
+						if (idx >= nObj) idx = nObj - 1;
+						questDetailObjSelected = idx;
+						// Clamp scroll so selected row is visible; do not set scroll = idx (that broke the list)
+						if (questDetailObjScroll > questDetailObjSelected) questDetailObjScroll = questDetailObjSelected;
+						if (questDetailObjSelected >= questDetailObjScroll + maxRowsObj) questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1;
+						if (questDetailObjScroll < 0) questDetailObjScroll = 0;
+					}
+					questDetailSyncSelectionOnce = false;
+				}
 				// Tell C++ which objective is selected so it can fill requirement/progress lines (Objectives mode only)
 				CVar selObjCv = CVar.FindCVar("odoom_quest_detail_selected_objective_id");
+				CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
+				String trackerId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
+				bool detailIsTracked = (questDetailQuestId.Compare(trackerId) == 0);
 				if (selObjCv != null)
 				{
 					if (questDetailMode == 0 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
@@ -508,6 +532,16 @@ class OASISInventoryOverlayHandler : EventHandler
 							array<String> parts;
 							objLines[idx].Split(parts, "\t", false);
 							if (parts.Size() >= 2) selObjCv.SetString(parts[1]); else selObjCv.SetString("");
+							// Keep tracker in sync with popup selection while detail is open (so HUD shows same objective)
+							if (detailIsTracked)
+							{
+								CVar activeObjCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
+								CVar trackerIdxCv = CVar.FindCVar("odoom_quest_tracker_objective_index");
+								CVar trackerActiveIdxCv = CVar.FindCVar("odoom_quest_tracker_active_index");
+								if (activeObjCv != null) activeObjCv.SetString(parts[1]);
+								if (trackerIdxCv != null) trackerIdxCv.SetInt(questDetailObjSelected);
+								if (trackerActiveIdxCv != null) trackerActiveIdxCv.SetInt(questDetailObjSelected);
+							}
 						}
 						else selObjCv.SetString("");
 					}
@@ -568,6 +602,8 @@ class OASISInventoryOverlayHandler : EventHandler
 									if (activeObjCv != null) activeObjCv.SetString(parts[1]);
 									CVar trackerIdxCv = CVar.FindCVar("odoom_quest_tracker_objective_index");
 									if (trackerIdxCv != null) trackerIdxCv.SetInt(questDetailObjSelected);
+									CVar trackerActiveIdxCv = CVar.FindCVar("odoom_quest_tracker_active_index");
+									if (trackerActiveIdxCv != null) trackerActiveIdxCv.SetInt(questDetailObjSelected);
 								}
 							}
 						}
@@ -1213,7 +1249,8 @@ class OASISInventoryOverlayHandler : EventHandler
 				int trackY = 7;
 				double trackScale = 0.5;
 				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
-				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
+				double titleScale = 0.6;
+				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, titleScale, DTA_ScaleY, titleScale);
 				String objStr = (trackerObjLinesCv != null) ? trackerObjLinesCv.GetString() : "";
 				array<String> objLines;
 				if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);
@@ -1221,9 +1258,22 @@ class OASISInventoryOverlayHandler : EventHandler
 				int dispIdx = (trackerIdxCv != null) ? trackerIdxCv.GetInt() : 0;
 				if (dispIdx < 0) dispIdx = 0;
 				if (dispIdx > nObj + 1) dispIdx = nObj + 1;  // clamp; nObj+1 = Hide (trackerShow already 0)
-				int activeIdx = (trackerActiveCv != null) ? trackerActiveCv.GetInt() : 0;
-				if (activeIdx < 0) activeIdx = 0;
-				if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
+				// Green highlight: use user-selected active (tracker_objective_index) when active_objective_id is set, else API first-incomplete
+				CVar activeObjIdCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
+				String activeObjId = (activeObjIdCv != null) ? activeObjIdCv.GetString() : "";
+				int activeIdx;
+				if (activeObjId.Length() > 0 && trackerIdxCv != null)
+				{
+					activeIdx = trackerIdxCv.GetInt();
+					if (activeIdx < 0) activeIdx = 0;
+					if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
+				}
+				else
+				{
+					activeIdx = (trackerActiveCv != null) ? trackerActiveCv.GetInt() : 0;
+					if (activeIdx < 0) activeIdx = 0;
+					if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
+				}
 				if (nObj > 0)
 				{
 					if (dispIdx >= nObj)
@@ -1270,14 +1320,21 @@ class OASISInventoryOverlayHandler : EventHandler
 			String questTitle = questDetailQuestName;
 			if (questTitle.Length() > 28) questTitle = String.Format("%s..", questTitle.Left(26));
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 8, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			// Mode tabs: [P] left, [O] center, [S] right
+			// Mode tabs: [P] [O] [S] right-aligned with 10 between them (quest title no longer overlaps)
 			int tabY = popupY + 6;
 			int crP = (questDetailMode == 1) ? Font.CR_GOLD : Font.CR_GRAY;
 			int crO = (questDetailMode == 0) ? Font.CR_GOLD : Font.CR_GRAY;
 			int crS = (questDetailMode == 2) ? Font.CR_GOLD : Font.CR_GRAY;
-			screen.DrawText(f, crP, rightX + 50, tabY, "[P] Prereq", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, crO, rightX + 50 + (rightW / 2) - 24, tabY, "[O] Obj", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, crS, rightX + 50 + rightW - 44, tabY, "[S] Sub", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int wS = f.StringWidth("[S] Sub");
+			int wO = f.StringWidth("[O] Obj");
+			int wP = f.StringWidth("[P] Prereq");
+			int tabRightEdge = rightX + rightW - 10 + 60;  // [P] [O] [S] moved right 60 total (20+40)
+			int tabX_S = tabRightEdge - wS;
+			int tabX_O = tabX_S - 10 - wO;
+			int tabX_P = tabX_O - 10 - wP;
+			screen.DrawText(f, crP, tabX_P, tabY, "[P] Prereq", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, crO, tabX_O, tabY, "[O] Obj", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, crS, tabX_S, tabY, "[S] Sub", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
 			CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
 			CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
@@ -1442,7 +1499,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 23, popupY + popupH - 49, "P/O/S=View  Arrows=Move  Enter=Go to  K=Start/Set  Backspace=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 3, popupY + popupH - 49, "P/O/S=View  Arrows=Move  Enter=Go to  K=Start/Set  Backspace=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)
@@ -1549,7 +1606,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			String hint2 = "Arrows=Select  Enter=Details  K=Start/Set  Q=Close";
 			int hint1W = f.StringWidth(hint1);
 			int hint2W = f.StringWidth(hint2);
-			int hintRight = popupX + popupW - 8 + 90;  // right-align: main list hints moved left 10
+			int hintRight = popupX + popupW - 8 + 90;  // right-align: main list 2 hint lines moved right 20
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 15 - hint1W, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 15 - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)

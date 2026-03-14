@@ -919,6 +919,7 @@ static void ODOOM_RefreshQuestCVars(void) {
 	if (!wantId.empty()) {
 		FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
 		FBaseCVar* trackerActiveVar = FindCVar("odoom_quest_tracker_active_index", nullptr);
+		FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
 		static char trackerObjBuf[512];
 		int nObj = star_api_get_quest_tracker_objectives_string(wantId.c_str(), trackerObjBuf, sizeof(trackerObjBuf));
 		if (nObj < 0) nObj = 0;
@@ -930,8 +931,14 @@ static void ODOOM_RefreshQuestCVars(void) {
 			UCVarValue vo; vo.String = (char*)s_tracker_objectives.c_str();
 			trackerObjLinesVar->SetGenericRep(vo, CVAR_String);
 		}
-		int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
-		if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
+		/* Only set active_index from API when user has not chosen an active objective (Enter in popup); otherwise sync would be lost on 2nd selection. */
+		bool userHasActiveObjective = false;
+		if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
+			const char* aid = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
+			userHasActiveObjective = (aid && aid[0] != '\0');
+		}
+		if (!userHasActiveObjective && trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
+			int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
 			UCVarValue va; va.Int = activeIdx;
 			trackerActiveVar->SetGenericRep(va, CVAR_Int);
 		}
@@ -1583,8 +1590,12 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		static int s_quest_popup_was_open = 0;
 		static int s_quest_refresh_frames = 0;
 		if (questPopupOpen && !s_quest_popup_was_open) {
-			star_api_invalidate_quest_cache();
-			ODOOM_RefreshQuestCVars();  /* single API hit when popup opens */
+#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
+			star_api_refresh_quest_cache_in_background();
+#else
+			/* Without new API: do not invalidate – show existing cache and let 60-frame refresh update when fetch completes. */
+#endif
+			ODOOM_RefreshQuestCVars();  /* push current cache to CVars so list shows immediately */
 			s_quest_refresh_frames = 0; /* do not run 60-frame refresh this frame */
 		}
 		s_quest_popup_was_open = questPopupOpen;
@@ -2206,11 +2217,13 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		g_star_client_ready = true;
 		g_star_init_failed_this_session = false;
 		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
-		/* NFT minting and avatar auth use WEB4 OASIS API; set from oasis_api_url (oasisstar.json) so mint goes to WEB4 not WEB5. */
+	}
+	/* Always (re)apply WEB4 OASIS URL when set so auth/refresh use the correct host (e.g. after reloadconfig or if init ran before oasisstar.json loaded). */
+	{
 		const char* oasis_url = (const char*)odoom_oasis_api_url;
 		if (HasValue(oasis_url)) {
 			star_api_set_oasis_base_url(oasis_url);
-			if (logVerbose) StarLogInfo("WEB4 OASIS API URL set to: %s (for mint/auth).", oasis_url);
+			if (logVerbose) StarLogInfo("WEB4 OASIS API URL set to: %s (for mint/auth/refresh).", oasis_url);
 		}
 	}
 
