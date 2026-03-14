@@ -2915,7 +2915,15 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            return await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            var result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            // On 401, try refresh once and retry the request (minimal JWT timeout fix).
+            if (result.IsError && result.Message != null && result.Message.Contains("401", StringComparison.Ordinal))
+            {
+                var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
+                if (refreshed)
+                    result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            }
+            return result;
         }
         catch (Exception ex)
         {

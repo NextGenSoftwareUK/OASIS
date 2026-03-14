@@ -532,16 +532,6 @@ class OASISInventoryOverlayHandler : EventHandler
 							array<String> parts;
 							objLines[idx].Split(parts, "\t", false);
 							if (parts.Size() >= 2) selObjCv.SetString(parts[1]); else selObjCv.SetString("");
-							// Keep tracker in sync with popup selection while detail is open (so HUD shows same objective)
-							if (detailIsTracked)
-							{
-								CVar activeObjCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
-								CVar trackerIdxCv = CVar.FindCVar("odoom_quest_tracker_objective_index");
-								CVar trackerActiveIdxCv = CVar.FindCVar("odoom_quest_tracker_active_index");
-								if (activeObjCv != null) activeObjCv.SetString(parts[1]);
-								if (trackerIdxCv != null) trackerIdxCv.SetInt(questDetailObjSelected);
-								if (trackerActiveIdxCv != null) trackerActiveIdxCv.SetInt(questDetailObjSelected);
-							}
 						}
 						else selObjCv.SetString("");
 					}
@@ -1258,22 +1248,12 @@ class OASISInventoryOverlayHandler : EventHandler
 				int dispIdx = (trackerIdxCv != null) ? trackerIdxCv.GetInt() : 0;
 				if (dispIdx < 0) dispIdx = 0;
 				if (dispIdx > nObj + 1) dispIdx = nObj + 1;  // clamp; nObj+1 = Hide (trackerShow already 0)
-				// Green highlight: use user-selected active (tracker_objective_index) when active_objective_id is set, else API first-incomplete
+				// Green highlight: use odoom_quest_tracker_active_index (set on Enter in popup) when active_objective_id is set, else API first-incomplete from tracker_active_index
 				CVar activeObjIdCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
 				String activeObjId = (activeObjIdCv != null) ? activeObjIdCv.GetString() : "";
-				int activeIdx;
-				if (activeObjId.Length() > 0 && trackerIdxCv != null)
-				{
-					activeIdx = trackerIdxCv.GetInt();
-					if (activeIdx < 0) activeIdx = 0;
-					if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
-				}
-				else
-				{
-					activeIdx = (trackerActiveCv != null) ? trackerActiveCv.GetInt() : 0;
-					if (activeIdx < 0) activeIdx = 0;
-					if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
-				}
+				int activeIdx = (trackerActiveCv != null) ? trackerActiveCv.GetInt() : 0;
+				if (activeIdx < 0) activeIdx = 0;
+				if (activeIdx >= nObj) activeIdx = nObj > 0 ? nObj - 1 : 0;
 				if (nObj > 0)
 				{
 					if (dispIdx >= nObj)
