@@ -63,10 +63,10 @@ if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
     $StarLib = Join-Path $OQuakeCode "star_api.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
-$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
+$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\publish"
 if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
     $StarDll = Join-Path $StarPublishDir "star_api.dll"
-    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\native"
+    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\native"
     $StarLib = Join-Path $StarLibDir "star_api.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
@@ -903,6 +903,12 @@ foreach ($vcxproj in $vcxprojPaths) {
             Write-Host "[OQuake] Added star_api.lib to linker in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
         }
     }
+    # Client exports star_api_refresh_avatar_profile (see STARAPIClient obj/.../native/star_api.def). Linker must use the deployed lib in vkQuake\Quake.
+    if ($projContent -match 'star_api\.lib' -and $projContent -notmatch 'AdditionalLibraryDirectories.*\.\.\\\.\.\\Quake') {
+        $projContent = $projContent -replace '(<AdditionalDependencies>[^<]*</AdditionalDependencies>)([\s\S]*?)(</Link>)', "`$1`r`n      <AdditionalLibraryDirectories>..\..\Quake;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>`r`n`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed star_api.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
     # Define OASIS_STAR_API so #ifdef OASIS_STAR_API blocks in pr_edict.c, host.c, sbar.c, etc. are compiled (monster hook, init, HUD).
     if ($projContent -notmatch 'OASIS_STAR_API') {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_API;`$2`$3"
@@ -914,6 +920,12 @@ foreach ($vcxproj in $vcxprojPaths) {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_TRACKER_STUBS;`$2`$3"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OQUAKE_STAR_API_TRACKER_STUBS to PreprocessorDefinitions (use stub if star_api.lib is old)" -ForegroundColor Green
+    }
+    # Define OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL so oquake_star_integration.c provides star_api_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked star_api.lib does not export this symbol.
+    if ($projContent -notmatch 'OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL (provides star_api_refresh_avatar_profile when lib does not)" -ForegroundColor Green
     }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }

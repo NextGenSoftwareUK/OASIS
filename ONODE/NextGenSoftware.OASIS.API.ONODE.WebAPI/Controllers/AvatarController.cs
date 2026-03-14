@@ -1768,7 +1768,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatar == null)
                 return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
             var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatar.Id);
-            var xp = (detailResult.Result != null && !detailResult.IsError) ? detailResult.Result.XP : 0;
+            var detail = detailResult.Result;
+            var xp = (detail != null && !detailResult.IsError) ? detail.XP : 0;
+            var activeQuestId = detail?.ActiveQuestId;
+            var activeObjectiveId = detail?.ActiveObjectiveId;
+            _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp returning for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatar.Id, xp, activeQuestId, activeObjectiveId);
+            StarLog($"GetLoggedInAvatarWithXp returning: ActiveQuestId={activeQuestId}, ActiveObjectiveId={activeObjectiveId}");
             var response = new LoggedInAvatarResponse
             {
                 Id = avatar.Id,
@@ -1776,7 +1781,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 Email = avatar.Email ?? string.Empty,
                 FirstName = avatar.FirstName ?? string.Empty,
                 LastName = avatar.LastName ?? string.Empty,
-                XP = xp
+                XP = xp,
+                ActiveQuestId = activeQuestId,
+                ActiveObjectiveId = activeObjectiveId
             };
             return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { Result = response });
         }
@@ -1831,6 +1838,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var newTotal = detail.XP;
             return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { Result = new AddXpResponse { NewTotal = newTotal }, IsError = false });
+        }
+
+        /// <summary>
+        /// Sets the active quest and objective for the logged-in avatar (tracker state). Persisted on AvatarDetail so they are restored after beam-in.
+        /// </summary>
+        [Authorize]
+        [HttpPost("set-active-quest")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<OASISHttpResponseMessage<bool>> SetActiveQuest([FromBody] SetActiveQuestRequest request)
+        {
+            _logger.LogInformation("[Quest] SetActiveQuest called: ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", request?.ActiveQuestId, request?.ActiveObjectiveId);
+            StarLog($"SetActiveQuest called: ActiveQuestId={request?.ActiveQuestId}, ActiveObjectiveId={request?.ActiveObjectiveId}");
+
+            var avatarId = Avatar?.Id ?? Guid.Empty;
+            if (avatarId == Guid.Empty)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest rejected: not authenticated.");
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            }
+
+            var loadResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest failed to load detail: {Message}", loadResult.Message);
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = loadResult.Message ?? "Failed to load avatar detail." }, HttpStatusCode.BadRequest);
+            }
+
+            var detail = loadResult.Result;
+            detail.ActiveQuestId = request?.ActiveQuestId;
+            detail.ActiveObjectiveId = request?.ActiveObjectiveId;
+
+            var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
+            if (updateResult.IsError)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest update failed: {Message}", updateResult.Message);
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = updateResult.Message ?? "Failed to update active quest." }, HttpStatusCode.BadRequest);
+            }
+
+            _logger.LogInformation("[Quest] SetActiveQuest saved for avatar {AvatarId}: ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatarId, detail.ActiveQuestId, detail.ActiveObjectiveId);
+            StarLog($"SetActiveQuest saved OK for avatar {avatarId}: ActiveQuestId={detail.ActiveQuestId}, ActiveObjectiveId={detail.ActiveObjectiveId}");
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { Result = true, IsError = false });
         }
 
         ///// <summary>

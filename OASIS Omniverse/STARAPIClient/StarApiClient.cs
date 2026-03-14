@@ -31,7 +31,8 @@ public sealed class StarApiConfig
     public string? Web4OasisApiBaseUrl { get; init; }
     public string? ApiKey { get; init; }
     public string? AvatarId { get; init; }
-    public int TimeoutSeconds { get; init; } = 30;
+    /// <summary>HTTP request timeout in seconds. Default 60 so slow endpoints (e.g. quests all-for-avatar with many quests) can complete. Increase if you see timeout errors.</summary>
+    public int TimeoutSeconds { get; init; } = 60;
 }
 
 public sealed class StarItem
@@ -56,6 +57,10 @@ public sealed class StarAvatarProfile
     public string LastName { get; init; } = string.Empty;
     /// <summary>Experience points (from avatar detail). Updated by get-current-avatar and add-xp responses.</summary>
     public int XP { get; init; }
+    /// <summary>Quest currently tracked (from AvatarDetail). Restored after beam-in.</summary>
+    public Guid? ActiveQuestId { get; init; }
+    /// <summary>Objective currently active within the tracked quest (from AvatarDetail). Restored after beam-in.</summary>
+    public Guid? ActiveObjectiveId { get; init; }
 }
 
 public sealed class StarNftInfo
@@ -112,6 +117,8 @@ public sealed class StarApiClient : IDisposable
     private string? _jwtToken;
     private string? _refreshToken;
     private string? _avatarId;
+    private Guid? _cachedActiveQuestId;
+    private Guid? _cachedActiveObjectiveId;
     private string _lastError = string.Empty;
     private StarApiCallback? _callback;
     private object? _callbackUserData;
@@ -164,7 +171,7 @@ public sealed class StarApiClient : IDisposable
         if (!Uri.TryCreate(web5BaseUrl.TrimEnd('/'), UriKind.Absolute, out var baseUri))
             return Fail<bool>("Web5StarApiBaseUrl must be a valid absolute URL.", StarApiResultCode.InvalidParam);
 
-        var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 30;
+        var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 60;
         var normalizedBaseUrl = baseUri.ToString().TrimEnd('/');
         // NFT minting and avatar auth use WEB4 OASIS API only; do not fall back to WEB5 URL.
         var oasisBaseUrl = FirstNonEmpty(
@@ -358,9 +365,9 @@ public sealed class StarApiClient : IDisposable
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            StarApiExports.StarApiLog($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}");
+            StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}");
 
-            /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler. */
+            /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
@@ -394,8 +401,7 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        /* Game calls star_api_refresh_avatar_xp() after beam-in; only one refresh to avoid duplicate add-xp. */
-        /* RefreshAvatarXp(); */
+        /* Game calls star_api_refresh_avatar_profile() after beam-in for XP + quest/objective. */
 
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
@@ -452,13 +458,13 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API base URL updated.");
     }
 
-    public async Task<OASISResult<StarAvatarProfile>> GetCurrentAvatarAsync(CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarAvatarProfile>> GetCurrentAvatarAsync(CancellationToken cancellationToken = default, bool invokeCallback = true)
     {
         if (!IsInitialized())
-            return FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized) : Fail<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         var url = $"{_baseApiUrl}/api/avatar/current";
-        StarApiExports.StarApiLog($"[Avatar] GET avatar/current (BaseApiUrl)");
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current (BaseApiUrl)");
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
@@ -466,38 +472,40 @@ public sealed class StarApiClient : IDisposable
             {
                 if (Guid.TryParse(_avatarId, out var cachedId) && cachedId != Guid.Empty)
                 {
-                    StarApiExports.StarApiLog($"[Avatar] Request failed, using cached AvatarId (no XP): {response.Message}");
-                    InvokeCallback(StarApiResultCode.Success);
+                    StarApiExports.StarApiLogFileOnly($"[Avatar] Request failed, using cached AvatarId (no XP): {response.Message}");
+                    if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
                     return Success(new StarAvatarProfile { Id = cachedId }, StarApiResultCode.Success, "Avatar resolved from authenticated session.");
                 }
             }
 
             StarApiExports.StarApiLog($"[Avatar] GET avatar/current failed: {response.Message}");
-            return FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception) : Fail<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
         {
             StarApiExports.StarApiLog($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
-            return FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode) : Fail<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
         }
 
         var avatar = ParseAvatarProfile(resultElement);
         if (avatar is null || avatar.Id == Guid.Empty)
         {
             StarApiExports.StarApiLog("[Avatar] GET avatar/current parse failed: no avatar in response");
-            return FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError) : Fail<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
         }
 
         lock (_stateLock)
         {
             _avatarId = avatar.Id.ToString();
             _cachedAvatarXp = avatar.XP;
+            _cachedActiveQuestId = avatar.ActiveQuestId;
+            _cachedActiveObjectiveId = avatar.ActiveObjectiveId;
         }
 
-        StarApiExports.StarApiLog($"[Avatar] GET avatar/current success XP={avatar.XP}");
-        InvokeCallback(StarApiResultCode.Success);
+        StarApiExports.StarApiLog($"[Avatar] GET avatar/current OK: XP={avatar.XP}, ActiveQuestId={avatar.ActiveQuestId}, ActiveObjectiveId={avatar.ActiveObjectiveId} (cache updated)");
+        if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
 
@@ -1423,6 +1431,53 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
+    /// <summary>Last active quest ID from avatar detail (restored after beam-in).</summary>
+    public Guid? GetCachedActiveQuestId()
+    {
+        lock (_stateLock) return _cachedActiveQuestId;
+    }
+    /// <summary>Last active objective ID from avatar detail (restored after beam-in).</summary>
+    public Guid? GetCachedActiveObjectiveId()
+    {
+        lock (_stateLock) return _cachedActiveObjectiveId;
+    }
+
+    /// <summary>Persist active quest and objective on the avatar detail so they are restored after beam-in. Call when the user sets the tracker in the game.</summary>
+    public async Task<OASISResult<bool>> SetActiveQuestAndObjectiveAsync(Guid? questId, Guid? objectiveId, CancellationToken cancellationToken = default)
+    {
+        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync called: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        if (!IsInitialized())
+        {
+            try { StarApiExports.StarApiLog("[Quest] SetActiveQuestAndObjectiveAsync failed: client not initialized"); } catch { /* ignore */ }
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
+        var url = $"{_baseApiUrl}/api/avatar/set-active-quest";
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("ActiveQuestId");
+            if (questId.HasValue) writer.WriteStringValue(questId.Value.ToString());
+            else writer.WriteNullValue();
+            writer.WritePropertyName("ActiveObjectiveId");
+            if (objectiveId.HasValue) writer.WriteStringValue(objectiveId.Value.ToString());
+            else writer.WriteNullValue();
+            writer.WriteEndObject();
+        });
+        var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync API error: {response.Message}"); } catch { /* ignore */ }
+            return FailAndCallback<bool>(response.Message ?? "Set active quest failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
+        lock (_stateLock)
+        {
+            _cachedActiveQuestId = questId;
+            _cachedActiveObjectiveId = objectiveId;
+        }
+        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        return Success(true, StarApiResultCode.Success, "Active quest/objective saved.");
+    }
+
     /// <summary>Returns the cached avatar ID (set by AuthenticateAsync or init with api_key+avatar_id). Used by star_api_get_avatar_id to avoid a second GET when the game then calls refresh XP.</summary>
     public string? GetCachedAvatarId()
     {
@@ -1430,36 +1485,39 @@ public sealed class StarApiClient : IDisposable
             return _avatarId;
     }
 
-    /// <summary>Refresh XP cache from API via GET /api/avatar/current (server returns avatar with AvatarDetail.XP). Call once after beam-in.</summary>
-    public void RefreshAvatarXp()
+    // REDUNDANT / REMOVED: RefreshAvatarXp() was a duplicate of RefreshAvatarProfileInBackground() (same GET avatar/current).
+    // Use RefreshAvatarProfileInBackground() only. It refreshes XP + ActiveQuestId/ActiveObjectiveId and invokes the callback.
+    // public void RefreshAvatarXp() { RefreshAvatarProfileInBackground(); }
+
+    /// <summary>Kick off a full avatar load (GET avatar/current) on the background worker so XP and ActiveQuestId/ActiveObjectiveId are updated without blocking the UI. Returns immediately; the same callback set via SetCallback is invoked when the load completes (Success or error), so the game can then read the cache and update the tracker.</summary>
+    public void RefreshAvatarProfileInBackground()
     {
+        StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground called");
         if (!IsInitialized())
         {
-            StarApiExports.StarApiLog("[XP refresh] skipped (not initialized)");
+            StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground skipped (not initialized)");
+            InvokeCallback(StarApiResultCode.NotInitialized);
             return;
         }
         _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
         {
-            var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
-            if (result.IsError)
-                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] failed: {result.Message}");
+            StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground: GET avatar/current started");
+            var result = await GetCurrentAvatarAsync(ct, invokeCallback: false).ConfigureAwait(false);
+            if (result is not null && !result.IsError && result.Result is not null)
+            {
+                var xp = result.Result.XP;
+                var qid = result.Result.ActiveQuestId;
+                var oid = result.Result.ActiveObjectiveId;
+                StarApiExports.StarApiLog($"[Avatar] RefreshAvatarProfileInBackground done: XP={xp}, ActiveQuestId={qid}, ActiveObjectiveId={oid} (cache updated, invoking callback Success)");
+                InvokeCallback(StarApiResultCode.Success);
+            }
             else
-                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] OK XP={result.Result?.XP ?? 0} (cache updated)");
+            {
+                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done IsError={result?.IsError ?? true} Message={result?.Message ?? "null"} cachedXp={GetCachedAvatarXp()} (invoking callback error)");
+                InvokeCallback(result != null && result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.ApiError);
+            }
             return result;
         }, CancellationToken.None);
-    }
-
-    /// <summary>Load avatar XP from API and update cache. Blocks until the request completes. Uses add-xp(0) so same code path as monster kill.</summary>
-    public void LoadAvatarXpBlocking()
-    {
-        StarApiExports.StarApiLogFileOnly("[Avatar] LoadAvatarXpBlocking called");
-        if (!IsInitialized())
-        {
-            StarApiExports.StarApiLogFileOnly("[Avatar] LoadAvatarXpBlocking skipped (not initialized)");
-            return;
-        }
-        var result = AddXpAsync(0, CancellationToken.None).GetAwaiter().GetResult();
-        StarApiExports.StarApiLogFileOnly($"[Avatar] LoadAvatarXpBlocking done IsError={result.IsError} cachedXp={GetCachedAvatarXp()}");
     }
 
     /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
@@ -4414,10 +4472,28 @@ public sealed class StarApiClient : IDisposable
         Guid.TryParse(GetStringProperty(element, "Id"), out var id);
         var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp")
             ?? GetIntProperty(element, "TotalXP") ?? GetIntProperty(element, "totalXp");
-        if (xp is null && TryGetProperty(element, "AvatarDetail", out var detailEl))
-            xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
+        Guid? activeQuestId = null;
+        Guid? activeObjectiveId = null;
+        if (TryGetProperty(element, "AvatarDetail", out var detailEl) || TryGetProperty(element, "avatarDetail", out detailEl))
+        {
+            if (xp is null) xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
+            var q = GetStringProperty(detailEl, "ActiveQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
+            var o = GetStringProperty(detailEl, "ActiveObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+        }
         if (xp is null && TryGetProperty(element, "avatarDetail", out var detailEl2))
             xp = GetIntProperty(detailEl2, "XP") ?? GetIntProperty(detailEl2, "xp");
+        if (activeQuestId is null)
+        {
+            var q = GetStringProperty(element, "ActiveQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
+        }
+        if (activeObjectiveId is null)
+        {
+            var o = GetStringProperty(element, "ActiveObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+        }
         return new StarAvatarProfile
         {
             Id = id,
@@ -4425,7 +4501,9 @@ public sealed class StarApiClient : IDisposable
             Email = GetStringProperty(element, "Email") ?? string.Empty,
             FirstName = GetStringProperty(element, "FirstName") ?? string.Empty,
             LastName = GetStringProperty(element, "LastName") ?? string.Empty,
-            XP = xp ?? 0
+            XP = xp ?? 0,
+            ActiveQuestId = activeQuestId,
+            ActiveObjectiveId = activeObjectiveId
         };
     }
 
@@ -4932,6 +5010,8 @@ public static unsafe class StarApiExports
     private static void* _callbackUserData;
     private static volatile int _starDebug;
     private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
+    private static long _lastGetAvatarXpLogTicks;
+    private static int _lastGetAvatarXpLoggedValue = int.MinValue;
 
     /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
     internal static bool GetStarDebug() => _starDebug != 0;
@@ -5558,29 +5638,90 @@ public static unsafe class StarApiExports
     public static int StarApiGetAvatarXp(int* xpOut)
     {
         var client = GetClient();
-        if (client is null) return 0;
+        if (client is null) { try { StarApiExports.StarApiLogFileOnly("[STAR] star_api_get_avatar_xp: no client"); } catch { } return 0; }
+        var xp = client.GetCachedAvatarXp();
         if (xpOut is not null)
-            *xpOut = client.GetCachedAvatarXp();
+            *xpOut = xp;
+        try
+        {
+            var now = Environment.TickCount64;
+            if (xp != _lastGetAvatarXpLoggedValue || (now - _lastGetAvatarXpLogTicks) > 5000)
+            {
+                _lastGetAvatarXpLoggedValue = xp;
+                _lastGetAvatarXpLogTicks = now;
+                StarApiExports.StarApiLogFileOnly($"[STAR] star_api_get_avatar_xp: returning {xp}");
+            }
+        }
+        catch { }
         return 1;
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiRefreshAvatarXp()
+    // REDUNDANT / REMOVED: star_api_refresh_avatar_xp was a duplicate. Use star_api_refresh_avatar_profile() only.
+    // [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", ...)]
+    // public static void StarApiRefreshAvatarXp() { ... }
+
+    /// <summary>Kick off avatar profile refresh (XP + active quest/objective) in background; returns immediately. Callback is invoked when the load completes. Call on beam-in so the game can update the tracker in the callback.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_profile", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRefreshAvatarProfile()
     {
-        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_xp called"); } catch { }
+        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_profile called"); } catch { }
         var client = GetClient();
         if (client is null) return;
-        client.RefreshAvatarXp();
+        client.RefreshAvatarProfileInBackground();
     }
 
-    /// <summary>Block until avatar XP is loaded from API and cache is updated. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately.</summary>
-    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp_blocking", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiRefreshAvatarXpBlocking()
+    /// <summary>Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_active_quest_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetActiveQuestId(sbyte* buf, nuint bufSize)
     {
-        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_xp_blocking called"); } catch { }
+        if (buf is null || bufSize == 0) return 0;
         var client = GetClient();
-        if (client is null) return;
-        client.LoadAvatarXpBlocking();
+        if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_quest_id: no client"); } catch { } return 0; }
+        var id = client.GetCachedActiveQuestId();
+        if (!id.HasValue || id.Value == Guid.Empty) { try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value"); } catch { } buf[0] = 0; return 0; }
+        try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_quest_id: returning {id}"); } catch { }
+        var str = id.Value.ToString();
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return 1;
+    }
+
+    /// <summary>Get last active objective ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_active_objective_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetActiveObjectiveId(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_objective_id: no client"); } catch { } return 0; }
+        var id = client.GetCachedActiveObjectiveId();
+        if (!id.HasValue || id.Value == Guid.Empty) { try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value"); } catch { } buf[0] = 0; return 0; }
+        try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_objective_id: returning {id}"); } catch { }
+        var str = id.Value.ToString();
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return 1;
+    }
+
+    /// <summary>Persist active quest and objective on avatar detail (restored after beam-in). quest_id and objective_id can be null/empty to clear. Call when user sets tracker in game.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_active_quest", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetActiveQuest(sbyte* questId, sbyte* objectiveId)
+    {
+        var client = GetClient();
+        if (client is null) return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        Guid? q = null;
+        Guid? o = null;
+        var qStr = PtrToString(questId);
+        if (!string.IsNullOrWhiteSpace(qStr) && Guid.TryParse(qStr, out var qGuid)) q = qGuid;
+        var oStr = PtrToString(objectiveId);
+        if (!string.IsNullOrWhiteSpace(oStr) && Guid.TryParse(oStr, out var oGuid)) o = oGuid;
+        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native: questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
+        var result = client.SetActiveQuestAndObjectiveAsync(q, o).GetAwaiter().GetResult();
+        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest result: IsError={result?.IsError}, Message={result?.Message}"); } catch { }
+        return (int)FinalizeResult(result);
     }
 
     /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
@@ -5899,7 +6040,7 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_xp().
+        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_profile().
         string? avatarId = client.GetCachedAvatarId();
         if (string.IsNullOrWhiteSpace(avatarId))
         {

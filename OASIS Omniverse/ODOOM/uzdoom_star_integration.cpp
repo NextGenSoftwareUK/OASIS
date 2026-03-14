@@ -107,7 +107,7 @@ static bool g_star_initialized = false;
 static bool g_star_client_ready = false;
 /** When true, user explicitly beamed out; do not auto re-auth on door/touch until they run "star beamin" again. */
 static bool g_star_user_beamed_out = false;
-/** True after we have called star_api_refresh_avatar_xp() once for this beam-in; reset on beam out so we only hit the endpoint once per login. */
+/** Obsolete: was used to avoid calling star_api_refresh_avatar_xp() twice; now we only call star_api_refresh_avatar_profile() once on beam-in. */
 static bool g_star_refresh_xp_called_this_session = false;
 static bool g_star_debug_logging = true;
 static bool g_star_logged_runtime_auth_failure = false;
@@ -942,6 +942,24 @@ static void ODOOM_RefreshQuestCVars(void) {
 			UCVarValue va; va.Int = activeIdx;
 			trackerActiveVar->SetGenericRep(va, CVAR_Int);
 		}
+		/* Persist tracker state to avatar detail when user has changed it (so it restores after beam-in). */
+		{
+			static std::string s_last_saved_quest_id, s_last_saved_objective_id;
+			std::string cur_q, cur_o;
+			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+				const char* c = trackerIdVar->GetGenericRep(CVAR_String).String;
+				if (c) cur_q = c;
+			}
+			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
+				const char* c = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
+				if (c) cur_o = c;
+			}
+			if (cur_q != s_last_saved_quest_id || cur_o != s_last_saved_objective_id) {
+				star_api_set_active_quest(cur_q.empty() ? nullptr : cur_q.c_str(), cur_o.empty() ? nullptr : cur_o.c_str());
+				s_last_saved_quest_id = cur_q;
+				s_last_saved_objective_id = cur_o;
+			}
+		}
 	}
 }
 
@@ -1043,9 +1061,30 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 		odoom_star_username = g_star_effective_username.c_str();
 		StarApplyBeamFacePreference();
-		if (!g_star_refresh_xp_called_this_session) {
-			g_star_refresh_xp_called_this_session = true;
-			star_api_refresh_avatar_xp();
+		/* Obsolete: star_api_refresh_avatar_xp() redundant with star_api_refresh_avatar_profile() which does same GET and also loads quest/objective + callback. */
+		// if (!g_star_refresh_xp_called_this_session) {
+		// 	g_star_refresh_xp_called_this_session = true;
+		// 	star_api_refresh_avatar_xp();
+		// }
+		/* Load avatar (XP + active quest/objective) so we can restore tracker state. */
+		star_api_refresh_avatar_profile();
+		{
+			char qid[64] = {};
+			char oid[64] = {};
+			if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
+				FBaseCVar* v = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+				if (v && v->GetRealType() == CVAR_String) {
+					UCVarValue u; u.String = qid;
+					v->SetGenericRep(u, CVAR_String);
+				}
+			}
+			if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
+				FBaseCVar* v = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+				if (v && v->GetRealType() == CVAR_String) {
+					UCVarValue u; u.String = oid;
+					v->SetGenericRep(u, CVAR_String);
+				}
+			}
 		}
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
