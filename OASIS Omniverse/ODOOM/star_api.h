@@ -95,6 +95,8 @@ int star_api_get_quest_tracker_objectives_string(const char* quest_id, char* buf
 int star_api_get_quest_tracker_active_objective_index(const char* quest_id);
 /** Clear quest cache so next star_api_get_quests_string triggers a fresh fetch. Call when opening the quest popup so data is up to date. */
 void star_api_invalidate_quest_cache(void);
+/** Start a background refresh of the quest cache without clearing it. Show existing cache in the UI immediately; list updates when the callback returns. */
+void star_api_refresh_quest_cache_in_background(void);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);
