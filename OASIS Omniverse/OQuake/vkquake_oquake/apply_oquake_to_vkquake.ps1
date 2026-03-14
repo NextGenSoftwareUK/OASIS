@@ -909,5 +909,11 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
+    # Define OQUAKE_STAR_API_TRACKER_STUBS so linker finds stub implementations when star_api.lib is old and does not export quest tracker APIs. Remove this define after deploying a STAR client that exports star_api_get_quest_tracker_objectives_string and star_api_get_quest_tracker_active_objective_index.
+    if ($projContent -notmatch 'OQUAKE_STAR_API_TRACKER_STUBS') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_TRACKER_STUBS;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OQUAKE_STAR_API_TRACKER_STUBS to PreprocessorDefinitions (use stub if star_api.lib is old)" -ForegroundColor Green
+    }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }
