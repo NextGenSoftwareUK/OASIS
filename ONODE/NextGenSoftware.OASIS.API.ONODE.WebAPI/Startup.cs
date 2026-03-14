@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -55,7 +56,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             //services.AddCors(); //Needed twice? It is below too...
             // Add exception filter with configuration
             services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {

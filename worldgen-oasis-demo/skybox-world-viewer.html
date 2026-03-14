@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OASIS Skybox World Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0f; }
+    #canvas-container { width: 100%; height: 100%; position: relative; }
+    #status {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      padding: 10px 14px; border-radius: 8px; font-family: system-ui, sans-serif;
+      font-size: 14px; color: #e0e0e0; background: rgba(0,0,0,0.7); z-index: 10;
+    }
+    #status.error { color: #ff8888; }
+    #status.hidden { display: none; }
+    #hint {
+      position: absolute; bottom: 12px; left: 12px;
+      font-family: system-ui, sans-serif; font-size: 12px; color: rgba(255,255,255,0.5); z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="status">Loading...</div>
+  <div id="hint">Drag to look around · Add things to this world via OASIS holons</div>
+
+  <script type="importmap">
+    { "imports": {
+      "three": "https://esm.sh/three@0.160.0",
+      "three/addons/controls/OrbitControls.js": "https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js"
+    } }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const container = document.getElementById('canvas-container');
+    const statusEl = document.getElementById('status');
+    const hintEl = document.getElementById('hint');
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.className = isError ? 'error' : '';
+      statusEl.classList.remove('hidden');
+    }
+    function hideStatus() {
+      statusEl.classList.add('hidden');
+    }
+
+    // Params from query string; if empty (e.g. server 301 stripped them), use hash so URL can be ...#worldId=...&apiUrl=...
+    const query = window.location.search || window.location.hash.replace(/^#/, '').split('?').pop() || '';
+    const params = new URLSearchParams(query);
+    const worldId = params.get('worldId') || '3620352f-f131-4f18-a864-44bb67a0c081';
+    const apiUrl = (params.get('apiUrl') || 'http://localhost:5003').replace(/\/$/, '');
+    const skyboxUrl = params.get('skyboxUrl');
+    const username = params.get('username');
+    const password = params.get('password');
+
+    async function getSkyboxUrl() {
+      if (skyboxUrl) return skyboxUrl;
+      if (!worldId || !apiUrl) {
+        throw new Error('Use ?worldId=...&apiUrl=... (and optionally &username=...&password=...) or ?skyboxUrl=...');
+      }
+
+      let token = null;
+      if (username && password) {
+        setStatus('Authenticating with OASIS...');
+        const authRes = await fetch(`${apiUrl}/api/avatar/authenticate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+        });
+        if (!authRes.ok) throw new Error('Auth failed: ' + authRes.status);
+        const authJson = await authRes.json();
+        const result = authJson?.result ?? authJson?.Result ?? authJson;
+        const inner = result?.result ?? result?.Result ?? result;
+        token = inner?.jwtToken ?? inner?.JwtToken ?? null;
+        if (!token) throw new Error('No JWT in auth response');
+      }
+
+      setStatus('Loading world from OASIS...');
+      const opts = token ? { headers: { Authorization: 'Bearer ' + token } } : {};
+      const loadRes = await fetch(`${apiUrl}/api/data/load-holon/${worldId}`, opts);
+      if (!loadRes.ok) {
+        if (loadRes.status === 401) throw new Error('OASIS requires login. Add to URL: #username=OASIS_ADMIN&password=YOUR_PASS (hash keeps params if server redirects).');
+        throw new Error('Load holon failed: ' + loadRes.status);
+      }
+      const loadJson = await loadRes.json();
+      if (loadJson?.isError) throw new Error(loadJson?.message || 'Load holon error');
+
+      const holon = loadJson?.result ?? loadJson?.Result ?? loadJson;
+      const meta = holon?.metaData ?? holon?.MetaData ?? {};
+      const url = meta?.sceneAssetUrl ?? meta?.SceneAssetUrl ?? null;
+      if (!url) throw new Error('World has no sceneAssetUrl (not a skybox world?)');
+      return url;
+    }
+
+    function runViewer(imageUrl) {
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(0, 0, 0.1);
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      container.appendChild(renderer.domElement);
+
+      const loader = new THREE.TextureLoader();
+      loader.setCrossOrigin('anonymous');
+      loader.load(
+        imageUrl,
+        (texture) => {
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+          texture.colorSpace = THREE.SRGBColorSpace;
+          scene.background = texture;
+          hideStatus();
+        },
+        undefined,
+        (err) => {
+          setStatus('Failed to load skybox image: ' + (err?.message || err), true);
+        }
+      );
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.rotateSpeed = 0.5;
+      controls.minDistance = 0.01;
+      controls.maxDistance = 0.5;
+      controls.target.set(0, 0, 0);
+
+      window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+
+    (async () => {
+      try {
+        const imageUrl = await getSkyboxUrl();
+        setStatus('Starting viewer...');
+        runViewer(imageUrl);
+      } catch (e) {
+        setStatus(e?.message || String(e), true);
+      }
+    })();
+  </script>
+</body>
+</html>
