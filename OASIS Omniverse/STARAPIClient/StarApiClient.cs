@@ -1005,6 +1005,68 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Format requirement/progress dictionaries into display lines e.g. "Killed 3/10 monsters in ODOOM". Pairs Need* dicts with progress dicts; one line per game key.</summary>
+    private static void FormatRequirementProgressLines(StarQuestObjectiveDictionaries? dicts, List<string> outLines)
+    {
+        if (dicts == null) return;
+        static int ParseFirstInt(Dictionary<string, List<string>> d, string game)
+        {
+            if (d == null || !d.TryGetValue(game, out var list) || list == null || list.Count == 0) return 0;
+            return int.TryParse(list[0], out var n) ? n : 0;
+        }
+        static void AddLine(Dictionary<string, List<string>> need, Dictionary<string, List<string>> progress, string verb, string noun, List<string> lines)
+        {
+            if (need == null || need.Count == 0) return;
+            foreach (var kv in need)
+            {
+                var game = kv.Key;
+                var reqList = kv.Value;
+                int required = (reqList != null && reqList.Count > 0 && int.TryParse(reqList[0], out var r)) ? r : 0;
+                int current = ParseFirstInt(progress, game);
+                if (required <= 0) continue;
+                lines.Add($"{verb} {current}/{required} {noun} in {game}");
+            }
+        }
+        AddLine(dicts.NeedToKillMonsters, dicts.MonstersKilled, "Killed", "monsters", outLines);
+        AddLine(dicts.NeedToCollectArmor, dicts.ArmorCollected, "Collected", "armor", outLines);
+        AddLine(dicts.NeedToCollectAmmo, dicts.AmmoCollected, "Collected", "ammo", outLines);
+        AddLine(dicts.NeedToCollectHealth, dicts.HealthCollected, "Collected", "health", outLines);
+        AddLine(dicts.NeedToCollectWeapons, dicts.WeaponsCollected, "Collected", "weapons", outLines);
+        AddLine(dicts.NeedToCollectPowerups, dicts.PowerupsCollected, "Collected", "powerups", outLines);
+        AddLine(dicts.NeedToCollectItems, dicts.ItemsCollected, "Collected", "items", outLines);
+        AddLine(dicts.NeedToCollectKeys, dicts.KeysCollected, "Collected", "keys", outLines);
+        AddLine(dicts.NeedToCompleteLevel, dicts.LevelsCompleted, "Completed", "levels", outLines);
+        AddLine(dicts.NeedToEarnKarma, dicts.KarmaEarnt, "Earned", "karma", outLines);
+        AddLine(dicts.NeedToEarnXP, dicts.XPEarnt, "Earned", "XP", outLines);
+        AddLine(dicts.NeedToGoToGeoHotSpots, dicts.GeoHotSpotsArrived, "Visited", "hot spots", outLines);
+        AddLine(dicts.NeedToUseWeapons, dicts.WeaponsCollected, "Used", "weapons", outLines);
+        AddLine(dicts.NeedToUsePowerups, dicts.PowerupsCollected, "Used", "powerups", outLines);
+    }
+
+    /// <summary>Get serialized requirement/progress lines for a quest and optional objective (objective + quest-level dictionaries). Returns lines like "Killed 3/10 monsters in ODOOM".</summary>
+    internal bool TryGetQuestObjectiveRequirementsForGame(string? questId, string? objectiveId, out string result)
+    {
+        result = string.Empty;
+        if (string.IsNullOrWhiteSpace(questId)) return true;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest == null) return true;
+            var lines = new List<string>();
+            if (!string.IsNullOrWhiteSpace(objectiveId) && quest.Objectives != null)
+            {
+                var obj = quest.Objectives.FirstOrDefault(o => string.Equals(o.Id, objectiveId, StringComparison.OrdinalIgnoreCase));
+                if (obj?.Dictionaries != null)
+                    FormatRequirementProgressLines(obj.Dictionaries, lines);
+            }
+            if (quest.Dictionaries != null)
+                FormatRequirementProgressLines(quest.Dictionaries, lines);
+            result = lines.Count > 0 ? string.Join("\n", lines) : string.Empty;
+            return true;
+        }
+    }
+
     /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI.</summary>
     private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
     {
@@ -4994,6 +5056,45 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_prereqs_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+        }
+    }
+
+    /// <summary>Write requirement/progress lines for quest and optional objective to buf. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objective_requirements_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestObjectiveRequirementsString(sbyte* questId, sbyte* objectiveId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            var oId = objectiveId != null ? Marshal.PtrToStringUTF8((IntPtr)objectiveId) : null;
+            if (!client.TryGetQuestObjectiveRequirementsForGame(qId, oId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objective_requirements_string exception: {ex.Message}"); } catch { /* ignore */ }
             return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
         }
     }

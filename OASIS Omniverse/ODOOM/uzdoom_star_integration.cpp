@@ -930,7 +930,9 @@ static void ODOOM_RefreshQuestDetailCVars(void) {
 	FBaseCVar* prereqVar = FindCVar("odoom_quest_detail_prereqs", nullptr);
 	FBaseCVar* objVar = FindCVar("odoom_quest_detail_objectives", nullptr);
 	FBaseCVar* subVar = FindCVar("odoom_quest_detail_subquests", nullptr);
-	if (!prereqVar || !objVar || !subVar) return;
+	FBaseCVar* reqVar = FindCVar("odoom_quest_detail_requirements", nullptr);
+	FBaseCVar* selObjVar = FindCVar("odoom_quest_detail_selected_objective_id", nullptr);
+	if (!prereqVar || !objVar || !subVar || !reqVar || !selObjVar) return;
 
 	static char buf[1024];
 	int nr = star_api_get_quest_prereqs_string(id, buf, sizeof(buf));
@@ -965,6 +967,19 @@ static void ODOOM_RefreshQuestDetailCVars(void) {
 	s_sub.assign(buf, len);
 	UCVarValue vs; vs.String = (char*)s_sub.c_str();
 	subVar->SetGenericRep(vs, CVAR_String);
+
+	const char* selObj = selObjVar->GetRealType() == CVAR_String ? selObjVar->GetGenericRep(CVAR_String).String : nullptr;
+	if (!selObj) selObj = "";
+	int nreq = star_api_get_quest_objective_requirements_string(id, selObj, buf, sizeof(buf));
+	if (nreq < 0) nreq = 0;
+	if (nreq >= (int)sizeof(buf)) nreq = (int)sizeof(buf) - 1;
+	buf[nreq] = '\0';
+	len = (size_t)nreq;
+	if (len > ODOOM_QUEST_DETAIL_CVAR_MAX) len = ODOOM_QUEST_DETAIL_CVAR_MAX;
+	static std::string s_req;
+	s_req.assign(buf, len);
+	UCVarValue vr; vr.String = (char*)s_req.c_str();
+	reqVar->SetGenericRep(vr, CVAR_String);
 }
 
 static void ODOOM_OnAuthDone(void* user_data);
@@ -1495,6 +1510,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int i    = ODOOM_GetRawKeyDown('I');
 		int o    = ODOOM_GetRawKeyDown('O');
 		int p    = ODOOM_GetRawKeyDown('P');
+		int keyS = ODOOM_GetRawKeyDown('S');
 		int enter= ODOOM_GetRawKeyDown(ODOOM_K_RETURN);
 		int pgup  = ODOOM_GetRawKeyDown(ODOOM_K_PAGEUP);
 		int pgdown= ODOOM_GetRawKeyDown(ODOOM_K_PAGEDOWN);
@@ -1509,7 +1525,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -1811,7 +1827,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1835,6 +1851,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_i", i);
 	SET_KEY_CVAR("odoom_key_o", o);
 	SET_KEY_CVAR("odoom_key_p", p);
+	SET_KEY_CVAR("odoom_key_s", keyS);
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
 	SET_KEY_CVAR("odoom_key_k", keyK);
