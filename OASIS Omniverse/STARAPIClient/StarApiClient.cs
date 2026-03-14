@@ -209,16 +209,26 @@ public sealed class StarApiClient : IDisposable
 
     public async Task<OASISResult<bool>> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
     {
+        StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync called");
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: client not initialized");
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         string oasisUrl;
         lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
         if (string.IsNullOrWhiteSpace(oasisUrl))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: OASIS base URL not set");
             return FailAndCallback<bool>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
+        }
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: username or password empty");
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
+        }
 
         try
         {
@@ -232,7 +242,10 @@ public sealed class StarApiClient : IDisposable
 
             var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Auth] AuthenticateAsync API error: {response.Message}");
                 return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
@@ -333,17 +346,19 @@ public sealed class StarApiClient : IDisposable
                     auth.Id = jwtAvatarId;
             }
 
+            string? loggedAvatarId;
             lock (_stateLock)
             {
                 _jwtToken = auth.JwtToken;
                 _refreshToken = auth.RefreshToken;
                 _avatarId = auth.Id == Guid.Empty ? _avatarId : auth.Id.ToString();
+                loggedAvatarId = _avatarId;
 
                 if (!string.IsNullOrWhiteSpace(_jwtToken) && _httpClient is not null)
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            ScheduleBackgroundTokenRefresh();
+            StarApiExports.StarApiLog($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}");
 
             /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler. */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
@@ -354,6 +369,7 @@ public sealed class StarApiClient : IDisposable
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLogFileOnly($"[Auth] AuthenticateAsync exception: {ex.Message}");
             return FailAndCallback<bool>($"Authentication failed: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -441,28 +457,38 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var url = $"{_baseApiUrl}/api/avatar/current";
+        StarApiExports.StarApiLog($"[Avatar] GET avatar/current (BaseApiUrl)");
+        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             lock (_stateLock)
             {
                 if (Guid.TryParse(_avatarId, out var cachedId) && cachedId != Guid.Empty)
                 {
+                    StarApiExports.StarApiLog($"[Avatar] Request failed, using cached AvatarId (no XP): {response.Message}");
                     InvokeCallback(StarApiResultCode.Success);
                     return Success(new StarAvatarProfile { Id = cachedId }, StarApiResultCode.Success, "Avatar resolved from authenticated session.");
                 }
             }
 
+            StarApiExports.StarApiLog($"[Avatar] GET avatar/current failed: {response.Message}");
             return FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
+        {
+            StarApiExports.StarApiLog($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
             return FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
+        }
 
         var avatar = ParseAvatarProfile(resultElement);
         if (avatar is null || avatar.Id == Guid.Empty)
+        {
+            StarApiExports.StarApiLog("[Avatar] GET avatar/current parse failed: no avatar in response");
             return FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
+        }
 
         lock (_stateLock)
         {
@@ -470,6 +496,7 @@ public sealed class StarApiClient : IDisposable
             _cachedAvatarXp = avatar.XP;
         }
 
+        StarApiExports.StarApiLog($"[Avatar] GET avatar/current success XP={avatar.XP}");
         InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
@@ -874,6 +901,7 @@ public sealed class StarApiClient : IDisposable
                 return;
             _questsRefreshInProgress = true;
         }
+        StarApiExports.StarApiLogFileOnly("[Quests] EnsureQuestsCacheInBackground started (fetching all-for-avatar)");
         _ = RunOnBackgroundAsync<bool>(async ct =>
         {
             try
@@ -1424,8 +1452,14 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Load avatar XP from API and update cache. Blocks until the request completes. Uses add-xp(0) so same code path as monster kill.</summary>
     public void LoadAvatarXpBlocking()
     {
-        if (!IsInitialized()) return;
-        _ = AddXpAsync(0, CancellationToken.None).GetAwaiter().GetResult();
+        StarApiExports.StarApiLogFileOnly("[Avatar] LoadAvatarXpBlocking called");
+        if (!IsInitialized())
+        {
+            StarApiExports.StarApiLogFileOnly("[Avatar] LoadAvatarXpBlocking skipped (not initialized)");
+            return;
+        }
+        var result = AddXpAsync(0, CancellationToken.None).GetAwaiter().GetResult();
+        StarApiExports.StarApiLogFileOnly($"[Avatar] LoadAvatarXpBlocking done IsError={result.IsError} cachedXp={GetCachedAvatarXp()}");
     }
 
     /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
@@ -2177,19 +2211,26 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrEmpty(_baseApiUrl))
             return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
 
-        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"})");
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"}) (BaseApiUrl)");
 
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar failed: {response.Message ?? "Request failed"}");
             return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
+        {
+            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar parse failed: {parseErrorMessage ?? "Parse error"}");
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
+        }
 
         var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
-        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
         int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar success: {quests.Count} quests, {totalObjectives} objectives");
+        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
         StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
         StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} objectives");
         // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
@@ -2912,6 +2953,14 @@ public sealed class StarApiClient : IDisposable
 
         if (!response.IsSuccessStatusCode)
         {
+            var path = url;
+            try
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Segments?.Length > 0)
+                    path = string.Concat(u.Segments);
+            }
+            catch { /* use full url if parse fails */ }
+            StarApiExports.StarApiLog($"[HTTP] {(int)response.StatusCode} {method.Method} {path}");
             var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
             if (!string.IsNullOrWhiteSpace(responseBody))
                 failureMessage += $" Body: {responseBody}";
@@ -4920,12 +4969,14 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
+        try { StarApiLogFileOnly("[STAR] star_api_init called"); } catch { }
         if (config is null || config->base_url is null)
             return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam);
 
+        var baseUrl = PtrToString(config->base_url) ?? string.Empty;
         var managedConfig = new StarApiConfig
         {
-            Web5StarApiBaseUrl = PtrToString(config->base_url) ?? string.Empty,
+            Web5StarApiBaseUrl = baseUrl,
             ApiKey = PtrToString(config->api_key),
             AvatarId = PtrToString(config->avatar_id),
             TimeoutSeconds = config->timeout_seconds
@@ -4938,12 +4989,14 @@ public static unsafe class StarApiExports
         }
 
         var result = _client.Init(managedConfig);
+        try { StarApiLogFileOnly($"[STAR] star_api_init result={(result.IsError ? "FAIL" : "OK")} base_url_len={baseUrl.Length}"); } catch { }
         return (int)FinalizeResult(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiAuthenticate(sbyte* username, sbyte* password)
     {
+        try { StarApiLogFileOnly("[STAR] star_api_authenticate called"); } catch { }
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -4951,6 +5004,7 @@ public static unsafe class StarApiExports
         var user = PtrToString(username);
         var pass = PtrToString(password);
         var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
+        try { StarApiLogFileOnly($"[STAR] star_api_authenticate result={(result.IsError ? "FAIL" : "OK")} msg={result.Message ?? "(ok)"}"); } catch { }
         return (int)FinalizeResult(result);
     }
 
@@ -5139,7 +5193,10 @@ public static unsafe class StarApiExports
                 return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
             string fallback;
             if (!client.TryGetTopLevelQuestsCache(out var str))
+            {
                 fallback = "Loading...";
+                try { StarApiLogFileOnly("[STAR] star_api_get_top_level_quests_string cache miss -> Loading..."); } catch { }
+            }
             else
                 fallback = str ?? string.Empty;
             var bytesArr = Encoding.UTF8.GetBytes(fallback);
@@ -5502,6 +5559,7 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiRefreshAvatarXp()
     {
+        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_xp called"); } catch { }
         var client = GetClient();
         if (client is null) return;
         client.RefreshAvatarXp();
@@ -5511,6 +5569,7 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp_blocking", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiRefreshAvatarXpBlocking()
     {
+        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_xp_blocking called"); } catch { }
         var client = GetClient();
         if (client is null) return;
         client.LoadAvatarXpBlocking();
@@ -5811,11 +5870,14 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_set_oasis_base_url", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSetOasisBaseUrl(sbyte* oasisBaseUrl)
     {
+        var url = PtrToString(oasisBaseUrl) ?? string.Empty;
+        try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url called len={url.Length}"); } catch { }
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var result = client.SetWeb4OasisApiBaseUrl(PtrToString(oasisBaseUrl) ?? string.Empty);
+        var result = client.SetWeb4OasisApiBaseUrl(url);
+        try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url result={(result.IsError ? "FAIL" : "OK")}"); } catch { }
         return (int)FinalizeResult(result);
     }
 
@@ -5877,6 +5939,15 @@ public static unsafe class StarApiExports
     }
 
     private static readonly object LogLock = new();
+    private static bool _logPathLogged;
+
+    private static string GetStarApiLogPath()
+    {
+        var dir = AppContext.BaseDirectory;
+        if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
+        dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return Path.Combine(dir, "star_api.log");
+    }
 
     /// <summary>Write to star_api.log and Trace only; do NOT enqueue for game console. Use for quest API logs so Quake/Doom don't consume them and crash.</summary>
     internal static void StarApiLogFileOnly(string message)
@@ -5885,12 +5956,16 @@ public static unsafe class StarApiExports
         Trace.WriteLine(line);
         try
         {
-            var dir = AppContext.BaseDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
-            dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            var path = Path.Combine(dir, "star_api.log");
+            var path = GetStarApiLogPath();
             lock (LogLock)
+            {
+                if (!_logPathLogged)
+                {
+                    _logPathLogged = true;
+                    File.AppendAllText(path, $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] star_api.log path: {path}" + Environment.NewLine);
+                }
                 File.AppendAllText(path, line + Environment.NewLine);
+            }
         }
         catch { /* ignore file write errors */ }
     }
@@ -5901,12 +5976,16 @@ public static unsafe class StarApiExports
         Trace.WriteLine(line);
         try
         {
-            var dir = AppContext.BaseDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
-            dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            var path = Path.Combine(dir, "star_api.log");
+            var path = GetStarApiLogPath();
             lock (LogLock)
+            {
+                if (!_logPathLogged)
+                {
+                    _logPathLogged = true;
+                    File.AppendAllText(path, $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] star_api.log path: {path}" + Environment.NewLine);
+                }
                 File.AppendAllText(path, line + Environment.NewLine);
+            }
         }
         catch { /* ignore file write errors */ }
         EnqueueConsoleLog(message);
