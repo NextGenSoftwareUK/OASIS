@@ -47,6 +47,19 @@ star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_av
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 #endif
 
+#ifdef OQUAKE_STAR_API_TRACKER_STUBS
+/* Stub implementations when linking with an older star_api.lib that does not export these. Define OQUAKE_STAR_API_TRACKER_STUBS in the build. */
+int star_api_get_quest_tracker_objectives_string(const char* quest_id, char* buf, size_t buf_size) {
+	(void)quest_id;
+	if (buf && buf_size > 0) buf[0] = '\0';
+	return 0;
+}
+int star_api_get_quest_tracker_active_objective_index(const char* quest_id) {
+	(void)quest_id;
+	return 0;
+}
+#endif
+
 /* Forward declare callbacks so they can be used before their definitions. */
 static void OQ_OnSendItemDone(void* user_data);
 static void OQ_PickupLog(const char* fmt, ...);
@@ -281,6 +294,10 @@ static int g_quest_subquest_selected = 0;
 static int g_quest_subquest_scroll = 0;
 static char g_quest_tracker_id[64] = "";
 static char g_quest_tracker_name[128] = "";  /* Display name for HUD tracker. */
+static int g_quest_tracker_objective_index = 0;  /* 0..n-1 = single obj, n = All, n+1 = Hide. O cycles when popup closed. */
+static int g_quest_tracker_show = 1;            /* 0 = hide (when cycle on Hide). */
+static char g_quest_tracker_active_objective_id[64] = "";  /* Enter on objective in popup sets this; highlighted green. */
+static int g_quest_tracker_active_display_index = -1;  /* Index of active objective for green in All view; -1 = use API first-incomplete. */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
 static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
@@ -3789,6 +3806,37 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             g_f_key_was_down = false;
     }
 
+    /* When quest popup is closed: O = cycle tracker (obj 1, 2, 3, ..., All, Hide). Same behaviour as ODOOM. */
+    if (!g_quest_popup_open && key_dest != key_message && key_dest != key_console && key_dest != key_menu && g_quest_tracker_id[0] && g_star_initialized) {
+        static int s_o_key = -1;
+        static qboolean g_quest_o_key_was_down = false;
+        if (s_o_key < 0) s_o_key = Key_StringToKeynum("o");
+        if (s_o_key >= 0 && s_o_key < MAX_KEYS) {
+            if (keydown[s_o_key] && !g_quest_o_key_was_down) {
+                char tr_buf[1024];
+                int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
+                if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
+                else tr_buf[0] = '\0';
+                int n_obj = 0;
+                if (tr_buf[0]) {
+                    const char* p = tr_buf;
+                    while (*p) {
+                        if (*p == '\n') n_obj++;
+                        p++;
+                    }
+                    if (p > tr_buf && p[-1] != '\n') n_obj++;
+                }
+                /* choices: 0..n_obj-1 = single, n_obj = All, n_obj+1 = Hide */
+                int choices = n_obj + 2;
+                if (choices < 2) choices = 2;
+                g_quest_tracker_objective_index = (g_quest_tracker_objective_index + 1) % choices;
+                g_quest_tracker_show = (g_quest_tracker_objective_index == n_obj + 1) ? 0 : 1;
+                g_quest_o_key_was_down = true;
+            }
+            if (!keydown[s_o_key]) g_quest_o_key_was_down = false;
+        }
+    }
+
     if (g_inventory_open)
         OQ_PollInventoryHotkeys();
 
@@ -4421,6 +4469,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             } else if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_objectives_selected--; if (g_quest_objectives_selected < 0) g_quest_objectives_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_objectives_selected++; if (g_quest_objectives_selected >= nobj) g_quest_objectives_selected = nobj > 0 ? nobj - 1 : 0; }
+                /* Enter = set active objective for tracker (only when detail quest is the tracked quest). */
+                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj &&
+                    g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 && obj_id[g_quest_objectives_selected][0]) {
+                    q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
+                    g_quest_tracker_objective_index = g_quest_objectives_selected;
+                    g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nsq) g_quest_subquest_selected = nsq > 0 ? nsq - 1 : 0; }
@@ -4453,6 +4508,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                 } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0) {
                                     q_strlcpy(g_quest_tracker_id, drill_q_id[di], sizeof(g_quest_tracker_id));
                                     q_strlcpy(g_quest_tracker_name, drill_q_name[di] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
+                                    g_quest_tracker_active_objective_id[0] = '\0';
+                                    g_quest_tracker_active_display_index = -1;
+                                    g_quest_tracker_objective_index = 0;
+                                    g_quest_tracker_show = 1;
                                 }
                             }
                         } else {
@@ -4466,6 +4525,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                 } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
                                     q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
                                     q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+                                    g_quest_tracker_active_objective_id[0] = '\0';
+                                    g_quest_tracker_active_display_index = -1;
+                                    g_quest_tracker_objective_index = 0;
+                                    g_quest_tracker_show = 1;
                                 }
                             }
                         }
@@ -4736,6 +4799,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         for (i = 0; i < obj_vis_use && g_quest_objectives_scroll + i < n_objectives; i++) {
                             int oi = g_quest_objectives_scroll + i;
                             const char* oname = obj_name[oi][0] ? obj_name[oi] : (obj_id[oi][0] ? obj_id[oi] : "(unknown)");
+                            /* Active objective (tracked quest + Enter-selected): green highlight like active quest in list */
+                            if (g_quest_tracker_id[0] && panel_quest_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 &&
+                                obj_id[oi][0] && strcmp(obj_id[oi], g_quest_tracker_active_objective_id) == 0)
+                                Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 56, 0.55f);
                             if (oi == g_quest_objectives_selected && g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES)
                                 Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
                             Draw_String(cbx, rx, sect_y, oname);
@@ -4812,20 +4879,89 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
 }
 
-/** Draw current quest tracker on HUD at top-left when user has set a tracked quest (Enter on In Progress in popup). Call from same HUD path as OQuake_STAR_DrawBeamedInStatus. */
+/** Draw current quest tracker on HUD at top-left when user has set a tracked quest. O cycles: single obj 1..n, All, Hide. Same behaviour as ODOOM. */
 void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (!g_star_initialized || !cbx)
         return;
     if (!g_quest_tracker_id[0])
         return;
+    if (!g_quest_tracker_show)
+        return;
 
-    {
+    static char tr_buf[1024];
+    int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
+    if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
+    else tr_buf[0] = '\0';
+
+    int n_obj = 0;
+    if (tr_buf[0]) {
+        const char* p = tr_buf;
+        while (*p) { if (*p == '\n') n_obj++; p++; }
+        if (p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
+    }
+
+    int disp_idx = g_quest_tracker_objective_index;
+    if (disp_idx > n_obj + 1) disp_idx = n_obj + 1;
+    if (disp_idx == n_obj + 1) return;  /* Hide */
+
+    int active_idx;
+    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
+        active_idx = g_quest_tracker_active_display_index;
+    else {
+        active_idx = star_api_get_quest_tracker_active_objective_index(g_quest_tracker_id);
+        if (active_idx < 0) active_idx = 0;
+        if (active_idx >= n_obj && n_obj > 0) active_idx = n_obj - 1;
+    }
+
+    int y = 8;
+    if (disp_idx >= n_obj) {
+        /* All: show quest title then each progress line; highlight active in green */
         char buf[160];
         if (g_quest_tracker_name[0])
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
             q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
-        Draw_String(cbx, 8, 8, buf);  /* top-left of screen */
+        Draw_String(cbx, 8, y, buf);
+        y += 10;
+        const char* line = tr_buf;
+        int idx = 0;
+        while (line[0] && y < 200) {
+            const char* eol = strchr(line, '\n');
+            size_t len = eol ? (size_t)(eol - line) : strlen(line);
+            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+            memcpy(buf, line, len);
+            buf[len] = '\0';
+            if (idx == active_idx)
+                Draw_Fill(cbx, 6, y - 1, (int)(len * 8) + 4, 10, 56, 0.55f);
+            Draw_String(cbx, 8, y, buf);
+            y += 10;
+            idx++;
+            line = eol ? eol + 1 : line + len;
+        }
+    } else {
+        /* Single objective: show quest title and one progress line */
+        char buf[160];
+        if (g_quest_tracker_name[0])
+            q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
+        else
+            q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
+        Draw_String(cbx, 8, y, buf);
+        y += 10;
+        const char* line = tr_buf;
+        int idx = 0;
+        while (line[0] && idx <= disp_idx) {
+            const char* eol = strchr(line, '\n');
+            size_t len = eol ? (size_t)(eol - line) : strlen(line);
+            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
+            memcpy(buf, line, len);
+            buf[len] = '\0';
+            if (idx == disp_idx) {
+                Draw_String(cbx, 8, y, buf);
+                break;
+            }
+            idx++;
+            line = eol ? eol + 1 : line + len;
+        }
     }
 }
 
