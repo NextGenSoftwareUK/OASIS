@@ -29,6 +29,7 @@ server int odoom_key_q = 0;
 server int odoom_key_enter = 0;
 server int odoom_key_backspace = 0;
 server int odoom_key_k = 0;
+server int odoom_key_t = 0;
 
 // Send popup (OQuake-style): name input buffer and execute
 server int odoom_send_popup_open = 0;
@@ -70,9 +71,15 @@ server int odoom_star_toast_frames = 0;
 server string odoom_star_pickup_toast_message = "";
 server int odoom_star_pickup_toast_frames = 0;
 
-// Quest Tracker (left side, near top): C++ sets from first InProgress quest. Always visible when beamed in and quests exist.
+// Quest Tracker (left side, near top): C++ sets from first InProgress quest. T=toggle show, O=cycle objective (1,2,3,All) when popup closed.
 server string odoom_quest_tracker_title = "";
 server string odoom_quest_tracker_objective = "";
+server int odoom_quest_tracker_show = 1;
+server int odoom_quest_tracker_objective_index = 0;
+server string odoom_quest_tracker_objectives = "";
+server int odoom_quest_tracker_active_index = 0;
+// User-selected active objective (Enter on objective in detail popup). Highlighted in green in Objectives list.
+server string odoom_quest_tracker_active_objective_id = "";
 // Quest popup (Q key): full list for ZScript. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests.
 server int odoom_quest_popup_open = 0;
 server string odoom_quest_list = "";
