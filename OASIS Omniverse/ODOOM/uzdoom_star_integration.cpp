@@ -915,6 +915,27 @@ static void ODOOM_RefreshQuestCVars(void) {
 		UCVarValue o; o.String = (char*)(trackerObjective.empty() ? "" : trackerObjective.c_str());
 		trackerObjVar->SetGenericRep(o, CVAR_String);
 	}
+	/* Tracker objectives (progress lines) and active index for HUD cycle (O key). */
+	if (!wantId.empty()) {
+		FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
+		FBaseCVar* trackerActiveVar = FindCVar("odoom_quest_tracker_active_index", nullptr);
+		static char trackerObjBuf[512];
+		int nObj = star_api_get_quest_tracker_objectives_string(wantId.c_str(), trackerObjBuf, sizeof(trackerObjBuf));
+		if (nObj < 0) nObj = 0;
+		if (nObj >= (int)sizeof(trackerObjBuf)) nObj = (int)sizeof(trackerObjBuf) - 1;
+		trackerObjBuf[nObj] = '\0';
+		static std::string s_tracker_objectives;
+		s_tracker_objectives.assign(trackerObjBuf, (size_t)nObj);
+		if (trackerObjLinesVar && trackerObjLinesVar->GetRealType() == CVAR_String) {
+			UCVarValue vo; vo.String = (char*)s_tracker_objectives.c_str();
+			trackerObjLinesVar->SetGenericRep(vo, CVAR_String);
+		}
+		int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
+		if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
+			UCVarValue va; va.Int = activeIdx;
+			trackerActiveVar->SetGenericRep(va, CVAR_Int);
+		}
+	}
 }
 
 /** Max bytes for each quest detail list CVar (prereqs, objectives, subquests). */
@@ -1511,6 +1532,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int o    = ODOOM_GetRawKeyDown('O');
 		int p    = ODOOM_GetRawKeyDown('P');
 		int keyS = ODOOM_GetRawKeyDown('S');
+		int keyT = ODOOM_GetRawKeyDown('T');
 		int enter= ODOOM_GetRawKeyDown(ODOOM_K_RETURN);
 		int pgup  = ODOOM_GetRawKeyDown(ODOOM_K_PAGEUP);
 		int pgdown= ODOOM_GetRawKeyDown(ODOOM_K_PAGEDOWN);
@@ -1525,7 +1547,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -1827,7 +1849,7 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -1852,6 +1874,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_o", o);
 	SET_KEY_CVAR("odoom_key_p", p);
 	SET_KEY_CVAR("odoom_key_s", keyS);
+	SET_KEY_CVAR("odoom_key_t", keyT);
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
 	SET_KEY_CVAR("odoom_key_k", keyK);

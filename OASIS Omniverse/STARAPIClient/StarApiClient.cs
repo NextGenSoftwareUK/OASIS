@@ -1067,6 +1067,43 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Get one progress line per objective for the tracker (e.g. "Killed 3/10 monsters in ODOOM"). First line from requirement dicts or objective description. Active index = first incomplete objective (0-based).</summary>
+    internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
+    {
+        linesResult = string.Empty;
+        activeObjectiveIndex = 0;
+        if (string.IsNullOrWhiteSpace(questId)) return true;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest?.Objectives == null || quest.Objectives.Count == 0) return true;
+            var perLine = new List<string>();
+            for (var i = 0; i < quest.Objectives.Count; i++)
+            {
+                var o = quest.Objectives[i];
+                var objLines = new List<string>();
+                if (o.Dictionaries != null)
+                    FormatRequirementProgressLines(o.Dictionaries, objLines);
+                if (objLines.Count > 0)
+                    perLine.Add(objLines[0]);
+                else
+                    perLine.Add(o.Description ?? o.SummaryText ?? "");
+            }
+            linesResult = string.Join("\n", perLine);
+            activeObjectiveIndex = 0;
+            for (var i = 0; i < quest.Objectives.Count; i++)
+            {
+                if (!quest.Objectives[i].IsCompleted)
+                {
+                    activeObjectiveIndex = i;
+                    break;
+                }
+            }
+            return true;
+        }
+    }
+
     /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI.</summary>
     private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
     {
@@ -5097,6 +5134,57 @@ public static unsafe class StarApiExports
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objective_requirements_string exception: {ex.Message}"); } catch { /* ignore */ }
             return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
         }
+    }
+
+    /// <summary>Write one progress line per objective for the tracker. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_tracker_objectives_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestTrackerObjectivesString(sbyte* questId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestTrackerObjectivesProgress(qId, out var str, out _))
+            {
+                var empty = "";
+                var bytesArr = Encoding.UTF8.GetBytes(empty);
+                buf[0] = 0;
+                return 0;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_tracker_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+        }
+    }
+
+    /// <summary>Return 0-based index of first incomplete objective for the tracked quest.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_tracker_active_objective_index", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestTrackerActiveObjectiveIndex(sbyte* questId)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return 0;
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestTrackerObjectivesProgress(qId, out _, out var activeIndex))
+                return 0;
+            return activeIndex;
+        }
+        catch { return 0; }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
