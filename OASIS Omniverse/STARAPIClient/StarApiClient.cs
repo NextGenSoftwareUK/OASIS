@@ -1001,6 +1001,20 @@ public sealed class StarApiClient : IDisposable
         return false;
     }
 
+    /// <summary>Get display name for the current tracked quest (ActiveQuestId) from cache. Returns null if cache not ready or quest not in list.</summary>
+    internal string? TryGetTrackerQuestNameFromCache()
+    {
+        var questId = GetCachedActiveQuestId();
+        if (!questId.HasValue || questId.Value == Guid.Empty) return null;
+        var idStr = questId.Value.ToString();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return null;
+            var q = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, idStr, StringComparison.OrdinalIgnoreCase));
+            return q?.Name;
+        }
+    }
+
     /// <summary>Get serialized top-level-only quest list for left panel. Filters from cache; returns null if cache not ready.</summary>
     internal bool TryGetTopLevelQuestsCache(out string? cached)
     {
@@ -5772,6 +5786,22 @@ public static unsafe class StarApiExports
         var client = GetClient();
         if (client is null) return;
         client.RefreshAvatarProfileInBackground();
+    }
+
+    /// <summary>Get display name of the current tracked quest from cache (so HUD can show name as soon as quest list loads after beam-in). Writes UTF-8 name to buf, null-terminated. Returns bytes written (excluding null), or 0 if not available.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_tracker_quest_name", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetTrackerQuestName(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        if (client is null) return 0;
+        var name = client.TryGetTrackerQuestNameFromCache();
+        if (string.IsNullOrEmpty(name)) return 0;
+        var bytes = Encoding.UTF8.GetBytes(name);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
     }
 
     /// <summary>Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
