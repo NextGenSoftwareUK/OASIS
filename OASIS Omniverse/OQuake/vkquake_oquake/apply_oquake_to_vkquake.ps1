@@ -921,11 +921,11 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    # Define OQUAKE_STAR_API_TRACKER_STUBS so linker finds stub implementations when star_api.lib is old and does not export quest tracker APIs. Remove this define after deploying a STAR client that exports star_api_get_quest_tracker_objectives_string and star_api_get_quest_tracker_active_objective_index.
-    if ($projContent -notmatch 'OQUAKE_STAR_API_TRACKER_STUBS') {
-        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_TRACKER_STUBS;`$2`$3"
+    # Do NOT define OQUAKE_STAR_API_TRACKER_STUBS so the game uses the real star_api.dll for tracker APIs (star_api_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
+    if ($projContent -match 'OQUAKE_STAR_API_TRACKER_STUBS') {
+        $projContent = $projContent -replace 'OQUAKE_STAR_API_TRACKER_STUBS;?', ''
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added OQUAKE_STAR_API_TRACKER_STUBS to PreprocessorDefinitions (use stub if star_api.lib is old)" -ForegroundColor Green
+        Write-Host "[OQuake] Removed OQUAKE_STAR_API_TRACKER_STUBS so star_api_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
     }
     # Define OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL so oquake_star_integration.c provides star_api_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked star_api.lib does not export this symbol.
     if ($projContent -notmatch 'OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL') {
