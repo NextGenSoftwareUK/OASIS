@@ -102,6 +102,106 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #endif
 #endif
 
+/* When ODOOM_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer). */
+#ifdef ODOOM_STAR_API_SESSION_IMPL
+extern "C" {
+#ifdef _WIN32
+static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
+	typedef star_api_result_t (__cdecl *fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_saved_session");
+	}
+	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
+
+static star_api_result_t star_api_restore_session_impl(void) {
+	typedef star_api_result_t (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_restore_session");
+	}
+	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
+
+static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_username");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
+
+static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_jwt");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+#else
+#include <dlfcn.h>
+static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
+	typedef star_api_result_t (*fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_set_saved_session");
+	}
+	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
+
+static star_api_result_t star_api_restore_session_impl(void) {
+	typedef star_api_result_t (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_restore_session");
+	}
+	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
+
+static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_username");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
+
+static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_jwt");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+#endif
+}
+#endif
+
 static star_api_config_t g_star_config;
 static bool g_star_initialized = false;
 static bool g_star_client_ready = false;
@@ -250,6 +350,9 @@ static const ODOOM_MonsterEntry ODOOM_MONSTERS[] = {
 static std::string g_odoom_json_config_path;
 /** Frames until we re-apply oasisstar.json so mint etc. override ini. Set in Init when json loaded. */
 static int g_odoom_reapply_json_frames = -1;
+/** Persisted session for restore on next launch (loaded/saved from oasisstar.json). JWT not logged. */
+static char g_odoom_saved_username[128] = {};
+static char g_odoom_saved_jwt[2048] = {};
 
 /** When init (e.g. star_api_init) has failed, we skip retrying until user runs beamin again to avoid spamming "couldn't find the host". */
 static bool g_star_init_failed_this_session = false;
@@ -435,6 +538,21 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 			g_odoom_mint_monster_flags[ODOOM_MONSTERS[i].configKey] = 1;  /* default 1 */
 		loaded = true;
 	}
+	/* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility. */
+	if (((ODOOM_ExtractJsonValue(json, "beamedin_avatar", value, (int)sizeof(value)) || ODOOM_ExtractJsonValue(json, "saved_username", value, (int)sizeof(value))) && value[0])) {
+		std::strncpy(g_odoom_saved_username, value, sizeof(g_odoom_saved_username) - 1);
+		g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
+		loaded = true;
+	}
+	{
+		char value_jwt[2048];
+		value_jwt[0] = '\0';
+		if ((ODOOM_ExtractJsonValue(json, "jwt_token", value_jwt, (int)sizeof(value_jwt)) || ODOOM_ExtractJsonValue(json, "saved_jwt", value_jwt, (int)sizeof(value_jwt))) && value_jwt[0]) {
+			std::strncpy(g_odoom_saved_jwt, value_jwt, sizeof(g_odoom_saved_jwt) - 1);
+			g_odoom_saved_jwt[sizeof(g_odoom_saved_jwt) - 1] = '\0';
+			loaded = true;
+		}
+	}
 	if (loaded) {
 		/* Apply mint and nft_provider to engine cvars so they persist (ini may have loaded 0 before this). */
 		UCVarValue u;
@@ -522,11 +640,45 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	}
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
+	/* Persisted session (username + JWT) so user stays logged in between sessions. */
+	if (g_star_initialized) {
+		char uname[128] = {};
+		char jwt[2048] = {};
+		if (star_api_get_current_username(uname, sizeof(uname)) > 0 && uname[0]) {
+			std::strncpy(g_odoom_saved_username, uname, sizeof(g_odoom_saved_username) - 1);
+			g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
+		}
+		if (star_api_get_current_jwt(jwt, sizeof(jwt)) > 0 && jwt[0]) {
+			std::strncpy(g_odoom_saved_jwt, jwt, sizeof(g_odoom_saved_jwt) - 1);
+			g_odoom_saved_jwt[sizeof(g_odoom_saved_jwt) - 1] = '\0';
+		}
+	}
+	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
 	for (int i = 0; i < nmonsters; i++) {
 		const char* ckey = ODOOM_MONSTERS[i].configKey;
 		auto it = g_odoom_mint_monster_flags.find(ckey);
 		int v = (it != g_odoom_mint_monster_flags.end()) ? it->second : 1;
-		fprintf(f, "  \"mint_monster_%s\": %d%s\n", ckey, v ? 1 : 0, (i < nmonsters - 1) ? "," : "");
+		fprintf(f, "  \"mint_monster_%s\": %d%s\n", ckey, v ? 1 : 0, (i < nmonsters - 1 || have_session) ? "," : "");
+	}
+	if (have_session) {
+		if (g_odoom_saved_username[0]) {
+			fprintf(f, "  \"beamedin_avatar\": \"");
+			for (const char* p = g_odoom_saved_username; *p; p++) {
+				if (*p == '"' || *p == '\\') fputc('\\', f);
+				fputc((unsigned char)*p, f);
+			}
+			fprintf(f, "\"");
+		}
+		if (g_odoom_saved_jwt[0]) {
+			if (g_odoom_saved_username[0]) fprintf(f, ",\n");
+			fprintf(f, "  \"jwt_token\": \"");
+			for (const char* p = g_odoom_saved_jwt; *p; p++) {
+				if (*p == '"' || *p == '\\') fputc('\\', f);
+				fputc((unsigned char)*p, f);
+			}
+			fprintf(f, "\"");
+		}
+		fprintf(f, "\n");
 	}
 	fprintf(f, "}\n");
 	fclose(f);
@@ -931,33 +1083,63 @@ static void ODOOM_RefreshQuestCVars(void) {
 			UCVarValue vo; vo.String = (char*)s_tracker_objectives.c_str();
 			trackerObjLinesVar->SetGenericRep(vo, CVAR_String);
 		}
-		/* Only set active_index from API when user has not chosen an active objective (Enter in popup); otherwise sync would be lost on 2nd selection. */
+		/* Set active_index so the quest detail popup opens with the correct objective selected (not the last). */
 		bool userHasActiveObjective = false;
 		if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
 			const char* aid = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
 			userHasActiveObjective = (aid && aid[0] != '\0');
 		}
-		if (!userHasActiveObjective && trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
-			int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
-			UCVarValue va; va.Int = activeIdx;
-			trackerActiveVar->SetGenericRep(va, CVAR_Int);
+		if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
+			int activeIdx = -1;
+			if (!userHasActiveObjective) {
+				activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
+			} else if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
+				const char* wantIdStr = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
+				if (wantIdStr && wantIdStr[0]) {
+					/* Resolve index from active objective id so detail popup opens with correct selection after load. */
+					const char* p = trackerObjBuf;
+					int idx = 0;
+					while (p && *p) {
+						const char* eol = strchr(p, '\n');
+						size_t lineLen = eol ? (size_t)(eol - p) : strlen(p);
+						if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t') {
+							const char* idStart = p + 2;
+							const char* idEnd = (const char*)memchr(idStart, '\t', lineLen - 2);
+							if (idEnd) {
+								size_t idLen = (size_t)(idEnd - idStart);
+								if (idLen > 0 && strncmp(wantIdStr, idStart, idLen) == 0 && wantIdStr[idLen] == '\0') {
+									activeIdx = idx;
+									break;
+								}
+							}
+							idx++;
+						}
+						p = eol ? eol + 1 : nullptr;
+					}
+				}
+			}
+			if (activeIdx >= 0) {
+				UCVarValue va; va.Int = activeIdx;
+				trackerActiveVar->SetGenericRep(va, CVAR_Int);
+			}
 		}
-		/* Persist tracker state to avatar detail when user has changed it (so it restores after beam-in). */
+		/* Persist tracker state to API only when ZScript sets odoom_quest_persist_active_now=1 (user pressed Enter on objective or K to set tracker). Avoids persisting wrong value from UI sync or CVar restore. */
 		{
-			static std::string s_last_saved_quest_id, s_last_saved_objective_id;
-			std::string cur_q, cur_o;
-			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
-				const char* c = trackerIdVar->GetGenericRep(CVAR_String).String;
-				if (c) cur_q = c;
-			}
-			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
-				const char* c = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
-				if (c) cur_o = c;
-			}
-			if (cur_q != s_last_saved_quest_id || cur_o != s_last_saved_objective_id) {
+			FBaseCVar* persistNowVar = FindCVar("odoom_quest_persist_active_now", nullptr);
+			if (persistNowVar && persistNowVar->GetRealType() == CVAR_Int && persistNowVar->GetGenericRep(CVAR_Int).Int != 0) {
+				std::string cur_q, cur_o;
+				if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+					const char* c = trackerIdVar->GetGenericRep(CVAR_String).String;
+					if (c) cur_q = c;
+				}
+				if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
+					const char* c = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
+					if (c) cur_o = c;
+				}
+				StarLogInfo("[Quests] ODOOM: Persisting tracker to API (user action): questId=%s objectiveId=%s", cur_q.c_str(), cur_o.c_str());
 				star_api_set_active_quest(cur_q.empty() ? nullptr : cur_q.c_str(), cur_o.empty() ? nullptr : cur_o.c_str());
-				s_last_saved_quest_id = cur_q;
-				s_last_saved_objective_id = cur_o;
+				UCVarValue zero; zero.Int = 0;
+				persistNowVar->SetGenericRep(zero, CVAR_Int);
 			}
 		}
 	}
@@ -1086,6 +1268,8 @@ static void ODOOM_OnAuthDone(void* user_data) {
 				}
 			}
 		}
+		/* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
+		ODOOM_SaveStarConfigToFiles();
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
@@ -2294,6 +2478,28 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		StarApplyBeamFacePreference();
 		if (logVerbose) StarLogInfo("Beam-in (API key/avatar).");
 		return true;
+	}
+
+	// Restore session from oasisstar.json so user stays logged in between sessions.
+	if (g_odoom_saved_jwt[0]) {
+		star_api_result_t result = star_api_set_saved_session(g_odoom_saved_jwt);
+		if (result == STAR_API_SUCCESS) {
+			result = star_api_restore_session();
+			if (result == STAR_API_SUCCESS) {
+				g_star_initialized = true;
+				g_star_init_failed_this_session = false;
+				g_star_logged_runtime_auth_failure = false;
+				g_star_logged_missing_auth_config = false;
+				if (g_odoom_saved_username[0])
+					g_star_effective_username = g_odoom_saved_username;
+				odoom_star_username = g_star_effective_username.empty() ? "Avatar" : g_star_effective_username.c_str();
+				StarApplyBeamFacePreference();
+				star_api_refresh_avatar_profile();
+				if (logVerbose) StarLogInfo("Restoring saved session for %s.", g_odoom_saved_username[0] ? g_odoom_saved_username : "(avatar)");
+				return true;
+			}
+		}
+		if (logVerbose) StarLogError("Saved session invalid: %s", star_api_get_last_error());
 	}
 
 	if (logVerbose && !g_star_logged_missing_auth_config) {
