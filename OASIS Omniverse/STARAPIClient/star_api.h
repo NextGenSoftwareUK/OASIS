@@ -85,6 +85,8 @@ star_api_result_t star_api_complete_quest(const char* quest_id);
 int star_api_get_quests_string(char* buf, size_t buf_size);
 /** Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as star_api_get_quests_string. Use for main quest list so sub-quests do not appear in the left panel. */
 int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
+/** Write display name of current tracked quest (from cache) to buf, null-terminated. Returns bytes written or 0 if not available. Use so HUD shows quest name as soon as quest list loads after beam-in. */
+int star_api_get_tracker_quest_name(char* buf, size_t buf_size);
 /** Write serialized sub-quests (child quests with parent_quest_id) to buf for right panel. Same format as star_api_get_quests_string. parent_quest_id must be non-NULL. */
 int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
 /** Write serialized objectives from the quest's Objectives collection for parent_quest_id to buf for right panel. Same format as star_api_get_quests_string. parent_quest_id must be non-NULL. */

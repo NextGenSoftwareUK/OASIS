@@ -5147,40 +5147,49 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (!g_quest_tracker_show)
         return;
 
-    /* When tracker was set on beam-in (name empty), fill name from top-level quest list so HUD shows correct name without opening popup. */
+    /* When tracker was set on beam-in (name empty), fill name so HUD shows correct name as soon as quest list loads (without opening popup). */
     if (g_quest_tracker_name[0] == '\0') {
-        static char qlist_buf[4096];
-        int nq = star_api_get_top_level_quests_string(qlist_buf, sizeof(qlist_buf));
-        if (nq > 0 && nq < (int)sizeof(qlist_buf)) qlist_buf[nq] = '\0';
-        else qlist_buf[0] = '\0';
-        if (qlist_buf[0] && strstr(qlist_buf, "Loading...") == NULL) {
-            const char* line = qlist_buf;
-            while (line[0]) {
-                const char* eol = strchr(line, '\n');
-                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
-                    const char* col0 = line + 2;
-                    const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
-                    if (col1 && (int)(col1 - col0) < 63) {
-                        char id[64];
-                        int len = (int)(col1 - col0);
-                        if (len >= 63) len = 62;
-                        memcpy(id, col0, (size_t)len);
-                        id[len] = '\0';
-                        if (strcmp(id, g_quest_tracker_id) == 0 && col1 + 1 < line + line_len) {
-                            const char* name_start = col1 + 1;
-                            const char* name_end = (const char*)memchr(name_start, '\t', (size_t)((line + line_len) - name_start));
-                            if (!name_end) name_end = line + line_len;
-                            len = (int)(name_end - name_start);
-                            if (len > 0 && len < (int)sizeof(g_quest_tracker_name)) {
-                                memcpy(g_quest_tracker_name, name_start, (size_t)len);
-                                g_quest_tracker_name[len] = '\0';
+        /* Prefer name from cache API so tracker updates as soon as quest list has loaded. */
+        int nr = star_api_get_tracker_quest_name(g_quest_tracker_name, sizeof(g_quest_tracker_name));
+        if (nr > 0 && nr < (int)sizeof(g_quest_tracker_name))
+            g_quest_tracker_name[nr] = '\0';
+        else
+            g_quest_tracker_name[0] = '\0';
+        /* Fallback: parse from top-level quest list string if API did not return name yet. */
+        if (g_quest_tracker_name[0] == '\0') {
+            static char qlist_buf[4096];
+            int nq = star_api_get_top_level_quests_string(qlist_buf, sizeof(qlist_buf));
+            if (nq > 0 && nq < (int)sizeof(qlist_buf)) qlist_buf[nq] = '\0';
+            else qlist_buf[0] = '\0';
+            if (qlist_buf[0] && strstr(qlist_buf, "Loading...") == NULL) {
+                const char* line = qlist_buf;
+                while (line[0]) {
+                    const char* eol = strchr(line, '\n');
+                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                    if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
+                        const char* col0 = line + 2;
+                        const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
+                        if (col1 && (int)(col1 - col0) < 63) {
+                            char id[64];
+                            int len = (int)(col1 - col0);
+                            if (len >= 63) len = 62;
+                            memcpy(id, col0, (size_t)len);
+                            id[len] = '\0';
+                            if (q_strcasecmp(id, g_quest_tracker_id) == 0 && col1 + 1 < line + line_len) {
+                                const char* name_start = col1 + 1;
+                                const char* name_end = (const char*)memchr(name_start, '\t', (size_t)((line + line_len) - name_start));
+                                if (!name_end) name_end = line + line_len;
+                                len = (int)(name_end - name_start);
+                                if (len > 0 && len < (int)sizeof(g_quest_tracker_name)) {
+                                    memcpy(g_quest_tracker_name, name_start, (size_t)len);
+                                    g_quest_tracker_name[len] = '\0';
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
+                    line = eol ? eol + 1 : line + line_len;
                 }
-                line = eol ? eol + 1 : line + line_len;
             }
         }
     }
@@ -5310,7 +5319,7 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
         if (g_quest_tracker_name[0])
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
-            q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
+            q_strlcpy(buf, "Loading...", sizeof(buf));
         {
             int title_len = (int)strlen(buf);
             int title_w = title_len * 8 + 4;
@@ -5344,7 +5353,7 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
         if (g_quest_tracker_name[0])
             q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
         else
-            q_strlcpy(buf, "Quest (tracked)", sizeof(buf));
+            q_strlcpy(buf, "Loading...", sizeof(buf));
         {
             int title_len = (int)strlen(buf);
             int title_w = title_len * 8 + 4;
