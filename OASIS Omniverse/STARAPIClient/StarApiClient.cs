@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -117,6 +118,8 @@ public sealed class StarApiClient : IDisposable
     private string? _jwtToken;
     private string? _refreshToken;
     private string? _avatarId;
+    /// <summary>Username of the currently logged-in avatar (set on auth and from GET avatar/current). Used for session persistence and display.</summary>
+    private string? _loggedInUsername;
     private Guid? _cachedActiveQuestId;
     private Guid? _cachedActiveObjectiveId;
     /// <summary>When true, a save happened after the current GET avatar/current was started; do not let the GET response overwrite quest/objective cache.</summary>
@@ -361,6 +364,7 @@ public sealed class StarApiClient : IDisposable
                 _jwtToken = auth.JwtToken;
                 _refreshToken = auth.RefreshToken;
                 _avatarId = auth.Id == Guid.Empty ? _avatarId : auth.Id.ToString();
+                _loggedInUsername = string.IsNullOrWhiteSpace(username) ? _loggedInUsername : username.Trim();
                 loggedAvatarId = _avatarId;
 
                 if (!string.IsNullOrWhiteSpace(_jwtToken) && _httpClient is not null)
@@ -418,6 +422,65 @@ public sealed class StarApiClient : IDisposable
 
         /* Do NOT invoke callback; "profile loaded" should only run when star_api_refresh_avatar_profile completes. */
         return Success(true, StarApiResultCode.Success, "Avatar ID set.");
+    }
+
+    /// <summary>Set JWT from persisted session (e.g. oasisstar.json). Avatar ID is extracted from the JWT. Call RestoreSessionAsync to validate and load profile.</summary>
+    public OASISResult<bool> SetSavedSession(string jwt)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(jwt))
+            return FailAndCallback<bool>("JWT is required for session restore.", StarApiResultCode.InvalidParam);
+
+        var avatarId = ExtractAvatarIdFromJwt(jwt);
+        lock (_stateLock)
+        {
+            _jwtToken = jwt.Trim();
+            _avatarId = avatarId != Guid.Empty ? avatarId.ToString() : _avatarId;
+            if (_httpClient is not null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        StarApiExports.StarApiLogFileOnly("[Auth] SetSavedSession: JWT set, avatar id from token");
+        return Success(true, StarApiResultCode.Success, "Saved session set.");
+    }
+
+    /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync).</summary>
+    public async Task<OASISResult<bool>> RestoreSessionAsync(CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        string? jwt;
+        lock (_stateLock) { jwt = _jwtToken; }
+        if (string.IsNullOrWhiteSpace(jwt))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: no JWT set");
+            return FailAndCallback<bool>("No saved session (JWT) to restore.", StarApiResultCode.InvalidParam);
+        }
+
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: GET avatar/current to validate saved session");
+        var result = await GetCurrentAvatarAsync(cancellationToken, invokeCallback: true).ConfigureAwait(false);
+        if (result.IsError)
+        {
+            StarApiExports.StarApiLogFileOnly($"[Auth] RestoreSession failed: {result.Message}");
+            return FailAndCallback<bool>(result.Message ?? "Session restore failed.", ParseCode(result.ErrorCode, StarApiResultCode.ApiError));
+        }
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded");
+        return Success(true, StarApiResultCode.Success, "Session restored.");
+    }
+
+    public Task<OASISResult<bool>> QueueRestoreSessionAsync(CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => RestoreSessionAsync(ct), cancellationToken);
+
+    /// <summary>Username of the currently logged-in avatar (for persistence to oasisstar.json). Empty if not logged in.</summary>
+    public string? GetCurrentUsername()
+    {
+        lock (_stateLock) return _loggedInUsername;
+    }
+
+    /// <summary>Current JWT (for persistence to oasisstar.json). Empty if not logged in. Caller should not log or display.</summary>
+    public string? GetCurrentJwt()
+    {
+        lock (_stateLock) return _jwtToken;
     }
 
     public OASISResult<bool> SetWeb4OasisApiBaseUrl(string web4OasisApiBaseUrl)
@@ -509,6 +572,7 @@ public sealed class StarApiClient : IDisposable
             }
         }
 
+        lock (_stateLock) { if (!string.IsNullOrWhiteSpace(avatar.Username)) _loggedInUsername = avatar.Username; }
         Guid? loadQuestId;
         Guid? loadObjectiveId;
         lock (_stateLock) { loadQuestId = _cachedActiveQuestId; loadObjectiveId = _cachedActiveObjectiveId; }
@@ -1199,7 +1263,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Get one progress line per objective for the tracker (e.g. "Killed 3/10 monsters in ODOOM"). First line from requirement dicts or objective description. Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
+    /// <summary>Get one progress line per objective for the tracker in "O\tid\tdesc\tdone" format so native code can resolve active index by id. First line from requirement dicts or objective description. Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
     internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
     {
         linesResult = string.Empty;
@@ -1210,19 +1274,23 @@ public sealed class StarApiClient : IDisposable
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
             var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
             if (quest?.Objectives == null || quest.Objectives.Count == 0) return true;
-            var perLine = new List<string>();
+            var sb = new StringBuilder();
             for (var i = 0; i < quest.Objectives.Count; i++)
             {
                 var o = quest.Objectives[i];
-                var objLines = new List<string>();
+                var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
+                var desc = "";
                 if (o.Dictionaries != null)
+                {
+                    var objLines = new List<string>();
                     FormatRequirementProgressLines(o.Dictionaries, objLines);
-                if (objLines.Count > 0)
-                    perLine.Add(objLines[0]);
+                    desc = objLines.Count > 0 ? objLines[0] : (o.Description ?? o.SummaryText ?? "");
+                }
                 else
-                    perLine.Add(o.Description ?? o.SummaryText ?? "");
+                    desc = o.Description ?? o.SummaryText ?? "";
+                sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(desc)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
             }
-            linesResult = string.Join("\n", perLine);
+            linesResult = sb.ToString().TrimEnd();
             activeObjectiveIndex = 0;
             /* Prefer persisted active objective (user choice) when we have it; else use first incomplete (quest progress). */
             Guid? cachedObjId;
@@ -5184,6 +5252,8 @@ public static unsafe class StarApiExports
         SetError(string.Empty);
     }
 
+    /// <summary>Trimmer root: keep all members so session/JWT exports (get_current_username, get_current_jwt, etc.) stay in star_api.dll for forwarders and autologin.</summary>
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(StarApiExports))]
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
@@ -5220,6 +5290,57 @@ public static unsafe class StarApiExports
         var pass = PtrToString(password);
         var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
         return (int)FinalizeResultNoCallback(result);
+    }
+
+    /// <summary>Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_saved_session", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetSavedSession(sbyte* jwt)
+    {
+        var client = GetClient();
+        if (client is null) return (int)StarApiResultCode.NotInitialized;
+        var jwtStr = PtrToString(jwt);
+        var result = client.SetSavedSession(jwtStr ?? string.Empty);
+        return result.IsError ? (int)StarApiResultCode.ApiError : (int)StarApiResultCode.Success;
+    }
+
+    /// <summary>Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_restore_session", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiRestoreSession()
+    {
+        var client = GetClient();
+        if (client is null) return (int)StarApiResultCode.NotInitialized;
+        _ = client.QueueRestoreSessionAsync(CancellationToken.None);
+        return (int)StarApiResultCode.Success; /* restore started; callback will fire when done */
+    }
+
+    /// <summary>Write current username to buf (for saving to oasisstar.json). Returns bytes written or 0.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_username", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentUsername(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var name = client?.GetCurrentUsername();
+        if (string.IsNullOrEmpty(name)) { buf[0] = 0; return 0; }
+        var bytes = Encoding.UTF8.GetBytes(name);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Write current JWT to buf (for saving to oasisstar.json). Returns bytes written or 0. Caller should not log.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_jwt", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentJwt(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var jwt = client?.GetCurrentJwt();
+        if (string.IsNullOrEmpty(jwt)) { buf[0] = 0; return 0; }
+        var bytes = Encoding.UTF8.GetBytes(jwt);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_cleanup", CallConvs = [typeof(CallConvCdecl)])]
@@ -5862,7 +5983,7 @@ public static unsafe class StarApiExports
         if (!string.IsNullOrWhiteSpace(qStr) && Guid.TryParse(qStr, out var qGuid)) q = qGuid;
         var oStr = PtrToString(objectiveId);
         if (!string.IsNullOrWhiteSpace(oStr) && Guid.TryParse(oStr, out var oGuid)) o = oGuid;
-        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native: questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
+        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native (user set tracker in game): questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
         try { StarApiExports.StarApiLogFileOnly($"[Quest] star_api_set_active_quest (native): questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
         var result = client.SetActiveQuestAndObjectiveAsync(q, o).GetAwaiter().GetResult();
         try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest result: IsError={result?.IsError}, Message={result?.Message}"); } catch { }

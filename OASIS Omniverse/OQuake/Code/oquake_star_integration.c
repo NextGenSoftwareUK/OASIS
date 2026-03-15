@@ -74,6 +74,103 @@ void star_api_refresh_avatar_profile(void) {
 #endif
 #endif
 
+/* When OQUAKE_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export these (e.g. NativeAOT trimmer). */
+#ifdef OQUAKE_STAR_API_SESSION_IMPL
+#ifdef _WIN32
+static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
+	typedef star_api_result_t (__cdecl *fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_saved_session");
+	}
+	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
+
+static star_api_result_t star_api_restore_session_impl(void) {
+	typedef star_api_result_t (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_restore_session");
+	}
+	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
+
+static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_username");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
+
+static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_jwt");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+#else
+static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
+	typedef star_api_result_t (*fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_set_saved_session");
+	}
+	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
+
+static star_api_result_t star_api_restore_session_impl(void) {
+	typedef star_api_result_t (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_restore_session");
+	}
+	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
+
+static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_username");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
+
+static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_jwt");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+#endif
+#endif
+
 #ifdef OQUAKE_DRAW_STRING_COLORED
 /* Optional: engine provides Draw_StringColored(cbx, x, y, palette_index, str) so quest tracker title can use a different text colour. */
 extern void Draw_StringColored(cb_context_t* cbx, float x, float y, int palette_index, const char* str);
@@ -84,6 +181,7 @@ extern void Draw_StringColored(cb_context_t* cbx, float x, float y, int palette_
 
 /* Forward declare callbacks so they can be used before their definitions. */
 static void OQ_OnSendItemDone(void* user_data);
+static void OQ_SaveStarConfigToFiles(void);
 static void OQ_PickupLog(const char* fmt, ...);
 static void OQ_StarDebugLog(const char* fmt, ...);
 static qboolean g_star_debug_logging = false;
@@ -131,6 +229,9 @@ static volatile int g_star_profile_loaded_pending = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
+/* Persisted session for restore on next launch (loaded/saved from oasisstar.json). JWT not logged. */
+static char g_oq_saved_username[128] = {0};
+static char g_oq_saved_jwt[2048] = {0};
 /* Frames until we re-apply oasisstar.json (so mint etc. override config.cfg). Set in Init when json path found. */
 static int g_oq_reapply_json_frames = -1;
 /* Last pickup synced to STAR (for star lastpickup). */
@@ -1045,8 +1146,10 @@ static void OQ_OnAuthDone(void* user_data) {
                 q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
         }
         g_star_beamed_in = 1;
-        Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
         g_inventory_last_refresh = 0.0;
+        /* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
+        OQ_SaveStarConfigToFiles();
+        Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
     } else {
         Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
     }
@@ -1533,6 +1636,15 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_send_to_address_after_minting", value);
         loaded = 1;
     }
+    /* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility. */
+    if ((OQ_ExtractJsonValue(json, "beamedin_avatar", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_username", value, sizeof(value))) && value[0]) {
+        q_strlcpy(g_oq_saved_username, value, sizeof(g_oq_saved_username));
+        loaded = 1;
+    }
+    if ((OQ_ExtractJsonValue(json, "jwt_token", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_jwt", value, sizeof(value))) && value[0]) {
+        q_strlcpy(g_oq_saved_jwt, value, sizeof(g_oq_saved_jwt));
+        loaded = 1;
+    }
     /* Per-monster mint: mint_monster_oquake_dog, etc. Default 1 if key missing. */
     {
         int i, j;
@@ -1617,6 +1729,41 @@ static int OQ_SaveJsonConfig(const char *json_path) {
         }
     }
     fprintf(f, "\"");
+    /* Persisted session (username + JWT) so user stays logged in between sessions. */
+    if (g_star_initialized) {
+        char uname[128] = {0};
+        char jwt[2048] = {0};
+        int got_username = (star_api_get_current_username((char*)uname, sizeof(uname)) > 0 && uname[0]);
+        if (!got_username && g_star_username[0]) {
+            /* Fallback: DLL may not export get_current_username (e.g. trimmed); use username we have from beamin. */
+            q_strlcpy(uname, g_star_username, sizeof(uname));
+            got_username = 1;
+        }
+        if (got_username) {
+            q_strlcpy(g_oq_saved_username, uname, sizeof(g_oq_saved_username));
+            fprintf(f, ",\n  \"beamedin_avatar\": \"");
+            { const char* p; for (p = uname; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+            fprintf(f, "\"");
+        }
+        if (star_api_get_current_jwt((char*)jwt, sizeof(jwt)) > 0 && jwt[0]) {
+            q_strlcpy(g_oq_saved_jwt, jwt, sizeof(g_oq_saved_jwt));
+            fprintf(f, ",\n  \"jwt_token\": \"");
+            { const char* p; for (p = jwt; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+            fprintf(f, "\"");
+        }
+    } else if (g_oq_saved_username[0] || g_oq_saved_jwt[0]) {
+        /* Preserve existing saved session when saving config without STAR init (e.g. early exit). */
+        if (g_oq_saved_username[0]) {
+            fprintf(f, ",\n  \"beamedin_avatar\": \"");
+            { const char* p; for (p = g_oq_saved_username; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+            fprintf(f, "\"");
+        }
+        if (g_oq_saved_jwt[0]) {
+            fprintf(f, ",\n  \"jwt_token\": \"");
+            { const char* p; for (p = g_oq_saved_jwt; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+            fprintf(f, "\"");
+        }
+    }
     /* mint_monster_oquake_* (unique config_keys only) */
     {
         int i, j;
@@ -2460,6 +2607,19 @@ void OQuake_STAR_Init(void) {
             star_api_refresh_avatar_profile();
             star_api_log_to_file("[OQuake] Init (API key+avatar_id): beamed_in=1, profile refresh started");
             printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
+        } else if (g_oq_saved_jwt[0]) {
+            /* Restore session from oasisstar.json so user stays logged in between sessions. */
+            result = star_api_set_saved_session(g_oq_saved_jwt);
+            if (result == STAR_API_SUCCESS) {
+                g_star_initialized = 1;
+                if (g_oq_saved_username[0])
+                    q_strlcpy(g_star_username, g_oq_saved_username, sizeof(g_star_username));
+                star_api_restore_session();
+                star_api_log_to_file("[OQuake] Init (saved session): restore started, profile load will set beamed_in");
+                printf("OQuake STAR API: Restoring saved session for %s...\n", g_oq_saved_username[0] ? g_oq_saved_username : "(avatar)");
+            } else {
+                printf("OQuake STAR API: Saved session invalid: %s\n", star_api_get_last_error());
+            }
         } else {
             printf("OQuake STAR API: Set STAR_USERNAME/STAR_PASSWORD or STAR_API_KEY/STAR_AVATAR_ID for cross-game keys.\n");
         }
@@ -3095,6 +3255,7 @@ void OQuake_STAR_PollItems(void) {
     /* When profile refresh (XP + active quest/objective) completed, restore tracker from cache and invalidate quest list so it refetches. */
     if (g_star_profile_loaded_pending) {
         g_star_profile_loaded_pending = 0;
+        g_star_beamed_in = 1;  /* Set for both auth callback and saved-session restore paths. */
         {
             char qid[64] = {0};
             char oid[64] = {0};
@@ -3120,6 +3281,8 @@ void OQuake_STAR_PollItems(void) {
         star_api_invalidate_quest_cache();
         star_api_refresh_quest_cache_in_background();  /* Start loading quest list so tracker can show name without opening popup */
         star_api_log_to_file("[OQuake] Profile loaded: quest cache invalidated, list will refetch");
+        /* Persist session to oasisstar.json now so we stay logged in even if the game crashes before exit. */
+        OQ_SaveStarConfigToFiles();
     }
 
     /* Show mint result in console when background pickup-with-mint completes (NFT ID + Hash). */
@@ -5406,11 +5569,11 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     const char* username = OQuake_STAR_GetUsername();
     char status[128];
     if (username && username[0]) {
-        q_snprintf(status, sizeof(status), "Beamed In Avatar 2: %s", username);
+        q_snprintf(status, sizeof(status), "Beamed In Avatar: %s", username);
     } else {
-        q_strlcpy(status, "Beamed In Avatar 2: None", sizeof(status));
+        q_strlcpy(status, "Beamed In Avatar: None", sizeof(status));
     }
-
+    /* Draw at bottom-left; label is "Beamed In Avatar:" (not "Beamed In Avatar 2") */
     Draw_String(cbx, 8, glheight - 24, status);
 }
 

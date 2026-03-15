@@ -51,9 +51,17 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API (deploy already ran above; prefer freshly built client so vkQuake links current exports) ---
 set "STAR_DLL="
 set "STAR_LIB="
-REM Prefer net9.0 (matches STARAPIClient.csproj TargetFramework); fallback to net8.0 for older builds
+REM Prefer net9.0; check both bin\Release and bin\x64\Release (VS/platform can output to x64)
 if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib" (
     set "STAR_DLL=%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll"
+    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib"
+)
+if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\native\star_api.lib" (
+    set "STAR_DLL=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll"
+    set "STAR_LIB=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\native\star_api.lib"
+)
+if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib" (
+    set "STAR_DLL=%STARAPICLIENT%\bin\x64\Release\net9.0\win-x64\publish\star_api.dll"
     set "STAR_LIB=%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib"
 )
 if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\native\star_api.lib" (

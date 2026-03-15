@@ -55,6 +55,14 @@ typedef void (*star_api_operation_callback_t)(star_api_result_t result, int oper
 
 star_api_result_t star_api_init(const star_api_config_t* config);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
+/** Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile. */
+star_api_result_t star_api_set_saved_session(const char* jwt);
+/** Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block. */
+star_api_result_t star_api_restore_session(void);
+/** Write current username to buf for saving to oasisstar.json. Returns bytes written or 0. */
+int star_api_get_current_username(char* buf, size_t buf_size);
+/** Write current JWT to buf for saving to oasisstar.json. Returns bytes written or 0. Caller should not log. */
+int star_api_get_current_jwt(char* buf, size_t buf_size);
 /* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
 star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
