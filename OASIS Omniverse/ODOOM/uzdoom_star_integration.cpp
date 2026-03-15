@@ -102,6 +102,9 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 #endif
 #endif
 
+/* Forward declaration so code before the definition (e.g. ODOOM_SaveJsonConfig) can call StarLogInfo. */
+static void StarLogInfo(const char* fmt, ...);
+
 /* When ODOOM_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer). */
 #ifdef ODOOM_STAR_API_SESSION_IMPL
 extern "C" {
@@ -640,17 +643,25 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	}
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
-	/* Persisted session (username + JWT) so user stays logged in between sessions. */
+	/* Persisted session (beamedin_avatar + jwt_token) for autologin. */
 	if (g_star_initialized) {
 		char uname[128] = {};
 		char jwt[2048] = {};
 		if (star_api_get_current_username(uname, sizeof(uname)) > 0 && uname[0]) {
 			std::strncpy(g_odoom_saved_username, uname, sizeof(g_odoom_saved_username) - 1);
 			g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
+		} else if (!g_star_effective_username.empty()) {
+			/* Fallback: DLL may not export get_current_username; use current session username so beamedin_avatar is written. */
+			std::strncpy(g_odoom_saved_username, g_star_effective_username.c_str(), sizeof(g_odoom_saved_username) - 1);
+			g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
 		}
 		if (star_api_get_current_jwt(jwt, sizeof(jwt)) > 0 && jwt[0]) {
 			std::strncpy(g_odoom_saved_jwt, jwt, sizeof(g_odoom_saved_jwt) - 1);
 			g_odoom_saved_jwt[sizeof(g_odoom_saved_jwt) - 1] = '\0';
+		} else if (g_odoom_saved_username[0]) {
+			static int s_odoom_jwt_missing_logged = 0;
+			if (s_odoom_jwt_missing_logged++ == 0)
+				StarLogInfo("ODOOM: Could not get JWT from STAR API (autologin may not work). Rebuild STARAPIClient and run BUILD_AND_DEPLOY_STAR_CLIENT.bat so star_api.dll exports session APIs.");
 		}
 	}
 	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
@@ -1267,6 +1278,11 @@ static void ODOOM_OnAuthDone(void* user_data) {
 					v->SetGenericRep(u, CVAR_String);
 				}
 			}
+			/* Start loading quest list so tracker title/objective show without opening popup (ODOOM_RefreshQuestCVars will use cache when ready). */
+#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
+			star_api_refresh_quest_cache_in_background();
+#endif
+			ODOOM_RefreshQuestCVars();  /* push once immediately in case cache already has data */
 		}
 		/* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
 		ODOOM_SaveStarConfigToFiles();
@@ -1830,6 +1846,38 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			}
 			/* Refresh detail popup lists (prereqs, objectives, subquests) when 2nd popup is open (ZScript sets odoom_quest_detail_quest_id). */
 			ODOOM_RefreshQuestDetailCVars();
+		} else {
+			/* Tracker HUD: when popup is closed, set tracker from API if we have active quest (e.g. after restore session) and tracker not set yet. */
+			FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+			const char* trackerId = (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) ? trackerIdVar->GetGenericRep(CVAR_String).String : nullptr;
+			if (!trackerId || !trackerId[0]) {
+				char qid[64] = {};
+				char oid[64] = {};
+				if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
+					if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+						UCVarValue u; u.String = qid;
+						trackerIdVar->SetGenericRep(u, CVAR_String);
+					}
+					if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
+						FBaseCVar* oidVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+						if (oidVar && oidVar->GetRealType() == CVAR_String) {
+							UCVarValue u; u.String = oid;
+							oidVar->SetGenericRep(u, CVAR_String);
+						}
+					}
+#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
+					star_api_refresh_quest_cache_in_background();
+#endif
+					ODOOM_RefreshQuestCVars();
+				}
+			} else {
+				/* Tracker id already set: refresh CVars periodically so tracker shows correct name/objective without opening popup (like Quake). */
+				static int s_tracker_refresh_frames = 0;
+				if (++s_tracker_refresh_frames >= 60) {
+					s_tracker_refresh_frames = 0;
+					ODOOM_RefreshQuestCVars();
+				}
+			}
 		}
 	}
 

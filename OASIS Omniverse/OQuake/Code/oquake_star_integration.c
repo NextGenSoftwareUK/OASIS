@@ -1750,6 +1750,11 @@ static int OQ_SaveJsonConfig(const char *json_path) {
             fprintf(f, ",\n  \"jwt_token\": \"");
             { const char* p; for (p = jwt; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
             fprintf(f, "\"");
+        } else if (got_username) {
+            static int s_jwt_missing_logged = 0;
+            if (!s_jwt_missing_logged++) {
+                Con_Printf("OQuake: Could not get JWT from STAR API (autologin will not work). Rebuild STARAPIClient (clean bin/obj) and run BUILD_AND_DEPLOY_STAR_CLIENT.bat so star_api.dll exports session APIs.\n");
+            }
         }
     } else if (g_oq_saved_username[0] || g_oq_saved_jwt[0]) {
         /* Preserve existing saved session when saving config without STAR init (e.g. early exit). */
