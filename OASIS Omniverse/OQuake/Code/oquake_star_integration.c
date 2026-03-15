@@ -4227,6 +4227,23 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
+        /* When the main quest list content/order changes (e.g. cache refresh), re-sync selection to tracked quest so index stays correct. */
+        if (!g_quest_drill_parent_id[0] && g_quest_tracker_id[0]) {
+            static int s_last_sync_filtered_count = -1;
+            static char s_last_sync_first_id[64];
+            int list_changed = (q_filtered_count != s_last_sync_filtered_count);
+            if (!list_changed && q_filtered_count > 0)
+                list_changed = (strcmp(q_id[q_filtered_indices[0]], s_last_sync_first_id) != 0);
+            if (list_changed) {
+                s_last_sync_filtered_count = q_filtered_count;
+                if (q_filtered_count > 0)
+                    q_strlcpy(s_last_sync_first_id, q_id[q_filtered_indices[0]], sizeof(s_last_sync_first_id));
+                else
+                    s_last_sync_first_id[0] = '\0';
+                g_quest_popup_sync_to_tracker = 1;
+            }
+        }
+
         /* When tracker was restored from profile (id set, name empty), fill name from quest list once it loads */
         if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
             int si;
@@ -4335,6 +4352,41 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
+        /* Compute left list count and sync selection to tracked quest *before* setting panel_quest_id, so right-panel fetch uses the correct quest. */
+        int left_list_count = g_quest_drill_parent_id[0] ? drill_q_filtered_count : q_filtered_count;
+        static char panel_quest_id[64];
+        panel_quest_id[0] = '\0';
+        if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
+            int fi;
+            int found = 0;
+            if (g_quest_drill_parent_id[0]) {
+                for (fi = 0; fi < drill_q_filtered_count; fi++) {
+                    int di = drill_q_filtered_indices[fi];
+                    if (di >= 0 && di < drill_q_count && strcmp(drill_q_id[di], g_quest_tracker_id) == 0) {
+                        g_quest_selected_index = fi;
+                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        if (g_quest_scroll < 0) g_quest_scroll = 0;
+                        q_strlcpy(panel_quest_id, drill_q_id[di], sizeof(panel_quest_id));
+                        found = 1;
+                        break;
+                    }
+                }
+            } else {
+                for (fi = 0; fi < q_filtered_count; fi++) {
+                    int qi = q_filtered_indices[fi];
+                    if (qi >= 0 && qi < q_count && strcmp(q_id[qi], g_quest_tracker_id) == 0) {
+                        g_quest_selected_index = fi;
+                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        if (g_quest_scroll < 0) g_quest_scroll = 0;
+                        q_strlcpy(panel_quest_id, q_id[qi], sizeof(panel_quest_id));
+                        found = 1;
+                        break;
+                    }
+                }
+            }
+            if (found) g_quest_popup_sync_to_tracker = 0;
+        }
+
         /* Clear "Starting quest..." when list shows the quest as InProgress (cache updated). */
         if (g_quest_start_pending_id[0]) {
             int ii;
@@ -4360,18 +4412,18 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
-        /* Quest id used for right panel (prereqs / objectives+subquests). When drilling, use selected drill item or drill parent; else use selected top-level quest. */
-        static char panel_quest_id[64];
-        panel_quest_id[0] = '\0';
-        if (g_quest_drill_parent_id[0]) {
-            if (drill_q_filtered_count > 0 && g_quest_selected_index >= 0 && g_quest_selected_index < drill_q_filtered_count)
-                q_strlcpy(panel_quest_id, drill_q_id[drill_q_filtered_indices[g_quest_selected_index]], sizeof(panel_quest_id));
-            else
-                q_strlcpy(panel_quest_id, g_quest_drill_parent_id, sizeof(panel_quest_id));
-        } else {
-            int sel_for_panel = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-            if (sel_for_panel >= 0 && sel_for_panel < q_count && q_id[sel_for_panel][0])
-                q_strlcpy(panel_quest_id, q_id[sel_for_panel], sizeof(panel_quest_id));
+        /* If sync did not set panel_quest_id, set from current selection (drill or top-level). */
+        if (panel_quest_id[0] == '\0') {
+            if (g_quest_drill_parent_id[0]) {
+                if (drill_q_filtered_count > 0 && g_quest_selected_index >= 0 && g_quest_selected_index < drill_q_filtered_count)
+                    q_strlcpy(panel_quest_id, drill_q_id[drill_q_filtered_indices[g_quest_selected_index]], sizeof(panel_quest_id));
+                else
+                    q_strlcpy(panel_quest_id, g_quest_drill_parent_id, sizeof(panel_quest_id));
+            } else {
+                int sel_for_panel = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
+                if (sel_for_panel >= 0 && sel_for_panel < q_count && q_id[sel_for_panel][0])
+                    q_strlcpy(panel_quest_id, q_id[sel_for_panel], sizeof(panel_quest_id));
+            }
         }
 
         /* Right panel: prereqs and objectives+sub-quests from API for selected quest. Objectives and sub-quests merged into one list; sub-quests get "(SubQuest)" suffix. */
@@ -4561,41 +4613,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             }
         }
 
-        int left_list_count = g_quest_drill_parent_id[0] ? drill_q_filtered_count : q_filtered_count;
         int sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
         int n_prereq = pr_count;
         int n_objectives = obj_count;
         int n_subquest_list = sq_count;
 
-        /* When popup just opened and we have the list: sync left-list selection to tracked quest so brown selected row matches green tracked row. */
-        if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
-            int fi;
-            int found = 0;
-            if (g_quest_drill_parent_id[0]) {
-                for (fi = 0; fi < drill_q_filtered_count; fi++) {
-                    int di = drill_q_filtered_indices[fi];
-                    if (di >= 0 && di < drill_q_count && strcmp(drill_q_id[di], g_quest_tracker_id) == 0) {
-                        g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
-                        if (g_quest_scroll < 0) g_quest_scroll = 0;
-                        found = 1;
-                        break;
-                    }
-                }
-            } else {
-                for (fi = 0; fi < q_filtered_count; fi++) {
-                    int qi = q_filtered_indices[fi];
-                    if (qi >= 0 && qi < q_count && strcmp(q_id[qi], g_quest_tracker_id) == 0) {
-                        g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
-                        if (g_quest_scroll < 0) g_quest_scroll = 0;
-                        found = 1;
-                        break;
-                    }
-                }
-            }
-            if (found) g_quest_popup_sync_to_tracker = 0;
-        }
         /* When right panel shows the tracked quest, sync objective selection to tracked objective once (so popup "remembers" the right objective). */
         if (g_quest_popup_sync_objective_once && g_quest_tracker_id[0] && panel_quest_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 &&
             g_quest_tracker_active_objective_id[0] && n_objectives > 0) {
