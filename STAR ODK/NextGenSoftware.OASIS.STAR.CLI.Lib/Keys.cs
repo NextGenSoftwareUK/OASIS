@@ -78,9 +78,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (walletProvider != ProviderType.None)
             {
                 CLIEngine.ShowWorkingMessage("Linking Wallet Address...");
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                 result = STAR.OASISAPI.Keys.LinkProviderWalletAddressToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, walletAddress, providerToLoadAvatarFrom);
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                 {
@@ -144,9 +144,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (walletProvider != ProviderType.None)
             {
                 CLIEngine.ShowWorkingMessage("Linking Public Key...");
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                 result = STAR.OASISAPI.Keys.LinkProviderPublicKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, walletAddress, null, true, providerToLoadAvatarFrom);
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                 {
@@ -204,10 +204,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (walletProvider != ProviderType.None)
             {
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                 CLIEngine.ShowWorkingMessage("Linking Private Key...");
                 result = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarById(walletId, STAR.BeamedInAvatar.Id, walletProvider, publicKey, true, true, providerToLoadAvatarFrom);
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                 {
@@ -260,9 +260,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public OASISResult<Dictionary<ProviderType, List<string>>> ListAllProviderWalletAddressesForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Wallet Addresses...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderWalletAddressesForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
                 ShowKeys(keysResult.Result);
@@ -275,9 +275,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public OASISResult<Dictionary<ProviderType, List<string>>> ListAllProviderPublicKeysForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Public Keys...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderPublicKeysForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
                 ShowKeys(keysResult.Result);
@@ -290,9 +290,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public OASISResult<Dictionary<ProviderType, List<KeyPair>>> ListAllProviderKeyPairsForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading KeyPairs...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<KeyPair>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderKeyPairsForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
                 ShowKeys(keysResult.Result);
@@ -305,9 +305,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public OASISResult<Dictionary<ProviderType, List<string>>> ListAllProviderPrivateKeysForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Private Keys...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, List<string>>> keysResult = STAR.OASISAPI.Keys.GetAllProviderPrivateKeysForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
                 ShowKeys(keysResult.Result);
@@ -320,9 +320,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public OASISResult<Dictionary<ProviderType, string>> ListAllProviderUniqueStorageKeysForBeamedInAvatar(ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Loading Provider Unique Storage Keys...");
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
             OASISResult<Dictionary<ProviderType, string>> keysResult = STAR.OASISAPI.Keys.GetAllProviderUniqueStorageKeysForAvatarById(STAR.BeamedInAvatar.Id, providerToLoadAvatarFrom);
-            ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+            //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
             if (keysResult != null && keysResult.Result != null && !keysResult.IsError)
             {
@@ -365,10 +365,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return avatarUsername;
         }
 
-        public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType = ProviderType.Default)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(ProviderType providerType = ProviderType.Default)
         {
             CLIEngine.ShowWorkingMessage("Generating KeyPair...");
-            OASISResult<KeyPair> keyPair = STAR.OASISAPI.Keys.GenerateKeyPair(providerType);
+            OASISResult<IKeyPairAndWallet> keyPair = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddress(providerType);
 
             if (keyPair != null && keyPair.Result != null && !keyPair.IsError)
             {
@@ -413,9 +413,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 }
 
                 CLIEngine.ShowWorkingMessage("Generating KeyPair With Wallet Address...");
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = true;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = true;
                 result = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(STAR.BeamedInAvatar.Id, (ProviderType)providerObj, true, true, true, true, providerToLoadAvatarFrom);
-                ProviderManager.Instance.SupressConsoleLoggingWhenSwitchingProviders = false;
+                //ProviderManager.Instance.SupressLoggingWhenSwitchingProviders = false;
 
                 if (result != null && result.Result != null && !result.IsError)
                 {

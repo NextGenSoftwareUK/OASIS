@@ -1,0 +1,15 @@
+OQuake is Quake (vkQuake-based) with the OASIS STAR API integrated.
+By NextGen World Ltd.
+
+The underlying engine is vkQuake, which is licensed under the
+GNU General Public License v2.0 (GPL-2.0).
+
+When you build or distribute OQuake (or any build that includes
+vkQuake source), you must comply with vkQuake's license and give
+appropriate credit to vkQuake (Novum).
+
+Full license text: https://www.gnu.org/licenses/gpl-2.0.html
+vkQuake repository:  https://github.com/Novum/vkQuake
+
+See CREDITS_AND_LICENSE.md in this folder for detailed credits
+and license obligations.

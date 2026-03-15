@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -70,9 +70,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holonDNA"></param>
         /// <returns></returns>
         [HttpPost("CreateAndDrawRouteOnMapBetweenHolons/{holonDNA}")]
-        public OASISResult<bool> CreateAndDrawRouteOnMapBetweenHolons(HolonDNA holonDNA)
+        public ActionResult<OASISResult<bool>> CreateAndDrawRouteOnMapBetweenHolons(HolonDNA holonDNA)
         {
-            return new(MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon));
+            if (holonDNA == null)
+                return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "holonDNA is required." });
+            return new(new OASISResult<bool>(MapManager.CreateAndDrawRouteOnMapBetweenHolons(holonDNA.FromHolon, holonDNA.ToHolon)));
         }
 
         ///// <summary>
@@ -92,9 +94,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="points"></param>
         /// <returns></returns>
         [HttpPost("CreateAndDrawRouteOnMapBeweenPoints/{points}")]
-        public OASISResult<bool> CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
+        public ActionResult<OASISResult<bool>> CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
         {
-            return new(MapManager.CreateAndDrawRouteOnMapBeweenPoints(points));
+            if (points == null)
+                return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "points is required." });
+            return new(new OASISResult<bool>(MapManager.CreateAndDrawRouteOnMapBeweenPoints(points)));
         }
 
         ///// <summary>
@@ -291,9 +295,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="holon"></param>
         /// <returns></returns>
         [HttpPost("ZoomToHolonOnMap/{holon}")]
-        public OASISResult<bool> ZoomToHolonOnMap(Holon holon)
+        public ActionResult<OASISResult<bool>> ZoomToHolonOnMap(Holon holon)
         {
-            return new(MapManager.ZoomToHolonOnMap(holon));
+            if (holon == null)
+                return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "holon is required." });
+            return new(new OASISResult<bool>(MapManager.ZoomToHolonOnMap(holon)));
         }
 
         /// <summary>
@@ -302,9 +308,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="quest"></param>
         /// <returns></returns>
         [HttpPost("ZoomToQuestOnMap/{quest}")]
-        public OASISResult<bool> ZoomToQuestOnMap(Quest quest)
+        public ActionResult<OASISResult<bool>> ZoomToQuestOnMap(Quest quest)
         {
-            return new(MapManager.ZoomToQuestOnMap(quest));
+            if (quest == null)
+                return BadRequest(new OASISResult<bool>(false) { IsError = true, Message = "quest is required." });
+            return new(new OASISResult<bool>(MapManager.ZoomToQuestOnMap(quest)));
         }
 
 

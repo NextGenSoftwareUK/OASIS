@@ -1,8 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+using System.Numerics;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
 {
@@ -14,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new EthereumOASIS();
+            _provider = new EthereumOASIS("http://localhost:8545", "0x0000000000000000000000000000000000000000000000000000000000000001", 1, "0x0000000000000000000000000000000000000000");
         }
 
         [TestMethod]
@@ -24,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -34,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.DeActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -53,7 +54,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.SaveAvatarAsync(avatar);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -64,7 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAllAvatarsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -75,7 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -86,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -97,7 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarByProviderKeyAsync("testkey");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -108,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -126,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.SaveHolonAsync(holon);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -137,7 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAllHolonsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -148,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -159,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadHolonsForParentAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -170,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.DeleteHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -188,7 +189,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.SaveAvatarDetailAsync(avatarDetail);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -199,7 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -210,7 +211,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -221,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -232,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = _provider.GetPlayersNearMe();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported by Ethereum provider"));
         }
 
@@ -243,7 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = _provider.GetHolonsNearMe(HolonType.All);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported by Ethereum provider"));
         }
 
@@ -257,7 +258,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.SendTransactionAsync(transaction);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -271,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.SendNFTAsync(nftTransaction);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -285,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.MintNFTAsync(mintRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -296,7 +297,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadNFTAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -307,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadNFTAsync("testhash");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -318,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAllNFTsForAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -329,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.LoadAllGeoNFTsForAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -343,7 +344,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.PlaceGeoNFTAsync(placeRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -357,7 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.MintAndPlaceGeoNFTAsync(mintAndPlaceRequest);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -371,7 +372,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = _provider.Search(searchParams);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -385,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ImportAsync(holons);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -396,7 +397,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ExportAllAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -407,7 +408,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -418,7 +419,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 
@@ -429,7 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Ethereum provider"));
         }
 

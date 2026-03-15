@@ -1,0 +1,131 @@
+# Build and deploy STARAPIClient for Windows. For Linux/macOS use build-and-deploy-star-api-unix.sh.
+param(
+    [string]$Runtime = "win-x64",  # Windows: win-x64. Linux/macOS: use Scripts/build-and-deploy-star-api-unix.sh
+    [switch]$RunSmokeTest,
+    [switch]$ForceBuild
+)
+
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+
+function Copy-FileWithRetry {
+    param([string]$Source, [string]$Destination, [int]$MaxAttempts = 5, [int]$DelayMs = 500)
+    $attempt = 0
+    while ($true) {
+        try {
+            Copy-Item -LiteralPath $Source -Destination $Destination -Force -ErrorAction Stop
+            return
+        }
+        catch [System.IO.IOException] {
+            $attempt++
+            if ($attempt -ge $MaxAttempts) { throw }
+            Write-Host "  File in use, retrying in $DelayMs ms (attempt $attempt/$MaxAttempts)..."
+            Start-Sleep -Milliseconds $DelayMs
+        }
+    }
+}
+
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectDir = Join-Path $scriptDir ".."
+$projectPath = Join-Path $projectDir "STARAPIClient.csproj"
+$publishDir = Join-Path $projectDir "bin/Release/net9.0/$Runtime/publish"
+$nativeDir = Join-Path $projectDir "bin/Release/net9.0/$Runtime/native"
+$dllPath = Join-Path $publishDir "star_api.dll"
+$libPath = Join-Path $nativeDir "star_api.lib"
+$headerPath = Join-Path $projectDir "star_api.h"
+
+# Build only when: forced, or dll missing, or any project source (.cs / .csproj) or star_api.h is newer than star_api.dll
+$needBuild = $ForceBuild
+if (!$needBuild -and (Test-Path $dllPath)) {
+    $dllTime = (Get-Item $dllPath).LastWriteTimeUtc
+    $sources = @(Get-ChildItem -Path $projectDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
+               @(Get-ChildItem -Path $projectDir -Filter "*.csproj" -Recurse -File -ErrorAction SilentlyContinue)
+    if (Test-Path $headerPath) { $sources += Get-Item $headerPath }
+    foreach ($f in $sources) {
+        if ($f.LastWriteTimeUtc -gt $dllTime) {
+            $needBuild = $true
+            break
+        }
+    }
+}
+if (!$needBuild -and (Test-Path $dllPath)) {
+    Write-Host "STARAPIClient unchanged (star_api.dll is up to date), skipping build."
+} else {
+    if (!(Test-Path $dllPath)) { Write-Host "STARAPIClient not built yet or output missing; building..." }
+    # Build Contracts first so STARAPIClient can Reference the DLL when PublishAot=true (avoids NETSDK1207 from netstandard2.1 in graph).
+    $contractsPath = Join-Path $projectDir "..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj"
+    $contractsPath = [System.IO.Path]::GetFullPath($contractsPath)
+    if (Test-Path $contractsPath) {
+        Write-Host "Building OASIS.API.Contracts (required for NativeAOT publish)..."
+        dotnet build $contractsPath -c Release --verbosity quiet
+        if ($LASTEXITCODE -ne 0) { throw "Contracts build failed." }
+    }
+    Write-Host "Publishing NativeAOT WEB5 STAR API wrapper..."
+    dotnet publish $projectPath -c Release -r $Runtime -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
+}
+
+if (!(Test-Path $dllPath)) { throw "Missing output: $dllPath" }
+if (!(Test-Path $libPath)) { throw "Missing output: $libPath" }
+if (!(Test-Path $headerPath)) { throw "Missing header: $headerPath" }
+
+$targets = @(
+    (Join-Path $scriptDir "..\..\ODOOM"),
+    (Join-Path $scriptDir "..\..\OQuake"),
+    (Join-Path $scriptDir "..\..\OQuake\Code"),
+    "C:\Source\UZDoom\src",
+    "C:\Source\vkQuake\Quake"
+)
+
+foreach ($target in $targets)
+{
+    $resolvedTarget = [System.IO.Path]::GetFullPath($target)
+    if (Test-Path $resolvedTarget)
+    {
+        Write-Host "Deploying WEB5 STAR API wrapper artifacts to $resolvedTarget"
+        Copy-FileWithRetry $dllPath (Join-Path $resolvedTarget "star_api.dll")
+        Copy-FileWithRetry $libPath (Join-Path $resolvedTarget "star_api.lib")
+        Copy-FileWithRetry $headerPath (Join-Path $resolvedTarget "star_api.h")
+    }
+}
+
+if ($RunSmokeTest)
+{
+    $smokeSource = Join-Path $projectDir "TestProjects\smoke_test.c"
+    $smokeExe = Join-Path $projectDir "TestProjects\smoke_test.exe"
+
+    Write-Host "Compiling smoke test..."
+    Push-Location $projectDir
+    try
+    {
+        if (Get-Command cl.exe -ErrorAction SilentlyContinue)
+        {
+            & cl.exe /nologo /W3 /I"$projectDir" "$smokeSource" /link /LIBPATH:"$nativeDir" star_api.lib /OUT:"$smokeExe"
+        }
+        elseif (Get-Command gcc.exe -ErrorAction SilentlyContinue)
+        {
+            & gcc.exe "$smokeSource" -I"$projectDir" "$libPath" -o "$smokeExe"
+        }
+        else
+        {
+            Write-Warning "No C compiler found (cl.exe/gcc.exe). Skipping smoke test compile."
+            return
+        }
+    }
+    finally
+    {
+        Pop-Location
+    }
+
+    if (Test-Path $smokeExe)
+    {
+        Write-Host "Running smoke test..."
+        & $smokeExe
+    }
+    else
+    {
+        Write-Warning "Smoke test executable was not produced."
+    }
+}
+
+Write-Host "WEB5 STAR API wrapper publish/deploy complete."
+

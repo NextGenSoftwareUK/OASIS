@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
@@ -53,16 +53,121 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             }
         }
 
+        [CustomOASISProperty()]
         public QuestStatus Status { get; set; }
+
+        [CustomOASISProperty()]
         public QuestType Type { get; set; }
+
+        [CustomOASISProperty()]
         public QuestDifficulty Difficulty { get; set; }
+
+        [CustomOASISProperty()]
         public long RewardKarma { get; set; }
+
+        [CustomOASISProperty()]
         public long RewardXP { get; set; }
+
+        [CustomOASISProperty()]
         public List<string> Requirements { get; set; } = new List<string>();
+        
+        /// <summary>Game (e.g. Doom, Quake) this quest/objective applies to. Used when quest is a sub-quest/objective.</summary>
+        [CustomOASISProperty()]
+        public string GameSource { get; set; }
+
+        //[Obsolete] Not used – objectives are Quest.Objectives collection; use Objective-level data or GameSource.
+        //public string ItemRequired { get; set; }
+
+        //[Obsolete] Objectives are now Quest.Objectives collection, not child quests with a flag.
+        //public bool IsObjective { get; set; }
+
+        [CustomOASISProperty()]
         public string CompletionNotes { get; set; }
 
 
         [CustomOASISProperty()]
-        public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.
+        public IList<IQuest> Quests { get; set; } = new List<IQuest>(); //TODO: Dont think is needed now because it is stored in the Dependencies.
+
+        /// <summary>Quest IDs that must be completed before this quest can be started. Persisted in MetaData so LoadHolonsByMetaData and client can read it.</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<string> PrerequisiteQuestIds { get; set; } = new List<string>();
+
+        /// <summary>Objectives belonging to this quest (Option B). Persisted as part of the Quest holon via MetaData (CustomOASISProperty + StoreAsJsonString).</summary>
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public List<Objective> Objectives { get; set; } = new List<Objective>();
+
+        /// <summary>Explicit implementation for IQuestBase; delegates to Objectives so interface and serialization both work.</summary>
+        IList<IObjective> IQuestBase.Objectives
+        {
+            get => Objectives == null ? new List<IObjective>() : new List<IObjective>(Objectives);
+            set => Objectives = value as List<Objective> ?? (value != null ? value.Cast<Objective>().ToList() : new List<Objective>());
+        }
+
+        // IQuestObjectiveDictionaries – quest-level requirements and progress (key = game id e.g. ODOOM, OQUAKE)
+
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectArmor { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectAmmo { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectHealth { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectWeapons { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectPowerups { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectItems { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCollectKeys { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToKillMonsters { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCompleteInMins { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToEarnKarma { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToEarnXP { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToGoToGeoHotSpots { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToCompleteLevel { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToUseWeapons { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToUsePowerups { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToVisitLocations { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> NeedToSurviveMins { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> ArmorCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> AmmoCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> HealthCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> WeaponsCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> PowerupsCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> ItemsCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> KeysCollected { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> MonstersKilled { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> TimeStarted { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> TimeEnded { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> TimeTaken { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> KarmaEarnt { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> XPEarnt { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> GeoHotSpotsArrived { get; set; } = new Dictionary<string, IList<string>>();
+        [CustomOASISProperty(StoreAsJsonString = true)]
+        public IDictionary<string, IList<string>> LevelsCompleted { get; set; } = new Dictionary<string, IList<string>>();
     }
 }

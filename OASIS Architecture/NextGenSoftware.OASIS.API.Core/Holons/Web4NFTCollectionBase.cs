@@ -23,5 +23,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
 
         [CustomOASISProperty]
         public List<string> Tags { get; set; }
+
+        public new Dictionary<string, string> MetaData { get; set; }
     }
 }

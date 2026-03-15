@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -7,6 +7,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -37,13 +41,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         // Directly use AvatarManager instead of service layer
         private AvatarManager AvatarManager => Program.AvatarManager;
-        
-        // Temporary service access for methods not yet migrated (being phased out)
-        // Note: AvatarService is being phased out, use AvatarManager directly
-        // private IAvatarService _avatarService => Program.AvatarService;
-        
-        public AvatarController()
+
+        private readonly ILogger<AvatarController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
+
+        private static readonly object StarLogLock = new object();
+
+        public AvatarController(ILogger<AvatarController> logger, IConfiguration configuration, IWebHostEnvironment env)
         {
+            _logger = logger;
+            _configuration = configuration;
+            _env = env;
+        }
+
+        /// <summary>When Star logging is enabled, write to both star_api.log and console (ILogger).</summary>
+        private void StarLog(string message, LogLevel level = LogLevel.Information)
+        {
+            var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] {message}";
+            _logger.Log(level, "[STAR] {Message}", message);
+            try
+            {
+                var dir = string.IsNullOrEmpty(_env?.ContentRootPath) ? AppContext.BaseDirectory : _env.ContentRootPath;
+                if (string.IsNullOrEmpty(dir)) dir = Directory.GetCurrentDirectory() ?? ".";
+                var path = Path.Combine(dir, "star_api.log");
+                lock (StarLogLock)
+                    System.IO.File.AppendAllText(path, line + Environment.NewLine);
+            }
+            catch { /* ignore file errors */ }
         }
 
         /// <summary>
@@ -505,11 +530,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> 
-                { 
-                    IsError = true, 
-                    Message = $"Failed to create avatar: {ex.Message}" 
-                });
+                return HandleExceptionForWeb4<IAvatar>(ex, "CreateAvatar");
             }
         }
         */
@@ -543,7 +564,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-terms")]
         public async Task<OASISHttpResponseMessage<string>> GetTerms()
         {
-            return HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Terms });
+            try
+            {
+                var response = HttpResponseHelper.FormatResponse(new OASISResult<string> { Result = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Terms });
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(response))
+                {
+                    return TestDataHelper.CreateSuccessResponse<string>("Test Terms and Conditions", "Terms retrieved successfully (using test data)");
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResponse<string>("Test Terms and Conditions", "Terms retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResponse<string>($"Error retrieving terms: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -695,7 +736,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
+            try
+            {
+                var response = HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailAsync(id));
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(response))
+                {
+                    return TestDataHelper.CreateSuccessResponse<IAvatarDetail>(null, "Avatar detail retrieved successfully (using test data)");
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResponse<IAvatarDetail>(null, "Avatar detail retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResponse<IAvatarDetail>($"Error retrieving avatar detail: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -784,7 +845,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-avatar-details")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatarDetail>>> GetAllAvatarDetails()
         {
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
+            try
+            {
+                var response = HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarDetailsAsync());
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(response))
+                {
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>(), "Avatar details retrieved successfully (using test data)");
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<IAvatarDetail>>(new List<IAvatarDetail>(), "Avatar details retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResponse<IEnumerable<IAvatarDetail>>($"Error retrieving avatar details: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -812,7 +893,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-avatars")]
         public async Task<OASISHttpResponseMessage<IEnumerable<IAvatar>>> GetAll()
         {
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+            try
+            {
+                var response = HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAllAvatarsAsync());
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(response))
+                {
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<IAvatar>>(new List<IAvatar>(), "Avatars retrieved successfully (using test data)");
+                }
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return TestDataHelper.CreateSuccessResponse<IEnumerable<IAvatar>>(new List<IAvatar>(), "Avatars retrieved successfully (using test data)");
+                }
+                return TestDataHelper.CreateErrorResponse<IEnumerable<IAvatar>>($"Error retrieving avatars: {ex.Message}", ex);
+            }
         }
 
         /// <summary>
@@ -1656,6 +1757,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = AvatarManager.LoggedInAvatar });
         }
 
+         /// <summary>
+        /// Gets the logged-in avatar with XP (AvatarDetail). Used by STAR API GET /api/avatar/current so clients can refresh XP after beam-in.
+        /// </summary>
+        [Authorize]
+        [HttpGet("get-logged-in-avatar-with-xp")]
+        public async Task<OASISHttpResponseMessage<LoggedInAvatarResponse>> GetLoggedInAvatarWithXp()
+        {
+            var avatar = AvatarManager.LoggedInAvatar;
+            if (avatar == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatar.Id);
+            var detail = detailResult.Result;
+            var xp = (detail != null && !detailResult.IsError) ? detail.XP : 0;
+            var activeQuestId = detail?.ActiveQuestId;
+            var activeObjectiveId = detail?.ActiveObjectiveId;
+            _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp loaded detail for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId} (from storage)", avatar.Id, xp, activeQuestId, activeObjectiveId);
+            _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp returning for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatar.Id, xp, activeQuestId, activeObjectiveId);
+            StarLog($"GetLoggedInAvatarWithXp returning: ActiveQuestId={activeQuestId}, ActiveObjectiveId={activeObjectiveId}");
+            var response = new LoggedInAvatarResponse
+            {
+                Id = avatar.Id,
+                Username = avatar.Username ?? string.Empty,
+                Email = avatar.Email ?? string.Empty,
+                FirstName = avatar.FirstName ?? string.Empty,
+                LastName = avatar.LastName ?? string.Empty,
+                XP = xp,
+                ActiveQuestId = activeQuestId,
+                ActiveObjectiveId = activeObjectiveId
+            };
+            return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { Result = response });
+        }
+
         /// <summary>
         /// Get's the logged in avatar.
         /// Only works for logged in users. Use Authenticate endpoint first to obtain a JWT Token.
@@ -1672,7 +1805,84 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await GetLoggedInAvatar();
         }
 
+        /// <summary>
+        /// Add experience points to the logged-in avatar (e.g. from game actions like killing monsters). Only works for logged-in users.
+        /// Amount 0 is allowed: returns current XP without changing it (used by clients to refresh XP cache after beam-in).
+        /// </summary>
+        /// <param name="request">Body with amount (non-negative integer).</param>
+        /// <returns>New total XP after adding (or current XP if amount is 0).</returns>
+        [Authorize]
+        [HttpPost("add-xp")]
+        public async Task<OASISHttpResponseMessage<AddXpResponse>> AddXp([FromBody] AddXpRequest request)
+        {
+            if (request == null || request.Amount < 0)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Amount must be a non-negative integer." }, HttpStatusCode.BadRequest);
 
+            var avatarId = Avatar?.Id ?? Guid.Empty;
+            if (avatarId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+
+            var loadResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (loadResult.IsError || loadResult.Result == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = loadResult.Message ?? "Failed to load avatar detail." }, HttpStatusCode.BadRequest);
+
+            var detail = loadResult.Result;
+            if (request.Amount > 0)
+            {
+                detail.XP = detail.XP + request.Amount;
+                if (detail.XP < 0)
+                    detail.XP = 0;
+                var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
+                if (updateResult.IsError)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { IsError = true, Message = updateResult.Message ?? "Failed to update avatar XP." }, HttpStatusCode.BadRequest);
+            }
+
+            var newTotal = detail.XP;
+            return HttpResponseHelper.FormatResponse(new OASISResult<AddXpResponse> { Result = new AddXpResponse { NewTotal = newTotal }, IsError = false });
+        }
+
+        /// <summary>
+        /// Sets the active quest and objective for the logged-in avatar (tracker state). Persisted on AvatarDetail so they are restored after beam-in.
+        /// </summary>
+        [Authorize]
+        [HttpPost("set-active-quest")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<OASISHttpResponseMessage<bool>> SetActiveQuest([FromBody] SetActiveQuestRequest request)
+        {
+            _logger.LogInformation("[Quest] SetActiveQuest called: ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", request?.ActiveQuestId, request?.ActiveObjectiveId);
+            StarLog($"SetActiveQuest called: ActiveQuestId={request?.ActiveQuestId}, ActiveObjectiveId={request?.ActiveObjectiveId}");
+
+            var avatarId = Avatar?.Id ?? Guid.Empty;
+            if (avatarId == Guid.Empty)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest rejected: not authenticated.");
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            }
+
+            var loadResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest failed to load detail: {Message}", loadResult.Message);
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = loadResult.Message ?? "Failed to load avatar detail." }, HttpStatusCode.BadRequest);
+            }
+
+            var detail = loadResult.Result;
+            detail.ActiveQuestId = request?.ActiveQuestId;
+            detail.ActiveObjectiveId = request?.ActiveObjectiveId;
+
+            var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(avatarId, detail);
+            if (updateResult.IsError)
+            {
+                _logger.LogWarning("[Quest] SetActiveQuest update failed: {Message}", updateResult.Message);
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool> { IsError = true, Message = updateResult.Message ?? "Failed to update active quest." }, HttpStatusCode.BadRequest);
+            }
+
+            _logger.LogInformation("[Quest] SetActiveQuest saved for avatar {AvatarId}: ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatarId, detail.ActiveQuestId, detail.ActiveObjectiveId);
+            StarLog($"SetActiveQuest saved OK for avatar {avatarId}: ActiveQuestId={detail.ActiveQuestId}, ActiveObjectiveId={detail.ActiveObjectiveId}");
+            return HttpResponseHelper.FormatResponse(new OASISResult<bool> { Result = true, IsError = false });
+        }
 
         ///// <summary>
         /////     Link's a given Avatar to a Providers Public Key (private/public key pairs or username, accountname, unique id, agentId, hash, etc).
@@ -2195,6 +2405,381 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 {
                     IsError = true,
                     Message = $"Error retrieving avatar session stats: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        #endregion
+
+        #region Avatar Inventory Management
+
+        /// <summary>
+        /// Gets all inventory items owned by the authenticated avatar.
+        /// This is the avatar's actual inventory (items they own), not items they created.
+        /// Inventory is shared across all games, apps, websites, and services.
+        /// </summary>
+        [HttpGet("inventory")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IEnumerable<IInventoryItem>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IEnumerable<IInventoryItem>>> GetAvatarInventory()
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.GetAvatarInventoryAsync(AvatarId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IEnumerable<IInventoryItem>>
+                {
+                    IsError = true,
+                    Message = $"Error loading avatar inventory: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Adds an item to the avatar's inventory.
+        /// Quantity (default 1): amount to add; if item with same name exists and Stack is true, this is added to existing Quantity.
+        /// Stack (default true): if true and item exists by name, increment Quantity; if false and item exists, returns error "Item already exists".
+        /// Accepts InventoryItem with Name, Description, optional Quantity, optional Stack, and optional MetaData.
+        /// </summary>
+        [HttpPost("inventory")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IInventoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IInventoryItem>> AddItemToAvatarInventory([FromBody] InventoryItem inventoryItem)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                if (inventoryItem == null)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = "The request body is required. Please provide a valid Inventory Item object with Name, Description, and optional HolonSubType."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                // Ensure HolonType is set if not provided
+                if (inventoryItem.HolonType == HolonType.None)
+                {
+                    inventoryItem.HolonType = HolonType.InventoryItem;
+                }
+
+                var result = await AvatarManager.AddItemToAvatarInventoryAsync(AvatarId, inventoryItem);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
+                {
+                    IsError = true,
+                    Message = $"Error adding item to inventory: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Decrements an item's quantity in the avatar's inventory. quantity must be 1 or greater. The item is removed only when its quantity reaches 0 after the decrement.
+        /// </summary>
+        [HttpDelete("inventory/{itemId}")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> RemoveItemFromAvatarInventory(Guid itemId, [FromQuery] int quantity = 1)
+        {
+            var starLogEnabled = _configuration?.GetSection("Star")?["LoggingEnabled"]?.Equals("true", StringComparison.OrdinalIgnoreCase) == true;
+
+            if (starLogEnabled)
+                StarLog($"RemoveItemFromAvatarInventory called: itemId={itemId} quantity={quantity} avatarId={AvatarId}");
+
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    if (starLogEnabled)
+                        StarLog("RemoveItemFromAvatarInventory rejected: AvatarId required", LogLevel.Warning);
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                if (quantity < 1)
+                {
+                    if (starLogEnabled)
+                        StarLog($"RemoveItemFromAvatarInventory rejected: quantity must be >= 1 (got {quantity})", LogLevel.Warning);
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Quantity must be 1 or greater."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.RemoveItemFromAvatarInventoryAsync(AvatarId, itemId, quantity);
+
+                if (starLogEnabled)
+                    StarLog($"RemoveItemFromAvatarInventory result: itemId={itemId} quantity={quantity} success={!result.IsError} message={result.Message ?? "(ok)"}");
+
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                if (starLogEnabled)
+                {
+                    StarLog($"RemoveItemFromAvatarInventory exception: itemId={itemId} quantity={quantity} error={ex.GetType().Name}: {ex.Message}", LogLevel.Error);
+                    _logger.LogError(ex, "[STAR] RemoveItemFromAvatarInventory exception: itemId={ItemId} quantity={Quantity}", itemId, quantity);
+                }
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error removing item from inventory: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the avatar has a specific item in their inventory.
+        /// </summary>
+        [HttpGet("inventory/{itemId}/has")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> AvatarHasItem(Guid itemId)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.AvatarHasItemAsync(AvatarId, itemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error checking if avatar has item: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Checks if the avatar has a specific item by name in their inventory.
+        /// </summary>
+        [HttpGet("inventory/has-by-name")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> AvatarHasItemByName([FromQuery] string itemName)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.AvatarHasItemByNameAsync(AvatarId, itemName);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error checking if avatar has item by name: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Searches the avatar's inventory by name or description.
+        /// </summary>
+        [HttpGet("inventory/search")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IEnumerable<IInventoryItem>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IEnumerable<IInventoryItem>>> SearchAvatarInventory([FromQuery] string searchTerm)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IEnumerable<IInventoryItem>>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.SearchAvatarInventoryAsync(AvatarId, searchTerm);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IEnumerable<IInventoryItem>>
+                {
+                    IsError = true,
+                    Message = $"Error searching inventory: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Gets a specific item from the avatar's inventory by ID.
+        /// </summary>
+        [HttpGet("inventory/{itemId}")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IInventoryItem>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IInventoryItem>> GetAvatarInventoryItem(Guid itemId)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required but was not found. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+
+                var result = await AvatarManager.GetAvatarInventoryItemAsync(AvatarId, itemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<IInventoryItem>
+                {
+                    IsError = true,
+                    Message = $"Error getting inventory item: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to another avatar.
+        /// Target is the recipient's username or avatar Id. Works for all items (STAR and local).
+        /// </summary>
+        [HttpPost("inventory/send-to-avatar")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> SendItemToAvatar([FromBody] SendItemRequest request)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+                if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Target and ItemName are required."
+                    }, HttpStatusCode.BadRequest);
+                }
+                var quantity = request.Quantity < 1 ? 1 : request.Quantity;
+                var result = await AvatarManager.SendItemToAvatarAsync(AvatarId, request.Target.Trim(), request.ItemName.Trim(), quantity, request.ItemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error sending item to avatar: {ex.Message}",
+                    Exception = ex
+                }, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Sends an item from the authenticated avatar's inventory to a clan.
+        /// Target is the clan name (or username when clan resolution is not yet implemented). Works for all items (STAR and local).
+        /// </summary>
+        [HttpPost("inventory/send-to-clan")]
+        [Authorize]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<bool>> SendItemToClan([FromBody] SendItemRequest request)
+        {
+            try
+            {
+                if (AvatarId == Guid.Empty)
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "AvatarId is required. Please authenticate or provide X-Avatar-Id header."
+                    }, HttpStatusCode.BadRequest);
+                }
+                if (request == null || string.IsNullOrWhiteSpace(request.Target) || string.IsNullOrWhiteSpace(request.ItemName))
+                {
+                    return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = "Target (clan name) and ItemName are required."
+                    }, HttpStatusCode.BadRequest);
+                }
+                var quantity = request.Quantity < 1 ? 1 : request.Quantity;
+                var result = await AvatarManager.SendItemToClanAsync(AvatarId, request.Target.Trim(), request.ItemName.Trim(), quantity, request.ItemId);
+                return HttpResponseHelper.FormatResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<bool>
+                {
+                    IsError = true,
+                    Message = $"Error sending item to clan: {ex.Message}",
                     Exception = ex
                 }, HttpStatusCode.InternalServerError);
             }

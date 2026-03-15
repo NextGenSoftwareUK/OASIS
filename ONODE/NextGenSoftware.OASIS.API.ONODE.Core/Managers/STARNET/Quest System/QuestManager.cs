@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -13,7 +13,6 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Managers;
-
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     //public class QuestManager : QuestManagerBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>, IQuestManager
@@ -66,25 +65,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             "QuestDNAJSON")
         { }
 
-        public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
-        }
+        //public override async Task<OASISResult<Quest>> CreateAsync(Guid avatarId, string name, string description, object holonSubType, string fullPathToSourceFolder, ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, ProviderType providerType = ProviderType.Default)
+        //{
 
-        public OASISResult<IQuest> CreateQuestForMission(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
-        }
 
-        public async Task<OASISResult<IQuest>> CreateSubQuestForQuestAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
-        }
+        //    OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, holonSubType, fullPathToSourceFolder, createOptions, providerType);
+        //    //{
+        //        //CheckIfSourcePathExists = checkIfSourcePathExists,
+        //        //STARNETHolon = new Quest
+        //        //{
+        //        //    QuestType = questType,
+        //        //    ParentMissionId = parentMissionId,
+        //        //    ParentQuestId = parentQuestId
+        //        //}
+        //    //}, providerType);
 
-        public OASISResult<IQuest> CreateSubQuestForQuest(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
-        }
+
+
+        //    //OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    //OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    //return result;
+
+
+        //    //return base.CreateAsync(avatarId, name, description, holonSubType, fullPathToSourceFolder, createOptions, providerType);
+        //}
+
+        //public async Task<OASISResult<IQuest>> CreateQuestForMissionAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
+        //}
+
+        //public OASISResult<IQuest> CreateQuestForMission(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, parentMissionId, default, checkIfSourcePathExists, providerType);
+        //}
+
+        //public async Task<OASISResult<IQuest>> CreateSubQuestForQuestAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return await CreateQuestInternalAsync(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
+        //}
+
+        //public OASISResult<IQuest> CreateSubQuestForQuest(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentQuestId, bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    return CreateQuestInternal(avatarId, name, description, questType, fullPathToQuest, default, parentQuestId, checkIfSourcePathExists, providerType);
+        //}
 
         public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForMissionAsync(Guid missionId, ProviderType providerType = ProviderType.Default)
         {
@@ -134,6 +158,91 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
+        }
+
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties (e.g. Status from MetaData["QuestStatus"]).</summary>
+        public async Task<OASISResult<IEnumerable<IQuest>>> LoadAllQuestsForAvatarAsync(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = await LoadAllForAvatarAsync(avatarId, showAllVersions, version, providerType).ConfigureAwait(false);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Load all quests for avatar using IQuest path; promotes MetaData to strongly-typed properties.</summary>
+        public OASISResult<IEnumerable<IQuest>> LoadAllQuestsForAvatar(Guid avatarId, bool showAllVersions = false, int version = 0, ProviderType providerType = ProviderType.Default)
+        {
+            var result = new OASISResult<IEnumerable<IQuest>>();
+            var baseResult = LoadAllForAvatar(avatarId, showAllVersions, version, providerType);
+            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(baseResult, result);
+            if (baseResult.IsError || baseResult.Result == null)
+                return result;
+            var list = baseResult.Result.ToList();
+            foreach (var q in list)
+                PromoteQuestMetaDataToProperties(q);
+            result.Result = list;
+            return result;
+        }
+
+        /// <summary>Promote MetaData to strongly-typed Quest properties so API returns quests with Objectives (and Status) populated on first load.
+        /// Status: prefer "Status" (HolonManager.MapMetaData), fallback "QuestStatus".
+        /// Objectives: (1) promote from MetaData so all-for-avatar response includes them; (2) if still empty, populate from Children so "objectives" in JSON matches what the client sees in "children".</summary>
+        private static void PromoteQuestMetaDataToProperties(Quest q)
+        {
+            if (q == null) return;
+
+            if (q.MetaData != null)
+            {
+                var statusKey = q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "Status", StringComparison.OrdinalIgnoreCase))
+                    ?? q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "QuestStatus", StringComparison.OrdinalIgnoreCase));
+                if (statusKey != null && q.MetaData[statusKey] != null)
+                {
+                    var s = q.MetaData[statusKey].ToString();
+                    if (!string.IsNullOrEmpty(s) && System.Enum.TryParse<QuestStatus>(s, true, out var status))
+                        q.Status = status;
+                }
+
+                var objectivesKey = q.MetaData.Keys.FirstOrDefault(k => string.Equals(k, "Objectives", StringComparison.OrdinalIgnoreCase));
+                if (objectivesKey != null && q.MetaData[objectivesKey] != null && (q.Objectives == null || q.Objectives.Count == 0))
+                {
+                    try
+                    {
+                        var raw = q.MetaData[objectivesKey];
+                        if (raw is string jsonStr)
+                        {
+                            var list = System.Text.Json.JsonSerializer.Deserialize<List<Objective>>(jsonStr);
+                            if (list != null && list.Count > 0)
+                                q.Objectives = list;
+                        }
+                    }
+                    catch { /* leave Objectives unchanged if deserialize fails */ }
+                }
+            }
+
+            /* When Objectives is still empty but Children is populated (e.g. provider loaded child holons), fill Objectives from Children so the API serializes "objectives" and the client does not rely only on "children". */
+            if ((q.Objectives == null || q.Objectives.Count == 0) && q.Children != null && q.Children.Count > 0)
+            {
+                q.Objectives ??= new List<Objective>();
+                for (var i = 0; i < q.Children.Count; i++)
+                {
+                    if (q.Children[i] is Quest cq)
+                    {
+                        q.Objectives.Add(new Objective
+                        {
+                            Id = cq.Id,
+                            Order = i,
+                            IsCompleted = cq.CompletedOn != default,
+                            ObjectiveText = cq.Description ?? cq.Name ?? string.Empty
+                        });
+                    }
+                }
+            }
         }
 
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(Guid avatarId, Guid parentQuestId, Guid geoNFTId, ProviderType providerType = ProviderType.Default)
@@ -411,6 +520,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         //    return result;
         //}
 
+        //TODO: Need to show this on STAR CLI ASAP! ;-)
         public async Task<OASISResult<IQuest>> GetCurentSubQuestForQuestAsync(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -441,6 +551,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        //TODO: Need to show this on STAR CLI ASAP! ;-)
         public OASISResult<IQuest> GetCurentSubQuestForQuest(Guid avatarId, Guid questId, ProviderType providerType)
         {
             OASISResult<IQuest> result = new OASISResult<IQuest>();
@@ -494,57 +605,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return new OASISResult<IQuest>();
         }
 
-        private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Objects.STARNETCreateOptions<Quest, STARNETDNA>()
-            {
-                CheckIfSourcePathExists = checkIfSourcePathExists,
-                STARNETHolon = new Quest
-                {
-                    QuestType = questType,
-                    ParentMissionId = parentMissionId,
-                    ParentQuestId = parentQuestId
-                }
-            }, providerType);
+        //private async Task<OASISResult<IQuest>> CreateQuestInternalAsync(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, new Objects.STARNETCreateOptions<Quest, STARNETDNA>()
+        //    {
+        //        CheckIfSourcePathExists = checkIfSourcePathExists,
+        //        STARNETHolon = new Quest
+        //        {
+        //            QuestType = questType,
+        //            ParentMissionId = parentMissionId,
+        //            ParentQuestId = parentQuestId
+        //        }
+        //    }, providerType);
            
 
-            //OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
-            //{
-            //    //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-            //    //{ "ParentMissionId", parentMissionId.ToString() },
-            //    //{ "ParentQuestId", parentQuestId.ToString() }
-            //}, new Quest
-            //{
-            //    QuestType = questType,
-            //    ParentMissionId = parentMissionId,
-            //    ParentQuestId = parentQuestId
-            //}, null, checkIfSourcePathExists,
-            //providerType);
+        //    //OASISResult<Quest> createResult = await base.CreateAsync(avatarId, name, description, questType, fullPathToQuest, null, null, new Dictionary<string, object>()
+        //    //{
+        //    //    //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+        //    //    //{ "ParentMissionId", parentMissionId.ToString() },
+        //    //    //{ "ParentQuestId", parentQuestId.ToString() }
+        //    //}, new Quest
+        //    //{
+        //    //    QuestType = questType,
+        //    //    ParentMissionId = parentMissionId,
+        //    //    ParentQuestId = parentQuestId
+        //    //}, null, checkIfSourcePathExists,
+        //    //providerType);
 
-            OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
-            return result;
-        }
+        //    OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    return result;
+        //}
 
-        private OASISResult<IQuest> CreateQuestInternal(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
-        {
-            OASISResult<Quest> createResult = base.Create(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
-            {
-                //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
-                //{ "ParentMissionId", parentMissionId.ToString() },
-                //{ "ParentQuestId", parentQuestId.ToString() }
-            }, new Quest
-            {
-                QuestType = questType,
-                ParentMissionId = parentMissionId,
-                ParentQuestId = parentQuestId
-            }, null, checkIfSourcePathExists,
-           providerType);
+        //private OASISResult<IQuest> CreateQuestInternal(Guid avatarId, string name, string description, QuestType questType, string fullPathToQuest, Guid parentMissionId = new Guid(), Guid parentQuestId = new Guid(), bool checkIfSourcePathExists = true, ProviderType providerType = ProviderType.Default)
+        //{
+        //    OASISResult<Quest> createResult = base.Create(avatarId, name, description, questType, fullPathToQuest, new Dictionary<string, object>()
+        //    {
+        //        //We could also pass in metaData this way if we wanted but because we are setting them on the GeoHotSpot object below these will automatically be converted to MetaData on the holon anyway! ;-)
+        //        //{ "ParentMissionId", parentMissionId.ToString() },
+        //        //{ "ParentQuestId", parentQuestId.ToString() }
+        //    }, new Quest
+        //    {
+        //        QuestType = questType,
+        //        ParentMissionId = parentMissionId,
+        //        ParentQuestId = parentQuestId
+        //    }, null, checkIfSourcePathExists,
+        //   providerType);
 
-            OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
-            OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
-            return result;
-        }
+        //    OASISResult<IQuest> result = new OASISResult<IQuest>((IQuest)createResult.Result);
+        //    OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(createResult, result);
+        //    return result;
+        //}
 
         private OASISResult<IQuest> UpdateQuest(Guid avatarId, IQuest quest, OASISResult<IQuest> result, string errorMessage, bool updateDNAJSONFile = true, ProviderType providerType = ProviderType.Default)
         {
@@ -585,6 +696,270 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
+        /// Returns whether the avatar can start the quest (quest is NotStarted and any MetaData PrerequisiteQuestIds are completed). ParentQuestId is for sub-quests/objectives only, not prerequisites.
+        /// </summary>
+        public async Task<OASISResult<bool>> CanStartQuestAsync(Guid avatarId, Guid questId)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CanStartQuestAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    result.Result = false;
+                    result.Message = "Quest not found or could not be loaded.";
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already completed.";
+                    return result;
+                }
+                if (quest.Status == QuestStatus.InProgress)
+                {
+                    result.Result = false;
+                    result.Message = "Quest is already in progress.";
+                    return result;
+                }
+
+                var prereqIdList = (quest as Quest)?.PrerequisiteQuestIds;
+                if (prereqIdList == null && quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                        prereqIdList = prereqIds.Cast<object>().Select(x => x?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+                }
+                if (prereqIdList != null && prereqIdList.Count > 0)
+                {
+                    foreach (var item in prereqIdList)
+                    {
+                        if (!Guid.TryParse(item, out var prereqId) || prereqId == Guid.Empty) continue;
+                        var prereqResult = await LoadAsync(avatarId, prereqId);
+                        if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                        {
+                            result.Result = false;
+                            result.Message = "Prerequisites not met. Complete all required quests first.";
+                            return result;
+                        }
+                    }
+                }
+
+                result.Result = true;
+                result.Message = "Quest can be started.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Starts a quest for the specified avatar. Validates prerequisites: if the quest has PrerequisiteQuestIds in MetaData, those quests must be completed first. (ParentQuestId is used for sub-quests/objectives; when all are complete the parent is marked complete.)
+        /// </summary>
+        public async Task<OASISResult<bool>> StartQuestAsync(Guid avatarId, Guid questId, string startNotes = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.StartQuestAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found or could not be loaded. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest is already completed.");
+                    return result;
+                }
+
+                var prereqIdListStart = (quest as Quest)?.PrerequisiteQuestIds;
+                if (prereqIdListStart == null && quest.MetaData != null && quest.MetaData.ContainsKey("PrerequisiteQuestIds"))
+                {
+                    var prereqIds = quest.MetaData["PrerequisiteQuestIds"] as System.Collections.IEnumerable;
+                    if (prereqIds != null)
+                        prereqIdListStart = prereqIds.Cast<object>().Select(x => x?.ToString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+                }
+                if (prereqIdListStart != null && prereqIdListStart.Count > 0)
+                {
+                    foreach (var item in prereqIdListStart)
+                    {
+                        if (!Guid.TryParse(item, out var prereqId) || prereqId == Guid.Empty) continue;
+                        var prereqResult = await LoadAsync(avatarId, prereqId);
+                        if (prereqResult.IsError || prereqResult.Result == null || prereqResult.Result.Status != QuestStatus.Completed)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Prerequisites not met. Complete all required quests first.");
+                            return result;
+                        }
+                    }
+                }
+
+                quest.Status = QuestStatus.InProgress;
+                quest.StartedBy = avatarId;
+                if (quest.StartedOn == DateTime.MinValue)
+                    quest.StartedOn = DateTime.UtcNow;
+
+                if (!string.IsNullOrWhiteSpace(startNotes))
+                    quest.CompletionNotes = startNotes;
+
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save started quest. Reason: {updateResult.Message}");
+                    return result;
+                }
+
+                await UpdateQuestStatisticsAsync(avatarId);
+                result.Result = true;
+                result.Message = $"Quest started and saved (QuestId={questId}). If status does not update in the client, ensure the storage provider persists (e.g. MongoDB).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Completes a quest objective. Uses Quest.Objectives (Option B) first; falls back to child Quests for backward compatibility.
+        /// </summary>
+        public async Task<OASISResult<bool>> CompleteQuestObjectiveAsync(Guid avatarId, Guid questId, Guid objectiveId, string gameSource = null, string completionNotes = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            string errorMessage = "Error occurred in QuestManager.CompleteQuestObjectiveAsync. Reason:";
+
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found or could not be loaded. Reason: {questResult.Message}");
+                    return result;
+                }
+
+                var quest = questResult.Result;
+                if (quest.Objectives == null)
+                    quest.Objectives = new List<Objective>();
+                quest.Status = quest.Status == QuestStatus.NotStarted ? QuestStatus.InProgress : quest.Status;
+                if (quest.StartedOn == DateTime.MinValue)
+                    quest.StartedOn = DateTime.UtcNow;
+                quest.StartedBy = quest.StartedBy == Guid.Empty ? avatarId : quest.StartedBy;
+
+                // Option B: complete objective in Quest.Objectives
+                if (quest.Objectives.Count > 0)
+                {
+                    var objective = quest.Objectives.FirstOrDefault(x => x.Id == objectiveId);
+                    if (objective != null)
+                    {
+                        objective.IsCompleted = true;
+                        objective.CompletedAt = DateTime.UtcNow;
+                        objective.CompletedBy = avatarId;
+
+                        var updateResult = await UpdateAsync(avatarId, quest);
+                        if (updateResult.IsError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResult.Message}");
+                            return result;
+                        }
+
+                        var allComplete = quest.Objectives.All(x => x.IsCompleted);
+                        if (allComplete)
+                        {
+                            quest.Status = QuestStatus.Completed;
+                            quest.CompletedOn = DateTime.UtcNow;
+                            quest.CompletedBy = avatarId;
+                            if (!string.IsNullOrWhiteSpace(completionNotes))
+                                quest.CompletionNotes = completionNotes;
+                            await UpdateAsync(avatarId, quest);
+                        }
+
+                        await UpdateQuestStatisticsAsync(avatarId);
+                        result.Result = true;
+                        result.Message = allComplete ? "Quest objective completed and quest is now complete." : "Quest objective completed successfully";
+                        return result;
+                    }
+                }
+
+                // Fallback: legacy objectives as child Quests
+                if (quest.Quests == null || quest.Quests.Count == 0)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest has no objectives to complete.");
+                    return result;
+                }
+
+                var subQuestObjective = quest.Quests.FirstOrDefault(x => x.Id == objectiveId);
+                if (subQuestObjective == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Objective {objectiveId} was not found for quest {questId}.");
+                    return result;
+                }
+
+                subQuestObjective.Status = QuestStatus.Completed;
+                subQuestObjective.CompletedOn = DateTime.UtcNow;
+                subQuestObjective.CompletedBy = avatarId;
+                subQuestObjective.StartedBy = subQuestObjective.StartedBy == Guid.Empty ? avatarId : subQuestObjective.StartedBy;
+                if (subQuestObjective.StartedOn == DateTime.MinValue)
+                    subQuestObjective.StartedOn = DateTime.UtcNow;
+
+                if (!string.IsNullOrWhiteSpace(completionNotes))
+                    subQuestObjective.CompletionNotes = completionNotes;
+
+                if (!string.IsNullOrWhiteSpace(gameSource))
+                    subQuestObjective.Requirements = subQuestObjective.Requirements?.Append($"CompletedFrom:{gameSource}").Distinct().ToList() ?? new List<string> { $"CompletedFrom:{gameSource}" };
+
+                if (quest.Quests.All(x => x.Status == QuestStatus.Completed))
+                {
+                    quest.Status = QuestStatus.Completed;
+                    quest.CompletedOn = DateTime.UtcNow;
+                    quest.CompletedBy = avatarId;
+                    if (!string.IsNullOrWhiteSpace(completionNotes))
+                        quest.CompletionNotes = completionNotes;
+                }
+                else
+                {
+                    quest.Status = QuestStatus.InProgress;
+                }
+
+                if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+
+                var updateResultLegacy = await UpdateAsync(avatarId, quest);
+                if (updateResultLegacy.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save objective completion. Reason: {updateResultLegacy.Message}");
+                    return result;
+                }
+
+                await UpdateQuestStatisticsAsync(avatarId);
+                result.Result = true;
+                result.Message = quest.Status == QuestStatus.Completed
+                    ? "Quest objective completed and quest is now complete."
+                    : "Quest objective completed successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occurred. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Completes a quest for the specified avatar
         /// </summary>
         /// <param name="avatarId">The avatar completing the quest</param>
@@ -614,6 +989,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     questResult.Result.CompletionNotes = completionNotes;
                 }
+
+                if (questResult.Result.MetaData == null) questResult.Result.MetaData = new Dictionary<string, object>();
+                questResult.Result.MetaData["Status"] = questResult.Result.Status.ToString();
 
                 // Save the updated quest
                 var updateResult = await UpdateAsync(avatarId, questResult.Result);

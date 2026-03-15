@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class ChaptersController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all chapters in the system.
@@ -38,16 +41,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Chapters.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testChapters = new List<Chapter>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Chapter>>(testChapters, "Chapters retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<Chapter>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading chapters: {ex.Message}",
-                    Exception = ex
-                });
+                    var testChapters = new List<Chapter>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Chapter>>(testChapters, "Chapters retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<Chapter>>(ex, "GetAllChapters");
             }
         }
 
@@ -66,16 +78,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Chapters.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<Chapter>(null, "Chapter retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<Chapter>(null, "Chapter retrieved successfully (using test data)"));
+                }
+                return HandleException<Chapter>(ex, "GetChapter");
             }
         }
 
@@ -98,12 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error creating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "creating chapter");
             }
         }
 
@@ -128,12 +142,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error updating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "updating chapter");
             }
         }
 
@@ -156,12 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting chapter");
             }
         }
 
@@ -217,19 +221,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateChapterWithOptions([FromBody] CreateChapterRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<Chapter>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Chapters.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error creating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "creating chapter");
             }
         }
 
@@ -249,18 +257,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Chapter>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Chapters.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter");
             }
         }
 
@@ -279,18 +284,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Chapter>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Chapters.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter from path");
             }
         }
 
@@ -313,12 +315,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter from published file");
             }
         }
 
@@ -364,6 +361,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishChapter(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Chapters.PublishAsync(
@@ -380,12 +379,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error publishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "publishing chapter");
             }
         }
 
@@ -411,12 +405,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedChapter>
-                {
-                    IsError = true,
-                    Message = $"Error downloading chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedChapter>(ex, "downloading chapter");
             }
         }
 
@@ -468,12 +457,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error loading chapter version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "loading chapter version");
             }
         }
 
@@ -490,6 +474,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Chapter>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditChapter(Guid id, [FromBody] EditChapterRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Chapter> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Chapters.EditAsync(id, request.NewDNA, AvatarId);
@@ -497,12 +483,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error editing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "editing chapter");
             }
         }
 
@@ -526,12 +507,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "unpublishing chapter");
             }
         }
 
@@ -555,12 +531,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error republishing chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "republishing chapter");
             }
         }
 
@@ -584,12 +555,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error activating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "activating chapter");
             }
         }
 
@@ -613,12 +579,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Chapter>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating chapter: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Chapter>(ex, "deactivating chapter");
             }
         }
     }
