@@ -367,11 +367,10 @@ public sealed class StarApiClient : IDisposable
 
             StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}");
 
-            /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. */
+            /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
-            InvokeCallback(StarApiResultCode.Success);
             return result;
         }
         catch (Exception ex)
@@ -401,9 +400,8 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        /* Game calls star_api_refresh_avatar_profile() after beam-in for XP + quest/objective. */
+        /* Game calls star_api_refresh_avatar_profile() after beam-in. Do NOT invoke callback so "profile loaded" only runs when that refresh completes. */
 
-        InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
     }
 
@@ -416,7 +414,7 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock)
             _avatarId = string.IsNullOrWhiteSpace(avatarId) ? null : avatarId;
 
-        InvokeCallback(StarApiResultCode.Success);
+        /* Do NOT invoke callback; "profile loaded" should only run when star_api_refresh_avatar_profile completes. */
         return Success(true, StarApiResultCode.Success, "Avatar ID set.");
     }
 
@@ -464,35 +462,31 @@ public sealed class StarApiClient : IDisposable
             return invokeCallback ? FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized) : Fail<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
         var url = $"{_baseApiUrl}/api/avatar/current";
-        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current (BaseApiUrl)");
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current url={url}");
         var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
-            lock (_stateLock)
-            {
-                if (Guid.TryParse(_avatarId, out var cachedId) && cachedId != Guid.Empty)
-                {
-                    StarApiExports.StarApiLogFileOnly($"[Avatar] Request failed, using cached AvatarId (no XP): {response.Message}");
-                    if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
-                    return Success(new StarAvatarProfile { Id = cachedId }, StarApiResultCode.Success, "Avatar resolved from authenticated session.");
-                }
-            }
-
-            StarApiExports.StarApiLog($"[Avatar] GET avatar/current failed: {response.Message}");
-            return invokeCallback ? FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception) : Fail<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            /* Do NOT return Success with a stub profile when GET fails: game would get "profile loaded" but cache has no XP/quest (causes 0 XP in Quake). Always return Fail so callback is not invoked with Success. */
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current FAILED: IsError=True Message={response.Message ?? "null"} (returning Fail, not stub)");
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception) : Fail<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
+
+        var responsePreview = response.Result != null && response.Result.Length > 0
+            ? (response.Result.Length <= 500 ? response.Result : response.Result.Substring(0, 500) + "...")
+            : "(empty)";
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current response OK len={response.Result?.Length ?? 0} preview={responsePreview}");
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
         {
-            StarApiExports.StarApiLog($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
             return invokeCallback ? FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode) : Fail<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
         }
 
         var avatar = ParseAvatarProfile(resultElement);
         if (avatar is null || avatar.Id == Guid.Empty)
         {
-            StarApiExports.StarApiLog("[Avatar] GET avatar/current parse failed: no avatar in response");
+            StarApiExports.StarApiLogFileOnly("[Avatar] GET avatar/current parse failed: no avatar in response");
             return invokeCallback ? FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError) : Fail<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
         }
 
@@ -504,7 +498,7 @@ public sealed class StarApiClient : IDisposable
             _cachedActiveObjectiveId = avatar.ActiveObjectiveId;
         }
 
-        StarApiExports.StarApiLog($"[Avatar] GET avatar/current OK: XP={avatar.XP}, ActiveQuestId={avatar.ActiveQuestId}, ActiveObjectiveId={avatar.ActiveObjectiveId} (cache updated)");
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={avatar.ActiveQuestId} ActiveObjectiveId={avatar.ActiveObjectiveId} (cache updated)");
         if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
@@ -1496,7 +1490,7 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
         {
             StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground skipped (not initialized)");
-            InvokeCallback(StarApiResultCode.NotInitialized);
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpProfileLoaded);
             return;
         }
         _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
@@ -1508,13 +1502,14 @@ public sealed class StarApiClient : IDisposable
                 var xp = result.Result.XP;
                 var qid = result.Result.ActiveQuestId;
                 var oid = result.Result.ActiveObjectiveId;
-                StarApiExports.StarApiLog($"[Avatar] RefreshAvatarProfileInBackground done: XP={xp}, ActiveQuestId={qid}, ActiveObjectiveId={oid} (cache updated, invoking callback Success)");
-                InvokeCallback(StarApiResultCode.Success);
+                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done SUCCESS: XP={xp} ActiveQuestId={qid} ActiveObjectiveId={oid} (invoking callback Success)");
+                StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
             }
             else
             {
-                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done IsError={result?.IsError ?? true} Message={result?.Message ?? "null"} cachedXp={GetCachedAvatarXp()} (invoking callback error)");
-                InvokeCallback(result != null && result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.ApiError);
+                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done FAIL: IsError={result?.IsError ?? true} Message={result?.Message ?? "null"} cachedXp={GetCachedAvatarXp()} (invoking callback error)");
+                var errCode = result != null && result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.ApiError;
+                StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
             }
             return result;
         }, CancellationToken.None);
@@ -5008,6 +5003,9 @@ public static unsafe class StarApiExports
     private static byte* _lastError;
     private static delegate* unmanaged[Cdecl]<int, void*, void> _callback;
     private static void* _callbackUserData;
+    /// <summary>Optional: (result, operation_type, user_data). When set, profile refresh uses this instead of _callback so the game can filter by operation_type.</summary>
+    private static delegate* unmanaged[Cdecl]<int, int, void*, void> _operationCallback;
+    private static void* _operationCallbackUserData;
     private static volatile int _starDebug;
     private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
     private static long _lastGetAvatarXpLogTicks;
@@ -5059,7 +5057,7 @@ public static unsafe class StarApiExports
     {
         try { StarApiLogFileOnly("[STAR] star_api_init called"); } catch { }
         if (config is null || config->base_url is null)
-            return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam, StarApiOpInit);
 
         var baseUrl = PtrToString(config->base_url) ?? string.Empty;
         var managedConfig = new StarApiConfig
@@ -5078,7 +5076,7 @@ public static unsafe class StarApiExports
 
         var result = _client.Init(managedConfig);
         try { StarApiLogFileOnly($"[STAR] star_api_init result={(result.IsError ? "FAIL" : "OK")} base_url_len={baseUrl.Length}"); } catch { }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpInit);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
@@ -5087,13 +5085,13 @@ public static unsafe class StarApiExports
         try { StarApiLogFileOnly("[STAR] star_api_authenticate called"); } catch { }
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpAuthenticate);
 
         var user = PtrToString(username);
         var pass = PtrToString(password);
         var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
         try { StarApiLogFileOnly($"[STAR] star_api_authenticate result={(result.IsError ? "FAIL" : "OK")} msg={result.Message ?? "(ok)"}"); } catch { }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResultNoCallback(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_cleanup", CallConvs = [typeof(CallConvCdecl)])]
@@ -5114,12 +5112,12 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             SetError("Client is not initialized.");
-            InvokeCallback(StarApiResultCode.NotInitialized);
+            InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiOpHasItem);
             return 0;
         }
 
         var result = client.HasItemAsync(PtrToString(itemName) ?? string.Empty).GetAwaiter().GetResult();
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpHasItem);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
@@ -5127,27 +5125,27 @@ public static unsafe class StarApiExports
     public static int StarApiGetInventory(star_item_list_t** itemList)
     {
         if (itemList is null)
-            return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam, StarApiOpGetInventory);
 
         *itemList = null;
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetInventory);
 
         var result = client.GetInventoryAsync().GetAwaiter().GetResult();
         var resultCode = ExtractCode(result);
         if (result.IsError || result.Result is null)
         {
             SetError(result.Message ?? "Failed to load inventory.");
-            InvokeCallback(resultCode);
+            InvokeOperationCallback(resultCode, StarApiOpGetInventory);
             return (int)resultCode;
         }
 
         var count = (nuint)result.Result.Count;
         var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
         if (listPtr is null)
-            return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed);
+            return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
 
         listPtr->count = count;
         listPtr->capacity = count;
@@ -5159,7 +5157,7 @@ public static unsafe class StarApiExports
             if (listPtr->items is null)
             {
                 NativeMemory.Free(listPtr);
-                return (int)SetErrorAndReturn("Memory allocation failed for inventory items.", StarApiResultCode.InitFailed);
+                return (int)SetErrorAndReturn("Memory allocation failed for inventory items.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
             }
 
             for (var i = 0; i < result.Result.Count; i++)
@@ -5178,7 +5176,7 @@ public static unsafe class StarApiExports
 
         *itemList = listPtr;
         SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetInventory);
         return (int)StarApiResultCode.Success;
     }
 
@@ -5201,11 +5199,11 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestsString);
 
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestsString);
 
             string fallback;
             if (!client.TryGetQuestsCache(out var str))
@@ -5236,7 +5234,7 @@ public static unsafe class StarApiExports
                 new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
             buf[toCopy] = 0;
             SetError(string.Empty);
-            InvokeCallback(StarApiResultCode.Success);
+            InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetQuestsString);
             return toCopy;
         }
         catch (Exception ex)
@@ -5275,10 +5273,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetTopLevelQuestsString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetTopLevelQuestsString);
             string fallback;
             if (!client.TryGetTopLevelQuestsCache(out var str))
             {
@@ -5298,7 +5296,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_top_level_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetTopLevelQuestsString);
         }
     }
 
@@ -5309,10 +5307,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestSubQuestsString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestSubQuestsString);
             var parentId = parentQuestId != null ? Marshal.PtrToStringUTF8((IntPtr)parentQuestId) : null;
             if (!client.TryGetQuestSubQuestsCache(parentId, out var str))
             {
@@ -5336,7 +5334,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_sub_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestSubQuestsString);
         }
     }
 
@@ -5347,10 +5345,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestObjectivesString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestObjectivesString);
             var parentId = parentQuestId != null ? Marshal.PtrToStringUTF8((IntPtr)parentQuestId) : null;
             if (!client.TryGetQuestObjectivesCache(parentId, out var str))
             {
@@ -5375,7 +5373,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestObjectivesString);
         }
     }
 
@@ -5398,10 +5396,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestPrereqsString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestPrereqsString);
             var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
             if (!client.TryGetQuestPrereqsCache(qId, out var str))
             {
@@ -5425,7 +5423,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_prereqs_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestPrereqsString);
         }
     }
 
@@ -5436,10 +5434,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestObjectiveRequirementsString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestObjectiveRequirementsString);
             var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
             var oId = objectiveId != null ? Marshal.PtrToStringUTF8((IntPtr)objectiveId) : null;
             if (!client.TryGetQuestObjectiveRequirementsForGame(qId, oId, out var str))
@@ -5464,7 +5462,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objective_requirements_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestObjectiveRequirementsString);
         }
     }
 
@@ -5475,10 +5473,10 @@ public static unsafe class StarApiExports
         try
         {
             if (buf is null || bufSize == 0)
-                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam);
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestTrackerObjectivesString);
             var client = GetClient();
             if (client is null)
-                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestTrackerObjectivesString);
             var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
             if (!client.TryGetQuestTrackerObjectivesProgress(qId, out var str, out _))
             {
@@ -5499,7 +5497,7 @@ public static unsafe class StarApiExports
         catch (Exception ex)
         {
             try { StarApiLogFileOnly($"[Quests] star_api_get_quest_tracker_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
-            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError);
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestTrackerObjectivesString);
         }
     }
 
@@ -5570,7 +5568,7 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             StarApiLog("star_api_add_item: client is null");
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpAddItem);
         }
 
         var name = PtrToString(itemName) ?? string.Empty;
@@ -5586,7 +5584,7 @@ public static unsafe class StarApiExports
 
         var result = Task.Run(() => client.AddItemAsync(name, desc, source, type, nftIdOpt, qty, doStack).GetAwaiter().GetResult()).GetAwaiter().GetResult();
 
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpAddItem);
         StarApiLog($"star_api_add_item: result IsError={result.IsError} code={(int)code} message={result.Message ?? "(ok)"}");
         return (int)code;
     }
@@ -5645,7 +5643,8 @@ public static unsafe class StarApiExports
         try
         {
             var now = Environment.TickCount64;
-            if (xp != _lastGetAvatarXpLoggedValue || (now - _lastGetAvatarXpLogTicks) > 5000)
+            /* Log when XP is 0 (so we can see cache not yet populated) or when value changes or every 5s */
+            if (xp == 0 || xp != _lastGetAvatarXpLoggedValue || (now - _lastGetAvatarXpLogTicks) > 5000)
             {
                 _lastGetAvatarXpLoggedValue = xp;
                 _lastGetAvatarXpLogTicks = now;
@@ -5711,7 +5710,7 @@ public static unsafe class StarApiExports
     public static int StarApiSetActiveQuest(sbyte* questId, sbyte* objectiveId)
     {
         var client = GetClient();
-        if (client is null) return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (client is null) return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetActiveQuest);
         Guid? q = null;
         Guid? o = null;
         var qStr = PtrToString(questId);
@@ -5721,7 +5720,7 @@ public static unsafe class StarApiExports
         try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native: questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
         var result = client.SetActiveQuestAndObjectiveAsync(q, o).GetAwaiter().GetResult();
         try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest result: IsError={result?.IsError}, Message={result?.Message}"); } catch { }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSetActiveQuest);
     }
 
     /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
@@ -5751,9 +5750,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpFlushAddItemJobs);
         var result = client.FlushAddItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpFlushAddItemJobs);
     }
 
     /// <summary>Mint an NFT for an inventory item via WEB4 OASIS API (NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
@@ -5762,9 +5761,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpMintInventoryNft);
         if (nftIdOut is null)
-            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam, StarApiOpMintInventoryNft);
 
         var result = client.MintInventoryItemNftAsync(
             PtrToString(itemName) ?? string.Empty,
@@ -5777,7 +5776,7 @@ public static unsafe class StarApiExports
         if (result.IsError)
         {
             SetError(result.Message ?? "Mint failed.");
-            InvokeCallback(ExtractCode(result));
+            InvokeOperationCallback(ExtractCode(result), StarApiOpMintInventoryNft);
             return (int)ExtractCode(result);
         }
 
@@ -5785,7 +5784,7 @@ public static unsafe class StarApiExports
         WriteUtf8ToOutput(nftId ?? string.Empty, nftIdOut, 128);
         if (hashOut is not null)
             WriteUtf8ToOutput(hash ?? string.Empty, hashOut, 128);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpMintInventoryNft);
         return (int)StarApiResultCode.Success;
     }
 
@@ -5797,13 +5796,13 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             SetError("Client is not initialized.");
-            InvokeCallback(StarApiResultCode.NotInitialized);
+            InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiOpUseItem);
             return 0;
         }
 
         int q = quantity > 0 ? quantity : 1;
         var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context), q).GetAwaiter().GetResult();
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpUseItem);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
@@ -5822,9 +5821,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpFlushUseItemJobs);
         var result = client.FlushUseItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpFlushUseItemJobs);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_start_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -5832,17 +5831,17 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpStartQuest);
 
         var questIdStr = PtrToString(questId) ?? string.Empty;
         if (string.IsNullOrWhiteSpace(questIdStr))
-            return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
 
         StarApiExports.StarApiLog($"[Quests] Start quest requested: QuestId={questIdStr}");
         /* Run start-quest on background thread so UI does not hang. Do not invalidate cache so the popup keeps showing the current list and game can show "Starting quest..." in corner. */
         _ = client.QueueStartQuestAsync(questIdStr);
         SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpStartQuest);
         return (int)StarApiResultCode.Success;
     }
 
@@ -5851,14 +5850,14 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCompleteQuestObjective);
 
         var result = client.CompleteQuestObjectiveAsync(
             PtrToString(questId) ?? string.Empty,
             PtrToString(objectiveId) ?? string.Empty,
             PtrToString(gameSource)).GetAwaiter().GetResult();
 
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpCompleteQuestObjective);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -5866,21 +5865,21 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCompleteQuest);
 
         var result = client.CompleteQuestAsync(PtrToString(questId) ?? string.Empty).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpCompleteQuest);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_create_monster_nft", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiCreateMonsterNft(sbyte* monsterName, sbyte* description, sbyte* gameSource, sbyte* monsterStats, sbyte* provider, sbyte* nftIdOut)
     {
         if (nftIdOut is null)
-            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam, StarApiOpCreateMonsterNft);
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCreateMonsterNft);
 
         var result = client.CreateMonsterNftAsync(
             PtrToString(monsterName) ?? string.Empty,
@@ -5889,7 +5888,7 @@ public static unsafe class StarApiExports
             PtrToString(monsterStats),
             PtrToString(provider)).GetAwaiter().GetResult();
 
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpCreateMonsterNft);
         if (code == StarApiResultCode.Success && !string.IsNullOrWhiteSpace(result.Result.NftId))
             WriteUtf8ToOutput(result.Result.NftId, nftIdOut, 64);
         else
@@ -5903,14 +5902,14 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpDeployBossNft);
 
         var result = client.DeployBossNftAsync(
             PtrToString(nftId) ?? string.Empty,
             PtrToString(targetGame) ?? string.Empty,
             PtrToString(location)).GetAwaiter().GetResult();
 
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpDeployBossNft);
     }
 
     /// <summary>Send item to avatar. Uses the client's HTTP timeout (no extra cancellation).</summary>
@@ -5919,7 +5918,7 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSendItemToAvatar);
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
@@ -5929,7 +5928,7 @@ public static unsafe class StarApiExports
             quantity < 1 ? 1 : quantity,
             guid,
             CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSendItemToAvatar);
     }
 
     /// <summary>Send item to clan. Uses the client's HTTP timeout (no extra cancellation).</summary>
@@ -5938,7 +5937,7 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSendItemToClan);
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
@@ -5953,10 +5952,10 @@ public static unsafe class StarApiExports
         {
             SetError("Clan not found.");
             var code = ExtractCode(result);
-            InvokeCallback(code);
+            InvokeOperationCallback(code, StarApiOpSendItemToClan);
             return (int)code;
         }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSendItemToClan);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_last_error", CallConvs = [typeof(CallConvCdecl)])]
@@ -6016,6 +6015,62 @@ public static unsafe class StarApiExports
         }
     }
 
+    /// <summary>Operation type for star_api_set_operation_callback. Game can filter and only run "profile loaded" when type is ProfileLoaded.</summary>
+    public const int StarApiOpProfileLoaded = 0;
+    public const int StarApiOpGetAvatarId = 1;
+    public const int StarApiOpHasItem = 2;
+    public const int StarApiOpGetInventory = 3;
+    public const int StarApiOpGetQuestsString = 4;
+    public const int StarApiOpMintInventoryNft = 5;
+    public const int StarApiOpUseItem = 6;
+    public const int StarApiOpStartQuest = 7;
+    public const int StarApiOpCompleteQuestObjective = 8;
+    public const int StarApiOpCompleteQuest = 9;
+    public const int StarApiOpAddItem = 10;
+    public const int StarApiOpFlushAddItemJobs = 11;
+    public const int StarApiOpFlushUseItemJobs = 12;
+    public const int StarApiOpSendItemToAvatar = 13;
+    public const int StarApiOpSendItemToClan = 14;
+    public const int StarApiOpSetActiveQuest = 15;
+    public const int StarApiOpCreateMonsterNft = 16;
+    public const int StarApiOpDeployBossNft = 17;
+    public const int StarApiOpInit = 18;
+    public const int StarApiOpGetTopLevelQuestsString = 19;
+    public const int StarApiOpGetQuestSubQuestsString = 20;
+    public const int StarApiOpGetQuestObjectivesString = 21;
+    public const int StarApiOpGetQuestPrereqsString = 22;
+    public const int StarApiOpGetQuestObjectiveRequirementsString = 23;
+    public const int StarApiOpGetQuestTrackerObjectivesString = 24;
+    public const int StarApiOpAuthenticate = 25;
+    public const int StarApiOpSetOasisBaseUrl = 26;
+    public const int StarApiOpSetAvatarId = 27;
+
+    /// <summary>Invoke the operation callback if set (result, operation_type), else invoke the legacy callback (result only).</summary>
+    internal static void InvokeOperationCallback(StarApiResultCode code, int operationType)
+    {
+        delegate* unmanaged[Cdecl]<int, int, void*, void> opCb;
+        void* opUserData;
+        lock (NativeStateLock)
+        {
+            opCb = _operationCallback;
+            opUserData = _operationCallbackUserData;
+        }
+        if (opCb != null)
+            opCb((int)code, operationType, opUserData);
+        else
+            InvokeCallback(code);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_operation_callback", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetOperationCallback(delegate* unmanaged[Cdecl]<int, int, void*, void> callback, void* userData)
+    {
+        lock (NativeStateLock)
+        {
+            _operationCallback = callback;
+            _operationCallbackUserData = userData;
+        }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_set_oasis_base_url", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSetOasisBaseUrl(sbyte* oasisBaseUrl)
     {
@@ -6023,22 +6078,22 @@ public static unsafe class StarApiExports
         try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url called len={url.Length}"); } catch { }
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetOasisBaseUrl);
 
         var result = client.SetWeb4OasisApiBaseUrl(url);
         try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url result={(result.IsError ? "FAIL" : "OK")}"); } catch { }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSetOasisBaseUrl);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_id", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetAvatarId(sbyte* avatarIdOut, nuint avatarIdSize)
     {
         if (avatarIdOut is null || avatarIdSize == 0)
-            return (int)SetErrorAndReturn("avatarIdOut must not be null and size must be > 0.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("avatarIdOut must not be null and size must be > 0.", StarApiResultCode.InvalidParam, StarApiOpGetAvatarId);
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetAvatarId);
 
         // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_profile().
         string? avatarId = client.GetCachedAvatarId();
@@ -6047,11 +6102,11 @@ public static unsafe class StarApiExports
             // Not set yet (e.g. rare path); resolve from API
             var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
             if (result.IsError || result.Result is null)
-                return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
+                return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result), StarApiOpGetAvatarId);
             avatarId = result.Result.Id.ToString();
         }
         if (string.IsNullOrWhiteSpace(avatarId))
-            return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized, StarApiOpGetAvatarId);
 
         var bytes = Encoding.UTF8.GetBytes(avatarId);
         var copySize = Math.Min((int)avatarIdSize - 1, bytes.Length);
@@ -6066,7 +6121,7 @@ public static unsafe class StarApiExports
         }
 
         SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetAvatarId);
         return (int)StarApiResultCode.Success;
     }
 
@@ -6075,10 +6130,10 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetAvatarId);
 
         var result = client.SetAvatarId(PtrToString(avatarId) ?? string.Empty);
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResultNoCallback(result);
     }
 
     private static StarApiClient? GetClient()
@@ -6168,7 +6223,7 @@ public static unsafe class StarApiExports
         _starDebug = enabled != 0 ? 1 : 0;
     }
 
-    private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)
+    private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result, int operationType)
     {
         var code = ExtractCode(result);
         if (result.IsError)
@@ -6176,7 +6231,18 @@ public static unsafe class StarApiExports
         else
             SetError(string.Empty);
 
-        InvokeCallback(code);
+        InvokeOperationCallback(code, operationType);
+        return code;
+    }
+
+    /// <summary>Set last error and return code without invoking the shared callback. Use for auth/set_avatar_id so the game only runs "profile loaded" when star_api_refresh_avatar_profile completes (cache has XP/quest).</summary>
+    private static StarApiResultCode FinalizeResultNoCallback<T>(OASISResult<T> result)
+    {
+        var code = ExtractCode(result);
+        if (result.IsError)
+            SetError(result.Message ?? "Unknown error.");
+        else
+            SetError(string.Empty);
         return code;
     }
 
@@ -6191,10 +6257,10 @@ public static unsafe class StarApiExports
         return StarApiResultCode.ApiError;
     }
 
-    private static StarApiResultCode SetErrorAndReturn(string message, StarApiResultCode code)
+    private static StarApiResultCode SetErrorAndReturn(string message, StarApiResultCode code, int operationType)
     {
         SetError(message);
-        InvokeCallback(code);
+        InvokeOperationCallback(code, operationType);
         return code;
     }
 
