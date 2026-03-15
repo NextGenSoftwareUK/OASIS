@@ -1195,6 +1195,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.XP != avatarDetailToUpdate.XP && avatarDetailToUpdate.XP > 0)
                 avatarDetailOriginal.XP = avatarDetailToUpdate.XP;
 
+            /* Quest tracker state: always apply so GET avatar/current can restore after beam-in */
+            avatarDetailOriginal.ActiveQuestId = avatarDetailToUpdate.ActiveQuestId;
+            avatarDetailOriginal.ActiveObjectiveId = avatarDetailToUpdate.ActiveObjectiveId;
+
             if (avatarDetailOriginal.STARCLIColour != avatarDetailToUpdate.STARCLIColour && avatarDetailToUpdate.STARCLIColour != ConsoleColor.Black)
                 avatarDetailOriginal.STARCLIColour = avatarDetailToUpdate.STARCLIColour;
 

@@ -483,7 +483,7 @@ public sealed class StarApiClient : IDisposable
             return invokeCallback ? FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode) : Fail<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
         }
 
-        var avatar = ParseAvatarProfile(resultElement);
+        var avatar = ParseAvatarProfile(resultElement, response.Result);
         if (avatar is null || avatar.Id == Guid.Empty)
         {
             StarApiExports.StarApiLogFileOnly("[Avatar] GET avatar/current parse failed: no avatar in response");
@@ -499,6 +499,17 @@ public sealed class StarApiClient : IDisposable
         }
 
         StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={avatar.ActiveQuestId} ActiveObjectiveId={avatar.ActiveObjectiveId} (cache updated)");
+        if (StarApiExports.GetStarDebug())
+        {
+            try
+            {
+                if (avatar.ActiveQuestId.HasValue || avatar.ActiveObjectiveId.HasValue)
+                    StarApiExports.StarApiLog($"[Avatar] Profile loaded: quest={avatar.ActiveQuestId} objective={avatar.ActiveObjectiveId} (tracker can restore)");
+                else
+                    StarApiExports.StarApiLog("[Avatar] Profile loaded: no ActiveQuestId/ActiveObjectiveId in response (tracker will stay clear)");
+            }
+            catch { /* ignore */ }
+        }
         if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
@@ -1440,6 +1451,7 @@ public sealed class StarApiClient : IDisposable
     public async Task<OASISResult<bool>> SetActiveQuestAndObjectiveAsync(Guid? questId, Guid? objectiveId, CancellationToken cancellationToken = default)
     {
         try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync called: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] Set active quest requested: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
         if (!IsInitialized())
         {
             try { StarApiExports.StarApiLog("[Quest] SetActiveQuestAndObjectiveAsync failed: client not initialized"); } catch { /* ignore */ }
@@ -1457,10 +1469,12 @@ public sealed class StarApiClient : IDisposable
             else writer.WriteNullValue();
             writer.WriteEndObject();
         });
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] SetActiveQuestAndObjectiveAsync POST {url} body={payload}"); } catch { /* ignore */ }
         var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync API error: {response.Message}"); } catch { /* ignore */ }
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] SetActiveQuestAndObjectiveAsync response body: {response.Result ?? "(null)"}"); } catch { /* ignore */ }
             return FailAndCallback<bool>(response.Message ?? "Set active quest failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
         lock (_stateLock)
@@ -1468,7 +1482,8 @@ public sealed class StarApiClient : IDisposable
             _cachedActiveQuestId = questId;
             _cachedActiveObjectiveId = objectiveId;
         }
-        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId} (cache updated)"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] Set active quest saved OK: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
         return Success(true, StarApiResultCode.Success, "Active quest/objective saved.");
     }
 
@@ -4459,36 +4474,81 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    private static StarAvatarProfile? ParseAvatarProfile(JsonElement element)
+    /// <summary>Recursively search JSON tree for an object with id == avatarId that has activeQuestId/activeObjectiveId (handles double-wrapped or alternate API shapes).</summary>
+    private static void FindQuestIdsInTree(JsonElement root, Guid avatarId, out Guid? activeQuestId, out Guid? activeObjectiveId)
+    {
+        activeQuestId = null;
+        activeObjectiveId = null;
+        SearchNode(root, avatarId, ref activeQuestId, ref activeObjectiveId);
+    }
+
+    private static void SearchNode(JsonElement node, Guid avatarId, ref Guid? activeQuestId, ref Guid? activeObjectiveId)
+    {
+        if (activeQuestId.HasValue && activeObjectiveId.HasValue) return;
+        if (node.ValueKind == JsonValueKind.Object)
+        {
+            var idStr = GetStringProperty(node, "Id") ?? GetStringProperty(node, "id");
+            if (Guid.TryParse(idStr, out var id) && id == avatarId)
+            {
+                var q = GetStringProperty(node, "ActiveQuestId") ?? GetStringProperty(node, "activeQuestId");
+                if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
+                var o = GetStringProperty(node, "ActiveObjectiveId") ?? GetStringProperty(node, "activeObjectiveId");
+                if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+            }
+            foreach (var prop in node.EnumerateObject())
+                SearchNode(prop.Value, avatarId, ref activeQuestId, ref activeObjectiveId);
+        }
+        else if (node.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in node.EnumerateArray())
+                SearchNode(item, avatarId, ref activeQuestId, ref activeObjectiveId);
+        }
+    }
+
+    private static StarAvatarProfile? ParseAvatarProfile(JsonElement element, string? rawResponseJson = null)
     {
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        Guid.TryParse(GetStringProperty(element, "Id"), out var id);
+        Guid.TryParse(GetStringProperty(element, "Id") ?? GetStringProperty(element, "id"), out var id);
         var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp")
             ?? GetIntProperty(element, "TotalXP") ?? GetIntProperty(element, "totalXp");
         Guid? activeQuestId = null;
         Guid? activeObjectiveId = null;
+        string? questSource = null;
+        string? objectiveSource = null;
         if (TryGetProperty(element, "AvatarDetail", out var detailEl) || TryGetProperty(element, "avatarDetail", out detailEl))
         {
             if (xp is null) xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
-            var q = GetStringProperty(detailEl, "ActiveQuestId");
-            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
-            var o = GetStringProperty(detailEl, "ActiveObjectiveId");
-            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+            var q = GetStringProperty(detailEl, "ActiveQuestId") ?? GetStringProperty(detailEl, "activeQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) { activeQuestId = qGuid; questSource = "AvatarDetail"; }
+            var o = GetStringProperty(detailEl, "ActiveObjectiveId") ?? GetStringProperty(detailEl, "activeObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) { activeObjectiveId = oGuid; objectiveSource = "AvatarDetail"; }
         }
         if (xp is null && TryGetProperty(element, "avatarDetail", out var detailEl2))
             xp = GetIntProperty(detailEl2, "XP") ?? GetIntProperty(detailEl2, "xp");
         if (activeQuestId is null)
         {
-            var q = GetStringProperty(element, "ActiveQuestId");
-            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
+            var q = GetStringProperty(element, "ActiveQuestId") ?? GetStringProperty(element, "activeQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) { activeQuestId = qGuid; questSource = "root"; }
         }
         if (activeObjectiveId is null)
         {
-            var o = GetStringProperty(element, "ActiveObjectiveId");
-            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+            var o = GetStringProperty(element, "ActiveObjectiveId") ?? GetStringProperty(element, "activeObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) { activeObjectiveId = oGuid; objectiveSource = "root"; }
         }
+        if ((!activeQuestId.HasValue || !activeObjectiveId.HasValue) && !string.IsNullOrEmpty(rawResponseJson) && id != Guid.Empty)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(rawResponseJson);
+                FindQuestIdsInTree(doc.RootElement, id, out var treeQuest, out var treeObjective);
+                if (treeQuest.HasValue && !activeQuestId.HasValue) { activeQuestId = treeQuest; questSource = "tree"; }
+                if (treeObjective.HasValue && !activeObjectiveId.HasValue) { activeObjectiveId = treeObjective; objectiveSource = "tree"; }
+            }
+            catch { /* ignore parse for fallback */ }
+        }
+        try { StarApiExports.StarApiLogFileOnly($"[Avatar] ParseAvatarProfile: ActiveQuestId={activeQuestId} (from {questSource ?? "none"}) ActiveObjectiveId={activeObjectiveId} (from {objectiveSource ?? "none"})"); } catch { /* ignore */ }
         return new StarAvatarProfile
         {
             Id = id,
@@ -5008,8 +5068,7 @@ public static unsafe class StarApiExports
     private static void* _operationCallbackUserData;
     private static volatile int _starDebug;
     private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
-    private static long _lastGetAvatarXpLogTicks;
-    private static int _lastGetAvatarXpLoggedValue = int.MinValue;
+    private static bool _topLevelQuestsLastLoggedLoading;
 
     /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
     internal static bool GetStarDebug() => _starDebug != 0;
@@ -5055,7 +5114,6 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
-        try { StarApiLogFileOnly("[STAR] star_api_init called"); } catch { }
         if (config is null || config->base_url is null)
             return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam, StarApiOpInit);
 
@@ -5075,14 +5133,12 @@ public static unsafe class StarApiExports
         }
 
         var result = _client.Init(managedConfig);
-        try { StarApiLogFileOnly($"[STAR] star_api_init result={(result.IsError ? "FAIL" : "OK")} base_url_len={baseUrl.Length}"); } catch { }
         return (int)FinalizeResult(result, StarApiOpInit);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiAuthenticate(sbyte* username, sbyte* password)
     {
-        try { StarApiLogFileOnly("[STAR] star_api_authenticate called"); } catch { }
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpAuthenticate);
@@ -5090,7 +5146,6 @@ public static unsafe class StarApiExports
         var user = PtrToString(username);
         var pass = PtrToString(password);
         var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
-        try { StarApiLogFileOnly($"[STAR] star_api_authenticate result={(result.IsError ? "FAIL" : "OK")} msg={result.Message ?? "(ok)"}"); } catch { }
         return (int)FinalizeResultNoCallback(result);
     }
 
@@ -5281,10 +5336,13 @@ public static unsafe class StarApiExports
             if (!client.TryGetTopLevelQuestsCache(out var str))
             {
                 fallback = "Loading...";
-                try { StarApiLogFileOnly("[STAR] star_api_get_top_level_quests_string cache miss -> Loading..."); } catch { }
+                try { if (!_topLevelQuestsLastLoggedLoading) { _topLevelQuestsLastLoggedLoading = true; StarApiLogFileOnly("[STAR] star_api_get_top_level_quests_string cache miss -> Loading... (once until cache fills)"); } } catch { }
             }
             else
+            {
                 fallback = str ?? string.Empty;
+                _topLevelQuestsLastLoggedLoading = false;
+            }
             var bytesArr = Encoding.UTF8.GetBytes(fallback);
             var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
             if (toCopy > 0)
@@ -5640,18 +5698,6 @@ public static unsafe class StarApiExports
         var xp = client.GetCachedAvatarXp();
         if (xpOut is not null)
             *xpOut = xp;
-        try
-        {
-            var now = Environment.TickCount64;
-            /* Log when XP is 0 (so we can see cache not yet populated) or when value changes or every 5s */
-            if (xp == 0 || xp != _lastGetAvatarXpLoggedValue || (now - _lastGetAvatarXpLogTicks) > 5000)
-            {
-                _lastGetAvatarXpLoggedValue = xp;
-                _lastGetAvatarXpLogTicks = now;
-                StarApiExports.StarApiLogFileOnly($"[STAR] star_api_get_avatar_xp: returning {xp}");
-            }
-        }
-        catch { }
         return 1;
     }
 
@@ -5677,7 +5723,12 @@ public static unsafe class StarApiExports
         var client = GetClient();
         if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_quest_id: no client"); } catch { } return 0; }
         var id = client.GetCachedActiveQuestId();
-        if (!id.HasValue || id.Value == Guid.Empty) { try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value"); } catch { } buf[0] = 0; return 0; }
+        if (!id.HasValue || id.Value == Guid.Empty)
+        {
+            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value"); } catch { }
+            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            buf[0] = 0; return 0;
+        }
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_quest_id: returning {id}"); } catch { }
         var str = id.Value.ToString();
         var bytes = Encoding.UTF8.GetBytes(str);
@@ -5695,7 +5746,12 @@ public static unsafe class StarApiExports
         var client = GetClient();
         if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_objective_id: no client"); } catch { } return 0; }
         var id = client.GetCachedActiveObjectiveId();
-        if (!id.HasValue || id.Value == Guid.Empty) { try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value"); } catch { } buf[0] = 0; return 0; }
+        if (!id.HasValue || id.Value == Guid.Empty)
+        {
+            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value"); } catch { }
+            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            buf[0] = 0; return 0;
+        }
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_objective_id: returning {id}"); } catch { }
         var str = id.Value.ToString();
         var bytes = Encoding.UTF8.GetBytes(str);
@@ -5718,6 +5774,7 @@ public static unsafe class StarApiExports
         var oStr = PtrToString(objectiveId);
         if (!string.IsNullOrWhiteSpace(oStr) && Guid.TryParse(oStr, out var oGuid)) o = oGuid;
         try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native: questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] star_api_set_active_quest (native): questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
         var result = client.SetActiveQuestAndObjectiveAsync(q, o).GetAwaiter().GetResult();
         try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest result: IsError={result?.IsError}, Message={result?.Message}"); } catch { }
         return (int)FinalizeResult(result, StarApiOpSetActiveQuest);
@@ -6075,13 +6132,11 @@ public static unsafe class StarApiExports
     public static int StarApiSetOasisBaseUrl(sbyte* oasisBaseUrl)
     {
         var url = PtrToString(oasisBaseUrl) ?? string.Empty;
-        try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url called len={url.Length}"); } catch { }
         var client = GetClient();
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetOasisBaseUrl);
 
         var result = client.SetWeb4OasisApiBaseUrl(url);
-        try { StarApiLogFileOnly($"[STAR] star_api_set_oasis_base_url result={(result.IsError ? "FAIL" : "OK")}"); } catch { }
         return (int)FinalizeResult(result, StarApiOpSetOasisBaseUrl);
     }
 

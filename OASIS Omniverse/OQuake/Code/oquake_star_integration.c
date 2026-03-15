@@ -48,37 +48,6 @@ star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_av
 star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, const char* item_name, int quantity, const char* item_id);
 #endif
 
-#ifdef OQUAKE_STAR_API_TRACKER_STUBS
-/* Stub implementations when linking with an older star_api.lib that does not export these. Define OQUAKE_STAR_API_TRACKER_STUBS in the build. */
-int star_api_get_quest_tracker_objectives_string(const char* quest_id, char* buf, size_t buf_size) {
-	(void)quest_id;
-	if (buf && buf_size > 0) buf[0] = '\0';
-	return 0;
-}
-int star_api_get_quest_tracker_active_objective_index(const char* quest_id) {
-	(void)quest_id;
-	return 0;
-}
-void star_api_refresh_quest_cache_in_background(void) {
-	/* no-op when using older star_api.lib */
-}
-int star_api_get_active_quest_id(char* buf, size_t buf_size) {
-	(void)buf_size;
-	if (buf && buf_size > 0) buf[0] = '\0';
-	return 0;
-}
-int star_api_get_active_objective_id(char* buf, size_t buf_size) {
-	(void)buf_size;
-	if (buf && buf_size > 0) buf[0] = '\0';
-	return 0;
-}
-star_api_result_t star_api_set_active_quest(const char* quest_id, const char* objective_id) {
-	(void)quest_id;
-	(void)objective_id;
-	return STAR_API_SUCCESS;
-}
-#endif
-
 /* When OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL is defined, provide star_api_refresh_avatar_profile (forward to DLL at runtime). Use when the linked star_api.lib does not export it (e.g. Native AOT import lib quirk or old lib). Remove the define once the lib exports it. */
 #ifdef OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL
 #ifdef _WIN32
@@ -1081,10 +1050,10 @@ static void OQ_OnAuthDone(void* user_data) {
     }
 }
 
-/** Operation callback: only treat as "profile loaded" when operation_type is STAR_API_OP_PROFILE_LOADED. */
+/** Operation callback: only treat as "profile loaded" when operation_type is STAR_API_OP_PROFILE_LOADED. Log only profile-loaded or failures to avoid spam (e.g. op=3 get_inventory every frame). */
 static void OQ_StarApiOperationCallback(star_api_result_t result, int operation_type, void* user_data) {
     (void)user_data;
-    {
+    if (operation_type == STAR_API_OP_PROFILE_LOADED || result != STAR_API_SUCCESS) {
         char buf[160];
         q_snprintf(buf, sizeof(buf), "[OQuake] STAR API operation_callback result=%d op=%d (%s)", (int)result, operation_type, result == STAR_API_SUCCESS ? "Success" : "other");
         star_api_log_to_file(buf);
@@ -2458,7 +2427,6 @@ void OQuake_STAR_Init(void) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
         star_api_set_operation_callback(OQ_StarApiOperationCallback, NULL);
-        star_api_log_to_file("[OQuake] STAR API operation callback registered (profile refresh -> restore tracker by op type)");
         /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
         if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
             star_api_set_oasis_base_url(oquake_oasis_api_url.string);
@@ -2845,6 +2813,7 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
     int first_edict_is_item;  /* 1 if e1 is the pickup (caller will ED_Free(e1)); 0 if e1 is player - never return 1. */
     const char* e1_cn;
     char log_buf[384];
+    int skip_it_log = 0;
 
     /* Engine calls us for both touches: (e2,e1) when item's touch runs, (e1,e2) when player's. First arg may be player. */
     if (!e1 || !e2) {
@@ -2879,17 +2848,34 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         player = e1;
         first_edict_is_item = 0;  /* e1=player: never return 1 or engine would ED_Free(player). */
         classname = PR_GetString(item->v.classname);
-        OQ_PickupLog("InterceptTouch: e1=player e2=%s first_edict_is_item=0", classname ? classname : "(null)");
     } else {
         item = e1;
         player = e2;
         first_edict_is_item = 1;
         classname = PR_GetString(item->v.classname);
-        OQ_PickupLog("InterceptTouch: e1=%s e2=other first_edict_is_item=1", e1_cn ? e1_cn : "(null)");
     }
     if (!classname || !classname[0]) {
         OQ_PickupLog("InterceptTouch: item classname empty");
         return 0;
+    }
+    /* Throttle InterceptTouch log spam: at most once per classname per 10s when star debug on */
+    {
+        static char s_it_log_cn[64] = {0};
+        static double s_it_log_t = 0;
+        extern double realtime;
+        double now = realtime;
+        if (strcmp(classname, s_it_log_cn) == 0 && (now - s_it_log_t) < 10.0)
+            skip_it_log = 1;
+        else {
+            q_strlcpy(s_it_log_cn, classname, sizeof(s_it_log_cn));
+            s_it_log_t = now;
+        }
+    }
+    if (!skip_it_log) {
+        if (first_edict_is_item)
+            OQ_PickupLog("InterceptTouch: e1=%s e2=other first_edict_is_item=1", e1_cn ? e1_cn : "(null)");
+        else
+            OQ_PickupLog("InterceptTouch: e1=player e2=%s first_edict_is_item=0", classname);
     }
     /* Always log when we see a health pickup touch so we can confirm intercept is called at 100% health. */
     if (OQ_StrEqNoCase(classname, "item_health")) {
@@ -2910,9 +2896,11 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
     /* Process both call orders: when first_edict_is_item==0 the engine called (player, item) and will ED_Free(e2)=item on return 1; when 1, (item, player) and ED_Free(e1)=item. So we can add and return 1 in both cases. */
     /* Return 1 = free e1 (item), 2 = free e2 (item when e1=player). So when first_edict_is_item we return 1; when e1=player we return 2 so engine frees e2. */
     #define OQ_INTERCEPT_RET(first_edict_is_item) ((first_edict_is_item) ? 1 : 2)
-    q_snprintf(log_buf, sizeof(log_buf), "InterceptTouch: class=%s health=%d max_h=%d armor=%d max_a=%d always_add=%d allow_ifmax=%d first_item=%d",
-               classname, player_health, max_h, player_armor, max_a, always_add, allow_pickup_if_max, first_edict_is_item);
-    OQ_PickupLog("%s", log_buf);
+    if (!skip_it_log) {
+        q_snprintf(log_buf, sizeof(log_buf), "InterceptTouch: class=%s health=%d max_h=%d armor=%d max_a=%d always_add=%d allow_ifmax=%d first_item=%d",
+                   classname, player_health, max_h, player_armor, max_a, always_add, allow_pickup_if_max, first_edict_is_item);
+        OQ_PickupLog("%s", log_buf);
+    }
     /* Run intercept logic for both orderings. When e1=player (first_edict_is_item=0) return 2 so engine frees e2=item and does not run item touch - detection "earlier" so at-max health is handled even when engine only calls (player,item). */
     /* Health: item_health (25), item_health_mega / item_health_super (100). use_health_on_pickup: 0=below max->inventory only; 1=standard. */
     if (OQ_StrEqNoCase(classname, "item_health")) {
@@ -3053,7 +3041,8 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         }
     }
     #undef OQ_INTERCEPT_RET
-    OQ_PickupLog("InterceptTouch: no match for classname=%s -> ret=0", classname);
+    if (!skip_it_log)
+        OQ_PickupLog("InterceptTouch: no match for classname=%s -> ret=0", classname);
     return 0;
 }
 
@@ -5232,7 +5221,6 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
 
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     extern int glwidth, glheight;
-    static double s_last_xp_log_time;
     int xp = 0;
     char buf[64];
     int x, y;
@@ -5241,27 +5229,8 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
         return;
     if (!g_star_initialized || !g_star_beamed_in)
         return;
-    if (!star_api_get_avatar_xp(&xp)) {
-        static double s_last_no_xp_log;
-        extern double realtime;
-        if (realtime - s_last_no_xp_log >= 5.0) {
-            s_last_no_xp_log = realtime;
-            star_api_log_to_file("[OQuake] DrawXpStatus: star_api_get_avatar_xp returned false, not drawing XP");
-        }
+    if (!star_api_get_avatar_xp(&xp))
         return;
-    }
-    /* Log XP value occasionally so we can see when HUD gets 0 vs real value (throttle to ~every 5s) */
-    {
-        extern double realtime;
-        if (realtime - s_last_xp_log_time >= 5.0) {
-            s_last_xp_log_time = realtime;
-            {
-                char log_buf[80];
-                q_snprintf(log_buf, sizeof(log_buf), "[OQuake] DrawXpStatus: displaying XP=%d", xp);
-                star_api_log_to_file(log_buf);
-            }
-        }
-    }
     q_snprintf(buf, sizeof(buf), "XP: %d", xp);
     /* Top right: same horizontal alignment as version, a bit below top edge */
     x = glwidth - (int)strlen(buf) * 8 - 8;
