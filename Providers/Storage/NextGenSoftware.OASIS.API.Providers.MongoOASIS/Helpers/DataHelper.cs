@@ -213,6 +213,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
+            oasisAvatar.ActiveQuestId = avatar.Result.ActiveQuestId;
+            oasisAvatar.ActiveObjectiveId = avatar.Result.ActiveObjectiveId;
             //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
             //oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
             //oasisAvatar.ProviderUsername = avatar.Result.ProviderUsername;
@@ -550,6 +552,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.IsActive = avatar.IsActive;
 
             //AvatarDetail Properties
+            mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;
+            mongoAvatar.ActiveObjectiveId = avatar.ActiveObjectiveId;
             mongoAvatar.UmaJson = avatar.UmaJson;
             //mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;

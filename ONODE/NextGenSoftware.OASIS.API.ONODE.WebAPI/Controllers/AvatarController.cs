@@ -1772,6 +1772,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var xp = (detail != null && !detailResult.IsError) ? detail.XP : 0;
             var activeQuestId = detail?.ActiveQuestId;
             var activeObjectiveId = detail?.ActiveObjectiveId;
+            _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp loaded detail for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId} (from storage)", avatar.Id, xp, activeQuestId, activeObjectiveId);
             _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp returning for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatar.Id, xp, activeQuestId, activeObjectiveId);
             StarLog($"GetLoggedInAvatarWithXp returning: ActiveQuestId={activeQuestId}, ActiveObjectiveId={activeObjectiveId}");
             var response = new LoggedInAvatarResponse
