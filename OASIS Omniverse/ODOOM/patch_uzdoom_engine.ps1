@@ -716,21 +716,27 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 4a. CMake: ensure OASIS_STAR_API is passed to compiler when -DOASIS_STAR_API=ON (otherwise a_keys.cpp, a_doors.cpp STAR blocks are compiled out)
+# 4a. CMake: ensure OASIS_STAR_API and ODOOM_STAR_API_SESSION_IMPL are passed to compiler when -DOASIS_STAR_API=ON (session impl = forward JWT/session APIs from DLL at runtime when lib does not export them)
 $cmakeRoot = "$src\CMakeLists.txt"
 if (Test-Path $cmakeRoot) {
     $cmakeContent = Get-Content $cmakeRoot -Raw
+    $cmakeChanged = $false
     if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)') {
         if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*STAR_API_DIR') {
-            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API)`r`n`$2`$3"
-            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
-            $changes += "cmake(OASIS_STAR_API define)"
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`n`$2`$3"
+            $cmakeChanged = $true
+            $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
         } elseif ($cmakeContent -match '(\r?\n)(add_subdirectory\s*\()') {
-            $cmakeContent = $cmakeContent -replace '(\r?\n)(add_subdirectory\s*\()', "`r`nif(OASIS_STAR_API)`r`n  add_compile_definitions(OASIS_STAR_API)`r`nendif()`r`n`$1`$2"
-            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
-            $changes += "cmake(OASIS_STAR_API define)"
+            $cmakeContent = $cmakeContent -replace '(\r?\n)(add_subdirectory\s*\()', "`r`nif(OASIS_STAR_API)`r`n  add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`nendif()`r`n`$1`$2"
+            $cmakeChanged = $true
+            $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
         }
+    } elseif ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'ODOOM_STAR_API_SESSION_IMPL') {
+        $cmakeContent = $cmakeContent -replace 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)', 'add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)'
+        $cmakeChanged = $true
+        $changes += "cmake(ODOOM_STAR_API_SESSION_IMPL define)"
     }
+    if ($cmakeChanged) { Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline }
 }
 # 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used (same list as uzdoom_star_integration.cpp)
 $cmakeFiles = @()
