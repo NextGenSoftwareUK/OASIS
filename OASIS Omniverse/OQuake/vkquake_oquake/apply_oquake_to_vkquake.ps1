@@ -909,6 +909,12 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed star_api.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
+    # Ensure Quake folder is on include path so compiler finds star_api.h (with STAR_API_OP_PROFILE_LOADED and star_api_set_operation_callback) copied by BUILD_OQUAKE.bat / apply script.
+    if ($projContent -notmatch 'AdditionalIncludeDirectories.*\.\.\\\.\.\\Quake') {
+        $projContent = $projContent -replace '(<ClCompile>\s*\r?\n)(\s*<(?:WarningLevel|PreprocessorDefinitions))', "`$1      <AdditionalIncludeDirectories>..\..\Quake;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>`r`n`$2"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added AdditionalIncludeDirectories ..\..\Quake so compiler finds star_api.h in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
     # Define OASIS_STAR_API so #ifdef OASIS_STAR_API blocks in pr_edict.c, host.c, sbar.c, etc. are compiled (monster hook, init, HUD).
     if ($projContent -notmatch 'OASIS_STAR_API') {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_API;`$2`$3"
