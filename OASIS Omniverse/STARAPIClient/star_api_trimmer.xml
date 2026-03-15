@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Trimmer descriptor: preserve star_api assembly so every UnmanagedCallersOnly export stays in the DLL. -->
+<!-- Not currently used: OQuake uses C++ runtime forwarders (OQUAKE_STAR_API_SESSION_IMPL) for session/JWT APIs. -->
+<!-- To try this approach again: in STARAPIClient.csproj uncomment IlcTrimMode=copy and the TrimmerRootDescriptor/TrimmerRootAssembly ItemGroup. -->
+<linker>
+  <assembly fullname="star_api" preserve="all">
+    <!-- Explicitly preserve the type that holds all native entry points so trimmer cannot remove any export. -->
+    <type fullname="NextGenSoftware.OASIS.STARAPI.Client.StarApiExports" preserve="all" />
+  </assembly>
+</linker>

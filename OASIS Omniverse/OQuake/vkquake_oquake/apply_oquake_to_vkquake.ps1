@@ -927,6 +927,12 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Removed OQUAKE_STAR_API_TRACKER_STUBS so star_api_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
     }
+    # Define OQUAKE_STAR_API_SESSION_IMPL so oquake_star_integration.c provides JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer).
+    if ($projContent -notmatch 'OQUAKE_STAR_API_SESSION_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_SESSION_IMPL;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OQUAKE_STAR_API_SESSION_IMPL (forward star_api_set_saved_session, star_api_restore_session, get_current_username, get_current_jwt from DLL at runtime)" -ForegroundColor Green
+    }
     # Define OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL so oquake_star_integration.c provides star_api_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked star_api.lib does not export this symbol.
     if ($projContent -notmatch 'OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL') {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"

@@ -80,6 +80,8 @@ server string odoom_quest_tracker_objectives = "";
 server int odoom_quest_tracker_active_index = 0;
 // User-selected active objective (Enter on objective in detail popup). Highlighted in green in Objectives list.
 server string odoom_quest_tracker_active_objective_id = "";
+// When 1, C++ persists tracker quest/objective to API then clears this. ZScript sets to 1 only when user presses Enter on objective or K to set tracker (avoids persisting wrong value from UI sync).
+server int odoom_quest_persist_active_now = 0;
 // Quest popup (Q key): full list for ZScript. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests.
 server int odoom_quest_popup_open = 0;
 server string odoom_quest_list = "";

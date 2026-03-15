@@ -9,8 +9,14 @@
     <!-- NativeAOT: required for native publish; NETSDK1207 fix when using SDK 9 -->
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Keep session/JWT exports in the DLL so OQuake/ODOOM forwarders can GetProcAddress them (autologin + saved_username/saved_jwt in oasisstar.json). -->
+    <IlcTrimMode>copy</IlcTrimMode>
   </PropertyGroup>
 
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="star_api_trimmer.xml" />
+    <TrimmerRootAssembly Include="star_api" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <!-- When not publishing AOT, use ProjectReference. When PublishAot=true, use Reference to avoid NETSDK1207 (netstandard2.1 in graph). -->
