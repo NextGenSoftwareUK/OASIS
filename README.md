@@ -20,6 +20,7 @@ The OASIS (Open Advanced Secure Interoperable Scalable-System) is a revolutionar
 - [Core Features](#-core-features)
 - [Revolutionary Systems](#-revolutionary-systems)
 - [Documentation](#-documentation)
+- [Planning-Sprint (Obsidian)](#-planning-sprint-obsidian)
 - [OASIS Web4 Site & Subscription Plans](#-oasis-web4-site--subscription-plans)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
@@ -1070,6 +1071,9 @@ Sophisticated tokenomics with:
 - **Universal Pack**: [Download Universal SSO Pack](https://oasisweb4.one/downloads/oasis-avatar-sso-sdk-pack.zip)
 
 ## 📚 Documentation
+
+### 📓 **Planning-Sprint (Obsidian)**
+[**Planning-Sprint**](./Hitchhikers/Planning-Sprint/) is a **Git submodule** that syncs to [Improbable-Collaborations/Planning-Sprint](https://github.com/Improbable-Collaborations/Planning-Sprint). Use it as an Obsidian vault for sprint notes; commits inside this folder push/pull to that repo. **First time (or after clone):** run `git submodule update --init Hitchhikers/Planning-Sprint`. Then open the `Hitchhikers/Planning-Sprint` folder as a vault in Obsidian, install the Obsidian Git plugin, and use Cursor on the same folder. See [Hitchhikers/Planning-Sprint/OBSIDIAN_AND_CURSOR.md](./Hitchhikers/Planning-Sprint/OBSIDIAN_AND_CURSOR.md) for setup.
 
 ### 🚀 **Quick Start Guides**
 - **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide

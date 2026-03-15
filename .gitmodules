@@ -1,3 +1,3 @@
-[submodule "Planning-Sprint"]
-	path = Planning-Sprint
+[submodule "Hitchhikers/Planning-Sprint"]
+	path = Hitchhikers/Planning-Sprint
 	url = https://github.com/Improbable-Collaborations/Planning-Sprint
