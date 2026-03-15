@@ -60,7 +60,9 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int questDetailPrereqScroll;
 	private int questDetailObjScroll;
 	private int questDetailSubScroll;
-	private bool questDetailSyncSelectionOnce;  // when true, sync questDetailObjSelected from tracker index (scroll clamped so list stays visible)
+	private bool questDetailSyncSelectionOnce;  // when true, sync questDetailObjSelected from tracker (by id; retry until applied or limit)
+	private int questDetailSyncSelectionRetry; // frames we've tried sync without applying; stop after limit
+	private bool questDetailIgnoreNextEnter;   // true after opening detail: ignore first Enter so we don't persist wrong objective (same key that opened detail)
 	private String questGotoId;  // when set, next frame in 1st popup select this quest id in main list
 
 	// Send popup (OQuake-style)
@@ -420,6 +422,8 @@ class OASISInventoryOverlayHandler : EventHandler
 							questDetailObjScroll = 0;
 							questDetailSubScroll = 0;
 							questDetailSyncSelectionOnce = true;
+							questDetailSyncSelectionRetry = 0;
+							questDetailIgnoreNextEnter = true;  // same Enter must not be treated as "set active objective"
 							CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id");
 							if (detailIdCv != null) detailIdCv.SetString(questDetailQuestId);
 						}
@@ -498,24 +502,53 @@ class OASISInventoryOverlayHandler : EventHandler
 				int nPrereq = prereqQ.Size(); int nObj = objQ.Size(); int nSub = subQ.Size();
 				int maxRowsObj = 8;     // objectives list rows in mode 0 (above Requirements section)
 				int maxRowsSingle = 13; // full-height list rows in mode 1 (Prereqs) or mode 2 (Subquests)
-				// Once when detail opens: sync objective selection to tracker (clamp scroll so list stays visible)
+				// When detail opens: sync objective selection to tracker by active objective id (never by index clamp so we never jump to last)
 				if (questDetailSyncSelectionOnce && nObj > 0)
 				{
 					CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
-					CVar trackerIdxCv = CVar.FindCVar("odoom_quest_tracker_objective_index");
+					CVar trackerActiveIdCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
+					CVar trackerActiveIdxCv = CVar.FindCVar("odoom_quest_tracker_active_index");
 					String trackerQuestId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
-					if (questDetailQuestId.Compare(trackerQuestId) == 0 && trackerIdxCv != null)
+					if (questDetailQuestId.Compare(trackerQuestId) == 0)
 					{
-						int idx = trackerIdxCv.GetInt();
-						if (idx < 0) idx = 0;
-						if (idx >= nObj) idx = nObj - 1;
-						questDetailObjSelected = idx;
-						// Clamp scroll so selected row is visible; do not set scroll = idx (that broke the list)
-						if (questDetailObjScroll > questDetailObjSelected) questDetailObjScroll = questDetailObjSelected;
-						if (questDetailObjSelected >= questDetailObjScroll + maxRowsObj) questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1;
-						if (questDetailObjScroll < 0) questDetailObjScroll = 0;
+						int idx = -1;
+						String activeId = (trackerActiveIdCv != null) ? trackerActiveIdCv.GetString() : "";
+						if (activeId.Length() > 0)
+						{
+							// Match by objective id so we always select the right row regardless of list order
+							for (int i = 0; i < nObj; i++)
+							{
+								int lineIdx = objQ[i];
+								if (lineIdx < 0 || lineIdx >= objLines.Size()) continue;
+								array<String> parts;
+								objLines[lineIdx].Split(parts, "\t", false);
+								if (parts.Size() >= 2 && parts[1].Compare(activeId) == 0) { idx = i; break; }
+							}
+						}
+						// Only use index when in range; never clamp to nObj-1 (that caused "resets to last")
+						if (idx < 0 && trackerActiveIdxCv != null)
+						{
+							int rawIdx = trackerActiveIdxCv.GetInt();
+							if (rawIdx >= 0 && rawIdx < nObj)
+								idx = rawIdx;
+						}
+						if (idx >= 0)
+						{
+							questDetailObjSelected = idx;
+							if (questDetailObjScroll > questDetailObjSelected) questDetailObjScroll = questDetailObjSelected;
+							if (questDetailObjSelected >= questDetailObjScroll + maxRowsObj) questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1;
+							if (questDetailObjScroll < 0) questDetailObjScroll = 0;
+							questDetailSyncSelectionOnce = false;
+						}
+						else
+						{
+							questDetailSyncSelectionRetry++;
+							if (questDetailSyncSelectionRetry >= 30)
+								questDetailSyncSelectionOnce = false;
+						}
 					}
-					questDetailSyncSelectionOnce = false;
+					else
+						questDetailSyncSelectionOnce = false;
 				}
 				// Tell C++ which objective is selected so it can fill requirement/progress lines (Objectives mode only)
 				CVar selObjCv = CVar.FindCVar("odoom_quest_detail_selected_objective_id");
@@ -573,7 +606,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				// Backspace = close detail (Escape is used by engine for menu)
 				if (keyBackspacePressed) { questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 				// Enter on objective (focus 0) = set as active, highlight green. Enter on prereq (focus 1) or subquest (focus 2) = drill down.
-				if (keyEnterPressed)
+				// Ignore first Enter after opening detail so the key that opened the popup doesn't persist the (wrong) selected row.
+				if (questDetailIgnoreNextEnter) { if (keyEnterPressed) questDetailIgnoreNextEnter = false; }
+				else if (keyEnterPressed)
 				{
 					if (questDetailFocus == 0 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
 					{
@@ -594,6 +629,8 @@ class OASISInventoryOverlayHandler : EventHandler
 									if (trackerIdxCv != null) trackerIdxCv.SetInt(questDetailObjSelected);
 									CVar trackerActiveIdxCv = CVar.FindCVar("odoom_quest_tracker_active_index");
 									if (trackerActiveIdxCv != null) trackerActiveIdxCv.SetInt(questDetailObjSelected);
+									CVar persistCv = CVar.FindCVar("odoom_quest_persist_active_now");
+									if (persistCv != null) persistCv.SetInt(1);
 								}
 							}
 						}
@@ -631,6 +668,8 @@ class OASISInventoryOverlayHandler : EventHandler
 							if (trackerIdCv != null) trackerIdCv.SetString(questDetailQuestId);
 							CVar activeObjCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
 							if (activeObjCv != null) activeObjCv.SetString("");
+							CVar persistCv = CVar.FindCVar("odoom_quest_persist_active_now");
+							if (persistCv != null) persistCv.SetInt(1);
 						}
 					}
 				}
