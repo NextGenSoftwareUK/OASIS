@@ -1008,7 +1008,11 @@ public sealed class StarApiClient : IDisposable
         lock (_questsCacheLock)
         {
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
-            var top = _cachedQuestList.Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString()).ToList();
+            /* Stable order by Id so the same quest always has the same index across reloads and cache refreshes (fixes popup "1 above" drift). */
+            var top = _cachedQuestList
+                .Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString())
+                .OrderBy(q => q.Id ?? string.Empty, StringComparer.Ordinal)
+                .ToList();
             var total = _cachedQuestList.Count;
             if (_questsFilterLastLogTop != (total, top.Count))
             {
