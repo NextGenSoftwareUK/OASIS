@@ -49,6 +49,10 @@ typedef enum {
 
 typedef void (*star_api_callback_t)(star_api_result_t result, void* user_data);
 
+/** Operation type for star_api_set_operation_callback. Game can run "profile loaded" only when type is STAR_API_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see StarApiClient.cs StarApiOp* constants. */
+#define STAR_API_OP_PROFILE_LOADED 0
+typedef void (*star_api_operation_callback_t)(star_api_result_t result, int operation_type, void* user_data);
+
 star_api_result_t star_api_init(const star_api_config_t* config);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
 /* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
@@ -137,6 +141,8 @@ void star_api_log_to_file(const char* message);
 /** Enable (1) or disable (0) STAR API debug logging in the client. When on, quest and other API requests log URI and response to star_api.log and console. Call when user toggles "star debug on|off". */
 void star_api_set_debug(int enabled);
 void star_api_set_callback(star_api_callback_t callback, void* user_data);
+/** Optional: set callback with operation_type so game only reacts to profile-loaded. If set, profile refresh uses this; else uses star_api_set_callback. */
+void star_api_set_operation_callback(star_api_operation_callback_t callback, void* user_data);
 
 #ifdef __cplusplus
 }

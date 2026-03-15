@@ -1081,15 +1081,15 @@ static void OQ_OnAuthDone(void* user_data) {
     }
 }
 
-/** STAR API callback: profile refresh (XP + active quest/objective) completed. Runs on client background thread; we only set a flag so main thread restores tracker in OQuake_STAR_PollItems. */
-static void OQ_StarApiCallback(star_api_result_t result, void* user_data) {
+/** Operation callback: only treat as "profile loaded" when operation_type is STAR_API_OP_PROFILE_LOADED. */
+static void OQ_StarApiOperationCallback(star_api_result_t result, int operation_type, void* user_data) {
     (void)user_data;
     {
-        char buf[128];
-        q_snprintf(buf, sizeof(buf), "[OQuake] STAR API callback result=%d (%s)", (int)result, result == STAR_API_SUCCESS ? "Success" : "other");
+        char buf[160];
+        q_snprintf(buf, sizeof(buf), "[OQuake] STAR API operation_callback result=%d op=%d (%s)", (int)result, operation_type, result == STAR_API_SUCCESS ? "Success" : "other");
         star_api_log_to_file(buf);
     }
-    if (result == STAR_API_SUCCESS)
+    if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
         g_star_profile_loaded_pending = 1;
 }
 
@@ -2457,8 +2457,8 @@ void OQuake_STAR_Init(void) {
     if (result != STAR_API_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
-        star_api_set_callback(OQ_StarApiCallback, NULL);
-        star_api_log_to_file("[OQuake] STAR API callback registered (profile refresh -> restore tracker)");
+        star_api_set_operation_callback(OQ_StarApiOperationCallback, NULL);
+        star_api_log_to_file("[OQuake] STAR API operation callback registered (profile refresh -> restore tracker by op type)");
         /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
         if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
             star_api_set_oasis_base_url(oquake_oasis_api_url.string);
@@ -5202,9 +5202,9 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     const char* username = OQuake_STAR_GetUsername();
     char status[128];
     if (username && username[0]) {
-        q_snprintf(status, sizeof(status), "Beamed In: %s", username);
+        q_snprintf(status, sizeof(status), "Beamed In Avatar 2: %s", username);
     } else {
-        q_strlcpy(status, "Beamed In: None", sizeof(status));
+        q_strlcpy(status, "Beamed In Avatar 2: None", sizeof(status));
     }
 
     Draw_String(cbx, 8, glheight - 24, status);

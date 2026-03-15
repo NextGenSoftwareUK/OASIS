@@ -20,16 +20,25 @@ if exist "%OQUAKE_INTEGRATION%Scripts\generate_oquake_version.ps1" powershell -N
 set "VERSION_DISPLAY=1.0 (Build 1)"
 if exist "%OQUAKE_INTEGRATION%Version\version_display.txt" for /f "usebackq delims=" %%a in ("%OQUAKE_INTEGRATION%Version\version_display.txt") do set "VERSION_DISPLAY=%%a"
 
-call "%HERE%..\run_oasis_header.bat" OQUAKE
+if exist "%HERE%..\run_oasis_header.bat" (
+    call "%HERE%..\run_oasis_header.bat" OQUAKE
+) else (
+    echo [OQuake] run_oasis_header.bat not found in parent folder - skipping. Run from OASIS Omniverse\OQuake for full setup.
+)
 
 REM Always check STARAPIClient (build if source changed, then deploy). Use BUILD_STAR_CLIENT=1 to force full rebuild.
-echo [OQuake] Checking STARAPIClient - build if changed, deploy...
-if "%BUILD_STAR_CLIENT%"=="1" (
-    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
+if exist "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" (
+    echo [OQuake] Checking STARAPIClient - build if changed, deploy...
+    if "%BUILD_STAR_CLIENT%"=="1" (
+        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat" -ForceBuild
+    ) else (
+        call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+    )
+    if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
 ) else (
-    call "%HERE%..\BUILD_AND_DEPLOY_STAR_CLIENT.bat"
+    echo [OQuake] BUILD_AND_DEPLOY_STAR_CLIENT.bat not found in parent folder - using existing star_api.dll/lib if present.
+    echo [OQuake] To build STARAPIClient, run from "OASIS Omniverse\OQuake" or copy star_api.dll and star_api.lib into %HERE%Code\
 )
-if errorlevel 1 (echo [OQuake] STARAPIClient build/deploy failed. & pause & exit /b 1)
 
 set "DO_FULL_CLEAN=0"
 if /i not "%~1"=="run" if /i not "%~1"=="batch" (
@@ -42,15 +51,17 @@ if /i "%BUILD_CHOICE%"=="C" set "DO_FULL_CLEAN=1"
 REM --- STAR API (deploy already ran above; prefer freshly built client so vkQuake links current exports) ---
 set "STAR_DLL="
 set "STAR_LIB="
-set "STAR_PUBLISH=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish"
-set "STAR_NATIVE=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native"
-if exist "%STAR_PUBLISH%\star_api.dll" if exist "%STAR_NATIVE%\star_api.lib" (
-    set "STAR_DLL=%STAR_PUBLISH%\star_api.dll"
-    set "STAR_LIB=%STAR_NATIVE%\star_api.lib"
+REM Prefer net9.0 (matches STARAPIClient.csproj TargetFramework); fallback to net8.0 for older builds
+if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib" (
+    set "STAR_DLL=%STARAPICLIENT%\bin\Release\net9.0\win-x64\publish\star_api.dll"
+    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net9.0\win-x64\native\star_api.lib"
+)
+if not defined STAR_DLL if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish\star_api.dll" if exist "%STARAPICLIENT%\bin\Release\net8.0\win-x64\native\star_api.lib" (
+    set "STAR_DLL=%STARAPICLIENT%\bin\Release\net8.0\win-x64\publish\star_api.dll"
+    set "STAR_LIB=%STARAPICLIENT%\bin\Release\net8.0\win-x64\native\star_api.lib"
 )
 if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%Code\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%Code\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%Code\star_api.lib"
 if not defined STAR_DLL if exist "%OQUAKE_INTEGRATION%\star_api.dll" set "STAR_DLL=%OQUAKE_INTEGRATION%\star_api.dll" & set "STAR_LIB=%OQUAKE_INTEGRATION%\star_api.lib"
-if not defined STAR_DLL if exist "%STAR_PUBLISH%\star_api.dll" set "STAR_DLL=%STAR_PUBLISH%\star_api.dll" & if exist "%STAR_NATIVE%\star_api.lib" (set "STAR_LIB=%STAR_NATIVE%\star_api.lib") else (set "STAR_LIB=")
 if not defined STAR_DLL (
     echo star_api.dll missing after deploy. Check STARAPIClient build.
     pause
@@ -93,6 +104,11 @@ echo.
 echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
 if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
+REM Ensure vkQuake always has latest header and integration sources (apply script copies these too; this guarantees after bat run)
+copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%OQUAKE_CODE%oquake_version.h" "%VKQUAKE_SRC%\Quake\" >nul
+copy /Y "%STARAPICLIENT%\star_api.h" "%VKQUAKE_SRC%\Quake\" >nul
 if exist "%OQUAKE_CODE%star_sync.c" copy /Y "%OQUAKE_CODE%star_sync.c" "%VKQUAKE_SRC%\Quake\" >nul
 if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll" >nul
