@@ -325,6 +325,8 @@ static int g_quest_tracker_active_display_index = -1;  /* Index of active object
 /* Cached objective count for O key cycle when API returns empty (avoids reverting to on/off toggle). */
 static int g_quest_tracker_last_n_obj = 0;
 static char g_quest_tracker_last_n_obj_id[64] = "";
+static int g_quest_popup_sync_to_tracker = 0;  /* 1 = when popup opens, sync left-list selection to tracked quest once list is ready */
+static int g_quest_popup_sync_objective_once = 0;  /* 1 = sync right-panel objective selection to tracked objective once (when panel shows tracked quest) */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
 static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
@@ -3098,16 +3100,25 @@ void OQuake_STAR_PollItems(void) {
             char oid[64] = {0};
             if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
                 q_strlcpy(g_quest_tracker_id, qid, sizeof(g_quest_tracker_id));
-                g_quest_tracker_name[0] = '\0';
+                g_quest_tracker_name[0] = '\0';  /* Filled by tracker draw from quest list when available */
                 g_quest_tracker_show = 1;
+                g_quest_tracker_active_display_index = -1;  /* Resolve from objective id in tracker draw */
                 star_api_log_to_file("[OQuake] Profile loaded: restored quest tracker from cache");
             } else {
                 star_api_log_to_file("[OQuake] Profile loaded: no active quest in cache");
             }
-            if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0])
+            if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
                 q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
+                g_quest_tracker_active_display_index = -1;
+            }
+            {
+                static char load_log[512];
+                q_snprintf(load_log, sizeof(load_log), "[Quest] LOAD (beam-in from API) quest_id=%s objective_id=%s (names filled when list loads)", qid[0] ? qid : "(none)", oid[0] ? oid : "(none)");
+                star_api_log_to_file(load_log);
+            }
         }
         star_api_invalidate_quest_cache();
+        star_api_refresh_quest_cache_in_background();  /* Start loading quest list so tracker can show name without opening popup */
         star_api_log_to_file("[OQuake] Profile loaded: quest cache invalidated, list will refetch");
     }
 
@@ -3872,6 +3883,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
                     star_api_refresh_quest_cache_in_background();
+                    g_quest_popup_sync_to_tracker = 1;  /* Sync selection to tracked quest once list is ready */
+                    g_quest_popup_sync_objective_once = 1;  /* Sync objective selection to tracked objective once */
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -4214,6 +4227,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
+        /* When tracker was restored from profile (id set, name empty), fill name from quest list once it loads */
+        if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
+            int si;
+            for (si = 0; si < q_count; si++) {
+                if (strcmp(q_id[si], g_quest_tracker_id) == 0) {
+                    q_strlcpy(g_quest_tracker_name, q_name[si] ? q_name[si] : "", sizeof(g_quest_tracker_name));
+                    break;
+                }
+            }
+        }
+
         /* Drill mode: when g_quest_drill_parent_id is set, left list shows that quest's children (objectives + sub-quests). */
         static char drill_obj_buf[4096];
         static char drill_sub_buf[4096];
@@ -4299,6 +4323,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 }
                 if (show)
                     drill_q_filtered_indices[drill_q_filtered_count++] = di;
+            }
+            /* Tracker restored from profile: fill name from drill list if tracker quest is a sub-quest here */
+            if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
+                for (di = 0; di < drill_q_count; di++) {
+                    if (strcmp(drill_q_id[di], g_quest_tracker_id) == 0) {
+                        q_strlcpy(g_quest_tracker_name, drill_q_name[di] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
+                        break;
+                    }
+                }
             }
         }
 
@@ -4534,6 +4567,48 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         int n_objectives = obj_count;
         int n_subquest_list = sq_count;
 
+        /* When popup just opened and we have the list: sync left-list selection to tracked quest so brown selected row matches green tracked row. */
+        if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
+            int fi;
+            int found = 0;
+            if (g_quest_drill_parent_id[0]) {
+                for (fi = 0; fi < drill_q_filtered_count; fi++) {
+                    int di = drill_q_filtered_indices[fi];
+                    if (di >= 0 && di < drill_q_count && strcmp(drill_q_id[di], g_quest_tracker_id) == 0) {
+                        g_quest_selected_index = fi;
+                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        if (g_quest_scroll < 0) g_quest_scroll = 0;
+                        found = 1;
+                        break;
+                    }
+                }
+            } else {
+                for (fi = 0; fi < q_filtered_count; fi++) {
+                    int qi = q_filtered_indices[fi];
+                    if (qi >= 0 && qi < q_count && strcmp(q_id[qi], g_quest_tracker_id) == 0) {
+                        g_quest_selected_index = fi;
+                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        if (g_quest_scroll < 0) g_quest_scroll = 0;
+                        found = 1;
+                        break;
+                    }
+                }
+            }
+            if (found) g_quest_popup_sync_to_tracker = 0;
+        }
+        /* When right panel shows the tracked quest, sync objective selection to tracked objective once (so popup "remembers" the right objective). */
+        if (g_quest_popup_sync_objective_once && g_quest_tracker_id[0] && panel_quest_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 &&
+            g_quest_tracker_active_objective_id[0] && n_objectives > 0) {
+            int oi;
+            for (oi = 0; oi < obj_count && oi < n_objectives; oi++) {
+                if (strcmp(obj_id[oi], g_quest_tracker_active_objective_id) == 0) {
+                    g_quest_objectives_selected = oi;
+                    break;
+                }
+            }
+            g_quest_popup_sync_objective_once = 0;
+        }
+
         /* Key handling: Tab switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel. Tab is blocked from engine while popup is open. */
         {
             static int s_enter_key = -2, s_kp_enter_key = -2, s_tab_key = -2;
@@ -4598,6 +4673,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
                     g_quest_tracker_objective_index = g_quest_objectives_selected;
                     g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                    {
+                        static char log_buf[512];
+                        const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
+                        const char* on = (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < obj_count && obj_name[g_quest_objectives_selected][0]) ? obj_name[g_quest_objectives_selected] : "(none)";
+                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on objective) quest_id=%s objective_id=%s quest_name=%s objective_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn, on);
+                        star_api_log_to_file(log_buf);
+                    }
                     star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                 }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
@@ -4630,12 +4712,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                     q_strlcpy(g_quest_start_pending_id, drill_q_id[di], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(drill_q_id[di]);
                                 } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0) {
-                                    q_strlcpy(g_quest_tracker_id, drill_q_id[di], sizeof(g_quest_tracker_id));
+                                    const char* new_quest_id = drill_q_id[di];
+                                    /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
+                                    if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
+                                        g_quest_tracker_active_objective_id[0] = '\0';
+                                        g_quest_tracker_active_display_index = -1;
+                                        g_quest_tracker_objective_index = 0;
+                                    }
+                                    q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
                                     q_strlcpy(g_quest_tracker_name, drill_q_name[di] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
-                                    g_quest_tracker_active_objective_id[0] = '\0';
-                                    g_quest_tracker_active_display_index = -1;
-                                    g_quest_tracker_objective_index = 0;
                                     g_quest_tracker_show = 1;
+                                    {
+                                        static char log_buf[512];
+                                        const char* qn = drill_q_name[di] && drill_q_name[di][0] ? drill_q_name[di] : "(none)";
+                                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on drill quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
+                                        star_api_log_to_file(log_buf);
+                                    }
                                     star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                                 }
                             }
@@ -4648,12 +4740,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                     q_strlcpy(g_quest_start_pending_id, q_id[idx], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(q_id[idx]);
                                 } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
-                                    q_strlcpy(g_quest_tracker_id, q_id[idx], sizeof(g_quest_tracker_id));
+                                    const char* new_quest_id = q_id[idx];
+                                    /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
+                                    if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
+                                        g_quest_tracker_active_objective_id[0] = '\0';
+                                        g_quest_tracker_active_display_index = -1;
+                                        g_quest_tracker_objective_index = 0;
+                                    }
+                                    q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
                                     q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
-                                    g_quest_tracker_active_objective_id[0] = '\0';
-                                    g_quest_tracker_active_display_index = -1;
-                                    g_quest_tracker_objective_index = 0;
                                     g_quest_tracker_show = 1;
+                                    {
+                                        static char log_buf[512];
+                                        const char* qn = q_name[idx] && q_name[idx][0] ? q_name[idx] : "(none)";
+                                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on top-level quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
+                                        star_api_log_to_file(log_buf);
+                                    }
                                     star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
                                 }
                             }
@@ -5014,6 +5116,44 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (!g_quest_tracker_show)
         return;
 
+    /* When tracker was set on beam-in (name empty), fill name from top-level quest list so HUD shows correct name without opening popup. */
+    if (g_quest_tracker_name[0] == '\0') {
+        static char qlist_buf[4096];
+        int nq = star_api_get_top_level_quests_string(qlist_buf, sizeof(qlist_buf));
+        if (nq > 0 && nq < (int)sizeof(qlist_buf)) qlist_buf[nq] = '\0';
+        else qlist_buf[0] = '\0';
+        if (qlist_buf[0] && strstr(qlist_buf, "Loading...") == NULL) {
+            const char* line = qlist_buf;
+            while (line[0]) {
+                const char* eol = strchr(line, '\n');
+                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
+                    const char* col0 = line + 2;
+                    const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
+                    if (col1 && (int)(col1 - col0) < 63) {
+                        char id[64];
+                        int len = (int)(col1 - col0);
+                        if (len >= 63) len = 62;
+                        memcpy(id, col0, (size_t)len);
+                        id[len] = '\0';
+                        if (strcmp(id, g_quest_tracker_id) == 0 && col1 + 1 < line + line_len) {
+                            const char* name_start = col1 + 1;
+                            const char* name_end = (const char*)memchr(name_start, '\t', (size_t)((line + line_len) - name_start));
+                            if (!name_end) name_end = line + line_len;
+                            len = (int)(name_end - name_start);
+                            if (len > 0 && len < (int)sizeof(g_quest_tracker_name)) {
+                                memcpy(g_quest_tracker_name, name_start, (size_t)len);
+                                g_quest_tracker_name[len] = '\0';
+                            }
+                            break;
+                        }
+                    }
+                }
+                line = eol ? eol + 1 : line + line_len;
+            }
+        }
+    }
+
     if (strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) != 0)
         g_quest_tracker_last_n_obj = 0;
 
@@ -5082,6 +5222,41 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
     if (n_obj > 0) {
         g_quest_tracker_last_n_obj = n_obj;
         q_strlcpy(g_quest_tracker_last_n_obj_id, g_quest_tracker_id, sizeof(g_quest_tracker_last_n_obj_id));
+    }
+
+    /* When tracker was restored from profile (active objective id set, display index not), resolve index from objectives list */
+    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_id[0] &&
+        (g_quest_tracker_active_display_index < 0 || (n_obj > 0 && g_quest_tracker_active_display_index >= n_obj))) {
+        static char obuf[1024];
+        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obuf, sizeof(obuf));
+        if (no > 0 && no < (int)sizeof(obuf)) obuf[no] = '\0';
+        else obuf[0] = '\0';
+        if (obuf[0]) {
+            const char* line = obuf;
+            int idx = 0;
+            while (line[0]) {
+                const char* eol = strchr(line, '\n');
+                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                if (line_len >= 3 && (line[0] == 'O' || line[0] == 'Q') && line[1] == '\t') {
+                    const char* col0 = line + 2;
+                    const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
+                    if (col1 && (int)(col1 - col0) < 63) {
+                        char oid[64];
+                        int len = (int)(col1 - col0);
+                        if (len >= 63) len = 62;
+                        memcpy(oid, col0, (size_t)len);
+                        oid[len] = '\0';
+                        if (strcmp(oid, g_quest_tracker_active_objective_id) == 0) {
+                            g_quest_tracker_active_display_index = idx;
+                            g_quest_tracker_objective_index = idx;
+                            break;
+                        }
+                    }
+                    idx++;
+                }
+                line = eol ? eol + 1 : line + line_len;
+            }
+        }
     }
 
     int disp_idx = g_quest_tracker_objective_index;

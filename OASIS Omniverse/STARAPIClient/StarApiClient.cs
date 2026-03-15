@@ -119,6 +119,8 @@ public sealed class StarApiClient : IDisposable
     private string? _avatarId;
     private Guid? _cachedActiveQuestId;
     private Guid? _cachedActiveObjectiveId;
+    /// <summary>When true, a save happened after the current GET avatar/current was started; do not let the GET response overwrite quest/objective cache.</summary>
+    private bool _questTrackerSavedSinceLastGet;
     private string _lastError = string.Empty;
     private StarApiCallback? _callback;
     private object? _callbackUserData;
@@ -494,19 +496,33 @@ public sealed class StarApiClient : IDisposable
         {
             _avatarId = avatar.Id.ToString();
             _cachedAvatarXp = avatar.XP;
-            _cachedActiveQuestId = avatar.ActiveQuestId;
-            _cachedActiveObjectiveId = avatar.ActiveObjectiveId;
+            /* If user saved a quest/objective after this GET was started, do not let stale response overwrite their choice (fixes "wrong quest" on load). */
+            if (!_questTrackerSavedSinceLastGet)
+            {
+                _cachedActiveQuestId = avatar.ActiveQuestId;
+                _cachedActiveObjectiveId = avatar.ActiveObjectiveId;
+            }
+            else
+            {
+                _questTrackerSavedSinceLastGet = false;
+                try { StarApiExports.StarApiLogFileOnly($"[Quest] GET avatar/current: ignoring quest/objective in response (user saved since GET started; keeping cache)"); } catch { /* ignore */ }
+            }
         }
 
-        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={avatar.ActiveQuestId} ActiveObjectiveId={avatar.ActiveObjectiveId} (cache updated)");
+        Guid? loadQuestId;
+        Guid? loadObjectiveId;
+        lock (_stateLock) { loadQuestId = _cachedActiveQuestId; loadObjectiveId = _cachedActiveObjectiveId; }
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={loadQuestId} ActiveObjectiveId={loadObjectiveId} (cache updated)");
+        var (loadQuestName, loadObjName) = TryGetQuestAndObjectiveNamesFromCache(loadQuestId, loadObjectiveId);
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD questId={loadQuestId} objectiveId={loadObjectiveId} questName={loadQuestName ?? "(not in cache)"} objectiveName={loadObjName ?? "(not in cache)"}"); } catch { /* ignore */ }
         if (StarApiExports.GetStarDebug())
         {
             try
             {
-                if (avatar.ActiveQuestId.HasValue || avatar.ActiveObjectiveId.HasValue)
-                    StarApiExports.StarApiLog($"[Avatar] Profile loaded: quest={avatar.ActiveQuestId} objective={avatar.ActiveObjectiveId} (tracker can restore)");
+                if (loadQuestId.HasValue || loadObjectiveId.HasValue)
+                    StarApiExports.StarApiLog($"[Avatar] Profile loaded: quest={loadQuestId} objective={loadObjectiveId} (tracker can restore)");
                 else
-                    StarApiExports.StarApiLog("[Avatar] Profile loaded: no ActiveQuestId/ActiveObjectiveId in response (tracker will stay clear)");
+                    StarApiExports.StarApiLog("[Avatar] Profile loaded: no ActiveQuestId/ActiveObjectiveId (tracker will stay clear)");
             }
             catch { /* ignore */ }
         }
@@ -1165,7 +1181,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Get one progress line per objective for the tracker (e.g. "Killed 3/10 monsters in ODOOM"). First line from requirement dicts or objective description. Active index = first incomplete objective (0-based).</summary>
+    /// <summary>Get one progress line per objective for the tracker (e.g. "Killed 3/10 monsters in ODOOM"). First line from requirement dicts or objective description. Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
     internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
     {
         linesResult = string.Empty;
@@ -1190,6 +1206,21 @@ public sealed class StarApiClient : IDisposable
             }
             linesResult = string.Join("\n", perLine);
             activeObjectiveIndex = 0;
+            /* Prefer persisted active objective (user choice) when we have it; else use first incomplete (quest progress). */
+            Guid? cachedObjId;
+            lock (_stateLock) { cachedObjId = _cachedActiveObjectiveId; }
+            if (cachedObjId.HasValue && quest.Objectives != null)
+            {
+                var idStr = cachedObjId.Value.ToString("D");
+                for (var i = 0; i < quest.Objectives.Count; i++)
+                {
+                    if (string.Equals(quest.Objectives[i].Id, idStr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        activeObjectiveIndex = i;
+                        return true;
+                    }
+                }
+            }
             for (var i = 0; i < quest.Objectives.Count; i++)
             {
                 if (!quest.Objectives[i].IsCompleted)
@@ -1447,6 +1478,27 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock) return _cachedActiveObjectiveId;
     }
 
+    /// <summary>Resolve quest and objective names from cache for logging (save/load debug). Returns (null, null) if cache not ready or ids not found.</summary>
+    private (string? questName, string? objectiveName) TryGetQuestAndObjectiveNamesFromCache(Guid? questId, Guid? objectiveId)
+    {
+        if (!questId.HasValue) return (null, null);
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return (null, null);
+            var idStr = questId.Value.ToString();
+            var q = _cachedQuestList.FirstOrDefault(x => string.Equals(x.Id, idStr, StringComparison.OrdinalIgnoreCase));
+            if (q == null) return (null, null);
+            string? objName = null;
+            if (objectiveId.HasValue && q.Objectives != null)
+            {
+                var oidStr = objectiveId.Value.ToString();
+                var o = q.Objectives.FirstOrDefault(o => string.Equals(o.Id, oidStr, StringComparison.OrdinalIgnoreCase));
+                objName = o?.Description ?? o?.SummaryText;
+            }
+            return (q.Name, objName);
+        }
+    }
+
     /// <summary>Persist active quest and objective on the avatar detail so they are restored after beam-in. Call when the user sets the tracker in the game.</summary>
     public async Task<OASISResult<bool>> SetActiveQuestAndObjectiveAsync(Guid? questId, Guid? objectiveId, CancellationToken cancellationToken = default)
     {
@@ -1461,10 +1513,10 @@ public sealed class StarApiClient : IDisposable
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
-            writer.WritePropertyName("ActiveQuestId");
+            writer.WritePropertyName("activeQuestId");
             if (questId.HasValue) writer.WriteStringValue(questId.Value.ToString());
             else writer.WriteNullValue();
-            writer.WritePropertyName("ActiveObjectiveId");
+            writer.WritePropertyName("activeObjectiveId");
             if (objectiveId.HasValue) writer.WriteStringValue(objectiveId.Value.ToString());
             else writer.WriteNullValue();
             writer.WriteEndObject();
@@ -1481,9 +1533,11 @@ public sealed class StarApiClient : IDisposable
         {
             _cachedActiveQuestId = questId;
             _cachedActiveObjectiveId = objectiveId;
+            _questTrackerSavedSinceLastGet = true;  /* Any in-flight GET avatar/current must not overwrite this save */
         }
+        var (questName, objectiveName) = TryGetQuestAndObjectiveNamesFromCache(questId, objectiveId);
         try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId} (cache updated)"); } catch { /* ignore */ }
-        try { StarApiExports.StarApiLogFileOnly($"[Quest] Set active quest saved OK: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] SAVE OK questId={questId} objectiveId={objectiveId} questName={questName ?? "(not in cache)"} objectiveName={objectiveName ?? "(not in cache)"}"); } catch { /* ignore */ }
         return Success(true, StarApiResultCode.Success, "Active quest/objective saved.");
     }
 
@@ -4549,6 +4603,7 @@ public sealed class StarApiClient : IDisposable
             catch { /* ignore parse for fallback */ }
         }
         try { StarApiExports.StarApiLogFileOnly($"[Avatar] ParseAvatarProfile: ActiveQuestId={activeQuestId} (from {questSource ?? "none"}) ActiveObjectiveId={activeObjectiveId} (from {objectiveSource ?? "none"})"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD (parsed from API) questId={activeQuestId} objectiveId={activeObjectiveId}"); } catch { /* ignore */ }
         return new StarAvatarProfile
         {
             Id = id,

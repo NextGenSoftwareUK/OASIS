@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
 {
@@ -8,8 +9,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar
     public class SetActiveQuestRequest
     {
         /// <summary>Quest to track (null or empty = clear).</summary>
+        [JsonPropertyName("activeQuestId")]
         public Guid? ActiveQuestId { get; set; }
         /// <summary>Objective to highlight within the tracked quest (null or empty = clear).</summary>
+        [JsonPropertyName("activeObjectiveId")]
         public Guid? ActiveObjectiveId { get; set; }
     }
 }
