@@ -885,7 +885,14 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added pr_ext_oquake.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    if ($projContent -notmatch 'star_sync\.c') {
+    $useStarSyncInClient = ($env:OASIS_STAR_SYNC_IN_CLIENT -eq "1")
+    if ($useStarSyncInClient) {
+        if ($projContent -match 'star_sync\.c') {
+            $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_sync\.c"[^>]*>\s*\r?\n\s*<PrecompiledHeader>[^<]+</PrecompiledHeader>\s*\r?\n\s*</ClCompile>\s*\r?\n', "`r`n"
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Removed star_sync.c from project (using star_sync from star_api.dll; OASIS_STAR_SYNC_IN_CLIENT=1)" -ForegroundColor Green
+        }
+    } elseif ($projContent -notmatch 'star_sync\.c') {
         $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext_oquake\.c' }
         if (-not $anchor) { $anchor = 'pr_ext\.c' }
         $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockStarSync`r`n"
@@ -916,6 +923,20 @@ foreach ($vcxproj in $vcxprojPaths) {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_API;`$2`$3"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
+    # When OASIS_STAR_SYNC_IN_CLIENT=1, add OASIS_STAR_SYNC_IN_CLIENT so star_sync_* are taken from star_api.dll (no star_sync.c). When 0 or unset, remove the define so star_sync.c is compiled.
+    if ($useStarSyncInClient) {
+        if ($projContent -notmatch 'OASIS_STAR_SYNC_IN_CLIENT') {
+            $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_SYNC_IN_CLIENT;`$2`$3"
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Added OASIS_STAR_SYNC_IN_CLIENT to PreprocessorDefinitions (star_sync from DLL)" -ForegroundColor Green
+        }
+    } else {
+        if ($projContent -match 'OASIS_STAR_SYNC_IN_CLIENT;?') {
+            $projContent = $projContent -replace 'OASIS_STAR_SYNC_IN_CLIENT;?', ''
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Removed OASIS_STAR_SYNC_IN_CLIENT from PreprocessorDefinitions (using star_sync.c)" -ForegroundColor Green
+        }
     }
     # Do NOT define OQUAKE_STAR_API_TRACKER_STUBS so the game uses the real star_api.dll for tracker APIs (star_api_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
     if ($projContent -match 'OQUAKE_STAR_API_TRACKER_STUBS') {

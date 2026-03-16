@@ -166,12 +166,17 @@ mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
 done
+# Default: use star_sync from star_api (C#). Set OASIS_STAR_SYNC_IN_CLIENT=0 to compile star_sync.c (C). See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+: "${OASIS_STAR_SYNC_IN_CLIENT:=1}"
+CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=ON"
+[[ "$OASIS_STAR_SYNC_IN_CLIENT" == "0" ]] && CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=OFF" && echo "[ODOOM] Compiling star_sync.c (C)"
 # Add both ODOOM folder and build/src to link path so -lstar_api resolves
 CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$STAR_API_LIB_DIR\""
 cmake .. \
   -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DOASIS_STAR_API=ON \
+  $CMAKE_STAR_SYNC \
   -DSTAR_API_DIR:PATH="$STAR_API_DIR" \
   -DSTAR_API_LIB_DIR:PATH="$STAR_API_LIB_DIR" \
   -DCMAKE_EXE_LINKER_FLAGS:STRING="$CMAKE_LINK_FLAGS" \

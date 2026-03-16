@@ -48,6 +48,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY;
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
+REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+if not defined OASIS_STAR_SYNC_IN_CLIENT set "OASIS_STAR_SYNC_IN_CLIENT=1"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
 REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
@@ -322,7 +324,8 @@ if not defined PYTHON3_EXE_CMAKE set "PYTHON3_EXE_CMAKE=%PYTHON3_EXE%"
 echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR_CMAKE%"
 echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR_CMAKE%"
 echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE_CMAKE%"
-cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%"
+if "%OASIS_STAR_SYNC_IN_CLIENT%"=="0" (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=OFF" & echo [ODOOM][INFO] Compiling star_sync.c - C implementation) else (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=ON" & echo [ODOOM][INFO] Using star_sync from star_api.dll - default)
+cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%" %CMAKE_STAR_SYNC%
 if errorlevel 1 (echo "[ODOOM][ERROR] CMake failed." & pause & exit /b 1)
 
 echo.

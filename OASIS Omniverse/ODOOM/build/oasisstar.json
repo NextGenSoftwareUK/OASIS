@@ -20,7 +20,7 @@
   "use_armor_on_pickup": 0,
   "use_powerup_on_pickup": 0,
 ,
-  "refresh_token": "4ADCEF4AF0E74A7BC1522F934855C0E1BF9B9F196B08E2728DE87C06455011AE5A15A2D086971244"  "mint_monster_odoom_zombieman": 1,
+  "refresh_token": "96CD9984924699CB3357406B15111253A420D411BCDBB6B084CBF6A1A80C1D7C0ECF76CE9612160A"  "mint_monster_odoom_zombieman": 1,
   "mint_monster_odoom_shotgunguy": 1,
   "mint_monster_odoom_chaingunguy": 1,
   "mint_monster_odoom_demon": 1,
@@ -51,5 +51,5 @@
   "mint_monster_oquake_scrag": 1,
   "mint_monster_oquake_shub": 1,
   "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY5Y2NmNWIyLTM5OTEtNDJlYy04MTU1LTY1Yjk0YjJlMGYwYyIsIm5iZiI6MTc3MzY4OTg2NCwiZXhwIjoxNzczNjkwNzY0LCJpYXQiOjE3NzM2ODk4NjR9.G4tKm7fYyah-M88U7Gr_xLRaO0859_QMmNJeGBBJ5pY"
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY5Y2NmNWIyLTM5OTEtNDJlYy04MTU1LTY1Yjk0YjJlMGYwYyIsIm5iZiI6MTc3MzY5NzIxMiwiZXhwIjoxNzczNjk4MTEyLCJpYXQiOjE3NzM2OTcyMTJ9.OHZwWOHUc8WB75E1i-yHa9txAWW9ce6zKAOCjbgj0wo"
 }

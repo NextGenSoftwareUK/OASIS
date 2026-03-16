@@ -10,7 +10,13 @@
  * All completion callbacks are invoked on the main thread when you call star_sync_pump().
  * Call star_sync_pump() once per frame; no per-frame polling of individual operations.
  *
- * Include star_api.h before this header. Link with star_sync.c (or build as lib) and star_api.
+ * Include star_api.h before this header.
+ *
+ * Build options:
+ * - Default: compile and link star_sync.c (C implementation). Link star_api.
+ * - Define OASIS_STAR_SYNC_IN_CLIENT: do NOT compile star_sync.c; star_sync_* symbols are
+ *   exported from star_api.dll. Link only star_api. To switch back to the C implementation,
+ *   undefine OASIS_STAR_SYNC_IN_CLIENT and add star_sync.c to the build again.
  */
 
 #ifndef STAR_SYNC_H
