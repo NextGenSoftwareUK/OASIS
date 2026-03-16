@@ -585,6 +585,10 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		oasis_star_beam_face = (atoi(value) != 0);
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "star_debug", value, (int)sizeof(value))) {
+		g_star_debug_logging = (atoi(value) != 0);
+		loaded = true;
+	}
 	if (ODOOM_ExtractJsonValue(json, "stack_armor", value, (int)sizeof(value))) {
 		odoom_star_stack_armor = (atoi(value) != 0) ? 1 : 0;
 		loaded = true;
@@ -726,6 +730,7 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
 	fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
 	fprintf(f, "  \"beam_face\": %d,\n", oasis_star_beam_face ? 1 : 0);
+	fprintf(f, "  \"star_debug\": %d,\n", g_star_debug_logging ? 1 : 0);
 	fprintf(f, "  \"stack_armor\": %d,\n", odoom_star_stack_armor ? 1 : 0);
 	fprintf(f, "  \"stack_weapons\": %d,\n", odoom_star_stack_weapons ? 1 : 0);
 	fprintf(f, "  \"stack_powerups\": %d,\n", odoom_star_stack_powerups ? 1 : 0);
@@ -772,11 +777,19 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 		fprintf(f, "  \"max_armor\": %d,\n", ma);
 		fprintf(f, "  \"use_health_on_pickup\": %d,\n", odoom_star_use_health_on_pickup ? 1 : 0);
 		fprintf(f, "  \"use_armor_on_pickup\": %d,\n", odoom_star_use_armor_on_pickup ? 1 : 0);
-		fprintf(f, "  \"use_powerup_on_pickup\": %d,\n", odoom_star_use_powerup_on_pickup ? 1 : 0);
+		fprintf(f, "  \"use_powerup_on_pickup\": %d\n", odoom_star_use_powerup_on_pickup ? 1 : 0);
 	}
+	/* mint_monster_* next (before session so session is at bottom like Quake). */
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
-	/* Persisted session (beamedin_avatar + jwt_token) for autologin. */
+	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
+	for (int i = 0; i < nmonsters; i++) {
+		const char* ckey = ODOOM_MONSTERS[i].configKey;
+		auto it = g_odoom_mint_monster_flags.find(ckey);
+		int v = (it != g_odoom_mint_monster_flags.end()) ? it->second : 1;
+		fprintf(f, ",\n  \"mint_monster_%s\": %d", ckey, v ? 1 : 0);
+	}
+	/* Persisted session at bottom (beamedin_avatar, jwt_token, refresh_token) for autologin – same order as Quake. */
 	if (g_star_initialized) {
 		/* If JWT expired and refresh failed, clear saved tokens so we don't persist dead session to file. */
 		if (star_api_is_session_expired()) {
@@ -789,7 +802,6 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 			std::strncpy(g_odoom_saved_username, uname, sizeof(g_odoom_saved_username) - 1);
 			g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
 		} else if (!g_star_effective_username.empty()) {
-			/* Fallback: DLL may not export get_current_username; use current session username so beamedin_avatar is written. */
 			std::strncpy(g_odoom_saved_username, g_star_effective_username.c_str(), sizeof(g_odoom_saved_username) - 1);
 			g_odoom_saved_username[sizeof(g_odoom_saved_username) - 1] = '\0';
 		}
@@ -806,6 +818,24 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 			std::strncpy(g_odoom_saved_refresh_token, refresh_buf, sizeof(g_odoom_saved_refresh_token) - 1);
 			g_odoom_saved_refresh_token[sizeof(g_odoom_saved_refresh_token) - 1] = '\0';
 		}
+	}
+	if (have_session) {
+		if (g_odoom_saved_username[0]) {
+			fprintf(f, ",\n  \"beamedin_avatar\": \"");
+			for (const char* p = g_odoom_saved_username; *p; p++) {
+				if (*p == '"' || *p == '\\') fputc('\\', f);
+				fputc((unsigned char)*p, f);
+			}
+			fprintf(f, "\"");
+		}
+		if (g_odoom_saved_jwt[0]) {
+			fprintf(f, ",\n  \"jwt_token\": \"");
+			for (const char* p = g_odoom_saved_jwt; *p; p++) {
+				if (*p == '"' || *p == '\\') fputc('\\', f);
+				fputc((unsigned char)*p, f);
+			}
+			fprintf(f, "\"");
+		}
 		if (g_odoom_saved_refresh_token[0]) {
 			fprintf(f, ",\n  \"refresh_token\": \"");
 			for (const char* p = g_odoom_saved_refresh_token; *p; p++) {
@@ -815,34 +845,7 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 			fprintf(f, "\"");
 		}
 	}
-	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
-	for (int i = 0; i < nmonsters; i++) {
-		const char* ckey = ODOOM_MONSTERS[i].configKey;
-		auto it = g_odoom_mint_monster_flags.find(ckey);
-		int v = (it != g_odoom_mint_monster_flags.end()) ? it->second : 1;
-		fprintf(f, "  \"mint_monster_%s\": %d%s\n", ckey, v ? 1 : 0, (i < nmonsters - 1 || have_session) ? "," : "");
-	}
-	if (have_session) {
-		if (g_odoom_saved_username[0]) {
-			fprintf(f, "  \"beamedin_avatar\": \"");
-			for (const char* p = g_odoom_saved_username; *p; p++) {
-				if (*p == '"' || *p == '\\') fputc('\\', f);
-				fputc((unsigned char)*p, f);
-			}
-			fprintf(f, "\"");
-		}
-		if (g_odoom_saved_jwt[0]) {
-			if (g_odoom_saved_username[0]) fprintf(f, ",\n");
-			fprintf(f, "  \"jwt_token\": \"");
-			for (const char* p = g_odoom_saved_jwt; *p; p++) {
-				if (*p == '"' || *p == '\\') fputc('\\', f);
-				fputc((unsigned char)*p, f);
-			}
-			fprintf(f, "\"");
-		}
-		fprintf(f, "\n");
-	}
-	fprintf(f, "}\n");
+	fprintf(f, "\n}\n");
 	fclose(f);
 	return true;
 }
@@ -3518,6 +3521,7 @@ CCMD(star)
 		if (strcmp(argv[2], "on") == 0) {
 			g_star_debug_logging = true;
 			star_api_set_debug(1);
+			ODOOM_SaveStarConfigToFiles();
 			StarLogInfo("Debug logging enabled.");
 			Printf("\n");
 			return;
@@ -3525,6 +3529,7 @@ CCMD(star)
 		if (strcmp(argv[2], "off") == 0) {
 			g_star_debug_logging = false;
 			star_api_set_debug(0);
+			ODOOM_SaveStarConfigToFiles();
 			Printf("STAR API: Debug logging disabled.\n");
 			Printf("\n");
 			return;
