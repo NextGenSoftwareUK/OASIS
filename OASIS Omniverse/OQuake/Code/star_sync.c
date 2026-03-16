@@ -37,6 +37,7 @@ static void str_copy(char* dst, const char* src, size_t size) {
 #define AUTH_USERNAME_SIZE  64
 #define AUTH_AVATAR_SIZE    64
 #define AUTH_ERROR_SIZE     256
+#define AUTH_JWT_SIZE       2048
 
 static char g_auth_username_buf[AUTH_USERNAME_SIZE];
 static char g_auth_password_buf[64];
@@ -45,6 +46,7 @@ static int  g_auth_has_result = 0;
 static int  g_auth_success = 0;
 static char g_auth_username_out[AUTH_USERNAME_SIZE];
 static char g_auth_avatar_id_out[AUTH_AVATAR_SIZE];
+static char g_auth_jwt_out[AUTH_JWT_SIZE];
 static char g_auth_error_msg[AUTH_ERROR_SIZE];
 static star_sync_auth_on_done_fn g_auth_on_done = NULL;
 static void* g_auth_on_done_user = NULL;
@@ -80,7 +82,8 @@ static void* auth_thread_proc(void* param) {
     pthread_mutex_unlock(&g_auth_lock);
 #endif
 
-    auth_result = star_api_authenticate(user, pass);
+    /* Authenticate and capture JWT in one call so games can persist to oasisstar.json (no dependency on get_current_jwt export). */
+    auth_result = star_api_authenticate_with_jwt_out(user, pass, g_auth_jwt_out, sizeof(g_auth_jwt_out));
     if (auth_result == STAR_API_SUCCESS) {
         avatar_result = star_api_get_avatar_id(avatar_id, sizeof(avatar_id));
         if (avatar_result != STAR_API_SUCCESS)
@@ -196,6 +199,21 @@ int star_sync_auth_get_result(int* success_out,
     pthread_mutex_unlock(&g_auth_lock);
 #endif
     return 1;
+}
+
+void star_sync_auth_get_result_jwt(char* jwt_buf, size_t jwt_size) {
+    if (!jwt_buf || !jwt_size) return;
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
+#endif
+    str_copy(jwt_buf, g_auth_jwt_out, jwt_size);
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_unlock(&g_auth_lock);
+#endif
 }
 
 int star_sync_auth_in_progress(void) {

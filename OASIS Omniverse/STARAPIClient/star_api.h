@@ -55,6 +55,8 @@ typedef void (*star_api_operation_callback_t)(star_api_result_t result, int oper
 
 star_api_result_t star_api_init(const star_api_config_t* config);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
+/** Same as star_api_authenticate but on success writes JWT to jwt_buf (for oasisstar.json). jwt_buf can be NULL. */
+star_api_result_t star_api_authenticate_with_jwt_out(const char* username, const char* password, char* jwt_buf, size_t jwt_size);
 /** Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile. */
 star_api_result_t star_api_set_saved_session(const char* jwt);
 /** Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block. */

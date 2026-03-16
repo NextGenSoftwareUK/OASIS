@@ -1277,9 +1277,10 @@ class OASISInventoryOverlayHandler : EventHandler
 				int trackX = -53;
 				int trackY = 7;
 				double trackScale = 0.5;
-				String currentQuestLabel = String.Format("Current Quest: %s", qTitle);
+				// Match OQuake: when loading show just "Loading..."; when loaded show "Quest: <title>"
+				String titleLabel = (qTitle == "Loading...") ? "Loading..." : String.Format("Quest: %s", qTitle);
 				double titleScale = 0.6;
-				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, currentQuestLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, titleScale, DTA_ScaleY, titleScale);
+				screen.DrawText(f, Font.CR_GOLD, trackX, trackY, titleLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, titleScale, DTA_ScaleY, titleScale);
 				String objStr = (trackerObjLinesCv != null) ? trackerObjLinesCv.GetString() : "";
 				array<String> objLines;
 				if (objStr.Length() > 0) objStr.Split(objLines, "\n", false);

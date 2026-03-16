@@ -4,6 +4,7 @@ LIBRARY star_api
 EXPORTS
 star_api_init
 star_api_authenticate
+; star_api_authenticate_with_jwt_out omitted: provided by game forwarder so exe does not import at load; DLL still exports when rooted
 star_api_set_saved_session
 star_api_restore_session
 star_api_get_current_username

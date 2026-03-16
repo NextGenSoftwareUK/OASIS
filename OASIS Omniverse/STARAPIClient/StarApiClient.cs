@@ -273,7 +273,8 @@ public sealed class StarApiClient : IDisposable
             {
                 using var rawDoc = JsonDocument.Parse(response.Result);
                 var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token")
-                    ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token");
+                    ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token")
+                    ?? FindStringRecursive(rawDoc.RootElement, "jwt");
                 var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
                 var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
 
@@ -361,7 +362,8 @@ public sealed class StarApiClient : IDisposable
             string? loggedAvatarId;
             lock (_stateLock)
             {
-                _jwtToken = auth.JwtToken;
+                if (!string.IsNullOrWhiteSpace(auth.JwtToken))
+                    _jwtToken = auth.JwtToken;
                 _refreshToken = auth.RefreshToken;
                 _avatarId = auth.Id == Guid.Empty ? _avatarId : auth.Id.ToString();
                 _loggedInUsername = string.IsNullOrWhiteSpace(username) ? _loggedInUsername : username.Trim();
@@ -371,7 +373,7 @@ public sealed class StarApiClient : IDisposable
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}");
+            StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}, JWT from auth={(string.IsNullOrEmpty(_jwtToken) ? "no" : "yes (length=" + _jwtToken.Length + ")")}");
 
             /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
@@ -464,7 +466,9 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.StarApiLogFileOnly($"[Auth] RestoreSession failed: {result.Message}");
             return FailAndCallback<bool>(result.Message ?? "Session restore failed.", ParseCode(result.ErrorCode, StarApiResultCode.ApiError));
         }
-        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded");
+        /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
+        StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded (operation callback invoked)");
         return Success(true, StarApiResultCode.Success, "Session restored.");
     }
 
@@ -1263,7 +1267,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Get one progress line per objective for the tracker in "O\tid\tdesc\tdone" format so native code can resolve active index by id. First line from requirement dicts or objective description. Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
+    /// <summary>Get one line per objective for the tracker: display name/description only (no IDs). Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
     internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
     {
         linesResult = string.Empty;
@@ -1278,7 +1282,6 @@ public sealed class StarApiClient : IDisposable
             for (var i = 0; i < quest.Objectives.Count; i++)
             {
                 var o = quest.Objectives[i];
-                var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
                 var desc = "";
                 if (o.Dictionaries != null)
                 {
@@ -1288,7 +1291,7 @@ public sealed class StarApiClient : IDisposable
                 }
                 else
                     desc = o.Description ?? o.SummaryText ?? "";
-                sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(desc)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
+                sb.Append(EscapeForQuestLine(desc)).Append("\n");
             }
             linesResult = sb.ToString().TrimEnd();
             activeObjectiveIndex = 0;
@@ -3433,7 +3436,8 @@ public sealed class StarApiClient : IDisposable
         var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken")
             ?? GetStringProperty(element, "Token") ?? FindStringRecursive(element, "Token")
             ?? GetStringProperty(element, "accessToken") ?? FindStringRecursive(element, "accessToken")
-            ?? GetStringProperty(element, "access_token") ?? FindStringRecursive(element, "access_token");
+            ?? GetStringProperty(element, "access_token") ?? FindStringRecursive(element, "access_token")
+            ?? GetStringProperty(element, "jwt") ?? FindStringRecursive(element, "jwt");
         var refresh = GetStringProperty(element, "RefreshToken") ?? FindStringRecursive(element, "RefreshToken");
 
         if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
@@ -5252,8 +5256,13 @@ public static unsafe class StarApiExports
         SetError(string.Empty);
     }
 
-    /// <summary>Trimmer root: keep all members so session/JWT exports (get_current_username, get_current_jwt, etc.) stay in star_api.dll for forwarders and autologin.</summary>
+    /// <summary>Trimmer root: keep all members so session/JWT exports stay in star_api.dll for forwarders and autologin.</summary>
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentJwt", typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentUsername", typeof(StarApiExports))]
+    [DynamicDependency("StarApiSetSavedSession", typeof(StarApiExports))]
+    [DynamicDependency("StarApiRestoreSession", typeof(StarApiExports))]
+    [DynamicDependency("StarApiAuthenticateWithJwtOut", typeof(StarApiExports))]
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
@@ -5279,8 +5288,8 @@ public static unsafe class StarApiExports
         return (int)FinalizeResult(result, StarApiOpInit);
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
-    public static int StarApiAuthenticate(sbyte* username, sbyte* password)
+    /// <summary>Shared implementation for authenticate; used by both star_api_authenticate and star_api_authenticate_with_jwt_out (UnmanagedCallersOnly cannot call UnmanagedCallersOnly).</summary>
+    private static int AuthenticateWithJwtOutImpl(sbyte* username, sbyte* password, sbyte* jwt_buf, nuint jwt_size)
     {
         var client = GetClient();
         if (client is null)
@@ -5289,7 +5298,34 @@ public static unsafe class StarApiExports
         var user = PtrToString(username);
         var pass = PtrToString(password);
         var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
+        if (!result.IsError && jwt_buf != null && jwt_size > 0)
+        {
+            var jwt = client.GetCurrentJwt();
+            if (!string.IsNullOrEmpty(jwt))
+            {
+                var bytes = Encoding.UTF8.GetBytes(jwt);
+                var toCopy = (int)Math.Min((nuint)bytes.Length, jwt_size - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(jwt_buf, toCopy));
+                jwt_buf[toCopy] = 0;
+            }
+            else
+                jwt_buf[0] = 0;
+        }
         return (int)FinalizeResultNoCallback(result);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiAuthenticate(sbyte* username, sbyte* password)
+    {
+        return AuthenticateWithJwtOutImpl(username, password, null, 0);
+    }
+
+    /// <summary>Authenticate and optionally write JWT to buf so games can persist to oasisstar.json without relying on get_current_jwt export.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate_with_jwt_out", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiAuthenticateWithJwtOut(sbyte* username, sbyte* password, sbyte* jwt_buf, nuint jwt_size)
+    {
+        return AuthenticateWithJwtOutImpl(username, password, jwt_buf, jwt_size);
     }
 
     /// <summary>Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile.</summary>
@@ -5335,7 +5371,12 @@ public static unsafe class StarApiExports
         if (buf is null || bufSize == 0) return 0;
         var client = GetClient();
         var jwt = client?.GetCurrentJwt();
-        if (string.IsNullOrEmpty(jwt)) { buf[0] = 0; return 0; }
+        if (string.IsNullOrEmpty(jwt))
+        {
+            buf[0] = 0;
+            return 0;
+        }
+        StarApiExports.StarApiLogFileOnly($"[Auth] GetCurrentJwt: returning length={jwt.Length} (for oasisstar.json)");
         var bytes = Encoding.UTF8.GetBytes(jwt);
         var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
         if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));

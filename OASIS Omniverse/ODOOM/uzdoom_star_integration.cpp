@@ -105,10 +105,21 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 /* Forward declaration so code before the definition (e.g. ODOOM_SaveJsonConfig) can call StarLogInfo. */
 static void StarLogInfo(const char* fmt, ...);
 
-/* When ODOOM_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer). */
+/* When ODOOM_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Avoids load-time "Entry Point Not Found" when DLL export list lags. */
 #ifdef ODOOM_STAR_API_SESSION_IMPL
 extern "C" {
 #ifdef _WIN32
+static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
+	typedef star_api_result_t (__cdecl *fn_t)(const char*, const char*, char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_authenticate_with_jwt_out");
+	}
+	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
+
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (__cdecl *fn_t)(const char*);
 	static fn_t fn;
@@ -154,6 +165,18 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
 #else
 #include <dlfcn.h>
+static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
+	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_authenticate_with_jwt_out");
+	}
+	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
+
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (*fn_t)(const char*);
 	static fn_t fn;
@@ -215,6 +238,8 @@ static bool g_star_refresh_xp_called_this_session = false;
 static bool g_star_debug_logging = true;
 static bool g_star_logged_runtime_auth_failure = false;
 static bool g_star_logged_missing_auth_config = false;
+/** Set true when restore-session path runs; frame pump sets tracker to "Loading..." once CVars are safe. */
+static bool g_odoom_pending_loading_tracker = false;
 static bool g_star_cli_loaded = false;
 static std::string g_star_override_username;
 static std::string g_star_override_password;
@@ -1070,16 +1095,19 @@ static void ODOOM_RefreshQuestCVars(void) {
 
 	UCVarValue c; c.Int = questCount;
 	countVar->SetGenericRep(c, CVAR_Int);
+	/* Only update tracker title when we have real data; if we have tracker_quest_id but list is still loading, keep "Loading..." (set by OnAuthDone/frame pump). */
 	if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) {
-		UCVarValue t; t.String = (char*)(trackerTitle.empty() ? "" : trackerTitle.c_str());
-		trackerTitleVar->SetGenericRep(t, CVAR_String);
+		if (!trackerTitle.empty())
+			{ UCVarValue t; t.String = (char*)trackerTitle.c_str(); trackerTitleVar->SetGenericRep(t, CVAR_String); }
+		else if (wantId.empty())
+			{ UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
 	}
 	if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) {
 		UCVarValue o; o.String = (char*)(trackerObjective.empty() ? "" : trackerObjective.c_str());
 		trackerObjVar->SetGenericRep(o, CVAR_String);
 	}
-	/* Tracker objectives (progress lines) and active index for HUD cycle (O key). */
-	if (!wantId.empty()) {
+	/* Tracker objectives (progress lines) and active index for HUD cycle (O key). Skip when placeholder "..." (loading). */
+	if (!wantId.empty() && wantId != "...") {
 		FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
 		FBaseCVar* trackerActiveVar = FindCVar("odoom_quest_tracker_active_index", nullptr);
 		FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
@@ -1101,34 +1129,8 @@ static void ODOOM_RefreshQuestCVars(void) {
 			userHasActiveObjective = (aid && aid[0] != '\0');
 		}
 		if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
-			int activeIdx = -1;
-			if (!userHasActiveObjective) {
-				activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
-			} else if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
-				const char* wantIdStr = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
-				if (wantIdStr && wantIdStr[0]) {
-					/* Resolve index from active objective id so detail popup opens with correct selection after load. */
-					const char* p = trackerObjBuf;
-					int idx = 0;
-					while (p && *p) {
-						const char* eol = strchr(p, '\n');
-						size_t lineLen = eol ? (size_t)(eol - p) : strlen(p);
-						if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t') {
-							const char* idStart = p + 2;
-							const char* idEnd = (const char*)memchr(idStart, '\t', lineLen - 2);
-							if (idEnd) {
-								size_t idLen = (size_t)(idEnd - idStart);
-								if (idLen > 0 && strncmp(wantIdStr, idStart, idLen) == 0 && wantIdStr[idLen] == '\0') {
-									activeIdx = idx;
-									break;
-								}
-							}
-							idx++;
-						}
-						p = eol ? eol + 1 : nullptr;
-					}
-				}
-			}
+			/* Active index from API (resolves from persisted active objective id or first incomplete). Tracker lines are display names only. */
+			int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
 			if (activeIdx >= 0) {
 				UCVarValue va; va.Int = activeIdx;
 				trackerActiveVar->SetGenericRep(va, CVAR_Int);
@@ -1242,8 +1244,15 @@ static void ODOOM_OnAuthDone(void* user_data) {
 	char error_buf[256] = {};
 	if (!star_sync_auth_get_result(&success, username_buf, sizeof(username_buf), avatar_id_buf, sizeof(avatar_id_buf), error_buf, sizeof(error_buf)))
 		return;
+	char jwt_buf[2048] = {};
+	star_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
 	g_star_async_auth_pending = false;
 	if (success) {
+		/* Persist JWT from auth result so oasisstar.json has jwt_token for autobeamin (avoids relying on get_current_jwt export). */
+		if (jwt_buf[0]) {
+			std::strncpy(g_odoom_saved_jwt, jwt_buf, sizeof(g_odoom_saved_jwt) - 1);
+			g_odoom_saved_jwt[sizeof(g_odoom_saved_jwt) - 1] = '\0';
+		}
 		g_star_initialized = true;
 		g_star_frames_since_beamin = 0;  /* Grace period: don't consume keys on door checks for a few seconds after beamin. */
 		g_star_just_beamed_in = true;    /* Next frame: refresh gold/silver key CVars so OQ keys appear with Doom keycards. */
@@ -1259,23 +1268,34 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		// 	g_star_refresh_xp_called_this_session = true;
 		// 	star_api_refresh_avatar_xp();
 		// }
-		/* Load avatar (XP + active quest/objective) so we can restore tracker state. */
+		/* Load avatar (XP + active quest/objective) so we can restore tracker state. Profile load is async so get_active_quest_id is not ready yet; show "Loading..." immediately so tracker appears (like Quake). */
 		star_api_refresh_avatar_profile();
 		{
+			/* Placeholder tracker id so HUD shows "Loading..." before profile returns; frame pump will replace with real id when get_active_quest_id returns. */
+			static const char s_tracker_loading_placeholder[] = "...";
+			FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+				UCVarValue u; u.String = (char*)s_tracker_loading_placeholder;
+				trackerIdVar->SetGenericRep(u, CVAR_String);
+			}
+			FBaseCVar* titleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+			if (titleVar && titleVar->GetRealType() == CVAR_String) {
+				UCVarValue t; t.String = (char*)"Loading...";
+				titleVar->SetGenericRep(t, CVAR_String);
+			}
 			char qid[64] = {};
 			char oid[64] = {};
 			if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
-				FBaseCVar* v = FindCVar("odoom_quest_tracker_quest_id", nullptr);
-				if (v && v->GetRealType() == CVAR_String) {
+				if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
 					UCVarValue u; u.String = qid;
-					v->SetGenericRep(u, CVAR_String);
+					trackerIdVar->SetGenericRep(u, CVAR_String);
 				}
-			}
-			if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
-				FBaseCVar* v = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
-				if (v && v->GetRealType() == CVAR_String) {
-					UCVarValue u; u.String = oid;
-					v->SetGenericRep(u, CVAR_String);
+				if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
+					FBaseCVar* v = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+					if (v && v->GetRealType() == CVAR_String) {
+						UCVarValue u; u.String = oid;
+						v->SetGenericRep(u, CVAR_String);
+					}
 				}
 			}
 			/* Start loading quest list so tracker title/objective show without opening popup (ODOOM_RefreshQuestCVars will use cache when ready). */
@@ -1847,16 +1867,36 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			/* Refresh detail popup lists (prereqs, objectives, subquests) when 2nd popup is open (ZScript sets odoom_quest_detail_quest_id). */
 			ODOOM_RefreshQuestDetailCVars();
 		} else {
-			/* Tracker HUD: when popup is closed, set tracker from API if we have active quest (e.g. after restore session) and tracker not set yet. */
+			/* Tracker HUD: when popup is closed, set tracker from API if we have active quest (e.g. after restore session) or replace "..." placeholder when profile loads. */
+			/* Deferred "Loading..." for autobeam-in: set placeholder/title here so we never touch CVars during init. */
+			if (g_odoom_pending_loading_tracker && g_star_initialized) {
+				static const char s_loading_placeholder[] = "...";
+				FBaseCVar* tidVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+				FBaseCVar* titleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+				if (tidVar && tidVar->GetRealType() == CVAR_String && titleVar && titleVar->GetRealType() == CVAR_String) {
+					UCVarValue u; u.String = (char*)s_loading_placeholder;
+					tidVar->SetGenericRep(u, CVAR_String);
+					UCVarValue t; t.String = (char*)"Loading...";
+					titleVar->SetGenericRep(t, CVAR_String);
+				}
+				g_odoom_pending_loading_tracker = false;
+			}
 			FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
 			const char* trackerId = (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) ? trackerIdVar->GetGenericRep(CVAR_String).String : nullptr;
-			if (!trackerId || !trackerId[0]) {
+			bool trackerIsPlaceholder = (trackerId && std::strcmp(trackerId, "...") == 0);
+			if (!trackerId || !trackerId[0] || trackerIsPlaceholder) {
 				char qid[64] = {};
 				char oid[64] = {};
 				if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
 					if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
 						UCVarValue u; u.String = qid;
 						trackerIdVar->SetGenericRep(u, CVAR_String);
+					}
+					/* Show "Loading..." until RefreshQuestCVars fills real title (like Quake). */
+					FBaseCVar* titleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+					if (titleVar && titleVar->GetRealType() == CVAR_String) {
+						UCVarValue t; t.String = (char*)"Loading...";
+						titleVar->SetGenericRep(t, CVAR_String);
 					}
 					if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
 						FBaseCVar* oidVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
@@ -2543,6 +2583,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 				odoom_star_username = g_star_effective_username.empty() ? "Avatar" : g_star_effective_username.c_str();
 				StarApplyBeamFacePreference();
 				star_api_refresh_avatar_profile();
+				g_odoom_pending_loading_tracker = true;  /* Frame pump will set "Loading..." when CVars are ready */
 				if (logVerbose) StarLogInfo("Restoring saved session for %s.", g_odoom_saved_username[0] ? g_odoom_saved_username : "(avatar)");
 				return true;
 			}
