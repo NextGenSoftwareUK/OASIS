@@ -375,8 +375,8 @@ public sealed class StarApiClient : IDisposable
 
             StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}, JWT from auth={(string.IsNullOrEmpty(_jwtToken) ? "no" : "yes (length=" + _jwtToken.Length + ")")}");
 
-            /* Start background JWT refresh so token is renewed before expiry; client-only, no game flow change. */
-            ScheduleBackgroundTokenRefresh();
+            // /* Autorefresh disabled: was breaking Doom/Quake. Re-enable when stable. */
+            // ScheduleBackgroundTokenRefresh();
 
             /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
@@ -3181,14 +3181,14 @@ public sealed class StarApiClient : IDisposable
         try
         {
             var result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
-            // On 401, try refresh once and retry the request (client-only auto-renew; no game flow change).
+            // On 401, try refresh once and retry (autorenew when token expires); no background polling.
             if (result.IsError && result.Message != null && result.Message.Contains("401", StringComparison.Ordinal))
             {
                 var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
                 if (refreshed)
                     result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
                 else
-                    ClearSessionToken(); // Stop sending bad JWT on subsequent requests; games already get this error.
+                    ClearSessionToken();
             }
             return result;
         }
