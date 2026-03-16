@@ -375,6 +375,9 @@ public sealed class StarApiClient : IDisposable
 
             StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}, JWT from auth={(string.IsNullOrEmpty(_jwtToken) ? "no" : "yes (length=" + _jwtToken.Length + ")")}");
 
+            /* Start background JWT refresh so token is renewed before expiry; client-only, no game flow change. */
+            ScheduleBackgroundTokenRefresh();
+
             /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
 
@@ -469,6 +472,8 @@ public sealed class StarApiClient : IDisposable
         /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
         StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
         StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded (operation callback invoked)");
+        /* Start proactive JWT refresh so token is renewed before expiry (same as after manual beam-in). */
+        ScheduleBackgroundTokenRefresh();
         return Success(true, StarApiResultCode.Success, "Session restored.");
     }
 
@@ -485,6 +490,22 @@ public sealed class StarApiClient : IDisposable
     public string? GetCurrentJwt()
     {
         lock (_stateLock) return _jwtToken;
+    }
+
+    /// <summary>Set refresh token (e.g. from oasisstar.json after restore). Enables client to auto-renew JWT before expiry. No flow/callback change.</summary>
+    public OASISResult<bool> SetRefreshToken(string? refreshToken)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        lock (_stateLock)
+            _refreshToken = string.IsNullOrWhiteSpace(refreshToken) ? null : refreshToken.Trim();
+        return Success(true, StarApiResultCode.Success, "Refresh token set.");
+    }
+
+    /// <summary>Current refresh token (for persistence to oasisstar.json). Empty if none. Caller should not log or display.</summary>
+    public string? GetCurrentRefreshToken()
+    {
+        lock (_stateLock) return _refreshToken;
     }
 
     public OASISResult<bool> SetWeb4OasisApiBaseUrl(string web4OasisApiBaseUrl)
@@ -2994,6 +3015,18 @@ public sealed class StarApiClient : IDisposable
         Cleanup();
     }
 
+    /// <summary>Clear in-memory JWT and refresh token and Authorization header so we stop sending a bad token. Client-only; no callbacks, no game flow change.</summary>
+    private void ClearSessionToken()
+    {
+        lock (_stateLock)
+        {
+            _jwtToken = null;
+            _refreshToken = null;
+            if (_httpClient is not null)
+                _httpClient.DefaultRequestHeaders.Authorization = null;
+        }
+    }
+
     /// <summary>Try to refresh JWT using refresh token so play is not interrupted when token expires. Uses OASIS refresh-token endpoint (cookie or body). Tries _oasisBaseUrl first, then _baseApiUrl for STAR API–only setups.</summary>
     private async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)
     {
@@ -3127,12 +3160,14 @@ public sealed class StarApiClient : IDisposable
         try
         {
             var result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
-            // On 401, try refresh once and retry the request (minimal JWT timeout fix).
+            // On 401, try refresh once and retry the request (client-only auto-renew; no game flow change).
             if (result.IsError && result.Message != null && result.Message.Contains("401", StringComparison.Ordinal))
             {
                 var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
                 if (refreshed)
                     result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+                else
+                    ClearSessionToken(); // Stop sending bad JWT on subsequent requests; games already get this error.
             }
             return result;
         }
@@ -5259,7 +5294,9 @@ public static unsafe class StarApiExports
     /// <summary>Trimmer root: keep all members so session/JWT exports stay in star_api.dll for forwarders and autologin.</summary>
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(StarApiExports))]
     [DynamicDependency("StarApiGetCurrentJwt", typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentRefreshToken", typeof(StarApiExports))]
     [DynamicDependency("StarApiGetCurrentUsername", typeof(StarApiExports))]
+    [DynamicDependency("StarApiSetRefreshToken", typeof(StarApiExports))]
     [DynamicDependency("StarApiSetSavedSession", typeof(StarApiExports))]
     [DynamicDependency("StarApiRestoreSession", typeof(StarApiExports))]
     [DynamicDependency("StarApiAuthenticateWithJwtOut", typeof(StarApiExports))]
@@ -5378,6 +5415,36 @@ public static unsafe class StarApiExports
         }
         StarApiExports.StarApiLogFileOnly($"[Auth] GetCurrentJwt: returning length={jwt.Length} (for oasisstar.json)");
         var bytes = Encoding.UTF8.GetBytes(jwt);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Set refresh token from oasisstar.json so client can auto-renew JWT. Call after star_api_set_saved_session when restoring.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetRefreshToken(sbyte* refresh_token)
+    {
+        var client = GetClient();
+        if (client is null) return (int)StarApiResultCode.NotInitialized;
+        var tokenStr = PtrToString(refresh_token);
+        var result = client.SetRefreshToken(tokenStr ?? string.Empty);
+        return result.IsError ? (int)StarApiResultCode.ApiError : (int)StarApiResultCode.Success;
+    }
+
+    /// <summary>Write current refresh token to buf for saving to oasisstar.json. Returns bytes written or 0. Caller should not log.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentRefreshToken(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var token = client?.GetCurrentRefreshToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            buf[0] = 0;
+            return 0;
+        }
+        var bytes = Encoding.UTF8.GetBytes(token);
         var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
         if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
         buf[toCopy] = 0;
