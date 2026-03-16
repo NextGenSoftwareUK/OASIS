@@ -81,28 +81,36 @@ star_sync does **not** implement the API; it runs **star_api_*** calls on a work
 
 **Summary:** STARAPIClient is the single implementation of the STAR API (C#). star_sync is a small C layer that "async-ifies" a subset of those calls for the games. star_sync now lives only in STARAPIClient and is copied from there for both Doom and Quake (migration complete).
 
-### Star_sync: C implementation vs in-client (C#) implementation
+### Star_sync: in-client (C#) default vs C implementation
 
-STARAPIClient now provides **two** ways to get the star_sync_* API:
+STARAPIClient provides **two** ways to get the star_sync_* API. **The default is the in-client (C#) implementation.**
 
 | Mode | How it works | When to use |
 |------|----------------|-------------|
-| **C implementation (default)** | Build scripts copy `star_sync.c` and `star_sync.h` from STARAPIClient into the game tree. The game compiles `star_sync.c` and links it with star_api. Same behaviour as before. | Current production; no change to build. |
-| **In-client (C#)** | Define **OASIS_STAR_SYNC_IN_CLIENT** in the game build and **do not** compile `star_sync.c`. The symbols `star_sync_*` are exported from star_api.dll (implemented in `StarSyncExports.cs`). Link only star_api. | After you have verified the C# implementation; one less C file to copy and maintain. |
+| **In-client (C#) — default** | **OASIS_STAR_SYNC_IN_CLIENT=1** (set by BUILD ODOOM / BUILD_OQUAKE by default). The symbols `star_sync_*` are exported from star_api.dll (implemented in `StarSyncExports.cs`). Do **not** compile `star_sync.c`; link only star_api. | Default; one less C file to build and maintain. |
+| **C implementation** | Set **OASIS_STAR_SYNC_IN_CLIENT=0** (or undefine it in the build). Build scripts copy `star_sync.c` and `star_sync.h`; the game compiles `star_sync.c` and links it with star_api. | If you need to fall back to the C implementation; `star_sync.c` remains in the repo. |
 
-**To switch to the in-client implementation**
-
-1. In the game’s build (CMakeLists / project): define the preprocessor macro **OASIS_STAR_SYNC_IN_CLIENT**.
-2. Remove **star_sync.c** from the list of sources (do **not** compile it). Keep **star_sync.h** in the build (games still include it; declarations are unchanged).
-3. Ensure the game links to star_api (import lib / DLL). The linker will resolve `star_sync_*` from star_api.
+**Default (in-client):** BUILD ODOOM.bat and BUILD_OQUAKE.bat set `OASIS_STAR_SYNC_IN_CLIENT=1` by default, so the game uses star_sync from star_api.dll and does not compile `star_sync.c`.
 
 **To switch back to the C implementation**
 
-1. Undefine or remove **OASIS_STAR_SYNC_IN_CLIENT**.
-2. Add **star_sync.c** back to the compiled sources (from STARAPIClient, as copied by BUILD ODOOM / BUILD_OQUAKE).
-3. Rebuild. The C implementation in star_sync.c will be used again.
+1. Set **OASIS_STAR_SYNC_IN_CLIENT=0** before running the build (e.g. `set OASIS_STAR_SYNC_IN_CLIENT=0` then run BUILD ODOOM.bat), or change the default from `1` to `0` in the one build script you use (one line).
+2. Rebuild. The C implementation in `star_sync.c` will be used again.
 
 The C file **star_sync.c** remains in the repo and is still the single source for the C implementation; it is not deleted so you can switch back at any time.
+
+### JWT expiration and session handling (Doom and Quake)
+
+Both ODOOM and OQuake persist **jwt_token** and **refresh_token** in **oasisstar.json** so the user stays logged in between sessions. The C# client handles expiration and refresh as follows.
+
+| What | Behaviour |
+|------|-----------|
+| **Auto-renew (stay logged in)** | On any API **401**, the client calls the OASIS **refresh-token** endpoint once with the saved refresh token. If refresh succeeds, the new JWT is stored and the failing request is retried. A background task also runs periodically and refreshes the JWT shortly before expiry when possible. |
+| **When refresh fails or there is no refresh token** | The client **clears** the in-memory session (JWT, refresh token, avatar id) and sets an internal "session expired" flag. Later API calls return a clear "Session expired. Please beam in again." so the game does not hammer the API. |
+| **Clearing tokens in oasisstar.json** | When the game **saves** oasisstar.json (on exit, config save, etc.), it calls **star_api_is_session_expired()**. If that returns 1, the game clears **jwt_token** and **refresh_token** in memory and does not write them to the file. So the next launch does not try to restore a dead session; the user sees the login/beam-in flow again. |
+| **Where tokens live** | **In memory:** STARAPIClient holds JWT and refresh token; games hold copies in `g_odoom_saved_jwt` / `g_oq_saved_jwt` and refresh for writing to oasisstar.json. **On disk:** oasisstar.json (written only when saving config; cleared when session expired). |
+
+**Summary:** Yes, we clear token and refresh token when the session is expired (in memory when refresh fails; in oasisstar.json when the game next saves). Yes, we try to automatically renew the token so the user stays logged in (on 401 + background refresh); both Doom and Quake use the same client and behaviour.
 
 ---
 

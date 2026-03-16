@@ -13,9 +13,9 @@
  * Include star_api.h before this header.
  *
  * Build options:
- * - Default: compile and link star_sync.c (C implementation). Link star_api.
- * - Define OASIS_STAR_SYNC_IN_CLIENT: do NOT compile star_sync.c; star_sync_* symbols are
- *   exported from star_api.dll. Link only star_api. To switch back to the C implementation,
+ * - Default: star_sync_* are exported from star_api.dll (C# implementation). Do NOT compile
+ *   star_sync.c; link only star_api. BUILD ODOOM / BUILD_OQUAKE set this by default.
+ * - To use the C implementation instead: set OASIS_STAR_SYNC_IN_CLIENT=0 and rebuild, or
  *   undefine OASIS_STAR_SYNC_IN_CLIENT and add star_sync.c to the build again.
  */
 

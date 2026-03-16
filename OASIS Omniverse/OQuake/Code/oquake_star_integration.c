@@ -154,6 +154,17 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
 
+static int star_api_is_session_expired_impl(void) {
+	typedef int (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_is_session_expired");
+	}
+	return fn ? fn() : 0;
+}
+int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
+
 static void star_api_request_inventory_in_background_impl(void) {
 	typedef void (__cdecl *fn_t)(void);
 	static fn_t fn;
@@ -248,6 +259,18 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
+
+static int star_api_is_session_expired_impl(void) {
+	typedef int (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_is_session_expired");
+	}
+	return fn ? fn() : 0;
+}
+int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
 
 static void star_api_request_inventory_in_background_impl(void) {
 	typedef void (*fn_t)(void);
@@ -1872,6 +1895,11 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     fprintf(f, "\"");
     /* Persisted session (username + JWT) so user stays logged in between sessions. */
     if (g_star_initialized) {
+        /* If JWT expired and refresh failed, clear saved tokens so we don't persist dead session to file. */
+        if (star_api_is_session_expired()) {
+            g_oq_saved_jwt[0] = '\0';
+            g_oq_saved_refresh_token[0] = '\0';
+        }
         char uname[128] = {0};
         char jwt[2048] = {0};
         int got_username = (star_api_get_current_username((char*)uname, sizeof(uname)) > 0 && uname[0]);

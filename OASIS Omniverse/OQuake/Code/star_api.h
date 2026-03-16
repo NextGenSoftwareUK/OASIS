@@ -70,6 +70,8 @@ int star_api_get_current_jwt(char* buf, size_t buf_size);
 void star_api_set_refresh_token(const char* refresh_token);
 /** Write current refresh token to buf for saving to oasisstar.json. Returns bytes written or 0. Caller should not log. */
 int star_api_get_current_refresh_token(char* buf, size_t buf_size);
+/** Returns 1 if session was cleared due to expired JWT and refresh failed (or no refresh token). When saving oasisstar.json, clear jwt_token/refresh_token so the next launch does not try to restore a dead session. */
+int star_api_is_session_expired(void);
 /* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
 star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
