@@ -203,6 +203,7 @@ public sealed class StarApiClient : IDisposable
 
     public OASISResult<bool> Init(StarApiConfig config)
     {
+        StarApiExports.StarApiLog("\n********** GAME LOAD **********");
         var web5BaseUrl = config?.Web5StarApiBaseUrl;
         if (config is null || string.IsNullOrWhiteSpace(web5BaseUrl))
             return Fail<bool>("Invalid configuration.", StarApiResultCode.InvalidParam);
@@ -277,6 +278,7 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
         }
 
+        StarApiExports.StarApiLog("\n********** SESSION (BEAM IN) START **********");
         // Allow this login request through: clear "session expired" short-circuit so user can beam in again after 401.
         lock (_stateLock) { _sessionExpiredCleared = false; }
 
@@ -524,6 +526,7 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync). Proactively refreshes JWT if expired or expiring within 60s so restore succeeds without waiting for 401.</summary>
     public async Task<OASISResult<bool>> RestoreSessionAsync(CancellationToken cancellationToken = default)
     {
+        StarApiExports.StarApiLog("\n********** SESSION RESTORE START **********");
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
         string? jwt;
