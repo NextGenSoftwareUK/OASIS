@@ -124,6 +124,8 @@ public sealed class StarApiClient : IDisposable
     private Guid? _cachedActiveObjectiveId;
     /// <summary>When true, a save happened after the current GET avatar/current was started; do not let the GET response overwrite quest/objective cache.</summary>
     private bool _questTrackerSavedSinceLastGet;
+    /// <summary>Set true when we clear session due to 401 (expired JWT and refresh failed). Prevents hammering the API with auth-required requests until user re-logs in.</summary>
+    private bool _sessionExpiredCleared;
     private string _lastError = string.Empty;
     private StarApiCallback? _callback;
     private object? _callbackUserData;
@@ -159,6 +161,38 @@ public sealed class StarApiClient : IDisposable
     private CancellationTokenSource? _genericBackgroundCts;
     private Task? _genericBackgroundWorker;
     private readonly object _genericBackgroundLock = new();
+
+    /// <summary>Dedicated workers so auth, profile, inventory, and quests don't block each other (audit: avoid single bottleneck).</summary>
+    private enum DedicatedWorker { AuthSession, Profile, Inventory, Quests }
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _authSessionQueue = new();
+    private readonly SemaphoreSlim _authSessionSignal = new(0);
+    private CancellationTokenSource? _authSessionCts;
+    private Task? _authSessionWorker;
+    private readonly object _authSessionLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _profileQueue = new();
+    private readonly SemaphoreSlim _profileSignal = new(0);
+    private CancellationTokenSource? _profileCts;
+    private Task? _profileWorker;
+    private readonly object _profileLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _inventoryQueue = new();
+    private readonly SemaphoreSlim _inventorySignal = new(0);
+    private CancellationTokenSource? _inventoryCts;
+    private Task? _inventoryWorker;
+    private readonly object _inventoryLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _questsQueue = new();
+    private readonly SemaphoreSlim _questsSignal = new(0);
+    private CancellationTokenSource? _questsCts;
+    private Task? _questsWorker;
+    private readonly object _questsLock = new();
+
+    /// <summary>Max retries for transient network errors (audit: bounded retry with backoff).</summary>
+    private const int HttpRetryMaxAttempts = 3;
+    /// <summary>Backoff delays in ms for retries (200, 400, 800).</summary>
+    private static readonly int[] HttpRetryDelayMs = { 200, 400, 800 };
 
     public int AddItemBatchSize { get; set; } = 32;
     public TimeSpan AddItemBatchWindow { get; set; } = TimeSpan.FromMilliseconds(75);
@@ -209,6 +243,7 @@ public sealed class StarApiClient : IDisposable
             _initialized = true;
             _cachedInventory = null;
             _inventoryFetchTask = null;
+            _sessionExpiredCleared = false;
 
             if (!string.IsNullOrWhiteSpace(config.ApiKey))
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
@@ -367,6 +402,7 @@ public sealed class StarApiClient : IDisposable
                 _refreshToken = auth.RefreshToken;
                 _avatarId = auth.Id == Guid.Empty ? _avatarId : auth.Id.ToString();
                 _loggedInUsername = string.IsNullOrWhiteSpace(username) ? _loggedInUsername : username.Trim();
+                _sessionExpiredCleared = false;
                 loggedAvatarId = _avatarId;
 
                 if (!string.IsNullOrWhiteSpace(_jwtToken) && _httpClient is not null)
@@ -390,7 +426,7 @@ public sealed class StarApiClient : IDisposable
 
     /// <summary>Run authentication on the background worker so the calling thread does not block. Await the returned task for the result.</summary>
     public Task<OASISResult<bool>> QueueAuthenticateAsync(string username, string password, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => AuthenticateAsync(username, password, ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.AuthSession, ct => AuthenticateAsync(username, password, ct), cancellationToken);
 
     public OASISResult<bool> SetApiKey(string apiKey, string avatarId)
     {
@@ -439,11 +475,28 @@ public sealed class StarApiClient : IDisposable
         {
             _jwtToken = jwt.Trim();
             _avatarId = avatarId != Guid.Empty ? avatarId.ToString() : _avatarId;
+            _sessionExpiredCleared = false;
             if (_httpClient is not null)
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
         }
         StarApiExports.StarApiLogFileOnly("[Auth] SetSavedSession: JWT set, avatar id from token");
         return Success(true, StarApiResultCode.Success, "Saved session set.");
+    }
+
+    /// <summary>Clear in-memory session (JWT, refresh token, avatar id) and Authorization header after 401 when refresh fails. Stops sending expired token and avoids request spam until user re-logs in.</summary>
+    private void ClearSessionToken()
+    {
+        lock (_stateLock)
+        {
+            _jwtToken = null;
+            _refreshToken = null;
+            _avatarId = null;
+            _sessionExpiredCleared = true;
+            if (_httpClient is not null)
+                _httpClient.DefaultRequestHeaders.Remove("Authorization");
+        }
+        InvalidateInventoryCache();
+        StarApiExports.StarApiLogFileOnly("[Auth] Session cleared (expired JWT, refresh failed or no refresh token).");
     }
 
     /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync).</summary>
@@ -473,7 +526,7 @@ public sealed class StarApiClient : IDisposable
     }
 
     public Task<OASISResult<bool>> QueueRestoreSessionAsync(CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => RestoreSessionAsync(ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.AuthSession, ct => RestoreSessionAsync(ct), cancellationToken);
 
     /// <summary>Username of the currently logged-in avatar (for persistence to oasisstar.json). Empty if not logged in.</summary>
     public string? GetCurrentUsername()
@@ -532,7 +585,7 @@ public sealed class StarApiClient : IDisposable
 
         var url = $"{_baseApiUrl}/api/avatar/current";
         StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current url={url}");
-        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             /* Do NOT return Success with a stub profile when GET fails: game would get "profile loaded" but cache has no XP/quest (causes 0 XP in Quake). Always return Fail so callback is not invoked with Success. */
@@ -598,9 +651,9 @@ public sealed class StarApiClient : IDisposable
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
 
-    /// <summary>Run get-current-avatar on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run get-current-avatar on the profile worker so the calling thread does not block.</summary>
     public Task<OASISResult<StarAvatarProfile>> QueueGetCurrentAvatarAsync(CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => GetCurrentAvatarAsync(ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Profile, ct => GetCurrentAvatarAsync(ct), cancellationToken);
 
     public OASISResult<bool> Cleanup()
     {
@@ -695,31 +748,40 @@ public sealed class StarApiClient : IDisposable
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
-    /// <summary>Run has-item on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run has-item on the inventory worker so the calling thread does not block.</summary>
     public Task<OASISResult<bool>> QueueHasItemAsync(string itemName, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => HasItemAsync(itemName, ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Inventory, ct => HasItemAsync(itemName, ct), cancellationToken);
 
     /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
+        StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync called");
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: client not initialized");
             return FailAndCallback<List<StarItem>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         Task<OASISResult<List<StarItem>>>? task;
         lock (_inventoryCacheLock)
         {
             if (_cachedInventory is not null)
             {
+                StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: cache HIT, count={_cachedInventory.Count}");
                 var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending).");
             }
             if (_inventoryFetchTask is null)
+            {
+                StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: cache MISS, starting FetchInventoryOnceAsync");
                 _inventoryFetchTask = FetchInventoryOnceAsync();
+            }
             task = _inventoryFetchTask;
         }
 
         var result = await task.ConfigureAwait(false);
+        StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch completed IsError={result.IsError} ResultCount={result.Result?.Count ?? -1} Message={result.Message ?? "null"}");
         lock (_inventoryCacheLock)
         {
             _inventoryFetchTask = null;
@@ -729,6 +791,7 @@ public sealed class StarApiClient : IDisposable
                 /* Don't replace a non-empty cache with an empty fetch: avoids keys/items vanishing when a refetch (e.g. after sync) returns empty due to timing or API. */
                 if (fetched.Count == 0 && _cachedInventory is not null && _cachedInventory.Count > 0)
                 {
+                    StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch returned 0 items, keeping prior cache count={_cachedInventory.Count}");
                     var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                     return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending, kept prior cache).");
                 }
@@ -738,14 +801,16 @@ public sealed class StarApiClient : IDisposable
         if (result.Result is not null)
         {
             var merged = MergeLocalPendingIntoInventory(result.Result);
+            StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: returning merged count={merged.Count}");
             return Success(merged, StarApiResultCode.Success, result.Message ?? $"Loaded {merged.Count} item(s).");
         }
+        StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: returning error/fail");
         return result;
     }
 
-    /// <summary>Run get-inventory on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run get-inventory on the inventory worker so the calling thread does not block.</summary>
     public Task<OASISResult<List<StarItem>>> QueueGetInventoryAsync(CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => GetInventoryAsync(ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Inventory, ct => GetInventoryAsync(ct), cancellationToken);
 
     /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
     private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
@@ -796,9 +861,11 @@ public sealed class StarApiClient : IDisposable
 
     private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
     {
+        StarApiExports.StarApiLogFileOnly("[Inventory] FetchInventoryOnceAsync started");
         var avatarIdResult = await EnsureAvatarIdAsync(CancellationToken.None).ConfigureAwait(false);
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
         {
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: EnsureAvatarId failed IsError={avatarIdResult.IsError} Message={avatarIdResult.Message ?? "null"}");
             return new OASISResult<List<StarItem>>
             {
                 IsError = true,
@@ -807,28 +874,32 @@ public sealed class StarApiClient : IDisposable
                 Exception = avatarIdResult.Exception
             };
         }
+        StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: avatarId ok, GET api/avatar/inventory");
 
         try
         {
-            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
-            if (response.IsError && ParseCode(response.ErrorCode, StarApiResultCode.ApiError) == StarApiResultCode.Network)
-            {
-                await Task.Delay(200, CancellationToken.None).ConfigureAwait(false);
-                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
-            }
+            var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: GET failed IsError=true Message={response.Message ?? "null"}");
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: parse failed parseErrorCode={parseErrorCode} parseErrorMessage={parseErrorMessage ?? "null"}");
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
+            }
 
             var mapped = ParseInventoryItems(resultElement);
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: success mapped count={mapped.Count}");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, $"Loaded {mapped.Count} item(s).");
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: exception {ex.Message}");
             return FailAndCallback<List<StarItem>>($"Failed to load inventory: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -836,6 +907,7 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Clear the local inventory cache. Next GetInventory/HasItem will hit the API. Call after external inventory changes if needed.</summary>
     public void InvalidateInventoryCache()
     {
+        StarApiExports.StarApiLogFileOnly("[Inventory] InvalidateInventoryCache called");
         lock (_inventoryCacheLock)
         {
             _cachedInventory = null;
@@ -874,7 +946,7 @@ public sealed class StarApiClient : IDisposable
                 return;
             _questsRefreshInProgress = true;
         }
-        _ = RunOnBackgroundAsync<bool>(async ct =>
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
         {
             try
             {
@@ -999,7 +1071,7 @@ public sealed class StarApiClient : IDisposable
             _questsRefreshInProgress = true;
         }
         StarApiExports.StarApiLogFileOnly("[Quests] EnsureQuestsCacheInBackground started (fetching all-for-avatar)");
-        _ = RunOnBackgroundAsync<bool>(async ct =>
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
         {
             try
             {
@@ -1651,7 +1723,7 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpProfileLoaded);
             return;
         }
-        _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
+        _ = RunOnWorkerAsync(DedicatedWorker.Profile, async ct =>
         {
             StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground: GET avatar/current started");
             var result = await GetCurrentAvatarAsync(ct, invokeCallback: false).ConfigureAwait(false);
@@ -1669,7 +1741,7 @@ public sealed class StarApiClient : IDisposable
                 var errCode = result != null && result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.ApiError;
                 StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
             }
-            return result;
+            return result ?? Fail<StarAvatarProfile>("Refresh failed.", StarApiResultCode.ApiError);
         }, CancellationToken.None);
     }
 
@@ -2424,7 +2496,7 @@ public sealed class StarApiClient : IDisposable
 
         StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"}) (BaseApiUrl)");
 
-        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             StarApiExports.StarApiLog($"[Quests] GET all-for-avatar failed: {response.Message ?? "Request failed"}");
@@ -3124,6 +3196,12 @@ public sealed class StarApiClient : IDisposable
         if (_httpClient is null)
             return Fail<string>("HTTP client is not initialized.", StarApiResultCode.NotInitialized);
 
+        lock (_stateLock)
+        {
+            if (_sessionExpiredCleared && string.IsNullOrEmpty(_jwtToken))
+                return Fail<string>("Session expired. Please beam in again.", StarApiResultCode.ApiError);
+        }
+
         try
         {
             var result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
@@ -3133,6 +3211,11 @@ public sealed class StarApiClient : IDisposable
                 var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
                 if (refreshed)
                     result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    ClearSessionToken();
+                    StarApiExports.StarApiLog("[Auth] JWT expired and refresh failed or no refresh token; session cleared. Please beam in again.");
+                }
             }
             return result;
         }
@@ -3143,6 +3226,35 @@ public sealed class StarApiClient : IDisposable
                 : $"Network call failed: {ex.Message}";
             return Fail<string>(msg, StarApiResultCode.Network, ex);
         }
+    }
+
+    /// <summary>Send request with bounded retries on transient network errors (audit: retry with backoff).</summary>
+    private async Task<OASISResult<string>> SendRawWithRetryAsync(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    {
+        OASISResult<string> last = Fail<string>("No attempt.", StarApiResultCode.Network);
+        for (var attempt = 0; attempt < HttpRetryMaxAttempts; attempt++)
+        {
+            if (attempt > 0)
+            {
+                var delayMs = attempt <= HttpRetryDelayMs.Length ? HttpRetryDelayMs[attempt - 1] : HttpRetryDelayMs[^1];
+                try
+                {
+                    await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return last;
+                }
+                StarApiExports.StarApiLogFileOnly($"[HTTP] Retry attempt {attempt + 1}/{HttpRetryMaxAttempts} after {delayMs}ms: {method.Method} {url}");
+            }
+            last = await SendRawAsync(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            if (!last.IsError)
+                return last;
+            var code = ParseCode(last.ErrorCode, StarApiResultCode.ApiError);
+            if (code != StarApiResultCode.Network)
+                return last; /* Don't retry auth or API errors. */
+        }
+        return last;
     }
 
     private async Task<OASISResult<string>> SendRawAsyncCore(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
@@ -3197,7 +3309,7 @@ public sealed class StarApiClient : IDisposable
                 return Success(_avatarId!, StarApiResultCode.Success, "Avatar ID already available.");
         }
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             return new OASISResult<string>
@@ -4045,7 +4157,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         StartUseItemWorker();
         StartQuestObjectiveWorker();
-        // Generic background worker is started lazily when the first Queue* (non–add-item/use-item/quest-objective) method is used. Do not start here so games that only use direct/blocking APIs (e.g. star_api_get_inventory) do not get an extra worker thread that can contribute to freezes or thread-pool pressure.
+        // Generic and dedicated workers (AuthSession, Profile, Inventory, Quests) are started lazily when first used.
     }
 
     private void StopWorkers()
@@ -4054,6 +4166,15 @@ public sealed class StarApiClient : IDisposable
         StopUseItemWorker();
         StopQuestObjectiveWorker();
         StopGenericBackgroundWorker();
+        StopDedicatedWorkers();
+    }
+
+    private void StopDedicatedWorkers()
+    {
+        StopAuthSessionWorker();
+        StopProfileWorker();
+        StopInventoryWorker();
+        StopQuestsWorker();
     }
 
     private void StartGenericBackgroundWorker()
@@ -4090,6 +4211,161 @@ public sealed class StarApiClient : IDisposable
             finally { cts.Dispose(); }
         }
         while (_genericBackgroundQueue.TryDequeue(out _)) { }
+    }
+
+    private void StartAuthSessionWorker()
+    {
+        lock (_authSessionLock)
+        {
+            if (_authSessionWorker is { IsCompleted: false }) return;
+            _authSessionCts = new CancellationTokenSource();
+            _authSessionWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_authSessionQueue, _authSessionSignal, _authSessionCts.Token));
+        }
+    }
+
+    private void StopAuthSessionWorker()
+    {
+        StopDedicatedWorker(_authSessionLock, ref _authSessionCts, ref _authSessionWorker, _authSessionSignal, _authSessionQueue);
+    }
+
+    private void StartProfileWorker()
+    {
+        lock (_profileLock)
+        {
+            if (_profileWorker is { IsCompleted: false }) return;
+            _profileCts = new CancellationTokenSource();
+            _profileWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_profileQueue, _profileSignal, _profileCts.Token));
+        }
+    }
+
+    private void StopProfileWorker()
+    {
+        StopDedicatedWorker(_profileLock, ref _profileCts, ref _profileWorker, _profileSignal, _profileQueue);
+    }
+
+    private void StartInventoryWorker()
+    {
+        lock (_inventoryLock)
+        {
+            if (_inventoryWorker is { IsCompleted: false }) return;
+            _inventoryCts = new CancellationTokenSource();
+            _inventoryWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_inventoryQueue, _inventorySignal, _inventoryCts.Token));
+        }
+    }
+
+    private void StopInventoryWorker()
+    {
+        StopDedicatedWorker(_inventoryLock, ref _inventoryCts, ref _inventoryWorker, _inventorySignal, _inventoryQueue);
+    }
+
+    private void StartQuestsWorker()
+    {
+        lock (_questsLock)
+        {
+            if (_questsWorker is { IsCompleted: false }) return;
+            _questsCts = new CancellationTokenSource();
+            _questsWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_questsQueue, _questsSignal, _questsCts.Token));
+        }
+    }
+
+    private void StopQuestsWorker()
+    {
+        StopDedicatedWorker(_questsLock, ref _questsCts, ref _questsWorker, _questsSignal, _questsQueue);
+    }
+
+    private static async Task ProcessDedicatedWorkerAsync(ConcurrentQueue<Func<CancellationToken, Task>> queue, SemaphoreSlim signal, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await signal.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { break; }
+            while (queue.TryDequeue(out var job))
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+                try
+                {
+                    await job(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { break; }
+                catch { /* TCS already set */ }
+            }
+        }
+    }
+
+    private void StopDedicatedWorker(object lockObj, ref CancellationTokenSource? cts, ref Task? worker, SemaphoreSlim signal, ConcurrentQueue<Func<CancellationToken, Task>> queue)
+    {
+        CancellationTokenSource? c;
+        Task? w;
+        lock (lockObj)
+        {
+            c = cts; w = worker;
+            cts = null; worker = null;
+        }
+        if (c is not null)
+        {
+            try
+            {
+                c.Cancel();
+                signal.Release();
+                w?.GetAwaiter().GetResult();
+            }
+            catch { }
+            finally { c.Dispose(); }
+        }
+        while (queue.TryDequeue(out _)) { }
+    }
+
+    /// <summary>Run an operation on a dedicated worker (AuthSession, Profile, Inventory, Quests) so it doesn't block the generic worker or other domains.</summary>
+    private Task<OASISResult<T>> RunOnWorkerAsync<T>(DedicatedWorker workerType, Func<CancellationToken, Task<OASISResult<T>>> operation, CancellationToken cancellationToken)
+    {
+        if (!IsInitialized())
+            return Task.FromResult(FailAndCallback<T>("Client is not initialized.", StarApiResultCode.NotInitialized));
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<OASISResult<T>>(cancellationToken);
+
+        var tcs = new TaskCompletionSource<OASISResult<T>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (cancellationToken.CanBeCanceled)
+            cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+
+        var run = async (CancellationToken workerCt) =>
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(workerCt, cancellationToken);
+            try
+            {
+                var result = await operation(linked.Token).ConfigureAwait(false);
+                tcs.TrySetResult(result);
+            }
+            catch (OperationCanceledException) { tcs.TrySetCanceled(); }
+            catch (Exception ex) { tcs.TrySetResult(Fail<T>(ex.Message, StarApiResultCode.Network, ex)); }
+        };
+
+        switch (workerType)
+        {
+            case DedicatedWorker.AuthSession:
+                _authSessionQueue.Enqueue(run);
+                _authSessionSignal.Release();
+                StartAuthSessionWorker();
+                break;
+            case DedicatedWorker.Profile:
+                _profileQueue.Enqueue(run);
+                _profileSignal.Release();
+                StartProfileWorker();
+                break;
+            case DedicatedWorker.Inventory:
+                _inventoryQueue.Enqueue(run);
+                _inventorySignal.Release();
+                StartInventoryWorker();
+                break;
+            case DedicatedWorker.Quests:
+                _questsQueue.Enqueue(run);
+                _questsSignal.Release();
+                StartQuestsWorker();
+                break;
+        }
+        return tcs.Task;
     }
 
     private async Task ProcessGenericBackgroundJobsAsync(CancellationToken cancellationToken)
@@ -5414,6 +5690,7 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_inventory", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetInventory(star_item_list_t** itemList)
     {
+        StarApiExports.StarApiLogFileOnly("[Inventory] StarApiGetInventory (native) called");
         if (itemList is null)
             return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam, StarApiOpGetInventory);
 
@@ -5421,16 +5698,21 @@ public static unsafe class StarApiExports
 
         var client = GetClient();
         if (client is null)
+        {
+            StarApiExports.StarApiLogFileOnly("[Inventory] StarApiGetInventory: client is null");
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetInventory);
+        }
 
         var result = client.GetInventoryAsync().GetAwaiter().GetResult();
         var resultCode = ExtractCode(result);
         if (result.IsError || result.Result is null)
         {
+            StarApiExports.StarApiLogFileOnly($"[Inventory] StarApiGetInventory: GetInventoryAsync failed IsError={result.IsError} ResultNull={result.Result is null} Message={result.Message ?? "null"}");
             SetError(result.Message ?? "Failed to load inventory.");
             InvokeOperationCallback(resultCode, StarApiOpGetInventory);
             return (int)resultCode;
         }
+        StarApiExports.StarApiLogFileOnly($"[Inventory] StarApiGetInventory: success count={result.Result.Count}");
 
         var count = (nuint)result.Result.Count;
         var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));

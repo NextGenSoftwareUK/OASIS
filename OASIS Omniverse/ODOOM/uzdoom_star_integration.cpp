@@ -240,6 +240,8 @@ static bool g_star_logged_runtime_auth_failure = false;
 static bool g_star_logged_missing_auth_config = false;
 /** Set true when restore-session path runs; frame pump sets tracker to "Loading..." once CVars are safe. */
 static bool g_odoom_pending_loading_tracker = false;
+/** Set true when STAR API invokes operation callback with ProfileLoaded success; frame pump then fills tracker from cache (audit: single source of truth for "profile loaded"). */
+static bool g_odoom_profile_loaded_pending = false;
 static bool g_star_cli_loaded = false;
 static std::string g_star_override_username;
 static std::string g_star_override_password;
@@ -1235,6 +1237,13 @@ static void ODOOM_StartInventorySyncIfNeeded(void) {
 	/* No-op: heavy lifting (sync, local delta, multithreading) is in C# StarApiClient. */
 }
 
+/** Called from C# client when an async operation completes (e.g. ProfileLoaded after restore or refresh). Run on client thread; we only set a flag and let the frame pump apply it on the main thread. */
+static void ODOOM_StarApiOperationCallback(star_api_result_t result, int operation_type, void* user_data) {
+	(void)user_data;
+	if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
+		g_odoom_profile_loaded_pending = true;
+}
+
 /** Called from main thread by star_sync_pump() when auth completes. */
 static void ODOOM_OnAuthDone(void* user_data) {
 	(void)user_data;
@@ -1880,6 +1889,33 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					titleVar->SetGenericRep(t, CVAR_String);
 				}
 				g_odoom_pending_loading_tracker = false;
+			}
+			/* When client invoked ProfileLoaded (restore or refresh done), fill tracker from cache on next frame (audit: no timing dependency on polling). */
+			if (g_odoom_profile_loaded_pending) {
+				g_odoom_profile_loaded_pending = false;
+				FBaseCVar* tidVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+				FBaseCVar* titleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+				char qid[64] = {};
+				char oid[64] = {};
+				if (star_api_get_active_quest_id(qid, sizeof(qid)) && qid[0]) {
+					if (tidVar && tidVar->GetRealType() == CVAR_String) {
+						UCVarValue u; u.String = qid;
+						tidVar->SetGenericRep(u, CVAR_String);
+					}
+					if (titleVar && titleVar->GetRealType() == CVAR_String) {
+						UCVarValue t; t.String = (char*)"Loading...";
+						titleVar->SetGenericRep(t, CVAR_String);
+					}
+					if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {
+						FBaseCVar* oidVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+						if (oidVar && oidVar->GetRealType() == CVAR_String) {
+							UCVarValue u; u.String = oid;
+							oidVar->SetGenericRep(u, CVAR_String);
+						}
+					}
+					star_api_refresh_quest_cache_in_background();
+					ODOOM_RefreshQuestCVars();
+				}
 			}
 			FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
 			const char* trackerId = (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) ? trackerIdVar->GetGenericRep(CVAR_String).String : nullptr;
@@ -2528,6 +2564,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		g_star_client_ready = true;
 		g_star_init_failed_this_session = false;
 		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
+		star_api_set_operation_callback(ODOOM_StarApiOperationCallback, nullptr);
 	}
 	/* Always (re)apply WEB4 OASIS URL when set so auth/refresh use the correct host (e.g. after reloadconfig or if init ran before oasisstar.json loaded). */
 	{
