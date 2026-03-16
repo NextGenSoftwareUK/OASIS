@@ -1371,9 +1371,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 				}
 			}
 			/* Start loading quest list so tracker title/objective show without opening popup (ODOOM_RefreshQuestCVars will use cache when ready). */
-#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
 			star_api_refresh_quest_cache_in_background();
-#endif
 			ODOOM_RefreshQuestCVars();  /* push once immediately in case cache already has data */
 		}
 		/* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
@@ -1921,11 +1919,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		static int s_quest_popup_was_open = 0;
 		static int s_quest_refresh_frames = 0;
 		if (questPopupOpen && !s_quest_popup_was_open) {
-#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
 			star_api_refresh_quest_cache_in_background();
-#else
-			/* Without new API: do not invalidate – show existing cache and let 60-frame refresh update when fetch completes. */
-#endif
 			ODOOM_RefreshQuestCVars();  /* push current cache to CVars so list shows immediately */
 			s_quest_refresh_frames = 0; /* do not run 60-frame refresh this frame */
 		}
@@ -1977,9 +1971,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 							oidVar->SetGenericRep(u, CVAR_String);
 						}
 					}
-#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
+					star_api_invalidate_quest_cache();
 					star_api_refresh_quest_cache_in_background();
-#endif
 					ODOOM_RefreshQuestCVars();
 				}
 			} else {

@@ -472,8 +472,6 @@ public sealed class StarApiClient : IDisposable
         /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
         StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
         StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded (operation callback invoked)");
-        /* Start proactive JWT refresh so token is renewed before expiry (same as after manual beam-in). */
-        ScheduleBackgroundTokenRefresh();
         return Success(true, StarApiResultCode.Success, "Session restored.");
     }
 
@@ -724,7 +722,10 @@ public sealed class StarApiClient : IDisposable
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: not initialized");
             return FailAndCallback<List<StarItem>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         Task<OASISResult<List<StarItem>>>? task;
         lock (_inventoryCacheLock)
@@ -732,11 +733,15 @@ public sealed class StarApiClient : IDisposable
             if (_cachedInventory is not null)
             {
                 var merged = MergeLocalPendingIntoInventory(_cachedInventory);
+                StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: returning cache count={merged.Count}");
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending).");
             }
             if (_inventoryFetchTask is null)
+            {
+                StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: cache miss, starting FetchInventoryOnceAsync");
                 _inventoryFetchTask = FetchInventoryOnceAsync();
+            }
             task = _inventoryFetchTask;
         }
 
@@ -759,8 +764,10 @@ public sealed class StarApiClient : IDisposable
         if (result.Result is not null)
         {
             var merged = MergeLocalPendingIntoInventory(result.Result);
+            StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch completed count={merged.Count}");
             return Success(merged, StarApiResultCode.Success, result.Message ?? $"Loaded {merged.Count} item(s).");
         }
+        StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch failed IsError={result.IsError} Message={result.Message ?? "(null)"}");
         return result;
     }
 
@@ -817,9 +824,11 @@ public sealed class StarApiClient : IDisposable
 
     private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
     {
+        StarApiExports.StarApiLogFileOnly("[Inventory] FetchInventoryOnceAsync: ensuring avatar id");
         var avatarIdResult = await EnsureAvatarIdAsync(CancellationToken.None).ConfigureAwait(false);
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
         {
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: no avatar id Message={avatarIdResult.Message ?? "(null)"}");
             return new OASISResult<List<StarItem>>
             {
                 IsError = true,
@@ -829,27 +838,38 @@ public sealed class StarApiClient : IDisposable
             };
         }
 
+        var url = $"{_baseApiUrl}/api/avatar/inventory";
+        StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: GET {url}");
         try
         {
-            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
+            var response = await SendRawAsync(HttpMethod.Get, url, null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError && ParseCode(response.ErrorCode, StarApiResultCode.ApiError) == StarApiResultCode.Network)
             {
+                StarApiExports.StarApiLogFileOnly("[Inventory] FetchInventoryOnceAsync: first attempt failed (network), retrying once");
                 await Task.Delay(200, CancellationToken.None).ConfigureAwait(false);
-                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
+                response = await SendRawAsync(HttpMethod.Get, url, null, CancellationToken.None).ConfigureAwait(false);
             }
             if (response.IsError)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: GET failed Message={response.Message ?? "(null)"}");
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: parse failed {parseErrorMessage ?? "(null)"}");
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
+            }
 
             var mapped = ParseInventoryItems(resultElement);
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: GET OK parsed count={mapped?.Count ?? 0}");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, $"Loaded {mapped.Count} item(s).");
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: exception {ex.Message}");
             return FailAndCallback<List<StarItem>>($"Failed to load inventory: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -859,6 +879,7 @@ public sealed class StarApiClient : IDisposable
     {
         lock (_inventoryCacheLock)
         {
+            StarApiExports.StarApiLogFileOnly("[Inventory] InvalidateInventoryCache: clearing cache");
             _cachedInventory = null;
             _inventoryFetchTask = null;
         }
@@ -5249,6 +5270,7 @@ public static unsafe class StarApiExports
     private static volatile int _starDebug;
     private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
     private static bool _topLevelQuestsLastLoggedLoading;
+    private static long _lastNoCachedQuestLogTicks;
 
     /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
     internal static bool GetStarDebug() => _starDebug != 0;
@@ -5488,18 +5510,24 @@ public static unsafe class StarApiExports
 
         var client = GetClient();
         if (client is null)
+        {
+            try { StarApiExports.StarApiLogFileOnly("[Inventory] star_api_get_inventory: no client"); } catch { }
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetInventory);
+        }
 
+        try { StarApiExports.StarApiLogFileOnly("[Inventory] star_api_get_inventory: calling GetInventoryAsync (blocking)"); } catch { }
         var result = client.GetInventoryAsync().GetAwaiter().GetResult();
         var resultCode = ExtractCode(result);
         if (result.IsError || result.Result is null)
         {
+            try { StarApiExports.StarApiLogFileOnly($"[Inventory] star_api_get_inventory: failed IsError={result.IsError} Message={result.Message ?? "(null)"} Count={result.Result?.Count ?? -1}"); } catch { }
             SetError(result.Message ?? "Failed to load inventory.");
             InvokeOperationCallback(resultCode, StarApiOpGetInventory);
             return (int)resultCode;
         }
 
         var count = (nuint)result.Result.Count;
+        try { StarApiExports.StarApiLogFileOnly($"[Inventory] star_api_get_inventory: success count={count}"); } catch { }
         var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
         if (listPtr is null)
             return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
@@ -6043,8 +6071,13 @@ public static unsafe class StarApiExports
         var id = client.GetCachedActiveQuestId();
         if (!id.HasValue || id.Value == Guid.Empty)
         {
-            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value"); } catch { }
-            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            var now = Environment.TickCount64;
+            if (now - Volatile.Read(ref _lastNoCachedQuestLogTicks) > 3000)
+            {
+                Volatile.Write(ref _lastNoCachedQuestLogTicks, now);
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value (throttled)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            }
             buf[0] = 0; return 0;
         }
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_quest_id: returning {id}"); } catch { }
@@ -6066,8 +6099,13 @@ public static unsafe class StarApiExports
         var id = client.GetCachedActiveObjectiveId();
         if (!id.HasValue || id.Value == Guid.Empty)
         {
-            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value"); } catch { }
-            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            var now = Environment.TickCount64;
+            if (now - Volatile.Read(ref _lastNoCachedQuestLogTicks) > 3000)
+            {
+                Volatile.Write(ref _lastNoCachedQuestLogTicks, now);
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value (throttled)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            }
             buf[0] = 0; return 0;
         }
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_objective_id: returning {id}"); } catch { }
