@@ -51,6 +51,7 @@ typedef void (*star_api_callback_t)(star_api_result_t result, void* user_data);
 
 /** Operation type for star_api_set_operation_callback. Game can run "profile loaded" only when type is STAR_API_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see StarApiClient.cs StarApiOp* constants. */
 #define STAR_API_OP_PROFILE_LOADED 0
+#define STAR_API_OP_GET_INVENTORY 3
 typedef void (*star_api_operation_callback_t)(star_api_result_t result, int operation_type, void* user_data);
 
 star_api_result_t star_api_init(const star_api_config_t* config);
@@ -74,6 +75,8 @@ star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);
 bool star_api_has_item(const char* item_name);
 star_api_result_t star_api_get_inventory(star_item_list_t** item_list);
+/** Request inventory fetch in background. When done, operation_callback is invoked with STAR_API_OP_GET_INVENTORY. Non-blocking. Call star_api_get_inventory after callback to read cache. */
+void star_api_request_inventory_in_background(void);
 /** Clear client inventory cache. Next star_api_get_inventory will do a real HTTP GET. Use to verify API actually returns items (e.g. after add_item). */
 void star_api_invalidate_inventory_cache(void);
 /** Clear all client caches (e.g. inventory). Same effect as star_api_invalidate_inventory_cache. */

@@ -693,9 +693,6 @@ static void* inventory_thread_proc(void* param) {
     star_sync_local_item_t* local;
     int local_count;
     char default_src[64];
-    star_item_list_t* list = NULL;
-    star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
-    const char* err = NULL;
     int add_item_calls = 0;
 
     (void)param;
@@ -778,19 +775,29 @@ static void* inventory_thread_proc(void* param) {
                 const char* flush_err = star_api_get_last_error();
                 str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
             }
-            /* Do not invalidate cache here: get_inventory below already populates the client cache; invalidating caused a later refetch that could return empty (keys vanished in overlay after beam-in). */
         }
     }
 
-    result = star_api_get_inventory(&list);
-    if (result != STAR_API_SUCCESS) {
-        err = star_api_get_last_error();
-        if (!err || !err[0]) err = "Unknown error";
-    } else if (!list) {
-        result = STAR_API_ERROR_API_ERROR;
-        err = "Inventory API returned success but no data";
-    }
+    /* Non-blocking: request inventory in background. Result is delivered via star_sync_inventory_deliver_result() when operation_callback(STAR_API_OP_GET_INVENTORY) fires. */
+    star_api_request_inventory_in_background();
 
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    g_inv_add_item_calls = add_item_calls;
+    /* g_inv_in_progress stays 1 until star_sync_inventory_deliver_result() is called from the game's operation_callback(GetInventory). */
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+    return 0;
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+    return NULL;
+#endif
+}
+
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg) {
 #ifdef _WIN32
     EnterCriticalSection(&g_inv_lock);
 #else
@@ -798,25 +805,15 @@ static void* inventory_thread_proc(void* param) {
 #endif
     g_inv_in_progress = 0;
     g_inv_has_result = 1;
-    g_inv_add_item_calls = add_item_calls;
     if (g_inv_list)
         star_api_free_item_list(g_inv_list);
     g_inv_list = list;
     g_inv_result = result;
-    str_copy(g_inv_error_msg, err ? err : "", sizeof(g_inv_error_msg));
-    /* If add_item failed (e.g. not logged in / no avatar), surface that so user sees why pickups aren't saved */
-    if (g_inv_add_item_error[0] != '\0') {
-        str_copy(g_inv_error_msg, g_inv_add_item_error, sizeof(g_inv_error_msg));
-        if (g_inv_result == STAR_API_SUCCESS)
-            g_inv_result = STAR_API_ERROR_NOT_INITIALIZED; /* so UI shows error */
-    }
-    /* Callback is invoked from main thread in star_sync_pump(), not from this worker. */
+    str_copy(g_inv_error_msg, error_msg ? error_msg : "", sizeof(g_inv_error_msg));
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
-    return 0;
 #else
     pthread_mutex_unlock(&g_inv_lock);
-    return NULL;
 #endif
 }
 

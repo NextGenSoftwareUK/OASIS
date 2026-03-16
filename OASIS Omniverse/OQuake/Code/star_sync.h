@@ -113,6 +113,9 @@ void star_sync_inventory_clear_result(void);
 /** Non-zero if an inventory refresh is currently in progress */
 int star_sync_inventory_in_progress(void);
 
+/** Deliver inventory result from the game's operation_callback(STAR_API_OP_GET_INVENTORY). Call after star_api_get_inventory() when callback fires. Takes ownership of list (may be NULL on error). */
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg);
+
 /** After a sync completes, returns how many star_api_add_item calls were made (0 = old queue path or no items to add). Call from the inventory-done callback. */
 int star_sync_inventory_get_last_add_item_calls(void);
 
