@@ -2762,6 +2762,7 @@ void OQuake_STAR_Init(void) {
     
     g_star_config.timeout_seconds = 30;
 
+    printf("\n********** GAME LOAD **********\n");
     result = star_api_init(&g_star_config);
     if (result != STAR_API_SUCCESS) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
@@ -2815,6 +2816,8 @@ void OQuake_STAR_Init(void) {
             printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
         } else if (g_oq_saved_jwt[0]) {
             /* Restore session from oasisstar.json so user stays logged in between sessions. */
+            star_api_log_to_file("\n********** OASIS SESSION RESTORE START **********");
+            printf("\n********** OASIS SESSION RESTORE START **********\n");
             result = star_api_set_saved_session(g_oq_saved_jwt);
             if (result == STAR_API_SUCCESS) {
                 if (g_oq_saved_refresh_token[0])
@@ -3474,6 +3477,12 @@ void OQuake_STAR_PollItems(void) {
                 g_quest_tracker_active_display_index = -1;  /* Resolve from objective id in tracker draw */
                 star_api_log_to_file("[OQuake] Profile loaded: restored quest tracker from cache");
             } else {
+                /* Clear tracker so HUD shows current state (no quest), not stale data from previous session. */
+                g_quest_tracker_id[0] = '\0';
+                g_quest_tracker_name[0] = '\0';
+                g_quest_tracker_active_objective_id[0] = '\0';
+                g_quest_tracker_show = 1;
+                g_quest_tracker_active_display_index = -1;
                 star_api_log_to_file("[OQuake] Profile loaded: no active quest in cache");
             }
             if (star_api_get_active_objective_id(oid, sizeof(oid)) && oid[0]) {

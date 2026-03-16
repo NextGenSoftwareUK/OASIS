@@ -8,7 +8,7 @@ Full credit for the underlying engine goes to the UZDoom project. ODOOM is by Ne
 
 # Release notes
 
-ODOOM 1.0 (Build 269) — First release of ODOOM. UZDoom-based port with OASIS STAR API integration for cross-game features in the OASIS Omniverse. Supports keycard sharing with OQuake, STAR inventory, and interoperable games. By NextGen World Ltd.
+ODOOM 1.0 (Build 271) — First release of ODOOM. UZDoom-based port with OASIS STAR API integration for cross-game features in the OASIS Omniverse. Supports keycard sharing with OQuake, STAR inventory, and interoperable games. By NextGen World Ltd.
 
 UZDoom — The base engine. UZDoom is a modern, feature-rich source port for the classic game DOOM. A continuation of ZDoom and GZDoom. See https://github.com/UZDoom/UZDoom
 

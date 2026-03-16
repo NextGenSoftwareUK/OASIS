@@ -2764,6 +2764,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 
 	// Restore session from oasisstar.json so user stays logged in between sessions.
 	if (g_odoom_saved_jwt[0]) {
+		if (logVerbose) StarLogInfo("\n********** OASIS SESSION RESTORE START **********");
 		star_api_result_t result = star_api_set_saved_session(g_odoom_saved_jwt);
 		if (result == STAR_API_SUCCESS) {
 			if (g_odoom_saved_refresh_token[0])
@@ -2924,6 +2925,7 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
 
+	StarLogInfo("\n********** GAME LOAD **********");
 	StarLogInfo("STAR bootstrap: Beaming in...");
 	if (StarTryInitializeAndAuthenticate(true)) { /* C# client handles inventory; overlay refreshes from get_inventory when opened. */ }
 	Printf(PRINT_NONOTIFY, "STAR: debug=%s auth_source=%s initialized=%s\n",
