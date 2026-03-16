@@ -203,7 +203,9 @@ No new client code is required for a new game; the client remains generic and do
 
 ### Move star_sync into the C# client
 
-**Goal:** Implement all of **star_sync** (async auth, async inventory refresh, async send item, async use item, init/cleanup/pump) inside the C# STARAPIClient and export the same `star_sync_*` C API from the client DLL. Then remove the C implementation (`star_sync.c` / `star_sync.h` usage) from ODOOM and OQuake so games link only the client.
+**Status:** Not done. star_sync is still implemented in C (`star_sync.c`); games compile and link it. The plan below remains the intended next step.
+
+**Goal:** Implement all of **star_sync** (async auth, async inventory refresh, async send item, async use item, init/cleanup/pump) inside the C# STARAPIClient and export the same `star_sync_*` C API from the client DLL. Then remove the C implementation (`star_sync.c`) from ODOOM and OQuake builds; keep `star_sync.h` for the API declarations; games link only the client and call the client’s exports.
 
 **Why:** One codebase for all STAR integration; no duplicate C threading (Win32/pthreads) in each game tree; client owns both API work and async flow. Same contract for games: they still call `star_sync_pump()` once per frame and get callbacks on the main thread.
 

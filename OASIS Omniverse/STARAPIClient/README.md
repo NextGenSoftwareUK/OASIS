@@ -33,6 +33,8 @@ The client (and API responses) use these contract DTOs rather than the backend d
 - **What it does:** Provides async auth and async inventory on background threads, with completion on the main thread via `star_sync_pump()`, so games don’t implement threading. Can sync local items (e.g. push pickups with `has_item` / `add_item`) before fetching inventory. Same flow for ODOOM, OQuake, and other games.
 - **Cache:** Does not hold a cache; it calls `star_api_*` and benefits from the client’s cache.
 
+**Single source of truth:** `star_sync.c` and `star_sync.h` live **only here** in STARAPIClient. ODOOM and OQuake build scripts copy from this folder; there are no other committed copies. **Edit only these files** when you add or change star_sync APIs—nowhere else.
+
 **Why both:** The client does HTTP and caching; star_sync does threading and flow so games stay simple and reusable. Games typically use both: `star_sync_*` for async auth and inventory (e.g. `star_sync_inventory_start` after beam-in), and `star_api_*` for door checks, has_item, use_item, etc.
 
 ### Why is star_sync in C? Could it live in STARAPIClient (C#)?
