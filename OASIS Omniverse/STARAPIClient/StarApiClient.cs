@@ -521,7 +521,7 @@ public sealed class StarApiClient : IDisposable
         StarApiExports.StarApiLogFileOnly("[Auth] Session cleared (expired JWT, refresh failed or no refresh token).");
     }
 
-    /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync).</summary>
+    /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync). Proactively refreshes JWT if expired or expiring within 60s so restore succeeds without waiting for 401.</summary>
     public async Task<OASISResult<bool>> RestoreSessionAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -534,12 +534,24 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("No saved session (JWT) to restore.", StarApiResultCode.InvalidParam);
         }
 
+        /* Proactively refresh if JWT is expired or expiring within 60s so we don't send an expired token and get 401. */
+        var exp = GetJwtExpirationUtc(jwt);
+        if (exp.HasValue && exp.Value <= DateTime.UtcNow.AddSeconds(60))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: JWT expired or expiring soon, refreshing before GET");
+            var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
+            if (refreshed)
+                StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: JWT refreshed, proceeding with GET");
+        }
+
         StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: GET avatar/current to validate saved session");
         var result = await GetCurrentAvatarAsync(cancellationToken, invokeCallback: true).ConfigureAwait(false);
         if (result.IsError)
         {
             StarApiExports.StarApiLogFileOnly($"[Auth] RestoreSession failed: {result.Message}");
-            return FailAndCallback<bool>(result.Message ?? "Session restore failed.", ParseCode(result.ErrorCode, StarApiResultCode.ApiError));
+            var errCode = ParseCode(result.ErrorCode, StarApiResultCode.ApiError);
+            StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
+            return FailAndCallback<bool>(result.Message ?? "Session restore failed.", errCode);
         }
         /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
         StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
@@ -3119,6 +3131,10 @@ public sealed class StarApiClient : IDisposable
         try
         {
             var url = $"{baseUrl}/api/avatar/refresh-token";
+            var usedOasis = !string.IsNullOrWhiteSpace(oasisBase);
+            StarApiExports.StarApiLog($"[Auth] Token refresh: POST {(usedOasis ? "OASIS" : "STAR API")} url={url}");
+            /* Do not send Authorization header: ONODE JwtMiddleware validates the JWT on every request. If we send the expired JWT, middleware returns 401 before the refresh-token controller runs. Refresh uses the Cookie only. */
+            _httpClient.DefaultRequestHeaders.Remove("Authorization");
             using var request = new HttpRequestMessage(HttpMethod.Post, url);
             request.Headers.Add("Cookie", "refreshToken=" + Uri.EscapeDataString(refreshToken));
             request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
@@ -3129,7 +3145,7 @@ public sealed class StarApiClient : IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
-                StarApiExports.StarApiLog($"[Auth] Token refresh failed: HTTP {(int)response.StatusCode}");
+                StarApiExports.StarApiLog($"[Auth] Token refresh failed: HTTP {(int)response.StatusCode} from {url}");
                 return false;
             }
 
