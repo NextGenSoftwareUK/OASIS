@@ -131,6 +131,28 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+
+static void star_api_set_refresh_token_impl(const char* refresh_token) {
+	typedef void (__cdecl *fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_refresh_token");
+	}
+	if (fn) fn(refresh_token);
+}
+void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
+
+static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_refresh_token");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
 #else
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
 	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
@@ -191,6 +213,30 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+
+static void star_api_set_refresh_token_impl(const char* refresh_token) {
+	typedef void (*fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_set_refresh_token");
+	}
+	if (fn) fn(refresh_token);
+}
+void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
+
+static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_refresh_token");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
 #endif
 #endif
 
@@ -255,6 +301,7 @@ static char g_json_config_path[512] = {0};
 /* Persisted session for restore on next launch (loaded/saved from oasisstar.json). JWT not logged. */
 static char g_oq_saved_username[128] = {0};
 static char g_oq_saved_jwt[2048] = {0};
+static char g_oq_saved_refresh_token[2048] = {0};
 /* Frames until we re-apply oasisstar.json (so mint etc. override config.cfg). Set in Init when json path found. */
 static int g_oq_reapply_json_frames = -1;
 /* Last pickup synced to STAR (for star lastpickup). */
@@ -1673,6 +1720,10 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         q_strlcpy(g_oq_saved_jwt, value, sizeof(g_oq_saved_jwt));
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "refresh_token", value, sizeof(value)) && value[0]) {
+        q_strlcpy(g_oq_saved_refresh_token, value, sizeof(g_oq_saved_refresh_token));
+        loaded = 1;
+    }
     /* Per-monster mint: mint_monster_oquake_dog, etc. Default 1 if key missing. */
     {
         int i, j;
@@ -1784,6 +1835,15 @@ static int OQ_SaveJsonConfig(const char *json_path) {
                 Con_Printf("OQuake: Could not get JWT from STAR API (autologin will not work). Rebuild STARAPIClient (clean bin/obj) and run BUILD_AND_DEPLOY_STAR_CLIENT.bat so star_api.dll exports session APIs.\n");
             }
         }
+        {
+            char refresh_buf[2048] = {0};
+            if (star_api_get_current_refresh_token((char*)refresh_buf, sizeof(refresh_buf)) > 0 && refresh_buf[0]) {
+                q_strlcpy(g_oq_saved_refresh_token, refresh_buf, sizeof(g_oq_saved_refresh_token));
+                fprintf(f, ",\n  \"refresh_token\": \"");
+                { const char* p; for (p = refresh_buf; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+                fprintf(f, "\"");
+            }
+        }
     } else if (g_oq_saved_username[0] || g_oq_saved_jwt[0]) {
         /* Preserve existing saved session when saving config without STAR init (e.g. early exit). */
         if (g_oq_saved_username[0]) {
@@ -1794,6 +1854,11 @@ static int OQ_SaveJsonConfig(const char *json_path) {
         if (g_oq_saved_jwt[0]) {
             fprintf(f, ",\n  \"jwt_token\": \"");
             { const char* p; for (p = g_oq_saved_jwt; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
+            fprintf(f, "\"");
+        }
+        if (g_oq_saved_refresh_token[0]) {
+            fprintf(f, ",\n  \"refresh_token\": \"");
+            { const char* p; for (p = g_oq_saved_refresh_token; *p; p++) { if (*p == '"' || *p == '\\') fputc('\\', f); fputc((unsigned char)*p, f); } }
             fprintf(f, "\"");
         }
     }
@@ -2644,6 +2709,8 @@ void OQuake_STAR_Init(void) {
             /* Restore session from oasisstar.json so user stays logged in between sessions. */
             result = star_api_set_saved_session(g_oq_saved_jwt);
             if (result == STAR_API_SUCCESS) {
+                if (g_oq_saved_refresh_token[0])
+                    star_api_set_refresh_token(g_oq_saved_refresh_token);
                 g_star_initialized = 1;
                 if (g_oq_saved_username[0])
                     q_strlcpy(g_star_username, g_oq_saved_username, sizeof(g_star_username));
