@@ -1373,6 +1373,8 @@ static void ODOOM_StarApiOperationCallback(star_api_result_t result, int operati
 	(void)user_data;
 	if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
 		g_odoom_profile_loaded_pending = true;
+	if (operation_type == STAR_API_OP_PROFILE_LOADED && result != STAR_API_SUCCESS)
+		Printf(PRINT_NONOTIFY, "Session restore failed (session may have expired). Use 'star beamin' to log in again.\n");
 	if (operation_type == STAR_API_OP_GET_INVENTORY) {
 		star_item_list_t* list = nullptr;
 		if (result == STAR_API_SUCCESS)
@@ -2714,12 +2716,19 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
 		star_api_set_operation_callback(ODOOM_StarApiOperationCallback, nullptr);
 	}
-	/* Always (re)apply WEB4 OASIS URL when set so auth/refresh use the correct host (e.g. after reloadconfig or if init ran before oasisstar.json loaded). */
+	/* Always (re)apply WEB4 OASIS URL when set so auth/refresh use the correct host. Required for token refresh on restore (expired JWT). */
 	{
 		const char* oasis_url = (const char*)odoom_oasis_api_url;
 		if (HasValue(oasis_url)) {
 			star_api_set_oasis_base_url(oasis_url);
 			if (logVerbose) StarLogInfo("WEB4 OASIS API URL set to: %s (for mint/auth/refresh).", oasis_url);
+		} else if (g_odoom_saved_jwt[0]) {
+			/* Saved session but no OASIS URL: refresh will fall back to STAR API and likely fail. Tell user. */
+			static bool s_logged_oasis_missing = false;
+			if (!s_logged_oasis_missing) {
+				s_logged_oasis_missing = true;
+				StarLogInfo("STAR: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"http://localhost:5555\" to oasisstar.json for auto-renew.");
+			}
 		}
 	}
 
