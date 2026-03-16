@@ -1278,16 +1278,19 @@ static void OQ_OnAuthDone(void* user_data) {
     }
 }
 
-/** Operation callback: only treat as "profile loaded" when operation_type is STAR_API_OP_PROFILE_LOADED. Log only profile-loaded or failures to avoid spam (e.g. op=3 get_inventory every frame). */
+/** Operation callback: only treat as "profile loaded" when operation_type is STAR_API_OP_PROFILE_LOADED. Log only ProfileLoaded to file (not GET_INVENTORY failures) to avoid spam. */
 static void OQ_StarApiOperationCallback(star_api_result_t result, int operation_type, void* user_data) {
     (void)user_data;
-    if (operation_type == STAR_API_OP_PROFILE_LOADED || result != STAR_API_SUCCESS) {
+    if (operation_type == STAR_API_OP_PROFILE_LOADED) {
         char buf[160];
         q_snprintf(buf, sizeof(buf), "[OQuake] STAR API operation_callback result=%d op=%d (%s)", (int)result, operation_type, result == STAR_API_SUCCESS ? "Success" : "other");
         star_api_log_to_file(buf);
     }
     if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
         g_star_profile_loaded_pending = 1;
+    if (operation_type == STAR_API_OP_PROFILE_LOADED && result != STAR_API_SUCCESS) {
+        Con_Printf("Session restore failed (session may have expired). Use 'star beamin' to log in again.\n");
+    }
     if (operation_type == STAR_API_OP_GET_INVENTORY) {
         star_item_list_t* list = NULL;
         if (result == STAR_API_SUCCESS)
@@ -2764,9 +2767,24 @@ void OQuake_STAR_Init(void) {
         printf("OQuake STAR API: Failed to initialize: %s\n", star_api_get_last_error());
     } else {
         star_api_set_operation_callback(OQ_StarApiOperationCallback, NULL);
-        /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
-        if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
-            star_api_set_oasis_base_url(oquake_oasis_api_url.string);
+        /* Always (re)apply WEB4 OASIS URL so auth/refresh use the correct host. Required for token auto-renew on restore. */
+        {
+            const char *oasis_url = oquake_oasis_api_url.string;
+            const char *star_url = oquake_star_api_url.string;
+            if (oasis_url && oasis_url[0]) {
+                star_api_set_oasis_base_url(oasis_url);
+            } else if (g_oq_saved_jwt[0]) {
+                static int s_logged_oasis_missing;
+                if (!s_logged_oasis_missing) {
+                    s_logged_oasis_missing = 1;
+                    printf("OQuake STAR API: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"http://localhost:5555\" to oasisstar.json for auto-renew.\n");
+                }
+            }
+            /* Local dev: if STAR API is localhost but OASIS is still production default, use local OASIS so refresh works. */
+            if (g_oq_saved_jwt[0] && star_url && strstr(star_url, "localhost") &&
+                oasis_url && strstr(oasis_url, "oasisweb4.com")) {
+                star_api_set_oasis_base_url("http://localhost:5555");
+            }
         }
         /* Username: CVAR -> env var */
         username = oquake_star_username.string;
