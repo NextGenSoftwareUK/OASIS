@@ -74,9 +74,20 @@ void star_api_refresh_avatar_profile(void) {
 #endif
 #endif
 
-/* When OQUAKE_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export these (e.g. NativeAOT trimmer). */
+/* When OQUAKE_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Avoids load-time "Entry Point Not Found" when DLL export list lags. */
 #ifdef OQUAKE_STAR_API_SESSION_IMPL
 #ifdef _WIN32
+static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
+	typedef star_api_result_t (__cdecl *fn_t)(const char*, const char*, char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_authenticate_with_jwt_out");
+	}
+	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
+
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (__cdecl *fn_t)(const char*);
 	static fn_t fn;
@@ -121,6 +132,18 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
 #else
+static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
+	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_authenticate_with_jwt_out");
+	}
+	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
+}
+star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
+
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (*fn_t)(const char*);
 	static fn_t fn;
@@ -1114,7 +1137,12 @@ static void OQ_OnAuthDone(void* user_data) {
     (void)user_data;
     if (!star_sync_auth_get_result(&success, username, sizeof(username), avatar_id, sizeof(avatar_id), error_msg, sizeof(error_msg)))
         return;
+    char jwt_buf[2048] = {0};
+    star_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
     if (success) {
+        /* Persist JWT from auth result so oasisstar.json has jwt_token for autobeamin (avoids relying on get_current_jwt export). */
+        if (jwt_buf[0])
+            q_strlcpy(g_oq_saved_jwt, jwt_buf, sizeof(g_oq_saved_jwt));
         g_star_initialized = 1;
         q_strlcpy(g_star_username, username, sizeof(g_star_username));
         Cvar_Set("oquake_star_username", username);
