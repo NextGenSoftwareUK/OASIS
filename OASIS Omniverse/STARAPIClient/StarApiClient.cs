@@ -277,6 +277,9 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
         }
 
+        // Allow this login request through: clear "session expired" short-circuit so user can beam in again after 401.
+        lock (_stateLock) { _sessionExpiredCleared = false; }
+
         try
         {
             var payload = BuildJson(writer =>
@@ -481,6 +484,19 @@ public sealed class StarApiClient : IDisposable
         }
         StarApiExports.StarApiLogFileOnly("[Auth] SetSavedSession: JWT set, avatar id from token");
         return Success(true, StarApiResultCode.Success, "Saved session set.");
+    }
+
+    /// <summary>Set refresh token from persisted session (e.g. oasisstar.json). Call after SetSavedSession when restoring so 401 can trigger token refresh. Optional.</summary>
+    public void SetRefreshToken(string? refreshToken)
+    {
+        lock (_stateLock)
+            _refreshToken = string.IsNullOrWhiteSpace(refreshToken) ? null : refreshToken.Trim();
+    }
+
+    /// <summary>Current refresh token (for saving to oasisstar.json). Empty if none. Caller should not log.</summary>
+    public string? GetCurrentRefreshToken()
+    {
+        lock (_stateLock) return _refreshToken;
     }
 
     /// <summary>Clear in-memory session (JWT, refresh token, avatar id) and Authorization header after 401 when refresh fails. Stops sending expired token and avoids request spam until user re-logs in.</summary>
@@ -5535,8 +5551,10 @@ public static unsafe class StarApiExports
     /// <summary>Trimmer root: keep all members so session/JWT exports stay in star_api.dll for forwarders and autologin.</summary>
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(StarApiExports))]
     [DynamicDependency("StarApiGetCurrentJwt", typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentRefreshToken", typeof(StarApiExports))]
     [DynamicDependency("StarApiGetCurrentUsername", typeof(StarApiExports))]
     [DynamicDependency("StarApiSetSavedSession", typeof(StarApiExports))]
+    [DynamicDependency("StarApiSetRefreshToken", typeof(StarApiExports))]
     [DynamicDependency("StarApiRestoreSession", typeof(StarApiExports))]
     [DynamicDependency("StarApiAuthenticateWithJwtOut", typeof(StarApiExports))]
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
@@ -5654,6 +5672,35 @@ public static unsafe class StarApiExports
         }
         StarApiExports.StarApiLogFileOnly($"[Auth] GetCurrentJwt: returning length={jwt.Length} (for oasisstar.json)");
         var bytes = Encoding.UTF8.GetBytes(jwt);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Set refresh token from persisted session (e.g. oasisstar.json). Call after star_api_set_saved_session when restoring so 401 can trigger token refresh.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetRefreshToken(sbyte* refreshToken)
+    {
+        var client = GetClient();
+        if (client is null) return;
+        var s = refreshToken is null ? null : PtrToString(refreshToken);
+        client.SetRefreshToken(s);
+    }
+
+    /// <summary>Write current refresh token to buf (for saving to oasisstar.json). Returns bytes written or 0. Caller should not log.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentRefreshToken(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var token = client?.GetCurrentRefreshToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            buf[0] = 0;
+            return 0;
+        }
+        var bytes = Encoding.UTF8.GetBytes(token);
         var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
         if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
         buf[toCopy] = 0;

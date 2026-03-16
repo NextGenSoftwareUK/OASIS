@@ -163,6 +163,28 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+
+static void star_api_set_refresh_token_impl(const char* refresh_token) {
+	typedef void (__cdecl *fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_refresh_token");
+	}
+	if (fn) fn(refresh_token);
+}
+void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
+
+static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
+	typedef int (__cdecl *fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_refresh_token");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
 #else
 #include <dlfcn.h>
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
@@ -224,6 +246,30 @@ static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
+
+static void star_api_set_refresh_token_impl(const char* refresh_token) {
+	typedef void (*fn_t)(const char*);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_set_refresh_token");
+	}
+	if (fn) fn(refresh_token);
+}
+void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
+
+static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
+	typedef int (*fn_t)(char*, size_t);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_refresh_token");
+	}
+	return fn ? fn(buf, buf_size) : 0;
+}
+int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
 #endif
 }
 #endif
@@ -383,6 +429,7 @@ static int g_odoom_reapply_json_frames = -1;
 /** Persisted session for restore on next launch (loaded/saved from oasisstar.json). JWT not logged. */
 static char g_odoom_saved_username[128] = {};
 static char g_odoom_saved_jwt[2048] = {};
+static char g_odoom_saved_refresh_token[2048] = {};
 
 /** When init (e.g. star_api_init) has failed, we skip retrying until user runs beamin again to avoid spamming "couldn't find the host". */
 static bool g_star_init_failed_this_session = false;
@@ -583,6 +630,15 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 			loaded = true;
 		}
 	}
+	{
+		char value_refresh[2048];
+		value_refresh[0] = '\0';
+		if (ODOOM_ExtractJsonValue(json, "refresh_token", value_refresh, (int)sizeof(value_refresh)) && value_refresh[0]) {
+			std::strncpy(g_odoom_saved_refresh_token, value_refresh, sizeof(g_odoom_saved_refresh_token) - 1);
+			g_odoom_saved_refresh_token[sizeof(g_odoom_saved_refresh_token) - 1] = '\0';
+			loaded = true;
+		}
+	}
 	if (loaded) {
 		/* Apply mint and nft_provider to engine cvars so they persist (ini may have loaded 0 before this). */
 		UCVarValue u;
@@ -689,6 +745,19 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 			static int s_odoom_jwt_missing_logged = 0;
 			if (s_odoom_jwt_missing_logged++ == 0)
 				StarLogInfo("ODOOM: Could not get JWT from STAR API (autologin may not work). Rebuild STARAPIClient and run BUILD_AND_DEPLOY_STAR_CLIENT.bat so star_api.dll exports session APIs.");
+		}
+		char refresh_buf[2048] = {};
+		if (star_api_get_current_refresh_token(refresh_buf, sizeof(refresh_buf)) > 0 && refresh_buf[0]) {
+			std::strncpy(g_odoom_saved_refresh_token, refresh_buf, sizeof(g_odoom_saved_refresh_token) - 1);
+			g_odoom_saved_refresh_token[sizeof(g_odoom_saved_refresh_token) - 1] = '\0';
+		}
+		if (g_odoom_saved_refresh_token[0]) {
+			fprintf(f, ",\n  \"refresh_token\": \"");
+			for (const char* p = g_odoom_saved_refresh_token; *p; p++) {
+				if (*p == '"' || *p == '\\') fputc('\\', f);
+				fputc((unsigned char)*p, f);
+			}
+			fprintf(f, "\"");
 		}
 	}
 	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
@@ -2609,6 +2678,8 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	if (g_odoom_saved_jwt[0]) {
 		star_api_result_t result = star_api_set_saved_session(g_odoom_saved_jwt);
 		if (result == STAR_API_SUCCESS) {
+			if (g_odoom_saved_refresh_token[0])
+				star_api_set_refresh_token(g_odoom_saved_refresh_token);
 			result = star_api_restore_session();
 			if (result == STAR_API_SUCCESS) {
 				g_star_initialized = true;
