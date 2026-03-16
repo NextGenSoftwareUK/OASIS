@@ -78,31 +78,36 @@ if not defined STAR_DLL (
 
 if not exist "%STARAPICLIENT%\star_api.h" (echo star_api.h not found: %STARAPICLIENT% & pause & exit /b 1)
 
-REM --- QuakeC tree ---
-if not exist "%QUAKE_SRC%" (echo Quake source not found: %QUAKE_SRC% & echo Edit QUAKE_SRC at top of script. & pause & exit /b 1)
-
-REM --- star_sync (generic async layer from STARAPIClient). Copy only when OQuake has none, so local edits are not overwritten every build. ---
+REM --- star_sync (shared with Doom): always copy from STARAPIClient so Quake uses the same star_sync as Doom and the client. ---
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "OQUAKE_CODE=%OQUAKE_INTEGRATION%Code\"
-if not exist "%OQUAKE_CODE%star_sync.c" if exist "%STARAPICLIENT%\star_sync.c" (
+if exist "%STARAPICLIENT%\star_sync.c" (
     if not exist "%OQUAKE_CODE%" mkdir "%OQUAKE_CODE%"
     copy /Y "%STARAPICLIENT%\star_sync.c" "%OQUAKE_CODE%" >nul
     copy /Y "%STARAPICLIENT%\star_sync.h" "%OQUAKE_CODE%" >nul
 )
 
+REM --- Require at least vkQuake to build the exe. quake-rerelease-qc (QUAKE_SRC) is optional if you only run BUILD QUAKE. ---
+if not defined VKQUAKE_SRC (echo VKQUAKE_SRC not set. Set it at top of script ^(e.g. C:\Source\vkQuake^) to build the engine. & echo Optional: set QUAKE_SRC to also copy integration into a QuakeC tree. & goto :done)
+if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" (echo vkQuake source not found or incomplete: %VKQUAKE_SRC% & goto :done)
+
 echo.
 echo [OQuake] Installing...
-copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%QUAKE_SRC%\" >nul
-copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%QUAKE_SRC%\" >nul
-copy /Y "%OQUAKE_CODE%oquake_version.h" "%QUAKE_SRC%\" >nul
-copy /Y "%OQUAKE_INTEGRATION%Docs\WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
-copy /Y "%OQUAKE_CODE%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
-copy /Y "%STARAPICLIENT%\star_api.h" "%QUAKE_SRC%\" >nul
-if exist "%OQUAKE_CODE%star_sync.c" copy /Y "%OQUAKE_CODE%star_sync.c" "%QUAKE_SRC%\" >nul
-if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%QUAKE_SRC%\" >nul
-copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
-if defined STAR_LIB copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
-echo   %QUAKE_SRC%
+if exist "%QUAKE_SRC%" (
+    copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_CODE%oquake_version.h" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_INTEGRATION%Docs\WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
+    copy /Y "%OQUAKE_CODE%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
+    copy /Y "%STARAPICLIENT%\star_api.h" "%QUAKE_SRC%\" >nul
+    if exist "%OQUAKE_CODE%star_sync.c" copy /Y "%OQUAKE_CODE%star_sync.c" "%QUAKE_SRC%\" >nul
+    if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%QUAKE_SRC%\" >nul
+    copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
+    if defined STAR_LIB copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
+    echo   %QUAKE_SRC%
+) else (
+    echo   QUAKE_SRC not set or missing; skipping copy to QuakeC tree ^(only vkQuake will get integration^).
+)
 
 REM --- vkQuake: apply + build ---
 if not defined VKQUAKE_SRC goto :done

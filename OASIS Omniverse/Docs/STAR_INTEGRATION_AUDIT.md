@@ -19,10 +19,67 @@ STARAPIClient is under `OASIS Omniverse/STARAPIClient/`. Editing files under UZD
 
 The **star_sync** layer (async auth/inventory/send-item, C) is shared. The copy flow determines where to edit it:
 
-- **BUILD DOOM:** `BUILD ODOOM.bat` first copies **STARAPIClient** `star_sync.c` and `star_sync.h` **into ODOOM** (if they exist in STARAPIClient), then copies ODOOM files (including `star_sync.*`) to UZDoom. So the version that ends up in UZDoom is the one from **STARAPIClient**. **Edits to star_sync for Doom must be in `OASIS Omniverse/STARAPIClient/star_sync.c` and `star_sync.h`**; changes only in ODOOM are overwritten each build.
-- **BUILD QUAKE:** `BUILD_OQUAKE.bat` copies from **OQuake/Code** (and optionally from STARAPIClient into OQuake/Code if OQuake has no `star_sync.c` yet), then OQuake/Code to vkQuake/Quake. So for Quake, **edit `OASIS Omniverse/OQuake/Code/star_sync.c` and `star_sync.h`** (or ensure STARAPIClient has the canonical version if OQuake copies from there).
+- **BUILD DOOM:** `BUILD ODOOM.bat` first copies **STARAPIClient** `star_sync.c` and `star_sync.h` **into ODOOM** (if they exist in STARAPIClient), then copies ODOOM files (including `star_sync.*`) to UZDoom.
+- **BUILD QUAKE:** `BUILD_OQUAKE.bat` always copies **STARAPIClient** `star_sync.c` and `star_sync.h` **into OQuake/Code** (overwriting), then OQuake/Code to quake-rerelease-qc and vkQuake/Quake. OQuake/Code no longer keeps its own copy.
 
-Summary: for **ODOOM**, the canonical shared C sync layer is in **STARAPIClient**; for **OQuake**, it is in **OQuake/Code** (or STARAPIClient when the script copies from there).
+**Edits to star_sync for both Doom and Quake must be in `OASIS Omniverse/STARAPIClient/star_sync.c` and `star_sync.h`** — single source of truth. OQuake/Code and ODOOM no longer contain committed copies; build scripts copy from STARAPIClient only.
+
+### quake-rerelease-qc vs vkQuake (why two trees, no duplication of “the same engine”)
+
+**quake-rerelease-qc** and **vkQuake** are not two copies of the same thing:
+
+| Repo / tree | What it is | What gets built |
+|-------------|------------|------------------|
+| **quake-rerelease-qc** | **QuakeC source** (game logic): `.qc` files (defs, items, doors, etc.), maps, 2021 rerelease content. This is the *content* that runs *inside* the engine. | **progs.dat** (and related game data). No executable. |
+| **vkQuake** | **Engine** (C/C++): the executable that loads progs and runs the game. OQuake = vkQuake + OASIS STAR integration. | **OQUAKE.exe** (or vkquake.exe), which loads progs from the game dir. |
+
+So quake-rerelease-qc is the **game/mod side** (QuakeC + data); vkQuake is the **engine**. There is no duplication of the engine between them.
+
+**If you only run BUILD QUAKE, quake-rerelease-qc is redundant.**
+
+The script does **not** compile progs.dat or copy any output from quake-rerelease-qc into the exe. The exe is built only from vkQuake’s C/C++. So for the typical workflow (“I only run BUILD QUAKE”):
+
+- **You only need vkQuake.** Set `VKQUAKE_SRC` (e.g. `C:\Source\vkQuake`). The script copies the integration into vkQuake and builds the exe. **quake-rerelease-qc (QUAKE_SRC) is optional**; if you don’t set it or the folder is missing, the script skips copying there and still builds the engine.
+- **quake-rerelease-qc** is only needed if you separately compile QuakeC (defs.qc, items.qc, etc.) to progs.dat and want the OQuake integration files in that tree. The engine loads progs.dat at **runtime** from your game dir (id1/, -basedir); it is not part of the BUILD QUAKE step.
+
+**Why does BUILD_OQUAKE copy the same C files into both?**
+
+BUILD_OQUAKE.bat copies OQuake integration (e.g. `oquake_star_integration.c`, `star_sync.c`, `star_api.h`) into:
+
+1. **quake-rerelease-qc** – so the QuakeC tree has the headers and any C sources for reference, or for a build that compiles progs in that tree and expects those files nearby.
+2. **vkQuake/Quake** – this is the tree that actually **compiles** the engine; the exe is built from here.
+
+Only **vkQuake** is compiled into the executable. The copy into quake-rerelease-qc is for consistency/reference; the “single source of truth” for the C integration is **OASIS Omniverse/OQuake/Code/** (and STARAPIClient for star_sync when used). If you only care about running OQuake, you need vkQuake built with those files; quake-rerelease-qc is needed for the **QuakeC progs** (keys, doors, etc.) that the engine loads at runtime.
+
+### Star_sync migration into STARAPIClient (one place for both Quake and Doom)
+
+**Plan:** star_sync (C layer for async auth/inventory/send/use with main-thread callbacks) should live in **one place** – STARAPIClient – and be copied from there for both ODOOM and OQuake, so it is not duplicated and cannot diverge between the two games.
+
+**Current stage**
+
+| Aspect | Status | Notes |
+|--------|--------|-------|
+| **ODOOM** | **Done** | BUILD ODOOM copies **STARAPIClient** `star_sync.c` / `star_sync.h` into ODOOM, then ODOOM → UZDoom. Doom uses only STARAPIClient's star_sync. |
+| **OQuake** | **Done** | BUILD_OQUAKE always copies **STARAPIClient** `star_sync.c` / `star_sync.h` into OQuake/Code (overwriting), then OQuake/Code → quake-rerelease-qc and vkQuake. OQuake/Code no longer keeps its own star_sync; single source is STARAPIClient. |
+| **Full migration** | **Done** | Both Doom and Quake use only STARAPIClient's star_sync. |
+
+**What currently uses star_sync (C layer)**
+
+Both games use star_sync for **async wrappers** so the main thread never blocks on auth/send/use; completion is delivered via **star_sync_pump()** and callbacks.
+
+| Consumer | star_sync APIs used |
+|----------|---------------------|
+| **ODOOM** (uzdoom_star_integration.cpp) | `star_sync_init`, `star_sync_auth_start`, `star_sync_pump`, `star_sync_send_item_start` / `star_sync_send_item_in_progress` / `star_sync_send_item_get_result`, `star_sync_use_item_start` / `star_sync_use_item_in_progress`, `star_sync_inventory_deliver_result` (from operation callback). |
+| **OQuake** (oquake_star_integration.c) | Same pattern: `star_sync_init`, `star_sync_auth_*`, `star_sync_pump`, `star_sync_send_item_*`, `star_sync_use_item_*`, `star_sync_inventory_deliver_result`, `star_sync_inventory_in_progress`. |
+
+star_sync does **not** implement the API; it runs **star_api_*** calls on a worker thread and invokes the game's callback on the main thread. So it is a thin C "async + pump" layer on top of the client.
+
+**What uses STARAPIClient (C# / star_api.dll)**
+
+- **All `star_api_*` native exports** (init, authenticate, get_inventory, set_operation_callback, send_item, use_item, quest APIs, etc.) are implemented in **STARAPIClient** (C# NativeAOT) and exposed via the native AOT DLL (star_api.dll / libstar_api.so).
+- **ODOOM and OQuake** both link to that DLL and call `star_api_*` for every operation that talks to the STAR backend. They also call **star_sync_*** for the async/callback pattern; star_sync in turn calls `star_api_*` on a background thread.
+
+**Summary:** STARAPIClient is the single implementation of the STAR API (C#). star_sync is a small C layer that "async-ifies" a subset of those calls for the games. star_sync now lives only in STARAPIClient and is copied from there for both Doom and Quake (migration complete).
 
 ---
 
