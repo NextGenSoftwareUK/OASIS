@@ -716,18 +716,14 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 4a. CMake: ensure OASIS_STAR_API and ODOOM_STAR_API_SESSION_IMPL are passed to compiler when -DOASIS_STAR_API=ON (session impl = forward JWT/session APIs from DLL at runtime when lib does not export them)
+# 4a. CMake: ensure OASIS_STAR_API and ODOOM_STAR_API_SESSION_IMPL are passed when -DOASIS_STAR_API=ON. Add option OASIS_STAR_SYNC_IN_CLIENT (use star_sync from DLL; when ON, do not compile star_sync.c). Only patch the existing if(OASIS_STAR_API) block at top of root CMake; do NOT insert before add_subdirectory (that caused hundreds of duplicate blocks).
 $cmakeRoot = "$src\CMakeLists.txt"
 if (Test-Path $cmakeRoot) {
     $cmakeContent = Get-Content $cmakeRoot -Raw
     $cmakeChanged = $false
-    if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)') {
+    if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*') {
         if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*STAR_API_DIR') {
-            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`n`$2`$3"
-            $cmakeChanged = $true
-            $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
-        } elseif ($cmakeContent -match '(\r?\n)(add_subdirectory\s*\()') {
-            $cmakeContent = $cmakeContent -replace '(\r?\n)(add_subdirectory\s*\()', "`r`nif(OASIS_STAR_API)`r`n  add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`nendif()`r`n`$1`$2"
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
             $cmakeChanged = $true
             $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
         }
@@ -736,19 +732,52 @@ if (Test-Path $cmakeRoot) {
         $cmakeChanged = $true
         $changes += "cmake(ODOOM_STAR_API_SESSION_IMPL define)"
     }
+    if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'option\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT') {
+        $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(add_compile_definitions|set\s*\(\s*STAR_API_DIR)', "`$1`$2option(OASIS_STAR_SYNC_IN_CLIENT `"Use star_sync from star_api.dll (C#) instead of compiling star_sync.c`" OFF)`r`n`$2`$3"
+        $cmakeChanged = $true
+        $changes += "cmake(option OASIS_STAR_SYNC_IN_CLIENT)"
+    }
+    if ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*' -and $cmakeContent -notmatch 'if\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT\s*\)') {
+        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s+ODOOM_STAR_API_SESSION_IMPL\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
+        $cmakeChanged = $true
+        $changes += "cmake(OASIS_STAR_SYNC_IN_CLIENT define when ON)"
+    }
     if ($cmakeChanged) { Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline }
 }
-# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used (same list as uzdoom_star_integration.cpp)
+# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used and OASIS_STAR_SYNC_IN_CLIENT is OFF (otherwise use star_sync from star_api.dll). Use STAR_SYNC_SRC so it is conditional.
 $cmakeFiles = @()
 if (Test-Path "$src\CMakeLists.txt") { $cmakeFiles += "$src\CMakeLists.txt" }
 if (Test-Path "$src\src\CMakeLists.txt") { $cmakeFiles += "$src\src\CMakeLists.txt" }
+$starSyncSrcBlock = @"
+if(NOT OASIS_STAR_SYNC_IN_CLIENT)
+  set(STAR_SYNC_SRC star_sync.c)
+else()
+  set(STAR_SYNC_SRC "")
+endif()
+"@
 foreach ($cmakePath in $cmakeFiles) {
     if (-not (Test-Path $cmakePath)) { continue }
     $cmakeContent = Get-Content $cmakePath -Raw
-    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c') {
-        $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    star_sync.c"
-        Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
-        $changes += "cmake(star_sync.c)"
+    $cmakeChanged = $false
+    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'STAR_SYNC_SRC') {
+        if ($cmakeContent -match '\r?\n\s*project\s*\([^)]*\)\s*\r?\n') {
+            $cmakeContent = $cmakeContent -replace '(\r?\n\s*project\s*\([^)]*\)\s*\r?\n)', "`$1`$starSyncSrcBlock`r`n"
+            $cmakeChanged = $true
+        } elseif (-not ($cmakeContent -match 'STAR_SYNC_SRC')) {
+            $cmakeContent = $starSyncSrcBlock + "`r`n" + $cmakeContent
+            $cmakeChanged = $true
+        }
+        if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c|\$\{STAR_SYNC_SRC\}') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+            $cmakeChanged = $true
+        } elseif ($cmakeContent -match 'uzdoom_star_integration\.cpp\s*\r?\n\s*star_sync\.c') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)\s*\r?\n\s*star_sync\.c', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+            $cmakeChanged = $true
+        }
+        if ($cmakeChanged) {
+            Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
+            $changes += "cmake(star_sync.c conditional on OASIS_STAR_SYNC_IN_CLIENT)"
+        }
     }
 }
 

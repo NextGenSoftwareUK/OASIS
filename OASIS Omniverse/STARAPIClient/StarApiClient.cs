@@ -5495,6 +5495,18 @@ public unsafe struct star_item_list_t
     public nuint capacity;
 }
 
+/// <summary>C layout for star_sync_local_item_t (name, description, game_source, item_type, nft_id, synced). Used by star_sync_inventory_start.</summary>
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct star_sync_local_item_t
+{
+    public fixed byte name[256];
+    public fixed byte description[512];
+    public fixed byte game_source[64];
+    public fixed byte item_type[64];
+    public fixed byte nft_id[128];
+    public int synced;
+}
+
 public static unsafe class StarApiExports
 {
     private static readonly object Sync = new();
@@ -5806,8 +5818,8 @@ public static unsafe class StarApiExports
         client.RequestInventoryInBackground();
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_free_item_list", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiFreeItemList(star_item_list_t* itemList)
+    /// <summary>Internal helper for StarSyncExports; same logic as star_api_free_item_list so C# can call without going through UnmanagedCallersOnly.</summary>
+    internal static unsafe void FreeItemListInternal(star_item_list_t* itemList)
     {
         if (itemList is null)
             return;
@@ -5816,6 +5828,12 @@ public static unsafe class StarApiExports
             NativeMemory.Free(itemList->items);
 
         NativeMemory.Free(itemList);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_free_item_list", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiFreeItemList(star_item_list_t* itemList)
+    {
+        FreeItemListInternal(itemList);
     }
 
     /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error. Must not throw - native caller can crash.</summary>
@@ -6778,10 +6796,51 @@ public static unsafe class StarApiExports
         return (int)FinalizeResultNoCallback(result);
     }
 
-    private static StarApiClient? GetClient()
+    /// <summary>Used by StarSyncExports (star_sync_* in-client implementation).</summary>
+    internal static StarApiClient? GetClient()
     {
         lock (Sync)
             return _client;
+    }
+
+    /// <summary>Build native star_item_list_t from managed list for star_sync inventory result. Caller must call StarApiFreeItemList when done.</summary>
+    internal static unsafe star_item_list_t* BuildItemListFromInventory(List<StarItem> list)
+    {
+        if (list is null || list.Count == 0)
+        {
+            var empty = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
+            if (empty is not null)
+            {
+                empty->items = null;
+                empty->count = 0;
+                empty->capacity = 0;
+            }
+            return empty;
+        }
+        var count = (nuint)list.Count;
+        var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
+        if (listPtr is null) return null;
+        listPtr->count = count;
+        listPtr->capacity = count;
+        listPtr->items = (star_item_t*)NativeMemory.Alloc(count, (nuint)sizeof(star_item_t));
+        if (listPtr->items is null)
+        {
+            NativeMemory.Free(listPtr);
+            return null;
+        }
+        for (var i = 0; i < list.Count; i++)
+        {
+            var src = list[i];
+            var dst = &listPtr->items[i];
+            WriteFixedUtf8(src.Id.ToString(), dst->id, 64);
+            WriteFixedUtf8(src.Name, dst->name, 256);
+            WriteFixedUtf8(src.Description, dst->description, 512);
+            WriteFixedUtf8(src.GameSource, dst->game_source, 64);
+            WriteFixedUtf8(src.ItemType, dst->item_type, 64);
+            WriteFixedUtf8(src.NftId ?? string.Empty, dst->nft_id, 128);
+            dst->quantity = src.Quantity;
+        }
+        return listPtr;
     }
 
     private static readonly object LogLock = new();
@@ -6941,7 +7000,7 @@ public static unsafe class StarApiExports
             callback((int)code, callbackUserData);
     }
 
-    private static string? PtrToString(sbyte* ptr)
+    internal static string? PtrToString(sbyte* ptr)
     {
         return ptr is null ? null : Marshal.PtrToStringUTF8((nint)ptr);
     }

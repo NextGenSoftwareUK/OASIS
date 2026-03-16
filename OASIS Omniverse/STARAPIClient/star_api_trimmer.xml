@@ -6,5 +6,6 @@
   <assembly fullname="star_api" preserve="all">
     <!-- Explicitly preserve the type that holds all native entry points so trimmer cannot remove any export. -->
     <type fullname="NextGenSoftware.OASIS.STARAPI.Client.StarApiExports" preserve="all" />
+    <type fullname="NextGenSoftware.OASIS.STARAPI.Client.StarSyncExports" preserve="all" />
   </assembly>
 </linker>
