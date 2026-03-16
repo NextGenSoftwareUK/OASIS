@@ -81,6 +81,29 @@ star_sync does **not** implement the API; it runs **star_api_*** calls on a work
 
 **Summary:** STARAPIClient is the single implementation of the STAR API (C#). star_sync is a small C layer that "async-ifies" a subset of those calls for the games. star_sync now lives only in STARAPIClient and is copied from there for both Doom and Quake (migration complete).
 
+### Star_sync: C implementation vs in-client (C#) implementation
+
+STARAPIClient now provides **two** ways to get the star_sync_* API:
+
+| Mode | How it works | When to use |
+|------|----------------|-------------|
+| **C implementation (default)** | Build scripts copy `star_sync.c` and `star_sync.h` from STARAPIClient into the game tree. The game compiles `star_sync.c` and links it with star_api. Same behaviour as before. | Current production; no change to build. |
+| **In-client (C#)** | Define **OASIS_STAR_SYNC_IN_CLIENT** in the game build and **do not** compile `star_sync.c`. The symbols `star_sync_*` are exported from star_api.dll (implemented in `StarSyncExports.cs`). Link only star_api. | After you have verified the C# implementation; one less C file to copy and maintain. |
+
+**To switch to the in-client implementation**
+
+1. In the game’s build (CMakeLists / project): define the preprocessor macro **OASIS_STAR_SYNC_IN_CLIENT**.
+2. Remove **star_sync.c** from the list of sources (do **not** compile it). Keep **star_sync.h** in the build (games still include it; declarations are unchanged).
+3. Ensure the game links to star_api (import lib / DLL). The linker will resolve `star_sync_*` from star_api.
+
+**To switch back to the C implementation**
+
+1. Undefine or remove **OASIS_STAR_SYNC_IN_CLIENT**.
+2. Add **star_sync.c** back to the compiled sources (from STARAPIClient, as copied by BUILD ODOOM / BUILD_OQUAKE).
+3. Rebuild. The C implementation in star_sync.c will be used again.
+
+The C file **star_sync.c** remains in the repo and is still the single source for the C implementation; it is not deleted so you can switch back at any time.
+
 ---
 
 ## 1) STARAPIClient (C# NativeAOT)

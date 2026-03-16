@@ -45,7 +45,7 @@ The client (and API responses) use these contract DTOs rather than the backend d
 
 **Could star_sync be moved into STARAPIClient?**
 
-- Yes. The same C entry points (`star_sync_init`, `star_sync_pump`, `star_sync_inventory_start`, etc.) could be implemented in C# and exported from the client DLL. Background work would use `Task`/async; `star_sync_pump()` would call into C# to run any completed callbacks on the “main” thread (the one that called pump).
+- Yes. The same C entry points are now implemented in C# in **StarSyncExports.cs** and exported from the client DLL. You can use this by defining **OASIS_STAR_SYNC_IN_CLIENT** in the game build and not compiling `star_sync.c`; see `star_sync.h` and **STAR_INTEGRATION_AUDIT.md** for how to switch back to the C implementation. Background work would use `Task`/async; `star_sync_pump()` would call into C# to run any completed callbacks on the “main” thread (the one that called pump).
 
 **Pros of moving star_sync into STARAPIClient (C#)**
 
