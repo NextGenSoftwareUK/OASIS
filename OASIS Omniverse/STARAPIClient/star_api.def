@@ -11,6 +11,7 @@ star_api_get_current_username
 star_api_get_current_jwt
 star_api_set_refresh_token
 star_api_get_current_refresh_token
+star_api_is_session_expired
 star_api_set_oasis_base_url
 star_api_cleanup
 star_api_has_item

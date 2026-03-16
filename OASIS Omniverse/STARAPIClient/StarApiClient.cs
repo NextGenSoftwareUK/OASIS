@@ -499,6 +499,12 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock) return _refreshToken;
     }
 
+    /// <summary>True if session was cleared due to 401 (JWT expired and refresh failed or no refresh token). Games should clear jwt_token/refresh_token in oasisstar.json when saving so the next launch does not try to restore a dead session.</summary>
+    public bool IsSessionExpired()
+    {
+        lock (_stateLock) return _sessionExpiredCleared;
+    }
+
     /// <summary>Clear in-memory session (JWT, refresh token, avatar id) and Authorization header after 401 when refresh fails. Stops sending expired token and avoids request spam until user re-logs in.</summary>
     private void ClearSessionToken()
     {
@@ -5574,6 +5580,7 @@ public static unsafe class StarApiExports
     [DynamicDependency("StarApiGetCurrentUsername", typeof(StarApiExports))]
     [DynamicDependency("StarApiSetSavedSession", typeof(StarApiExports))]
     [DynamicDependency("StarApiSetRefreshToken", typeof(StarApiExports))]
+    [DynamicDependency("StarApiIsSessionExpired", typeof(StarApiExports))]
     [DynamicDependency("StarApiRestoreSession", typeof(StarApiExports))]
     [DynamicDependency("StarApiAuthenticateWithJwtOut", typeof(StarApiExports))]
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
@@ -5724,6 +5731,14 @@ public static unsafe class StarApiExports
         if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
         buf[toCopy] = 0;
         return toCopy;
+    }
+
+    /// <summary>Returns 1 if session was cleared due to expired JWT and refresh failed (or no refresh token). Games should clear jwt_token/refresh_token in oasisstar.json when saving so the next launch does not try to restore a dead session.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_is_session_expired", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiIsSessionExpired()
+    {
+        var client = GetClient();
+        return (client != null && client.IsSessionExpired()) ? 1 : 0;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_cleanup", CallConvs = [typeof(CallConvCdecl)])]
@@ -6320,6 +6335,9 @@ public static unsafe class StarApiExports
         return toCopy;
     }
 
+    private static bool _loggedNoCachedQuestId;
+    private static bool _loggedNoCachedObjectiveId;
+
     /// <summary>Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_active_quest_id", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetActiveQuestId(sbyte* buf, nuint bufSize)
@@ -6330,10 +6348,15 @@ public static unsafe class StarApiExports
         var id = client.GetCachedActiveQuestId();
         if (!id.HasValue || id.Value == Guid.Empty)
         {
-            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value"); } catch { }
-            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            if (!_loggedNoCachedQuestId)
+            {
+                _loggedNoCachedQuestId = true;
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            }
             buf[0] = 0; return 0;
         }
+        _loggedNoCachedQuestId = false;
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_quest_id: returning {id}"); } catch { }
         var str = id.Value.ToString();
         var bytes = Encoding.UTF8.GetBytes(str);
@@ -6353,10 +6376,15 @@ public static unsafe class StarApiExports
         var id = client.GetCachedActiveObjectiveId();
         if (!id.HasValue || id.Value == Guid.Empty)
         {
-            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value"); } catch { }
-            if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            if (!_loggedNoCachedObjectiveId)
+            {
+                _loggedNoCachedObjectiveId = true;
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            }
             buf[0] = 0; return 0;
         }
+        _loggedNoCachedObjectiveId = false;
         try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_objective_id: returning {id}"); } catch { }
         var str = id.Value.ToString();
         var bytes = Encoding.UTF8.GetBytes(str);
