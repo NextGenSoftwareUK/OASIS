@@ -15,6 +15,7 @@ star_api_set_oasis_base_url
 star_api_cleanup
 star_api_has_item
 star_api_get_inventory
+star_api_request_inventory_in_background
 star_api_invalidate_inventory_cache
 star_api_clear_cache
 star_api_free_item_list

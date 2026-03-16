@@ -771,33 +771,24 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
     {
-        StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync called");
         if (!IsInitialized())
-        {
-            StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: client not initialized");
             return FailAndCallback<List<StarItem>>("Client is not initialized.", StarApiResultCode.NotInitialized);
-        }
 
         Task<OASISResult<List<StarItem>>>? task;
         lock (_inventoryCacheLock)
         {
             if (_cachedInventory is not null)
             {
-                StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: cache HIT, count={_cachedInventory.Count}");
                 var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                 InvokeCallback(StarApiResultCode.Success);
                 return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending).");
             }
             if (_inventoryFetchTask is null)
-            {
-                StarApiExports.StarApiLogFileOnly("[Inventory] GetInventoryAsync: cache MISS, starting FetchInventoryOnceAsync");
                 _inventoryFetchTask = FetchInventoryOnceAsync();
-            }
             task = _inventoryFetchTask;
         }
 
         var result = await task.ConfigureAwait(false);
-        StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch completed IsError={result.IsError} ResultCount={result.Result?.Count ?? -1} Message={result.Message ?? "null"}");
         lock (_inventoryCacheLock)
         {
             _inventoryFetchTask = null;
@@ -807,7 +798,6 @@ public sealed class StarApiClient : IDisposable
                 /* Don't replace a non-empty cache with an empty fetch: avoids keys/items vanishing when a refetch (e.g. after sync) returns empty due to timing or API. */
                 if (fetched.Count == 0 && _cachedInventory is not null && _cachedInventory.Count > 0)
                 {
-                    StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: fetch returned 0 items, keeping prior cache count={_cachedInventory.Count}");
                     var merged = MergeLocalPendingIntoInventory(_cachedInventory);
                     return Success(merged, StarApiResultCode.Success, $"Loaded {merged.Count} item(s) (cached + pending, kept prior cache).");
                 }
@@ -817,16 +807,41 @@ public sealed class StarApiClient : IDisposable
         if (result.Result is not null)
         {
             var merged = MergeLocalPendingIntoInventory(result.Result);
-            StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: returning merged count={merged.Count}");
             return Success(merged, StarApiResultCode.Success, result.Message ?? $"Loaded {merged.Count} item(s).");
         }
-        StarApiExports.StarApiLogFileOnly($"[Inventory] GetInventoryAsync: returning error/fail");
         return result;
     }
 
     /// <summary>Run get-inventory on the inventory worker so the calling thread does not block.</summary>
     public Task<OASISResult<List<StarItem>>> QueueGetInventoryAsync(CancellationToken cancellationToken = default) =>
         RunOnWorkerAsync(DedicatedWorker.Inventory, ct => GetInventoryAsync(ct), cancellationToken);
+
+    /// <summary>Return current inventory from cache only (merged with pending). No network. Returns null if cache not populated yet.</summary>
+    public List<StarItem>? TryGetCachedInventory()
+    {
+        lock (_inventoryCacheLock)
+        {
+            if (_cachedInventory is null)
+                return null;
+            return MergeLocalPendingIntoInventory(_cachedInventory);
+        }
+    }
+
+    /// <summary>Request inventory fetch in background. When done, operation_callback is invoked with StarApiOpGetInventory. Non-blocking.</summary>
+    public void RequestInventoryInBackground()
+    {
+        if (!IsInitialized())
+        {
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            return;
+        }
+        _ = QueueGetInventoryAsync().ContinueWith((Task<OASISResult<List<StarItem>>> task) =>
+        {
+            var result = task.IsCompletedSuccessfully ? task.Result : new OASISResult<List<StarItem>> { IsError = true, Message = task.Exception?.Message ?? "Inventory fetch failed." };
+            var code = result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.Success;
+            StarApiExports.InvokeOperationCallback(code, StarApiExports.StarApiOpGetInventory);
+        }, TaskContinuationOptions.None);
+    }
 
     /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
     private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
@@ -877,11 +892,9 @@ public sealed class StarApiClient : IDisposable
 
     private async Task<OASISResult<List<StarItem>>> FetchInventoryOnceAsync()
     {
-        StarApiExports.StarApiLogFileOnly("[Inventory] FetchInventoryOnceAsync started");
         var avatarIdResult = await EnsureAvatarIdAsync(CancellationToken.None).ConfigureAwait(false);
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
         {
-            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: EnsureAvatarId failed IsError={avatarIdResult.IsError} Message={avatarIdResult.Message ?? "null"}");
             return new OASISResult<List<StarItem>>
             {
                 IsError = true,
@@ -890,32 +903,27 @@ public sealed class StarApiClient : IDisposable
                 Exception = avatarIdResult.Exception
             };
         }
-        StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: avatarId ok, GET api/avatar/inventory");
 
         try
         {
             var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError)
             {
-                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: GET failed IsError=true Message={response.Message ?? "null"}");
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
             }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
             {
-                StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: parse failed parseErrorCode={parseErrorCode} parseErrorMessage={parseErrorMessage ?? "null"}");
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
             }
 
             var mapped = ParseInventoryItems(resultElement);
-            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: success mapped count={mapped.Count}");
             InvokeCallback(StarApiResultCode.Success);
             return Success(mapped, StarApiResultCode.Success, $"Loaded {mapped.Count} item(s).");
         }
         catch (Exception ex)
         {
-            StarApiExports.StarApiLogFileOnly($"[Inventory] FetchInventoryOnceAsync: exception {ex.Message}");
             return FailAndCallback<List<StarItem>>($"Failed to load inventory: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
@@ -923,7 +931,6 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Clear the local inventory cache. Next GetInventory/HasItem will hit the API. Call after external inventory changes if needed.</summary>
     public void InvalidateInventoryCache()
     {
-        StarApiExports.StarApiLogFileOnly("[Inventory] InvalidateInventoryCache called");
         lock (_inventoryCacheLock)
         {
             _cachedInventory = null;
@@ -5737,7 +5744,6 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_inventory", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetInventory(star_item_list_t** itemList)
     {
-        StarApiExports.StarApiLogFileOnly("[Inventory] StarApiGetInventory (native) called");
         if (itemList is null)
             return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam, StarApiOpGetInventory);
 
@@ -5745,23 +5751,13 @@ public static unsafe class StarApiExports
 
         var client = GetClient();
         if (client is null)
-        {
-            StarApiExports.StarApiLogFileOnly("[Inventory] StarApiGetInventory: client is null");
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetInventory);
-        }
 
-        var result = client.GetInventoryAsync().GetAwaiter().GetResult();
-        var resultCode = ExtractCode(result);
-        if (result.IsError || result.Result is null)
-        {
-            StarApiExports.StarApiLogFileOnly($"[Inventory] StarApiGetInventory: GetInventoryAsync failed IsError={result.IsError} ResultNull={result.Result is null} Message={result.Message ?? "null"}");
-            SetError(result.Message ?? "Failed to load inventory.");
-            InvokeOperationCallback(resultCode, StarApiOpGetInventory);
-            return (int)resultCode;
-        }
-        StarApiExports.StarApiLogFileOnly($"[Inventory] StarApiGetInventory: success count={result.Result.Count}");
+        var cached = client.TryGetCachedInventory();
+        if (cached is null)
+            return (int)SetErrorAndReturn("Inventory not loaded. Call star_api_request_inventory_in_background first.", StarApiResultCode.ApiError, StarApiOpGetInventory);
 
-        var count = (nuint)result.Result.Count;
+        var count = (nuint)cached.Count;
         var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
         if (listPtr is null)
             return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
@@ -5779,9 +5775,9 @@ public static unsafe class StarApiExports
                 return (int)SetErrorAndReturn("Memory allocation failed for inventory items.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
             }
 
-            for (var i = 0; i < result.Result.Count; i++)
+            for (var i = 0; i < cached.Count; i++)
             {
-                var src = result.Result[i];
+                var src = cached[i];
                 var dst = &listPtr->items[i];
                 WriteFixedUtf8(src.Id.ToString(), dst->id, 64);
                 WriteFixedUtf8(src.Name, dst->name, 256);
@@ -5795,8 +5791,19 @@ public static unsafe class StarApiExports
 
         *itemList = listPtr;
         SetError(string.Empty);
-        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetInventory);
         return (int)StarApiResultCode.Success;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_request_inventory_in_background", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRequestInventoryInBackground()
+    {
+        var client = GetClient();
+        if (client is null)
+        {
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            return;
+        }
+        client.RequestInventoryInBackground();
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_free_item_list", CallConvs = [typeof(CallConvCdecl)])]
