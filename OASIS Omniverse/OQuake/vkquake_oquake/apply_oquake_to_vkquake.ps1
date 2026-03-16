@@ -71,12 +71,8 @@ if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
-# star_sync: always use OQuake Code copy so OQuake-specific sync behaviour is used. Fallback to STARAPIClient only if missing.
-$starSyncRoot = $OQuakeCode
-if (-not (Test-Path (Join-Path $OQuakeCode "star_sync.c"))) {
-    $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
-    Write-Warning "[OQuake] OQuake\Code\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake\Code to avoid overwriting on next apply."
-}
+# star_sync: single source of truth is STARAPIClient. Always copy from there so one place to edit.
+$starSyncRoot = $STARAPIClientRoot
 $files = @(
     @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
     @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
