@@ -71,6 +71,8 @@ int star_sync_auth_get_result(
     char* avatar_id_buf, size_t avatar_id_size,
     char* error_msg_buf, size_t error_msg_size
 );
+/** Copy JWT from last auth result into jwt_buf (call after star_sync_auth_get_result). For oasisstar.json / autobeamin. */
+void star_sync_auth_get_result_jwt(char* jwt_buf, size_t jwt_size);
 
 /** Non-zero if an auth is currently in progress */
 int star_sync_auth_in_progress(void);
