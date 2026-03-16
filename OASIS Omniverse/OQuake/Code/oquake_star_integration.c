@@ -153,6 +153,17 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
+
+static void star_api_request_inventory_in_background_impl(void) {
+	typedef void (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_request_inventory_in_background");
+	}
+	if (fn) fn();
+}
+void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #else
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
 	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
@@ -237,6 +248,18 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
+
+static void star_api_request_inventory_in_background_impl(void) {
+	typedef void (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(NULL, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_request_inventory_in_background");
+	}
+	if (fn) fn();
+}
+void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #endif
 #endif
 
@@ -419,6 +442,8 @@ static int g_inventory_count = 0;
 static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
 static double g_inventory_last_refresh = 0.0;
+static int g_inventory_refresh_pending = 0;  /* set when operation_callback(STAR_API_OP_GET_INVENTORY) fires; main thread applies cache to overlay */
+static int g_inventory_requested = 0;        /* 1 after request_inventory_in_background until callback fires (show Loading...) */
 static char g_inventory_status[128] = "STAR inventory unavailable.";
 static int g_inventory_selected_row = 0;
 static int g_inventory_scroll_row = 0;
@@ -1240,6 +1265,14 @@ static void OQ_StarApiOperationCallback(star_api_result_t result, int operation_
     }
     if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
         g_star_profile_loaded_pending = 1;
+    if (operation_type == STAR_API_OP_GET_INVENTORY) {
+        star_item_list_t* list = NULL;
+        if (result == STAR_API_SUCCESS)
+            star_api_get_inventory(&list);
+        star_sync_inventory_deliver_result(list, result, result != STAR_API_SUCCESS ? star_api_get_last_error() : NULL);
+        g_inventory_requested = 0;
+        g_inventory_refresh_pending = 1;
+    }
 }
 
 /** Called from main thread by star_sync_pump() when send-item completes. */
@@ -1271,33 +1304,62 @@ static void OQ_CheckInventoryRefreshComplete(void) {
     star_sync_pump();
 }
 
-/** Refresh overlay: get_inventory from C# client (returns API + pending merged). */
+/** Refresh overlay: non-blocking. If inventory callback already fired (g_inventory_refresh_pending), apply cache to overlay. Otherwise request in background only once (when not already requested); keep existing list while loading. */
 static void OQ_RefreshOverlayFromClient(void) {
-    star_item_list_t* list = NULL;
-    g_inventory_count = 0;
-    if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
-        size_t i;
-        for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
-            oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
-            q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
-            q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
-            q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
-            q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
-            q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
-            q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
-            dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
-            g_inventory_count++;
+    if (g_inventory_refresh_pending) {
+        star_item_list_t* list = NULL;
+        g_inventory_refresh_pending = 0;
+        g_inventory_count = 0;
+        if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+            size_t i;
+            for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+                oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+                q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
+                q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
+                q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
+                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
+                q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
+                q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
+                dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
+                g_inventory_count++;
+            }
+            star_api_free_item_list(list);
         }
-        star_api_free_item_list(list);
-    } else {
+    } else if (!g_inventory_requested && g_inventory_count == 0) {
+        /* No data yet (e.g. overlay just opened): request once and show Loading until callback delivers. */
+        star_api_request_inventory_in_background();
+        g_inventory_requested = 1;
         if (!star_initialized())
             q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
+        else
+            q_strlcpy(g_inventory_status, "Loading...", sizeof(g_inventory_status));
+    } else {
+        /* Already have items or request in flight: re-read from cache so pickups (add_item merged in C#) show up. */
+        star_item_list_t* list = NULL;
+        if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+            g_inventory_count = 0;
+            size_t i;
+            for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+                oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+                q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
+                q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
+                q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
+                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
+                q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
+                q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
+                dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
+                g_inventory_count++;
+            }
+            star_api_free_item_list(list);
+        }
     }
     g_inventory_last_refresh = realtime;
     /* Do not overwrite status when send is in progress so "Sending..." stays visible in bottom-right. */
     if (star_sync_send_item_in_progress())
         return;
-    if (g_inventory_count == 0)
+    if (g_inventory_requested)
+        q_strlcpy(g_inventory_status, "Loading...", sizeof(g_inventory_status));
+    else if (g_inventory_count == 0)
         q_strlcpy(g_inventory_status, "STAR inventory is empty.", sizeof(g_inventory_status));
     else if (!star_initialized())
         q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Local (%d items) - use STAR BEAMIN to sync", g_inventory_count);
@@ -3380,6 +3442,7 @@ void OQuake_STAR_PollItems(void) {
         }
         star_api_invalidate_quest_cache();
         star_api_refresh_quest_cache_in_background();  /* Start loading quest list so tracker can show name without opening popup */
+        star_api_request_inventory_in_background();    /* Start loading inventory so overlay and door checks have cache */
         star_api_log_to_file("[OQuake] Profile loaded: quest cache invalidated, list will refetch");
         /* Persist session to oasisstar.json now so we stay logged in even if the game crashes before exit. */
         OQ_SaveStarConfigToFiles();

@@ -30,6 +30,8 @@ int star_api_consume_last_mint_result(char* item_name_out, size_t item_name_size
 }
 #endif
 #include "star_sync.h"
+/* C linkage for deliver_result (from star_sync; ensure visible when header is from alternate path). */
+extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg);
 #include "odoom_branding.h"
 
 #include <cstdlib>
@@ -185,6 +187,17 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
+
+static void star_api_request_inventory_in_background_impl(void) {
+	typedef void (__cdecl *fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		HMODULE h = GetModuleHandleA("star_api.dll");
+		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_request_inventory_in_background");
+	}
+	if (fn) fn();
+}
+void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #else
 #include <dlfcn.h>
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
@@ -270,6 +283,18 @@ static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
+
+static void star_api_request_inventory_in_background_impl(void) {
+	typedef void (*fn_t)(void);
+	static fn_t fn;
+	if (!fn) {
+		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
+		if (!h) h = dlopen(nullptr, RTLD_NOW);
+		if (h) fn = (fn_t)dlsym(h, "star_api_request_inventory_in_background");
+	}
+	if (fn) fn();
+}
+void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #endif
 }
 #endif
@@ -288,6 +313,8 @@ static bool g_star_logged_missing_auth_config = false;
 static bool g_odoom_pending_loading_tracker = false;
 /** Set true when STAR API invokes operation callback with ProfileLoaded success; frame pump then fills tracker from cache (audit: single source of truth for "profile loaded"). */
 static bool g_odoom_profile_loaded_pending = false;
+/** Set true when operation_callback(STAR_API_OP_GET_INVENTORY) fires; frame pump then applies cache to CVars. */
+static bool g_odoom_inventory_refresh_pending = false;
 static bool g_star_cli_loaded = false;
 static std::string g_star_override_username;
 static std::string g_star_override_password;
@@ -1012,11 +1039,18 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 		ODOOM_PushInventoryToCVars(nullptr);  /* empty list, count 0 */
 		return;
 	}
-	star_item_list_t* list = nullptr;
-	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return;
-	ODOOM_UpdateStarKeyHudCVars(list);
-	ODOOM_PushInventoryToCVars(list);
-	star_api_free_item_list(list);
+	/* Non-blocking: if inventory callback already fired, apply cache to CVars. Otherwise request in background. */
+	if (g_odoom_inventory_refresh_pending) {
+		g_odoom_inventory_refresh_pending = false;
+		star_item_list_t* list = nullptr;
+		if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+			ODOOM_UpdateStarKeyHudCVars(list);
+			ODOOM_PushInventoryToCVars(list);
+			star_api_free_item_list(list);
+		}
+	} else {
+		star_api_request_inventory_in_background();
+	}
 }
 
 static void StarLogInfo(const char* fmt, ...);
@@ -1311,6 +1345,13 @@ static void ODOOM_StarApiOperationCallback(star_api_result_t result, int operati
 	(void)user_data;
 	if (operation_type == STAR_API_OP_PROFILE_LOADED && result == STAR_API_SUCCESS)
 		g_odoom_profile_loaded_pending = true;
+	if (operation_type == STAR_API_OP_GET_INVENTORY) {
+		star_item_list_t* list = nullptr;
+		if (result == STAR_API_SUCCESS)
+			star_api_get_inventory(&list);
+		star_sync_inventory_deliver_result(list, result, result != STAR_API_SUCCESS ? star_api_get_last_error() : nullptr);
+		g_odoom_inventory_refresh_pending = true;
+	}
 }
 
 /** Called from main thread by star_sync_pump() when auth completes. */
@@ -1983,7 +2024,17 @@ void ODOOM_InventoryInputCaptureFrame(void)
 						}
 					}
 					star_api_refresh_quest_cache_in_background();
+					star_api_request_inventory_in_background();  /* non-blocking: cache ready for overlay/door checks */
 					ODOOM_RefreshQuestCVars();
+				}
+			}
+			if (g_odoom_inventory_refresh_pending) {
+				g_odoom_inventory_refresh_pending = false;
+				star_item_list_t* inv_list = nullptr;
+				if (star_api_get_inventory(&inv_list) == STAR_API_SUCCESS && inv_list) {
+					ODOOM_UpdateStarKeyHudCVars(inv_list);
+					ODOOM_PushInventoryToCVars(inv_list);
+					star_api_free_item_list(inv_list);
 				}
 			}
 			FBaseCVar* trackerIdVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);

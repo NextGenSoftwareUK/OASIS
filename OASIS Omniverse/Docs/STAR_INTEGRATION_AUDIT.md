@@ -4,6 +4,28 @@ This document describes how the STAR API integration works across **STARAPIClien
 
 ---
 
+## Build and edit locations
+
+**You only run BUILD DOOM or BUILD QUAKE.** Those scripts copy from the OASIS repo into the game trees (UZDoom, vkQuake) and then build there. **All edits must be in the OASIS repo only:**
+
+| Build        | Copy-from (edit here)                    | Copy-to (do not edit)   |
+|-------------|------------------------------------------|--------------------------|
+| BUILD DOOM  | `OASIS Omniverse/ODOOM/`                 | UZDoom (e.g. `C:\Source\UZDoom`) |
+| BUILD QUAKE | `OASIS Omniverse/OQuake/` (Code, build)  | vkQuake (e.g. `C:\Source\vkQuake`) |
+
+STARAPIClient is under `OASIS Omniverse/STARAPIClient/`. Editing files under UZDoom or vkQuake is overwritten on the next build.
+
+### Where shared C code lives (star_sync)
+
+The **star_sync** layer (async auth/inventory/send-item, C) is shared. The copy flow determines where to edit it:
+
+- **BUILD DOOM:** `BUILD ODOOM.bat` first copies **STARAPIClient** `star_sync.c` and `star_sync.h` **into ODOOM** (if they exist in STARAPIClient), then copies ODOOM files (including `star_sync.*`) to UZDoom. So the version that ends up in UZDoom is the one from **STARAPIClient**. **Edits to star_sync for Doom must be in `OASIS Omniverse/STARAPIClient/star_sync.c` and `star_sync.h`**; changes only in ODOOM are overwritten each build.
+- **BUILD QUAKE:** `BUILD_OQUAKE.bat` copies from **OQuake/Code** (and optionally from STARAPIClient into OQuake/Code if OQuake has no `star_sync.c` yet), then OQuake/Code to vkQuake/Quake. So for Quake, **edit `OASIS Omniverse/OQuake/Code/star_sync.c` and `star_sync.h`** (or ensure STARAPIClient has the canonical version if OQuake copies from there).
+
+Summary: for **ODOOM**, the canonical shared C sync layer is in **STARAPIClient**; for **OQuake**, it is in **OQuake/Code** (or STARAPIClient when the script copies from there).
+
+---
+
 ## 1) STARAPIClient (C# NativeAOT)
 
 **File:** `OASIS Omniverse/STARAPIClient/StarApiClient.cs`
@@ -272,9 +294,13 @@ The following principles are aimed at making the integration **self-contained**,
 - **5.7.4 – Both games**: No 10–15 s timeout for "Loading…", no "Timed out" / "Retry" UI, no auto-retry.
 - **5.7.5 – Document state machines**: No separate state-machine design doc.
 - **5.5 – Explicit UI state**: No formal Loading | Loaded | Error per surface.
-- **5.4 – Non-blocking get_inventory**: `star_api_get_inventory` remains blocking; no async/callback-based API added.
+- **5.4 – Non-blocking get_inventory**: **Done.** `star_api_get_inventory` is now cache-only (no network). Use `star_api_request_inventory_in_background()` to fetch; when operation_callback(STAR_API_OP_GET_INVENTORY) fires, call `star_api_get_inventory()` to read cache. OQuake and ODOOM use this pattern; star_sync inventory thread requests in background and result is delivered via `star_sync_inventory_deliver_result()` from the game's callback.
 
-**Why Quake inventory can still be brittle**
+**Other blocking native exports (not yet converted to background)**
+
+The following star_api_* exports still block the calling thread (they use .GetAwaiter().GetResult() on async work): `star_api_authenticate`, `star_api_has_item`, `star_api_add_item`, `star_api_set_active_quest`, `star_api_flush_add_item_jobs`, `star_api_mint_inventory_nft`, `star_api_use_item`, `star_api_flush_use_item_jobs`, `star_api_complete_quest_objective`, `star_api_complete_quest`, `star_api_create_monster_nft`, `star_api_deploy_boss_nft`, `star_api_send_item_to_avatar`, `star_api_send_item_to_clan`, and the internal `GetCurrentAvatarAsync` path. Converting these to request-in-background + callback would follow the same pattern as inventory.
+
+**Why Quake inventory used to be brittle**
 
 The dedicated **Inventory** worker only runs work that is explicitly queued via `QueueGetInventoryAsync` / `QueueHasItemAsync`. In OQuake, the overlay and UI call `star_api_get_inventory()` directly (blocking). That path does **not** go through the worker: the game thread blocks in `GetInventoryAsync().GetAwaiter().GetResult()`. So the worker does not isolate inventory from the rest of the game; the first fetch (or any cache miss) runs on whatever thread calls `get_inventory`, and if that coincides with profile load, quest refresh, or other work, ordering and contention can still cause flakiness. Making inventory robust for Quake would require either (a) having the game use an async/callback inventory API and feed the worker, or (b) ensuring the first fetch is triggered and completed (e.g. after ProfileLoaded) before the overlay can call `get_inventory`.
 

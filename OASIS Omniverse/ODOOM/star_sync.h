@@ -109,6 +109,9 @@ int star_sync_inventory_get_result(
 /** Clear the stored result (frees the list). Call after you've copied or used the list. */
 void star_sync_inventory_clear_result(void);
 
+/** Deliver inventory result from the game's operation_callback(STAR_API_OP_GET_INVENTORY). Call after star_api_get_inventory() when callback fires. Takes ownership of list (may be NULL on error). */
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg);
+
 /** Non-zero if an inventory refresh is currently in progress */
 int star_sync_inventory_in_progress(void);
 

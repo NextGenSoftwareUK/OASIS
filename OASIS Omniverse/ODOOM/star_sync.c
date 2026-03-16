@@ -798,6 +798,26 @@ static void* inventory_thread_proc(void* param) {
 #endif
 }
 
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    g_inv_in_progress = 0;
+    g_inv_has_result = 1;
+    if (g_inv_list)
+        star_api_free_item_list(g_inv_list);
+    g_inv_list = list;
+    g_inv_result = result;
+    str_copy(g_inv_error_msg, error_msg ? error_msg : "", sizeof(g_inv_error_msg));
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
+#endif
+}
+
 void star_sync_inventory_start(star_sync_local_item_t* local_items,
     int local_count,
     const char* default_game_source,
