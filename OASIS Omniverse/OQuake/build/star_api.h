@@ -65,6 +65,10 @@ star_api_result_t star_api_restore_session(void);
 int star_api_get_current_username(char* buf, size_t buf_size);
 /** Write current JWT to buf for saving to oasisstar.json. Returns bytes written or 0. Caller should not log. */
 int star_api_get_current_jwt(char* buf, size_t buf_size);
+/** Set refresh token from persisted session (e.g. oasisstar.json). Call after star_api_set_saved_session when restoring so 401 can trigger token refresh. */
+void star_api_set_refresh_token(const char* refresh_token);
+/** Write current refresh token to buf for saving to oasisstar.json. Returns bytes written or 0. Caller should not log. */
+int star_api_get_current_refresh_token(char* buf, size_t buf_size);
 /* Set WEB4 OASIS API base URI (used for avatar auth + NFT mint endpoints). */
 star_api_result_t star_api_set_oasis_base_url(const char* oasis_base_url);
 void star_api_cleanup(void);

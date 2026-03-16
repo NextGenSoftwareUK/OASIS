@@ -274,6 +274,10 @@ The following principles are aimed at making the integration **self-contained**,
 - **5.5 – Explicit UI state**: No formal Loading | Loaded | Error per surface.
 - **5.4 – Non-blocking get_inventory**: `star_api_get_inventory` remains blocking; no async/callback-based API added.
 
+**Why Quake inventory can still be brittle**
+
+The dedicated **Inventory** worker only runs work that is explicitly queued via `QueueGetInventoryAsync` / `QueueHasItemAsync`. In OQuake, the overlay and UI call `star_api_get_inventory()` directly (blocking). That path does **not** go through the worker: the game thread blocks in `GetInventoryAsync().GetAwaiter().GetResult()`. So the worker does not isolate inventory from the rest of the game; the first fetch (or any cache miss) runs on whatever thread calls `get_inventory`, and if that coincides with profile load, quest refresh, or other work, ordering and contention can still cause flakiness. Making inventory robust for Quake would require either (a) having the game use an async/callback inventory API and feed the worker, or (b) ensuring the first fetch is triggered and completed (e.g. after ProfileLoaded) before the overlay can call `get_inventory`.
+
 ---
 
 *Audit generated to support a robust redesign of the STAR API integration. Section 5.8 added to track implementation status.*
