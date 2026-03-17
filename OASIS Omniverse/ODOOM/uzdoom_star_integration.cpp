@@ -62,6 +62,10 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #include "g_levellocals.h"
 #include "playsim/d_player.h"
 
+#ifndef _WIN32
+#include <SDL2/SDL.h>
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #include <wincred.h>
@@ -388,6 +392,10 @@ static bool g_star_show_anorak_face = false;
 
 /** True when we started async SSO auth so beamin command can show "Authenticating..." instead of "Beam-in failed". */
 static bool g_star_async_auth_pending = false;
+/** Frames since async auth started; used to show timeout error if callback never fires (e.g. 30 s). */
+static int g_star_async_auth_pending_frames = 0;
+/** True after we showed timeout once this pending attempt; reset when starting a new async auth. */
+static bool g_star_beamin_timeout_was_shown = false;
 static bool StarInitialized(void);
 CVAR(Bool, oasis_star_anorak_face, false, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Bool, oasis_star_beam_face, true, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -881,15 +889,45 @@ static void ODOOM_SaveStarConfigToFiles(void) {
 		g_odoom_json_config_path = path;
 }
 
-/** Return 1 if key is currently down, 0 otherwise. Windows: GetAsyncKeyState(VK_*). Linux/macOS: engine GK_*; returns 0 until engine key API is wired. */
+/** Return 1 if key is currently down, 0 otherwise.
+ *  Windows: GetAsyncKeyState(VK_*) - do not change; Windows behavior is correct.
+ *  Linux/macOS: SDL_GetKeyboardState so inventory/quest popup keys (I, O, P, arrows, etc.) work when bindings are cleared. */
 static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 {
 #ifdef _WIN32
+	/* Windows: unchanged; keep using GetAsyncKeyState. */
 	SHORT s = GetAsyncKeyState(vk_or_ascii);
 	return (s & 0x8000) ? 1 : 0;
 #else
-	(void)vk_or_ascii;
-	return 0;  /* Linux/macOS: TODO wire to engine key state (GK_*) when API available */
+	/* Linux/macOS: use SDL2 keyboard state. Map engine GK_* (d_gui.h) and ASCII to SDL scancodes so arrows, A/C/O, etc. work in popups. */
+	SDL_PumpEvents();
+	const Uint8 *state = SDL_GetKeyboardState(nullptr);
+	if (!state) return 0;
+	int scancode = -1;
+	if (vk_or_ascii >= 'A' && vk_or_ascii <= 'Z')
+		scancode = SDL_SCANCODE_A + (vk_or_ascii - 'A');
+	else if (vk_or_ascii >= 'a' && vk_or_ascii <= 'z')
+		scancode = SDL_SCANCODE_A + (vk_or_ascii - 'a');
+	else if (vk_or_ascii >= '0' && vk_or_ascii <= '9')
+		scancode = SDL_SCANCODE_0 + (vk_or_ascii - '0');
+	else if (vk_or_ascii == ' ')
+		scancode = SDL_SCANCODE_SPACE;
+	else if (vk_or_ascii == '-' || vk_or_ascii == 0x2D)
+		scancode = SDL_SCANCODE_MINUS;
+	else if (vk_or_ascii == '.' || vk_or_ascii == 0x2E)
+		scancode = SDL_SCANCODE_PERIOD;
+	/* Engine key codes from d_gui.h: PGDN=1, PGUP=2, HOME=3, END=4, LEFT=5, RIGHT=6, BACKSPACE=8, DOWN=10, UP=11, RETURN=13 */
+	else if (vk_or_ascii == 1)  scancode = SDL_SCANCODE_PAGEDOWN;
+	else if (vk_or_ascii == 2)  scancode = SDL_SCANCODE_PAGEUP;
+	else if (vk_or_ascii == 3)  scancode = SDL_SCANCODE_HOME;
+	else if (vk_or_ascii == 4)  scancode = SDL_SCANCODE_END;
+	else if (vk_or_ascii == 5)  scancode = SDL_SCANCODE_LEFT;
+	else if (vk_or_ascii == 6)  scancode = SDL_SCANCODE_RIGHT;
+	else if (vk_or_ascii == 8)  scancode = SDL_SCANCODE_BACKSPACE;
+	else if (vk_or_ascii == 10) scancode = SDL_SCANCODE_DOWN;
+	else if (vk_or_ascii == 11) scancode = SDL_SCANCODE_UP;
+	else if (vk_or_ascii == 13) scancode = SDL_SCANCODE_RETURN;
+	return (scancode >= 0 && scancode < SDL_NUM_SCANCODES && state[scancode]) ? 1 : 0;
 #endif
 }
 
@@ -1012,7 +1050,9 @@ static void ODOOM_PushInventoryToCVars(const star_item_list_t* list) {
 			if (amt <= 0 && (strstr(it->item_type, "Ammo") || strstr(it->item_type, "ammo")))
 				amt = GetHardcodedAmmoAmount(it->name);
 			if (amt > 0) {
-				snprintf(desc, sizeof(desc), "%s (+%d)", it->name[0] ? it->name : "Item", amt);
+				const char* label = it->name[0] ? it->name : "Item";
+				/* Cap name length so "%s (+%d)" fits in desc[256] (name at most 240 + " (+%d)" ~12) */
+				(void)snprintf(desc, sizeof(desc), "%.240s (+%d)", label, amt);
 				copySafe(desc, desc, 256);
 			}
 		}
@@ -1466,7 +1506,27 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
-		Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", error_buf[0] ? error_buf : star_api_get_last_error());
+		const char* err = error_buf[0] ? error_buf : star_api_get_last_error();
+		const char* msg = err && err[0] ? err : "(unknown)";
+		odoom_star_username = "";  /* Clear "Beaming in..." so status bar shows "Beamed In: None". */
+		/* Show error in console once. */
+		static std::string s_last_beam_in_error;
+		std::string current(msg);
+		if (current != s_last_beam_in_error) {
+			s_last_beam_in_error = current;
+			Printf(PRINT_NONOTIFY, "Beam-in failed: %s\n", msg);
+		}
+		/* Show error on screen once via toast so user sees it even if console is closed. */
+		FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+		FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
+		if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String && toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+			char toastBuf[256];
+			std::snprintf(toastBuf, sizeof(toastBuf), "Beam-in failed: %s", msg);
+			UCVarValue vMsg; vMsg.String = toastBuf;
+			toastMsgCv->SetGenericRep(vMsg, CVAR_String);
+			UCVarValue vFrames; vFrames.Int = 175;  /* ~5 s at 35 fps */
+			toastFramesCv->SetGenericRep(vFrames, CVAR_Int);
+		}
 	}
 }
 
@@ -1719,6 +1779,29 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	}
 
 	star_sync_pump();
+
+	/* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
+	if (g_star_async_auth_pending) {
+		g_star_async_auth_pending_frames++;
+		if (g_star_async_auth_pending_frames > 35 * 30) {  /* 30 s at 35 fps */
+			g_star_async_auth_pending = false;
+			odoom_star_username = "";
+			if (!g_star_beamin_timeout_was_shown) {
+				g_star_beamin_timeout_was_shown = true;
+				static char s_timeout_msg[128];
+				std::snprintf(s_timeout_msg, sizeof(s_timeout_msg), "Beam-in failed: timeout (no response from server).");
+				Printf(PRINT_NONOTIFY, "%s\n", s_timeout_msg);
+				FBaseCVar* toastMsgCv = FindCVar("odoom_star_toast_message", nullptr);
+				FBaseCVar* toastFramesCv = FindCVar("odoom_star_toast_frames", nullptr);
+				if (toastMsgCv && toastMsgCv->GetRealType() == CVAR_String && toastFramesCv && toastFramesCv->GetRealType() == CVAR_Int) {
+					UCVarValue vMsg; vMsg.String = s_timeout_msg;
+					toastMsgCv->SetGenericRep(vMsg, CVAR_String);
+					UCVarValue vFrames; vFrames.Int = 175;
+					toastFramesCv->SetGenericRep(vFrames, CVAR_Int);
+				}
+			}
+		}
+	}
 
 	/* Once STAR is initialized, bind Q to quest popup so it opens the popup instead of e.g. quit. */
 	if (g_star_initialized) {
@@ -2635,7 +2718,12 @@ static void StarLogError(const char* fmt, ...) {
 static void StarLogRuntimeAuthFailureOnce(const char* reason) {
 	if (g_star_logged_runtime_auth_failure) return;
 	g_star_logged_runtime_auth_failure = true;
-	StarLogError("Not authenticated. STAR sync disabled until beam-in succeeds. Reason: %s", reason ? reason : "(unknown)");
+	/* Log to file only; avoid spamming console on every pickup/door when not authenticated. */
+	char buf[512];
+	std::snprintf(buf, sizeof(buf), "STAR API: Not authenticated. STAR sync disabled until beam-in succeeds. Reason: %s", reason ? reason : "(unknown)");
+	star_api_log_to_file(buf);
+	if (g_star_debug_logging)
+		StarLogError("Not authenticated. STAR sync disabled until beam-in succeeds. Reason: %s", reason ? reason : "(unknown)");
 }
 
 static bool HasValue(const char* s) {
@@ -2755,7 +2843,10 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		if (logVerbose) StarLogInfo("Beaming in... starting async SSO authentication.");
 		star_sync_auth_start(username, password, ODOOM_OnAuthDone, nullptr);
 		g_star_async_auth_pending = true;
-		return false; /* Result will be applied in ODOOM_STAR_PollAsyncAuth. */
+		g_star_async_auth_pending_frames = 0;
+		g_star_beamin_timeout_was_shown = false;
+		odoom_star_username = "Beaming in...";  /* Status bar shows this until success/fail. */
+		return false; /* Result will be applied in ODOOM_OnAuthDone or timeout. */
 	}
 
 	// API key + avatar mode: accept credentials and start inventory in background (no blocking call).
@@ -2887,7 +2978,7 @@ static bool ODOOM_STAR_HasKeycard(int keynum, const char** outName) {
 			break;
 		}
 		/* Engine key name fallback: only accept if item name contains engine key string AND matches this door's key type (red/blue/yellow), so e.g. "Keycard" never matches blue for a red door. */
-		if (engineKeyName && it->name && it->name[0]) {
+		if (engineKeyName && it->name[0]) {
 			std::string lowerItem;
 			for (const char* p = it->name; *p; ++p)
 				lowerItem.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(*p == '_' ? ' ' : *p))));
@@ -3819,7 +3910,15 @@ CCMD(star)
 			return;
 		}
 		g_star_face_suppressed_for_session = false;
-		Printf("Beam-in failed: %s\n", star_api_get_last_error());
+		{
+			const char* err = star_api_get_last_error();
+			static std::string s_last_beamin_cmd_error;
+			std::string current(err ? err : "");
+			if (current != s_last_beamin_cmd_error) {
+				s_last_beamin_cmd_error = current;
+				Printf("Beam-in failed: %s\n", err ? err : "(unknown)");
+			}
+		}
 		Printf("\n");
 		return;
 	}

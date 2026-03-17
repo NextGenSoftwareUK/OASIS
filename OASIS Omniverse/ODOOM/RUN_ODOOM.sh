@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
-# Run ODOOM. Builds if not already built, then launches.
-# IWAD (doom.wad, doom2.wad, heretic.wad, etc.): put in ODOOM/build/ or in ~/.local/share/games/odoom
+# Build ODOOM if needed, then launch. Put WAD (e.g. doom2.wad) in ODOOM/build/ or ~/.local/share/games/odoom.
+# Equivalent of "RUN ODOOM.bat" on Windows.
 
 set -e
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OMNIVERSE="$(cd "$HERE/.." && pwd)"
+# Banner (centre-aligned, colours, slogan - same as RUN_OQUAKE)
+if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
+  bash "$OMNIVERSE/run_oasis_header.sh" RUN_ODOOM || true
+fi
+
 UZDOOM_SRC="${UZDOOM_SRC:-$HOME/Source/UZDoom}"
 ODOOM_EXE=""
 
@@ -63,7 +69,30 @@ else
   done
 fi
 
-# If no IWAD in build dir or data dir, engine will show "Cannot find a game IWAD" and suggest these paths
+# Pre-launch check: ensure at least one IWAD is in search paths (commented out so we can still launch and add IWAD later)
+# IWAD_NAMES="doom.wad doom2.wad heretic.wad hexen.wad strife1.wad freedoom1.wad freedoom2.wad"
+# HAS_IWAD=0
+# for wad in $IWAD_NAMES; do
+#   if [[ -f "$ODOOM_DIR/$wad" || -f "$ODOOM_DATA/$wad" ]]; then
+#     HAS_IWAD=1
+#     break
+#   fi
+# done
+# if [[ $HAS_IWAD -eq 0 ]]; then
+#   echo ""
+#   echo "  ERROR: No game IWAD found. ODOOM needs one of:"
+#   echo "    doom.wad, doom2.wad, heretic.wad, hexen.wad, strife1.wad, freedoom1.wad, freedoom2.wad"
+#   echo ""
+#   echo "  Put one of these files in either:"
+#   echo "    1. $ODOOM_DIR"
+#   echo "    2. $ODOOM_DATA"
+#   echo ""
+#   echo "  Or add your own IWAD folder in: $ODOOM_CONFIG"
+#   echo "    Under [IWADSearch.Directories] add: Path=/path/to/your/wads"
+#   echo ""
+#   exit 1
+# fi
+
 echo "Launching ODOOM..."
 cd "$ODOOM_DIR"
 exec ./"$(basename "$ODOOM_EXE")"

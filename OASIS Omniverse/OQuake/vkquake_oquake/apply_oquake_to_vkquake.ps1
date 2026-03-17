@@ -6,12 +6,27 @@
 #>
 param(
     [string]$VkQuakeSrc = $env:VKQUAKE_SRC,
-    [string]$QuakeInstallDir = "C:\Program Files (x86)\Steam\steamapps\common\Quake",
+    [string]$QuakeInstallDir = "",
     [switch]$SkipQuakeInstallPrompt,
     [switch]$RevertMonsterHook
 )
 
 $ErrorActionPreference = "Stop"
+# Default Quake install/game-data dir: Windows vs Linux/macOS (PowerShell Core)
+if ([string]::IsNullOrWhiteSpace($QuakeInstallDir)) {
+    if ($env:OQUAKE_BASEDIR) {
+        $QuakeInstallDir = $env:OQUAKE_BASEDIR.Trim()
+    } elseif ($IsCoreCLR -and -not $IsWindows) {
+        if ($env:HOME) {
+            $QuakeInstallDir = Join-Path $env:HOME ".steam/steam/steamapps/common/Quake"
+        }
+        if (-not (Test-Path $QuakeInstallDir) -and $env:HOME) {
+            $QuakeInstallDir = Join-Path $env:HOME "Library/Application Support/Steam/steamapps/common/Quake"
+        }
+    } else {
+        $QuakeInstallDir = "C:\Program Files (x86)\Steam\steamapps\common\Quake"
+    }
+}
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $OQuakeRoot = Split-Path -Parent $ScriptDir
 $OasisRoot = Split-Path -Parent $OQuakeRoot
@@ -108,13 +123,17 @@ if (-not (Test-Path $faceSource)) {
     elseif (Test-Path (Join-Path $OQuakeRoot "gfx\face_anorak.png")) { $faceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png" }
 }
 if (Test-Path $faceSource) {
-    try {
-        $faceDestDir = Join-Path $QuakeInstallDir "id1\gfx"
-        New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null
-        Copy-Item -Path $faceSource -Destination (Join-Path $faceDestDir "face_anorak.png") -Force
-        Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir"
-    } catch {
-        Write-Warning "[OQuake] Failed to copy face_anorak.png to '$QuakeInstallDir\id1\gfx': $($_.Exception.Message)"
+    $faceDestDir = Join-Path $QuakeInstallDir "id1" "gfx"
+    if (Test-Path $QuakeInstallDir) {
+        try {
+            New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null
+            Copy-Item -Path $faceSource -Destination (Join-Path $faceDestDir "face_anorak.png") -Force
+            Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir"
+        } catch {
+            Write-Warning "[OQuake] Failed to copy face_anorak.png to '$faceDestDir': $($_.Exception.Message)"
+        }
+    } else {
+        Write-Warning "[OQuake] Skipping face_anorak.png copy (optional): Quake install dir not found: $QuakeInstallDir. Set OQUAKE_BASEDIR or -QuakeInstallDir to your game data path (e.g. Steam Quake) if you want the anorak face in the HUD when beamed in."
     }
 } else {
     Write-Warning "[OQuake] face_anorak.png not found. Expected: OQuake\Images\face_anorak.png or OQuake\face_anorak.png"
@@ -963,4 +982,30 @@ foreach ($vcxproj in $vcxprojPaths) {
         Write-Host "[OQuake] Added OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL (provides star_api_refresh_avatar_profile when lib does not)" -ForegroundColor Green
     }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
+}
+
+# Patch vkQuake meson.build for Linux/macOS: add OQuake sources + star_api so ninja build links integration (same as vcxproj on Windows).
+$mesonBuildPath = Join-Path $VkQuakeSrc "meson.build"
+if (Test-Path $mesonBuildPath) {
+    $mesonContent = Get-Content $mesonBuildPath -Raw
+    if ($mesonContent -notmatch "oquake_star_integration\.c") {
+        $mesonBlock = @"
+
+# OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + star_api when present
+if import('fs').exists(join_paths(meson.source_root(), 'Quake', 'oquake_star_integration.c'))
+    srcs += ['Quake/oquake_star_integration.c', 'Quake/pr_ext_oquake.c', 'Quake/star_sync.c']
+    deps += cc.find_library('star_api', dirs: join_paths(meson.source_root(), 'Quake'), required: true)
+    cflags += ['-DOASIS_STAR_API', '-DOQUAKE_STAR_API_SESSION_IMPL', '-DOQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL']
+endif
+
+"@
+        $mesonContent = $mesonContent -replace "(\r?\nendif\s*\r?\n)(\r?\nif get_option\('use_codec_wave'\)\.enabled\(\))", "`$1$mesonBlock`$2"
+        Set-Content -Path $mesonBuildPath -Value $mesonContent -NoNewline
+        Write-Host "[OQuake] Patched meson.build: added OQuake sources and star_api for Linux/macOS build" -ForegroundColor Green
+        $buildDir = Join-Path $VkQuakeSrc "build"
+        if (Test-Path $buildDir) {
+            Remove-Item -Recurse -Force $buildDir
+            Write-Host "[OQuake] Cleared build dir so meson reconfigures with OQuake sources" -ForegroundColor Yellow
+        }
+    }
 }

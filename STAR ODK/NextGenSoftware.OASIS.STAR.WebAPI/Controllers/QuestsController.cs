@@ -18,7 +18,6 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Concurrent;
 using System.Threading;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {

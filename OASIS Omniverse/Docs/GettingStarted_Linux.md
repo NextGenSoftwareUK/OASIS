@@ -37,8 +37,8 @@ sudo apt install -y libsdl2-dev libasound2-dev libglib2.0-dev libgtk-3-dev libvp
 # Optional but recommended: PowerShell Core (for UZDoom/vkQuake patch scripts)
 sudo apt install -y powershell
 
-# For OQuake: Meson, Ninja, Vulkan
-sudo apt install -y meson ninja-build libvulkan-dev vulkan-tools
+# For OQuake: Meson, Ninja, Vulkan, glslang (glslangValidator for shader compilation)
+sudo apt install -y meson ninja-build libvulkan-dev vulkan-tools glslang-tools
 
 # Python 3 (for ODOOM face pk3 script)
 sudo apt install -y python3
@@ -59,8 +59,9 @@ sudo apt install -y python3
 | **CMake** | Build UZDoom |
 | **PowerShell Core (pwsh)** | Run patch scripts (optional; you can patch manually if needed) |
 | **Meson, Ninja** | Build vkQuake |
-| **Vulkan SDK / libvulkan-dev** | Build and run vkQuake |
-| **Python 3** | ODOOM `create_odoom_face_pk3.py` |
+| **Vulkan SDK / libvulkan-dev, vulkan-tools** | Build and run vkQuake |
+| **glslang-tools** | Provides `glslangValidator`; required by vkQuake meson build for shader compilation |
+| **Python 3** | ODOOM `create_odoom_face_pk3.py` and (with **Pillow**) anorak face texture `prepare_odoom_face_texture.py` on Linux. Install Pillow via `sudo apt install python3-pil` (recommended) or use a venv and `pip install Pillow`. |
 
 ---
 
@@ -136,6 +137,8 @@ Force a full rebuild:
    ./BUILD_ODOOM.sh
    ```
 
+   On Linux, the anorak HUD face (OASFACE.png) is prepared by a Python fallback; if you see a warning about face processing, install Pillow: `sudo apt install python3-pil` (recommended on Debian/Ubuntu). If your system uses an externally-managed Python (PEP 668), either install `python3-pil` or use a venv: `python3 -m venv .venv && .venv/bin/pip install Pillow`, then run the build with `PYTHON3_EXE=.venv/bin/python3 ./BUILD_ODOOM.sh` so the face script uses that Python.
+
 4. Put **doom2.wad** in `ODOOM/build/` (or next to the ODOOM binary).
 
 **Run ODOOM:**
@@ -158,6 +161,23 @@ Or build and run in one step:
 
 ## 5. Build OQuake
 
+### 5.1 Prerequisites for OQuake (Linux)
+
+- **meson** and **ninja** — required to build vkQuake. Install with:
+  ```bash
+  sudo apt install -y meson ninja-build
+  ```
+- **Vulkan** and **glslang** — vkQuake uses Vulkan and needs the Vulkan dev package (for Meson’s `dependency('vulkan')`) and `glslangValidator` for shaders. Install with:
+  ```bash
+  sudo apt install -y libvulkan-dev vulkan-tools glslang-tools
+  ```
+  If the build fails with **"Dependency vulkan not found"**, install `libvulkan-dev` (provides `vulkan.pc` for pkg-config/Meson). If you see **"Program 'glslangValidator' not found"**, install `glslang-tools`.
+- **Opus (optional)** — If you see **"Run-time dependency opus found: NO"** or **"opusfile found: NO"**, vkQuake will still build but without Opus audio support. To enable it: `sudo apt install -y libopus-dev libopusfile-dev`.
+- **vkQuake source** — clone to e.g. `~/Source/vkQuake` and set `VKQUAKE_SRC` if not using the default.
+- **Quake game data** — e.g. Steam Quake at `~/.steam/steam/steamapps/common/Quake` with `id1/pak0.pak`, `pak1.pak`. Set `OQUAKE_BASEDIR` if your game data is elsewhere; this path is also used to copy **face_anorak.png** into `id1/gfx/` for the OASIS HUD face when beamed in.
+
+### 5.2 Build steps
+
 1. Ensure you have **Quake game data** (e.g. Steam: `~/.steam/steam/steamapps/common/Quake` with `id1/pak0.pak`, `pak1.pak`).
 2. Go to OQuake:
 
@@ -179,6 +199,8 @@ Or build and run in one step:
    ./BUILD_OQUAKE.sh
    ```
 
+   If you see **"meson/ninja not found"**, install them (see 5.1). If you see a warning about **face_anorak.png** and **"Cannot find drive 'C'"**, the apply script was given a Windows path; ensure `OQUAKE_BASEDIR` is set to your Linux Quake game data path (e.g. the Steam path above) so the script can copy the anorak face into `id1/gfx/`.
+
 5. Run:
 
    ```bash
@@ -190,6 +212,8 @@ Or build and run:
 ```bash
 ./BUILD_OQUAKE.sh run
 ```
+
+**Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID` for OASIS auth.
 
 ---
 
@@ -225,7 +249,13 @@ Or build and run:
 | **"libstar_api.so missing"** | Run `./STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` from OASIS Omniverse. |
 | **"pwsh not found"** | Install PowerShell Core (`sudo apt install powershell`) or patch UZDoom/vkQuake manually. |
 | **Missing OQ sprites** | Build once on Windows with sprite regen, or copy sprites into UZDoom `wadsrc/static/sprites/`; see ODOOM Windows build. |
-| **vkQuake build fails** | Install Vulkan SDK and `meson`/`ninja`. Ensure `VKQUAKE_SRC` points at a full vkQuake clone. |
+| **face_anorak / OASFACE.png failed** (pwsh "Windows.Win32.PInvoke" on Linux) | Normal on Linux; the build uses a Python fallback. Install Pillow: `sudo apt install python3-pil` (Debian/Ubuntu). If you see "externally-managed-environment", use a venv: `python3 -m venv .venv && .venv/bin/pip install Pillow`, or use `python3-pil`. Then re-run `./BUILD_ODOOM.sh`. If no Pillow, the build continues and uses existing `textures/OASFACE.png` if present. |
+| **"meson/ninja not found"** | Install: `sudo apt install -y meson ninja-build`. Then re-run `./BUILD_OQUAKE.sh`. |
+| **"glslangValidator not found"** | Install: `sudo apt install -y glslang-tools`. Then re-run `./BUILD_OQUAKE.sh`. |
+| **"Dependency vulkan not found"** (Meson) | Install the Vulkan dev package: `sudo apt install -y libvulkan-dev`. Then remove the vkQuake build dir and re-run: `rm -rf "$VKQUAKE_SRC/build"` and `./BUILD_OQUAKE.sh`. |
+| **"opus found: NO" / "opusfile found: NO"** | Optional. Build continues without Opus audio. To enable: `sudo apt install -y libopus-dev libopusfile-dev`, then `rm -rf "$VKQUAKE_SRC/build"` and `./BUILD_OQUAKE.sh`. |
+| **vkQuake build fails** | Install Vulkan SDK (`libvulkan-dev`, `vulkan-tools`), `meson`, `ninja`, and `glslang-tools`. Ensure `VKQUAKE_SRC` points at a full vkQuake clone. |
 | **OQuake can't find game data** | Set `OQUAKE_BASEDIR` to the directory that contains the `id1` folder and pak files. |
+| **"face_anorak.png ... Cannot find drive 'C'"** | Set `OQUAKE_BASEDIR` to your Linux Quake game path (e.g. `$HOME/.steam/steam/steamapps/common/Quake`) so the apply script can copy the anorak face into `id1/gfx/`. |
 
 For more detail, see [LINUX_BUILD.md](../LINUX_BUILD.md) and [STARAPIClient/README.md](../STARAPIClient/README.md).

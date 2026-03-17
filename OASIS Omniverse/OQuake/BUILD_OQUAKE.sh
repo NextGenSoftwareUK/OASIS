@@ -27,10 +27,22 @@ OQUAKE_BASEDIR="${OQUAKE_BASEDIR:-$OQUAKE_BASEDIR_DEFAULT}"
 DO_FULL_CLEAN=0
 RUN_AFTER_BUILD=0
 BATCH_MODE=0
+BUILD_STAR_CLIENT=0
 for arg in "$@"; do
   [[ "$arg" == "run" ]] && RUN_AFTER_BUILD=1
   [[ "$arg" == "batch" ]] && BATCH_MODE=1
 done
+
+# When not run and not batch, prompt for full clean vs incremental (match Windows BUILD_OQUAKE.bat)
+if [[ $RUN_AFTER_BUILD -eq 0 && $BATCH_MODE -eq 0 ]]; then
+  echo ""
+  read -p "  Full clean/rebuild [c] or incremental build [i]? [i]: " BUILD_CHOICE
+  BUILD_CHOICE="${BUILD_CHOICE:-i}"
+  if [[ "${BUILD_CHOICE,,}" == "c" ]]; then
+    DO_FULL_CLEAN=1
+    BUILD_STAR_CLIENT=1
+  fi
+fi
 
 # Version
 if [[ -f "$HERE/Scripts/generate_oquake_version.ps1" ]] && command -v pwsh &>/dev/null; then
@@ -39,15 +51,18 @@ fi
 VERSION_DISPLAY="1.0 (Build 1)"
 [[ -f "$HERE/Version/version_display.txt" ]] && VERSION_DISPLAY=$(cat "$HERE/Version/version_display.txt" | tr -d '\r')
 
-echo ""
-echo "  O A S I S   O Q U A K E  v$VERSION_DISPLAY"
-echo ""
+# Banner (centre-aligned, colours, slogan - same as ODOOM)
+if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
+  bash "$OMNIVERSE/run_oasis_header.sh" OQUAKE "$VERSION_DISPLAY" || true
+fi
 
 echo "[OQuake] Checking STARAPIClient - build if changed, deploy..."
-if [[ -f "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh" ]]; then
-  bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh"
+DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh"
+[[ ! -f "$DEPLOY_SCRIPT" ]] && DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+if [[ "$BUILD_STAR_CLIENT" == "1" ]]; then
+  bash "$DEPLOY_SCRIPT" -ForceBuild
 else
-  bash "$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+  bash "$DEPLOY_SCRIPT"
 fi
 
 # STAR API: Linux .so, macOS .dylib
@@ -126,7 +141,7 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
   echo ""
   echo "[OQuake] Patching vkQuake source..."
   if command -v pwsh &>/dev/null && [[ -f "$HERE/vkquake_oquake/apply_oquake_to_vkquake.ps1" ]]; then
-    pwsh -NoProfile -ExecutionPolicy Bypass -File "$HERE/vkquake_oquake/apply_oquake_to_vkquake.ps1" -VkQuakeSrc "$VKQUAKE_SRC" -SkipQuakeInstallPrompt || true
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$HERE/vkquake_oquake/apply_oquake_to_vkquake.ps1" -VkQuakeSrc "$VKQUAKE_SRC" -QuakeInstallDir "$OQUAKE_BASEDIR" -SkipQuakeInstallPrompt || true
   else
     echo "[OQuake][WARN] pwsh not found or apply script missing; copying integration files manually."
     QUAKE_DIR="$VKQUAKE_SRC/Quake"
