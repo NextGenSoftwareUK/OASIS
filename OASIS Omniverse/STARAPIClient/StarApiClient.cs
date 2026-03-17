@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -7,7 +8,9 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Contracts;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
 
@@ -29,7 +32,8 @@ public sealed class StarApiConfig
     public string? Web4OasisApiBaseUrl { get; init; }
     public string? ApiKey { get; init; }
     public string? AvatarId { get; init; }
-    public int TimeoutSeconds { get; init; } = 30;
+    /// <summary>HTTP request timeout in seconds. Default 60 so slow endpoints (e.g. quests all-for-avatar with many quests) can complete. Increase if you see timeout errors.</summary>
+    public int TimeoutSeconds { get; init; } = 60;
 }
 
 public sealed class StarItem
@@ -54,24 +58,10 @@ public sealed class StarAvatarProfile
     public string LastName { get; init; } = string.Empty;
     /// <summary>Experience points (from avatar detail). Updated by get-current-avatar and add-xp responses.</summary>
     public int XP { get; init; }
-}
-
-public sealed class StarQuestObjective
-{
-    public string Id { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string GameSource { get; init; } = string.Empty;
-    public string ItemRequired { get; init; } = string.Empty;
-    public bool IsCompleted { get; init; }
-}
-
-public sealed class StarQuestInfo
-{
-    public string Id { get; init; } = string.Empty;
-    public string Name { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public string Status { get; init; } = string.Empty;
-    public List<StarQuestObjective> Objectives { get; init; } = new();
+    /// <summary>Quest currently tracked (from AvatarDetail). Restored after beam-in.</summary>
+    public Guid? ActiveQuestId { get; init; }
+    /// <summary>Objective currently active within the tracked quest (from AvatarDetail). Restored after beam-in.</summary>
+    public Guid? ActiveObjectiveId { get; init; }
 }
 
 public sealed class StarNftInfo
@@ -89,7 +79,27 @@ public sealed class StarApiClient : IDisposable
 {
     private readonly object _stateLock = new();
     private readonly object _inventoryCacheLock = new();
+    private readonly object _questsCacheLock = new();
 
+    /// <summary>Cached serialized full quest list (game format: "Q\tid\tname\t...\n"). Returned as-is by TryGetQuestsCache for star_api_get_quests_string so the game thread never blocks or re-serializes.</summary>
+    private string? _questsCacheString;
+    /// <summary>Cached structured quest list from last successful load. Used to filter and re-serialize: top-level only (TryGetTopLevelQuestsCache), objectives (TryGetQuestObjectivesCache), sub-quests (TryGetQuestSubQuestsCache), prereqs (TryGetQuestPrereqsCache). We need both: the string for fast full-list return; the list for filtering by ParentQuestId/Objectives without re-parsing.</summary>
+    private List<StarQuestInfo>? _cachedQuestList;
+    /// <summary>True while a background quest refresh is running; prevents multiple concurrent refreshes.</summary>
+    private bool _questsRefreshInProgress;
+    /// <summary>Last (total, top) logged for TryGetTopLevelQuestsCache; log only when changed to avoid spam.</summary>
+    private (int total, int top) _questsFilterLastLogTop = (0, 0);
+    /// <summary>Last (parentId, count) logged for objectives; log only when changed.</summary>
+    private (string id, int count) _questsFilterLastLogObjectives = ("", -1);
+    /// <summary>Last (parentId, count) logged for sub-quests; log only when changed.</summary>
+    private (string id, int count) _questsFilterLastLogSubQuests = ("", -1);
+    /// <summary>Last (questId, count) logged for prereqs; log only when changed.</summary>
+    private (string id, int count) _questsFilterLastLogPrereqs = ("", -1);
+
+    /// <summary>Quest ids we're currently fetching for on-demand objectives; avoids duplicate concurrent fetches. Result is merged into _cachedQuestList.</summary>
+    private readonly HashSet<string> _questObjectivesHydrating = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Incremented when objectives are merged into the cache (on-demand fetch). UI can poll this and re-call get_quest_objectives_string when it changes to refresh the list.</summary>
+    private int _questObjectivesCacheVersion;
     /// <summary>Local cache of last loaded inventory. GetInventory/HasItem/UseItem use this first and only hit the API when cache is empty or item not found (for has_item).</summary>
     private List<StarItem>? _cachedInventory;
     /// <summary>Single-flight fetch: when cache is null, only one HTTP get_inventory runs; other callers wait on this task.</summary>
@@ -108,6 +118,14 @@ public sealed class StarApiClient : IDisposable
     private string? _jwtToken;
     private string? _refreshToken;
     private string? _avatarId;
+    /// <summary>Username of the currently logged-in avatar (set on auth and from GET avatar/current). Used for session persistence and display.</summary>
+    private string? _loggedInUsername;
+    private Guid? _cachedActiveQuestId;
+    private Guid? _cachedActiveObjectiveId;
+    /// <summary>When true, a save happened after the current GET avatar/current was started; do not let the GET response overwrite quest/objective cache.</summary>
+    private bool _questTrackerSavedSinceLastGet;
+    /// <summary>Set true when we clear session due to 401 (expired JWT and refresh failed). Prevents hammering the API with auth-required requests until user re-logs in.</summary>
+    private bool _sessionExpiredCleared;
     private string _lastError = string.Empty;
     private StarApiCallback? _callback;
     private object? _callbackUserData;
@@ -144,6 +162,38 @@ public sealed class StarApiClient : IDisposable
     private Task? _genericBackgroundWorker;
     private readonly object _genericBackgroundLock = new();
 
+    /// <summary>Dedicated workers so auth, profile, inventory, and quests don't block each other (audit: avoid single bottleneck).</summary>
+    private enum DedicatedWorker { AuthSession, Profile, Inventory, Quests }
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _authSessionQueue = new();
+    private readonly SemaphoreSlim _authSessionSignal = new(0);
+    private CancellationTokenSource? _authSessionCts;
+    private Task? _authSessionWorker;
+    private readonly object _authSessionLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _profileQueue = new();
+    private readonly SemaphoreSlim _profileSignal = new(0);
+    private CancellationTokenSource? _profileCts;
+    private Task? _profileWorker;
+    private readonly object _profileLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _inventoryQueue = new();
+    private readonly SemaphoreSlim _inventorySignal = new(0);
+    private CancellationTokenSource? _inventoryCts;
+    private Task? _inventoryWorker;
+    private readonly object _inventoryLock = new();
+
+    private readonly ConcurrentQueue<Func<CancellationToken, Task>> _questsQueue = new();
+    private readonly SemaphoreSlim _questsSignal = new(0);
+    private CancellationTokenSource? _questsCts;
+    private Task? _questsWorker;
+    private readonly object _questsLock = new();
+
+    /// <summary>Max retries for transient network errors (audit: bounded retry with backoff).</summary>
+    private const int HttpRetryMaxAttempts = 3;
+    /// <summary>Backoff delays in ms for retries (200, 400, 800).</summary>
+    private static readonly int[] HttpRetryDelayMs = { 200, 400, 800 };
+
     public int AddItemBatchSize { get; set; } = 32;
     public TimeSpan AddItemBatchWindow { get; set; } = TimeSpan.FromMilliseconds(75);
     public int UseItemBatchSize { get; set; } = 32;
@@ -153,6 +203,7 @@ public sealed class StarApiClient : IDisposable
 
     public OASISResult<bool> Init(StarApiConfig config)
     {
+        StarApiExports.StarApiLog("\n********** GAME LOAD **********");
         var web5BaseUrl = config?.Web5StarApiBaseUrl;
         if (config is null || string.IsNullOrWhiteSpace(web5BaseUrl))
             return Fail<bool>("Invalid configuration.", StarApiResultCode.InvalidParam);
@@ -160,7 +211,7 @@ public sealed class StarApiClient : IDisposable
         if (!Uri.TryCreate(web5BaseUrl.TrimEnd('/'), UriKind.Absolute, out var baseUri))
             return Fail<bool>("Web5StarApiBaseUrl must be a valid absolute URL.", StarApiResultCode.InvalidParam);
 
-        var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 30;
+        var timeout = config.TimeoutSeconds > 0 ? config.TimeoutSeconds : 60;
         var normalizedBaseUrl = baseUri.ToString().TrimEnd('/');
         // NFT minting and avatar auth use WEB4 OASIS API only; do not fall back to WEB5 URL.
         var oasisBaseUrl = FirstNonEmpty(
@@ -193,6 +244,7 @@ public sealed class StarApiClient : IDisposable
             _initialized = true;
             _cachedInventory = null;
             _inventoryFetchTask = null;
+            _sessionExpiredCleared = false;
 
             if (!string.IsNullOrWhiteSpace(config.ApiKey))
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
@@ -205,16 +257,30 @@ public sealed class StarApiClient : IDisposable
 
     public async Task<OASISResult<bool>> AuthenticateAsync(string username, string password, CancellationToken cancellationToken = default)
     {
+        StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync called");
         if (!IsInitialized())
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: client not initialized");
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
 
         string oasisUrl;
         lock (_stateLock) { oasisUrl = _oasisBaseUrl ?? string.Empty; }
         if (string.IsNullOrWhiteSpace(oasisUrl))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: OASIS base URL not set");
             return FailAndCallback<bool>("WEB4 OASIS API base URL is not set. Set OASIS_WEB4_API_BASE_URL or Web4OasisApiBaseUrl (e.g. http://localhost:5555).", StarApiResultCode.InvalidParam);
+        }
 
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] AuthenticateAsync failed: username or password empty");
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
+        }
+
+        StarApiExports.StarApiLog("\n********** SESSION (BEAM IN) START **********");
+        // Allow this login request through: clear "session expired" short-circuit so user can beam in again after 401.
+        lock (_stateLock) { _sessionExpiredCleared = false; }
 
         try
         {
@@ -228,7 +294,10 @@ public sealed class StarApiClient : IDisposable
 
             var response = await SendRawAsync(HttpMethod.Post, $"{_oasisBaseUrl}/api/avatar/authenticate", payload, cancellationToken).ConfigureAwait(false);
             if (response.IsError)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Auth] AuthenticateAsync API error: {response.Message}");
                 return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
@@ -244,7 +313,8 @@ public sealed class StarApiClient : IDisposable
             {
                 using var rawDoc = JsonDocument.Parse(response.Result);
                 var rawJwt = FindStringRecursive(rawDoc.RootElement, "JwtToken") ?? FindStringRecursive(rawDoc.RootElement, "Token")
-                    ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token");
+                    ?? FindStringRecursive(rawDoc.RootElement, "accessToken") ?? FindStringRecursive(rawDoc.RootElement, "access_token")
+                    ?? FindStringRecursive(rawDoc.RootElement, "jwt");
                 var rawRefresh = FindStringRecursive(rawDoc.RootElement, "RefreshToken");
                 var rawId = FindStringRecursive(rawDoc.RootElement, "Id") ?? FindStringRecursive(rawDoc.RootElement, "AvatarId");
 
@@ -329,32 +399,39 @@ public sealed class StarApiClient : IDisposable
                     auth.Id = jwtAvatarId;
             }
 
+            string? loggedAvatarId;
             lock (_stateLock)
             {
-                _jwtToken = auth.JwtToken;
+                if (!string.IsNullOrWhiteSpace(auth.JwtToken))
+                    _jwtToken = auth.JwtToken;
                 _refreshToken = auth.RefreshToken;
                 _avatarId = auth.Id == Guid.Empty ? _avatarId : auth.Id.ToString();
+                _loggedInUsername = string.IsNullOrWhiteSpace(username) ? _loggedInUsername : username.Trim();
+                _sessionExpiredCleared = false;
+                loggedAvatarId = _avatarId;
 
                 if (!string.IsNullOrWhiteSpace(_jwtToken) && _httpClient is not null)
                     _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
             }
 
-            /* Game (Doom/Quake) calls star_api_refresh_avatar_xp() in its auth-done handler; only one refresh to avoid duplicate add-xp. */
-            /* RefreshAvatarXp(); */
+            StarApiExports.StarApiLogFileOnly($"[Auth] Success. BaseApiUrl={(_baseApiUrl != null && _baseApiUrl.Length > 0 ? "set" : "empty")}, OasisBaseUrl={(_oasisBaseUrl != null && _oasisBaseUrl.Length > 0 ? "set" : "empty")}, AvatarId={(!string.IsNullOrEmpty(loggedAvatarId) ? "set" : "empty")}, JWT from auth={(string.IsNullOrEmpty(_jwtToken) ? "no" : "yes (length=" + _jwtToken.Length + ")")}");
+
+            /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
+            InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
-            InvokeCallback(StarApiResultCode.Success);
             return result;
         }
         catch (Exception ex)
         {
+            StarApiExports.StarApiLogFileOnly($"[Auth] AuthenticateAsync exception: {ex.Message}");
             return FailAndCallback<bool>($"Authentication failed: {ex.Message}", StarApiResultCode.Network, ex);
         }
     }
 
     /// <summary>Run authentication on the background worker so the calling thread does not block. Await the returned task for the result.</summary>
     public Task<OASISResult<bool>> QueueAuthenticateAsync(string username, string password, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => AuthenticateAsync(username, password, ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.AuthSession, ct => AuthenticateAsync(username, password, ct), cancellationToken);
 
     public OASISResult<bool> SetApiKey(string apiKey, string avatarId)
     {
@@ -372,10 +449,8 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
         }
 
-        /* Game calls star_api_refresh_avatar_xp() after beam-in; only one refresh to avoid duplicate add-xp. */
-        /* RefreshAvatarXp(); */
+        /* Game calls star_api_refresh_avatar_profile() after beam-in. Do NOT invoke callback so "profile loaded" only runs when that refresh completes. */
 
-        InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "API key authentication configured.");
     }
 
@@ -388,8 +463,118 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock)
             _avatarId = string.IsNullOrWhiteSpace(avatarId) ? null : avatarId;
 
-        InvokeCallback(StarApiResultCode.Success);
+        /* Do NOT invoke callback; "profile loaded" should only run when star_api_refresh_avatar_profile completes. */
         return Success(true, StarApiResultCode.Success, "Avatar ID set.");
+    }
+
+    /// <summary>Set JWT from persisted session (e.g. oasisstar.json). Avatar ID is extracted from the JWT. Call RestoreSessionAsync to validate and load profile.</summary>
+    public OASISResult<bool> SetSavedSession(string jwt)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(jwt))
+            return FailAndCallback<bool>("JWT is required for session restore.", StarApiResultCode.InvalidParam);
+
+        var avatarId = ExtractAvatarIdFromJwt(jwt);
+        lock (_stateLock)
+        {
+            _jwtToken = jwt.Trim();
+            _avatarId = avatarId != Guid.Empty ? avatarId.ToString() : _avatarId;
+            _sessionExpiredCleared = false;
+            if (_httpClient is not null)
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        }
+        StarApiExports.StarApiLogFileOnly("[Auth] SetSavedSession: JWT set, avatar id from token");
+        return Success(true, StarApiResultCode.Success, "Saved session set.");
+    }
+
+    /// <summary>Set refresh token from persisted session (e.g. oasisstar.json). Call after SetSavedSession when restoring so 401 can trigger token refresh. Optional.</summary>
+    public void SetRefreshToken(string? refreshToken)
+    {
+        lock (_stateLock)
+            _refreshToken = string.IsNullOrWhiteSpace(refreshToken) ? null : refreshToken.Trim();
+    }
+
+    /// <summary>Current refresh token (for saving to oasisstar.json). Empty if none. Caller should not log.</summary>
+    public string? GetCurrentRefreshToken()
+    {
+        lock (_stateLock) return _refreshToken;
+    }
+
+    /// <summary>True if session was cleared due to 401 (JWT expired and refresh failed or no refresh token). Games should clear jwt_token/refresh_token in oasisstar.json when saving so the next launch does not try to restore a dead session.</summary>
+    public bool IsSessionExpired()
+    {
+        lock (_stateLock) return _sessionExpiredCleared;
+    }
+
+    /// <summary>Clear in-memory session (JWT, refresh token, avatar id) and Authorization header after 401 when refresh fails. Stops sending expired token and avoids request spam until user re-logs in.</summary>
+    private void ClearSessionToken()
+    {
+        lock (_stateLock)
+        {
+            _jwtToken = null;
+            _refreshToken = null;
+            _avatarId = null;
+            _sessionExpiredCleared = true;
+            if (_httpClient is not null)
+                _httpClient.DefaultRequestHeaders.Remove("Authorization");
+        }
+        InvalidateInventoryCache();
+        StarApiExports.StarApiLogFileOnly("[Auth] Session cleared (expired JWT, refresh failed or no refresh token).");
+    }
+
+    /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync). Proactively refreshes JWT if expired or expiring within 60s so restore succeeds without waiting for 401.</summary>
+    public async Task<OASISResult<bool>> RestoreSessionAsync(CancellationToken cancellationToken = default)
+    {
+        StarApiExports.StarApiLog("\n********** SESSION RESTORE START **********");
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        string? jwt;
+        lock (_stateLock) { jwt = _jwtToken; }
+        if (string.IsNullOrWhiteSpace(jwt))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: no JWT set");
+            return FailAndCallback<bool>("No saved session (JWT) to restore.", StarApiResultCode.InvalidParam);
+        }
+
+        /* Proactively refresh if JWT is expired or expiring within 60s so we don't send an expired token and get 401. */
+        var exp = GetJwtExpirationUtc(jwt);
+        if (exp.HasValue && exp.Value <= DateTime.UtcNow.AddSeconds(60))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: JWT expired or expiring soon, refreshing before GET");
+            var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
+            if (refreshed)
+                StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: JWT refreshed, proceeding with GET");
+        }
+
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: GET avatar/current to validate saved session");
+        var result = await GetCurrentAvatarAsync(cancellationToken, invokeCallback: true).ConfigureAwait(false);
+        if (result.IsError)
+        {
+            StarApiExports.StarApiLogFileOnly($"[Auth] RestoreSession failed: {result.Message}");
+            var errCode = ParseCode(result.ErrorCode, StarApiResultCode.ApiError);
+            StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
+            return FailAndCallback<bool>(result.Message ?? "Session restore failed.", errCode);
+        }
+        /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
+        StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded (operation callback invoked)");
+        return Success(true, StarApiResultCode.Success, "Session restored.");
+    }
+
+    public Task<OASISResult<bool>> QueueRestoreSessionAsync(CancellationToken cancellationToken = default) =>
+        RunOnWorkerAsync(DedicatedWorker.AuthSession, ct => RestoreSessionAsync(ct), cancellationToken);
+
+    /// <summary>Username of the currently logged-in avatar (for persistence to oasisstar.json). Empty if not logged in.</summary>
+    public string? GetCurrentUsername()
+    {
+        lock (_stateLock) return _loggedInUsername;
+    }
+
+    /// <summary>Current JWT (for persistence to oasisstar.json). Empty if not logged in. Caller should not log or display.</summary>
+    public string? GetCurrentJwt()
+    {
+        lock (_stateLock) return _jwtToken;
     }
 
     public OASISResult<bool> SetWeb4OasisApiBaseUrl(string web4OasisApiBaseUrl)
@@ -430,47 +615,82 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API base URL updated.");
     }
 
-    public async Task<OASISResult<StarAvatarProfile>> GetCurrentAvatarAsync(CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarAvatarProfile>> GetCurrentAvatarAsync(CancellationToken cancellationToken = default, bool invokeCallback = true)
     {
         if (!IsInitialized())
-            return FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized) : Fail<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var url = $"{_baseApiUrl}/api/avatar/current";
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current url={url}");
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
-            lock (_stateLock)
-            {
-                if (Guid.TryParse(_avatarId, out var cachedId) && cachedId != Guid.Empty)
-                {
-                    InvokeCallback(StarApiResultCode.Success);
-                    return Success(new StarAvatarProfile { Id = cachedId }, StarApiResultCode.Success, "Avatar resolved from authenticated session.");
-                }
-            }
-
-            return FailAndCallback<StarAvatarProfile>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            /* Do NOT return Success with a stub profile when GET fails: game would get "profile loaded" but cache has no XP/quest (causes 0 XP in Quake). Always return Fail so callback is not invoked with Success. */
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current FAILED: IsError=True Message={response.Message ?? "null"} (returning Fail, not stub)");
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception) : Fail<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
+
+        var responsePreview = response.Result != null && response.Result.Length > 0
+            ? (response.Result.Length <= 500 ? response.Result : response.Result.Substring(0, 500) + "...")
+            : "(empty)";
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current response OK len={response.Result?.Length ?? 0} preview={responsePreview}");
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
-            return FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
+        {
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode) : Fail<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
+        }
 
-        var avatar = ParseAvatarProfile(resultElement);
+        var avatar = ParseAvatarProfile(resultElement, response.Result);
         if (avatar is null || avatar.Id == Guid.Empty)
-            return FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
+        {
+            StarApiExports.StarApiLogFileOnly("[Avatar] GET avatar/current parse failed: no avatar in response");
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError) : Fail<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
+        }
 
         lock (_stateLock)
         {
             _avatarId = avatar.Id.ToString();
             _cachedAvatarXp = avatar.XP;
+            /* If user saved a quest/objective after this GET was started, do not let stale response overwrite their choice (fixes "wrong quest" on load). */
+            if (!_questTrackerSavedSinceLastGet)
+            {
+                _cachedActiveQuestId = avatar.ActiveQuestId;
+                _cachedActiveObjectiveId = avatar.ActiveObjectiveId;
+            }
+            else
+            {
+                _questTrackerSavedSinceLastGet = false;
+                try { StarApiExports.StarApiLogFileOnly($"[Quest] GET avatar/current: ignoring quest/objective in response (user saved since GET started; keeping cache)"); } catch { /* ignore */ }
+            }
         }
 
-        InvokeCallback(StarApiResultCode.Success);
+        lock (_stateLock) { if (!string.IsNullOrWhiteSpace(avatar.Username)) _loggedInUsername = avatar.Username; }
+        Guid? loadQuestId;
+        Guid? loadObjectiveId;
+        lock (_stateLock) { loadQuestId = _cachedActiveQuestId; loadObjectiveId = _cachedActiveObjectiveId; }
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={loadQuestId} ActiveObjectiveId={loadObjectiveId} (cache updated)");
+        var (loadQuestName, loadObjName) = TryGetQuestAndObjectiveNamesFromCache(loadQuestId, loadObjectiveId);
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD questId={loadQuestId} objectiveId={loadObjectiveId} questName={loadQuestName ?? "(not in cache)"} objectiveName={loadObjName ?? "(not in cache)"}"); } catch { /* ignore */ }
+        if (StarApiExports.GetStarDebug())
+        {
+            try
+            {
+                if (loadQuestId.HasValue || loadObjectiveId.HasValue)
+                    StarApiExports.StarApiLog($"[Avatar] Profile loaded: quest={loadQuestId} objective={loadObjectiveId} (tracker can restore)");
+                else
+                    StarApiExports.StarApiLog("[Avatar] Profile loaded: no ActiveQuestId/ActiveObjectiveId (tracker will stay clear)");
+            }
+            catch { /* ignore */ }
+        }
+        if (invokeCallback) InvokeCallback(StarApiResultCode.Success);
         return Success(avatar, StarApiResultCode.Success, "Current avatar loaded.");
     }
 
-    /// <summary>Run get-current-avatar on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run get-current-avatar on the profile worker so the calling thread does not block.</summary>
     public Task<OASISResult<StarAvatarProfile>> QueueGetCurrentAvatarAsync(CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => GetCurrentAvatarAsync(ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Profile, ct => GetCurrentAvatarAsync(ct), cancellationToken);
 
     public OASISResult<bool> Cleanup()
     {
@@ -565,9 +785,9 @@ public sealed class StarApiClient : IDisposable
         return Success(found, StarApiResultCode.Success, found ? "Item found in inventory." : "Item not found in inventory.");
     }
 
-    /// <summary>Run has-item on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run has-item on the inventory worker so the calling thread does not block.</summary>
     public Task<OASISResult<bool>> QueueHasItemAsync(string itemName, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => HasItemAsync(itemName, ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Inventory, ct => HasItemAsync(itemName, ct), cancellationToken);
 
     /// <summary>Get avatar inventory. Returns cache (or fetches) then merges with local pickup deltas so one row per type = API qty + pending. Single-flight fetch when cache is null.</summary>
     public async Task<OASISResult<List<StarItem>>> GetInventoryAsync(CancellationToken cancellationToken = default)
@@ -613,9 +833,36 @@ public sealed class StarApiClient : IDisposable
         return result;
     }
 
-    /// <summary>Run get-inventory on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run get-inventory on the inventory worker so the calling thread does not block.</summary>
     public Task<OASISResult<List<StarItem>>> QueueGetInventoryAsync(CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => GetInventoryAsync(ct), cancellationToken);
+        RunOnWorkerAsync(DedicatedWorker.Inventory, ct => GetInventoryAsync(ct), cancellationToken);
+
+    /// <summary>Return current inventory from cache only (merged with pending). No network. Returns null if cache not populated yet.</summary>
+    public List<StarItem>? TryGetCachedInventory()
+    {
+        lock (_inventoryCacheLock)
+        {
+            if (_cachedInventory is null)
+                return null;
+            return MergeLocalPendingIntoInventory(_cachedInventory);
+        }
+    }
+
+    /// <summary>Request inventory fetch in background. When done, operation_callback is invoked with StarApiOpGetInventory. Non-blocking.</summary>
+    public void RequestInventoryInBackground()
+    {
+        if (!IsInitialized())
+        {
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            return;
+        }
+        _ = QueueGetInventoryAsync().ContinueWith((Task<OASISResult<List<StarItem>>> task) =>
+        {
+            var result = task.IsCompletedSuccessfully ? task.Result : new OASISResult<List<StarItem>> { IsError = true, Message = task.Exception?.Message ?? "Inventory fetch failed." };
+            var code = result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.Success;
+            StarApiExports.InvokeOperationCallback(code, StarApiExports.StarApiOpGetInventory);
+        }, TaskContinuationOptions.None);
+    }
 
     /// <summary>Merge API list with local pending: one row per type, qty = API qty + pending for that name. Types only in pending get a new row.</summary>
     private List<StarItem> MergeLocalPendingIntoInventory(List<StarItem> apiList)
@@ -680,18 +927,17 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
-            if (response.IsError && ParseCode(response.ErrorCode, StarApiResultCode.ApiError) == StarApiResultCode.Network)
-            {
-                await Task.Delay(200, CancellationToken.None).ConfigureAwait(false);
-                response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
-            }
+            var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError)
+            {
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+            }
 
             var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
             if (!parseResult)
+            {
                 return FailAndCallback<List<StarItem>>(parseErrorMessage, parseErrorCode);
+            }
 
             var mapped = ParseInventoryItems(resultElement);
             InvokeCallback(StarApiResultCode.Success);
@@ -713,10 +959,543 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Clear all client caches (e.g. inventory). Next GetInventory/HasItem will hit the API.</summary>
+    /// <summary>Clear all client caches (e.g. inventory, quests). Next GetInventory/HasItem/GetQuests will hit the API.</summary>
     public void ClearCache()
     {
         InvalidateInventoryCache();
+        InvalidateQuestCache();
+    }
+
+    /// <summary>Clear the local quest cache. Next star_api_get_quests_string will trigger a background refresh. Call after completing objectives if you want the popup to show fresh data.</summary>
+    public void InvalidateQuestCache()
+    {
+        lock (_questsCacheLock)
+        {
+            _questsCacheString = null;
+            _cachedQuestList = null;
+            _questsFilterLastLogTop = (0, 0);
+            _questsFilterLastLogObjectives = ("", -1);
+            _questsFilterLastLogSubQuests = ("", -1);
+            _questsFilterLastLogPrereqs = ("", -1);
+            _questObjectivesHydrating.Clear();
+        }
+    }
+
+    /// <summary>Start a background refresh of the quest cache without clearing it. When the fetch completes, the cache is updated. Use when opening the quest popup so the UI shows the previous list immediately and updates when the callback returns.</summary>
+    public void RequestQuestCacheRefreshInBackground()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsRefreshInProgress)
+                return;
+            _questsRefreshInProgress = true;
+        }
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
+        {
+            try
+            {
+                var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
+                if (result.IsError)
+                {
+                    StarApiExports.StarApiLog($"[Quests] Refresh failed: {result.Message}");
+                    lock (_questsCacheLock) { _questsRefreshInProgress = false; }
+                    return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+                }
+                if (result.Result is null || result.Result.Count == 0)
+                {
+                    StarApiExports.StarApiLog("[Quests] Refresh OK (0 quests)");
+                }
+                else
+                {
+                    var list = result.Result;
+                    int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+                    StarApiExports.StarApiLog($"[Quests] Cache refreshed: {list.Count} quests, {withObjectives} with objectives");
+                }
+                var serialized = result.Result is null || result.Result.Count == 0
+                    ? string.Empty
+                    : SerializeQuestsForGame(result.Result);
+                lock (_questsCacheLock)
+                {
+                    _questsCacheString = serialized;
+                    _cachedQuestList = result.Result;
+                    _questsRefreshInProgress = false;
+                    _questsFilterLastLogTop = (0, 0);
+                    _questsFilterLastLogObjectives = ("", -1);
+                    _questsFilterLastLogSubQuests = ("", -1);
+                    _questsFilterLastLogPrereqs = ("", -1);
+                }
+                return Success(true, StarApiResultCode.Success, "Quests cache refreshed.");
+            }
+            catch (Exception ex)
+            {
+                StarApiExports.StarApiLog($"[Quests] Refresh exception: {ex.Message}");
+                lock (_questsCacheLock)
+                {
+                    _questsRefreshInProgress = false;
+                }
+                return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+            }
+        }, default);
+    }
+
+    /// <summary>Filter cached quest list to top-level only (no ParentQuestId or empty). Returns empty list if cache not ready.</summary>
+    public List<StarQuestInfo> GetTopLevelQuestsFromCache()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            return _cachedQuestList.Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString()).ToList();
+        }
+    }
+
+    /// <summary>Get objectives for a parent quest from the quest's Objectives collection (Quest.Objectives). Returns one StarQuestInfo per objective so callers get a list; objectives are no longer separate child quests.</summary>
+    public List<StarQuestInfo> GetQuestObjectivesFromCache(string parentQuestId)
+    {
+        if (string.IsNullOrWhiteSpace(parentQuestId)) return new List<StarQuestInfo>();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            var id = parentQuestId.Trim();
+            var parent = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase));
+            if (parent?.Objectives == null || parent.Objectives.Count == 0) return new List<StarQuestInfo>();
+            var list = new List<StarQuestInfo>();
+            for (var i = 0; i < parent.Objectives.Count; i++)
+            {
+                var o = parent.Objectives[i];
+                list.Add(new StarQuestInfo
+                {
+                    Id = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id,
+                    Name = o.Description ?? o.SummaryText ?? "",
+                    Description = o.Description ?? o.SummaryText ?? "",
+                    Status = o.IsCompleted ? "Completed" : "InProgress",
+                    Order = o.Order,
+                    GameSource = o.GameSource ?? string.Empty,
+                    Objectives = new List<StarQuestObjective>(),
+                    ParentQuestId = id,
+                    Dictionaries = o.Dictionaries
+                });
+            }
+            return list;
+        }
+    }
+
+    /// <summary>Filter cached quest list to sub-quests (child quests with ParentQuestId set). Sub-quests are full nested quests; objectives are on Quest.Objectives.</summary>
+    public List<StarQuestInfo> GetQuestSubQuestsFromCache(string parentQuestId)
+    {
+        if (string.IsNullOrWhiteSpace(parentQuestId)) return new List<StarQuestInfo>();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            var id = parentQuestId.Trim();
+            return _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    /// <summary>Resolve prerequisite quest IDs for the given quest to full StarQuestInfo from cache. Returns empty list if cache not ready or quest not found.</summary>
+    public List<StarQuestInfo> GetQuestPrereqsFromCache(string questId)
+    {
+        if (string.IsNullOrWhiteSpace(questId)) return new List<StarQuestInfo>();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return new List<StarQuestInfo>();
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest?.PrerequisiteQuestIds == null || quest.PrerequisiteQuestIds.Count == 0) return new List<StarQuestInfo>();
+            var set = new HashSet<string>(quest.PrerequisiteQuestIds, StringComparer.OrdinalIgnoreCase);
+            return _cachedQuestList.Where(q => set.Contains(q.Id)).ToList();
+        }
+    }
+
+    /// <summary>Ensure quest cache is populated in the background. Called from star_api_get_quests_string when cache is empty so the game thread never blocks.</summary>
+    private void EnsureQuestsCacheInBackground()
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsCacheString != null || _questsRefreshInProgress)
+                return;
+            _questsRefreshInProgress = true;
+        }
+        StarApiExports.StarApiLogFileOnly("[Quests] EnsureQuestsCacheInBackground started (fetching all-for-avatar)");
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
+        {
+            try
+            {
+                var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
+                string serialized;
+                if (result.IsError)
+                {
+                    serialized = "Error: Error loading quests. Check console or star_api.log for details.";
+                    StarApiExports.StarApiLog($"[Quests] Load failed: {result.Message}");
+                }
+                else if (result.Result is null || result.Result.Count == 0)
+                {
+                    serialized = string.Empty;
+                    StarApiExports.StarApiLog("[Quests] OK (0 quests)");
+                }
+                else
+                {
+                    serialized = SerializeQuestsForGame(result.Result);
+                    var list = result.Result;
+                    int withObjectives = list.Count(q => q.Objectives != null && q.Objectives.Count > 0);
+                    StarApiExports.StarApiLog($"[Quests] Cache updated: {list.Count} quests, {withObjectives} with objectives");
+                }
+                lock (_questsCacheLock)
+                {
+                    _questsCacheString = serialized;
+                    _cachedQuestList = result.Result;
+                    _questsRefreshInProgress = false;
+                    _questsFilterLastLogTop = (0, 0);
+                    _questsFilterLastLogObjectives = ("", -1);
+                    _questsFilterLastLogSubQuests = ("", -1);
+                    _questsFilterLastLogPrereqs = ("", -1);
+                }
+                return Success(true, StarApiResultCode.Success, "Quests cached.");
+            }
+            catch (Exception ex)
+            {
+                var serialized = "Error: Error loading quests. Check console or star_api.log for details.";
+                StarApiExports.StarApiLog($"[Quests] Exception: {ex.Message}");
+                lock (_questsCacheLock)
+                {
+                    _questsCacheString = serialized;
+                    _cachedQuestList = null;
+                    _questsRefreshInProgress = false;
+                    _questsFilterLastLogTop = (0, 0);
+                    _questsFilterLastLogObjectives = ("", -1);
+                    _questsFilterLastLogSubQuests = ("", -1);
+                    _questsFilterLastLogPrereqs = ("", -1);
+                }
+                return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
+            }
+        }, default);
+    }
+
+    /// <summary>Get current quest cache for native star_api_get_quests_string. Returns cached string if available; otherwise starts background refresh and returns null (caller shows "Loading..."). Never blocks.</summary>
+    internal bool TryGetQuestsCache(out string? cached)
+    {
+        lock (_questsCacheLock)
+        {
+            if (_questsCacheString != null)
+            {
+                cached = _questsCacheString;
+                return true;
+            }
+        }
+        EnsureQuestsCacheInBackground();
+        cached = null;
+        return false;
+    }
+
+    /// <summary>Get display name for the current tracked quest (ActiveQuestId) from cache. Returns null if cache not ready or quest not in list.</summary>
+    internal string? TryGetTrackerQuestNameFromCache()
+    {
+        var questId = GetCachedActiveQuestId();
+        if (!questId.HasValue || questId.Value == Guid.Empty) return null;
+        var idStr = questId.Value.ToString();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return null;
+            var q = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, idStr, StringComparison.OrdinalIgnoreCase));
+            return q?.Name;
+        }
+    }
+
+    /// <summary>Get serialized top-level-only quest list for left panel. Filters from cache; returns null if cache not ready.</summary>
+    internal bool TryGetTopLevelQuestsCache(out string? cached)
+    {
+        cached = null;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            /* Stable order by Id so the same quest always has the same index across reloads and cache refreshes (fixes popup "1 above" drift). */
+            var top = _cachedQuestList
+                .Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString())
+                .OrderBy(q => q.Id ?? string.Empty, StringComparer.Ordinal)
+                .ToList();
+            var total = _cachedQuestList.Count;
+            if (_questsFilterLastLogTop != (total, top.Count))
+            {
+                _questsFilterLastLogTop = (total, top.Count);
+            }
+            cached = top.Count == 0 ? string.Empty : SerializeQuestsForGame(top);
+            return true;
+        }
+    }
+
+    /// <summary>Get serialized objectives for a parent quest. We do NOT cache a single "right panel" list: every call is filtered by the requested parentQuestId.
+    /// Data path: Game passes the selected quest id → TryGetQuestObjectivesCache(id) → find that quest in _cachedQuestList by Id → return that quest's Objectives only.
+    /// If the main cache has 0 objectives for that quest, we start an on-demand fetch and merge the result into _cachedQuestList so the next call (next frame) returns them.</summary>
+    internal bool TryGetQuestObjectivesCache(string? parentQuestId, out string? cached)
+    {
+        cached = null;
+        if (string.IsNullOrWhiteSpace(parentQuestId)) { cached = string.Empty; return true; }
+        var id = parentQuestId.Trim();
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            // 1) Find the requested quest in the cache by Id (not by index – selection change always uses the new id). On-demand fetch merges objectives into this list.
+            var parent = _cachedQuestList.Where(q => string.Equals(q.Id, id, StringComparison.OrdinalIgnoreCase))
+                .OrderByDescending(q => q.Objectives?.Count ?? 0)
+                .FirstOrDefault();
+            if (parent != null && parent.Objectives != null && parent.Objectives.Count > 0)
+            {
+                cached = SerializeObjectivesAsQuestLines(parent);
+                return true;
+            }
+            if (parent != null)
+            {
+                cached = SerializeObjectivesAsQuestLines(parent);
+                return true;
+            }
+            cached = string.Empty;
+            return true;
+        }
+    }
+
+    /// <summary>Replace the quest in _cachedQuestList with a copy that has the given objectives, so the next TryGetQuestObjectivesCache lookup returns them. Caller must hold _questsCacheLock. Increments _questObjectivesCacheVersion so UI can re-read.</summary>
+    private void MergeObjectivesIntoCachedQuest(string questId, List<StarQuestObjective> objectives)
+    {
+        if (_cachedQuestList == null || objectives == null || objectives.Count == 0) return;
+        for (var i = 0; i < _cachedQuestList.Count; i++)
+        {
+            var q = _cachedQuestList[i];
+            if (!string.Equals(q.Id, questId, StringComparison.OrdinalIgnoreCase)) continue;
+            var updated = new StarQuestInfo
+            {
+                Id = q.Id,
+                Name = q.Name,
+                Description = q.Description,
+                Status = q.Status,
+                Order = q.Order,
+                GameSource = q.GameSource ?? string.Empty,
+                Requirements = q.Requirements ?? new List<string>(),
+                RewardKarma = q.RewardKarma,
+                RewardXP = q.RewardXP,
+                CompletionNotes = q.CompletionNotes,
+                ParentMissionId = q.ParentMissionId ?? string.Empty,
+                ParentQuestId = q.ParentQuestId ?? string.Empty,
+                Objectives = objectives,
+                PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                Dictionaries = q.Dictionaries
+            };
+            _cachedQuestList[i] = updated;
+            _questObjectivesCacheVersion++;
+            StarApiExports.StarApiLog($"[Quests] Merged {objectives.Count} objectives into cached quest {questId}; cache version now {_questObjectivesCacheVersion}. UI should re-call get_quest_objectives_string to refresh.");
+            break;
+        }
+    }
+
+    /// <summary>Objectives cache version; increments when on-demand fetch merges objectives. UI polls this each frame and re-calls get_quest_objectives_string when it changes so the list refreshes.</summary>
+    internal int GetQuestObjectivesCacheVersion()
+    {
+        lock (_questsCacheLock) { return _questObjectivesCacheVersion; }
+    }
+
+    /// <summary>Fetch a single quest by id and return its Objectives (for on-demand fill when all-for-avatar had 0).</summary>
+    private async Task<List<StarQuestObjective>?> FetchSingleQuestObjectivesAsync(string questId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrEmpty(_baseApiUrl)) return null;
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError || string.IsNullOrWhiteSpace(response.Result)) return null;
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out _, out _);
+        if (!parseResult || resultElement.ValueKind != JsonValueKind.Object) return null;
+        var quest = ParseSingleQuestInfo(resultElement);
+        return quest?.Objectives;
+    }
+
+    /// <summary>Get serialized sub-quests (child quests with ParentQuestId set) for a parent quest for right panel. Objectives are on Quest.Objectives, not in this list.</summary>
+    internal bool TryGetQuestSubQuestsCache(string? parentQuestId, out string? cached)
+    {
+        cached = null;
+        if (string.IsNullOrWhiteSpace(parentQuestId)) { cached = string.Empty; return true; }
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var id = parentQuestId.Trim();
+            var sub = _cachedQuestList.Where(q => string.Equals(q.ParentQuestId, id, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (_questsFilterLastLogSubQuests != (id, sub.Count))
+            {
+                _questsFilterLastLogSubQuests = (id, sub.Count);
+            }
+            cached = sub.Count == 0 ? string.Empty : SerializeQuestsForGame(sub);
+            return true;
+        }
+    }
+
+    /// <summary>Format requirement/progress dictionaries into display lines e.g. "Killed 3/10 monsters in ODOOM". Pairs Need* dicts with progress dicts; one line per game key.</summary>
+    private static void FormatRequirementProgressLines(StarQuestObjectiveDictionaries? dicts, List<string> outLines)
+    {
+        if (dicts == null) return;
+        static int ParseFirstInt(Dictionary<string, List<string>> d, string game)
+        {
+            if (d == null || !d.TryGetValue(game, out var list) || list == null || list.Count == 0) return 0;
+            return int.TryParse(list[0], out var n) ? n : 0;
+        }
+        static void AddLine(Dictionary<string, List<string>> need, Dictionary<string, List<string>> progress, string verb, string noun, List<string> lines)
+        {
+            if (need == null || need.Count == 0) return;
+            foreach (var kv in need)
+            {
+                var game = kv.Key;
+                var reqList = kv.Value;
+                int required = (reqList != null && reqList.Count > 0 && int.TryParse(reqList[0], out var r)) ? r : 0;
+                int current = ParseFirstInt(progress, game);
+                if (required <= 0) continue;
+                lines.Add($"{verb} {current}/{required} {noun} in {game}");
+            }
+        }
+        AddLine(dicts.NeedToKillMonsters, dicts.MonstersKilled, "Killed", "monsters", outLines);
+        AddLine(dicts.NeedToCollectArmor, dicts.ArmorCollected, "Collected", "armor", outLines);
+        AddLine(dicts.NeedToCollectAmmo, dicts.AmmoCollected, "Collected", "ammo", outLines);
+        AddLine(dicts.NeedToCollectHealth, dicts.HealthCollected, "Collected", "health", outLines);
+        AddLine(dicts.NeedToCollectWeapons, dicts.WeaponsCollected, "Collected", "weapons", outLines);
+        AddLine(dicts.NeedToCollectPowerups, dicts.PowerupsCollected, "Collected", "powerups", outLines);
+        AddLine(dicts.NeedToCollectItems, dicts.ItemsCollected, "Collected", "items", outLines);
+        AddLine(dicts.NeedToCollectKeys, dicts.KeysCollected, "Collected", "keys", outLines);
+        AddLine(dicts.NeedToCompleteLevel, dicts.LevelsCompleted, "Completed", "levels", outLines);
+        AddLine(dicts.NeedToEarnKarma, dicts.KarmaEarnt, "Earned", "karma", outLines);
+        AddLine(dicts.NeedToEarnXP, dicts.XPEarnt, "Earned", "XP", outLines);
+        AddLine(dicts.NeedToGoToGeoHotSpots, dicts.GeoHotSpotsArrived, "Visited", "hot spots", outLines);
+        AddLine(dicts.NeedToUseWeapons, dicts.WeaponsCollected, "Used", "weapons", outLines);
+        AddLine(dicts.NeedToUsePowerups, dicts.PowerupsCollected, "Used", "powerups", outLines);
+    }
+
+    /// <summary>Get serialized requirement/progress lines for a quest and optional objective (objective + quest-level dictionaries). Returns lines like "Killed 3/10 monsters in ODOOM". When API returns no dictionary data, fallback to objective description + Completed/In progress.</summary>
+    internal bool TryGetQuestObjectiveRequirementsForGame(string? questId, string? objectiveId, out string result)
+    {
+        result = string.Empty;
+        if (string.IsNullOrWhiteSpace(questId)) return true;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest == null) return true;
+            var lines = new List<string>();
+            if (!string.IsNullOrWhiteSpace(objectiveId) && quest.Objectives != null)
+            {
+                var obj = quest.Objectives.FirstOrDefault(o => string.Equals(o.Id, objectiveId, StringComparison.OrdinalIgnoreCase));
+                if (obj?.Dictionaries != null)
+                    FormatRequirementProgressLines(obj.Dictionaries, lines);
+                if (lines.Count == 0 && quest.Dictionaries != null)
+                    FormatRequirementProgressLines(quest.Dictionaries, lines);
+                if (lines.Count == 0 && obj != null)
+                {
+                    var desc = obj.Description ?? obj.SummaryText ?? "Objective";
+                    lines.Add(obj.IsCompleted ? $"{desc} — Completed" : $"{desc} — In progress");
+                }
+            }
+            if (lines.Count == 0 && quest.Dictionaries != null)
+                FormatRequirementProgressLines(quest.Dictionaries, lines);
+            if (lines.Count == 0 && quest.Objectives != null && quest.Objectives.Count > 0)
+            {
+                var completed = quest.Objectives.Count(o => o.IsCompleted);
+                lines.Add($"Quest progress: {completed}/{quest.Objectives.Count} objectives completed.");
+            }
+            result = lines.Count > 0 ? string.Join("\n", lines) : string.Empty;
+            return true;
+        }
+    }
+
+    /// <summary>Get one line per objective for the tracker: display name/description only (no IDs). Active index = persisted ActiveObjectiveId if set and found in quest, else first incomplete objective (0-based).</summary>
+    internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
+    {
+        linesResult = string.Empty;
+        activeObjectiveIndex = 0;
+        if (string.IsNullOrWhiteSpace(questId)) return true;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (quest?.Objectives == null || quest.Objectives.Count == 0) return true;
+            var sb = new StringBuilder();
+            for (var i = 0; i < quest.Objectives.Count; i++)
+            {
+                var o = quest.Objectives[i];
+                var desc = "";
+                if (o.Dictionaries != null)
+                {
+                    var objLines = new List<string>();
+                    FormatRequirementProgressLines(o.Dictionaries, objLines);
+                    desc = objLines.Count > 0 ? objLines[0] : (o.Description ?? o.SummaryText ?? "");
+                }
+                else
+                    desc = o.Description ?? o.SummaryText ?? "";
+                sb.Append(EscapeForQuestLine(desc)).Append("\n");
+            }
+            linesResult = sb.ToString().TrimEnd();
+            activeObjectiveIndex = 0;
+            /* Prefer persisted active objective (user choice) when we have it; else use first incomplete (quest progress). */
+            Guid? cachedObjId;
+            lock (_stateLock) { cachedObjId = _cachedActiveObjectiveId; }
+            if (cachedObjId.HasValue && quest.Objectives != null)
+            {
+                var idStr = cachedObjId.Value.ToString("D");
+                for (var i = 0; i < quest.Objectives.Count; i++)
+                {
+                    if (string.Equals(quest.Objectives[i].Id, idStr, StringComparison.OrdinalIgnoreCase))
+                    {
+                        activeObjectiveIndex = i;
+                        return true;
+                    }
+                }
+            }
+            for (var i = 0; i < quest.Objectives.Count; i++)
+            {
+                if (!quest.Objectives[i].IsCompleted)
+                {
+                    activeObjectiveIndex = i;
+                    break;
+                }
+            }
+            return true;
+        }
+    }
+
+    /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI.</summary>
+    private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
+    {
+        if (quest.Objectives == null || quest.Objectives.Count == 0) return string.Empty;
+        var sb = new StringBuilder();
+        for (var i = 0; i < quest.Objectives.Count; i++)
+        {
+            var o = quest.Objectives[i];
+            var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
+            var name = EscapeForQuestLine(o.Description ?? o.SummaryText ?? "");
+            var desc = name;
+            var status = o.IsCompleted ? "Completed" : "InProgress";
+            var pct = o.IsCompleted ? 100 : 0;
+            sb.Append("Q\t").Append(oid).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Get serialized prerequisite quests (id, name, desc) for right panel. Returns null if cache not ready.</summary>
+    internal bool TryGetQuestPrereqsCache(string? questId, out string? cached)
+    {
+        cached = null;
+        if (string.IsNullOrWhiteSpace(questId)) { cached = string.Empty; return true; }
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
+            var qid = questId.Trim();
+            var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, qid, StringComparison.OrdinalIgnoreCase));
+            if (quest?.PrerequisiteQuestIds == null || quest.PrerequisiteQuestIds.Count == 0)
+            {
+                if (_questsFilterLastLogPrereqs != (qid, 0))
+                {
+                    _questsFilterLastLogPrereqs = (qid, 0);
+                }
+                cached = string.Empty;
+                return true;
+            }
+            var set = new HashSet<string>(quest.PrerequisiteQuestIds, StringComparer.OrdinalIgnoreCase);
+            var prereqs = _cachedQuestList.Where(q => set.Contains(q.Id)).ToList();
+            if (_questsFilterLastLogPrereqs != (qid, prereqs.Count))
+            {
+                _questsFilterLastLogPrereqs = (qid, prereqs.Count);
+            }
+            cached = prereqs.Count == 0 ? string.Empty : SerializeQuestsForGame(prereqs);
+            return true;
+        }
     }
 
     public async Task<OASISResult<StarItem>> AddItemAsync(string itemName, string description, string gameSource, string itemType = "KeyItem", string? nftId = null, int quantity = 1, bool stack = true, CancellationToken cancellationToken = default)
@@ -814,6 +1593,8 @@ public sealed class StarApiClient : IDisposable
             }
         }
         _addItemSignal.Release();
+        var keysDelta = (type != null && (type.IndexOf("Key", StringComparison.OrdinalIgnoreCase) >= 0 || type.IndexOf("key", StringComparison.OrdinalIgnoreCase) >= 0)) ? 1 : 0;
+        EnqueueQuestProgressFromGame(gameSource, 0, 0, itemName, keysDelta, 1, null, itemType);
     }
 
     /// <summary>Queue XP to add to the beamed-in avatar (e.g. on monster kill). Flushed with add-item worker. Amount 0 allowed (temp) for refresh / get newTotal from server.</summary>
@@ -905,6 +1686,80 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Last known avatar XP (from get-current-avatar or add-xp). For star_api_get_avatar_xp.</summary>
     public int GetCachedAvatarXp() => Volatile.Read(ref _cachedAvatarXp);
 
+    /// <summary>Last active quest ID from avatar detail (restored after beam-in).</summary>
+    public Guid? GetCachedActiveQuestId()
+    {
+        lock (_stateLock) return _cachedActiveQuestId;
+    }
+    /// <summary>Last active objective ID from avatar detail (restored after beam-in).</summary>
+    public Guid? GetCachedActiveObjectiveId()
+    {
+        lock (_stateLock) return _cachedActiveObjectiveId;
+    }
+
+    /// <summary>Resolve quest and objective names from cache for logging (save/load debug). Returns (null, null) if cache not ready or ids not found.</summary>
+    private (string? questName, string? objectiveName) TryGetQuestAndObjectiveNamesFromCache(Guid? questId, Guid? objectiveId)
+    {
+        if (!questId.HasValue) return (null, null);
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return (null, null);
+            var idStr = questId.Value.ToString();
+            var q = _cachedQuestList.FirstOrDefault(x => string.Equals(x.Id, idStr, StringComparison.OrdinalIgnoreCase));
+            if (q == null) return (null, null);
+            string? objName = null;
+            if (objectiveId.HasValue && q.Objectives != null)
+            {
+                var oidStr = objectiveId.Value.ToString();
+                var o = q.Objectives.FirstOrDefault(o => string.Equals(o.Id, oidStr, StringComparison.OrdinalIgnoreCase));
+                objName = o?.Description ?? o?.SummaryText;
+            }
+            return (q.Name, objName);
+        }
+    }
+
+    /// <summary>Persist active quest and objective on the avatar detail so they are restored after beam-in. Call when the user sets the tracker in the game.</summary>
+    public async Task<OASISResult<bool>> SetActiveQuestAndObjectiveAsync(Guid? questId, Guid? objectiveId, CancellationToken cancellationToken = default)
+    {
+        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync called: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] Set active quest requested: questId={questId}, objectiveId={objectiveId}"); } catch { /* ignore */ }
+        if (!IsInitialized())
+        {
+            try { StarApiExports.StarApiLog("[Quest] SetActiveQuestAndObjectiveAsync failed: client not initialized"); } catch { /* ignore */ }
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
+        var url = $"{_baseApiUrl}/api/avatar/set-active-quest";
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("activeQuestId");
+            if (questId.HasValue) writer.WriteStringValue(questId.Value.ToString());
+            else writer.WriteNullValue();
+            writer.WritePropertyName("activeObjectiveId");
+            if (objectiveId.HasValue) writer.WriteStringValue(objectiveId.Value.ToString());
+            else writer.WriteNullValue();
+            writer.WriteEndObject();
+        });
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] SetActiveQuestAndObjectiveAsync POST {url} body={payload}"); } catch { /* ignore */ }
+        var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync API error: {response.Message}"); } catch { /* ignore */ }
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] SetActiveQuestAndObjectiveAsync response body: {response.Result ?? "(null)"}"); } catch { /* ignore */ }
+            return FailAndCallback<bool>(response.Message ?? "Set active quest failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
+        lock (_stateLock)
+        {
+            _cachedActiveQuestId = questId;
+            _cachedActiveObjectiveId = objectiveId;
+            _questTrackerSavedSinceLastGet = true;  /* Any in-flight GET avatar/current must not overwrite this save */
+        }
+        var (questName, objectiveName) = TryGetQuestAndObjectiveNamesFromCache(questId, objectiveId);
+        try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId} (cache updated)"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] SAVE OK questId={questId} objectiveId={objectiveId} questName={questName ?? "(not in cache)"} objectiveName={objectiveName ?? "(not in cache)"}"); } catch { /* ignore */ }
+        return Success(true, StarApiResultCode.Success, "Active quest/objective saved.");
+    }
+
     /// <summary>Returns the cached avatar ID (set by AuthenticateAsync or init with api_key+avatar_id). Used by star_api_get_avatar_id to avoid a second GET when the game then calls refresh XP.</summary>
     public string? GetCachedAvatarId()
     {
@@ -912,30 +1767,40 @@ public sealed class StarApiClient : IDisposable
             return _avatarId;
     }
 
-    /// <summary>Refresh XP cache from API via GET /api/avatar/current (server returns avatar with AvatarDetail.XP). Call once after beam-in.</summary>
-    public void RefreshAvatarXp()
+    // REDUNDANT / REMOVED: RefreshAvatarXp() was a duplicate of RefreshAvatarProfileInBackground() (same GET avatar/current).
+    // Use RefreshAvatarProfileInBackground() only. It refreshes XP + ActiveQuestId/ActiveObjectiveId and invokes the callback.
+    // public void RefreshAvatarXp() { RefreshAvatarProfileInBackground(); }
+
+    /// <summary>Kick off a full avatar load (GET avatar/current) on the background worker so XP and ActiveQuestId/ActiveObjectiveId are updated without blocking the UI. Returns immediately; the same callback set via SetCallback is invoked when the load completes (Success or error), so the game can then read the cache and update the tracker.</summary>
+    public void RefreshAvatarProfileInBackground()
     {
+        StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground called");
         if (!IsInitialized())
         {
-            StarApiExports.StarApiLog("[XP refresh] skipped (not initialized)");
+            StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground skipped (not initialized)");
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpProfileLoaded);
             return;
         }
-        _ = RunOnBackgroundAsync<StarAvatarProfile>(async ct =>
+        _ = RunOnWorkerAsync(DedicatedWorker.Profile, async ct =>
         {
-            var result = await GetCurrentAvatarAsync(ct).ConfigureAwait(false);
-            if (result.IsError)
-                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] failed: {result.Message}");
+            StarApiExports.StarApiLogFileOnly("[Avatar] RefreshAvatarProfileInBackground: GET avatar/current started");
+            var result = await GetCurrentAvatarAsync(ct, invokeCallback: false).ConfigureAwait(false);
+            if (result is not null && !result.IsError && result.Result is not null)
+            {
+                var xp = result.Result.XP;
+                var qid = result.Result.ActiveQuestId;
+                var oid = result.Result.ActiveObjectiveId;
+                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done SUCCESS: XP={xp} ActiveQuestId={qid} ActiveObjectiveId={oid} (invoking callback Success)");
+                StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
+            }
             else
-                StarApiExports.StarApiLog($"[XP refresh GET avatar/current] OK XP={result.Result?.XP ?? 0} (cache updated)");
-            return result;
+            {
+                StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done FAIL: IsError={result?.IsError ?? true} Message={result?.Message ?? "null"} cachedXp={GetCachedAvatarXp()} (invoking callback error)");
+                var errCode = result != null && result.IsError ? ParseCode(result.ErrorCode, StarApiResultCode.ApiError) : StarApiResultCode.ApiError;
+                StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
+            }
+            return result ?? Fail<StarAvatarProfile>("Refresh failed.", StarApiResultCode.ApiError);
         }, CancellationToken.None);
-    }
-
-    /// <summary>Load avatar XP from API and update cache. Blocks until the request completes. Uses add-xp(0) so same code path as monster kill.</summary>
-    public void LoadAvatarXpBlocking()
-    {
-        if (!IsInitialized()) return;
-        _ = AddXpAsync(0, CancellationToken.None).GetAwaiter().GetResult();
     }
 
     /// <summary>Consume the last mint result (item name, NFT ID, hash) from background pickup-with-mint. Returns true if a result was available and copies into the provided buffers; clears the stored result. Call from game each frame/pump to show mint results in console.</summary>
@@ -977,6 +1842,8 @@ public sealed class StarApiClient : IDisposable
                 _localPending[storageName] = new LocalPendingEntry { Name = storageName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
         }
         _addItemSignal.Release();
+        var keysDeltaP = (type.IndexOf("Key", StringComparison.OrdinalIgnoreCase) >= 0) ? 1 : 0;
+        EnqueueQuestProgressFromGame(gameSource, 0, 0, itemName, keysDeltaP, 1, null, itemType);
     }
 
     /// <summary>Queue a monster kill (XP + optional mint + add to inventory). All work runs on the add-item background worker; never blocks.</summary>
@@ -1001,6 +1868,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xpVal, isBoss, doMint, provider ?? "SolanaOASIS", gs));
         _addItemSignal.Release();
+        EnqueueQuestProgressFromGame(gs, 1, xpVal, null, 0, 0, null);
     }
 
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
@@ -1290,7 +2158,10 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    public async Task<OASISResult<bool>> StartQuestAsync(string questId, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Checks whether the current avatar can start the quest (NotStarted and prerequisites met). Use for the quest popup to enable/disable the Start button.
+    /// </summary>
+    public async Task<OASISResult<bool>> CanStartQuestAsync(string questId, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -1298,15 +2169,54 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(questId))
             return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/start", null, cancellationToken).ConfigureAwait(false);
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<bool>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}/can-start", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<bool>(parseErrorMessage ?? "Parse error", parseErrorCode);
+
+        var canStart = GetBoolProperty(resultElement, "Result") || GetBoolProperty(resultElement, "result");
+        var message = GetStringProperty(resultElement, "Message") ?? GetStringProperty(resultElement, "message");
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(canStart, StarApiResultCode.Success, message ?? (canStart ? "Quest can be started." : "Quest cannot be started."));
+    }
+
+    public async Task<OASISResult<bool>> StartQuestAsync(string questId, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+        {
+            StarApiExports.StarApiLog("[Quests] StartQuestAsync: client not initialized");
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        }
+
+        if (string.IsNullOrWhiteSpace(questId))
+        {
+            StarApiExports.StarApiLog("[Quests] StartQuestAsync: quest ID is empty");
+            return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
+        }
+
+        var url = $"{_baseApiUrl}/api/quests/{questId}/start";
+        StarApiExports.StarApiLog($"[Quests] StartQuestAsync: POST {url}");
+        var response = await SendRawAsync(HttpMethod.Post, url, null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+        {
+            StarApiExports.StarApiLog($"[Quests] StartQuestAsync: response IsError=True Message={response.Message}");
+            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
+
+        StarApiExports.StarApiLog("[Quests] StartQuestAsync: API returned success (quest start completed)");
+        UpdateQuestStatusInCache(questId, "InProgress");
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest started successfully.");
     }
 
-    /// <summary>Run start-quest on the background worker so the calling thread does not block.</summary>
+    /// <summary>Run start-quest on the background worker so the calling thread does not block. On success, the cached quest's status is updated in-place so the UI refreshes from cache instantly without a full refetch.</summary>
     public Task<OASISResult<bool>> QueueStartQuestAsync(string questId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => StartQuestAsync(questId, ct), cancellationToken);
 
@@ -1351,18 +2261,27 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrWhiteSpace(objectiveId))
             return FailAndCallback<bool>("Quest ID and objective ID are required.", StarApiResultCode.InvalidParam);
 
+        var gs = string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource;
+        StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective: questId={questId} objectiveId={objectiveId} gameSource={gs}");
+
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
-            writer.WriteString("gameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
+            writer.WriteString("gameSource", gs);
             writer.WriteString("completionNotes", $"Completed objective {objectiveId} at {DateTime.UtcNow:O}");
             writer.WriteEndObject();
         });
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/objectives/{objectiveId}/complete", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective failed: questId={questId} objectiveId={objectiveId} error={response.Message}");
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
+        StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective OK: questId={questId} objectiveId={objectiveId} gameSource={gs}");
+        InvalidateQuestCache();
+        RequestQuestCacheRefreshInBackground();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest objective completed successfully.");
     }
@@ -1379,8 +2298,78 @@ public sealed class StarApiClient : IDisposable
         if (response.IsError)
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
+        InvalidateQuestCache();
+        RequestQuestCacheRefreshInBackground();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
+    }
+
+    /// <summary>POST /api/quests/{activeQuestId}/progress — realtime objective progress (kills, XP, pickups by type, level time). No-op if no active quest or all deltas are zero. Backend must expose this route (e.g. STAR ODK QuestsController); 404 means the URL (e.g. ONODE) may not have the progress endpoint.</summary>
+    private async Task ApplyQuestProgressToActiveQuestAsync(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup, int? levelTimeSeconds, CancellationToken cancellationToken)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(_baseApiUrl)) return;
+        Guid? qid;
+        lock (_stateLock) { qid = _cachedActiveQuestId; }
+        if (!qid.HasValue || qid.Value == Guid.Empty) return;
+        var gs = string.IsNullOrWhiteSpace(gameSource) ? "ODOOM" : gameSource.Trim();
+        var hasDeltas = monstersKilledDelta != 0 || xpEarnedDelta != 0 || keysCollectedDelta != 0 || armorDelta != 0 || healthDelta != 0 || weaponsDelta != 0 || powerupsDelta != 0 || ammoDelta != 0 || genericItemPickup != 0 || (levelTimeSeconds.HasValue && levelTimeSeconds.Value > 0);
+        if (!hasDeltas)
+            return; /* Do not send progress when nothing changed (avoids 0-delta calls and reduces 404s if backend route is missing). */
+        StarApiExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds}");
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("gameSource", gs);
+            writer.WriteNumber("monstersKilledDelta", monstersKilledDelta);
+            writer.WriteNumber("xpEarnedDelta", xpEarnedDelta);
+            writer.WriteNumber("keysCollectedDelta", keysCollectedDelta);
+            writer.WriteNumber("armorCollectedDelta", armorDelta);
+            writer.WriteNumber("healthCollectedDelta", healthDelta);
+            writer.WriteNumber("weaponsCollectedDelta", weaponsDelta);
+            writer.WriteNumber("powerupsCollectedDelta", powerupsDelta);
+            writer.WriteNumber("ammoCollectedDelta", ammoDelta);
+            writer.WriteNumber("genericItemPickup", genericItemPickup);
+            writer.WriteString("itemCollectedName", itemCollectedName ?? string.Empty);
+            if (levelTimeSeconds.HasValue)
+                writer.WriteNumber("levelTimeSeconds", levelTimeSeconds.Value);
+            writer.WriteEndObject();
+        });
+        var url = $"{_baseApiUrl}/api/quests/{qid.Value:D}/progress";
+        try
+        {
+            var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
+            StarApiExports.StarApiLogFileOnly($"[Quest] Progress result: {(response.IsError ? "FAIL" : "OK")} {(response.IsError ? response.Message ?? "" : "")}");
+            if (!response.IsError)
+            {
+                InvalidateQuestCache();
+                RequestQuestCacheRefreshInBackground();
+            }
+        }
+        catch (Exception ex)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] ApplyQuestProgress: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>Queue realtime quest progress (non-blocking). Uses active quest from avatar profile. Pass itemType (e.g. Armor, Health, Weapon, Powerup, Ammo, KeyItem) to set the matching Collected delta for objective dictionaries.</summary>
+    public void EnqueueQuestProgressFromGame(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int genericItemPickup, int? levelTimeSeconds = null, string? itemType = null)
+    {
+        if (!IsInitialized()) return;
+        int armor = 0, health = 0, weapons = 0, powerups = 0, ammo = 0;
+        if (!string.IsNullOrWhiteSpace(itemType))
+        {
+            var it = itemType.Trim();
+            if (it.IndexOf("Armor", StringComparison.OrdinalIgnoreCase) >= 0) armor = 1;
+            else if (it.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0) health = 1;
+            else if (it.IndexOf("Weapon", StringComparison.OrdinalIgnoreCase) >= 0) weapons = 1;
+            else if (it.IndexOf("Powerup", StringComparison.OrdinalIgnoreCase) >= 0 || it.IndexOf("Artifact", StringComparison.OrdinalIgnoreCase) >= 0) powerups = 1;
+            else if (it.IndexOf("Ammo", StringComparison.OrdinalIgnoreCase) >= 0) ammo = 1;
+        }
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
+        {
+            await ApplyQuestProgressToActiveQuestAsync(gameSource, monstersKilledDelta, xpEarnedDelta, itemCollectedName, keysCollectedDelta, armor, health, weapons, powerups, ammo, genericItemPickup, levelTimeSeconds, ct).ConfigureAwait(false);
+            return Success(true, StarApiResultCode.Success, "");
+        }, CancellationToken.None);
     }
 
     /// <summary>Run complete-quest on the background worker so the calling thread does not block.</summary>
@@ -1394,6 +2383,10 @@ public sealed class StarApiClient : IDisposable
 
         if (string.IsNullOrWhiteSpace(questName) || string.IsNullOrWhiteSpace(description) || objectives is null || objectives.Count == 0)
             return FailAndCallback<StarQuestInfo?>("Quest name, description and at least one objective are required.", StarApiResultCode.InvalidParam);
+
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<StarQuestInfo?>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
 
         var games = objectives
             .Select(o => string.IsNullOrWhiteSpace(o.GameSource) ? "Unknown" : o.GameSource)
@@ -1427,8 +2420,12 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteStartObject();
                 writer.WriteString("Description", o.Description ?? string.Empty);
                 writer.WriteString("GameSource", o.GameSource ?? string.Empty);
-                writer.WriteString("ItemRequired", o.ItemRequired ?? string.Empty);
-                writer.WriteNumber("Order", i);
+                writer.WriteString("ItemRequired", (o.Description ?? o.SummaryText) ?? string.Empty);
+                writer.WriteNumber("Order", o.Order >= 0 ? o.Order : i);
+                writer.WriteBoolean("IsCompleted", o.IsCompleted);
+                if (o.CompletedAt.HasValue) writer.WriteString("CompletedAt", o.CompletedAt.Value.ToString("O"));
+                if (!string.IsNullOrEmpty(o.CompletedBy)) writer.WriteString("CompletedBy", o.CompletedBy);
+                if (o.Dictionaries != null) WriteObjectiveDictionaries(writer, o.Dictionaries);
                 writer.WriteEndObject();
             }
             writer.WriteEndArray();
@@ -1492,7 +2489,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<StarQuestInfo?>> QueueAddQuestObjectiveAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => AddQuestObjectiveAsync(questId, description, name, gameSource, itemRequired, order, ct), cancellationToken);
 
-    /// <summary>Removes an objective (sub-quest) from a quest.</summary>
+    /// <summary>Removes an objective from a quest.</summary>
     public async Task<OASISResult<bool>> RemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
@@ -1513,27 +2510,325 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<bool>> QueueRemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => RemoveQuestObjectiveAsync(questId, objectiveId, ct), cancellationToken);
 
-    public async Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default)
+    /// <summary>Adds a sub-quest (full child quest) to an existing quest. Use for nested quests; use AddQuestObjectiveAsync for checklist objectives (Quest.Objectives).</summary>
+    public async Task<OASISResult<StarQuestInfo?>> AddSubQuestAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<StarQuestInfo?>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(questId))
+            return FailAndCallback<StarQuestInfo?>("Quest ID is required.", StarApiResultCode.InvalidParam);
+
+        if (string.IsNullOrWhiteSpace(description))
+            return FailAndCallback<StarQuestInfo?>("Description is required.", StarApiResultCode.InvalidParam);
+
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("Name", name ?? string.Empty);
+            writer.WriteString("Description", description);
+            writer.WriteString("GameSource", gameSource ?? string.Empty);
+            writer.WriteString("ItemRequired", itemRequired ?? string.Empty);
+            writer.WriteNumber("Order", order);
+            writer.WriteEndObject();
+        });
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/subquests", payload, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<StarQuestInfo?>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        StarQuestInfo? created = null;
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (parseResult && resultElement.ValueKind == JsonValueKind.Object)
+            created = ParseSingleQuestInfo(resultElement);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(created, StarApiResultCode.Success, "Sub-quest added successfully.");
+    }
+
+    /// <summary>Run add-sub-quest on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<StarQuestInfo?>> QueueAddSubQuestAsync(string questId, string description, string? name = null, string? gameSource = null, string? itemRequired = null, int order = -1, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => AddSubQuestAsync(questId, description, name, gameSource, itemRequired, order, ct), cancellationToken);
+
+    /// <summary>Removes a sub-quest (child quest) from a quest.</summary>
+    public async Task<OASISResult<bool>> RemoveSubQuestAsync(string parentQuestId, string subQuestId, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(parentQuestId) || string.IsNullOrWhiteSpace(subQuestId))
+            return FailAndCallback<bool>("Parent quest ID and sub-quest ID are required.", StarApiResultCode.InvalidParam);
+
+        var response = await SendRawAsync(HttpMethod.Delete, $"{_baseApiUrl}/api/quests/{parentQuestId}/subquests/{subQuestId}", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Sub-quest removed successfully.");
+    }
+
+    /// <summary>Run remove-sub-quest on the background worker so the calling thread does not block.</summary>
+    public Task<OASISResult<bool>> QueueRemoveSubQuestAsync(string parentQuestId, string subQuestId, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => RemoveSubQuestAsync(parentQuestId, subQuestId, ct), cancellationToken);
+
+    /// <summary>Sets prerequisite quest IDs on a quest (MetaData.PrerequisiteQuestIds). Loads the quest via GET, merges metaData, then PUTs. Use for seed data so the UI can show prerequisite chains.</summary>
+    public async Task<OASISResult<bool>> SetQuestPrerequisitesAsync(string questId, IReadOnlyList<string> prerequisiteQuestIds, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(questId))
+            return FailAndCallback<bool>("Quest ID is required.", StarApiResultCode.InvalidParam);
+
+        var getResponse = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/{questId}", null, cancellationToken).ConfigureAwait(false);
+        if (getResponse.IsError)
+            return FailAndCallback<bool>(getResponse.Message ?? "GET quest failed", ParseCode(getResponse.ErrorCode, StarApiResultCode.ApiError), getResponse.Exception);
+
+        JsonNode? root;
+        try
+        {
+            root = JsonNode.Parse(getResponse.Result ?? "{}");
+        }
+        catch (Exception ex)
+        {
+            return FailAndCallback<bool>($"Failed to parse quest response: {ex.Message}", StarApiResultCode.ApiError, ex);
+        }
+
+        var quest = root?["result"] ?? root?["Result"];
+        if (quest is not JsonObject questObj)
+            return FailAndCallback<bool>("Quest response did not contain a result object.", StarApiResultCode.ApiError);
+
+        var metaData = questObj["metaData"] ?? questObj["MetaData"];
+        if (metaData is not JsonObject metaObj)
+        {
+            metaObj = new JsonObject();
+            questObj["metaData"] = metaObj;
+        }
+        var arr = new JsonArray(prerequisiteQuestIds.Select(s => (JsonNode?)s).ToArray());
+        metaObj["PrerequisiteQuestIds"] = arr;
+
+        var putBody = questObj.ToJsonString();
+        var putResponse = await SendRawAsync(HttpMethod.Put, $"{_baseApiUrl}/api/quests/{questId}", putBody, cancellationToken).ConfigureAwait(false);
+        if (putResponse.IsError)
+            return FailAndCallback<bool>(putResponse.Message ?? "PUT quest failed", ParseCode(putResponse.ErrorCode, StarApiResultCode.ApiError), putResponse.Exception);
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(true, StarApiResultCode.Success, "Quest prerequisites set.");
+    }
+
+    /// <summary>
+    /// Gets all quests for the current avatar (no status filter).
+    /// Use this for the quest popup and filter by status (Not Started, In Progress, Completed) in the client with checkboxes.
+    /// </summary>
+    public async Task<OASISResult<List<StarQuestInfo>>> GetAllQuestsForAvatarAsync(CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<List<StarQuestInfo>>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/quests/by-status/InProgress", null, cancellationToken).ConfigureAwait(false);
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
+        var url = $"{_baseApiUrl}/api/quests/all-for-avatar";
+        if (string.IsNullOrEmpty(_baseApiUrl))
+            return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
+
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"}) (BaseApiUrl)");
+
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
-            return FailAndCallback<List<StarQuestInfo>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        {
+            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar failed: {response.Message ?? "Request failed"}");
+            return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
-            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage, parseErrorCode);
+        {
+            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar parse failed: {parseErrorMessage ?? "Parse error"}");
+            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
+        }
 
-        var quests = ParseQuestInfos(resultElement);
+        var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
+        int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar success: {quests.Count} quests, {totalObjectives} objectives");
+        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} objectives");
+        // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
+        UpdateQuestsCache(quests);
         InvokeCallback(StarApiResultCode.Success);
-        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} active quest(s).");
+        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) for avatar.");
     }
+
+    /// <summary>Write a quest list into the in-memory cache so native/game cache readers (get_quests_string, get_quest_objectives_string, etc.) see it. Used after GetAllQuestsForAvatarAsync and by the background refresh.</summary>
+    private void UpdateQuestsCache(List<StarQuestInfo> list)
+    {
+        if (list == null) return;
+        lock (_questsCacheLock)
+        {
+            _questsCacheString = list.Count == 0 ? string.Empty : SerializeQuestsForGame(list);
+            _cachedQuestList = list;
+            _questsFilterLastLogTop = (0, 0);
+            _questsFilterLastLogObjectives = ("", -1);
+            _questsFilterLastLogSubQuests = ("", -1);
+            _questsFilterLastLogPrereqs = ("", -1);
+        }
+    }
+
+    /// <summary>Update a single quest's status in the cached list and re-serialize so the UI sees the change immediately without a full refetch. Call after start-quest API success.</summary>
+    private void UpdateQuestStatusInCache(string questId, string newStatus)
+    {
+        if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrWhiteSpace(newStatus)) return;
+        lock (_questsCacheLock)
+        {
+            if (_cachedQuestList == null) return;
+            for (var i = 0; i < _cachedQuestList.Count; i++)
+            {
+                var q = _cachedQuestList[i];
+                if (!string.Equals(q.Id, questId, StringComparison.OrdinalIgnoreCase)) continue;
+                var updated = new StarQuestInfo
+                {
+                    Id = q.Id,
+                    Name = q.Name,
+                    Description = q.Description,
+                    Status = newStatus,
+                    Order = q.Order,
+                    GameSource = q.GameSource ?? string.Empty,
+                    Requirements = q.Requirements ?? new List<string>(),
+                    RewardKarma = q.RewardKarma,
+                    RewardXP = q.RewardXP,
+                    CompletionNotes = q.CompletionNotes,
+                    ParentMissionId = q.ParentMissionId ?? string.Empty,
+                    ParentQuestId = q.ParentQuestId ?? string.Empty,
+                    Objectives = q.Objectives ?? new List<StarQuestObjective>(),
+                    PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                    Dictionaries = q.Dictionaries
+                };
+                _cachedQuestList[i] = updated;
+                _questsCacheString = _cachedQuestList.Count == 0 ? string.Empty : SerializeQuestsForGame(_cachedQuestList);
+                _questsFilterLastLogTop = (0, 0);
+                _questsFilterLastLogObjectives = ("", -1);
+                _questsFilterLastLogSubQuests = ("", -1);
+                _questsFilterLastLogPrereqs = ("", -1);
+                StarApiExports.StarApiLog($"[Quests] Updated cached quest {questId} status to {newStatus}; UI will refresh from cache.");
+                return;
+            }
+        }
+    }
+
+    //TODO: Use Enum for status, try to use enums instead of strings generally.
+    public async Task<OASISResult<List<StarQuestInfo>>> GetQuestsByStatusAsync(string status, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<List<StarQuestInfo>>("Client is not initialized.", StarApiResultCode.NotInitialized);
+        if (string.IsNullOrWhiteSpace(status))
+            return FailAndCallback<List<StarQuestInfo>>("Quest status is required (e.g. InProgress, NotStarted, Completed).", StarApiResultCode.InvalidParam);
+
+        var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
+        if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
+            return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
+
+        var url = $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}";
+        if (string.IsNullOrEmpty(_baseApiUrl))
+            return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
+
+        var avatarIdForLog = GetCachedAvatarId() ?? "(none)";
+        StarApiExports.StarApiLog($"[Quests] Client AvatarId={avatarIdForLog} (compare with seed output and API log)");
+        StarApiExports.StarApiLog($"[Quests] GET {url}");
+
+        var response = await SendRawAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
+
+        StarApiExports.StarApiLog($"[Quests] Response IsError={response.IsError} Message={response.Message ?? "(ok)"}");
+        if (response.IsError)
+            StarApiExports.StarApiLog($"[Quests] Error: {response.Message ?? "Request failed"}");
+        else
+            StarApiExports.StarApiLog("[Quests] OK");
+
+        if (response.IsError)
+            return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
+
+        var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
+        var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
+        StarApiExports.StarApiLogFileOnly($"[Quests] by-status parsed: Count={quests.Count} Ids={idSummary}");
+        if (quests.Count > 0)
+            StarApiExports.StarApiLog($"[Quests] OK ({quests.Count} quests) Ids={string.Join(", ", quests.Select(q => q.Id ?? "(null)"))}");
+        else
+            StarApiExports.StarApiLog("[Quests] OK (0 quests)");
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) (status={status}).");
+    }
+
+    public Task<OASISResult<List<StarQuestInfo>>> GetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
+        GetQuestsByStatusAsync("InProgress", cancellationToken);
 
     /// <summary>Run get-active-quests on the background worker so the calling thread does not block.</summary>
     public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
+
+    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective (sub-quests), then "P\tid1\tid2\n" (prereqs), then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
+    public static string SerializeQuestsForGame(List<StarQuestInfo>? quests)
+    {
+        if (quests is null || quests.Count == 0)
+            return string.Empty;
+        var sb = new StringBuilder();
+        foreach (var q in quests)
+        {
+            var name = EscapeForQuestLine(q.Name);
+            var desc = EscapeForQuestLine(q.Description);
+            var status = QuestStatusToGameString(q.Status);
+            var objCount = q.Objectives?.Count ?? 0;
+            var completed = q.Objectives?.Count(o => o.IsCompleted) ?? 0;
+            var pct = objCount > 0 ? (completed * 100 / objCount) : 0;
+            sb.Append("Q\t").Append(q.Id).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
+            if (q.Objectives != null)
+            {
+                for (var i = 0; i < q.Objectives.Count; i++)
+                {
+                    var o = q.Objectives[i];
+                    var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
+                    sb.Append("O\t").Append(oid).Append("\t").Append(EscapeForQuestLine(o.Description ?? o.SummaryText ?? "")).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
+                }
+            }
+            if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0)
+                sb.Append("P\t").AppendJoin("\t", q.PrerequisiteQuestIds).Append("\n");
+            sb.Append("\n---\n");
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>Map API status (enum number "0"/"1"/"2" or name) to game string: NotStarted, InProgress, Completed.</summary>
+    private static string QuestStatusToGameString(string? s)
+    {
+        if (string.IsNullOrEmpty(s)) return "InProgress";
+        var t = s.Trim();
+        if (t == "0" || string.Equals(t, "NotStarted", StringComparison.OrdinalIgnoreCase)) return "NotStarted";
+        if (t == "1" || string.Equals(t, "InProgress", StringComparison.OrdinalIgnoreCase)) return "InProgress";
+        if (t == "2" || string.Equals(t, "Completed", StringComparison.OrdinalIgnoreCase)) return "Completed";
+        return NormalizeQuestStatus(t);
+    }
+
+    /// <summary>Normalize status for game parsing: "Not Started" -> "NotStarted", "In Progress" -> "InProgress", "Completed" unchanged.</summary>
+    private static string NormalizeQuestStatus(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return "InProgress";
+        return EscapeForQuestLine(s).Replace(" ", "");
+    }
+
+    private static string EscapeForQuestLine(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return string.Empty;
+        var sb = new StringBuilder(s.Length);
+        foreach (var c in s)
+        {
+            if (c == '\t' || c == '\n' || c == '\r') sb.Append(' ');
+            else sb.Append(c);
+        }
+        return sb.ToString();
+    }
 
     /// <summary>Mint an NFT for a monster kill (any monster, including bosses) via WEB4 OASIS API. Returns NFT ID and optional tx hash. provider: same as nft_provider in oasisstar.json (e.g. SolanaOASIS); null/empty = SolanaOASIS. SPL used when provider is SolanaOASIS, else ERC1155.</summary>
     public async Task<OASISResult<(string NftId, string? Hash)>> CreateMonsterNftAsync(string monsterName, string? description, string? gameSource, string? monsterStatsJson, string? provider = null, CancellationToken cancellationToken = default)
@@ -1810,9 +3105,16 @@ public sealed class StarApiClient : IDisposable
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, cancellationToken).ConfigureAwait(false);
+        /* Use 8s timeout so "avatar not found" returns quickly instead of waiting for full default timeout. */
+        using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        sendCts.CancelAfter(TimeSpan.FromSeconds(8));
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
+        {
+            if (response.Exception is OperationCanceledException)
+                return FailAndCallback<bool>("Request timed out (8s). Avatar may not exist or server is slow.", StarApiResultCode.Network, response.Exception);
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out _, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
@@ -1848,9 +3150,14 @@ public sealed class StarApiClient : IDisposable
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, cancellationToken).ConfigureAwait(false);
+        /* Use 8s timeout so "clan not found" returns quickly instead of waiting for full default timeout. */
+        using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        sendCts.CancelAfter(TimeSpan.FromSeconds(8));
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
         {
+            if (response.Exception is OperationCanceledException)
+                return FailAndCallback<bool>("Request timed out (8s). Clan may not exist or server is slow.", StarApiResultCode.Network, response.Exception);
             var msg = response.Message ?? string.Empty;
             if (msg.IndexOf("avatar", StringComparison.OrdinalIgnoreCase) >= 0)
                 msg = "Clan not found.";
@@ -1897,45 +3204,179 @@ public sealed class StarApiClient : IDisposable
         Cleanup();
     }
 
-    private async Task<OASISResult<string>> SendRawAsync(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    /// <summary>Try to refresh JWT using refresh token so play is not interrupted when token expires. Uses OASIS refresh-token endpoint (cookie or body). Tries _oasisBaseUrl first, then _baseApiUrl for STAR API–only setups.</summary>
+    private async Task<bool> TryRefreshTokenAsync(CancellationToken cancellationToken)
     {
+        string? refreshToken;
+        string oasisBase;
+        string starBase;
+        lock (_stateLock)
+        {
+            refreshToken = _refreshToken;
+            oasisBase = _oasisBaseUrl ?? string.Empty;
+            starBase = _baseApiUrl ?? string.Empty;
+        }
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: no refresh token (save session after beam-in to persist it).");
+            return false;
+        }
+        /* Prefer OASIS (Web4) URL; fall back to STAR API (Web5) so refresh works when only _baseApiUrl is set. */
+        var baseUrl = !string.IsNullOrWhiteSpace(oasisBase) ? oasisBase.TrimEnd('/') : !string.IsNullOrWhiteSpace(starBase) ? starBase.TrimEnd('/') : null;
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: no OASIS or STAR API base URL set.");
+            return false;
+        }
         if (_httpClient is null)
-            return Fail<string>("HTTP client is not initialized.", StarApiResultCode.NotInitialized);
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: HTTP client is null.");
+            return false;
+        }
 
         try
         {
-            using var request = new HttpRequestMessage(method, url);
-            if (!string.IsNullOrWhiteSpace(bodyJson))
-                request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
-            
-            lock (_stateLock)
-            {
-                if (!string.IsNullOrWhiteSpace(_avatarId))
-                    request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
-
-                /* Always set Authorization on the request so it is sent (some gateways return 405 when missing). */
-                var bearerToken = _jwtToken;
-                if (string.IsNullOrWhiteSpace(bearerToken) && _httpClient.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
-                    bearerToken = _httpClient.DefaultRequestHeaders.Authorization.Parameter;
-                if (!string.IsNullOrWhiteSpace(bearerToken))
-                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            }
+            var url = $"{baseUrl}/api/avatar/refresh-token";
+            var usedOasis = !string.IsNullOrWhiteSpace(oasisBase);
+            StarApiExports.StarApiLog($"[Auth] Token refresh: POST {(usedOasis ? "OASIS" : "STAR API")} url={url}");
+            /* Do not send Authorization header: ONODE JwtMiddleware validates the JWT on every request. If we send the expired JWT, middleware returns 401 before the refresh-token controller runs. Refresh uses the Cookie only. */
+            _httpClient.DefaultRequestHeaders.Remove("Authorization");
+            using var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("Cookie", "refreshToken=" + Uri.EscapeDataString(refreshToken));
+            request.Content = new StringContent("{}", Encoding.UTF8, "application/json");
 
             using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            /* Read as bytes then decode to avoid "Error copying to stream" when connection is closed mid-transfer. */
             var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
 
             if (!response.IsSuccessStatusCode)
             {
-                var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
-                if (!string.IsNullOrWhiteSpace(responseBody))
-                    failureMessage += $" Body: {responseBody}";
-
-                return Fail<string>(failureMessage, StarApiResultCode.ApiError);
+                var preview = responseBody.Length > 200 ? responseBody.Substring(0, 200) + "..." : responseBody;
+                StarApiExports.StarApiLog($"[Auth] Token refresh failed: HTTP {(int)response.StatusCode} from {url}");
+                StarApiExports.StarApiLogFileOnly($"[Auth] Token refresh response body: {preview}");
+                return false;
             }
 
-            return Success(responseBody ?? string.Empty, StarApiResultCode.Success, "Request completed successfully.");
+            var parseResult = ParseEnvelopeOrPayload(responseBody, out var resultElement, out _, out _);
+            if (!parseResult)
+            {
+                StarApiExports.StarApiLogFileOnly("[Auth] Token refresh failed: could not parse response envelope.");
+                return false;
+            }
+            var auth = ParseAvatarAuthResponse(resultElement);
+            if (auth is null || string.IsNullOrWhiteSpace(auth.JwtToken))
+            {
+                StarApiExports.StarApiLogFileOnly("[Auth] Token refresh failed: response had no JWT (missing or wrong shape).");
+                return false;
+            }
+
+            lock (_stateLock)
+            {
+                _jwtToken = auth.JwtToken;
+                if (!string.IsNullOrWhiteSpace(auth.RefreshToken))
+                    _refreshToken = auth.RefreshToken;
+                if (_httpClient is not null)
+                    _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+            }
+            StarApiExports.StarApiLog("[Auth] JWT refreshed successfully.");
+            ScheduleBackgroundTokenRefresh();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            StarApiExports.StarApiLog($"[Auth] Token refresh exception: {ex.Message}");
+            return false;
+        }
+    }
+
+    private static readonly object _tokenRefreshScheduledLock = new();
+    private static bool _tokenRefreshScheduled;
+
+    /// <summary>Schedule a single background refresh shortly before JWT expiry so play is not interrupted.</summary>
+    private void ScheduleBackgroundTokenRefresh()
+    {
+        lock (_tokenRefreshScheduledLock)
+        {
+            if (_tokenRefreshScheduled)
+                return;
+            _tokenRefreshScheduled = true;
+        }
+        _ = RunOnBackgroundAsync<bool>(async ct =>
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(10), ct).ConfigureAwait(false);
+                for (int i = 0; i < 30; i++)
+                {
+                    if (ct.IsCancellationRequested) return Success(true, StarApiResultCode.Success, "Cancelled");
+                    string? jwt;
+                    lock (_stateLock) { jwt = _jwtToken; }
+                    if (string.IsNullOrWhiteSpace(jwt)) return Success(true, StarApiResultCode.Success, "No token");
+                    var exp = GetJwtExpirationUtc(jwt);
+                    if (exp.HasValue && exp.Value > DateTime.UtcNow && (exp.Value - DateTime.UtcNow).TotalMinutes < 5)
+                    {
+                        var refreshed = await TryRefreshTokenAsync(ct).ConfigureAwait(false);
+                        if (refreshed) StarApiExports.StarApiLog("[Auth] Background token refresh completed.");
+                        return Success(true, StarApiResultCode.Success, "Refreshed or skipped");
+                    }
+                    await Task.Delay(TimeSpan.FromSeconds(20), ct).ConfigureAwait(false);
+                }
+                return Success(true, StarApiResultCode.Success, "Done");
+            }
+            finally
+            {
+                lock (_tokenRefreshScheduledLock) { _tokenRefreshScheduled = false; }
+            }
+        }, default);
+    }
+
+    private static DateTime? GetJwtExpirationUtc(string jwt)
+    {
+        try
+        {
+            var parts = jwt.Split('.');
+            if (parts.Length != 3) return null;
+            var payload = parts[1].Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4) { case 2: payload += "=="; break; case 3: payload += "="; break; }
+            var decoded = Convert.FromBase64String(payload);
+            using var doc = JsonDocument.Parse(decoded);
+            if (doc.RootElement.TryGetProperty("exp", out var expProp) && expProp.ValueKind == JsonValueKind.Number)
+            {
+                if (expProp.TryGetInt64(out var unix))
+                    return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime;
+            }
+        }
+        catch { /* ignore */ }
+        return null;
+    }
+
+    private async Task<OASISResult<string>> SendRawAsync(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    {
+        if (_httpClient is null)
+            return Fail<string>("HTTP client is not initialized.", StarApiResultCode.NotInitialized);
+
+        lock (_stateLock)
+        {
+            if (_sessionExpiredCleared && string.IsNullOrEmpty(_jwtToken))
+                return Fail<string>("Session expired. Please beam in again.", StarApiResultCode.ApiError);
+        }
+
+        try
+        {
+            var result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            // On 401, try refresh once and retry the request (minimal JWT timeout fix).
+            if (result.IsError && result.Message != null && result.Message.Contains("401", StringComparison.Ordinal))
+            {
+                var refreshed = await TryRefreshTokenAsync(cancellationToken).ConfigureAwait(false);
+                if (refreshed)
+                    result = await SendRawAsyncCore(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+                else
+                {
+                    ClearSessionToken();
+                    StarApiExports.StarApiLog("[Auth] JWT expired and refresh failed or no refresh token; session cleared. Please beam in again.");
+                }
+            }
+            return result;
         }
         catch (Exception ex)
         {
@@ -1946,6 +3387,79 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>Send request with bounded retries on transient network errors (audit: retry with backoff).</summary>
+    private async Task<OASISResult<string>> SendRawWithRetryAsync(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    {
+        OASISResult<string> last = Fail<string>("No attempt.", StarApiResultCode.Network);
+        for (var attempt = 0; attempt < HttpRetryMaxAttempts; attempt++)
+        {
+            if (attempt > 0)
+            {
+                var delayMs = attempt <= HttpRetryDelayMs.Length ? HttpRetryDelayMs[attempt - 1] : HttpRetryDelayMs[^1];
+                try
+                {
+                    await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    return last;
+                }
+                StarApiExports.StarApiLogFileOnly($"[HTTP] Retry attempt {attempt + 1}/{HttpRetryMaxAttempts} after {delayMs}ms: {method.Method} {url}");
+            }
+            last = await SendRawAsync(method, url, bodyJson, cancellationToken).ConfigureAwait(false);
+            if (!last.IsError)
+                return last;
+            var code = ParseCode(last.ErrorCode, StarApiResultCode.ApiError);
+            if (code != StarApiResultCode.Network)
+                return last; /* Don't retry auth or API errors. */
+        }
+        return last;
+    }
+
+    private async Task<OASISResult<string>> SendRawAsyncCore(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
+    {
+        if (_httpClient is null)
+            return Fail<string>("HTTP client is not initialized.", StarApiResultCode.NotInitialized);
+
+        using var request = new HttpRequestMessage(method, url);
+        if (!string.IsNullOrWhiteSpace(bodyJson))
+            request.Content = new StringContent(bodyJson, Encoding.UTF8, "application/json");
+
+        lock (_stateLock)
+        {
+            if (!string.IsNullOrWhiteSpace(_avatarId))
+                request.Headers.TryAddWithoutValidation("X-Avatar-Id", _avatarId);
+
+            var bearerToken = _jwtToken;
+            if (string.IsNullOrWhiteSpace(bearerToken) && _httpClient.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
+                bearerToken = _httpClient.DefaultRequestHeaders.Authorization.Parameter;
+            if (!string.IsNullOrWhiteSpace(bearerToken))
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+        }
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+        var responseBody = bytes.Length > 0 ? Encoding.UTF8.GetString(bytes) : string.Empty;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var path = url;
+            try
+            {
+                if (Uri.TryCreate(url, UriKind.Absolute, out var u) && u.Segments?.Length > 0)
+                    path = string.Concat(u.Segments);
+            }
+            catch { /* use full url if parse fails */ }
+            StarApiExports.StarApiLog($"[HTTP] {(int)response.StatusCode} {method.Method} {path}");
+            var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
+            if (!string.IsNullOrWhiteSpace(responseBody))
+                failureMessage += $" Body: {responseBody}";
+            return Fail<string>(failureMessage, StarApiResultCode.ApiError);
+        }
+
+        return Success(responseBody ?? string.Empty, StarApiResultCode.Success, "Request completed successfully.");
+    }
+
     private async Task<OASISResult<string>> EnsureAvatarIdAsync(CancellationToken cancellationToken)
     {
         lock (_stateLock)
@@ -1954,7 +3468,7 @@ public sealed class StarApiClient : IDisposable
                 return Success(_avatarId!, StarApiResultCode.Success, "Avatar ID already available.");
         }
 
-        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             return new OASISResult<string>
@@ -2193,7 +3707,8 @@ public sealed class StarApiClient : IDisposable
         var jwt = GetStringProperty(element, "JwtToken") ?? FindStringRecursive(element, "JwtToken")
             ?? GetStringProperty(element, "Token") ?? FindStringRecursive(element, "Token")
             ?? GetStringProperty(element, "accessToken") ?? FindStringRecursive(element, "accessToken")
-            ?? GetStringProperty(element, "access_token") ?? FindStringRecursive(element, "access_token");
+            ?? GetStringProperty(element, "access_token") ?? FindStringRecursive(element, "access_token")
+            ?? GetStringProperty(element, "jwt") ?? FindStringRecursive(element, "jwt");
         var refresh = GetStringProperty(element, "RefreshToken") ?? FindStringRecursive(element, "RefreshToken");
 
         if (id != Guid.Empty || !string.IsNullOrWhiteSpace(jwt) || !string.IsNullOrWhiteSpace(refresh))
@@ -2370,6 +3885,296 @@ public sealed class StarApiClient : IDisposable
         };
     }
 
+    /// <summary>Get a list of strings from element, e.g. element.MetaData.PrerequisiteQuestIds (array of string).</summary>
+    private static List<string> GetStringListFromElement(JsonElement element, string parentKey, string arrayKey)
+    {
+        var list = new List<string>();
+        if (!TryGetProperty(element, parentKey, out var parent) || parent.ValueKind != JsonValueKind.Object)
+            return list;
+        if (!TryGetProperty(parent, arrayKey, out var arr))
+            return list;
+        if (arr.ValueKind != JsonValueKind.Array)
+            return list;
+        foreach (var item in arr.EnumerateArray())
+        {
+            var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+            if (!string.IsNullOrEmpty(s))
+                list.Add(s);
+        }
+        return list;
+    }
+
+    /// <summary>Log once per session which JSON key supplied objectives (objectives vs children). File-only so we can see why "objectives" is sometimes empty in the API response.</summary>
+    private static void LogObjectivesSourceOnce(string path, int count)
+    {
+        if (string.IsNullOrEmpty(path) || count <= 0) return;
+        try
+        {
+            var key = $"{path}:{count}";
+            if (!_objectivesSourceLogged.Add(key)) return;
+            var expected = path.IndexOf("objectives", StringComparison.OrdinalIgnoreCase) >= 0
+                ? " (backend is serializing Quest.Objectives correctly)"
+                : " (API sent empty 'objectives'; data came from 'children' – backend PromoteQuestMetaDataToProperties or serialization may not be populating objectives)";
+            StarApiExports.StarApiLogFileOnly($"[Quests] Objectives source: path={path} count={count}{expected}");
+        }
+        catch { /* ignore */ }
+    }
+    private static readonly HashSet<string> _objectivesSourceLogged = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Get objectives from a quest element. Path in API response: Result[i].objectives or Result[i].children (each quest in the array).
+    /// We try: Objectives, objectives, QuestObjectives, questObjectives, Children, children (root then MetaData/MapMetaData) and use the first that yields a non-empty list.
+    /// Backend (QuestManager.PromoteQuestMetaDataToProperties) should populate Quest.Objectives from MetaData so "objectives" is in the JSON; if the API sends empty "objectives" and data in "children", we use children.</summary>
+    private static List<StarQuestObjective> GetObjectivesFromQuestElement(JsonElement questElement)
+    {
+        if (questElement.ValueKind != JsonValueKind.Object) return new List<StarQuestObjective>();
+
+        /* Try each known key and use the first that yields a non-empty list. If API returns both "objectives": [] and "children": [...], we must not stop at the empty objectives. */
+        static bool TryKnownKeys(JsonElement parent, out List<StarQuestObjective> list, out string? usedKey)
+        {
+            list = new List<StarQuestObjective>();
+            usedKey = null;
+            var keys = new[] { "Objectives", "objectives", "QuestObjectives", "questObjectives", "Children", "children" };
+            foreach (var key in keys)
+            {
+                if (!TryGetProperty(parent, key, out var el)) continue;
+                var parsed = ParseObjectivesFromElement(el);
+                if (parsed.Count > 0)
+                {
+                    list = parsed;
+                    usedKey = key;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        if (TryKnownKeys(questElement, out var fromRoot, out var keyUsed))
+        {
+            LogObjectivesSourceOnce(keyUsed, fromRoot.Count);
+            return fromRoot;
+        }
+        if ((TryGetProperty(questElement, "MetaData", out var meta) || TryGetProperty(questElement, "metaData", out meta)) && meta.ValueKind == JsonValueKind.Object)
+        {
+            if (TryKnownKeys(meta, out var fromMeta, out keyUsed))
+            {
+                LogObjectivesSourceOnce("MetaData." + keyUsed, fromMeta.Count);
+                return fromMeta;
+            }
+            if ((TryGetProperty(meta, "MapMetaData", out var mapMeta) || TryGetProperty(meta, "mapMetaData", out mapMeta)) && mapMeta.ValueKind == JsonValueKind.Object)
+                if (TryKnownKeys(mapMeta, out var fromMap, out keyUsed))
+                {
+                    LogObjectivesSourceOnce("MetaData.MapMetaData." + keyUsed, fromMap.Count);
+                    return fromMap;
+                }
+        }
+
+        /* Safe fallback: only keys that contain "objective" (case-insensitive), so we never bind SubQuests/PrerequisiteQuestIds. Handles provider/API key variants. */
+        static List<StarQuestObjective> TryKeysContainingObjective(JsonElement parent)
+        {
+            foreach (var prop in parent.EnumerateObject())
+            {
+                if (!prop.Name.Contains("objective", StringComparison.OrdinalIgnoreCase)) continue;
+                var list = ParseObjectivesFromElement(prop.Value);
+                if (list.Count > 0) return list;
+            }
+            return new List<StarQuestObjective>();
+        }
+        var fromScan = TryKeysContainingObjective(questElement);
+        if (fromScan.Count > 0) return fromScan;
+        if ((TryGetProperty(questElement, "MetaData", out var meta2) || TryGetProperty(questElement, "metaData", out meta2)) && meta2.ValueKind == JsonValueKind.Object)
+        {
+            fromScan = TryKeysContainingObjective(meta2);
+            if (fromScan.Count > 0) return fromScan;
+            if ((TryGetProperty(meta2, "MapMetaData", out var mapMeta2) || TryGetProperty(meta2, "mapMetaData", out mapMeta2)) && mapMeta2.ValueKind == JsonValueKind.Object)
+            {
+                fromScan = TryKeysContainingObjective(mapMeta2);
+                if (fromScan.Count > 0) return fromScan;
+            }
+        }
+
+        return new List<StarQuestObjective>();
+    }
+
+    /// <summary>Parse a single game-keyed dictionary from JSON (object with string keys and array-of-string values).</summary>
+    private static Dictionary<string, List<string>> ParseStringListDictionary(JsonElement element)
+    {
+        var dict = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        if (element.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var prop in element.EnumerateObject())
+            {
+                var list = new List<string>();
+                if (prop.Value.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in prop.Value.EnumerateArray())
+                    {
+                        var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+                        if (!string.IsNullOrEmpty(s)) list.Add(s);
+                    }
+                }
+                if (list.Count > 0) dict[prop.Name] = list;
+            }
+        }
+        return dict;
+    }
+
+    /// <summary>Parse Objective requirement/progress dictionaries from a JSON object (backend Objective / IQuestObjectiveDictionaries).</summary>
+    private static StarQuestObjectiveDictionaries? ParseObjectiveDictionaries(JsonElement element)
+    {
+        if (element.ValueKind != JsonValueKind.Object) return null;
+        var names = new[] { "NeedToCollectArmor", "NeedToCollectAmmo", "NeedToCollectHealth", "NeedToCollectWeapons", "NeedToCollectPowerups", "NeedToCollectItems", "NeedToCollectKeys", "NeedToKillMonsters", "NeedToCompleteInMins", "NeedToEarnKarma", "NeedToEarnXP", "NeedToGoToGeoHotSpots", "NeedToCompleteLevel", "NeedToUseWeapons", "NeedToUsePowerups", "NeedToVisitLocations", "NeedToSurviveMins", "ArmorCollected", "AmmoCollected", "HealthCollected", "WeaponsCollected", "PowerupsCollected", "ItemsCollected", "KeysCollected", "MonstersKilled", "TimeStarted", "TimeEnded", "TimeTaken", "KarmaEarnt", "XPEarnt", "GeoHotSpotsArrived", "LevelsCompleted" };
+        var dicts = new Dictionary<string, Dictionary<string, List<string>>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var name in names)
+        {
+            var camel = char.ToLowerInvariant(name[0]) + name[1..];
+            if (TryGetProperty(element, name, out var el) || TryGetProperty(element, camel, out el))
+            {
+                var d = ParseStringListDictionary(el);
+                if (d.Count > 0) dicts[name] = d;
+            }
+        }
+        if (dicts.Count == 0) return null;
+        return new StarQuestObjectiveDictionaries
+        {
+            NeedToCollectArmor = dicts.GetValueOrDefault("NeedToCollectArmor") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectAmmo = dicts.GetValueOrDefault("NeedToCollectAmmo") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectHealth = dicts.GetValueOrDefault("NeedToCollectHealth") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectWeapons = dicts.GetValueOrDefault("NeedToCollectWeapons") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectPowerups = dicts.GetValueOrDefault("NeedToCollectPowerups") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectItems = dicts.GetValueOrDefault("NeedToCollectItems") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCollectKeys = dicts.GetValueOrDefault("NeedToCollectKeys") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToKillMonsters = dicts.GetValueOrDefault("NeedToKillMonsters") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCompleteInMins = dicts.GetValueOrDefault("NeedToCompleteInMins") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToEarnKarma = dicts.GetValueOrDefault("NeedToEarnKarma") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToEarnXP = dicts.GetValueOrDefault("NeedToEarnXP") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToGoToGeoHotSpots = dicts.GetValueOrDefault("NeedToGoToGeoHotSpots") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToCompleteLevel = dicts.GetValueOrDefault("NeedToCompleteLevel") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToUseWeapons = dicts.GetValueOrDefault("NeedToUseWeapons") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToUsePowerups = dicts.GetValueOrDefault("NeedToUsePowerups") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToVisitLocations = dicts.GetValueOrDefault("NeedToVisitLocations") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            NeedToSurviveMins = dicts.GetValueOrDefault("NeedToSurviveMins") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            ArmorCollected = dicts.GetValueOrDefault("ArmorCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            AmmoCollected = dicts.GetValueOrDefault("AmmoCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            HealthCollected = dicts.GetValueOrDefault("HealthCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            WeaponsCollected = dicts.GetValueOrDefault("WeaponsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            PowerupsCollected = dicts.GetValueOrDefault("PowerupsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            ItemsCollected = dicts.GetValueOrDefault("ItemsCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            KeysCollected = dicts.GetValueOrDefault("KeysCollected") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            MonstersKilled = dicts.GetValueOrDefault("MonstersKilled") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeStarted = dicts.GetValueOrDefault("TimeStarted") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeEnded = dicts.GetValueOrDefault("TimeEnded") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            TimeTaken = dicts.GetValueOrDefault("TimeTaken") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            KarmaEarnt = dicts.GetValueOrDefault("KarmaEarnt") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            XPEarnt = dicts.GetValueOrDefault("XPEarnt") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            GeoHotSpotsArrived = dicts.GetValueOrDefault("GeoHotSpotsArrived") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase),
+            LevelsCompleted = dicts.GetValueOrDefault("LevelsCompleted") ?? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+        };
+    }
+
+    private static void WriteObjectiveDictionaries(Utf8JsonWriter writer, StarQuestObjectiveDictionaries dicts)
+    {
+        void WriteDict(string name, Dictionary<string, List<string>> d)
+        {
+            if (d == null || d.Count == 0) return;
+            writer.WritePropertyName(name);
+            writer.WriteStartObject();
+            foreach (var kv in d)
+            {
+                writer.WritePropertyName(kv.Key);
+                writer.WriteStartArray();
+                foreach (var s in kv.Value ?? new List<string>())
+                    writer.WriteStringValue(s);
+                writer.WriteEndArray();
+            }
+            writer.WriteEndObject();
+        }
+        WriteDict("NeedToCollectArmor", dicts.NeedToCollectArmor);
+        WriteDict("NeedToCollectAmmo", dicts.NeedToCollectAmmo);
+        WriteDict("NeedToCollectHealth", dicts.NeedToCollectHealth);
+        WriteDict("NeedToCollectWeapons", dicts.NeedToCollectWeapons);
+        WriteDict("NeedToCollectPowerups", dicts.NeedToCollectPowerups);
+        WriteDict("NeedToCollectItems", dicts.NeedToCollectItems);
+        WriteDict("NeedToCollectKeys", dicts.NeedToCollectKeys);
+        WriteDict("NeedToKillMonsters", dicts.NeedToKillMonsters);
+        WriteDict("NeedToCompleteInMins", dicts.NeedToCompleteInMins);
+        WriteDict("NeedToEarnKarma", dicts.NeedToEarnKarma);
+        WriteDict("NeedToEarnXP", dicts.NeedToEarnXP);
+        WriteDict("NeedToGoToGeoHotSpots", dicts.NeedToGoToGeoHotSpots);
+        WriteDict("NeedToCompleteLevel", dicts.NeedToCompleteLevel);
+        WriteDict("NeedToUseWeapons", dicts.NeedToUseWeapons);
+        WriteDict("NeedToUsePowerups", dicts.NeedToUsePowerups);
+        WriteDict("NeedToVisitLocations", dicts.NeedToVisitLocations);
+        WriteDict("NeedToSurviveMins", dicts.NeedToSurviveMins);
+        WriteDict("ArmorCollected", dicts.ArmorCollected);
+        WriteDict("AmmoCollected", dicts.AmmoCollected);
+        WriteDict("HealthCollected", dicts.HealthCollected);
+        WriteDict("WeaponsCollected", dicts.WeaponsCollected);
+        WriteDict("PowerupsCollected", dicts.PowerupsCollected);
+        WriteDict("ItemsCollected", dicts.ItemsCollected);
+        WriteDict("KeysCollected", dicts.KeysCollected);
+        WriteDict("MonstersKilled", dicts.MonstersKilled);
+        WriteDict("TimeStarted", dicts.TimeStarted);
+        WriteDict("TimeEnded", dicts.TimeEnded);
+        WriteDict("TimeTaken", dicts.TimeTaken);
+        WriteDict("KarmaEarnt", dicts.KarmaEarnt);
+        WriteDict("XPEarnt", dicts.XPEarnt);
+        WriteDict("GeoHotSpotsArrived", dicts.GeoHotSpotsArrived);
+        WriteDict("LevelsCompleted", dicts.LevelsCompleted);
+    }
+
+    /// <summary>Parse objectives from a JsonElement that may be an array or a JSON string containing an array (e.g. from MetaData).</summary>
+    private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element)
+    {
+        var objectives = new List<StarQuestObjective>();
+        if (element.ValueKind == JsonValueKind.Array)
+        {
+            var index = 0;
+            foreach (var objective in element.EnumerateArray())
+            {
+                if (objective.ValueKind != JsonValueKind.Object) continue;
+                var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
+                var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective")
+                    ?? GetStringProperty(objective, "Text") ?? GetStringProperty(objective, "text") ?? GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? string.Empty;
+                var itemRequiredLegacy = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(itemRequiredLegacy)) desc = itemRequiredLegacy;
+                var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
+                var order = GetIntProperty(objective, "Order") ?? GetIntProperty(objective, "order") ?? index;
+                var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
+                var completedAt = GetDateTimeProperty(objective, "CompletedAt") ?? GetDateTimeProperty(objective, "completedAt");
+                var completedBy = GetStringProperty(objective, "CompletedBy") ?? GetStringProperty(objective, "completedBy");
+                var dicts = ParseObjectiveDictionaries(objective);
+                objectives.Add(new StarQuestObjective
+                {
+                    Id = id,
+                    Description = desc ?? string.Empty,
+                    GameSource = gameSource,
+                    Order = order,
+                    IsCompleted = isCompleted,
+                    CompletedAt = completedAt,
+                    CompletedBy = completedBy,
+                    Dictionaries = dicts
+                });
+                index++;
+            }
+            return objectives;
+        }
+        if (element.ValueKind == JsonValueKind.String)
+        {
+            var json = element.GetString();
+            if (string.IsNullOrWhiteSpace(json)) return objectives;
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                return ParseObjectivesFromElement(doc.RootElement);
+            }
+            catch
+            {
+                /* ignore */
+            }
+        }
+        return objectives;
+    }
+
     private static bool GetBoolProperty(JsonElement element, string name)
     {
         if (!TryGetProperty(element, name, out var prop))
@@ -2393,6 +4198,23 @@ public sealed class StarApiClient : IDisposable
             return n;
         var text = GetStringProperty(element, name);
         return int.TryParse(text, out var parsed) ? parsed : null;
+    }
+
+    private static DateTime? GetDateTimeProperty(JsonElement element, string name)
+    {
+        var text = GetStringProperty(element, name);
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        return DateTime.TryParse(text, null, System.Globalization.DateTimeStyles.RoundtripKind, out var dt) ? dt : null;
+    }
+
+    private static long? GetLongProperty(JsonElement element, string name)
+    {
+        if (!TryGetProperty(element, name, out var prop))
+            return null;
+        if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var n))
+            return n;
+        var text = GetStringProperty(element, name);
+        return long.TryParse(text, out var parsed) ? parsed : null;
     }
 
     /// <summary>Try common WEB4/OASIS mint response property names for tx hash. Also checks Result.Web3NFTs[0].MintTransactionHash (WEB4 mint returns hash on the Web3NFT).</summary>
@@ -2494,7 +4316,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         StartUseItemWorker();
         StartQuestObjectiveWorker();
-        // Generic background worker is started lazily when the first Queue* (non–add-item/use-item/quest-objective) method is used. Do not start here so games that only use direct/blocking APIs (e.g. star_api_get_inventory) do not get an extra worker thread that can contribute to freezes or thread-pool pressure.
+        // Generic and dedicated workers (AuthSession, Profile, Inventory, Quests) are started lazily when first used.
     }
 
     private void StopWorkers()
@@ -2503,6 +4325,15 @@ public sealed class StarApiClient : IDisposable
         StopUseItemWorker();
         StopQuestObjectiveWorker();
         StopGenericBackgroundWorker();
+        StopDedicatedWorkers();
+    }
+
+    private void StopDedicatedWorkers()
+    {
+        StopAuthSessionWorker();
+        StopProfileWorker();
+        StopInventoryWorker();
+        StopQuestsWorker();
     }
 
     private void StartGenericBackgroundWorker()
@@ -2539,6 +4370,161 @@ public sealed class StarApiClient : IDisposable
             finally { cts.Dispose(); }
         }
         while (_genericBackgroundQueue.TryDequeue(out _)) { }
+    }
+
+    private void StartAuthSessionWorker()
+    {
+        lock (_authSessionLock)
+        {
+            if (_authSessionWorker is { IsCompleted: false }) return;
+            _authSessionCts = new CancellationTokenSource();
+            _authSessionWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_authSessionQueue, _authSessionSignal, _authSessionCts.Token));
+        }
+    }
+
+    private void StopAuthSessionWorker()
+    {
+        StopDedicatedWorker(_authSessionLock, ref _authSessionCts, ref _authSessionWorker, _authSessionSignal, _authSessionQueue);
+    }
+
+    private void StartProfileWorker()
+    {
+        lock (_profileLock)
+        {
+            if (_profileWorker is { IsCompleted: false }) return;
+            _profileCts = new CancellationTokenSource();
+            _profileWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_profileQueue, _profileSignal, _profileCts.Token));
+        }
+    }
+
+    private void StopProfileWorker()
+    {
+        StopDedicatedWorker(_profileLock, ref _profileCts, ref _profileWorker, _profileSignal, _profileQueue);
+    }
+
+    private void StartInventoryWorker()
+    {
+        lock (_inventoryLock)
+        {
+            if (_inventoryWorker is { IsCompleted: false }) return;
+            _inventoryCts = new CancellationTokenSource();
+            _inventoryWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_inventoryQueue, _inventorySignal, _inventoryCts.Token));
+        }
+    }
+
+    private void StopInventoryWorker()
+    {
+        StopDedicatedWorker(_inventoryLock, ref _inventoryCts, ref _inventoryWorker, _inventorySignal, _inventoryQueue);
+    }
+
+    private void StartQuestsWorker()
+    {
+        lock (_questsLock)
+        {
+            if (_questsWorker is { IsCompleted: false }) return;
+            _questsCts = new CancellationTokenSource();
+            _questsWorker = Task.Run(() => ProcessDedicatedWorkerAsync(_questsQueue, _questsSignal, _questsCts.Token));
+        }
+    }
+
+    private void StopQuestsWorker()
+    {
+        StopDedicatedWorker(_questsLock, ref _questsCts, ref _questsWorker, _questsSignal, _questsQueue);
+    }
+
+    private static async Task ProcessDedicatedWorkerAsync(ConcurrentQueue<Func<CancellationToken, Task>> queue, SemaphoreSlim signal, CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                await signal.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { break; }
+            while (queue.TryDequeue(out var job))
+            {
+                if (cancellationToken.IsCancellationRequested) break;
+                try
+                {
+                    await job(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) { break; }
+                catch { /* TCS already set */ }
+            }
+        }
+    }
+
+    private void StopDedicatedWorker(object lockObj, ref CancellationTokenSource? cts, ref Task? worker, SemaphoreSlim signal, ConcurrentQueue<Func<CancellationToken, Task>> queue)
+    {
+        CancellationTokenSource? c;
+        Task? w;
+        lock (lockObj)
+        {
+            c = cts; w = worker;
+            cts = null; worker = null;
+        }
+        if (c is not null)
+        {
+            try
+            {
+                c.Cancel();
+                signal.Release();
+                w?.GetAwaiter().GetResult();
+            }
+            catch { }
+            finally { c.Dispose(); }
+        }
+        while (queue.TryDequeue(out _)) { }
+    }
+
+    /// <summary>Run an operation on a dedicated worker (AuthSession, Profile, Inventory, Quests) so it doesn't block the generic worker or other domains.</summary>
+    private Task<OASISResult<T>> RunOnWorkerAsync<T>(DedicatedWorker workerType, Func<CancellationToken, Task<OASISResult<T>>> operation, CancellationToken cancellationToken)
+    {
+        if (!IsInitialized())
+            return Task.FromResult(FailAndCallback<T>("Client is not initialized.", StarApiResultCode.NotInitialized));
+        if (cancellationToken.IsCancellationRequested)
+            return Task.FromCanceled<OASISResult<T>>(cancellationToken);
+
+        var tcs = new TaskCompletionSource<OASISResult<T>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        if (cancellationToken.CanBeCanceled)
+            cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+
+        var run = async (CancellationToken workerCt) =>
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(workerCt, cancellationToken);
+            try
+            {
+                var result = await operation(linked.Token).ConfigureAwait(false);
+                tcs.TrySetResult(result);
+            }
+            catch (OperationCanceledException) { tcs.TrySetCanceled(); }
+            catch (Exception ex) { tcs.TrySetResult(Fail<T>(ex.Message, StarApiResultCode.Network, ex)); }
+        };
+
+        switch (workerType)
+        {
+            case DedicatedWorker.AuthSession:
+                _authSessionQueue.Enqueue(run);
+                _authSessionSignal.Release();
+                StartAuthSessionWorker();
+                break;
+            case DedicatedWorker.Profile:
+                _profileQueue.Enqueue(run);
+                _profileSignal.Release();
+                StartProfileWorker();
+                break;
+            case DedicatedWorker.Inventory:
+                _inventoryQueue.Enqueue(run);
+                _inventorySignal.Release();
+                StartInventoryWorker();
+                break;
+            case DedicatedWorker.Quests:
+                _questsQueue.Enqueue(run);
+                _questsSignal.Release();
+                StartQuestsWorker();
+                break;
+        }
+        return tcs.Task;
     }
 
     private async Task ProcessGenericBackgroundJobsAsync(CancellationToken cancellationToken)
@@ -3067,18 +5053,82 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    private static StarAvatarProfile? ParseAvatarProfile(JsonElement element)
+    /// <summary>Recursively search JSON tree for an object with id == avatarId that has activeQuestId/activeObjectiveId (handles double-wrapped or alternate API shapes).</summary>
+    private static void FindQuestIdsInTree(JsonElement root, Guid avatarId, out Guid? activeQuestId, out Guid? activeObjectiveId)
+    {
+        activeQuestId = null;
+        activeObjectiveId = null;
+        SearchNode(root, avatarId, ref activeQuestId, ref activeObjectiveId);
+    }
+
+    private static void SearchNode(JsonElement node, Guid avatarId, ref Guid? activeQuestId, ref Guid? activeObjectiveId)
+    {
+        if (activeQuestId.HasValue && activeObjectiveId.HasValue) return;
+        if (node.ValueKind == JsonValueKind.Object)
+        {
+            var idStr = GetStringProperty(node, "Id") ?? GetStringProperty(node, "id");
+            if (Guid.TryParse(idStr, out var id) && id == avatarId)
+            {
+                var q = GetStringProperty(node, "ActiveQuestId") ?? GetStringProperty(node, "activeQuestId");
+                if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) activeQuestId = qGuid;
+                var o = GetStringProperty(node, "ActiveObjectiveId") ?? GetStringProperty(node, "activeObjectiveId");
+                if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) activeObjectiveId = oGuid;
+            }
+            foreach (var prop in node.EnumerateObject())
+                SearchNode(prop.Value, avatarId, ref activeQuestId, ref activeObjectiveId);
+        }
+        else if (node.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in node.EnumerateArray())
+                SearchNode(item, avatarId, ref activeQuestId, ref activeObjectiveId);
+        }
+    }
+
+    private static StarAvatarProfile? ParseAvatarProfile(JsonElement element, string? rawResponseJson = null)
     {
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        Guid.TryParse(GetStringProperty(element, "Id"), out var id);
+        Guid.TryParse(GetStringProperty(element, "Id") ?? GetStringProperty(element, "id"), out var id);
         var xp = GetIntProperty(element, "XP") ?? GetIntProperty(element, "xp")
             ?? GetIntProperty(element, "TotalXP") ?? GetIntProperty(element, "totalXp");
-        if (xp is null && TryGetProperty(element, "AvatarDetail", out var detailEl))
-            xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
+        Guid? activeQuestId = null;
+        Guid? activeObjectiveId = null;
+        string? questSource = null;
+        string? objectiveSource = null;
+        if (TryGetProperty(element, "AvatarDetail", out var detailEl) || TryGetProperty(element, "avatarDetail", out detailEl))
+        {
+            if (xp is null) xp = GetIntProperty(detailEl, "XP") ?? GetIntProperty(detailEl, "xp");
+            var q = GetStringProperty(detailEl, "ActiveQuestId") ?? GetStringProperty(detailEl, "activeQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) { activeQuestId = qGuid; questSource = "AvatarDetail"; }
+            var o = GetStringProperty(detailEl, "ActiveObjectiveId") ?? GetStringProperty(detailEl, "activeObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) { activeObjectiveId = oGuid; objectiveSource = "AvatarDetail"; }
+        }
         if (xp is null && TryGetProperty(element, "avatarDetail", out var detailEl2))
             xp = GetIntProperty(detailEl2, "XP") ?? GetIntProperty(detailEl2, "xp");
+        if (activeQuestId is null)
+        {
+            var q = GetStringProperty(element, "ActiveQuestId") ?? GetStringProperty(element, "activeQuestId");
+            if (!string.IsNullOrWhiteSpace(q) && Guid.TryParse(q, out var qGuid)) { activeQuestId = qGuid; questSource = "root"; }
+        }
+        if (activeObjectiveId is null)
+        {
+            var o = GetStringProperty(element, "ActiveObjectiveId") ?? GetStringProperty(element, "activeObjectiveId");
+            if (!string.IsNullOrWhiteSpace(o) && Guid.TryParse(o, out var oGuid)) { activeObjectiveId = oGuid; objectiveSource = "root"; }
+        }
+        if ((!activeQuestId.HasValue || !activeObjectiveId.HasValue) && !string.IsNullOrEmpty(rawResponseJson) && id != Guid.Empty)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(rawResponseJson);
+                FindQuestIdsInTree(doc.RootElement, id, out var treeQuest, out var treeObjective);
+                if (treeQuest.HasValue && !activeQuestId.HasValue) { activeQuestId = treeQuest; questSource = "tree"; }
+                if (treeObjective.HasValue && !activeObjectiveId.HasValue) { activeObjectiveId = treeObjective; objectiveSource = "tree"; }
+            }
+            catch { /* ignore parse for fallback */ }
+        }
+        try { StarApiExports.StarApiLogFileOnly($"[Avatar] ParseAvatarProfile: ActiveQuestId={activeQuestId} (from {questSource ?? "none"}) ActiveObjectiveId={activeObjectiveId} (from {objectiveSource ?? "none"})"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD (parsed from API) questId={activeQuestId} objectiveId={activeObjectiveId}"); } catch { /* ignore */ }
         return new StarAvatarProfile
         {
             Id = id,
@@ -3086,7 +5136,9 @@ public sealed class StarApiClient : IDisposable
             Email = GetStringProperty(element, "Email") ?? string.Empty,
             FirstName = GetStringProperty(element, "FirstName") ?? string.Empty,
             LastName = GetStringProperty(element, "LastName") ?? string.Empty,
-            XP = xp ?? 0
+            XP = xp ?? 0,
+            ActiveQuestId = activeQuestId,
+            ActiveObjectiveId = activeObjectiveId
         };
     }
 
@@ -3094,6 +5146,9 @@ public sealed class StarApiClient : IDisposable
     {
         if (element.ValueKind == JsonValueKind.Object && TryGetProperty(element, "Quests", out var questsElement))
             element = questsElement;
+        /* Some APIs wrap the list as { "result": [ ... ] }; unwrap so we always parse the array. */
+        if (element.ValueKind == JsonValueKind.Object && (TryGetProperty(element, "Result", out var resultArr) || TryGetProperty(element, "result", out resultArr)) && resultArr.ValueKind == JsonValueKind.Array)
+            element = resultArr;
 
         var quests = new List<StarQuestInfo>();
         if (element.ValueKind != JsonValueKind.Array)
@@ -3104,30 +5159,144 @@ public sealed class StarApiClient : IDisposable
             if (questElement.ValueKind != JsonValueKind.Object)
                 continue;
 
-            var objectives = new List<StarQuestObjective>();
-            if (TryGetProperty(questElement, "Objectives", out var objectiveElement) && objectiveElement.ValueKind == JsonValueKind.Array)
+            /* Only read from known objective property names (Objectives, objectives, QuestObjectives, questObjectives at root/MetaData/MapMetaData) so we never bind SubQuests or PrerequisiteQuestIds. */
+            var objectives = GetObjectivesFromQuestElement(questElement);
+            /* Fallback: API may use "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
+            if (objectives.Count == 0 && (TryGetProperty(questElement, "Quests", out var qArr) || TryGetProperty(questElement, "Quest", out qArr)) && qArr.ValueKind == JsonValueKind.Array)
             {
-                foreach (var objective in objectiveElement.EnumerateArray())
+                var first = qArr.EnumerateArray().FirstOrDefault();
+                var hasName = !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name"));
+                if (first.ValueKind == JsonValueKind.Object && !hasName &&
+                    (GetStringProperty(first, "Description") ?? GetStringProperty(first, "description") ?? GetStringProperty(first, "Objective") ?? GetStringProperty(first, "objective")) != null)
                 {
-                    objectives.Add(new StarQuestObjective
+                    var idx = 0;
+                    foreach (var sub in qArr.EnumerateArray())
                     {
-                        Id = GetStringProperty(objective, "Id") ?? string.Empty,
-                        Description = GetStringProperty(objective, "Description") ?? string.Empty,
-                        GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
-                        ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
-                        IsCompleted = GetBoolProperty(objective, "IsCompleted")
-                    });
+                        if (sub.ValueKind != JsonValueKind.Object) continue;
+                        var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "objective") ?? string.Empty;
+                        var ir = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty;
+                        if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(ir)) desc = ir;
+                        objectives.Add(new StarQuestObjective
+                        {
+                            Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                            Description = desc,
+                            GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
+                            Order = GetIntProperty(sub, "Order") ?? idx,
+                            IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                            Dictionaries = ParseObjectiveDictionaries(sub)
+                        });
+                        idx++;
+                    }
                 }
             }
 
+            // PrerequisiteQuestIds may be top-level (API serializes Quest after MapMetaData) or under MetaData; support PascalCase and camelCase
+            var prereqIds = GetStringListFromElement(questElement, "MetaData", "PrerequisiteQuestIds");
+            if (prereqIds.Count == 0)
+                prereqIds = GetStringListFromElement(questElement, "metaData", "prerequisiteQuestIds");
+            if (prereqIds.Count == 0 && (TryGetProperty(questElement, "PrerequisiteQuestIds", out var prereqArr) || TryGetProperty(questElement, "prerequisiteQuestIds", out prereqArr)) && prereqArr.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in prereqArr.EnumerateArray())
+                {
+                    var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"');
+                    if (!string.IsNullOrEmpty(s))
+                        prereqIds.Add(s);
+                }
+            }
+            var parentQuestId = GetStringProperty(questElement, "ParentQuestId") ?? GetStringProperty(questElement, "parentQuestId");
+            if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(questElement, "ParentQuestId", out var parentEl) || TryGetProperty(questElement, "parentQuestId", out parentEl)) && parentEl.ValueKind == JsonValueKind.String)
+                parentQuestId = parentEl.GetString();
+            if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(questElement, "MetaData", out var metaForParent) || TryGetProperty(questElement, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
+                parentQuestId = GetStringProperty(metaForParent, "ParentQuestId") ?? GetStringProperty(metaForParent, "parentQuestId") ?? string.Empty;
+
+            var parentId = GetStringProperty(questElement, "Id") ?? string.Empty;
+            var order = GetIntProperty(questElement, "Order") ?? GetIntProperty(questElement, "order") ?? 0;
+            var gameSource = GetStringProperty(questElement, "GameSource") ?? GetStringProperty(questElement, "gameSource") ?? string.Empty;
+            var requirements = new List<string>();
+            if (TryGetProperty(questElement, "Requirements", out var reqEl) || TryGetProperty(questElement, "requirements", out reqEl))
+            { if (reqEl.ValueKind == JsonValueKind.Array) foreach (var item in reqEl.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) requirements.Add(s); } }
+            var rewardKarma = GetLongProperty(questElement, "RewardKarma") ?? GetLongProperty(questElement, "rewardKarma") ?? 0L;
+            var rewardXP = GetLongProperty(questElement, "RewardXP") ?? GetLongProperty(questElement, "rewardXP") ?? 0L;
+            var completionNotes = GetStringProperty(questElement, "CompletionNotes") ?? GetStringProperty(questElement, "completionNotes");
+            var parentMissionId = GetStringProperty(questElement, "ParentMissionId") ?? GetStringProperty(questElement, "parentMissionId") ?? string.Empty;
             quests.Add(new StarQuestInfo
             {
-                Id = GetStringProperty(questElement, "Id") ?? string.Empty,
+                Id = parentId,
                 Name = GetStringProperty(questElement, "Name") ?? string.Empty,
                 Description = GetStringProperty(questElement, "Description") ?? string.Empty,
                 Status = GetStringProperty(questElement, "Status") ?? string.Empty,
-                Objectives = objectives
+                Order = order,
+                GameSource = gameSource,
+                Requirements = requirements,
+                RewardKarma = rewardKarma,
+                RewardXP = rewardXP,
+                CompletionNotes = completionNotes,
+                ParentMissionId = parentMissionId,
+                ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
+                Objectives = objectives,
+                PrerequisiteQuestIds = prereqIds,
+                Dictionaries = ParseObjectiveDictionaries(questElement)
             });
+
+            /* Flatten nested sub-quests: SubQuests or Quest/Quests array of full quest objects (have Id + Name) so right-panel subquest list is populated. */
+            if (string.IsNullOrEmpty(parentId)) continue;
+            IEnumerable<JsonElement>? childElements = null;
+            if (TryGetProperty(questElement, "SubQuests", out var subQuestsEl) && subQuestsEl.ValueKind == JsonValueKind.Array)
+                childElements = subQuestsEl.EnumerateArray();
+            else if (TryGetProperty(questElement, "Quests", out var questsArr) && questsArr.ValueKind == JsonValueKind.Array)
+            {
+                var first = questsArr.EnumerateArray().FirstOrDefault();
+                if (first.ValueKind == JsonValueKind.Object && !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name")))
+                    childElements = questsArr.EnumerateArray();
+            }
+            else if (TryGetProperty(questElement, "Quest", out var singleQuest) && singleQuest.ValueKind == JsonValueKind.Object)
+                childElements = new[] { singleQuest };
+
+            if (childElements != null)
+            {
+                foreach (var childEl in childElements)
+                {
+                    if (childEl.ValueKind != JsonValueKind.Object) continue;
+                    var childId = GetStringProperty(childEl, "Id") ?? GetStringProperty(childEl, "id");
+                    if (string.IsNullOrEmpty(childId)) continue;
+                    var childObj = new List<StarQuestObjective>();
+                    if (TryGetProperty(childEl, "Objectives", out var coEl) || TryGetProperty(childEl, "objectives", out coEl))
+                        childObj = ParseObjectivesFromElement(coEl);
+                    if (childObj.Count == 0 && (TryGetProperty(childEl, "MetaData", out var cMeta) || TryGetProperty(childEl, "metaData", out cMeta)) && cMeta.ValueKind == JsonValueKind.Object
+                        && (TryGetProperty(cMeta, "Objectives", out var cMetaObj) || TryGetProperty(cMeta, "objectives", out cMetaObj)))
+                        childObj = ParseObjectivesFromElement(cMetaObj);
+                    var childPrereqIds = GetStringListFromElement(childEl, "MetaData", "PrerequisiteQuestIds");
+                    if (childPrereqIds.Count == 0)
+                        childPrereqIds = GetStringListFromElement(childEl, "metaData", "prerequisiteQuestIds");
+                    var childOrder = GetIntProperty(childEl, "Order") ?? GetIntProperty(childEl, "order") ?? 0;
+                    var childGameSource = GetStringProperty(childEl, "GameSource") ?? GetStringProperty(childEl, "gameSource") ?? string.Empty;
+                    var childReqs = new List<string>();
+                    if (TryGetProperty(childEl, "Requirements", out var creq) || TryGetProperty(childEl, "requirements", out creq))
+                    { if (creq.ValueKind == JsonValueKind.Array) foreach (var item in creq.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) childReqs.Add(s); } }
+                    var childRewardKarma = GetLongProperty(childEl, "RewardKarma") ?? 0L;
+                    var childRewardXP = GetLongProperty(childEl, "RewardXP") ?? 0L;
+                    var childNotes = GetStringProperty(childEl, "CompletionNotes") ?? GetStringProperty(childEl, "completionNotes");
+                    var childMissionId = GetStringProperty(childEl, "ParentMissionId") ?? string.Empty;
+                    quests.Add(new StarQuestInfo
+                    {
+                        Id = childId,
+                        Name = GetStringProperty(childEl, "Name") ?? GetStringProperty(childEl, "name") ?? string.Empty,
+                        Description = GetStringProperty(childEl, "Description") ?? GetStringProperty(childEl, "description") ?? string.Empty,
+                        Status = GetStringProperty(childEl, "Status") ?? GetStringProperty(childEl, "status") ?? string.Empty,
+                        Order = childOrder,
+                        GameSource = childGameSource,
+                        Requirements = childReqs,
+                        RewardKarma = childRewardKarma,
+                        RewardXP = childRewardXP,
+                        CompletionNotes = childNotes,
+                        ParentMissionId = childMissionId,
+                        ParentQuestId = parentId,
+                        Objectives = childObj,
+                        PrerequisiteQuestIds = childPrereqIds,
+                        Dictionaries = ParseObjectiveDictionaries(childEl)
+                    });
+                }
+            }
         }
 
         return quests;
@@ -3138,45 +5307,55 @@ public sealed class StarApiClient : IDisposable
         if (element.ValueKind != JsonValueKind.Object)
             return null;
 
-        var objectives = new List<StarQuestObjective>();
-        if (TryGetProperty(element, "Objectives", out var objElement) && objElement.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var objective in objElement.EnumerateArray())
-            {
-                if (objective.ValueKind != JsonValueKind.Object) continue;
-                objectives.Add(new StarQuestObjective
-                {
-                    Id = GetStringProperty(objective, "Id") ?? string.Empty,
-                    Description = GetStringProperty(objective, "Description") ?? string.Empty,
-                    GameSource = GetStringProperty(objective, "GameSource") ?? string.Empty,
-                    ItemRequired = GetStringProperty(objective, "ItemRequired") ?? string.Empty,
-                    IsCompleted = GetBoolProperty(objective, "IsCompleted")
-                });
-            }
-        }
-        else if (TryGetProperty(element, "Quests", out var questsElement) && questsElement.ValueKind == JsonValueKind.Array)
+        /* Only read from known objective property names so we never bind SubQuests or PrerequisiteQuestIds. */
+        var objectives = GetObjectivesFromQuestElement(element);
+        /* Fallback: single-quest response may have "Quests" array of objective-like items. */
+        if (objectives.Count == 0 && TryGetProperty(element, "Quests", out var questsElement) && questsElement.ValueKind == JsonValueKind.Array)
         {
             foreach (var sub in questsElement.EnumerateArray())
             {
                 if (sub.ValueKind != JsonValueKind.Object) continue;
+                var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "objective");
+                if (string.IsNullOrEmpty(desc)) continue; /* Skip items that look like full quests (no Description/Objective). */
                 objectives.Add(new StarQuestObjective
                 {
-                    Id = GetStringProperty(sub, "Id") ?? string.Empty,
-                    Description = GetStringProperty(sub, "Description") ?? string.Empty,
-                    GameSource = GetStringProperty(sub, "GameSource") ?? string.Empty,
-                    ItemRequired = GetStringProperty(sub, "ItemRequired") ?? string.Empty,
-                    IsCompleted = GetBoolProperty(sub, "IsCompleted")
+                    Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                    Description = desc,
+                    GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
+                    Order = GetIntProperty(sub, "Order") ?? GetIntProperty(sub, "order") ?? 0,
+                    IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                    Dictionaries = ParseObjectiveDictionaries(sub)
                 });
             }
         }
 
+        var parentQuestId = GetStringProperty(element, "ParentQuestId") ?? GetStringProperty(element, "parentQuestId");
+        if (string.IsNullOrWhiteSpace(parentQuestId) && (TryGetProperty(element, "MetaData", out var metaForParent) || TryGetProperty(element, "metaData", out metaForParent)) && metaForParent.ValueKind == JsonValueKind.Object)
+            parentQuestId = GetStringProperty(metaForParent, "ParentQuestId") ?? GetStringProperty(metaForParent, "parentQuestId");
+        var prereqIds = GetStringListFromElement(element, "MetaData", "PrerequisiteQuestIds");
+        if (prereqIds.Count == 0) prereqIds = GetStringListFromElement(element, "metaData", "prerequisiteQuestIds");
+        if (prereqIds.Count == 0 && (TryGetProperty(element, "PrerequisiteQuestIds", out var prereqArr) || TryGetProperty(element, "prerequisiteQuestIds", out prereqArr)) && prereqArr.ValueKind == JsonValueKind.Array)
+        { foreach (var item in prereqArr.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) prereqIds.Add(s); } }
+        var requirements = new List<string>();
+        if (TryGetProperty(element, "Requirements", out var reqEl) || TryGetProperty(element, "requirements", out reqEl))
+        { if (reqEl.ValueKind == JsonValueKind.Array) foreach (var item in reqEl.EnumerateArray()) { var s = item.ValueKind == JsonValueKind.String ? item.GetString() : item.GetRawText()?.Trim('"'); if (!string.IsNullOrEmpty(s)) requirements.Add(s); } }
         return new StarQuestInfo
         {
             Id = GetStringProperty(element, "Id") ?? string.Empty,
             Name = GetStringProperty(element, "Name") ?? string.Empty,
             Description = GetStringProperty(element, "Description") ?? string.Empty,
             Status = GetStringProperty(element, "Status") ?? string.Empty,
-            Objectives = objectives
+            Order = GetIntProperty(element, "Order") ?? GetIntProperty(element, "order") ?? 0,
+            GameSource = GetStringProperty(element, "GameSource") ?? GetStringProperty(element, "gameSource") ?? string.Empty,
+            Requirements = requirements,
+            RewardKarma = GetLongProperty(element, "RewardKarma") ?? GetLongProperty(element, "rewardKarma") ?? 0L,
+            RewardXP = GetLongProperty(element, "RewardXP") ?? GetLongProperty(element, "rewardXP") ?? 0L,
+            CompletionNotes = GetStringProperty(element, "CompletionNotes") ?? GetStringProperty(element, "completionNotes"),
+            ParentMissionId = GetStringProperty(element, "ParentMissionId") ?? GetStringProperty(element, "parentMissionId") ?? string.Empty,
+            ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
+            Objectives = objectives,
+            PrerequisiteQuestIds = prereqIds,
+            Dictionaries = ParseObjectiveDictionaries(element)
         };
     }
 
@@ -3452,6 +5631,18 @@ public unsafe struct star_item_list_t
     public nuint capacity;
 }
 
+/// <summary>C layout for star_sync_local_item_t (name, description, game_source, item_type, nft_id, synced). Used by star_sync_inventory_start.</summary>
+[StructLayout(LayoutKind.Sequential)]
+public unsafe struct star_sync_local_item_t
+{
+    public fixed byte name[256];
+    public fixed byte description[512];
+    public fixed byte game_source[64];
+    public fixed byte item_type[64];
+    public fixed byte nft_id[128];
+    public int synced;
+}
+
 public static unsafe class StarApiExports
 {
     private static readonly object Sync = new();
@@ -3464,6 +5655,15 @@ public static unsafe class StarApiExports
     private static byte* _lastError;
     private static delegate* unmanaged[Cdecl]<int, void*, void> _callback;
     private static void* _callbackUserData;
+    /// <summary>Optional: (result, operation_type, user_data). When set, profile refresh uses this instead of _callback so the game can filter by operation_type.</summary>
+    private static delegate* unmanaged[Cdecl]<int, int, void*, void> _operationCallback;
+    private static void* _operationCallbackUserData;
+    private static volatile int _starDebug;
+    private static int StarApiGetQuestsStringLastLoggedToCopy = -1;
+    private static bool _topLevelQuestsLastLoggedLoading;
+
+    /// <summary>Whether STAR debug logging is on (games set via star_api_set_debug). When true, quest API and other requests log URI and response to file and console.</summary>
+    internal static bool GetStarDebug() => _starDebug != 0;
 
     /// <summary>Set the last background error (mint/add_item failure or pickup not queued). Consumed by star_api_consume_last_background_error for game console display.</summary>
     public static void SetLastBackgroundError(string message)
@@ -3503,15 +5703,26 @@ public static unsafe class StarApiExports
         SetError(string.Empty);
     }
 
+    /// <summary>Trimmer root: keep all members so session/JWT exports stay in star_api.dll for forwarders and autologin.</summary>
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentJwt", typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentRefreshToken", typeof(StarApiExports))]
+    [DynamicDependency("StarApiGetCurrentUsername", typeof(StarApiExports))]
+    [DynamicDependency("StarApiSetSavedSession", typeof(StarApiExports))]
+    [DynamicDependency("StarApiSetRefreshToken", typeof(StarApiExports))]
+    [DynamicDependency("StarApiIsSessionExpired", typeof(StarApiExports))]
+    [DynamicDependency("StarApiRestoreSession", typeof(StarApiExports))]
+    [DynamicDependency("StarApiAuthenticateWithJwtOut", typeof(StarApiExports))]
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
         if (config is null || config->base_url is null)
-            return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam, StarApiOpInit);
 
+        var baseUrl = PtrToString(config->base_url) ?? string.Empty;
         var managedConfig = new StarApiConfig
         {
-            Web5StarApiBaseUrl = PtrToString(config->base_url) ?? string.Empty,
+            Web5StarApiBaseUrl = baseUrl,
             ApiKey = PtrToString(config->api_key),
             AvatarId = PtrToString(config->avatar_id),
             TimeoutSeconds = config->timeout_seconds
@@ -3524,20 +5735,140 @@ public static unsafe class StarApiExports
         }
 
         var result = _client.Init(managedConfig);
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpInit);
+    }
+
+    /// <summary>Shared implementation for authenticate; used by both star_api_authenticate and star_api_authenticate_with_jwt_out (UnmanagedCallersOnly cannot call UnmanagedCallersOnly).</summary>
+    private static int AuthenticateWithJwtOutImpl(sbyte* username, sbyte* password, sbyte* jwt_buf, nuint jwt_size)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpAuthenticate);
+
+        var user = PtrToString(username);
+        var pass = PtrToString(password);
+        var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
+        if (!result.IsError && jwt_buf != null && jwt_size > 0)
+        {
+            var jwt = client.GetCurrentJwt();
+            if (!string.IsNullOrEmpty(jwt))
+            {
+                var bytes = Encoding.UTF8.GetBytes(jwt);
+                var toCopy = (int)Math.Min((nuint)bytes.Length, jwt_size - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(jwt_buf, toCopy));
+                jwt_buf[toCopy] = 0;
+            }
+            else
+                jwt_buf[0] = 0;
+        }
+        return (int)FinalizeResultNoCallback(result);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiAuthenticate(sbyte* username, sbyte* password)
     {
-        var client = GetClient();
-        if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+        return AuthenticateWithJwtOutImpl(username, password, null, 0);
+    }
 
-        var user = PtrToString(username);
-        var pass = PtrToString(password);
-        var result = client.AuthenticateAsync(user ?? string.Empty, pass ?? string.Empty).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+    /// <summary>Authenticate and optionally write JWT to buf so games can persist to oasisstar.json without relying on get_current_jwt export.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_authenticate_with_jwt_out", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiAuthenticateWithJwtOut(sbyte* username, sbyte* password, sbyte* jwt_buf, nuint jwt_size)
+    {
+        return AuthenticateWithJwtOutImpl(username, password, jwt_buf, jwt_size);
+    }
+
+    /// <summary>Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_saved_session", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetSavedSession(sbyte* jwt)
+    {
+        var client = GetClient();
+        if (client is null) return (int)StarApiResultCode.NotInitialized;
+        var jwtStr = PtrToString(jwt);
+        var result = client.SetSavedSession(jwtStr ?? string.Empty);
+        return result.IsError ? (int)StarApiResultCode.ApiError : (int)StarApiResultCode.Success;
+    }
+
+    /// <summary>Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_restore_session", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiRestoreSession()
+    {
+        var client = GetClient();
+        if (client is null) return (int)StarApiResultCode.NotInitialized;
+        _ = client.QueueRestoreSessionAsync(CancellationToken.None);
+        return (int)StarApiResultCode.Success; /* restore started; callback will fire when done */
+    }
+
+    /// <summary>Write current username to buf (for saving to oasisstar.json). Returns bytes written or 0.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_username", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentUsername(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var name = client?.GetCurrentUsername();
+        if (string.IsNullOrEmpty(name)) { buf[0] = 0; return 0; }
+        var bytes = Encoding.UTF8.GetBytes(name);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Write current JWT to buf (for saving to oasisstar.json). Returns bytes written or 0. Caller should not log.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_jwt", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentJwt(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var jwt = client?.GetCurrentJwt();
+        if (string.IsNullOrEmpty(jwt))
+        {
+            buf[0] = 0;
+            return 0;
+        }
+        StarApiExports.StarApiLogFileOnly($"[Auth] GetCurrentJwt: returning length={jwt.Length} (for oasisstar.json)");
+        var bytes = Encoding.UTF8.GetBytes(jwt);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Set refresh token from persisted session (e.g. oasisstar.json). Call after star_api_set_saved_session when restoring so 401 can trigger token refresh.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetRefreshToken(sbyte* refreshToken)
+    {
+        var client = GetClient();
+        if (client is null) return;
+        var s = refreshToken is null ? null : PtrToString(refreshToken);
+        client.SetRefreshToken(s);
+    }
+
+    /// <summary>Write current refresh token to buf (for saving to oasisstar.json). Returns bytes written or 0. Caller should not log.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_current_refresh_token", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetCurrentRefreshToken(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        var token = client?.GetCurrentRefreshToken();
+        if (string.IsNullOrEmpty(token))
+        {
+            buf[0] = 0;
+            return 0;
+        }
+        var bytes = Encoding.UTF8.GetBytes(token);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    /// <summary>Returns 1 if session was cleared due to expired JWT and refresh failed (or no refresh token). Games should clear jwt_token/refresh_token in oasisstar.json when saving so the next launch does not try to restore a dead session.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_is_session_expired", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiIsSessionExpired()
+    {
+        var client = GetClient();
+        return (client != null && client.IsSessionExpired()) ? 1 : 0;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_cleanup", CallConvs = [typeof(CallConvCdecl)])]
@@ -3558,12 +5889,12 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             SetError("Client is not initialized.");
-            InvokeCallback(StarApiResultCode.NotInitialized);
+            InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiOpHasItem);
             return 0;
         }
 
         var result = client.HasItemAsync(PtrToString(itemName) ?? string.Empty).GetAwaiter().GetResult();
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpHasItem);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
@@ -3571,27 +5902,22 @@ public static unsafe class StarApiExports
     public static int StarApiGetInventory(star_item_list_t** itemList)
     {
         if (itemList is null)
-            return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("itemList must not be null.", StarApiResultCode.InvalidParam, StarApiOpGetInventory);
 
         *itemList = null;
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetInventory);
 
-        var result = client.GetInventoryAsync().GetAwaiter().GetResult();
-        var resultCode = ExtractCode(result);
-        if (result.IsError || result.Result is null)
-        {
-            SetError(result.Message ?? "Failed to load inventory.");
-            InvokeCallback(resultCode);
-            return (int)resultCode;
-        }
+        var cached = client.TryGetCachedInventory();
+        if (cached is null)
+            return (int)SetErrorAndReturn("Inventory not loaded. Call star_api_request_inventory_in_background first.", StarApiResultCode.ApiError, StarApiOpGetInventory);
 
-        var count = (nuint)result.Result.Count;
+        var count = (nuint)cached.Count;
         var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
         if (listPtr is null)
-            return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed);
+            return (int)SetErrorAndReturn("Memory allocation failed for item list.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
 
         listPtr->count = count;
         listPtr->capacity = count;
@@ -3603,12 +5929,12 @@ public static unsafe class StarApiExports
             if (listPtr->items is null)
             {
                 NativeMemory.Free(listPtr);
-                return (int)SetErrorAndReturn("Memory allocation failed for inventory items.", StarApiResultCode.InitFailed);
+                return (int)SetErrorAndReturn("Memory allocation failed for inventory items.", StarApiResultCode.InitFailed, StarApiOpGetInventory);
             }
 
-            for (var i = 0; i < result.Result.Count; i++)
+            for (var i = 0; i < cached.Count; i++)
             {
-                var src = result.Result[i];
+                var src = cached[i];
                 var dst = &listPtr->items[i];
                 WriteFixedUtf8(src.Id.ToString(), dst->id, 64);
                 WriteFixedUtf8(src.Name, dst->name, 256);
@@ -3622,12 +5948,23 @@ public static unsafe class StarApiExports
 
         *itemList = listPtr;
         SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
         return (int)StarApiResultCode.Success;
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_free_item_list", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiFreeItemList(star_item_list_t* itemList)
+    [UnmanagedCallersOnly(EntryPoint = "star_api_request_inventory_in_background", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRequestInventoryInBackground()
+    {
+        var client = GetClient();
+        if (client is null)
+        {
+            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            return;
+        }
+        client.RequestInventoryInBackground();
+    }
+
+    /// <summary>Internal helper for StarSyncExports; same logic as star_api_free_item_list so C# can call without going through UnmanagedCallersOnly.</summary>
+    internal static unsafe void FreeItemListInternal(star_item_list_t* itemList)
     {
         if (itemList is null)
             return;
@@ -3638,11 +5975,374 @@ public static unsafe class StarApiExports
         NativeMemory.Free(itemList);
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_free_item_list", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiFreeItemList(star_item_list_t* itemList)
+    {
+        FreeItemListInternal(itemList);
+    }
+
+    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error. Must not throw - native caller can crash.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestsString(sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestsString);
+
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestsString);
+
+            string fallback;
+            if (!client.TryGetQuestsCache(out var str))
+                fallback = "Loading...";
+            else
+                fallback = str ?? string.Empty;
+
+            var bytesArr = Encoding.UTF8.GetBytes(fallback);
+            var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+            /* Log only when return length changes (e.g. once for Loading, once when cache fills) to avoid log spam */
+            try
+            {
+                if (toCopy != StarApiGetQuestsStringLastLoggedToCopy)
+                {
+                    StarApiGetQuestsStringLastLoggedToCopy = toCopy;
+                    if (fallback == "Loading...")
+                        StarApiLogFileOnly("[Quests] star_api_get_quests_string: cache miss, returning Loading...");
+                    else
+                    {
+                        var previewLen = Math.Min(250, fallback.Length);
+                        var preview = previewLen > 0 ? fallback.Substring(0, previewLen).Replace("\t", "|").Replace("\r", " ").Replace("\n", "\\n") : "";
+                        StarApiLogFileOnly($"[Quests] star_api_get_quests_string: cache HIT len={fallback.Length} toCopy={toCopy} preview={preview}");
+                    }
+                }
+            }
+            catch { /* ignore */ }
+            if (toCopy > 0)
+                new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+            buf[toCopy] = 0;
+            SetError(string.Empty);
+            InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetQuestsString);
+            return toCopy;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            try
+            {
+                const string err = "Error: Error loading quests. Check console or star_api.log for details.";
+                var bytes = Encoding.UTF8.GetBytes(err);
+                var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+                if (buf != null && bufSize > 0 && toCopy > 0)
+                {
+                    new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                    buf[toCopy] = 0;
+                }
+                return toCopy;
+            }
+            catch
+            {
+                if (buf != null && bufSize > 0)
+                {
+                    buf[0] = (sbyte)'?';
+                    if (bufSize > 1)
+                        buf[1] = 0;
+                    return 1;
+                }
+                return 0;
+            }
+        }
+    }
+
+    /// <summary>Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_top_level_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetTopLevelQuestsString(sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetTopLevelQuestsString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetTopLevelQuestsString);
+            string fallback;
+            if (!client.TryGetTopLevelQuestsCache(out var str))
+            {
+                fallback = "Loading...";
+                try { if (!_topLevelQuestsLastLoggedLoading) { _topLevelQuestsLastLoggedLoading = true; StarApiLogFileOnly("[STAR] star_api_get_top_level_quests_string cache miss -> Loading... (once until cache fills)"); } } catch { }
+            }
+            else
+            {
+                fallback = str ?? string.Empty;
+                _topLevelQuestsLastLoggedLoading = false;
+            }
+            var bytesArr = Encoding.UTF8.GetBytes(fallback);
+            var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+            if (toCopy > 0)
+                new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+            buf[toCopy] = 0;
+            SetError(string.Empty);
+            return toCopy;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_top_level_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetTopLevelQuestsString);
+        }
+    }
+
+    /// <summary>Write serialized sub-quests of parent_quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_sub_quests_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestSubQuestsString(sbyte* parentQuestId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestSubQuestsString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestSubQuestsString);
+            var parentId = parentQuestId != null ? Marshal.PtrToStringUTF8((IntPtr)parentQuestId) : null;
+            if (!client.TryGetQuestSubQuestsCache(parentId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_sub_quests_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestSubQuestsString);
+        }
+    }
+
+    /// <summary>Write serialized objectives from the quest's Objectives collection (Quest.Objectives) for parent_quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objectives_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestObjectivesString(sbyte* parentQuestId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestObjectivesString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestObjectivesString);
+            var parentId = parentQuestId != null ? Marshal.PtrToStringUTF8((IntPtr)parentQuestId) : null;
+            if (!client.TryGetQuestObjectivesCache(parentId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            var lineCount = fallback.Split('\n').Count(s => s.TrimStart().StartsWith("Q\t", StringComparison.Ordinal));
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestObjectivesString);
+        }
+    }
+
+    /// <summary>Return objectives cache version; increments when on-demand fetch merges objectives. UI should poll each frame and re-call get_quest_objectives_string when this changes to refresh the list.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objectives_cache_version", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestObjectivesCacheVersion()
+    {
+        try
+        {
+            var client = GetClient();
+            return client?.GetQuestObjectivesCacheVersion() ?? 0;
+        }
+        catch { return 0; }
+    }
+
+    /// <summary>Write serialized prerequisite quests (id, name, desc) for quest_id to buf for right panel. Same format as get_quests_string. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_prereqs_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestPrereqsString(sbyte* questId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestPrereqsString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestPrereqsString);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestPrereqsCache(qId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_prereqs_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestPrereqsString);
+        }
+    }
+
+    /// <summary>Write requirement/progress lines for quest and optional objective to buf. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_objective_requirements_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestObjectiveRequirementsString(sbyte* questId, sbyte* objectiveId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestObjectiveRequirementsString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestObjectiveRequirementsString);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            var oId = objectiveId != null ? Marshal.PtrToStringUTF8((IntPtr)objectiveId) : null;
+            if (!client.TryGetQuestObjectiveRequirementsForGame(qId, oId, out var str))
+            {
+                var loading = "Loading...";
+                var bytesArr = Encoding.UTF8.GetBytes(loading);
+                var toCopy = (int)Math.Min((nuint)bytesArr.Length, bufSize - 1);
+                if (toCopy > 0)
+                    new ReadOnlySpan<byte>(bytesArr, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+                buf[toCopy] = 0;
+                return toCopy;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_objective_requirements_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestObjectiveRequirementsString);
+        }
+    }
+
+    /// <summary>Write one progress line per objective for the tracker. Returns bytes written or negative on error.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_tracker_objectives_string", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestTrackerObjectivesString(sbyte* questId, sbyte* buf, nuint bufSize)
+    {
+        try
+        {
+            if (buf is null || bufSize == 0)
+                return (int)SetErrorAndReturn("buf and bufSize must be non-null/non-zero.", StarApiResultCode.InvalidParam, StarApiOpGetQuestTrackerObjectivesString);
+            var client = GetClient();
+            if (client is null)
+                return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetQuestTrackerObjectivesString);
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestTrackerObjectivesProgress(qId, out var str, out _))
+            {
+                var empty = "";
+                var bytesArr = Encoding.UTF8.GetBytes(empty);
+                buf[0] = 0;
+                return 0;
+            }
+            var fallback = str ?? string.Empty;
+            var bytes = Encoding.UTF8.GetBytes(fallback);
+            var toCopyVal = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+            if (toCopyVal > 0)
+                new ReadOnlySpan<byte>(bytes, 0, toCopyVal).CopyTo(new Span<byte>(buf, toCopyVal));
+            buf[toCopyVal] = 0;
+            SetError(string.Empty);
+            return toCopyVal;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiLogFileOnly($"[Quests] star_api_get_quest_tracker_objectives_string exception: {ex.Message}"); } catch { /* ignore */ }
+            return (int)SetErrorAndReturn(ex.Message ?? "Unknown error", StarApiResultCode.ApiError, StarApiOpGetQuestTrackerObjectivesString);
+        }
+    }
+
+    /// <summary>Return 0-based index of first incomplete objective for the tracked quest.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_quest_tracker_active_objective_index", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetQuestTrackerActiveObjectiveIndex(sbyte* questId)
+    {
+        try
+        {
+            var client = GetClient();
+            if (client is null) return 0;
+            var qId = questId != null ? Marshal.PtrToStringUTF8((IntPtr)questId) : null;
+            if (!client.TryGetQuestTrackerObjectivesProgress(qId, out _, out var activeIndex))
+                return 0;
+            return activeIndex;
+        }
+        catch { return 0; }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_inventory_cache", CallConvs = [typeof(CallConvCdecl)])]
     public static void StarApiInvalidateInventoryCache()
     {
         var client = GetClient();
         client?.InvalidateInventoryCache();
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_invalidate_quest_cache", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiInvalidateQuestCache()
+    {
+        try
+        {
+            var client = GetClient();
+            client?.InvalidateQuestCache();
+        }
+        catch
+        {
+            /* Must not throw - native caller can crash. */
+        }
+    }
+
+    /// <summary>Start a background refresh of the quest cache without clearing it. UI can show existing cache immediately and will update when the callback returns.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_quest_cache_in_background", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRefreshQuestCacheInBackground()
+    {
+        try
+        {
+            var client = GetClient();
+            client?.RequestQuestCacheRefreshInBackground();
+        }
+        catch
+        {
+            /* Must not throw - native caller can crash. */
+        }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_clear_cache", CallConvs = [typeof(CallConvCdecl)])]
@@ -3660,7 +6360,7 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             StarApiLog("star_api_add_item: client is null");
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpAddItem);
         }
 
         var name = PtrToString(itemName) ?? string.Empty;
@@ -3676,7 +6376,7 @@ public static unsafe class StarApiExports
 
         var result = Task.Run(() => client.AddItemAsync(name, desc, source, type, nftIdOpt, qty, doStack).GetAwaiter().GetResult()).GetAwaiter().GetResult();
 
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpAddItem);
         StarApiLog($"star_api_add_item: result IsError={result.IsError} code={(int)code} message={result.Message ?? "(ok)"}");
         return (int)code;
     }
@@ -3724,31 +6424,133 @@ public static unsafe class StarApiExports
             PtrToString(gameSource));
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_quest_level_time", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueQuestLevelTime(sbyte* gameSource, int levelElapsedSeconds)
+    {
+        var client = GetClient();
+        if (client is null || levelElapsedSeconds < 0) return;
+        var gs = PtrToString(gameSource);
+        if (string.IsNullOrWhiteSpace(gs)) gs = "Quake";
+        client.EnqueueQuestProgressFromGame(gs, 0, 0, null, 0, 0, levelElapsedSeconds);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetAvatarXp(int* xpOut)
     {
         var client = GetClient();
-        if (client is null) return 0;
+        if (client is null) { try { StarApiExports.StarApiLogFileOnly("[STAR] star_api_get_avatar_xp: no client"); } catch { } return 0; }
+        var xp = client.GetCachedAvatarXp();
         if (xpOut is not null)
-            *xpOut = client.GetCachedAvatarXp();
+            *xpOut = xp;
         return 1;
     }
 
-    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiRefreshAvatarXp()
+    // REDUNDANT / REMOVED: star_api_refresh_avatar_xp was a duplicate. Use star_api_refresh_avatar_profile() only.
+    // [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp", ...)]
+    // public static void StarApiRefreshAvatarXp() { ... }
+
+    /// <summary>Kick off avatar profile refresh (XP + active quest/objective) in background; returns immediately. Callback is invoked when the load completes. Call on beam-in so the game can update the tracker in the callback.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_profile", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiRefreshAvatarProfile()
     {
+        try { StarApiLogFileOnly("[STAR] star_api_refresh_avatar_profile called"); } catch { }
         var client = GetClient();
         if (client is null) return;
-        client.RefreshAvatarXp();
+        client.RefreshAvatarProfileInBackground();
     }
 
-    /// <summary>Block until avatar XP is loaded from API and cache is updated. Call in auth-done callback before setting "beamed in" so HUD shows correct XP immediately.</summary>
-    [UnmanagedCallersOnly(EntryPoint = "star_api_refresh_avatar_xp_blocking", CallConvs = [typeof(CallConvCdecl)])]
-    public static void StarApiRefreshAvatarXpBlocking()
+    /// <summary>Get display name of the current tracked quest from cache (so HUD can show name as soon as quest list loads after beam-in). Writes UTF-8 name to buf, null-terminated. Returns bytes written (excluding null), or 0 if not available.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_tracker_quest_name", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetTrackerQuestName(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        if (client is null) return 0;
+        var name = client.TryGetTrackerQuestNameFromCache();
+        if (string.IsNullOrEmpty(name)) return 0;
+        var bytes = Encoding.UTF8.GetBytes(name);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return toCopy;
+    }
+
+    private static bool _loggedNoCachedQuestId;
+    private static bool _loggedNoCachedObjectiveId;
+
+    /// <summary>Get last active quest ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_active_quest_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetActiveQuestId(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_quest_id: no client"); } catch { } return 0; }
+        var id = client.GetCachedActiveQuestId();
+        if (!id.HasValue || id.Value == Guid.Empty)
+        {
+            if (!_loggedNoCachedQuestId)
+            {
+                _loggedNoCachedQuestId = true;
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
+            }
+            buf[0] = 0; return 0;
+        }
+        _loggedNoCachedQuestId = false;
+        try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_quest_id: returning {id}"); } catch { }
+        var str = id.Value.ToString();
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return 1;
+    }
+
+    /// <summary>Get last active objective ID from avatar detail (restored after beam-in). Writes GUID string to buf, null-terminated. Returns 1 if had value, 0 otherwise.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_get_active_objective_id", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiGetActiveObjectiveId(sbyte* buf, nuint bufSize)
+    {
+        if (buf is null || bufSize == 0) return 0;
+        var client = GetClient();
+        if (client is null) { try { StarApiExports.StarApiLog("[Quest] star_api_get_active_objective_id: no client"); } catch { } return 0; }
+        var id = client.GetCachedActiveObjectiveId();
+        if (!id.HasValue || id.Value == Guid.Empty)
+        {
+            if (!_loggedNoCachedObjectiveId)
+            {
+                _loggedNoCachedObjectiveId = true;
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+            }
+            buf[0] = 0; return 0;
+        }
+        _loggedNoCachedObjectiveId = false;
+        try { StarApiExports.StarApiLog($"[Quest] star_api_get_active_objective_id: returning {id}"); } catch { }
+        var str = id.Value.ToString();
+        var bytes = Encoding.UTF8.GetBytes(str);
+        var toCopy = (int)Math.Min((nuint)bytes.Length, bufSize - 1);
+        if (toCopy > 0) new ReadOnlySpan<byte>(bytes, 0, toCopy).CopyTo(new Span<byte>(buf, toCopy));
+        buf[toCopy] = 0;
+        return 1;
+    }
+
+    /// <summary>Persist active quest and objective on avatar detail (restored after beam-in). quest_id and objective_id can be null/empty to clear. Call when user sets tracker in game.</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_active_quest", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiSetActiveQuest(sbyte* questId, sbyte* objectiveId)
     {
         var client = GetClient();
-        if (client is null) return;
-        client.LoadAvatarXpBlocking();
+        if (client is null) return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetActiveQuest);
+        Guid? q = null;
+        Guid? o = null;
+        var qStr = PtrToString(questId);
+        if (!string.IsNullOrWhiteSpace(qStr) && Guid.TryParse(qStr, out var qGuid)) q = qGuid;
+        var oStr = PtrToString(objectiveId);
+        if (!string.IsNullOrWhiteSpace(oStr) && Guid.TryParse(oStr, out var oGuid)) o = oGuid;
+        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest called from native (user set tracker in game): questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] star_api_set_active_quest (native): questId={qStr ?? "(null)"}, objectiveId={oStr ?? "(null)"}"); } catch { }
+        var result = client.SetActiveQuestAndObjectiveAsync(q, o).GetAwaiter().GetResult();
+        try { StarApiExports.StarApiLog($"[Quest] star_api_set_active_quest result: IsError={result?.IsError}, Message={result?.Message}"); } catch { }
+        return (int)FinalizeResult(result, StarApiOpSetActiveQuest);
     }
 
     /// <summary>Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item.</summary>
@@ -3778,9 +6580,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpFlushAddItemJobs);
         var result = client.FlushAddItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpFlushAddItemJobs);
     }
 
     /// <summary>Mint an NFT for an inventory item via WEB4 OASIS API (NFTHolon). Returns NFT ID to pass to star_api_add_item as nft_id. Optional hash_out for tx hash/signature. provider defaults to SolanaOASIS. Note: mint is currently synchronous (blocking); add_item is queued and flushed async.</summary>
@@ -3789,9 +6591,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpMintInventoryNft);
         if (nftIdOut is null)
-            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam, StarApiOpMintInventoryNft);
 
         var result = client.MintInventoryItemNftAsync(
             PtrToString(itemName) ?? string.Empty,
@@ -3804,7 +6606,7 @@ public static unsafe class StarApiExports
         if (result.IsError)
         {
             SetError(result.Message ?? "Mint failed.");
-            InvokeCallback(ExtractCode(result));
+            InvokeOperationCallback(ExtractCode(result), StarApiOpMintInventoryNft);
             return (int)ExtractCode(result);
         }
 
@@ -3812,7 +6614,7 @@ public static unsafe class StarApiExports
         WriteUtf8ToOutput(nftId ?? string.Empty, nftIdOut, 128);
         if (hashOut is not null)
             WriteUtf8ToOutput(hash ?? string.Empty, hashOut, 128);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpMintInventoryNft);
         return (int)StarApiResultCode.Success;
     }
 
@@ -3824,13 +6626,13 @@ public static unsafe class StarApiExports
         if (client is null)
         {
             SetError("Client is not initialized.");
-            InvokeCallback(StarApiResultCode.NotInitialized);
+            InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiOpUseItem);
             return 0;
         }
 
         int q = quantity > 0 ? quantity : 1;
         var result = client.UseItemAsync(PtrToString(itemName) ?? string.Empty, PtrToString(context), q).GetAwaiter().GetResult();
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpUseItem);
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
@@ -3849,9 +6651,9 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpFlushUseItemJobs);
         var result = client.FlushUseItemJobsAsync(CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpFlushUseItemJobs);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_start_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -3859,10 +6661,18 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpStartQuest);
 
-        var result = client.StartQuestAsync(PtrToString(questId) ?? string.Empty).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        var questIdStr = PtrToString(questId) ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(questIdStr))
+            return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
+
+        StarApiExports.StarApiLog($"[Quests] Start quest requested: QuestId={questIdStr}");
+        /* Run start-quest on background thread so UI does not hang. Do not invalidate cache so the popup keeps showing the current list and game can show "Starting quest..." in corner. */
+        _ = client.QueueStartQuestAsync(questIdStr);
+        SetError(string.Empty);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpStartQuest);
+        return (int)StarApiResultCode.Success;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest_objective", CallConvs = [typeof(CallConvCdecl)])]
@@ -3870,14 +6680,17 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCompleteQuestObjective);
 
-        var result = client.CompleteQuestObjectiveAsync(
-            PtrToString(questId) ?? string.Empty,
-            PtrToString(objectiveId) ?? string.Empty,
-            PtrToString(gameSource)).GetAwaiter().GetResult();
+        var qId = PtrToString(questId) ?? string.Empty;
+        var oId = PtrToString(objectiveId) ?? string.Empty;
+        var gs = PtrToString(gameSource) ?? string.Empty;
+        try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective called: questId={qId} objectiveId={oId} gameSource={gs}"); } catch { /* ignore */ }
 
-        return (int)FinalizeResult(result);
+        var result = client.CompleteQuestObjectiveAsync(qId, oId, gs).GetAwaiter().GetResult();
+        var code = (int)FinalizeResult(result, StarApiOpCompleteQuestObjective);
+        try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective result: {(result.IsError ? "FAIL" : "OK")} {(result.IsError ? result.Message ?? "" : "")}"); } catch { /* ignore */ }
+        return code;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -3885,21 +6698,21 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCompleteQuest);
 
         var result = client.CompleteQuestAsync(PtrToString(questId) ?? string.Empty).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpCompleteQuest);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_create_monster_nft", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiCreateMonsterNft(sbyte* monsterName, sbyte* description, sbyte* gameSource, sbyte* monsterStats, sbyte* provider, sbyte* nftIdOut)
     {
         if (nftIdOut is null)
-            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("nftIdOut buffer must not be null.", StarApiResultCode.InvalidParam, StarApiOpCreateMonsterNft);
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCreateMonsterNft);
 
         var result = client.CreateMonsterNftAsync(
             PtrToString(monsterName) ?? string.Empty,
@@ -3908,7 +6721,7 @@ public static unsafe class StarApiExports
             PtrToString(monsterStats),
             PtrToString(provider)).GetAwaiter().GetResult();
 
-        var code = FinalizeResult(result);
+        var code = FinalizeResult(result, StarApiOpCreateMonsterNft);
         if (code == StarApiResultCode.Success && !string.IsNullOrWhiteSpace(result.Result.NftId))
             WriteUtf8ToOutput(result.Result.NftId, nftIdOut, 64);
         else
@@ -3922,14 +6735,14 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpDeployBossNft);
 
         var result = client.DeployBossNftAsync(
             PtrToString(nftId) ?? string.Empty,
             PtrToString(targetGame) ?? string.Empty,
             PtrToString(location)).GetAwaiter().GetResult();
 
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpDeployBossNft);
     }
 
     /// <summary>Send item to avatar. Uses the client's HTTP timeout (no extra cancellation).</summary>
@@ -3938,7 +6751,7 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSendItemToAvatar);
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
@@ -3948,7 +6761,7 @@ public static unsafe class StarApiExports
             quantity < 1 ? 1 : quantity,
             guid,
             CancellationToken.None).GetAwaiter().GetResult();
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSendItemToAvatar);
     }
 
     /// <summary>Send item to clan. Uses the client's HTTP timeout (no extra cancellation).</summary>
@@ -3957,7 +6770,7 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSendItemToClan);
 
         var idStr = PtrToString(itemId);
         Guid? guid = Guid.TryParse(idStr ?? string.Empty, out var g) && g != Guid.Empty ? g : null;
@@ -3972,10 +6785,10 @@ public static unsafe class StarApiExports
         {
             SetError("Clan not found.");
             var code = ExtractCode(result);
-            InvokeCallback(code);
+            InvokeOperationCallback(code, StarApiOpSendItemToClan);
             return (int)code;
         }
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResult(result, StarApiOpSendItemToClan);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_last_error", CallConvs = [typeof(CallConvCdecl)])]
@@ -4035,39 +6848,96 @@ public static unsafe class StarApiExports
         }
     }
 
+    /// <summary>Operation type for star_api_set_operation_callback. Game can filter and only run "profile loaded" when type is ProfileLoaded.</summary>
+    public const int StarApiOpProfileLoaded = 0;
+    public const int StarApiOpGetAvatarId = 1;
+    public const int StarApiOpHasItem = 2;
+    public const int StarApiOpGetInventory = 3;
+    public const int StarApiOpGetQuestsString = 4;
+    public const int StarApiOpMintInventoryNft = 5;
+    public const int StarApiOpUseItem = 6;
+    public const int StarApiOpStartQuest = 7;
+    public const int StarApiOpCompleteQuestObjective = 8;
+    public const int StarApiOpCompleteQuest = 9;
+    public const int StarApiOpAddItem = 10;
+    public const int StarApiOpFlushAddItemJobs = 11;
+    public const int StarApiOpFlushUseItemJobs = 12;
+    public const int StarApiOpSendItemToAvatar = 13;
+    public const int StarApiOpSendItemToClan = 14;
+    public const int StarApiOpSetActiveQuest = 15;
+    public const int StarApiOpCreateMonsterNft = 16;
+    public const int StarApiOpDeployBossNft = 17;
+    public const int StarApiOpInit = 18;
+    public const int StarApiOpGetTopLevelQuestsString = 19;
+    public const int StarApiOpGetQuestSubQuestsString = 20;
+    public const int StarApiOpGetQuestObjectivesString = 21;
+    public const int StarApiOpGetQuestPrereqsString = 22;
+    public const int StarApiOpGetQuestObjectiveRequirementsString = 23;
+    public const int StarApiOpGetQuestTrackerObjectivesString = 24;
+    public const int StarApiOpAuthenticate = 25;
+    public const int StarApiOpSetOasisBaseUrl = 26;
+    public const int StarApiOpSetAvatarId = 27;
+
+    /// <summary>Invoke the operation callback if set (result, operation_type), else invoke the legacy callback (result only).</summary>
+    internal static void InvokeOperationCallback(StarApiResultCode code, int operationType)
+    {
+        delegate* unmanaged[Cdecl]<int, int, void*, void> opCb;
+        void* opUserData;
+        lock (NativeStateLock)
+        {
+            opCb = _operationCallback;
+            opUserData = _operationCallbackUserData;
+        }
+        if (opCb != null)
+            opCb((int)code, operationType, opUserData);
+        else
+            InvokeCallback(code);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_operation_callback", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetOperationCallback(delegate* unmanaged[Cdecl]<int, int, void*, void> callback, void* userData)
+    {
+        lock (NativeStateLock)
+        {
+            _operationCallback = callback;
+            _operationCallbackUserData = userData;
+        }
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_set_oasis_base_url", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiSetOasisBaseUrl(sbyte* oasisBaseUrl)
     {
+        var url = PtrToString(oasisBaseUrl) ?? string.Empty;
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetOasisBaseUrl);
 
-        var result = client.SetWeb4OasisApiBaseUrl(PtrToString(oasisBaseUrl) ?? string.Empty);
-        return (int)FinalizeResult(result);
+        var result = client.SetWeb4OasisApiBaseUrl(url);
+        return (int)FinalizeResult(result, StarApiOpSetOasisBaseUrl);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_id", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetAvatarId(sbyte* avatarIdOut, nuint avatarIdSize)
     {
         if (avatarIdOut is null || avatarIdSize == 0)
-            return (int)SetErrorAndReturn("avatarIdOut must not be null and size must be > 0.", StarApiResultCode.InvalidParam);
+            return (int)SetErrorAndReturn("avatarIdOut must not be null and size must be > 0.", StarApiResultCode.InvalidParam, StarApiOpGetAvatarId);
 
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetAvatarId);
 
-        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_xp().
+        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_profile().
         string? avatarId = client.GetCachedAvatarId();
         if (string.IsNullOrWhiteSpace(avatarId))
         {
             // Not set yet (e.g. rare path); resolve from API
             var result = client.GetCurrentAvatarAsync().GetAwaiter().GetResult();
             if (result.IsError || result.Result is null)
-                return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result));
+                return (int)SetErrorAndReturn(result.Message ?? "Failed to get avatar ID. Authenticate first.", ExtractCode(result), StarApiOpGetAvatarId);
             avatarId = result.Result.Id.ToString();
         }
         if (string.IsNullOrWhiteSpace(avatarId))
-            return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Avatar ID not available. Authenticate first.", StarApiResultCode.NotInitialized, StarApiOpGetAvatarId);
 
         var bytes = Encoding.UTF8.GetBytes(avatarId);
         var copySize = Math.Min((int)avatarIdSize - 1, bytes.Length);
@@ -4082,7 +6952,7 @@ public static unsafe class StarApiExports
         }
 
         SetError(string.Empty);
-        InvokeCallback(StarApiResultCode.Success);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpGetAvatarId);
         return (int)StarApiResultCode.Success;
     }
 
@@ -4091,19 +6961,90 @@ public static unsafe class StarApiExports
     {
         var client = GetClient();
         if (client is null)
-            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized);
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpSetAvatarId);
 
         var result = client.SetAvatarId(PtrToString(avatarId) ?? string.Empty);
-        return (int)FinalizeResult(result);
+        return (int)FinalizeResultNoCallback(result);
     }
 
-    private static StarApiClient? GetClient()
+    /// <summary>Used by StarSyncExports (star_sync_* in-client implementation).</summary>
+    internal static StarApiClient? GetClient()
     {
         lock (Sync)
             return _client;
     }
 
+    /// <summary>Build native star_item_list_t from managed list for star_sync inventory result. Caller must call StarApiFreeItemList when done.</summary>
+    internal static unsafe star_item_list_t* BuildItemListFromInventory(List<StarItem> list)
+    {
+        if (list is null || list.Count == 0)
+        {
+            var empty = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
+            if (empty is not null)
+            {
+                empty->items = null;
+                empty->count = 0;
+                empty->capacity = 0;
+            }
+            return empty;
+        }
+        var count = (nuint)list.Count;
+        var listPtr = (star_item_list_t*)NativeMemory.Alloc((nuint)1, (nuint)sizeof(star_item_list_t));
+        if (listPtr is null) return null;
+        listPtr->count = count;
+        listPtr->capacity = count;
+        listPtr->items = (star_item_t*)NativeMemory.Alloc(count, (nuint)sizeof(star_item_t));
+        if (listPtr->items is null)
+        {
+            NativeMemory.Free(listPtr);
+            return null;
+        }
+        for (var i = 0; i < list.Count; i++)
+        {
+            var src = list[i];
+            var dst = &listPtr->items[i];
+            WriteFixedUtf8(src.Id.ToString(), dst->id, 64);
+            WriteFixedUtf8(src.Name, dst->name, 256);
+            WriteFixedUtf8(src.Description, dst->description, 512);
+            WriteFixedUtf8(src.GameSource, dst->game_source, 64);
+            WriteFixedUtf8(src.ItemType, dst->item_type, 64);
+            WriteFixedUtf8(src.NftId ?? string.Empty, dst->nft_id, 128);
+            dst->quantity = src.Quantity;
+        }
+        return listPtr;
+    }
+
     private static readonly object LogLock = new();
+    private static bool _logPathLogged;
+
+    private static string GetStarApiLogPath()
+    {
+        var dir = AppContext.BaseDirectory;
+        if (string.IsNullOrEmpty(dir)) dir = Environment.CurrentDirectory ?? ".";
+        dir = Path.GetFullPath(dir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        return Path.Combine(dir, "star_api.log");
+    }
+
+    /// <summary>Write to star_api.log and Trace only; do NOT enqueue for game console. Use for quest API logs so Quake/Doom don't consume them and crash.</summary>
+    internal static void StarApiLogFileOnly(string message)
+    {
+        var line = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] {message}";
+        Trace.WriteLine(line);
+        try
+        {
+            var path = GetStarApiLogPath();
+            lock (LogLock)
+            {
+                if (!_logPathLogged)
+                {
+                    _logPathLogged = true;
+                    File.AppendAllText(path, $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] star_api.log path: {path}" + Environment.NewLine);
+                }
+                File.AppendAllText(path, line + Environment.NewLine);
+            }
+        }
+        catch { /* ignore file write errors */ }
+    }
 
     internal static void StarApiLog(string message)
     {
@@ -4111,11 +7052,16 @@ public static unsafe class StarApiExports
         Trace.WriteLine(line);
         try
         {
-            var dir = Environment.CurrentDirectory;
-            if (string.IsNullOrEmpty(dir)) dir = AppContext.BaseDirectory ?? ".";
-            var path = Path.Combine(dir, "star_api.log");
+            var path = GetStarApiLogPath();
             lock (LogLock)
+            {
+                if (!_logPathLogged)
+                {
+                    _logPathLogged = true;
+                    File.AppendAllText(path, $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff}Z] [STAR] star_api.log path: {path}" + Environment.NewLine);
+                }
                 File.AppendAllText(path, line + Environment.NewLine);
+            }
         }
         catch { /* ignore file write errors */ }
         EnqueueConsoleLog(message);
@@ -4143,7 +7089,13 @@ public static unsafe class StarApiExports
         EnqueueConsoleLog(msg);
     }
 
-    private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result)
+    [UnmanagedCallersOnly(EntryPoint = "star_api_set_debug", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiSetDebug(int enabled)
+    {
+        _starDebug = enabled != 0 ? 1 : 0;
+    }
+
+    private static StarApiResultCode FinalizeResult<T>(OASISResult<T> result, int operationType)
     {
         var code = ExtractCode(result);
         if (result.IsError)
@@ -4151,7 +7103,18 @@ public static unsafe class StarApiExports
         else
             SetError(string.Empty);
 
-        InvokeCallback(code);
+        InvokeOperationCallback(code, operationType);
+        return code;
+    }
+
+    /// <summary>Set last error and return code without invoking the shared callback. Use for auth/set_avatar_id so the game only runs "profile loaded" when star_api_refresh_avatar_profile completes (cache has XP/quest).</summary>
+    private static StarApiResultCode FinalizeResultNoCallback<T>(OASISResult<T> result)
+    {
+        var code = ExtractCode(result);
+        if (result.IsError)
+            SetError(result.Message ?? "Unknown error.");
+        else
+            SetError(string.Empty);
         return code;
     }
 
@@ -4166,10 +7129,10 @@ public static unsafe class StarApiExports
         return StarApiResultCode.ApiError;
     }
 
-    private static StarApiResultCode SetErrorAndReturn(string message, StarApiResultCode code)
+    private static StarApiResultCode SetErrorAndReturn(string message, StarApiResultCode code, int operationType)
     {
         SetError(message);
-        InvokeCallback(code);
+        InvokeOperationCallback(code, operationType);
         return code;
     }
 
@@ -4208,7 +7171,7 @@ public static unsafe class StarApiExports
             callback((int)code, callbackUserData);
     }
 
-    private static string? PtrToString(sbyte* ptr)
+    internal static string? PtrToString(sbyte* ptr)
     {
         return ptr is null ? null : Marshal.PtrToStringUTF8((nint)ptr);
     }

@@ -115,16 +115,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in SubscriptionMiddleware");
-                // Do not call _next again or write response if the pipeline already started the response
                 if (!context.Response.HasStarted)
                 {
                     context.Response.StatusCode = 500;
                     context.Response.ContentType = "application/json";
                     await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Subscription check failed", message = ex.Message }));
-                }
-                else
-                {
-                    throw;
                 }
             }
         }

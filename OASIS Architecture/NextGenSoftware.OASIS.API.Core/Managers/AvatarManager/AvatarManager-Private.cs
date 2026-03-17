@@ -625,6 +625,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
@@ -674,6 +676,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
@@ -723,6 +727,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
                            PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
@@ -1038,10 +1044,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
+            var jwtMinutes = OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
+            if (jwtMinutes <= 0) jwtMinutes = 15;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -1050,10 +1058,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private RefreshToken generateRefreshToken(string ipAddress)
         {
+            var refreshDays = OASISDNA.OASIS.Security.RefreshTokenExpirationDays;
+            if (refreshDays <= 0) refreshDays = 7;
             return new RefreshToken
             {
                 Token = randomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(refreshDays),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
@@ -1188,6 +1198,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (avatarDetailOriginal.XP != avatarDetailToUpdate.XP && avatarDetailToUpdate.XP > 0)
                 avatarDetailOriginal.XP = avatarDetailToUpdate.XP;
+
+            /* Quest tracker state: always apply so GET avatar/current can restore after beam-in */
+            avatarDetailOriginal.ActiveQuestId = avatarDetailToUpdate.ActiveQuestId;
+            avatarDetailOriginal.ActiveObjectiveId = avatarDetailToUpdate.ActiveObjectiveId;
 
             if (avatarDetailOriginal.STARCLIColour != avatarDetailToUpdate.STARCLIColour && avatarDetailToUpdate.STARCLIColour != ConsoleColor.Black)
                 avatarDetailOriginal.STARCLIColour = avatarDetailToUpdate.STARCLIColour;

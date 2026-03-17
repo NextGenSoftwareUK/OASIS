@@ -4,6 +4,21 @@ This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games
 
 **Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../ARCHITECTURE.md)** in the OASIS Omniverse folder for the full architecture and porting checklist.
 
+### Where do StarQuestInfo, StarQuestObjective come from?
+
+The quest/objective DTOs (**StarQuestInfo**, **StarQuestObjective**, **StarQuestObjectiveDictionaries**) are defined in the shared **OASIS.API.Contracts** project (`NextGenSoftware.OASIS.API.Contracts`). Both STARAPIClient and the STAR ODK Web API reference this project so the API contract stays in one place and the client stays light (no dependency on ONODE or OASIS.API.Core).
+
+### Why contract types instead of reusing backend domain types (Quest, Objective)?
+
+The client (and API responses) use these contract DTOs rather than the backend domain types (**Quest**, **Objective**, **QuestBase** in ONODE/Core). Reasons:
+
+1. **Dependency weight** – STARAPIClient is used by native games (Quake, Doom) via P/Invoke and only references **OASIS.Common**. The backend types live in **ONODE.Core** and **OASIS.API.Core**, which pull in HolonManager, storage providers, OASISBootLoader, and many packages (e.g. NBitcoin, AutoMapper, SQL client). Adding a reference to those would bloat the client and can cause version/conflict issues for a thin HTTP client.
+2. **Different roles** – Backend types have domain behavior (e.g. `Objective.BuildObjectiveString()`, persistence attributes, inheritance from TaskBase/Holon). The client only needs data transfer and JSON serialization; init-only DTOs and a flat shape are enough and keep the client simple.
+3. **API contract** – The real contract is the **wire format** (JSON). Client and server can each have their own in-memory representation. Keeping client DTOs in sync with that contract (and with backend model *shapes*) is done via documentation and the same property/dictionary names; we don’t need to share the same .NET types.
+4. **Versioning** – Client and server can ship on different schedules. Shared .NET types would force a client release for every backend model change; with separate DTOs, only the JSON contract and client parsing need to stay compatible.
+
+**If you want less duplication:** You could introduce a small **shared contracts** assembly (e.g. under OASIS Architecture) that only defines DTOs and is referenced by both STARAPIClient and the STAR ODK/ONODE. The backend would map between those DTOs and its rich domain types (Quest, Objective). The client would reference only that light contracts project, not ONODE or API.Core. That’s a refactor option; the current design avoids any dependency on the backend implementation.
+
 ## STARAPIClient vs star_sync (why both?)
 
 **STARAPIClient** (this project)
@@ -14,9 +29,11 @@ This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games
 
 **star_sync**
 
-- **Role:** Generic game-integration layer (C library: `star_sync.c` / `star_sync.h`). Sits between the game and the client.
+- **Role:** Generic game-integration layer. Sits between the game and the client. **By default** the same API is implemented in C# in **StarSyncExports.cs** and exported from the client DLL; a C implementation (`star_sync.c` / `star_sync.h`) is kept for optional use.
 - **What it does:** Provides async auth and async inventory on background threads, with completion on the main thread via `star_sync_pump()`, so games don’t implement threading. Can sync local items (e.g. push pickups with `has_item` / `add_item`) before fetching inventory. Same flow for ODOOM, OQuake, and other games.
 - **Cache:** Does not hold a cache; it calls `star_api_*` and benefits from the client’s cache.
+
+**Single source of truth:** `star_sync.h` (and, when using the C implementation, `star_sync.c`) live **only here** in STARAPIClient. ODOOM and OQuake build scripts use the in-client star_sync by default; set **OASIS_STAR_SYNC_IN_CLIENT=0** to use `star_sync.c`. **Edit only these files** when you add or change star_sync APIs—nowhere else.
 
 **Why both:** The client does HTTP and caching; star_sync does threading and flow so games stay simple and reusable. Games typically use both: `star_sync_*` for async auth and inventory (e.g. `star_sync_inventory_start` after beam-in), and `star_api_*` for door checks, has_item, use_item, etc.
 
@@ -28,7 +45,7 @@ This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games
 
 **Could star_sync be moved into STARAPIClient?**
 
-- Yes. The same C entry points (`star_sync_init`, `star_sync_pump`, `star_sync_inventory_start`, etc.) could be implemented in C# and exported from the client DLL. Background work would use `Task`/async; `star_sync_pump()` would call into C# to run any completed callbacks on the “main” thread (the one that called pump).
+- Yes. The same C entry points are implemented in C# in **StarSyncExports.cs** and exported from the client DLL. **By default**, BUILD ODOOM and BUILD_OQUAKE use the in-client implementation (**OASIS_STAR_SYNC_IN_CLIENT=1**); games link the client and do not compile `star_sync.c`. To use the C implementation instead, set **OASIS_STAR_SYNC_IN_CLIENT=0** (or change one line in the build script); see `star_sync.h` and **STAR_INTEGRATION_AUDIT.md** . Background work uses `Task`/async; `star_sync_pump()` calls into C# to run completed callbacks on the “main” thread (the one that called pump).
 
 **Pros of moving star_sync into STARAPIClient (C#)**
 
@@ -135,8 +152,8 @@ dotnet publish "OASIS Omniverse/STARAPIClient/STARAPIClient.csproj" \
 
 Outputs:
 
-- `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/publish/star_api.dll`
-- `OASIS Omniverse/STARAPIClient/bin/Release/net8.0/win-x64/native/star_api.lib`
+- `OASIS Omniverse/STARAPIClient/bin/Release/net9.0/win-x64/publish/star_api.dll`
+- `OASIS Omniverse/STARAPIClient/bin/Release/net9.0/win-x64/native/star_api.lib`
 
 Drop `star_api.dll` (and `star_api.lib`) next to the game exe. Use `star_api.h` from this folder. ODOOM and OQuake use STARAPIClient only.
 
@@ -344,9 +361,9 @@ await client.FlushQuestObjectiveJobsAsync();
 
 Queueing is optional. Existing direct APIs remain unchanged and can be used side-by-side with queued mode.
 
-## Game integration (async layer: `star_sync.h` / `star_sync.c`)
+## Game integration (async layer: `star_sync.h`)
 
-For C/C++ games (e.g. OQUAKE, ODOOM) that run on the main/game thread and must not block on network, use the **generic async layer** in `star_sync.h` and `star_sync.c`. It provides:
+For C/C++ games (e.g. OQUAKE, ODOOM) that run on the main/game thread and must not block on network, use the **generic async layer** declared in `star_sync.h`. It provides:
 
 - **Async authentication** – start auth on a background thread, poll from the main loop, then read result (success, username, avatar_id, error).
 - **Async inventory refresh** – optionally sync a list of “local” items to the remote (has_item → add_item if missing), then get_inventory; poll from main thread and get the list + result.
@@ -354,7 +371,9 @@ For C/C++ games (e.g. OQUAKE, ODOOM) that run on the main/game thread and must n
 
 ### Build
 
-Compile your game sources and **include `star_sync.c`** in the build (or build a static lib from `star_sync.c`). Link with `star_api.lib` and the C runtime. Include `star_api.h` and `star_sync.h` where needed. On Windows the layer uses Win32 threads and `CRITICAL_SECTION`; elsewhere it uses `pthreads`.
+**Default:** BUILD ODOOM and BUILD_OQUAKE use **OASIS_STAR_SYNC_IN_CLIENT=1**, so the `star_sync_*` API is provided by the client DLL (C# in StarSyncExports.cs). Do **not** add `star_sync.c` to the build. Link with `star_api.lib` and the C runtime; include `star_api.h` and `star_sync.h`.
+
+**To use the C implementation:** Set **OASIS_STAR_SYNC_IN_CLIENT=0** before building (or change the default in the build script). Then include `star_sync.c` in the build (or a static lib from it). On Windows the C layer uses Win32 threads and `CRITICAL_SECTION`; elsewhere it uses `pthreads`.
 
 ### Usage pattern
 

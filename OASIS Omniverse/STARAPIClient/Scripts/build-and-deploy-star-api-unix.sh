@@ -70,8 +70,8 @@ case "$RUNTIME" in
     ;;
 esac
 
-PUBLISH_DIR="$PROJECT_DIR/bin/Release/net8.0/$RUNTIME/publish"
-NATIVE_DIR="$PROJECT_DIR/bin/Release/net8.0/$RUNTIME/native"
+PUBLISH_DIR="$PROJECT_DIR/bin/Release/net9.0/$RUNTIME/publish"
+NATIVE_DIR="$PROJECT_DIR/bin/Release/net9.0/$RUNTIME/native"
 
 # Find existing native library for timestamp check
 STAR_LIB=""

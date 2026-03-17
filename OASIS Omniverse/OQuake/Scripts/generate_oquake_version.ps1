@@ -1,6 +1,7 @@
 <#
 .SYNOPSIS
   Generates oquake_version.h from oquake_version.txt (OQuake's single version source).
+  Automatically increments the build number on each run so every build has a unique build number.
 #>
 param([string]$Root)
 
@@ -14,11 +15,20 @@ if (-not (Test-Path -LiteralPath $versionDir)) { New-Item -Path $versionDir -Ite
 if (-not (Test-Path -LiteralPath $versionTxt)) {
     Set-Content -Path $versionTxt -Value "1.0`n1"
 }
-$lines = Get-Content $versionTxt | Where-Object { $_ -notmatch '^\s*#' -and $_.Trim() -ne '' }
+$rawLines = Get-Content $versionTxt
+$commentLines = $rawLines | Where-Object { $_ -match '^\s*#' }
+$lines = $rawLines | Where-Object { $_ -notmatch '^\s*#' -and $_.Trim() -ne '' }
 $version = if ($lines.Count -gt 0) { ($lines[0] -replace '\s+$', '').Trim() } else { "1.0" }
 $build   = if ($lines.Count -gt 1) { ($lines[1] -replace '\s+$', '').Trim() } else { "1" }
 if (-not $version) { $version = "1.0" }
 if (-not $build)   { $build   = "1" }
+# Auto-increment build number on each run
+$buildNum = 1
+if ($build -match '^\d+$') { $buildNum = [int]$build + 1 }
+$build = [string]$buildNum
+# Write back version file so next build gets next number
+$versionFileContent = if ($commentLines.Count -gt 0) { ($commentLines -join "`r`n") + "`r`n" + $version + "`r`n" + $build } else { $version + "`r`n" + $build }
+Set-Content -Path $versionTxt -Value $versionFileContent -NoNewline
 
 if (-not (Test-Path -LiteralPath $codeDir)) { New-Item -Path $codeDir -ItemType Directory -Force | Out-Null }
 $hPath = Join-Path $codeDir "oquake_version.h"

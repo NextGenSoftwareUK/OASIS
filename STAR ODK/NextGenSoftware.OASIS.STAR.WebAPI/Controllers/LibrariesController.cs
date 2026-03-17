@@ -83,7 +83,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
                 {
-                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Library retrieved successfully (using test data)"));
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null!, "Library retrieved successfully (using test data)"));
                 }
 
                 return Ok(result);
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 // Return test data if setting is enabled, otherwise return error
                 if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Library retrieved successfully (using test data)"));
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null!, "Library retrieved successfully (using test data)"));
                 }
                 return HandleException<object>(ex, "GetLibrary");
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
@@ -49,6 +49,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool HideRefreshTokens { get; set; }
         public string SecretKey { get; set; }
         public int RemoveOldRefreshTokensAfterXDays { set; get; }
+        /// <summary>JWT (access token) expiration in minutes. Industry standard 5–60; default 15. Used when issuing tokens on authenticate/refresh.</summary>
+        public int JwtTokenExpirationMinutes { get; set; } = 15;
+        /// <summary>Refresh token expiration in days. Industry standard 1–30; default 7. Used when issuing refresh tokens and setting auth cookie expiry.</summary>
+        public int RefreshTokenExpirationDays { get; set; } = 7;
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
     }

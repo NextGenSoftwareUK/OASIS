@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -42,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         holon.ModifiedDate = DateTime.Now;
                     }
 
-                    //TODO: Eventually when all methods in HolonManager and Holon have been updated to take avatarId then the code above will not be needed anymore.
+                    // Use generic SaveAsync<T> so HolonManager.SaveHolonAsync<T> runs PrepareHolonForSaving (metadata mapping). T must be concrete (e.g. Quest) due to new() constraint.
                     result = await holon.SaveAsync<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 }
                 else
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
                         holon.ModifiedDate = DateTime.Now;
                     }
 
-                    //TODO: Eventually when all methods in HolonManager and Holon have been updated to take avatarId then the code above will not be needed anymore.
+                    // Use generic Save<T> so HolonManager path runs PrepareHolonForSaving (metadata mapping). T must be concrete (e.g. Quest) due to new() constraint.
                     result = holon.Save<T>(saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider, providerType);
                 }
                 else

@@ -10,6 +10,12 @@ server int odoom_key_pgup = 0;
 server int odoom_key_pgdown = 0;
 server int odoom_key_home = 0;
 server int odoom_key_end = 0;
+server int odoom_key_1 = 0;
+server int odoom_key_2 = 0;
+server int odoom_key_3 = 0;
+server int odoom_key_b = 0;
+server int odoom_key_n = 0;
+server int odoom_key_m = 0;
 server int odoom_key_use = 0;
 server int odoom_key_a = 0;
 server int odoom_key_c = 0;
@@ -18,7 +24,12 @@ server int odoom_key_x = 0;
 server int odoom_key_i = 0;
 server int odoom_key_o = 0;
 server int odoom_key_p = 0;
+server int odoom_key_s = 0;
+server int odoom_key_q = 0;
 server int odoom_key_enter = 0;
+server int odoom_key_backspace = 0;
+server int odoom_key_k = 0;
+server int odoom_key_t = 0;
 
 // Send popup (OQuake-style): name input buffer and execute
 server int odoom_send_popup_open = 0;
@@ -48,9 +59,10 @@ server int odoom_star_has_silver_key = 0;
 // Avatar XP (experience points). Updated from STAR API; shown in top-right when beamed in.
 server int odoom_star_avatar_xp = 0;
 
-// Use STAR item from inventory (E on selected STAR row). ZScript sets name + type and do_it=1; C++ runs use_item, consumes one from STAR, and applies that amount of Health/Armor to player (HUD updates). Over-100 allowed for Soul/Mega sphere.
+// Use STAR item from inventory (E on selected STAR row). ZScript sets name + type + description and do_it=1; C++ runs use_item and applies Health/Armor using (+X) from description.
 server string odoom_star_use_item_name = "";
 server string odoom_star_use_item_type = "";
+server string odoom_star_use_item_description = "";
 server int odoom_star_use_do_it = 0;
 // Toast message at top center (e.g. "You cannot use this because you are already at max health."). C++ sets message and odoom_star_toast_frames (e.g. 105 = 3 sec at 35 fps); ZScript draws while frames > 0; C++ decrements each frame.
 server string odoom_star_toast_message = "";
@@ -58,3 +70,40 @@ server int odoom_star_toast_frames = 0;
 // Pickup feedback when we take health/armor/ammo into STAR (engine would not allow): show "Picked up X" in red top-left like normal pickup. C++ sets message and frames; ZScript draws; C++ decrements each frame.
 server string odoom_star_pickup_toast_message = "";
 server int odoom_star_pickup_toast_frames = 0;
+
+// Quest Tracker (left side, near top): C++ sets from first InProgress quest. T=toggle show, O=cycle objective (1,2,3,All) when popup closed.
+server string odoom_quest_tracker_title = "";
+server string odoom_quest_tracker_objective = "";
+server int odoom_quest_tracker_show = 1;
+server int odoom_quest_tracker_objective_index = 0;
+server string odoom_quest_tracker_objectives = "";
+server int odoom_quest_tracker_active_index = 0;
+// User-selected active objective (Enter on objective in detail popup). Highlighted in green in Objectives list.
+server string odoom_quest_tracker_active_objective_id = "";
+// When 1, C++ persists tracker quest/objective to API then clears this. ZScript sets to 1 only when user presses Enter on objective or K to set tracker (avoids persisting wrong value from UI sync).
+server int odoom_quest_persist_active_now = 0;
+// Quest popup (Q key): full list for ZScript. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests.
+server int odoom_quest_popup_open = 0;
+server string odoom_quest_list = "";
+server int odoom_quest_count = 0;
+// Set active quest from popup: ZScript sets odoom_quest_set_active_id and odoom_quest_set_active_do_it=1; C++ calls star_api_start_quest and clears do_it.
+server string odoom_quest_set_active_id = "";
+server int odoom_quest_set_active_do_it = 0;
+// Current selected quest id (main list or detail). ZScript sets every frame when quest popup is open; C++ uses this when K is pressed so Start/Set works reliably.
+server string odoom_quest_selected_id = "";
+// Which quest to show in the HUD tracker (quest id). Empty = use first in list.
+server string odoom_quest_tracker_quest_id = "";
+// Status filter checkboxes for quest popup: 1=show Not Started, 1=show In Progress, 1=show Completed.
+server int odoom_quest_filter_not_started = 1;
+server int odoom_quest_filter_in_progress = 1;
+server int odoom_quest_filter_completed = 1;
+// Quest popup list scroll offset (UI writes here; play context syncs to class field for drawing).
+server int odoom_quest_scroll_offset = 0;
+// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the list CVars from STAR API. P=Prereqs, O=Objectives, S=Subquests (separate views).
+server string odoom_quest_detail_quest_id = "";
+server string odoom_quest_detail_prereqs = "";
+server string odoom_quest_detail_objectives = "";
+server string odoom_quest_detail_subquests = "";
+// ZScript sets selected objective id when in Objectives view; C++ fills requirement/progress lines (e.g. "Killed 3/10 monsters in ODOOM").
+server string odoom_quest_detail_selected_objective_id = "";
+server string odoom_quest_detail_requirements = "";

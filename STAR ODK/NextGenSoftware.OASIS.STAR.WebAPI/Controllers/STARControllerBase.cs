@@ -302,7 +302,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         protected void EnsureLoggedInAvatar()
         {
             if (OASISRequestContext.CurrentAvatarId.HasValue && OASISRequestContext.CurrentAvatarId.Value != Guid.Empty)
+            {
+                if (OASISRequestContext.CurrentAvatar == null && OASISRequestContext.CurrentAvatarId.Value != Guid.Empty)
+                    OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = OASISRequestContext.CurrentAvatarId.Value };
                 return;
+            }
             if (Avatar != null && Avatar.Id != Guid.Empty)
             {
                 OASISRequestContext.CurrentAvatarId = Avatar.Id;

@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return reader.ReadObjectId().ToString();
 
                 case BsonType.Binary:
-                    return reader.ReadBytes();
+                    return ReadBinaryValue(reader);
 
                 case BsonType.Array:
                     return DeserializeArray(reader);
@@ -115,6 +115,21 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             // Skip unknown BSON type
             reader.SkipValue();
             return null;
+        }
+
+        /// <summary>Read BSON binary; handles both Binary (generic bytes) and UuidLegacy/UuidStandard so deserialization does not throw.</summary>
+        private static object ReadBinaryValue(IBsonReader reader)
+        {
+            var binaryData = reader.ReadBinaryData();
+            var subType = binaryData.SubType;
+            var bytes = binaryData.Bytes;
+            if (subType == BsonBinarySubType.UuidLegacy || subType == BsonBinarySubType.UuidStandard)
+            {
+                if (bytes != null && bytes.Length == 16)
+                    return new Guid(bytes).ToString();
+                return bytes ?? Array.Empty<byte>();
+            }
+            return bytes ?? Array.Empty<byte>();
         }
 
         private static object DeserializeArray(IBsonReader reader)
@@ -248,9 +263,23 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
             }
             else
             {
-                // For other types, serialize via BsonSerializer
-                var bsonValue = BsonValue.Create(value);
-                BsonSerializer.Serialize(writer, bsonValue.GetType(), bsonValue);
+                // Complex types (e.g. Quest, holons, List<Quest>) cannot be mapped to BsonValue; store as JSON string so save does not throw.
+                WriteComplexTypeAsJson(writer, value);
+            }
+        }
+
+        /// <summary>Serialize complex .NET types (e.g. Quest, holons) as JSON string so MongoDB save does not throw. Deserialization returns a string for that key.</summary>
+        private static void WriteComplexTypeAsJson(IBsonWriter writer, object value)
+        {
+            try
+            {
+                var options = new JsonSerializerOptions { ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles, MaxDepth = 32 };
+                var json = JsonSerializer.Serialize(value, options);
+                writer.WriteString(json);
+            }
+            catch
+            {
+                writer.WriteNull();
             }
         }
 

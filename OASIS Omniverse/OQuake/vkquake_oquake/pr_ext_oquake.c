@@ -2,7 +2,8 @@
  * OQuake extension builtins
  *
  * Provides PF_ wrappers for OQuake STAR API so QuakeC can call
- * OQuake_OnKeyPickup, OQuake_CheckDoorAccess, OQuake_OnBossKilled, OQuake_OnMonsterKilled.
+ * OQuake_OnKeyPickup, OQuake_CheckDoorAccess, OQuake_OnBossKilled, OQuake_OnMonsterKilled,
+ * OQuake_OnPickupLeftOnFloor.
  * Add this file to the OQuake build and register these builtins in pr_ext.c's extension table.
  *
  * QuakeC (defs.qc):
@@ -10,6 +11,7 @@
  *   float(string doorname, string requiredkey) OQuake_CheckDoorAccess = #0:ex_OQuake_CheckDoorAccess;
  *   void(string bossname) OQuake_OnBossKilled = #0:ex_OQuake_OnBossKilled;
  *   void(string monster_classname) OQuake_OnMonsterKilled = #0:ex_OQuake_OnMonsterKilled;
+ *   void(string item_name, string item_type, float quantity) OQuake_OnPickupLeftOnFloor = #0:ex_OQuake_OnPickupLeftOnFloor;
  */
 
 #include "quakedef.h"
@@ -48,4 +50,14 @@ void PF_OQuake_OnMonsterKilled (void)
 	const char *monster = G_STRING (OFS_PARM0);
 	if (monster)
 		OQuake_STAR_OnMonsterKilled (monster);
+}
+
+/* OQuake builtin: void(string item_name, string item_type, float quantity) - add to STAR when engine would leave item on floor (player full). Same as ODOOM. Call from QuakeC when touch would not apply; then remove entity so item is not left on floor. */
+void PF_OQuake_OnPickupLeftOnFloor (void)
+{
+	const char *item_name = G_STRING (OFS_PARM0);
+	const char *item_type = G_STRING (OFS_PARM1);
+	int qty = (int)G_FLOAT (OFS_PARM2);
+	if (item_name)
+		OQuake_STAR_OnPickupLeftOnFloor (item_name, item_type ? item_type : "Item", qty > 0 ? qty : 1, NULL);
 }
