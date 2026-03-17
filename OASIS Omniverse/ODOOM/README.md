@@ -6,17 +6,33 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 ## Quick start
 
+### Windows
+
 1. **Prerequisites:** Visual Studio 2019+, CMake, Python 3, UZDoom clone (e.g. `C:\Source\UZDoom`). See [WINDOWS_INTEGRATION.md](WINDOWS_INTEGRATION.md).
 
 2. **Build:** From this folder run:
    ```batch
    BUILD ODOOM.bat
    ```
-   Output: **ODOOM.exe** and DLLs in `ODOOM\build\`. Put your WAD (e.g. doom2.wad) there.
+   Output: **ODOOM.exe** and DLLs in `ODOOM\build\`. Put your IWAD (e.g. doom2.wad) there.
 
 3. **Run:** Use **RUN ODOOM.bat** to build (if needed) and launch, or run `build\ODOOM.exe` directly.
 
 4. **STAR API:** Set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID` for cross-game keys and inventory.
+
+### Linux (and macOS)
+
+1. **Prerequisites:** pkg-config, SDL2, UZDoom clone (e.g. `$HOME/Source/UZDoom`). See **ODOOM Linux INSTALl.txt** for package install commands.
+
+2. **Build:** From the ODOOM folder run:
+   ```bash
+   ./BUILD_ODOOM.sh
+   ```
+   The script creates `~/.local/share/games/odoom` automatically. Put your IWAD (doom.wad, doom2.wad, heretic.wad, etc.) in either:
+   - **ODOOM/build/** (next to the ODOOM binary), or  
+   - **~/.local/share/games/odoom** (created by the build and run scripts).
+
+3. **Run:** `./RUN_ODOOM.sh` (builds if needed, ensures IWAD search paths and folder exist, then launches).
 
 ## Documentation
 

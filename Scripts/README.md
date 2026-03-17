@@ -2,7 +2,23 @@
 
 Scripts for running WEB4 (ONODE) and WEB5 (STAR) APIs and their tests. All scripts that start both APIs do so **in serial** (WEB4 first, then WEB5).
 
-Run from the repository root, e.g. `.\Scripts\run_web4_web5_unit_tests.ps1`, or from this folder. `.bat` files launch the matching PowerShell script.
+**Windows:** Run from the repository root or this folder, e.g. `.\Scripts\run_web4_web5_unit_tests.ps1`. `.bat` files launch the matching PowerShell script.
+
+**Linux / macOS:** Use the `.sh` launchers in this folder; they call the same `.ps1` scripts via PowerShell Core. Install PowerShell first, then run for example:
+
+```bash
+# Install PowerShell Core (one-time)
+# Ubuntu/Debian:
+sudo apt update && sudo apt install -y powershell
+# macOS:
+brew install powershell/tap/powershell
+
+# Run a script (from repo root or Scripts folder)
+./Scripts/start_web4_and_web5_apis.sh
+./Scripts/run_web4_web5_harnesses.sh
+```
+
+Each script has a matching `.sh` (e.g. `run_web4_web5_harnesses.sh` → `run_web4_web5_harnesses.ps1`). Pass any arguments the same way: `./Scripts/run_web4_web5_harnesses.sh -Web5BaseUrl http://localhost:5556`. The tables below list `.ps1` / `.bat`; on Linux/macOS use the same name with `.sh` instead of `.bat`.
 
 ---
 

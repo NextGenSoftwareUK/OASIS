@@ -97,7 +97,6 @@ cp -f "$ODOOM_INTEGRATION/odoom_oquake_keys.zs" "$UZDOOM_SRC/wadsrc/static/zscri
 cp -f "$ODOOM_INTEGRATION/odoom_oquake_items.zs" "$UZDOOM_SRC/wadsrc/static/zscript/actors/doom/"
 mkdir -p "$UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar"
 cp -f "$ODOOM_INTEGRATION/odoom_inventory_popup.zs" "$UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar/"
-[[ -f "$ODOOM_INTEGRATION/KEYCONF.txt" ]] && cp -f "$ODOOM_INTEGRATION/KEYCONF.txt" "$UZDOOM_SRC/wadsrc/static/KEYCONF"
 mkdir -p "$UZDOOM_SRC/wadsrc/static/textures"
 [[ -d "$ODOOM_INTEGRATION/textures" ]] && cp -f "$ODOOM_INTEGRATION/textures/OASFACE.png" "$UZDOOM_SRC/wadsrc/static/textures/" 2>/dev/null || true
 mkdir -p "$UZDOOM_SRC/wadsrc/static/sprites" "$UZDOOM_SRC/wadsrc/static/graphics"
@@ -166,17 +165,12 @@ mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
 done
-# Default: use star_sync from star_api (C#). Set OASIS_STAR_SYNC_IN_CLIENT=0 to compile star_sync.c (C). See star_sync.h / STAR_INTEGRATION_AUDIT.md.
-: "${OASIS_STAR_SYNC_IN_CLIENT:=1}"
-CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=ON"
-[[ "$OASIS_STAR_SYNC_IN_CLIENT" == "0" ]] && CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=OFF" && echo "[ODOOM] Compiling star_sync.c (C)"
 # Add both ODOOM folder and build/src to link path so -lstar_api resolves
 CMAKE_LINK_FLAGS="-L\"$UZDOOM_SRC/build/src\" -L\"$STAR_API_LIB_DIR\""
 cmake .. \
   -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DOASIS_STAR_API=ON \
-  $CMAKE_STAR_SYNC \
   -DSTAR_API_DIR:PATH="$STAR_API_DIR" \
   -DSTAR_API_LIB_DIR:PATH="$STAR_API_LIB_DIR" \
   -DCMAKE_EXE_LINKER_FLAGS:STRING="$CMAKE_LINK_FLAGS" \
@@ -215,19 +209,35 @@ fi
 mkdir -p "$ODOOM_INTEGRATION/build"
 cp -f "$ODOOM_BIN" "$ODOOM_INTEGRATION/build/ODOOM"
 chmod +x "$ODOOM_INTEGRATION/build/ODOOM"
-# Deploy STAR API shared lib next to executable (.so on Linux, .dylib on macOS)
+# Deploy STAR API shared lib next to executable; binary is linked against libstar_api.so / libstar_api.dylib
 for so in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
   if [[ -f "$ODOOM_INTEGRATION/$so" ]]; then
     cp -f "$ODOOM_INTEGRATION/$so" "$ODOOM_INTEGRATION/build/"
     break
   fi
 done
+# Ensure libstar_api.so (or .dylib) exists so the loader finds it (in case deploy produced only star_api.so)
+if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.so" && -f "$ODOOM_INTEGRATION/build/star_api.so" ]]; then
+  cp -f "$ODOOM_INTEGRATION/build/star_api.so" "$ODOOM_INTEGRATION/build/libstar_api.so"
+fi
+if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.dylib" && -f "$ODOOM_INTEGRATION/build/star_api.dylib" ]]; then
+  cp -f "$ODOOM_INTEGRATION/build/star_api.dylib" "$ODOOM_INTEGRATION/build/libstar_api.dylib"
+fi
 [[ -f "$ODOOM_INTEGRATION/odoom_face.pk3" ]] && cp -f "$ODOOM_INTEGRATION/odoom_face.pk3" "$ODOOM_INTEGRATION/build/"
 
+# Create XDG IWAD directory so user can copy doom2.wad etc. without creating folders by hand
+mkdir -p "$HOME/.local/share/games/odoom"
+
+[[ -f "$ODOOM_INTEGRATION/RUN_ODOOM.sh" ]] && chmod +x "$ODOOM_INTEGRATION/RUN_ODOOM.sh"
 echo ""
 echo "---"
 echo "[ODOOM][DONE] ODOOM ready: $ODOOM_INTEGRATION/build/ODOOM"
-echo "[ODOOM][INFO] Put doom2.wad in build folder. Use ./RUN_ODOOM.sh to launch."
+echo "[ODOOM][INFO] IWAD (doom.wad, doom2.wad, heretic.wad, etc.): put in build folder or in:"
+echo "    $HOME/.local/share/games/odoom"
+echo "    (that folder is created automatically by build and run scripts)"
+echo "[ODOOM][INFO] To launch, run from the ODOOM folder:"
+echo "    cd \"$ODOOM_INTEGRATION\""
+echo "    ./RUN_ODOOM.sh"
 echo "---"
 
 if [[ $RUN_AFTER_BUILD -eq 1 ]]; then
