@@ -341,6 +341,11 @@ static int g_star_beamed_in = 0;
 static int g_star_refresh_xp_called_this_session = 0;
 /** Set by STAR API callback when profile refresh (XP + active quest/objective) completes. Main thread reads this in OQuake_STAR_PollItems and restores tracker + invalidates quest cache. */
 static volatile int g_star_profile_loaded_pending = 0;
+/** True when async SSO auth was started (star beamin); cleared when OQ_OnAuthDone runs or timeout. Used to show timeout error if callback never fires. */
+static int g_star_async_auth_pending = 0;
+static int g_star_async_auth_pending_frames = 0;
+/** Set when we showed timeout; ignore the next OQ_OnAuthDone (late callback from the timed-out attempt) and allow retry. */
+static int g_star_auth_timed_out = 0;
 static int g_star_console_registered = 0;
 static char g_star_username[64] = {0};
 static char g_json_config_path[512] = {0};
@@ -1284,10 +1289,16 @@ static void OQ_OnAuthDone(void* user_data) {
     char avatar_id[64] = {0};
     char error_msg[256] = {0};
     (void)user_data;
+    if (g_star_auth_timed_out) {
+        g_star_auth_timed_out = 0;
+        (void)star_sync_auth_get_result(&success, username, sizeof(username), avatar_id, sizeof(avatar_id), error_msg, sizeof(error_msg));
+        return;  /* Late callback from timed-out attempt; drain result and ignore so retry already allowed */
+    }
     if (!star_sync_auth_get_result(&success, username, sizeof(username), avatar_id, sizeof(avatar_id), error_msg, sizeof(error_msg)))
         return;
     char jwt_buf[2048] = {0};
     star_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
+    g_star_async_auth_pending = 0;
     if (success) {
         /* Persist JWT from auth result so oasisstar.json has jwt_token for autobeamin (avoids relying on get_current_jwt export). */
         if (jwt_buf[0])
@@ -1328,7 +1339,13 @@ static void OQ_OnAuthDone(void* user_data) {
         OQ_SaveStarConfigToFiles();
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
     } else {
-        Con_Printf("Beamin (SSO) failed: %s\n", error_msg[0] ? error_msg : "Unknown error");
+        const char* msg = error_msg[0] ? error_msg : "Unknown error";
+        Con_Printf("Beam-in failed: %s\n", msg);
+        {
+            char toast_buf[256];
+            q_snprintf(toast_buf, sizeof(toast_buf), "Beam-in failed: %s", msg);
+            OQ_SetToastMessage(toast_buf);
+        }
     }
 }
 
@@ -1422,7 +1439,7 @@ static void OQ_RefreshOverlayFromClient(void) {
     } else if (!g_inventory_requested && g_inventory_count == 0) {
         /* When not beamed in: never call into C# (avoids hang on Linux). Show empty inventory and return. */
         if (!star_initialized()) {
-            q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
+            q_strlcpy(g_inventory_status, "Not beamed in. Use 'star beamin' to log in.", sizeof(g_inventory_status));
             g_inventory_last_refresh = realtime;
             if (star_sync_send_item_in_progress())
                 return;
@@ -1489,7 +1506,7 @@ static void OQ_RefreshInventoryCache(void) {
     if (!star_initialized()) {
         /* Still build display from local pending so ammo/armor show when offline. */
         OQ_RefreshOverlayFromClient();
-        q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
+        q_strlcpy(g_inventory_status, "Not beamed in. Use 'star beamin' to log in.", sizeof(g_inventory_status));
         return;
     }
     /* Always refresh overlay (get_inventory returns API + pending from C#). */
@@ -3554,6 +3571,18 @@ void OQuake_STAR_PollItems(void) {
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
 
+    /* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
+    if (g_star_async_auth_pending) {
+        g_star_async_auth_pending_frames++;
+        if (g_star_async_auth_pending_frames > 35 * 30) {
+            g_star_async_auth_pending = 0;
+            g_star_auth_timed_out = 1;  /* Ignore late callback from this attempt so retry can proceed */
+            star_sync_auth_force_reset();  /* Clear star_sync state so "star beamin" again is allowed */
+            Con_Printf("Beam-in failed: timeout (no response from server).\n");
+            OQ_SetToastMessage("Beam-in failed: timeout (no response from server).");
+        }
+    }
+
     /* When profile refresh (XP + active quest/objective) completed, restore tracker from cache and invalidate quest list so it refetches. */
     if (g_star_profile_loaded_pending) {
         g_star_profile_loaded_pending = 0;
@@ -4092,7 +4121,10 @@ void OQuake_STAR_Console_f(void) {
                 Con_Printf("Authentication already in progress. Please wait...\n");
                 return;
             }
+            g_star_auth_timed_out = 0;
             star_sync_auth_start(username, password, OQ_OnAuthDone, NULL);
+            g_star_async_auth_pending = 1;
+            g_star_async_auth_pending_frames = 0;
             Con_Printf("Authenticating... Please wait...\n");
             if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
             if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
@@ -4340,10 +4372,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     int visible_end;
     char line[512];
 
-    if (!g_star_initialized || !cbx)
-        return;
+    /* When not beamed in we still draw the inventory popup (empty, with "Not beamed in" / "Offline - use STAR BEAMIN") so I key always shows the panel. */
     /* Report level time to STAR for quest time-limit objectives (same clock as scoreboard TAB). ~10s throttle. */
-    if (sv.active && !cls.demoplayback) {
+    if (g_star_initialized && sv.active && !cls.demoplayback) {
         static float s_oq_quest_level_time_last = -1e9f;
         float t = (float)cl.time;
         if (t - s_oq_quest_level_time_last >= 10.f) {

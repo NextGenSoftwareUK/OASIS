@@ -1229,7 +1229,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		int digitW = f.StringWidth("0");
 		int colonW = f.StringWidth(":");
 		int totalW = 2 * digitW + colonW + 2 * digitW;  // MM:SS fixed width
-		int baseX = 320 + 20 - 2 - totalW + 20;  // 40px right from previous position (was -20, now +20)
+		// Right edge of timer at (320 + 20 - 2) = 338 by default; subtract totalW for left edge. +70 x.
+		int baseX = 320 + 20 - 2 - totalW + 70;
 		String m1 = (mins >= 10) ? String.Format("%d", mins / 10) : " ";
 		String m2 = String.Format("%d", mins % 10);
 		String s1 = String.Format("%d", secs / 10);
