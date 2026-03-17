@@ -13,6 +13,17 @@ extern star_api_result_t star_api_send_item_to_avatar(const char*, const char*, 
 extern star_api_result_t star_api_send_item_to_clan(const char*, const char*, int, const char*);
 #endif
 
+/* Optional stub for star_api_queue_quest_level_time when not linking star_api.dll (e.g. vkQuake with older lib).
+ * Define STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB in the build to resolve LNK2001; otherwise link with a
+ * STAR API build that exports this (StarApiClient.cs UnmanagedCallersOnly). */
+#ifdef STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB
+void star_api_queue_quest_level_time(const char* game_source, int level_elapsed_seconds)
+{
+    (void)game_source;
+    (void)level_elapsed_seconds;
+}
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #else

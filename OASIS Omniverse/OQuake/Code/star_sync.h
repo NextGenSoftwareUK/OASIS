@@ -17,6 +17,9 @@
  *   star_sync.c; link only star_api. BUILD ODOOM / BUILD_OQUAKE set this by default.
  * - To use the C implementation instead: set OASIS_STAR_SYNC_IN_CLIENT=0 and rebuild, or
  *   undefine OASIS_STAR_SYNC_IN_CLIENT and add star_sync.c to the build again.
+ * - If you get LNK2001 for star_api_queue_quest_level_time: either link with a STAR API build
+ *   that exports it, or add star_sync.c and define STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB, or
+ *   add only star_api_quest_level_time_stub.c to the build (no macro needed).
  */
 
 #ifndef STAR_SYNC_H

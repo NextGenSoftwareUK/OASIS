@@ -338,6 +338,8 @@ static bool g_odoom_pending_loading_tracker = false;
 static bool g_odoom_profile_loaded_pending = false;
 /** Set true when operation_callback(STAR_API_OP_GET_INVENTORY) fires; frame pump then applies cache to CVars. */
 static bool g_odoom_inventory_refresh_pending = false;
+/** Set true when an objective was just completed (keycard/console); frame pump refreshes tracker on next frame. */
+static bool g_odoom_quest_tracker_needs_refresh = false;
 static bool g_star_cli_loaded = false;
 static std::string g_star_override_username;
 static std::string g_star_override_password;
@@ -2104,6 +2106,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				}
 			} else {
 				/* Tracker id already set: refresh CVars periodically so tracker shows correct name/objective without opening popup (like Quake). */
+				/* When an objective was just completed, refresh on next frame so tracker updates immediately. */
+				if (g_odoom_quest_tracker_needs_refresh) {
+					g_odoom_quest_tracker_needs_refresh = false;
+					ODOOM_RefreshQuestCVars();
+				}
 				static int s_tracker_refresh_frames = 0;
 				if (++s_tracker_refresh_frames >= 60) {
 					s_tracker_refresh_frames = 0;
@@ -3190,11 +3197,26 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	static const char ODOOM_DEFAULT_QUEST_ID[] = "cross_dimensional_keycard_hunt";
 	if (keynum >= 1 && keynum <= 3) {
 		const char* obj = (keynum == 1) ? "doom_red_keycard" : (keynum == 2) ? "doom_blue_keycard" : "doom_yellow_keycard";
-		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, obj, "ODOOM");
+		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=%s (keycard pickup)", ODOOM_DEFAULT_QUEST_ID, obj);
+		star_api_result_t r = star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, obj, "ODOOM");
+		if (r != STAR_API_SUCCESS)
+			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", star_api_get_last_error());
+		else
+			g_odoom_quest_tracker_needs_refresh = true;
 	} else if (keynum == STAR_PICKUP_OQUAKE_SILVER_KEY) {
-		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_silver_key", "ODOOM");
+		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=quake_silver_key (OQuake silver key pickup)", ODOOM_DEFAULT_QUEST_ID);
+		star_api_result_t r = star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_silver_key", "ODOOM");
+		if (r != STAR_API_SUCCESS)
+			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", star_api_get_last_error());
+		else
+			g_odoom_quest_tracker_needs_refresh = true;
 	} else if (keynum == STAR_PICKUP_OQUAKE_GOLD_KEY) {
-		star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", "ODOOM");
+		StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=quake_gold_key (OQuake gold key pickup)", ODOOM_DEFAULT_QUEST_ID);
+		star_api_result_t r = star_api_complete_quest_objective(ODOOM_DEFAULT_QUEST_ID, "quake_gold_key", "ODOOM");
+		if (r != STAR_API_SUCCESS)
+			StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", star_api_get_last_error());
+		else
+			g_odoom_quest_tracker_needs_refresh = true;
 	}
 
 	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
@@ -3659,7 +3681,12 @@ CCMD(star)
 		}
 		if (strcmp(qsub, "objective") == 0) {
 			if (argv.argc() < 5) { Printf("Usage: star quest objective <quest_id> <objective_id>\n"); return; }
+			StarLogInfo("[Quests] ODOOM: completing objective quest=%s objective=%s (console)", argv[3], argv[4]);
 			star_api_result_t r = star_api_complete_quest_objective(argv[3], argv[4], "ODOOM");
+			if (r != STAR_API_SUCCESS)
+				StarLogInfo("[Quests] ODOOM: complete_quest_objective failed: %s", star_api_get_last_error());
+			else
+				g_odoom_quest_tracker_needs_refresh = true;
 			Printf(r == STAR_API_SUCCESS ? "Objective completed.\n" : "Failed: %s\n", star_api_get_last_error());
 			return;
 		}

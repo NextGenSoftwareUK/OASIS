@@ -55,6 +55,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 
         [CustomOASISProperty()]
         public QuestStatus Status { get; set; }
+        /// <summary>Overall completion percentage 0–100 (from objectives). Updated when progress is applied.</summary>
+        [CustomOASISProperty()]
+        public int ProgressPercent { get; set; }
 
         [CustomOASISProperty()]
         public QuestType Type { get; set; }

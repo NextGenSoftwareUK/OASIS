@@ -1359,7 +1359,7 @@ public sealed class StarApiClient : IDisposable
         AddLine(dicts.NeedToUsePowerups, dicts.PowerupsCollected, "Used", "powerups", outLines);
     }
 
-    /// <summary>Get serialized requirement/progress lines for a quest and optional objective (objective + quest-level dictionaries). Returns lines like "Killed 3/10 monsters in ODOOM".</summary>
+    /// <summary>Get serialized requirement/progress lines for a quest and optional objective (objective + quest-level dictionaries). Returns lines like "Killed 3/10 monsters in ODOOM". When API returns no dictionary data, fallback to objective description + Completed/In progress.</summary>
     internal bool TryGetQuestObjectiveRequirementsForGame(string? questId, string? objectiveId, out string result)
     {
         result = string.Empty;
@@ -1375,9 +1375,21 @@ public sealed class StarApiClient : IDisposable
                 var obj = quest.Objectives.FirstOrDefault(o => string.Equals(o.Id, objectiveId, StringComparison.OrdinalIgnoreCase));
                 if (obj?.Dictionaries != null)
                     FormatRequirementProgressLines(obj.Dictionaries, lines);
+                if (lines.Count == 0 && quest.Dictionaries != null)
+                    FormatRequirementProgressLines(quest.Dictionaries, lines);
+                if (lines.Count == 0 && obj != null)
+                {
+                    var desc = obj.Description ?? obj.SummaryText ?? "Objective";
+                    lines.Add(obj.IsCompleted ? $"{desc} — Completed" : $"{desc} — In progress");
+                }
             }
-            if (quest.Dictionaries != null)
+            if (lines.Count == 0 && quest.Dictionaries != null)
                 FormatRequirementProgressLines(quest.Dictionaries, lines);
+            if (lines.Count == 0 && quest.Objectives != null && quest.Objectives.Count > 0)
+            {
+                var completed = quest.Objectives.Count(o => o.IsCompleted);
+                lines.Add($"Quest progress: {completed}/{quest.Objectives.Count} objectives completed.");
+            }
             result = lines.Count > 0 ? string.Join("\n", lines) : string.Empty;
             return true;
         }
@@ -1581,6 +1593,8 @@ public sealed class StarApiClient : IDisposable
             }
         }
         _addItemSignal.Release();
+        var keysDelta = (type != null && (type.IndexOf("Key", StringComparison.OrdinalIgnoreCase) >= 0 || type.IndexOf("key", StringComparison.OrdinalIgnoreCase) >= 0)) ? 1 : 0;
+        EnqueueQuestProgressFromGame(gameSource, 0, 0, itemName, keysDelta, 1, null, itemType);
     }
 
     /// <summary>Queue XP to add to the beamed-in avatar (e.g. on monster kill). Flushed with add-item worker. Amount 0 allowed (temp) for refresh / get newTotal from server.</summary>
@@ -1828,6 +1842,8 @@ public sealed class StarApiClient : IDisposable
                 _localPending[storageName] = new LocalPendingEntry { Name = storageName, Description = description ?? string.Empty, GameSource = gameSource, ItemType = type, Quantity = qty };
         }
         _addItemSignal.Release();
+        var keysDeltaP = (type.IndexOf("Key", StringComparison.OrdinalIgnoreCase) >= 0) ? 1 : 0;
+        EnqueueQuestProgressFromGame(gameSource, 0, 0, itemName, keysDeltaP, 1, null, itemType);
     }
 
     /// <summary>Queue a monster kill (XP + optional mint + add to inventory). All work runs on the add-item background worker; never blocks.</summary>
@@ -1852,6 +1868,7 @@ public sealed class StarApiClient : IDisposable
         StartAddItemWorker();
         _pendingMonsterKill.Enqueue(new PendingMonsterKillJob(engineName, displayName, xpVal, isBoss, doMint, provider ?? "SolanaOASIS", gs));
         _addItemSignal.Release();
+        EnqueueQuestProgressFromGame(gs, 1, xpVal, null, 0, 0, null);
     }
 
     public async Task<OASISResult<bool>> FlushAddItemJobsAsync(CancellationToken cancellationToken = default)
@@ -2244,19 +2261,27 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(questId) || string.IsNullOrWhiteSpace(objectiveId))
             return FailAndCallback<bool>("Quest ID and objective ID are required.", StarApiResultCode.InvalidParam);
 
+        var gs = string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource;
+        StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective: questId={questId} objectiveId={objectiveId} gameSource={gs}");
+
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
-            writer.WriteString("gameSource", string.IsNullOrWhiteSpace(gameSource) ? "Unknown" : gameSource);
+            writer.WriteString("gameSource", gs);
             writer.WriteString("completionNotes", $"Completed objective {objectiveId} at {DateTime.UtcNow:O}");
             writer.WriteEndObject();
         });
 
         var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/objectives/{objectiveId}/complete", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
+        {
+            StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective failed: questId={questId} objectiveId={objectiveId} error={response.Message}");
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+        }
 
+        StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective OK: questId={questId} objectiveId={objectiveId} gameSource={gs}");
         InvalidateQuestCache();
+        RequestQuestCacheRefreshInBackground();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest objective completed successfully.");
     }
@@ -2274,8 +2299,77 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
 
         InvalidateQuestCache();
+        RequestQuestCacheRefreshInBackground();
         InvokeCallback(StarApiResultCode.Success);
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
+    }
+
+    /// <summary>POST /api/quests/{activeQuestId}/progress — realtime objective progress (kills, XP, pickups by type, level time). No-op if no active quest or all deltas are zero. Backend must expose this route (e.g. STAR ODK QuestsController); 404 means the URL (e.g. ONODE) may not have the progress endpoint.</summary>
+    private async Task ApplyQuestProgressToActiveQuestAsync(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup, int? levelTimeSeconds, CancellationToken cancellationToken)
+    {
+        if (!IsInitialized() || string.IsNullOrWhiteSpace(_baseApiUrl)) return;
+        Guid? qid;
+        lock (_stateLock) { qid = _cachedActiveQuestId; }
+        if (!qid.HasValue || qid.Value == Guid.Empty) return;
+        var gs = string.IsNullOrWhiteSpace(gameSource) ? "ODOOM" : gameSource.Trim();
+        var hasDeltas = monstersKilledDelta != 0 || xpEarnedDelta != 0 || keysCollectedDelta != 0 || armorDelta != 0 || healthDelta != 0 || weaponsDelta != 0 || powerupsDelta != 0 || ammoDelta != 0 || genericItemPickup != 0 || (levelTimeSeconds.HasValue && levelTimeSeconds.Value > 0);
+        if (!hasDeltas)
+            return; /* Do not send progress when nothing changed (avoids 0-delta calls and reduces 404s if backend route is missing). */
+        StarApiExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds}");
+        var payload = BuildJson(writer =>
+        {
+            writer.WriteStartObject();
+            writer.WriteString("gameSource", gs);
+            writer.WriteNumber("monstersKilledDelta", monstersKilledDelta);
+            writer.WriteNumber("xpEarnedDelta", xpEarnedDelta);
+            writer.WriteNumber("keysCollectedDelta", keysCollectedDelta);
+            writer.WriteNumber("armorCollectedDelta", armorDelta);
+            writer.WriteNumber("healthCollectedDelta", healthDelta);
+            writer.WriteNumber("weaponsCollectedDelta", weaponsDelta);
+            writer.WriteNumber("powerupsCollectedDelta", powerupsDelta);
+            writer.WriteNumber("ammoCollectedDelta", ammoDelta);
+            writer.WriteNumber("genericItemPickup", genericItemPickup);
+            writer.WriteString("itemCollectedName", itemCollectedName ?? string.Empty);
+            if (levelTimeSeconds.HasValue)
+                writer.WriteNumber("levelTimeSeconds", levelTimeSeconds.Value);
+            writer.WriteEndObject();
+        });
+        var url = $"{_baseApiUrl}/api/quests/{qid.Value:D}/progress";
+        try
+        {
+            var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
+            StarApiExports.StarApiLogFileOnly($"[Quest] Progress result: {(response.IsError ? "FAIL" : "OK")} {(response.IsError ? response.Message ?? "" : "")}");
+            if (!response.IsError)
+            {
+                InvalidateQuestCache();
+                RequestQuestCacheRefreshInBackground();
+            }
+        }
+        catch (Exception ex)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] ApplyQuestProgress: {ex.Message}"); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>Queue realtime quest progress (non-blocking). Uses active quest from avatar profile. Pass itemType (e.g. Armor, Health, Weapon, Powerup, Ammo, KeyItem) to set the matching Collected delta for objective dictionaries.</summary>
+    public void EnqueueQuestProgressFromGame(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int genericItemPickup, int? levelTimeSeconds = null, string? itemType = null)
+    {
+        if (!IsInitialized()) return;
+        int armor = 0, health = 0, weapons = 0, powerups = 0, ammo = 0;
+        if (!string.IsNullOrWhiteSpace(itemType))
+        {
+            var it = itemType.Trim();
+            if (it.IndexOf("Armor", StringComparison.OrdinalIgnoreCase) >= 0) armor = 1;
+            else if (it.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0) health = 1;
+            else if (it.IndexOf("Weapon", StringComparison.OrdinalIgnoreCase) >= 0) weapons = 1;
+            else if (it.IndexOf("Powerup", StringComparison.OrdinalIgnoreCase) >= 0 || it.IndexOf("Artifact", StringComparison.OrdinalIgnoreCase) >= 0) powerups = 1;
+            else if (it.IndexOf("Ammo", StringComparison.OrdinalIgnoreCase) >= 0) ammo = 1;
+        }
+        _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
+        {
+            await ApplyQuestProgressToActiveQuestAsync(gameSource, monstersKilledDelta, xpEarnedDelta, itemCollectedName, keysCollectedDelta, armor, health, weapons, powerups, ammo, genericItemPickup, levelTimeSeconds, ct).ConfigureAwait(false);
+            return Success(true, StarApiResultCode.Success, "");
+        }, CancellationToken.None);
     }
 
     /// <summary>Run complete-quest on the background worker so the calling thread does not block.</summary>
@@ -3123,13 +3217,22 @@ public sealed class StarApiClient : IDisposable
             starBase = _baseApiUrl ?? string.Empty;
         }
         if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: no refresh token (save session after beam-in to persist it).");
             return false;
+        }
         /* Prefer OASIS (Web4) URL; fall back to STAR API (Web5) so refresh works when only _baseApiUrl is set. */
         var baseUrl = !string.IsNullOrWhiteSpace(oasisBase) ? oasisBase.TrimEnd('/') : !string.IsNullOrWhiteSpace(starBase) ? starBase.TrimEnd('/') : null;
         if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: no OASIS or STAR API base URL set.");
             return false;
+        }
         if (_httpClient is null)
+        {
+            StarApiExports.StarApiLogFileOnly("[Auth] Token refresh skipped: HTTP client is null.");
             return false;
+        }
 
         try
         {
@@ -3148,16 +3251,24 @@ public sealed class StarApiClient : IDisposable
 
             if (!response.IsSuccessStatusCode)
             {
+                var preview = responseBody.Length > 200 ? responseBody.Substring(0, 200) + "..." : responseBody;
                 StarApiExports.StarApiLog($"[Auth] Token refresh failed: HTTP {(int)response.StatusCode} from {url}");
+                StarApiExports.StarApiLogFileOnly($"[Auth] Token refresh response body: {preview}");
                 return false;
             }
 
             var parseResult = ParseEnvelopeOrPayload(responseBody, out var resultElement, out _, out _);
             if (!parseResult)
+            {
+                StarApiExports.StarApiLogFileOnly("[Auth] Token refresh failed: could not parse response envelope.");
                 return false;
+            }
             var auth = ParseAvatarAuthResponse(resultElement);
             if (auth is null || string.IsNullOrWhiteSpace(auth.JwtToken))
+            {
+                StarApiExports.StarApiLogFileOnly("[Auth] Token refresh failed: response had no JWT (missing or wrong shape).");
                 return false;
+            }
 
             lock (_stateLock)
             {
@@ -6313,6 +6424,16 @@ public static unsafe class StarApiExports
             PtrToString(gameSource));
     }
 
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_quest_level_time", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueQuestLevelTime(sbyte* gameSource, int levelElapsedSeconds)
+    {
+        var client = GetClient();
+        if (client is null || levelElapsedSeconds < 0) return;
+        var gs = PtrToString(gameSource);
+        if (string.IsNullOrWhiteSpace(gs)) gs = "Quake";
+        client.EnqueueQuestProgressFromGame(gs, 0, 0, null, 0, 0, levelElapsedSeconds);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_avatar_xp", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetAvatarXp(int* xpOut)
     {
@@ -6561,12 +6682,15 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpCompleteQuestObjective);
 
-        var result = client.CompleteQuestObjectiveAsync(
-            PtrToString(questId) ?? string.Empty,
-            PtrToString(objectiveId) ?? string.Empty,
-            PtrToString(gameSource)).GetAwaiter().GetResult();
+        var qId = PtrToString(questId) ?? string.Empty;
+        var oId = PtrToString(objectiveId) ?? string.Empty;
+        var gs = PtrToString(gameSource) ?? string.Empty;
+        try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective called: questId={qId} objectiveId={oId} gameSource={gs}"); } catch { /* ignore */ }
 
-        return (int)FinalizeResult(result, StarApiOpCompleteQuestObjective);
+        var result = client.CompleteQuestObjectiveAsync(qId, oId, gs).GetAwaiter().GetResult();
+        var code = (int)FinalizeResult(result, StarApiOpCompleteQuestObjective);
+        try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective result: {(result.IsError ? "FAIL" : "OK")} {(result.IsError ? result.Message ?? "" : "")}"); } catch { /* ignore */ }
+        return code;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest", CallConvs = [typeof(CallConvCdecl)])]

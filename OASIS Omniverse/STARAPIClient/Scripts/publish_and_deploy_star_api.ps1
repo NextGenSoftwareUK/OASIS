@@ -82,7 +82,13 @@ if ($dllPath -eq $nativeDllX64 -or $dllPath -eq $nativeDllDefault) {
 if (!(Test-Path $headerPath)) { throw "Missing header: $headerPath" }
 $publishDir = Split-Path -Parent $dllPath
 
-# Generate star_api.lib: prefer static star_api.def (in repo, matches star_api.h) so .lib has all symbols regardless of trim. Else use dumpbin on the DLL.
+# Keep star_api.def in sync with C# UnmanagedCallersOnly so new exports never cause LNK2001 when building DOOM/Quake.
+$generateDefScript = Join-Path $projectDir "Scripts\generate_star_api_def.ps1"
+if (Test-Path $generateDefScript) {
+    & $generateDefScript -ProjectDir $projectDir | Out-Null
+}
+
+# Generate star_api.lib from star_api.def (now auto-generated above) so .lib has all symbols regardless of trim. Else use dumpbin on the DLL.
 $nativeDirForLib = if ($dllPath -eq $dllPathX64 -or $dllPath -eq $nativeDllX64) { Join-Path $projectDir "bin/x64/Release/net9.0/$Runtime/native" } else { $nativeDir }
 $libPath = Join-Path $nativeDirForLib "star_api.lib"
 if (Test-Path $libPath) { Remove-Item $libPath -Force -ErrorAction SilentlyContinue }
@@ -184,8 +190,8 @@ if ((Test-Path $staticDefPath) -and $libCmd) {
     & $libCmd /NOLOGO "/DEF:$staticDefPath" "/OUT:$libPath" /MACHINE:X64 2>&1 | Out-Null
     if (Test-Path $libPath) {
         $libGenerated = $true
-        $exportCount = (Get-Content $staticDefPath | Where-Object { $_ -match '^\s*star_api_' }).Count
-        Write-Host "Generated star_api.lib from static star_api.def ($exportCount exports)."
+        $exportCount = (Get-Content $staticDefPath | Where-Object { $_ -match '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*$' }).Count
+        Write-Host "Generated star_api.lib from star_api.def ($exportCount exports)."
     }
 }
 if (-not $libGenerated -and $dumpbinCmd -and $libCmd) {

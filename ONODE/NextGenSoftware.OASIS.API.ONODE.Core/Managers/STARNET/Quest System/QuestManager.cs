@@ -960,6 +960,231 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
+        /// Applies in-game progress (kills, pickups, XP, level time) to the quest's incomplete objectives.
+        /// Updates progress dictionaries; completes objectives when thresholds are met; completes the quest when all objectives are done.
+        /// </summary>
+        public async Task<OASISResult<QuestProgressApplyResult>> ApplyQuestProgressAsync(Guid avatarId, Guid questId, string gameSource, QuestProgressDelta delta)
+        {
+            OASISResult<QuestProgressApplyResult> result = new OASISResult<QuestProgressApplyResult> { Result = new QuestProgressApplyResult() };
+            string errorMessage = "Error occurred in QuestManager.ApplyQuestProgressAsync. Reason:";
+            try
+            {
+                if (string.IsNullOrWhiteSpace(gameSource))
+                    gameSource = "ODOOM";
+                var gs = gameSource.Trim();
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found. Reason: {questResult.Message}");
+                    return result;
+                }
+                var quest = questResult.Result;
+                if (quest.Status != QuestStatus.InProgress && quest.Status != QuestStatus.NotStarted)
+                {
+                    result.Result.Message = "Quest not in progress; no progress applied.";
+                    result.Result.ObjectivesCompleted = 0;
+                    result.Result.QuestCompleted = false;
+                    result.Result.PercentComplete = ComputeQuestPercent(quest);
+                    return result;
+                }
+                if (quest.Status == QuestStatus.NotStarted)
+                {
+                    quest.Status = QuestStatus.InProgress;
+                    if (quest.StartedOn == DateTime.MinValue)
+                        quest.StartedOn = DateTime.UtcNow;
+                    quest.StartedBy = avatarId;
+                }
+                if (quest.Objectives == null)
+                    quest.Objectives = new List<Objective>();
+                int completedThisRound = 0;
+                foreach (var objective in quest.Objectives)
+                {
+                    if (objective.IsCompleted)
+                        continue;
+                    ApplyDeltaToObjective(objective, gs, delta);
+                    objective.InvalidateObjectiveString();
+                    if (IsObjectiveRequirementsMet(objective, gs))
+                    {
+                        objective.IsCompleted = true;
+                        objective.CompletedAt = DateTime.UtcNow;
+                        objective.CompletedBy = avatarId;
+                        completedThisRound++;
+                    }
+                }
+                var allDone = quest.Objectives.Count > 0 && quest.Objectives.All(x => x.IsCompleted);
+                if (allDone)
+                {
+                    quest.Status = QuestStatus.Completed;
+                    quest.CompletedOn = DateTime.UtcNow;
+                    quest.CompletedBy = avatarId;
+                    if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                    quest.MetaData["Status"] = quest.Status.ToString();
+                    result.Result.QuestCompleted = true;
+                }
+                else
+                {
+                    if (quest.MetaData == null) quest.MetaData = new Dictionary<string, object>();
+                    quest.MetaData["Status"] = QuestStatus.InProgress.ToString();
+                }
+                var pct = ComputeQuestPercent(quest);
+                quest.ProgressPercent = pct;
+                if (quest.MetaData != null)
+                    quest.MetaData["ProgressPercent"] = pct.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                foreach (var obj in quest.Objectives)
+                    obj.ProgressPercent = obj.IsCompleted ? 100 : ObjectiveApproximatePercent(obj);
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save. Reason: {updateResult.Message}");
+                    return result;
+                }
+                result.Result.ObjectivesCompleted = completedThisRound;
+                result.Result.PercentComplete = pct;
+                result.Result.Message = allDone ? "Quest completed." : $"Progress updated ({pct}% complete).";
+                await UpdateQuestStatisticsAsync(avatarId);
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+            return result;
+        }
+
+        private static int ComputeQuestPercent(Quest quest)
+        {
+            if (quest.Objectives == null || quest.Objectives.Count == 0)
+                return quest.Status == QuestStatus.Completed ? 100 : 0;
+            int sum = 0;
+            foreach (var o in quest.Objectives)
+                sum += o.IsCompleted ? 100 : ObjectiveApproximatePercent(o);
+            return sum / quest.Objectives.Count;
+        }
+
+        /// <summary>Rough completion 0–99 for one objective from requirement vs progress dicts.</summary>
+        private static int ObjectiveApproximatePercent(Objective o)
+        {
+            var scores = new List<int>();
+            void AddPair(IDictionary<string, IList<string>> need, IDictionary<string, IList<string>> prog, string gameKey)
+            {
+                if (need == null || prog == null || !need.TryGetValue(gameKey, out var nlist) || nlist == null || nlist.Count == 0)
+                    return;
+                if (!int.TryParse(nlist[0], out var needN) || needN <= 0)
+                    return;
+                var cur = GetDictInt(prog, gameKey);
+                scores.Add((int)System.Math.Min(99, 100 * cur / needN));
+            }
+            foreach (var kv in o.NeedToKillMonsters ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToKillMonsters, o.MonstersKilled, kv.Key);
+            foreach (var kv in o.NeedToEarnXP ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToEarnXP, o.XPEarnt, kv.Key);
+            foreach (var kv in o.NeedToCollectItems ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectItems, o.ItemsCollected, kv.Key);
+            foreach (var kv in o.NeedToCollectArmor ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectArmor, o.ArmorCollected, kv.Key);
+            foreach (var kv in o.NeedToCollectHealth ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectHealth, o.HealthCollected, kv.Key);
+            foreach (var kv in o.NeedToCollectWeapons ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectWeapons, o.WeaponsCollected, kv.Key);
+            foreach (var kv in o.NeedToCollectPowerups ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectPowerups, o.PowerupsCollected, kv.Key);
+            foreach (var kv in o.NeedToCollectAmmo ?? new Dictionary<string, IList<string>>())
+                AddPair(o.NeedToCollectAmmo, o.AmmoCollected, kv.Key);
+            if (scores.Count == 0)
+                return 0;
+            return scores.Sum() / scores.Count;
+        }
+
+        private static void ApplyDeltaToObjective(Objective o, string gs, QuestProgressDelta d)
+        {
+            if (d.MonstersKilledDelta != 0 && o.NeedToKillMonsters != null && o.NeedToKillMonsters.ContainsKey(gs))
+                AddDictInt(o.MonstersKilled, gs, d.MonstersKilledDelta);
+            if (d.XpEarnedDelta != 0 && o.NeedToEarnXP != null && o.NeedToEarnXP.ContainsKey(gs))
+                AddDictInt(o.XPEarnt, gs, d.XpEarnedDelta);
+            if (d.KeysCollectedDelta != 0 && o.NeedToCollectKeys != null && o.NeedToCollectKeys.ContainsKey(gs))
+                AddDictInt(o.KeysCollected, gs, d.KeysCollectedDelta);
+            if (d.ArmorCollectedDelta != 0 && o.NeedToCollectArmor != null && o.NeedToCollectArmor.ContainsKey(gs))
+                AddDictInt(o.ArmorCollected, gs, d.ArmorCollectedDelta);
+            if (d.HealthCollectedDelta != 0 && o.NeedToCollectHealth != null && o.NeedToCollectHealth.ContainsKey(gs))
+                AddDictInt(o.HealthCollected, gs, d.HealthCollectedDelta);
+            if (d.WeaponsCollectedDelta != 0 && o.NeedToCollectWeapons != null && o.NeedToCollectWeapons.ContainsKey(gs))
+                AddDictInt(o.WeaponsCollected, gs, d.WeaponsCollectedDelta);
+            if (d.PowerupsCollectedDelta != 0 && o.NeedToCollectPowerups != null && o.NeedToCollectPowerups.ContainsKey(gs))
+                AddDictInt(o.PowerupsCollected, gs, d.PowerupsCollectedDelta);
+            if (d.AmmoCollectedDelta != 0 && o.NeedToCollectAmmo != null && o.NeedToCollectAmmo.ContainsKey(gs))
+                AddDictInt(o.AmmoCollected, gs, d.AmmoCollectedDelta);
+            if (!string.IsNullOrWhiteSpace(d.ItemCollectedName) && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
+            {
+                var name = d.ItemCollectedName.Trim();
+                var reqs = o.NeedToCollectItems[gs];
+                var matched = reqs.Any(r => string.Equals(r, name, StringComparison.OrdinalIgnoreCase));
+                if (matched || (reqs.Count > 0 && int.TryParse(reqs[0], out _)))
+                    AddDictInt(o.ItemsCollected, gs, 1);
+            }
+            else if (d.GenericItemPickup != 0 && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
+                AddDictInt(o.ItemsCollected, gs, d.GenericItemPickup);
+            if (d.LevelTimeSeconds.HasValue)
+            {
+                SetDictInt(o.TimeTaken, gs, d.LevelTimeSeconds.Value);
+                if (o.TimeStarted != null && !o.TimeStarted.ContainsKey(gs))
+                    o.TimeStarted[gs] = new List<string> { DateTime.UtcNow.AddSeconds(-d.LevelTimeSeconds.Value).ToString("O") };
+            }
+        }
+
+        private static bool IsObjectiveRequirementsMet(Objective o, string gs)
+        {
+            bool OkNeed(IDictionary<string, IList<string>> need, IDictionary<string, IList<string>> prog)
+            {
+                if (need == null || need.Count == 0) return true;
+                if (!need.TryGetValue(gs, out var nlist) || nlist == null || nlist.Count == 0) return true;
+                if (!int.TryParse(nlist[0], out var needN) || needN <= 0) return true;
+                return GetDictInt(prog, gs) >= needN;
+            }
+            bool OkItems()
+            {
+                if (o.NeedToCollectItems == null || !o.NeedToCollectItems.TryGetValue(gs, out var items) || items == null || items.Count == 0)
+                    return true;
+                if (int.TryParse(items[0], out var needCount) && needCount > 0)
+                    return GetDictInt(o.ItemsCollected, gs) >= needCount;
+                return GetDictInt(o.ItemsCollected, gs) >= items.Count;
+            }
+            if (!OkNeed(o.NeedToKillMonsters, o.MonstersKilled)) return false;
+            if (!OkNeed(o.NeedToEarnXP, o.XPEarnt)) return false;
+            if (!OkNeed(o.NeedToCollectKeys, o.KeysCollected)) return false;
+            if (!OkNeed(o.NeedToCollectArmor, o.ArmorCollected)) return false;
+            if (!OkNeed(o.NeedToCollectHealth, o.HealthCollected)) return false;
+            if (!OkNeed(o.NeedToCollectWeapons, o.WeaponsCollected)) return false;
+            if (!OkNeed(o.NeedToCollectPowerups, o.PowerupsCollected)) return false;
+            if (!OkNeed(o.NeedToCollectAmmo, o.AmmoCollected)) return false;
+            if (o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs) && !OkItems()) return false;
+            return true;
+        }
+
+        private static int GetDictInt(IDictionary<string, IList<string>> d, string key)
+        {
+            if (d == null || !d.TryGetValue(key, out var list) || list == null || list.Count == 0) return 0;
+            return int.TryParse(list[0], out var n) ? n : 0;
+        }
+
+        private static void AddDictInt(IDictionary<string, IList<string>> d, string key, int delta)
+        {
+            if (d == null || delta == 0) return;
+            if (!d.TryGetValue(key, out var list) || list == null)
+            {
+                d[key] = new List<string> { delta.ToString() };
+                return;
+            }
+            var cur = int.TryParse(list[0], out var n) ? n : 0;
+            list[0] = (cur + delta).ToString();
+        }
+
+        private static void SetDictInt(IDictionary<string, IList<string>> d, string key, int value)
+        {
+            if (d == null) return;
+            d[key] = new List<string> { value.ToString() };
+        }
+
+        /// <summary>
         /// Completes a quest for the specified avatar
         /// </summary>
         /// <param name="avatarId">The avatar completing the quest</param>
@@ -1538,5 +1763,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             return result;
         }
+    }
+
+    /// <summary>In-game progress delta for ApplyQuestProgressAsync (kills, XP, pickups by type, level time). Matches Objective progress dictionaries: ArmorCollected, HealthCollected, WeaponsCollected, PowerupsCollected, AmmoCollected, ItemsCollected, KeysCollected.</summary>
+    public class QuestProgressDelta
+    {
+        public int MonstersKilledDelta { get; set; }
+        public int XpEarnedDelta { get; set; }
+        public int KeysCollectedDelta { get; set; }
+        public int ArmorCollectedDelta { get; set; }
+        public int HealthCollectedDelta { get; set; }
+        public int WeaponsCollectedDelta { get; set; }
+        public int PowerupsCollectedDelta { get; set; }
+        public int AmmoCollectedDelta { get; set; }
+        public string ItemCollectedName { get; set; }
+        public int GenericItemPickup { get; set; }
+        public int? LevelTimeSeconds { get; set; }
+    }
+
+    /// <summary>Result of applying quest progress (percent complete, quest finished).</summary>
+    public class QuestProgressApplyResult
+    {
+        public bool QuestCompleted { get; set; }
+        public int ObjectivesCompleted { get; set; }
+        public int PercentComplete { get; set; }
+        public string Message { get; set; }
     }
 }

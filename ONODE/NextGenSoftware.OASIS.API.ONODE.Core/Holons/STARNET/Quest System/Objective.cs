@@ -26,6 +26,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public DateTime? CompletedAt { get; set; }
         [CustomOASISProperty()]
         public Guid? CompletedBy { get; set; }
+        /// <summary>Completion percentage 0–100 from requirement vs progress dictionaries. Updated when progress is applied.</summary>
+        [CustomOASISProperty()]
+        public int ProgressPercent { get; set; }
 
         /// <summary>Human-readable description built from the requirement dictionaries (or set explicitly when building from Children). Serialized as "Objective" in JSON.</summary>
         [JsonPropertyName("Objective")]

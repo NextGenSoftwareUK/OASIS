@@ -544,6 +544,8 @@ static int g_quest_tracker_active_display_index = -1;  /* Index of active object
 /* Cached objective count for O key cycle when API returns empty (avoids reverting to on/off toggle). */
 static int g_quest_tracker_last_n_obj = 0;
 static char g_quest_tracker_last_n_obj_id[64] = "";
+/** Set when an objective was just completed (key pickup or console); next tracker draw requests cache refresh and clears stale fallback. */
+static int g_quest_tracker_needs_refresh = 0;
 static int g_quest_popup_sync_to_tracker = 0;  /* 1 = when popup opens, sync left-list selection to tracked quest once list is ready */
 static int g_quest_popup_sync_objective_once = 0;  /* 1 = sync right-panel objective selection to tracked objective once (when panel shows tracked quest) */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
@@ -2881,10 +2883,21 @@ void OQuake_STAR_OnKeyPickup(const char* key_name) {
     /* Auto-complete matching quest objective (WEB5 STAR Quest API). */
     {
         static const char OQUAKE_DEFAULT_QUEST_ID[] = "cross_dimensional_keycard_hunt";
-        if (strcmp(key_name, OQUAKE_ITEM_SILVER_KEY) == 0)
-            star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_silver_key", "Quake");
-        else if (strcmp(key_name, OQUAKE_ITEM_GOLD_KEY) == 0)
-            star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_gold_key", "Quake");
+        if (strcmp(key_name, OQUAKE_ITEM_SILVER_KEY) == 0) {
+            Con_Printf("[Quests] Quake: completing objective quest=%s objective=quake_silver_key (silver key pickup)\n", OQUAKE_DEFAULT_QUEST_ID);
+            star_api_result_t r = star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_silver_key", "Quake");
+            if (r != STAR_API_SUCCESS)
+                Con_Printf("[Quests] Quake: complete_quest_objective failed: %s\n", star_api_get_last_error());
+            else
+                g_quest_tracker_needs_refresh = 1;
+        } else if (strcmp(key_name, OQUAKE_ITEM_GOLD_KEY) == 0) {
+            Con_Printf("[Quests] Quake: completing objective quest=%s objective=quake_gold_key (gold key pickup)\n", OQUAKE_DEFAULT_QUEST_ID);
+            star_api_result_t r = star_api_complete_quest_objective(OQUAKE_DEFAULT_QUEST_ID, "quake_gold_key", "Quake");
+            if (r != STAR_API_SUCCESS)
+                Con_Printf("[Quests] Quake: complete_quest_objective failed: %s\n", star_api_get_last_error());
+            else
+                g_quest_tracker_needs_refresh = 1;
+        }
     }
     OQ_StartInventorySyncIfNeeded();
 }
@@ -3842,7 +3855,10 @@ void OQuake_STAR_Console_f(void) {
         }
         if (strcmp(qsub, "objective") == 0) {
             if (argc < 5) { Con_Printf("Usage: star quest objective <quest_id> <objective_id>\n"); return; }
+            Con_Printf("[Quests] Quake: completing objective quest=%s objective=%s (console)\n", Cmd_Argv(3), Cmd_Argv(4));
             star_api_result_t r = star_api_complete_quest_objective(Cmd_Argv(3), Cmd_Argv(4), "Quake");
+            if (r == STAR_API_SUCCESS)
+                g_quest_tracker_needs_refresh = 1;
             Con_Printf(r == STAR_API_SUCCESS ? "Objective completed.\n" : "Failed: %s\n", star_api_get_last_error());
             return;
         }
@@ -4248,6 +4264,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     if (!g_star_initialized || !cbx)
         return;
+    /* Report level time to STAR for quest time-limit objectives (same clock as scoreboard TAB). ~10s throttle. */
+    if (sv.active && !cls.demoplayback) {
+        static float s_oq_quest_level_time_last = -1e9f;
+        float t = (float)cl.time;
+        if (t - s_oq_quest_level_time_last >= 10.f) {
+            s_oq_quest_level_time_last = t;
+            star_api_queue_quest_level_time("Quake", (int)(t + 0.5f));
+        }
+    }
     /* Draw toast first every frame (so it shows when C/F or E at max even if overlay is closed) */
     OQuake_STAR_DrawToast(cbx);
     /* Check if background operations completed */
@@ -5527,6 +5552,14 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
         return;
     if (!g_quest_tracker_show)
         return;
+
+    /* When an objective was just completed, request cache refresh and clear stale fallback so tracker updates. */
+    if (g_quest_tracker_needs_refresh) {
+        g_quest_tracker_needs_refresh = 0;
+        star_api_refresh_quest_cache_in_background();
+        g_quest_tracker_last_n_obj = 0;
+        g_quest_tracker_last_n_obj_id[0] = '\0';
+    }
 
     /* When tracker was set on beam-in (name empty), fill name so HUD shows correct name as soon as quest list loads (without opening popup). */
     if (g_quest_tracker_name[0] == '\0') {
