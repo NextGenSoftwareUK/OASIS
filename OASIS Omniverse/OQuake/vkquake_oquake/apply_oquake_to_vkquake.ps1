@@ -885,6 +885,12 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added pr_ext_oquake.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
+    # Stub no longer needed: star_api.def is auto-generated from C# so star_api.lib has all symbols (see STARAPIClient/Scripts/generate_star_api_def.ps1).
+    if ($projContent -match 'star_api_quest_level_time_stub\.c') {
+        $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_api_quest_level_time_stub\.c"[^>]*>[\s\S]*?</ClCompile>\s*\r?\n', "`r`n"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Removed star_api_quest_level_time_stub.c from project (lib now has symbol)" -ForegroundColor Green
+    }
     $useStarSyncInClient = ($env:OASIS_STAR_SYNC_IN_CLIENT -eq "1")
     if ($useStarSyncInClient) {
         if ($projContent -match 'star_sync\.c') {

@@ -1220,6 +1220,26 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
+		// Level timer: right side, just above the status bar; fixed-width digits so it doesn't shift as numbers change. MapTime is in tics (35/sec).
+		int timeY = 161;  // down 5 from 156
+		int tics = level.MapTime;
+		int secs = tics / 35;
+		int mins = secs / 60;
+		secs = secs % 60;
+		int digitW = f.StringWidth("0");
+		int colonW = f.StringWidth(":");
+		int totalW = 2 * digitW + colonW + 2 * digitW;  // MM:SS fixed width
+		int baseX = 320 + 20 - 2 - totalW;  // 100px right of previous (80): 320-80+100 = 320+20 from right edge
+		String m1 = (mins >= 10) ? String.Format("%d", mins / 10) : " ";
+		String m2 = String.Format("%d", mins % 10);
+		String s1 = String.Format("%d", secs / 10);
+		String s2 = String.Format("%d", secs % 10);
+		screen.DrawText(f, Font.CR_WHITE, baseX, timeY, m1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_WHITE, baseX + digitW, timeY, m2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW, timeY, ":", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW + colonW, timeY, s1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		screen.DrawText(f, Font.CR_WHITE, baseX + 3 * digitW + colonW, timeY, s2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+
 		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
 		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
