@@ -777,17 +777,20 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 		fprintf(f, "  \"max_armor\": %d,\n", ma);
 		fprintf(f, "  \"use_health_on_pickup\": %d,\n", odoom_star_use_health_on_pickup ? 1 : 0);
 		fprintf(f, "  \"use_armor_on_pickup\": %d,\n", odoom_star_use_armor_on_pickup ? 1 : 0);
-		fprintf(f, "  \"use_powerup_on_pickup\": %d\n", odoom_star_use_powerup_on_pickup ? 1 : 0);
 	}
 	/* mint_monster_* next (before session so session is at bottom like Quake). */
 	int nmonsters = 0;
 	while (ODOOM_MONSTERS[nmonsters].engineName) nmonsters++;
 	const bool have_session = g_odoom_saved_username[0] || g_odoom_saved_jwt[0];
+	const bool more_after_use_powerup = (nmonsters > 0) || have_session;
+	fprintf(f, "  \"use_powerup_on_pickup\": %d%s\n", odoom_star_use_powerup_on_pickup ? 1 : 0,
+		more_after_use_powerup ? "," : "");
 	for (int i = 0; i < nmonsters; i++) {
 		const char* ckey = ODOOM_MONSTERS[i].configKey;
 		auto it = g_odoom_mint_monster_flags.find(ckey);
 		int v = (it != g_odoom_mint_monster_flags.end()) ? it->second : 1;
-		fprintf(f, ",\n  \"mint_monster_%s\": %d", ckey, v ? 1 : 0);
+		const bool comma_after = (i < nmonsters - 1) || have_session;
+		fprintf(f, "  \"mint_monster_%s\": %d%s\n", ckey, v ? 1 : 0, comma_after ? "," : "");
 	}
 	/* Persisted session at bottom (beamedin_avatar, jwt_token, refresh_token) for autologin – same order as Quake. */
 	if (g_star_initialized) {
@@ -821,28 +824,28 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	}
 	if (have_session) {
 		if (g_odoom_saved_username[0]) {
-			fprintf(f, ",\n  \"beamedin_avatar\": \"");
+			fprintf(f, "  \"beamedin_avatar\": \"");
 			for (const char* p = g_odoom_saved_username; *p; p++) {
 				if (*p == '"' || *p == '\\') fputc('\\', f);
 				fputc((unsigned char)*p, f);
 			}
-			fprintf(f, "\"");
+			fprintf(f, "\"%s\n", (g_odoom_saved_jwt[0] || g_odoom_saved_refresh_token[0]) ? "," : "");
 		}
 		if (g_odoom_saved_jwt[0]) {
-			fprintf(f, ",\n  \"jwt_token\": \"");
+			fprintf(f, "  \"jwt_token\": \"");
 			for (const char* p = g_odoom_saved_jwt; *p; p++) {
 				if (*p == '"' || *p == '\\') fputc('\\', f);
 				fputc((unsigned char)*p, f);
 			}
-			fprintf(f, "\"");
+			fprintf(f, "\"%s\n", g_odoom_saved_refresh_token[0] ? "," : "");
 		}
 		if (g_odoom_saved_refresh_token[0]) {
-			fprintf(f, ",\n  \"refresh_token\": \"");
+			fprintf(f, "  \"refresh_token\": \"");
 			for (const char* p = g_odoom_saved_refresh_token; *p; p++) {
 				if (*p == '"' || *p == '\\') fputc('\\', f);
 				fputc((unsigned char)*p, f);
 			}
-			fprintf(f, "\"");
+			fprintf(f, "\"\n");
 		}
 	}
 	fprintf(f, "\n}\n");
