@@ -1,3 +1,4 @@
+# --- Package dependencies (Ubuntu/Debian) ---
 sudo apt update
 sudo apt install -y build-essential
 
@@ -14,3 +15,18 @@ sudo apt update
 sudo apt install -y build-essential binutils
 
 sudo apt install -y pkg-config
+
+# For UZDoom/ODOOM build (SDL2, etc.):
+# sudo apt install -y libsdl2-dev libasound2-dev libglib2.0-dev libgtk-3-dev libvpx-dev
+
+# --- Build and run ---
+# From the ODOOM folder:
+#   ./BUILD_ODOOM.sh
+#   ./RUN_ODOOM.sh
+
+# --- IWAD (game data) ---
+# ODOOM needs an IWAD (doom.wad, doom2.wad, heretic.wad, etc.) from the original games.
+# The build and run scripts create this folder automatically:
+#   ~/.local/share/games/odoom
+# Copy your IWAD file there, or into the ODOOM build folder (same folder as the ODOOM binary).
+# To show hidden folders in Files: Ctrl+H, or menu ⋮ → Show Hidden Files.

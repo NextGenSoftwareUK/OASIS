@@ -3,8 +3,8 @@
 
 param(
     [string]$Configuration = "Release",
-    [string]$Web4OasisApiBaseUrl = "http://localhost:5555",
-    [string]$Web5StarApiBaseUrl = "http://localhost:5556",
+    [string]$Web4OasisApiBaseUrl = "http://localhost:7777",
+    [string]$Web5StarApiBaseUrl = "http://localhost:8888",
     [int]$StartupTimeoutSeconds = 1000,
     [switch]$NoWait
 )
@@ -97,29 +97,6 @@ function Wait-ForAnyUrl {
     throw "Timed out waiting for API endpoint. Candidates: $($candidates -join ', ')"
 }
 
-function Stop-ProcessesOnPort {
-    param([Parameter(Mandatory = $true)][int]$Port, [string]$Label = "port $Port")
-
-    try
-    {
-        $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
-        foreach ($conn in $connections)
-        {
-            $pid = [int]$conn.OwningProcess
-            if ($pid -gt 0)
-            {
-                try
-                {
-                    Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                    Write-Host "Stopped existing process on $Label (pid: $pid)"
-                }
-                catch { }
-            }
-        }
-    }
-    catch { }
-}
-
 function Start-LocalApi {
     param(
         [Parameter(Mandatory = $true)][string]$ProjectPath,
@@ -185,13 +162,6 @@ try
 {
     $resolvedWeb4Target = Normalize-ApiBaseUrl -Url $Web4OasisApiBaseUrl
     $resolvedWeb5Target = Normalize-ApiBaseUrl -Url $Web5StarApiBaseUrl
-
-    $web4Port = ([System.Uri]$Web4OasisApiBaseUrl).Port
-    $web5Port = ([System.Uri]$Web5StarApiBaseUrl).Port
-
-    Write-Host "Checking for existing processes on WEB4/WEB5 ports..."
-    Stop-ProcessesOnPort -Port $web4Port -Label "WEB4 ($web4Port)"
-    Stop-ProcessesOnPort -Port $web5Port -Label "WEB5 ($web5Port)"
 
     Write-Host "Starting local WEB4 OASIS API (serial: first)..."
     $web4Process = Start-LocalApi -ProjectPath $web4Project -Urls $resolvedWeb4Target
