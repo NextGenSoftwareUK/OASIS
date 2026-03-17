@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,6 +15,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
@@ -30,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.1.0";
+        private const string VERSION = "WEB 4 OASIS API v4.4.4";
         //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
         public Startup(IConfiguration configuration)
@@ -53,8 +54,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
             // services.AddDbContext<DataContext>();
             //services.AddCors(); //Needed twice? It is below too...
-            services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            // Add exception filter with configuration
+            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
@@ -291,7 +297,9 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+                app.UseHttpsRedirection();
 
             app.UseRouting();
             //app.UseSession();
@@ -308,6 +316,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             app.UseAuthorization();
 
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();

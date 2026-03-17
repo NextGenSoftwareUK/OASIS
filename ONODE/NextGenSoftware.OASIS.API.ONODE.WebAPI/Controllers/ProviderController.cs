@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -69,7 +70,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-all-registered-providers")]
         public OASISResult<IEnumerable<IOASISProvider>> GetAllRegisteredProviders()
         {
-            return new(ProviderManager.Instance.GetAllRegisteredProviders());
+            try
+            {
+                OASISResult<IEnumerable<IOASISProvider>> result = null;
+                try
+                {
+                    result = new(ProviderManager.Instance.GetAllRegisteredProviders());
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<IEnumerable<IOASISProvider>>
+                    {
+                        Result = new List<IOASISProvider>(),
+                        IsError = false,
+                        Message = "Providers retrieved successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<IEnumerable<IOASISProvider>>
+                    {
+                        Result = new List<IOASISProvider>(),
+                        IsError = false,
+                        Message = "Providers retrieved successfully (using test data)"
+                    };
+                }
+                return new OASISResult<IEnumerable<IOASISProvider>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving providers: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
 
         /// <summary>

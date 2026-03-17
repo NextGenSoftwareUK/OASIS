@@ -1,17 +1,20 @@
 /**
  * Centralized API Configuration
  * Single source of truth for all API endpoints and settings
+ * Supports both Vite (import.meta.env) and CRA (process.env)
  */
+
+import { ENV } from '../../config/env';
 
 export const API_CONFIG = {
   // STAR Web API (WEB5)
-  STAR_API_URL: process.env.REACT_APP_API_URL || 'http://localhost:5099/api',
+  STAR_API_URL: ENV.STAR_API_URL,
   
   // WEB4 OASIS API (ONODE)
-  WEB4_API_URL: process.env.REACT_APP_WEB4_API_URL || 'http://localhost:5000/api',
+  WEB4_API_URL: ENV.WEB4_API_URL,
   
   // OASIS Hub
-  HUB_URL: process.env.REACT_APP_HUB_URL || 'http://localhost:5001',
+  HUB_URL: ENV.HUB_URL,
   
   // Request Configuration
   TIMEOUT: 30000,

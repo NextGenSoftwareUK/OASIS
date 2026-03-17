@@ -55,6 +55,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
                     context.Items["Avatar"] = avatarResult.Result;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
+                    NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
                 }
             }
             catch (Exception ex)

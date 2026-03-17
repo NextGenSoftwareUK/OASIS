@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.BaseOASIS\NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.BaseOASIS\NextGenSoftware.OASIS.API.Providers.BaseOASIS.csproj" />
   </ItemGroup>
 
 </Project>

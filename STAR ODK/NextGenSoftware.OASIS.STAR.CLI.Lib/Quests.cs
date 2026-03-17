@@ -30,12 +30,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Quest> result = new OASISResult<Quest>();
             Mission parentMission = null;
             Quest parentQuest = null;
+            //InstalledQuest parentQuest = null;
             int order = 0;
+
+            ShowHeader();
 
             if (CLIEngine.GetConfirmation("Does this quest belong to a Mission?"))
             {
@@ -44,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (missionResult != null && missionResult.Result != null && !missionResult.IsError)
                 {
-                    OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.Id, providerType: providerType);
+                    OASISResult<Mission> loadResult = await STAR.STARAPI.Missions.LoadAsync(STAR.BeamedInAvatar.Id, missionResult.Result.STARNETDNA.Id, missionResult.Result.STARNETDNA.VersionSequence, providerType: providerType);
 
                     if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                         parentMission = loadResult.Result;
@@ -57,7 +60,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (questResult != null && questResult.Result != null && !questResult.IsError)
                 {
-                    OASISResult<Quest> loadResult = await STAR.STARAPI.Quests.LoadAsync(STAR.BeamedInAvatar.Id, questResult.Result.Id, providerType: providerType);
+                    //parentQuest = questResult.Result;
+                    OASISResult<Quest> loadResult = await STAR.STARAPI.Quests.LoadAsync(STAR.BeamedInAvatar.Id, questResult.Result.STARNETDNA.Id, questResult.Result.STARNETDNA.VersionSequence, providerType: providerType);
 
                     if (loadResult != null && loadResult.Result != null && !loadResult.IsError)
                         parentQuest = loadResult.Result;
@@ -81,7 +85,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             createOptions.STARNETHolon.Order = order;
 
-            result = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            result = await base.CreateAsync(createOptions, holonSubType, false, false, providerType: providerType);
 
             if (result != null)
             {
@@ -89,17 +93,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     if (parentMission != null)
                     {
-                        //TODO: Need to find way to add dependency without it being installed first! ;-)
-                        //await STAR.STARAPI.Missions.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentMission, result.Result, DependencyType.Quest, providerType: providerType);
+                        CLIEngine.ShowMessage($"You said this quest is a sub-quest of mission {parentMission.Name} so it now needs to be added as a dependency to the parent mission. In order to do so this quest first needs to be installed...");
+                        //OASISResult<Quest> addResult = await AddDependencyAsync(parentSTARNETDNA: parentMission.STARNETDNA, dependencyType: "Mission", idOrNameOfDependency: result.Result.Id.ToString(), providerType: providerType);
+                        OASISResult<Mission> addResult = await STARCLI.Missions.AddDependencyAsync(parentSTARNETDNA: parentMission.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: result.Result.Id.ToString(), providerType: providerType);
                     }
 
                     if (parentQuest != null)
                     {
-                        //TODO: Need to find way to add dependency without it being installed first! ;-)
-                        //await STAR.STARAPI.Quests.AddDependencyAsync<InstalledQuest>(STAR.BeamedInAvatar.Id, parentQuest, result.Result, DependencyType.Quest, providerType: providerType);
+                        CLIEngine.ShowMessage($"You said this quest is a sub-quest of quest {parentQuest.Name} so it now needs to be added as a dependency to the parent quest. In order to do so this quest first needs to be installed...");
+                        OASISResult<Quest> addResult = await AddDependencyAsync(parentSTARNETDNA: parentQuest.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: result.Result.Id.ToString(), providerType: providerType);
                     }
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any GeoHotSpot's to this Quest now?"))
+                    if (CLIEngine.GetConfirmation($"Do you want to add any GeoHotSpot's to the '{result.Result.Name}' quest now?"))
                     {
                         do
                         {
@@ -113,15 +118,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                                 if (geoHotSpotResult != null && geoHotSpotResult.Result != null && !geoHotSpotResult.IsError)
                                     geoHotSpotId = geoHotSpotResult.Result.Id;
                             }
+                            //else
+                            //{
+                            //    geoHotSpotId = CLIEngine.GetValidInputForGuid("What is the ")
+                            //}
 
                             Console.WriteLine("");
-                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoHotSpot", idOrNameOfDependency: geoHotSpotId.ToString(), providerType: providerType);
+                            OASISResult<Quest> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoHotSpot", idOrNameOfDependency: geoHotSpotId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoHotSpot?"));  
                     }
+                    //else
+                    //    Console.WriteLine("");
 
                     Console.WriteLine("");
-                    if (CLIEngine.GetConfirmation("Do you want to add any GeoNFT's to this Quest now?"))
+                    if (CLIEngine.GetConfirmation($"Do you want to add any GeoNFT's to the '{result.Result.Name}' quest?"))
                     {
                         do
                         {
@@ -137,12 +148,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoNFT", idOrNameOfDependency: geoNFTId.ToString(), providerType: providerType);
+                            OASISResult<Quest> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "GeoNFT", idOrNameOfDependency: geoNFTId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another GeoNFT?"));
+                        //Console.WriteLine("");
                     }
+                    //else
+                    //    Console.WriteLine("");
 
-                    if (CLIEngine.GetConfirmation("Do you want to add any sub-quest's to this Quest now?"))
+                    Console.WriteLine("");
+                    if (CLIEngine.GetConfirmation($"Do you want to add any sub-quest's to the '{result.Result.Name}' quest?"))
                     {
                         do
                         {
@@ -158,11 +173,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                             }
 
                             Console.WriteLine("");
-                            OASISResult<Quest> addResult = await AddDependencyAsync(STARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
+                            OASISResult<Quest> addResult = await AddDependencyAsync(parentSTARNETDNA: result.Result.STARNETDNA, dependencyType: "Quest", idOrNameOfDependency: questId.ToString(), providerType: providerType);
                         }
                         while (CLIEngine.GetConfirmation("Do you wish to add another sub-quest?"));
                     }
+                    //else
+                    //    Console.WriteLine("");
 
+                    Console.WriteLine("");
                     await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
                 }
             }

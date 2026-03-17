@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.TRONOASIS\NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
 

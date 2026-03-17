@@ -1,5 +1,6 @@
 import * as signalR from '@microsoft/signalr';
 import { toast } from 'react-hot-toast';
+import { ENV } from '../config/env';
 
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
@@ -14,7 +15,7 @@ class SignalRService {
   }
 
   private initializeConnection() {
-    const hubUrl = process.env.REACT_APP_HUB_URL || 'http://localhost:5099/starhub';
+    const hubUrl = `${ENV.HUB_URL.replace(/\/$/, '')}/starhub`;
     
     this.connection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {

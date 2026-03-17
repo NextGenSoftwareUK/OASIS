@@ -18,6 +18,18 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj" />
     <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS_DNA.json">
+      <Link>OASIS_DNA.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI\OASIS_DNA.Development.json">
+      <Link>OASIS_DNA.Development.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

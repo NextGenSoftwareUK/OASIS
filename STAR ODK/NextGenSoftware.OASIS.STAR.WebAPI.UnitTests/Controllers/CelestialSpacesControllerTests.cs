@@ -1,27 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class CelestialSpacesControllerTests
     {
-        private readonly Mock<ILogger<CelestialSpacesController>> _mockLogger;
         private readonly CelestialSpacesController _controller;
 
         public CelestialSpacesControllerTests()
         {
-            _mockLogger = new Mock<ILogger<CelestialSpacesController>>();
             _controller = new CelestialSpacesController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -32,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -46,23 +38,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
         public async Task CreateCelestialSpace_WithValidSpace_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockSpace = new Mock<ICelestialSpace>();
-            mockSpace.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockSpace.Setup(x => x.Name).Returns("Test Celestial Space");
+            var space = new STARCelestialSpace { Id = Guid.NewGuid(), Name = "Test Celestial Space" };
 
             // Act
-            var result = await _controller.CreateCelestialSpace(mockSpace.Object);
+            var result = await _controller.CreateCelestialSpace(space);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -70,16 +60,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockSpace = new Mock<ICelestialSpace>();
-            mockSpace.Setup(x => x.Id).Returns(id);
-            mockSpace.Setup(x => x.Name).Returns("Updated Celestial Space");
+            var space = new STARCelestialSpace { Id = id, Name = "Updated Celestial Space" };
 
             // Act
-            var result = await _controller.UpdateCelestialSpace(id, mockSpace.Object);
+            var result = await _controller.UpdateCelestialSpace(id, space);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -93,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

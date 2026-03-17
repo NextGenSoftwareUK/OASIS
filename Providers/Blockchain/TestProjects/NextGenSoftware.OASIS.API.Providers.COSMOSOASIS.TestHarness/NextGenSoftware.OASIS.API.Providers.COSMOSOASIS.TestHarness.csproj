@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
+    <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -160,10 +160,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (IOASISBlockchainStorageProvider provider in ProviderManager.Instance.GetAllBlockchainProviders())
             {
-                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {Enum.GetName(typeof(ProviderType), provider)} Wallet", $"Default wallet for chain {Enum.GetName(typeof(ProviderType), provider)}", provider.ProviderType.Value, isDefaultWallet: true);
+                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {provider.ProviderType.Name} Wallet", $"Default wallet for chain {provider.ProviderType.Name}", provider.ProviderType.Value, isDefaultWallet: true);
 
                 if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                {
+                    if (!result.Result.ProviderWallets.ContainsKey(provider.ProviderType.Value) )
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
+                    if (result.Result.ProviderWallets[provider.ProviderType.Value] == null)
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
                     result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
             }
@@ -617,6 +625,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -665,6 +676,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -713,6 +727,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -1027,10 +1044,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
+            var jwtMinutes = OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
+            if (jwtMinutes <= 0) jwtMinutes = 15;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -1039,10 +1058,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private RefreshToken generateRefreshToken(string ipAddress)
         {
+            var refreshDays = OASISDNA.OASIS.Security.RefreshTokenExpirationDays;
+            if (refreshDays <= 0) refreshDays = 7;
             return new RefreshToken
             {
                 Token = randomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(refreshDays),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
@@ -1178,6 +1199,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.XP != avatarDetailToUpdate.XP && avatarDetailToUpdate.XP > 0)
                 avatarDetailOriginal.XP = avatarDetailToUpdate.XP;
 
+            /* Quest tracker state: always apply so GET avatar/current can restore after beam-in */
+            avatarDetailOriginal.ActiveQuestId = avatarDetailToUpdate.ActiveQuestId;
+            avatarDetailOriginal.ActiveObjectiveId = avatarDetailToUpdate.ActiveObjectiveId;
+
             if (avatarDetailOriginal.STARCLIColour != avatarDetailToUpdate.STARCLIColour && avatarDetailToUpdate.STARCLIColour != ConsoleColor.Black)
                 avatarDetailOriginal.STARCLIColour = avatarDetailToUpdate.STARCLIColour;
 
@@ -1268,7 +1293,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
-                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, type.Value);
+                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, false, type.Value);
 
                 if (!walletsResult.IsError && walletsResult.Result != null)
                 {
@@ -1346,7 +1371,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, type.Value);
+                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, false, type.Value);
 
                     if (!walletsResult.IsError && walletsResult.Result != null)
                     {

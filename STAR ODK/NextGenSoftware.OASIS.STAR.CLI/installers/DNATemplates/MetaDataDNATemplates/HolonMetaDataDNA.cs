@@ -1,0 +1,5 @@
+﻿        //DO NOT EDIT ANY OF THESE METADATA TEMPLATES OR YOU WILL BREAK THE OAPP GENERATION PROCESS!
+        public class {HOLONNAME} : HolonDNA
+        {
+            {PROPERTIES}
+        }

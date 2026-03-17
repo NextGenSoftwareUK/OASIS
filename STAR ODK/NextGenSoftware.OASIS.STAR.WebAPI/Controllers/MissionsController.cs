@@ -9,6 +9,9 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Exceptions;
+using System.Threading;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -21,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class MissionsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all missions in the system.
@@ -36,16 +41,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Missions.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMissions = TestDataHelper.GetTestMissions(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Mission>>(testMissions, "Missions retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<Mission>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading missions: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMissions = TestDataHelper.GetTestMissions(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<Mission>>(testMissions, "Missions retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<Mission>>(ex, "GetAllMissions");
             }
         }
 
@@ -64,16 +78,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Missions.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading mission: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMission = TestDataHelper.GetTestMission(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission retrieved successfully (using test data)"));
+                }
+                return HandleException<Mission>(ex, "GetMission");
             }
         }
 
@@ -91,17 +114,59 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (mission == null)
+                {
+                    return BadRequest(new OASISResult<IMission>
+                    {
+                        IsError = true,
+                        Message = "Mission cannot be null. Please provide a valid Mission object in the request body."
+                    });
+                }
+
+                var avatarCheck = ValidateAvatarId<IMission>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar(); // Ensure AvatarManager.LoggedInAvatar is set before SaveAsync() calls
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMission>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Mission created successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IMission>
                 {
                     IsError = true,
-                    Message = $"Error creating mission: {ex.Message}",
+                    Message = ex.Message,
                     Exception = ex
                 });
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMission>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Mission created successfully (using test mode - real data unavailable)"
+                    });
+                }
+                return HandleException<IMission>(ex, "creating mission");
             }
         }
 
@@ -120,18 +185,80 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                if (mission == null)
+                {
+                    // Return test data if setting is enabled, otherwise return error
+                    if (UseTestDataWhenLiveDataNotAvailable)
+                    {
+                        return Ok(new OASISResult<IMission>
+                        {
+                            Result = null,
+                            IsError = false,
+                            Message = "Mission updated successfully (using test mode - real data unavailable)"
+                        });
+                    }
+                    return BadRequest(new OASISResult<IMission>
+                    {
+                        IsError = true,
+                        Message = "Mission cannot be null. Please provide a valid Mission object in the request body."
+                    });
+                }
+
+                var avatarCheck = ValidateAvatarId<IMission>();
+                if (avatarCheck != null) return avatarCheck;
+
+                await EnsureStarApiBootedAsync();
                 mission.Id = id;
                 var result = await _starAPI.Missions.UpdateAsync(AvatarId, (Mission)mission);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return Ok(new OASISResult<IMission>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Mission updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                
+                if (result.IsError)
+                    return BadRequest(result);
+                
                 return Ok(result);
             }
-            catch (Exception ex)
+            catch (OASISException ex)
             {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMission>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Mission updated successfully (using test mode - real data unavailable)"
+                    });
+                }
                 return BadRequest(new OASISResult<IMission>
                 {
                     IsError = true,
-                    Message = $"Error updating mission: {ex.Message}",
+                    Message = ex.Message,
                     Exception = ex
                 });
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return Ok(new OASISResult<IMission>
+                    {
+                        Result = null,
+                        IsError = false,
+                        Message = "Mission updated successfully (using test mode - real data unavailable)"
+                    });
+                }
+                return HandleException<IMission>(ex, "updating mission");
             }
         }
 
@@ -154,12 +281,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting mission");
             }
         }
 
@@ -176,6 +298,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CloneMission(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.Missions.CloneAsync(AvatarId, id, request.NewName);
@@ -183,12 +307,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning mission");
             }
         }
 
@@ -318,19 +437,37 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateMissionWithOptions([FromBody] CreateMissionRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<Mission>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Missions.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission created successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error creating mission: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission created successfully (using test data)"));
+                }
+                return HandleException<Mission>(ex, "creating mission");
             }
         }
 
@@ -350,18 +487,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Mission>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Missions.LoadAsync(AvatarId, id, version, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading mission: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                return HandleException<Mission>(ex, "loading mission");
             }
         }
 
@@ -380,18 +528,29 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<Mission>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Missions.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
+                
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading mission from path: {ex.Message}",
-                    Exception = ex
-                });
+                    var testMission = TestDataHelper.GetTestMission();
+                    return Ok(TestDataHelper.CreateSuccessResult<Mission>(testMission, "Mission loaded successfully (using test data)"));
+                }
+                return HandleException<Mission>(ex, "loading mission from path");
             }
         }
 
@@ -414,12 +573,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission from published file");
             }
         }
 
@@ -465,6 +619,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishMission(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Missions.PublishAsync(
@@ -481,12 +637,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error publishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "publishing mission");
             }
         }
 
@@ -512,12 +663,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedMission>
-                {
-                    IsError = true,
-                    Message = $"Error downloading mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedMission>(ex, "downloading mission");
             }
         }
 
@@ -569,12 +715,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error loading mission version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "loading mission version");
             }
         }
 
@@ -591,6 +732,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<Mission>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditMission(Guid id, [FromBody] EditMissionRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<Mission> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Missions.EditAsync(id, request.NewDNA, AvatarId);
@@ -598,12 +741,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error editing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "editing mission");
             }
         }
 
@@ -627,12 +765,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "unpublishing mission");
             }
         }
 
@@ -656,12 +789,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error republishing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "republishing mission");
             }
         }
 
@@ -685,12 +813,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error activating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "activating mission");
             }
         }
 
@@ -714,12 +837,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Mission>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating mission: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<Mission>(ex, "deactivating mission");
             }
         }
 
@@ -734,7 +852,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
+        public Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
         {
             try
             {
@@ -746,16 +864,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission completed successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error completing mission: {ex.Message}",
-                    Exception = ex
-                });
+                return Task.FromResult(HandleException<bool>(ex, "completing mission"));
             }
         }
 
@@ -770,7 +883,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/leaderboard")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
+        public Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
         {
             try
             {
@@ -781,16 +894,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission leaderboard retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission leaderboard: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -804,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/rewards")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionRewards(Guid id)
+        public Task<IActionResult> GetMissionRewards(Guid id)
         {
             try
             {
@@ -815,16 +928,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission rewards retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionReward>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionReward>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission rewards: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -837,7 +950,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("stats")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionStats()
+        public Task<IActionResult> GetMissionStats()
         {
             try
             {
@@ -856,16 +969,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission statistics retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Dictionary<string, object>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<Dictionary<string, object>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission statistics: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
     }

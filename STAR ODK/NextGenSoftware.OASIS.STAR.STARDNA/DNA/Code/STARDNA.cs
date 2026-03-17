@@ -6,7 +6,8 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         // Default values that are used to generate a new STARDNA.json file if it is not found.
         public string OASISDNAPath { get; set; } //Path to the OASIS DNA json file (if blank it will default to the built in SYSTEM OASIS DNA). Only change this if you want to work with custom providers, etc
-        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+        public string BaseSTARPath { get; set; } = @"/home/dellams/Source/OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.CLI/bin/Debug/net8.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+        //public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         public string MetaDataDNATemplateFolder { get; set; } = "DNATemplates\\MetaDataDNATemplates"; //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons. Can be relative to STARBasePath or absolute.
         //public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above). //MOVED TO HOLOOASIS SECTION IN OASISDNA
         public string CSharpDNATemplateFolder { get; set; } = @"DNATemplates\CSharpDNATemplates";  //C# DNA Templates (CelestialBodies, Zomes & Holons) that are used to generate OAPPs from (releative to STARBasePath above).
@@ -110,6 +111,12 @@ namespace NextGenSoftware.OASIS.STAR.DNA
         public string DefaultQuestsPublishedPath { get; set; } = "Quests\\Published";
         public string DefaultQuestsDownloadedPath { get; set; } = "Quests\\Downloaded";
         public string DefaultQuestsInstalledPath { get; set; } = "Quests\\Installed";
+
+        //Games support cross-game interoperability, shared inventory, avatar SSO, karma scores, NFTs, and keycards.
+        public string DefaultGamesSourcePath { get; set; } = "Games\\Source";
+        public string DefaultGamesPublishedPath { get; set; } = "Games\\Published";
+        public string DefaultGamesDownloadedPath { get; set; } = "Games\\Downloaded";
+        public string DefaultGamesInstalledPath { get; set; } = "Games\\Installed";
 
 
         //OASIS NFTs (wrap around all types of web3 NFTs and form an abstraction layer to convert between standards and chains) are Non-Fungible Tokens that can be used to represent unique items, assets or collectibles in the Omniverse/OASIS/Our World.

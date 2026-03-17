@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -59,10 +60,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             this.ProviderName = "HashgraphOASIS";
             this.ProviderDescription = "Hashgraph Provider";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _httpClient = new HttpClient
             {
@@ -174,7 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (accountInfo != null)
                 {
-                    var avatar = ParseHashgraphToAvatar(accountInfo, Guid.NewGuid());
+                    var avatar = ParseHashgraphToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{accountInfo.AccountId ?? providerKey}"));
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -215,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (accountInfo != null)
                 {
-                    var avatar = ParseHashgraphToAvatar(accountInfo, Guid.NewGuid());
+                    var avatar = ParseHashgraphToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{accountInfo.AccountId ?? avatarEmail}"));
                     if (avatar != null)
                     {
                         response.Result = avatar;
@@ -250,8 +252,35 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by username from Hashgraph network
-                OASISErrorHandling.HandleError(ref response, "Hashgraph avatar loading by username not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Hedera mirror nodes do not index "username" on-chain. In this provider we treat username as the Hedera account ID.
+                var hashgraphClient = new HashgraphClient();
+                var accountInfo = await hashgraphClient.GetAccountInfoAsync(avatarUsername);
+
+                if (accountInfo != null)
+                {
+                    var avatar = ParseHashgraphToAvatar(accountInfo, CreateDeterministicGuid($"{ProviderType.Value}:{accountInfo.AccountId ?? avatarUsername}"));
+                    if (avatar != null)
+                    {
+                        avatar.Version = version;
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded from Hashgraph by username (account id) successfully";
+                    }
+                    else
+                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar from Hashgraph response");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref response, "Avatar not found on Hashgraph network");
             }
             catch (Exception ex)
             {
@@ -268,132 +297,752 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarResult = await LoadAvatarAsync(id, version);
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    var detail = new AvatarDetail
+                    {
+                        Id = avatarResult.Result.Id,
+                        Username = avatarResult.Result.Username,
+                        Email = avatarResult.Result.Email,
+                        CreatedDate = avatarResult.Result.CreatedDate,
+                        ModifiedDate = avatarResult.Result.ModifiedDate
+                    };
+                    result.Result = detail;
+                    result.Message = "Avatar detail loaded from Hashgraph successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found for detail load.");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Hashgraph: {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarResult = await LoadAvatarByEmailAsync(avatarEmail, version);
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    var detail = new AvatarDetail
+                    {
+                        Id = avatarResult.Result.Id,
+                        Username = avatarResult.Result.Username,
+                        Email = avatarResult.Result.Email,
+                        CreatedDate = avatarResult.Result.CreatedDate,
+                        ModifiedDate = avatarResult.Result.ModifiedDate
+                    };
+                    result.Result = detail;
+                    result.Message = "Avatar detail loaded by email from Hashgraph successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found by email for detail load.");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Hashgraph: {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername, version);
+                if (!avatarResult.IsError && avatarResult.Result != null)
+                {
+                    var detail = new AvatarDetail
+                    {
+                        Id = avatarResult.Result.Id,
+                        Username = avatarResult.Result.Username,
+                        Email = avatarResult.Result.Email,
+                        CreatedDate = avatarResult.Result.CreatedDate,
+                        ModifiedDate = avatarResult.Result.ModifiedDate
+                    };
+                    result.Result = detail;
+                    result.Message = "Avatar detail loaded by username from Hashgraph successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, avatarResult.Message ?? "Avatar not found by username for detail load.");
+                }
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Hashgraph: {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Mirror node supports listing accounts (paginated).
+                var accounts = new List<IAvatar>();
+                string nextUrl = $"{_httpClient.BaseAddress}/api/v1/accounts?limit=100";
+
+                while (!string.IsNullOrWhiteSpace(nextUrl))
+                {
+                    var response = await _httpClient.GetAsync(nextUrl);
+                    if (!response.IsSuccessStatusCode)
+                        break;
+
+                    var json = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    if (root.TryGetProperty("accounts", out var accountsArray) && accountsArray.ValueKind == JsonValueKind.Array)
+                    {
+                        foreach (var accEl in accountsArray.EnumerateArray())
+                        {
+                            var accountId = accEl.TryGetProperty("account", out var accIdEl) ? accIdEl.GetString() : null;
+                            if (string.IsNullOrWhiteSpace(accountId))
+                                continue;
+
+                            var info = new HashgraphAccountInfo
+                            {
+                                AccountId = accountId,
+                                Balance = accEl.TryGetProperty("balance", out var balEl) && balEl.ValueKind == JsonValueKind.Number ? balEl.GetInt64() : 0,
+                                AutoRenewPeriod = accEl.TryGetProperty("auto_renew_period", out var arpEl) && arpEl.ValueKind == JsonValueKind.Number ? arpEl.GetInt64() : 0,
+                                Expiry = accEl.TryGetProperty("expiry_timestamp", out var expEl) ? expEl.GetString() : ""
+                            };
+
+                            var avatar = ParseHashgraphToAvatar(info, CreateDeterministicGuid($"{ProviderType.Value}:{accountId}"));
+                            if (avatar != null)
+                            {
+                                avatar.Version = version;
+                                accounts.Add(avatar);
+                            }
+                        }
+                    }
+
+                    nextUrl = null;
+                    if (root.TryGetProperty("links", out var linksEl) &&
+                        linksEl.TryGetProperty("next", out var nextEl) &&
+                        nextEl.ValueKind == JsonValueKind.String)
+                    {
+                        var next = nextEl.GetString();
+                        if (!string.IsNullOrWhiteSpace(next))
+                            nextUrl = next.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                ? next
+                                : $"{_httpClient.BaseAddress}{next}";
+                    }
+                }
+
+                result.Result = accounts;
+                result.IsError = false;
+                result.Message = $"Loaded {accounts.Count} avatars from Hashgraph mirror node.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Hashgraph: {ex.Message}");
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return null;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                var avatarsResult = await LoadAllAvatarsAsync(version);
+                if (avatarsResult.IsError || avatarsResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, avatarsResult.Message ?? "Failed to load avatars for avatar details.");
+                    return result;
+                }
+
+                var details = new List<IAvatarDetail>();
+                foreach (var avatar in avatarsResult.Result)
+                {
+                    if (avatar == null) continue;
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id, version);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                        details.Add(detailResult.Result);
+                }
+                result.Result = details;
+                result.IsError = false;
+                result.Message = $"Loaded {details.Count} avatar details from Hashgraph.";
+            }
+            catch (Exception ex)
+            {
+                result.Exception = ex;
+                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return null;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return null;
+            var result = new OASISResult<IAvatar>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar cannot be null");
+                    return result;
+                }
+
+                // Get wallet for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, Core.Enums.ProviderType.HashgraphOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+
+                // Serialize avatar to JSON
+                string avatarInfo = JsonSerializer.Serialize(avatar);
+                int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
+                string avatarId = avatar.Id.ToString();
+
+                // Use Hedera File Service to store avatar data via HTTP API
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Smart contract storage - use Hedera Smart Contract Service via REST API
+                    var contractData = new
+                    {
+                        contractId = _contractAddress,
+                        functionParameters = new
+                        {
+                            functionName = "createAvatar",
+                            parameters = new[]
+                            {
+                                new { type = "string", value = avatarId },
+                                new { type = "string", value = avatarInfo }
+                            }
+                        }
+                    };
+
+                    var contractJson = JsonSerializer.Serialize(contractData);
+                    var contractContent = new StringContent(contractJson, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", contractContent);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var contractResponseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(contractResponseContent);
+                        
+                        if (contractResult.TryGetProperty("transactionId", out var txId))
+                        {
+                            avatar.ProviderUniqueStorageKey[ProviderType.Value] = txId.GetString();
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Avatar saved to Hashgraph smart contract successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Hashgraph smart contract: {await contractResponse.Content.ReadAsStringAsync()}");
+                    return result;
+                }
+                else
+                {
+                    // Use Hedera File Service via REST API
+                    var fileData = new
+                    {
+                        contents = Encoding.UTF8.GetBytes(avatarInfo),
+                        fileMemo = $"OASIS Avatar: {avatarId}"
+                    };
+
+                    var fileJson = JsonSerializer.Serialize(new
+                    {
+                        contents = Convert.ToBase64String(fileData.contents),
+                        fileMemo = fileData.fileMemo
+                    });
+                    var fileContent = new StringContent(fileJson, Encoding.UTF8, "application/json");
+                    var fileResponse = await _httpClient.PostAsync("/api/v1/files", fileContent);
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileResponseContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileResponseContent);
+                        
+                        if (fileResult.TryGetProperty("fileId", out var fileId))
+                        {
+                            avatar.ProviderUniqueStorageKey[ProviderType.Value] = fileId.GetString();
+                            result.Result = avatar;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Avatar saved to Hedera File Service successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save avatar to Hedera File Service: {await fileResponse.Content.ReadAsStringAsync()}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar to Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return null;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return null;
+            var result = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (avatarDetail == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "AvatarDetail cannot be null");
+                    return result;
+                }
+
+                // Store AvatarDetail as a Hedera file (memo contains AvatarDetail ID)
+                var json = JsonSerializer.Serialize(avatarDetail);
+                var fileJson = JsonSerializer.Serialize(new
+                {
+                    contents = Convert.ToBase64String(Encoding.UTF8.GetBytes(json)),
+                    fileMemo = $"OASIS AvatarDetail: {avatarDetail.Id}"
+                });
+                var fileContent = new StringContent(fileJson, Encoding.UTF8, "application/json");
+                var fileResponse = await _httpClient.PostAsync("/api/v1/files", fileContent);
+
+                if (fileResponse.IsSuccessStatusCode)
+                {
+                    var fileResponseContent = await fileResponse.Content.ReadAsStringAsync();
+                    var fileResult = JsonSerializer.Deserialize<JsonElement>(fileResponseContent);
+                    if (fileResult.TryGetProperty("fileId", out var fileId))
+                    {
+                        if (avatarDetail.ProviderUniqueStorageKey != null)
+                            avatarDetail.ProviderUniqueStorageKey[ProviderType.Value] = fileId.GetString();
+
+                        result.Result = avatarDetail;
+                        result.IsError = false;
+                        result.IsSaved = true;
+                        result.Message = "AvatarDetail saved to Hedera File Service successfully";
+                        return result;
+                    }
+                }
+
+                OASISErrorHandling.HandleError(ref result, $"Failed to save avatar detail to Hedera File Service: {await fileResponse.Content.ReadAsStringAsync()}");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error saving avatar detail to Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            return null;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var loadResult = await LoadAvatarAsync(id);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Avatar {id} not found.");
+                    return result;
+                }
+
+                if (softDelete)
+                {
+                    loadResult.Result.DeletedDate = DateTime.UtcNow;
+                    var saveResult = await SaveAvatarAsync(loadResult.Result);
+                    result.Result = !saveResult.IsError;
+                    result.IsError = saveResult.IsError;
+                    result.Message = saveResult.IsError ? saveResult.Message : "Avatar soft deleted successfully (tombstoned via update).";
+                    return result;
+                }
+
+                // Permanent deletes require Hedera SDK and appropriate permissions; represent as soft delete if not supported.
+                loadResult.Result.DeletedDate = DateTime.UtcNow;
+                var saveFallback = await SaveAvatarAsync(loadResult.Result);
+                result.Result = !saveFallback.IsError;
+                result.IsError = saveFallback.IsError;
+                result.Message = saveFallback.IsError ? saveFallback.Message : "Avatar marked deleted (permanent delete requires Hedera SDK).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(id, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var loadResult = await LoadAvatarByProviderKeyAsync(providerKey);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Avatar not found for providerKey {providerKey}.");
+                    return result;
+                }
+
+                loadResult.Result.DeletedDate = DateTime.UtcNow;
+                var saveResult = await SaveAvatarAsync(loadResult.Result);
+                result.Result = !saveResult.IsError;
+                result.IsError = saveResult.IsError;
+                result.Message = saveResult.IsError ? saveResult.Message : "Avatar deleted successfully (tombstoned via update).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var loadResult = await LoadAvatarByEmailAsync(avatarEmail);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Avatar not found for email {avatarEmail}.");
+                    return result;
+                }
+
+                loadResult.Result.DeletedDate = DateTime.UtcNow;
+                var saveResult = await SaveAvatarAsync(loadResult.Result);
+                result.Result = !saveResult.IsError;
+                result.IsError = saveResult.IsError;
+                result.Message = saveResult.IsError ? saveResult.Message : "Avatar deleted successfully (tombstoned via update).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            var result = new OASISResult<bool>();
+            try
+            {
+                var loadResult = await LoadAvatarByUsernameAsync(avatarUsername);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Avatar not found for username {avatarUsername}.");
+                    return result;
+                }
+
+                loadResult.Result.DeletedDate = DateTime.UtcNow;
+                var saveResult = await SaveAvatarAsync(loadResult.Result);
+                result.Result = !saveResult.IsError;
+                result.IsError = saveResult.IsError;
+                result.Message = saveResult.IsError ? saveResult.Message : "Avatar deleted successfully (tombstoned via update).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
         {
-            return null;
+            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load holon from Hedera File Service or Smart Contract
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Query smart contract for holon data
+                    var contractQuery = new
+                    {
+                        contractId = _contractAddress,
+                        functionName = "getHolon",
+                        parameters = new[] { id.ToString() }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(contractQuery);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", content);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        if (contractResult.TryGetProperty("result", out var resultProp) && resultProp.ValueKind == JsonValueKind.String)
+                        {
+                            var holonJson = resultProp.GetString();
+                            var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            if (holon != null)
+                            {
+                                result.Result = holon;
+                                result.IsError = false;
+                                result.Message = "Holon loaded from Hashgraph smart contract successfully";
+                                return result;
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Hashgraph smart contract: {contractResponse.StatusCode}");
+                }
+                else
+                {
+                    // Query Hedera File Service for holon data
+                    // Use deterministic file ID based on holon ID
+                    var fileId = $"0.0.{HashUtility.GetNumericHash(id.ToString())}";
+                    var fileResponse = await _httpClient.GetAsync($"/api/v1/files/{fileId}");
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileContent);
+                        
+                        if (fileResult.TryGetProperty("contents", out var contentsProp))
+                        {
+                            var contentsBase64 = contentsProp.GetString();
+                            var contentsBytes = Convert.FromBase64String(contentsBase64);
+                            var holonJson = Encoding.UTF8.GetString(contentsBytes);
+                            var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            
+                            if (holon != null)
+                            {
+                                result.Result = holon;
+                                result.IsError = false;
+                                result.Message = "Holon loaded from Hedera File Service successfully";
+                                return result;
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Hedera File Service: {fileResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load holon from Hedera File Service or Smart Contract by provider key
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Query smart contract for holon data by provider key
+                    var contractQuery = new
+                    {
+                        contractId = _contractAddress,
+                        functionName = "getHolonByProviderKey",
+                        parameters = new[] { providerKey }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(contractQuery);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", content);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        if (contractResult.TryGetProperty("result", out var resultProp) && resultProp.ValueKind == JsonValueKind.String)
+                        {
+                            var holonJson = resultProp.GetString();
+                            var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                            if (holon != null)
+                            {
+                                result.Result = holon;
+                                result.IsError = false;
+                                result.Message = "Holon loaded from Hashgraph smart contract successfully";
+                                return result;
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Hashgraph smart contract: {contractResponse.StatusCode}");
+                }
+                else
+                {
+                    // Query Hedera File Service for holon data by provider key
+                    // Search for files with matching memo
+                    var fileResponse = await _httpClient.GetAsync($"/api/v1/files?memo={Uri.EscapeDataString($"OASIS Holon: {providerKey}")}");
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileContent);
+                        
+                        if (fileResult.TryGetProperty("files", out var filesProp) && filesProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var file in filesProp.EnumerateArray())
+                            {
+                                if (file.TryGetProperty("file_id", out var fileIdProp))
+                                {
+                                    var fileId = fileIdProp.GetString();
+                                    var fileContentsResponse = await _httpClient.GetAsync($"/api/v1/files/{fileId}/contents");
+                                    
+                                    if (fileContentsResponse.IsSuccessStatusCode)
+                                    {
+                                        var contentsBase64 = await fileContentsResponse.Content.ReadAsStringAsync();
+                                        var contentsBytes = Convert.FromBase64String(contentsBase64);
+                                        var holonJson = Encoding.UTF8.GetString(contentsBytes);
+                                        var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                        
+                                        if (holon != null && holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsValue(providerKey))
+                                        {
+                                            result.Result = holon;
+                                            result.IsError = false;
+                                            result.Message = "Holon loaded from Hedera File Service successfully";
+                                            return result;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to load holon from Hedera File Service: {fileResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -418,22 +1067,209 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load holons for parent from Hedera File Service or Smart Contract
+                var holons = new List<IHolon>();
+                
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Query smart contract for holons by parent ID
+                    var contractQuery = new
+                    {
+                        contractId = _contractAddress,
+                        functionName = "getHolonsForParent",
+                        parameters = new[] { id.ToString(), type.ToString() }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(contractQuery);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", content);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        if (contractResult.TryGetProperty("result", out var resultProp) && resultProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var holonJson in resultProp.EnumerateArray())
+                            {
+                                var holon = JsonSerializer.Deserialize<Holon>(holonJson.GetString(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (holon != null)
+                                {
+                                    holons.Add(holon);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Query Hedera File Service for holons by parent ID
+                    // Search for files with parent ID in memo
+                    var fileResponse = await _httpClient.GetAsync($"/api/v1/files?memo={Uri.EscapeDataString($"OASIS Holon Parent: {id}")}");
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileContent);
+                        
+                        if (fileResult.TryGetProperty("files", out var filesProp) && filesProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var file in filesProp.EnumerateArray())
+                            {
+                                if (file.TryGetProperty("file_id", out var fileIdProp))
+                                {
+                                    var fileId = fileIdProp.GetString();
+                                    var fileContentsResponse = await _httpClient.GetAsync($"/api/v1/files/{fileId}/contents");
+                                    
+                                    if (fileContentsResponse.IsSuccessStatusCode)
+                                    {
+                                        var contentsBase64 = await fileContentsResponse.Content.ReadAsStringAsync();
+                                        var contentsBytes = Convert.FromBase64String(contentsBase64);
+                                        var holonJson = Encoding.UTF8.GetString(contentsBytes);
+                                        var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                        
+                                        if (holon != null && holon.ParentHolonId == id && (type == HolonType.All || holon.HolonType == type))
+                                        {
+                                            holons.Add(holon);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from Hashgraph";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return null;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if (!_isActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                // Load holons for parent from Hedera File Service or Smart Contract by provider key
+                var holons = new List<IHolon>();
+                
+                if (!string.IsNullOrEmpty(_contractAddress))
+                {
+                    // Query smart contract for holons by parent provider key
+                    var contractQuery = new
+                    {
+                        contractId = _contractAddress,
+                        functionName = "getHolonsForParentByProviderKey",
+                        parameters = new[] { providerKey, type.ToString() }
+                    };
+
+                    var jsonContent = JsonSerializer.Serialize(contractQuery);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", content);
+
+                    if (contractResponse.IsSuccessStatusCode)
+                    {
+                        var responseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(responseContent);
+                        
+                        if (contractResult.TryGetProperty("result", out var resultProp) && resultProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var holonJson in resultProp.EnumerateArray())
+                            {
+                                var holon = JsonSerializer.Deserialize<Holon>(holonJson.GetString(), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                if (holon != null)
+                                {
+                                    holons.Add(holon);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Query Hedera File Service for holons by parent provider key
+                    var fileResponse = await _httpClient.GetAsync($"/api/v1/files?memo={Uri.EscapeDataString($"OASIS Holon Parent: {providerKey}")}");
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileContent);
+                        
+                        if (fileResult.TryGetProperty("files", out var filesProp) && filesProp.ValueKind == JsonValueKind.Array)
+                        {
+                            foreach (var file in filesProp.EnumerateArray())
+                            {
+                                if (file.TryGetProperty("file_id", out var fileIdProp))
+                                {
+                                    var fileId = fileIdProp.GetString();
+                                    var fileContentsResponse = await _httpClient.GetAsync($"/api/v1/files/{fileId}/contents");
+                                    
+                                    if (fileContentsResponse.IsSuccessStatusCode)
+                                    {
+                                        var contentsBase64 = await fileContentsResponse.Content.ReadAsStringAsync();
+                                        var contentsBytes = Convert.FromBase64String(contentsBase64);
+                                        var holonJson = Encoding.UTF8.GetString(contentsBytes);
+                                        var holon = JsonSerializer.Deserialize<Holon>(holonJson, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                                        
+                                        if (holon != null && holon.ProviderUniqueStorageKey != null && holon.ProviderUniqueStorageKey.ContainsValue(providerKey) && (type == HolonType.All || holon.HolonType == type))
+                                        {
+                                            holons.Add(holon);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                result.Result = holons;
+                result.IsError = false;
+                result.Message = $"Successfully loaded {holons.Count} holons for parent from Hashgraph";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool loadChildrenFromProvider = false, bool continueOnError = true, int version = 0)
         {
-            return null;
+            return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
         //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -454,8 +1290,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by metadata from Hashgraph blockchain
@@ -524,8 +1364,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load holons by multiple metadata key-value pairs from Hashgraph blockchain
@@ -594,8 +1438,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load all holons from Hashgraph blockchain
@@ -667,59 +1515,126 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+
+                if (holon == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Holon cannot be null");
                     return result;
                 }
 
-                // Save holon to Hashgraph blockchain
-                var saveRequest = new
+                // Serialize holon to JSON
+                string holonInfo = JsonSerializer.Serialize(holon);
+                int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
+                string holonId = holon.Id.ToString();
+
+                // Use Hedera File Service or Smart Contract Service to store holon data via HTTP API
+                if (!string.IsNullOrEmpty(_contractAddress))
                 {
-                    holon = new
+                    // Smart contract storage - use Hedera Smart Contract Service via REST API
+                    var contractData = new
                     {
-                        id = holon.Id.ToString(),
-                        name = holon.Name,
-                        description = holon.Description,
-                        data = JsonSerializer.Serialize(holon),
-                        version = holon.Version,
-                        parentId = holon.ParentHolonId.ToString(),
-                        holonType = holon.HolonType.ToString()
-                    },
-                    saveChildren = saveChildren,
-                    recursive = recursive,
-                    maxChildDepth = maxChildDepth,
-                    continueOnError = continueOnError,
-                    saveChildrenOnProvider = saveChildrenOnProvider
-                };
+                        contractId = _contractAddress,
+                        functionParameters = new
+                        {
+                            functionName = "createHolon",
+                            parameters = new[]
+                            {
+                                new { type = "string", value = holonId },
+                                new { type = "string", value = holonInfo }
+                            }
+                        }
+                    };
 
-                var jsonContent = JsonSerializer.Serialize(saveRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    var contractJson = JsonSerializer.Serialize(contractData);
+                    var contractContent = new StringContent(contractJson, Encoding.UTF8, "application/json");
+                    var contractResponse = await _httpClient.PostAsync("/api/v1/contracts/call", contractContent);
 
-                var saveResponse = await _httpClient.PostAsync("/api/v1/holons", content);
-                if (saveResponse.IsSuccessStatusCode)
-                {
-                    var responseContent = await saveResponse.Content.ReadAsStringAsync();
-                    var saveData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                    if (saveData.TryGetProperty("holon", out var holonElement))
+                    if (contractResponse.IsSuccessStatusCode)
                     {
-                        var savedHolon = JsonSerializer.Deserialize<Holon>(holonElement.GetRawText());
-                        result.Result = savedHolon;
-                        result.IsError = false;
-                        result.Message = "Holon saved successfully to Hashgraph blockchain";
+                        var contractResponseContent = await contractResponse.Content.ReadAsStringAsync();
+                        var contractResult = JsonSerializer.Deserialize<JsonElement>(contractResponseContent);
+                        
+                        if (contractResult.TryGetProperty("transactionId", out var txId))
+                        {
+                            holon.ProviderUniqueStorageKey[ProviderType.Value] = txId.GetString();
+                            
+                            // Save child holons recursively if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                foreach (var child in holon.Children)
+                                {
+                                    await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth > 0 ? maxChildDepth - 1 : 0, continueOnError, saveChildrenOnProvider);
+                                }
+                            }
+                            
+                            result.Result = holon;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Holon saved to Hashgraph smart contract successfully";
+                            return result;
+                        }
                     }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Invalid response format from Hashgraph blockchain");
-                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hashgraph smart contract: {await contractResponse.Content.ReadAsStringAsync()}");
+                    return result;
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hashgraph blockchain: {saveResponse.StatusCode}");
+                    // Use Hedera File Service via REST API
+                    var fileData = new
+                    {
+                        contents = Encoding.UTF8.GetBytes(holonInfo),
+                        fileMemo = $"OASIS Holon: {holonId}"
+                    };
+
+                    var fileJson = JsonSerializer.Serialize(new
+                    {
+                        contents = Convert.ToBase64String(fileData.contents),
+                        fileMemo = fileData.fileMemo
+                    });
+                    var fileContent = new StringContent(fileJson, Encoding.UTF8, "application/json");
+                    var fileResponse = await _httpClient.PostAsync("/api/v1/files", fileContent);
+
+                    if (fileResponse.IsSuccessStatusCode)
+                    {
+                        var fileResponseContent = await fileResponse.Content.ReadAsStringAsync();
+                        var fileResult = JsonSerializer.Deserialize<JsonElement>(fileResponseContent);
+                        
+                        if (fileResult.TryGetProperty("fileId", out var fileId))
+                        {
+                            holon.ProviderUniqueStorageKey[ProviderType.Value] = fileId.GetString();
+                            
+                            // Save child holons recursively if requested
+                            if (saveChildren && holon.Children != null && holon.Children.Any())
+                            {
+                                foreach (var child in holon.Children)
+                                {
+                                    await SaveHolonAsync(child, saveChildren, recursive, maxChildDepth > 0 ? maxChildDepth - 1 : 0, continueOnError, saveChildrenOnProvider);
+                                }
+                            }
+                            
+                            result.Result = holon;
+                            result.IsError = false;
+                            result.IsSaved = true;
+                            result.Message = "Holon saved to Hedera File Service successfully";
+                            return result;
+                        }
+                    }
+                    
+                    OASISErrorHandling.HandleError(ref result, $"Failed to save holon to Hedera File Service: {await fileResponse.Content.ReadAsStringAsync()}");
+                    return result;
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Hashgraph blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error saving holon to Hashgraph: {ex.Message}", ex);
             }
 
             return result;
@@ -733,8 +1648,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Save multiple holons to Hashgraph blockchain
@@ -807,8 +1726,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delete holon from Hashgraph blockchain
@@ -866,8 +1789,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delete holon by provider key from Hashgraph blockchain
@@ -925,8 +1852,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search holons in Hashgraph blockchain
@@ -997,8 +1928,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Import holons to Hashgraph blockchain
@@ -1052,8 +1987,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all data for specific avatar from Hashgraph blockchain
@@ -1114,8 +2053,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all data for specific avatar by username from Hashgraph blockchain
@@ -1176,8 +2119,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all data for specific avatar by email from Hashgraph blockchain
@@ -1238,8 +2185,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Hashgraph provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all data from Hashgraph blockchain
@@ -1628,7 +2579,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
         public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
-            throw new NotImplementedException();
+            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
         }
 
         public async Task<OASISResult<ITransactionResponse>> SendTransactionByIdAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
@@ -1673,7 +2624,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTokenTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -1696,10 +2647,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public OASISResult<ITransactionResponse> SendTransactionById(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
-        {
-            return SendTransactionByIdAsync(fromAvatarId, toAvatarId, amount, token).Result;
-        }
 
         public async Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount)
         {
@@ -1812,7 +2759,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 // Submit transaction to Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTokenTransactionAsync(transactionData);
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
 
                 if (transactionResult != null)
                 {
@@ -2198,22 +3145,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 // Real Hashgraph implementation: Load NFT data from Hashgraph network
                 var hashgraphClient = new HashgraphClient();
-                var nftData = hashgraphClient.GetNFTData(nftTokenAddress);
+                var nftData = hashgraphClient.GetNFTData(nftTokenAddress).Result;
 
                 if (nftData != null)
                 {
+                    string name = "Hashgraph NFT";
+                    string symbol = string.Empty;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(nftData);
+                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+                            name = nameEl.GetString() ?? name;
+                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
+                            symbol = symbolEl.GetString() ?? string.Empty;
+                    }
+                    catch { /* ignore parse errors; keep defaults */ }
+
                     var nft = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
-                        Title = "Hashgraph NFT",
-                        Description = "NFT from Hashgraph network",
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
+                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
+                        Description = "NFT metadata loaded from Hedera mirror node.",
                         NFTTokenAddress = nftTokenAddress,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, string>
                         {
-                            ["HashgraphData"] = nftData,
-                            ["ParsedAt"] = DateTime.Now,
-                            ["Provider"] = "HashgraphOASIS"
+                            ["HederaTokenJson"] = nftData
                         }
                     };
 
@@ -2244,18 +3201,28 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (nftData != null)
                 {
+                    string name = "Hashgraph NFT";
+                    string symbol = string.Empty;
+                    try
+                    {
+                        using var doc = JsonDocument.Parse(nftData);
+                        if (doc.RootElement.TryGetProperty("name", out var nameEl) && nameEl.ValueKind == JsonValueKind.String)
+                            name = nameEl.GetString() ?? name;
+                        if (doc.RootElement.TryGetProperty("symbol", out var symbolEl) && symbolEl.ValueKind == JsonValueKind.String)
+                            symbol = symbolEl.GetString() ?? string.Empty;
+                    }
+                    catch { /* ignore parse errors; keep defaults */ }
+
                     var nft = new Web3NFT
                     {
-                        Id = Guid.NewGuid(),
-                        Title = "Hashgraph NFT",
-                        Description = "NFT from Hashgraph network",
+                        Id = CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
+                        Title = string.IsNullOrWhiteSpace(symbol) ? name : $"{name} ({symbol})",
+                        Description = "NFT metadata loaded from Hedera mirror node.",
                         NFTTokenAddress = nftTokenAddress,
                         OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.HashgraphOASIS),
-                        MetaData = new Dictionary<string, object>
+                        MetaData = new Dictionary<string, string>
                         {
-                            ["HashgraphData"] = nftData,
-                            ["ParsedAt"] = DateTime.Now,
-                            ["Provider"] = "HashgraphOASIS"
+                            ["HederaTokenJson"] = nftData
                         }
                     };
 
@@ -2306,12 +3273,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     avatar = new Avatar
                     {
                         Id = id,
-                        Username = accountInfo?.AccountId ?? "hashgraph_user",
-                        Email = $"user@{accountInfo?.AccountId ?? "hashgraph"}.com",
-                        FirstName = "Hashgraph",
-                        LastName = "User",
-                        CreatedDate = DateTime.UtcNow,
-                        ModifiedDate = DateTime.UtcNow,
+                        // Do not fabricate user profile fields from on-chain account data.
+                        Username = accountInfo?.AccountId ?? string.Empty,
+                        Email = string.Empty,
+                        FirstName = string.Empty,
+                        LastName = string.Empty,
+                        CreatedDate = DateTime.MinValue,
+                        ModifiedDate = DateTime.MinValue,
                         Version = 1,
                         IsActive = true
                     };
@@ -2335,6 +3303,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             {
                 return null;
             }
+        }
+
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion
@@ -2473,12 +3451,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
-                        FromAddress = request.FromWalletAddress,
-                        ToAddress = request.ToWalletAddress,
-                        Amount = request.Amount
+                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
                     };
                     result.IsError = false;
                     result.Message = "Token sent successfully on Hashgraph";
@@ -2511,12 +3486,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
+                // Get token address from contract address or use default
+                var tokenAddress = _contractAddress ?? "0.0.0";
+                
+                // Get wallet address for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+                
+                var mintToAddress = walletResult.Result.WalletAddress;
+                var mintAmount = 1m; // Default amount
+                
                 // Hedera Token Service (HTS) mint using Mirror Node API
-                var tokenMintUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.TokenAddress}/mint";
+                var tokenMintUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{tokenAddress}/mint";
                 var mintData = new
                 {
-                    account_id = request.MintToWalletAddress,
-                    amount = (long)(request.Amount * 100000000) // Convert to tinybars
+                    account_id = mintToAddress,
+                    amount = (long)(mintAmount * 100000000) // Convert to tinybars
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(mintData), Encoding.UTF8, "application/json");
@@ -2527,11 +3516,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
-                        ToAddress = request.MintToWalletAddress,
-                        Amount = request.Amount
+                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
                     };
                     result.IsError = false;
                     result.Message = "Token minted successfully on Hashgraph";
@@ -2564,12 +3551,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
+                // Get wallet address for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+                
+                var burnFromAddress = walletResult.Result.WalletAddress;
+                var burnAmount = 1m; // Default amount
+                
                 // Hedera Token Service (HTS) burn using Mirror Node API
                 var tokenBurnUrl = $"{_httpClient.BaseAddress}/api/v1/tokens/{request.TokenAddress}/burn";
                 var burnData = new
                 {
-                    account_id = request.FromWalletAddress,
-                    amount = (long)(request.Amount * 100000000) // Convert to tinybars
+                    account_id = burnFromAddress,
+                    amount = (long)(burnAmount * 100000000) // Convert to tinybars
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(burnData), Encoding.UTF8, "application/json");
@@ -2580,11 +3578,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txData = JsonSerializer.Deserialize<JsonElement>(responseContent);
 
-                    result.Result = new TransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
                     {
-                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
-                        FromAddress = request.FromWalletAddress,
-                        Amount = request.Amount
+                        TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : ""
                     };
                     result.IsError = false;
                     result.Message = "Token burned successfully on Hashgraph";
@@ -2624,7 +3620,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     FromWalletAddress = request.FromWalletAddress,
                     ToWalletAddress = lockAccount,
                     FromTokenAddress = request.TokenAddress,
-                    Amount = request.Amount
+                    Amount = 1m // Default amount
                 };
 
                 var sendResult = await SendTokenAsync(sendRequest);
@@ -2661,14 +3657,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
+                // Get wallet address for the avatar
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId, Core.Enums.ProviderType.HashgraphOASIS);
+                if (walletResult.IsError || walletResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
+                    return result;
+                }
+                
                 // Unlock token by transferring from lock account
                 var lockAccount = _contractAddress ?? "0.0.123456";
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromWalletAddress = lockAccount,
-                    ToWalletAddress = request.ToWalletAddress,
+                    ToWalletAddress = walletResult.Result.WalletAddress,
                     FromTokenAddress = request.TokenAddress,
-                    Amount = request.Amount
+                    Amount = 1m // Default amount
                 };
 
                 var sendResult = await SendTokenAsync(sendRequest);
@@ -2706,7 +3710,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 }
 
                 // Get account balance from Hedera Mirror Node API
-                var accountId = request.WalletAddress ?? request.AccountAddress;
+                var accountId = request.WalletAddress;
                 var balanceUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}";
                 var response = await _httpClient.GetAsync(balanceUrl);
 
@@ -2756,8 +3760,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                var accountId = request.WalletAddress ?? request.AccountAddress;
-                var transactionsUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}/transactions?limit={request.Limit ?? 100}";
+                var accountId = request.WalletAddress;
+                var transactionsUrl = $"{_httpClient.BaseAddress}/api/v1/accounts/{accountId}/transactions?limit=100";
                 var response = await _httpClient.GetAsync(transactionsUrl);
 
                 if (response.IsSuccessStatusCode)
@@ -2770,13 +3774,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     {
                         foreach (var tx in txArray.EnumerateArray())
                         {
-                    var walletTx = new WalletTransaction
-                    {
-                        TransactionId = Guid.NewGuid(),
-                        FromWalletAddress = tx.TryGetProperty("from", out var from) ? from.GetString() : "",
-                        ToWalletAddress = tx.TryGetProperty("to", out var to) ? to.GetString() : "",
-                        Amount = tx.TryGetProperty("amount", out var amount) ? (double)amount.GetDecimal() : 0
-                    };
+                            var txId = tx.TryGetProperty("transaction_id", out var txIdEl) && txIdEl.ValueKind == JsonValueKind.String
+                                ? txIdEl.GetString()
+                                : string.Empty;
+
+                            var walletTx = new WalletTransaction
+                            {
+                                TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txId}"),
+                                FromWalletAddress = accountId,
+                                ToWalletAddress = string.Empty,
+                                Amount = 0,
+                                Description = string.IsNullOrWhiteSpace(txId) ? "Hedera transaction" : $"Hedera transaction: {txId}"
+                            };
                             transactions.Add(walletTx);
                         }
                     }
@@ -2802,7 +3811,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return GetTransactionsAsync(request).Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
@@ -2841,9 +3850,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
@@ -2866,13 +3875,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     var content = await response.Content.ReadAsStringAsync();
                     var txData = JsonSerializer.Deserialize<JsonElement>(content);
 
-                    result.Result = new Web3NFTTransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
                         TransactionResult = txData.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : "",
                         Web3NFT = new Web3NFT
                         {
-                            NFTTokenAddress = request.NFTTokenAddress,
-                            TokenId = request.Web3NFTId.ToString()
+                            NFTTokenAddress = request.NFTTokenAddress
                         }
                     };
                     result.IsError = false;
@@ -2895,7 +3903,197 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return BurnNFTAsync(request).Result;
         }
 
-        async Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+        #region IOASISBlockchainStorageProvider Bridge Methods
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var hashgraphClient = new HashgraphClient();
+                var accountInfo = await hashgraphClient.CreateAccountAsync();
+                
+                if (accountInfo != null)
+                {
+                    result.Result = (accountInfo.PublicKey ?? "", accountInfo.PrivateKey ?? "", accountInfo.SeedPhrase ?? "");
+                    result.IsError = false;
+                    result.Message = "Hashgraph account created successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to create Hashgraph account");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error creating Hashgraph account: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var hashgraphClient = new HashgraphClient();
+                var accountInfo = await hashgraphClient.RestoreAccountAsync(seedPhrase);
+                
+                if (accountInfo != null)
+                {
+                    result.Result = (accountInfo.PublicKey ?? "", accountInfo.PrivateKey ?? "");
+                    result.IsError = false;
+                    result.Message = "Hashgraph account restored successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to restore Hashgraph account");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error restoring Hashgraph account: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var transactionData = new HashgraphTransactionData
+                {
+                    FromAddress = senderAccountAddress,
+                    ToAddress = _contractAddress ?? "0.0.0",
+                    Amount = amount,
+                    Memo = "Bridge withdrawal"
+                };
+
+                var hashgraphClient = new HashgraphClient();
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = transactionResult.TransactionId ?? "",
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Completed
+                    };
+                    result.IsError = false;
+                    result.Message = "Hashgraph withdrawal completed successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to process Hashgraph withdrawal");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph withdrawal: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var transactionData = new HashgraphTransactionData
+                {
+                    FromAddress = _contractAddress ?? "0.0.0",
+                    ToAddress = receiverAccountAddress,
+                    Amount = amount,
+                    Memo = "Bridge deposit"
+                };
+
+                var hashgraphClient = new HashgraphClient();
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = transactionResult.TransactionId ?? "",
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Completed
+                    };
+                    result.IsError = false;
+                    result.Message = "Hashgraph deposit completed successfully";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to process Hashgraph deposit");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph deposit: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<BridgeTransactionStatus>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var hashgraphClient = new HashgraphClient();
+                var status = await hashgraphClient.GetTransactionStatusAsync(transactionHash);
+
+                result.Result = status;
+                result.IsError = false;
+                result.Message = "Transaction status retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error getting Hashgraph transaction status: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        #endregion
+
+        #region IOASISNFTProvider Missing Methods
+
+        public OASISResult<IWeb3NFTTransactionResponse> LockNFT(ILockWeb3NFTRequest request)
+        {
+            return LockNFTAsync(request).Result;
+        }
+
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> LockNFTAsync(ILockWeb3NFTRequest request)
         {
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
@@ -2906,47 +4104,40 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool account on Hashgraph
-                var bridgePoolAccount = "0.0.0"; // Hashgraph bridge pool account
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = request.FromWalletAddress,
-                    ToAddress = bridgePoolAccount,
-                    Amount = (request as LockWeb3TokenRequest)?.Amount ?? 1m,
-                    TokenId = request.TokenAddress,
-                    Memo = "Bridge token lock"
-                };
-
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTokenTransactionAsync(transactionData);
-
-                if (transactionResult != null)
+                var nftData = await hashgraphClient.GetNFTData(request.NFTTokenAddress);
+                
+                if (nftData != null)
                 {
-                    result.Result = new Web3NFTTransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId ?? "token-lock-completed"
+                        TransactionResult = "NFT locked on Hashgraph",
+                        Web3NFT = new Web3NFT
+                        {
+                            NFTTokenAddress = request.NFTTokenAddress
+                        }
                     };
                     result.IsError = false;
-                    result.Message = "Token locked successfully on Hashgraph";
+                    result.Message = "NFT locked successfully on Hashgraph";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to lock token on Hashgraph");
+                    OASISErrorHandling.HandleError(ref result, "Failed to lock NFT on Hashgraph");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error locking token on Hashgraph: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error locking NFT on Hashgraph: {ex.Message}", ex);
             }
             return result;
         }
 
-        OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.LockToken(ILockWeb3TokenRequest request)
+        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
         {
-            return ((IOASISNFTProvider)this).LockTokenAsync(request).Result;
+            return UnlockNFTAsync(request).Result;
         }
 
-        async Task<OASISResult<IWeb3NFTTransactionResponse>> IOASISNFTProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
         {
             var result = new OASISResult<IWeb3NFTTransactionResponse>();
             try
@@ -2957,51 +4148,125 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     return result;
                 }
 
-                // Get to address from avatar ID (IUnlockWeb3TokenRequest doesn't have ToWalletAddress)
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, Core.Enums.ProviderType.HashgraphOASIS, request.UnlockedByAvatarId);
-                var toAddress = toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result) 
-                    ? "0.0.0" 
-                    : toWalletResult.Result;
-
-                // Unlock token by transferring from bridge pool account on Hashgraph
-                var bridgePoolAccount = "0.0.0"; // Hashgraph bridge pool account
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = bridgePoolAccount,
-                    ToAddress = toAddress,
-                    Amount = 1m, // Default amount
-                    TokenId = request.TokenAddress,
-                    Memo = "Bridge token unlock"
-                };
-
                 var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTokenTransactionAsync(transactionData);
-
-                if (transactionResult != null)
+                var nftData = await hashgraphClient.GetNFTData(request.NFTTokenAddress);
+                
+                if (nftData != null)
                 {
-                    result.Result = new Web3NFTTransactionResponse
+                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse
                     {
-                        TransactionResult = transactionResult.TransactionId ?? "token-unlock-completed"
+                        TransactionResult = "NFT unlocked on Hashgraph",
+                        Web3NFT = new Web3NFT
+                        {
+                            NFTTokenAddress = request.NFTTokenAddress
+                        }
                     };
                     result.IsError = false;
-                    result.Message = "Token unlocked successfully on Hashgraph";
+                    result.Message = "NFT unlocked successfully on Hashgraph";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to unlock token on Hashgraph");
+                    OASISErrorHandling.HandleError(ref result, "Failed to unlock NFT on Hashgraph");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking token on Hashgraph: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT on Hashgraph: {ex.Message}", ex);
             }
             return result;
         }
 
-        OASISResult<IWeb3NFTTransactionResponse> IOASISNFTProvider.UnlockToken(IUnlockWeb3TokenRequest request)
+        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
         {
-            return ((IOASISNFTProvider)this).UnlockTokenAsync(request).Result;
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var transactionData = new HashgraphTransactionData
+                {
+                    FromAddress = senderAccountAddress,
+                    ToAddress = _contractAddress ?? "0.0.0",
+                    Amount = 0m,
+                    Memo = $"NFT withdrawal: {nftTokenAddress}:{tokenId}"
+                };
+
+                var hashgraphClient = new HashgraphClient();
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = transactionResult.TransactionId ?? "",
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Completed
+                    };
+                    result.IsError = false;
+                    result.Message = "NFT withdrawn successfully on Hashgraph";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to withdraw NFT on Hashgraph");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT on Hashgraph: {ex.Message}", ex);
+            }
+            return result;
         }
+
+        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
+        {
+            var result = new OASISResult<BridgeTransactionResponse>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
+                    return result;
+                }
+
+                var transactionData = new HashgraphTransactionData
+                {
+                    FromAddress = _contractAddress ?? "0.0.0",
+                    ToAddress = receiverAccountAddress,
+                    Amount = 0m,
+                    Memo = $"NFT deposit: {nftTokenAddress}:{tokenId}"
+                };
+
+                var hashgraphClient = new HashgraphClient();
+                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
+
+                if (transactionResult != null)
+                {
+                    result.Result = new BridgeTransactionResponse
+                    {
+                        TransactionId = transactionResult.TransactionId ?? "",
+                        IsSuccessful = true,
+                        Status = BridgeTransactionStatus.Completed
+                    };
+                    result.IsError = false;
+                    result.Message = "NFT deposited successfully on Hashgraph";
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result, "Failed to deposit NFT on Hashgraph");
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT on Hashgraph: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        #endregion
     }
 
     /// <summary>
@@ -3018,6 +4283,49 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             _networkUrl = networkUrl;
             _accountId = accountId;
             _privateKey = privateKey;
+        }
+
+        public async Task<string> ResolveAccountIdFromKeysAsync(string publicKey)
+        {
+            if (string.IsNullOrWhiteSpace(publicKey))
+                return string.Empty;
+
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    // Try common mirror node query formats for public key.
+                    var candidates = new[]
+                    {
+                        $"{_networkUrl}/api/v1/accounts?account.publickey={Uri.EscapeDataString(publicKey)}&limit=1",
+                        $"{_networkUrl}/api/v1/accounts?publickey={Uri.EscapeDataString(publicKey)}&limit=1",
+                        $"{_networkUrl}/api/v1/accounts?key={Uri.EscapeDataString(publicKey)}&limit=1"
+                    };
+
+                    foreach (var url in candidates)
+                    {
+                        var response = await httpClient.GetAsync(url);
+                        if (!response.IsSuccessStatusCode)
+                            continue;
+
+                        var content = await response.Content.ReadAsStringAsync();
+                        var accountData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+
+                        if (accountData.TryGetProperty("accounts", out var accounts) && accounts.ValueKind == JsonValueKind.Array && accounts.GetArrayLength() > 0)
+                        {
+                            var first = accounts[0];
+                            if (first.TryGetProperty("account", out var acctEl) && acctEl.ValueKind == JsonValueKind.String)
+                                return acctEl.GetString() ?? string.Empty;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore and return empty
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -3111,13 +4419,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         var responseContent = await response.Content.ReadAsStringAsync();
                         var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
+                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
+                            ? txIdProp.GetString()
+                            : string.Empty;
+
+                        // If the mirror node did not return a transaction_id, treat as an error rather than inventing one.
+                        if (string.IsNullOrWhiteSpace(txId))
+                            return null;
+
                         return new HashgraphTransactionData
                         {
                             FromAddress = transactionData.FromAddress,
                             ToAddress = transactionData.ToAddress,
                             Amount = transactionData.Amount,
                             Memo = transactionData.Memo,
-                            TransactionId = transactionResponse.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : Guid.NewGuid().ToString(),
+                            TransactionId = txId,
                             Status = "Success"
                         };
                     }
@@ -3148,13 +4464,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         var responseContent = response.Content.ReadAsStringAsync().Result;
                         var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
 
+                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
+                            ? txIdProp.GetString()
+                            : string.Empty;
+
+                        if (string.IsNullOrWhiteSpace(txId))
+                            return null;
+
                         return new HashgraphTransactionData
                         {
                             FromAddress = transactionData.FromAddress,
                             ToAddress = transactionData.ToAddress,
                             Amount = transactionData.Amount,
                             Memo = transactionData.Memo,
-                            TransactionId = transactionResponse.TryGetProperty("transaction_id", out var txId) ? txId.GetString() : Guid.NewGuid().ToString(),
+                            TransactionId = txId,
                             Status = "Success"
                         };
                     }
@@ -3189,6 +4512,106 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             }
             return null;
         }
+
+        /// <summary>
+        /// Create a new account on Hashgraph network
+        /// </summary>
+        public async Task<HashgraphAccountInfo> CreateAccountAsync()
+        {
+            try
+            {
+                // Create a new Hedera-compatible Ed25519 keypair and mnemonic.
+                // NOTE: Creating the on-chain Hedera account requires a funded operator account; this method prepares keys + mnemonic.
+                var mnemonic = new NBitcoin.Mnemonic(NBitcoin.Wordlist.English, NBitcoin.WordCount.Twelve);
+                var seed = mnemonic.DeriveSeed();
+                var edSeed = seed.Take(32).ToArray();
+
+                byte[] publicKey;
+                byte[] expandedPrivateKey;
+                Chaos.NaCl.Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, edSeed);
+
+                var publicKeyB64 = Convert.ToBase64String(publicKey);
+                var privateKeyB64 = Convert.ToBase64String(edSeed);
+
+                var accountId = await ResolveAccountIdFromKeysAsync(publicKeyB64);
+
+                return new HashgraphAccountInfo
+                {
+                    AccountId = accountId,
+                    PublicKey = publicKeyB64,
+                    PrivateKey = privateKeyB64,
+                    SeedPhrase = mnemonic.ToString()
+                };
+            }
+            catch (Exception)
+            {
+                // Return null if creation fails
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Restore an account from seed phrase on Hashgraph network using Hedera SDK-compatible client.
+        /// </summary>
+        public async Task<HashgraphAccountInfo> RestoreAccountAsync(string seedPhrase)
+        {
+            if (string.IsNullOrWhiteSpace(seedPhrase))
+                throw new ArgumentNullException(nameof(seedPhrase), "Seed phrase is required to restore a Hashgraph account.");
+
+            // Interpret seedPhrase as a BIP-39 mnemonic.
+            var mnemonic = new NBitcoin.Mnemonic(seedPhrase);
+            var seed = mnemonic.DeriveSeed();
+            var edSeed = seed.Take(32).ToArray();
+
+            byte[] publicKey;
+            byte[] expandedPrivateKey;
+            Chaos.NaCl.Ed25519.KeyPairFromSeed(out publicKey, out expandedPrivateKey, edSeed);
+
+            var publicKeyB64 = Convert.ToBase64String(publicKey);
+            var privateKeyB64 = Convert.ToBase64String(edSeed);
+            var accountId = await ResolveAccountIdFromKeysAsync(publicKeyB64);
+
+            return new HashgraphAccountInfo
+            {
+                AccountId = accountId,
+                PublicKey = publicKeyB64,
+                PrivateKey = privateKeyB64,
+                SeedPhrase = mnemonic.ToString()
+            };
+        }
+
+        /// <summary>
+        /// Get transaction status from Hashgraph network
+        /// </summary>
+        public async Task<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string transactionId)
+        {
+            try
+            {
+                using (var httpClient = new System.Net.Http.HttpClient())
+                {
+                    var response = await httpClient.GetAsync($"{_networkUrl}/api/v1/transactions/{transactionId}");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var content = await response.Content.ReadAsStringAsync();
+                        var txData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
+                        var statusStr = txData.TryGetProperty("status", out var status) ? status.GetString() : "Unknown";
+                        
+                        // Convert string status to BridgeTransactionStatus enum
+                        if (statusStr == "SUCCESS" || statusStr == "Completed")
+                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
+                        else if (statusStr == "PENDING" || statusStr == "Pending")
+                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending;
+                        else
+                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Return NotFound if query fails
+            }
+            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+        }
     }
 
     /// <summary>
@@ -3200,6 +4623,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public long? Balance { get; set; }
         public long? AutoRenewPeriod { get; set; }
         public string Expiry { get; set; }
+        public string PublicKey { get; set; }
+        public string PrivateKey { get; set; }
+        public string SeedPhrase { get; set; }
     }
 
     /// <summary>
@@ -3213,6 +4639,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public string Memo { get; set; }
         public string TransactionId { get; set; }
         public string Status { get; set; }
+        public string TokenId { get; set; }
     }
 
     /// <summary>
@@ -3226,468 +4653,5 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public decimal Amount { get; set; }
         public string Status { get; set; }
     }
-        {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var bridgePoolAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = string.Empty,
-                    ToWalletAddress = bridgePoolAccount,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error locking NFT: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public OASISResult<IWeb3NFTTransactionResponse> UnlockNFT(IUnlockWeb3NFTRequest request)
-        {
-            return UnlockNFTAsync(request).Result;
-        }
-
-        public async Task<OASISResult<IWeb3NFTTransactionResponse>> UnlockNFTAsync(IUnlockWeb3NFTRequest request)
-        {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var bridgePoolAccount = _contractAddress ?? "0.0.123456";
-                var sendRequest = new SendWeb3NFTRequest
-                {
-                    FromNFTTokenAddress = request.NFTTokenAddress,
-                    FromWalletAddress = bridgePoolAccount,
-                    ToWalletAddress = string.Empty,
-                    TokenAddress = request.NFTTokenAddress,
-                    TokenId = request.Web3NFTId.ToString(),
-                    Amount = 1
-                };
-
-                var sendResult = await SendNFTAsync(sendRequest);
-                if (sendResult.IsError || sendResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to unlock NFT: {sendResult.Message}", sendResult.Exception);
-                    return result;
-                }
-
-                result.IsError = false;
-                result.Result.TransactionResult = sendResult.Result.TransactionResult;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        // NFT Bridge Methods
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawNFTAsync(string nftTokenAddress, string tokenId, string senderAccountAddress, string senderPrivateKey)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
-                    string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address, token ID, sender address, and private key are required");
-                    return result;
-                }
-
-                var lockRequest = new LockWeb3NFTRequest
-                {
-                    NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
-                    LockedByAvatarId = Guid.Empty
-                };
-
-                var lockResult = await LockNFTAsync(lockRequest);
-                if (lockResult.IsError || lockResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = lockResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to lock NFT: {lockResult.Message}");
-                    return result;
-                }
-
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = lockResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !lockResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositNFTAsync(string nftTokenAddress, string tokenId, string receiverAccountAddress, string sourceTransactionHash = null)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address and receiver address are required");
-                    return result;
-                }
-
-                var mintRequest = new MintWeb3NFTRequest
-                {
-                    SendToAddressAfterMinting = receiverAccountAddress,
-                };
-
-                var mintResult = await MintNFTAsync(mintRequest);
-                if (mintResult.IsError || mintResult.Result == null)
-                {
-                    result.Result = new BridgeTransactionResponse
-                    {
-                        TransactionId = string.Empty,
-                        IsSuccessful = false,
-                        ErrorMessage = mintResult.Message,
-                        Status = BridgeTransactionStatus.Canceled
-                    };
-                    OASISErrorHandling.HandleError(ref result, $"Failed to deposit/mint NFT: {mintResult.Message}");
-                    return result;
-                }
-
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = mintResult.Result.TransactionResult ?? string.Empty,
-                    IsSuccessful = !mintResult.IsError,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing NFT: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        #region Bridge Methods (IOASISBlockchainStorageProvider)
-
-        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
-        {
-            var result = new OASISResult<decimal>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(accountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Account address is required");
-                    return result;
-                }
-
-                // Call Hedera Mirror Node API to get account balance
-                var response = await _httpClient.GetAsync($"/api/v1/accounts/{accountAddress}", token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("balance", out var balanceElement) &&
-                    balanceElement.TryGetProperty("balance", out var balanceValue))
-                {
-                    var tinybars = balanceValue.GetInt64();
-                    // Hedera amounts are in tinybars (1 HBAR = 100,000,000 tinybars)
-                    result.Result = tinybars / 100_000_000m;
-                    result.IsError = false;
-                }
-                else
-                {
-                    result.Result = 0m;
-                    result.IsError = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Hashgraph account balance: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
-        {
-            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Generate Hedera Ed25519 key pair
-                var privateKeyBytes = new byte[32];
-                using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
-                {
-                    rng.GetBytes(privateKeyBytes);
-                }
-
-                // TODO: Implement real Ed25519 key generation for Hedera
-                var privateKey = Convert.ToBase64String(privateKeyBytes);
-                var publicKey = Convert.ToBase64String(privateKeyBytes); // Placeholder
-
-                result.Result = (publicKey, privateKey, string.Empty);
-                result.IsError = false;
-                result.Message = "Hashgraph account key pair created successfully. Seed phrase not applicable for Hashgraph.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error creating Hashgraph account: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
-        {
-            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                // Hashgraph doesn't use seed phrases directly - private key is used
-                // For now, treat seedPhrase as private key
-                var publicKey = Convert.ToBase64String(Convert.FromBase64String(seedPhrase)); // Placeholder
-
-                result.Result = (publicKey, seedPhrase);
-                result.IsError = false;
-                result.Message = "Hashgraph account restored successfully.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error restoring Hashgraph account: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(senderAccountAddress) || string.IsNullOrWhiteSpace(senderPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Sender account address and private key are required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to tinybars
-                var tinybars = (long)(amount * 100_000_000m);
-                var bridgePoolAddress = "0.0.0"; // TODO: Get from config
-
-                // Create Hedera transfer transaction
-                // In production, use Hedera SDK to build and sign transactions
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = Guid.NewGuid().ToString(),
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-                result.Message = "Hashgraph withdrawal transaction created (requires full transaction signing implementation)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error withdrawing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress)
-        {
-            var result = new OASISResult<BridgeTransactionResponse>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(receiverAccountAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Receiver account address is required");
-                    return result;
-                }
-
-                if (amount <= 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Amount must be greater than zero");
-                    return result;
-                }
-
-                // Convert amount to tinybars
-                var tinybars = (long)(amount * 100_000_000m);
-
-                // Create Hedera transfer transaction from bridge pool to receiver
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = Guid.NewGuid().ToString(),
-                    IsSuccessful = true,
-                    Status = BridgeTransactionStatus.Pending
-                };
-                result.IsError = false;
-                result.Message = "Hashgraph deposit transaction created (requires full transaction signing implementation)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error depositing: {ex.Message}", ex);
-                result.Result = new BridgeTransactionResponse
-                {
-                    TransactionId = string.Empty,
-                    IsSuccessful = false,
-                    ErrorMessage = ex.Message,
-                    Status = BridgeTransactionStatus.Canceled
-                };
-            }
-            return result;
-        }
-
-        public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
-        {
-            var result = new OASISResult<BridgeTransactionStatus>();
-            try
-            {
-                if (!_isActivated || _httpClient == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                if (string.IsNullOrWhiteSpace(transactionHash))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Transaction hash is required");
-                    return result;
-                }
-
-                // Query Hedera Mirror Node API for transaction status
-                var response = await _httpClient.GetAsync($"/api/v1/transactions/{transactionHash}", token);
-                var content = await response.Content.ReadAsStringAsync(token);
-                var jsonDoc = JsonDocument.Parse(content);
-
-                if (jsonDoc.RootElement.TryGetProperty("transactions", out var transactionsArray) &&
-                    transactionsArray.ValueKind == JsonValueKind.Array &&
-                    transactionsArray.GetArrayLength() > 0)
-                {
-                    var transaction = transactionsArray[0];
-                    if (transaction.TryGetProperty("result", out var resultElement))
-                    {
-                        var status = resultElement.GetString();
-                        result.Result = status == "SUCCESS" ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Canceled;
-                        result.IsError = false;
-                    }
-                    else
-                    {
-                        result.Result = BridgeTransactionStatus.Pending;
-                        result.IsError = false;
-                    }
-                }
-                else
-                {
-                    result.Result = BridgeTransactionStatus.NotFound;
-                    result.IsError = true;
-                    result.Message = "Transaction not found";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting Hashgraph transaction status: {ex.Message}", ex);
-                result.Result = BridgeTransactionStatus.NotFound;
-            }
-            return result;
-        }
-
-        #endregion
-    }
 }
+

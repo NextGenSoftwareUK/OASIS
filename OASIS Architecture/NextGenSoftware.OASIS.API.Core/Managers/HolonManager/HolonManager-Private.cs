@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private IHolon PrepareHolonForSaving(IHolon holon, Guid avatarId, bool extractMetaData)
         {
+            // Callers (SaveHolon overloads) validate holon != null and return OASISResult before calling here.
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
 
@@ -100,55 +101,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: Would ideally like to find a better way to do this so we can avoid reflection if possible because of the potential overhead!
             // Need to do some perfomrnace tests with reflection turned on/off (so with this code enabled/disabled) to see what the overhead is exactly...
 
-            bool storeAsJsonString = false;
-
             // We only want to extract the meta data for sub-classes of Holon that are calling the Generic overloads.
             if (holon.GetType() != typeof(Holon) && extractMetaData)
             {
                 PropertyInfo[] props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                var classAttributes = holon.GetType().GetCustomAttributes();
-
-                //foreach (CustomOASISProperty attribute in classAttributes)
-                //{
-                //    Console.WriteLine($"StoreAsJsonString: {attribute.StoreAsJsonString}");
-
-                //    storeAsJsonString = attribute.StoreAsJsonString;
-
-
-                //}
 
                 foreach (PropertyInfo propertyInfo in props)
                 {
-                    foreach (CustomAttributeData data in propertyInfo.CustomAttributes)
+                    var customAttr = propertyInfo.GetCustomAttribute<CustomOASISProperty>();
+                    if (customAttr != null)
                     {
-                        if (data.AttributeType == (typeof(CustomOASISProperty)))
-                        {
-                            //if (data.NamedArguments)
-
-                            for (int i = 0; i < data.NamedArguments.Count() ; i++)
-                            {
-                                if (data.NamedArguments[i].MemberName == propertyInfo.Name)
-                                {
-                                    if (Convert.ToBoolean(data.NamedArguments[i].TypedValue.Value))
-                                    {
-
-                                    }
-                                }
-                            }
-
-                           //ustomOASISProperty oasisProperty = data as CustomOASISProperty;
-
-                            //holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon).ToString();
-                            if (storeAsJsonString)
-                                holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(propertyInfo.GetValue(holon)) ;
-                            else
-                                holon.MetaData[propertyInfo.Name] = propertyInfo.GetValue(holon);
-
-                            break;
-                        }
+                        bool useJson = customAttr.StoreAsJsonString;
+                        var value = propertyInfo.GetValue(holon);
+                        if (useJson && value != null)
+                            holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(value);
+                        else
+                            holon.MetaData[propertyInfo.Name] = value;
                     }
                 }
             }
+
+            /* Ensure CreatedByAvatarId and Active are in MetaData so LoadHolonsByMetaData (e.g. by CreatedByAvatarId + Active) returns this holon, including child quests/sub-quests saved via SaveAsync (not only via STARNETManagerBase.CreateAsync). */
+            if (holon.MetaData == null)
+                holon.MetaData = new Dictionary<string, object>();
+            holon.MetaData["CreatedByAvatarId"] = holon.CreatedByAvatarId.ToString();
+            holon.MetaData["Active"] = holon.IsActive ? "1" : "0";
 
             //if (holon.AllChildren == null)
             //    holon.AllChildren = new List<IHolon>(holon.Children);
@@ -158,6 +135,30 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             RemoveCelesialBodies(holon);
 
             return holon;
+        }
+
+        /// <summary>
+        /// Copies [CustomOASISProperty] fields from the holon into its MetaData so providers persist them (e.g. AvatarDetail.ActiveQuestId, ActiveObjectiveId).
+        /// Call before saving a holon when the save path does not go through SaveHolon (e.g. SaveAvatarDetailAsync).
+        /// </summary>
+        public void ExtractCustomPropertiesToMetaData(IHolon holon)
+        {
+            if (holon == null) return;
+            if (holon.MetaData == null)
+                holon.MetaData = new Dictionary<string, object>();
+            if (holon.GetType() == typeof(Holon)) return;
+
+            var props = holon.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var propertyInfo in props)
+            {
+                var customAttr = propertyInfo.GetCustomAttribute<CustomOASISProperty>();
+                if (customAttr == null) continue;
+                var value = propertyInfo.GetValue(holon);
+                if (customAttr.StoreAsJsonString && value != null)
+                    holon.MetaData[propertyInfo.Name] = JsonSerializer.Serialize(value);
+                else
+                    holon.MetaData[propertyInfo.Name] = value;
+            }
         }
 
         private IEnumerable<IHolon> PrepareHolonsForSaving(IEnumerable<IHolon> holons, Guid avatarId, bool extractMetaData)
@@ -564,74 +565,96 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         public IHolon MapMetaData<T>(IHolon holon) where T : IHolon
         {
+            const BindingFlags flags = BindingFlags.Public | BindingFlags.Instance;
+            var type = typeof(T);
+            var properties = type.GetProperties(flags);
+
             foreach (string key in holon.MetaData.Keys)
             {
                 try
                 {
-                    PropertyInfo propInfo = typeof(T).GetProperty(key);
+                    // Case-insensitive match so MetaData keys like "objectives" (from MongoDB/JSON camelCase) match property "Objectives"
+                    PropertyInfo propInfo = properties.FirstOrDefault(p => string.Equals(p.Name, key, StringComparison.OrdinalIgnoreCase));
 
-                    if (propInfo != null && holon.MetaData[key] != null)
+                    if (propInfo != null)
                     {
+                        var underlyingGuid = Nullable.GetUnderlyingType(propInfo.PropertyType);
+                        var isNullableGuid = underlyingGuid == typeof(Guid);
                         if (propInfo.PropertyType == typeof(Guid))
                             propInfo.SetValue(holon, new Guid(holon.MetaData[key].ToString()));
+                        else if (isNullableGuid)
+                        {
+                            if (holon.MetaData[key] == null || string.IsNullOrWhiteSpace(holon.MetaData[key].ToString()))
+                                propInfo.SetValue(holon, null);
+                            else if (Guid.TryParse(holon.MetaData[key].ToString(), out var guidVal))
+                                propInfo.SetValue(holon, guidVal);
+                        }
+                        else if (holon.MetaData[key] != null)
+                        {
+                            if (propInfo.PropertyType == typeof(bool))
+                                propInfo.SetValue(holon, Convert.ToBoolean(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(bool))
-                            propInfo.SetValue(holon, Convert.ToBoolean(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(DateTime))
+                                propInfo.SetValue(holon, Convert.ToDateTime(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(DateTime))
-                            propInfo.SetValue(holon, Convert.ToDateTime(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(int))
+                                propInfo.SetValue(holon, Convert.ToInt32(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(int))
-                            propInfo.SetValue(holon, Convert.ToInt32(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(long))
+                                propInfo.SetValue(holon, Convert.ToInt64(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(long))
-                            propInfo.SetValue(holon, Convert.ToInt64(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(float))
+                                propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key])); //TODO: Check if this is right?! :)
 
-                        else if (propInfo.PropertyType == typeof(float))
-                            propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key])); //TODO: Check if this is right?! :)
+                            else if (propInfo.PropertyType == typeof(double))
+                                propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(double))
-                            propInfo.SetValue(holon, Convert.ToDouble(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(decimal))
+                                propInfo.SetValue(holon, Convert.ToDecimal(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(decimal))
-                            propInfo.SetValue(holon, Convert.ToDecimal(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(UInt16))
+                                propInfo.SetValue(holon, Convert.ToUInt16(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(UInt16))
-                            propInfo.SetValue(holon, Convert.ToUInt16(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(UInt32))
+                                propInfo.SetValue(holon, Convert.ToUInt32(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(UInt32))
-                            propInfo.SetValue(holon, Convert.ToUInt32(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(UInt64))
+                                propInfo.SetValue(holon, Convert.ToUInt64(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(UInt64))
-                            propInfo.SetValue(holon, Convert.ToUInt64(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(Single))
+                                propInfo.SetValue(holon, Convert.ToSingle(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(Single))
-                            propInfo.SetValue(holon, Convert.ToSingle(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(char))
+                                propInfo.SetValue(holon, Convert.ToChar(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(char))
-                            propInfo.SetValue(holon, Convert.ToChar(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(byte))
+                                propInfo.SetValue(holon, Convert.ToByte(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(byte))
-                            propInfo.SetValue(holon, Convert.ToByte(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(sbyte))
+                                propInfo.SetValue(holon, Convert.ToSByte(holon.MetaData[key]));
 
-                        else if (propInfo.PropertyType == typeof(sbyte))
-                            propInfo.SetValue(holon, Convert.ToSByte(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(Color))
+                                propInfo.SetValue(holon, ColorTranslator.FromHtml(holon.MetaData[key].ToString()));
 
-                        else if (propInfo.PropertyType == typeof(Color))
-                            propInfo.SetValue(holon, ColorTranslator.FromHtml(holon.MetaData[key].ToString()));
+                            else if (propInfo.PropertyType.IsEnum)
+                                propInfo.SetValue(holon, Enum.Parse(propInfo.PropertyType, holon.MetaData[key].ToString(), true));
 
-                        else if (propInfo.PropertyType == typeof(Enum))
-                            propInfo.SetValue(holon, holon.MetaData[key]);
-                            //propInfo.SetValue(holon, (Color)(holon.MetaData[key]));
+                            else if (propInfo.PropertyType == typeof(string))
+                                propInfo.SetValue(holon, holon.MetaData[key].ToString());
 
-                        //else if (propInfo.Attributes.)
-                        //    propInfo.SetValue(holon, holon.MetaData[key]);
-                            
-                        else if (propInfo.PropertyType == typeof(string) && holon.MetaData[key] != null)
-                            propInfo.SetValue(holon, holon.MetaData[key].ToString());
-
-                        else
-                            propInfo.SetValue(holon, holon.MetaData[key]);
+                            else if (holon.MetaData[key] is string jsonStr && propInfo.PropertyType != typeof(string))
+                            {
+                                try
+                                {
+                                    var deserialized = JsonSerializer.Deserialize(jsonStr, propInfo.PropertyType);
+                                    if (deserialized != null)
+                                        propInfo.SetValue(holon, deserialized);
+                                }
+                                catch { /* leave property unchanged if JSON deserialize fails */ }
+                            }
+                            else
+                                propInfo.SetValue(holon, holon.MetaData[key]);
+                        }
                     }
                 }
                 catch (Exception ex)
