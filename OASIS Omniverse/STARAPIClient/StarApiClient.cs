@@ -278,7 +278,7 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<bool>("Username and password are required.", StarApiResultCode.InvalidParam);
         }
 
-        StarApiExports.StarApiLog("\n********** SESSION (BEAM IN) START **********");
+        StarApiExports.StarApiLogFileOnly("\n********** SESSION (BEAM IN) START **********");
         // Allow this login request through: clear "session expired" short-circuit so user can beam in again after 401.
         lock (_stateLock) { _sessionExpiredCleared = false; }
 
@@ -853,7 +853,8 @@ public sealed class StarApiClient : IDisposable
     {
         if (!IsInitialized())
         {
-            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            // Defer callback so the export returns immediately; avoids blocking/hang when not beamed in (no re-entrant C# from native callback).
+            _ = Task.Run(() => StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory));
             return;
         }
         _ = QueueGetInventoryAsync().ContinueWith((Task<OASISResult<List<StarItem>>> task) =>
@@ -5957,7 +5958,8 @@ public static unsafe class StarApiExports
         var client = GetClient();
         if (client is null)
         {
-            StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory);
+            // Defer callback so the export never blocks the game thread (avoids hang on Linux when not connected).
+            _ = Task.Run(() => StarApiExports.InvokeOperationCallback(StarApiResultCode.NotInitialized, StarApiExports.StarApiOpGetInventory));
             return;
         }
         client.RequestInventoryInBackground();

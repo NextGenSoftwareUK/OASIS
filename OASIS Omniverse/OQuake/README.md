@@ -6,6 +6,8 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 ## Quick start
 
+### Windows
+
 1. **Build and copy integration:** From the OASIS repo root run:
    ```bat
    "OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"
@@ -14,7 +16,29 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 2. **Run the game:** Use **RUN OQUAKE.bat** to launch OQuake with your Steam Quake basedir (edit the script to set `OQUAKE_BASEDIR` and `VKQUAKE_SRC` if needed).
 
-3. **Game data:** vkQuake needs Quake game data (id1 with pak0.pak, pak1.pak, and gfx.wad). Use `-basedir` to point to your Steam Quake install or copy the data next to the exe. See **Docs/WINDOWS_INTEGRATION.md** for details.
+3. **Game data:** vkQuake needs Quake game data (id1 with pak0.pak, pak1.pak, and **gfx.wad**). Use `-basedir` to point to your Steam Quake install or copy the data next to the exe. If you have id1/pak0.pak but no gfx.wad, the run script can extract it from the pak (Linux: `Scripts/extract_gfx_wad.py`). See **Docs/WINDOWS_INTEGRATION.md** for details.
+
+### Linux
+
+1. **Prerequisites:** Install **meson**, **ninja**, Vulkan, and **glslang-tools** (for `glslangValidator`), and clone vkQuake:
+   ```bash
+   sudo apt install -y meson ninja-build libvulkan-dev vulkan-tools glslang-tools powershell
+   export VKQUAKE_SRC=~/Source/vkQuake   # or your vkQuake clone path
+   export OQUAKE_BASEDIR="$HOME/.steam/steam/steamapps/common/Quake"   # Quake game data (Steam); also used to copy face_anorak.png into id1/gfx/
+   ```
+
+2. **Build:** From OASIS Omniverse:
+   ```bash
+   cd "OASIS Omniverse/OQuake"
+   ./BUILD_OQUAKE.sh
+   ```
+   If you see **"meson/ninja not found"**, install them (see above). If you see **"glslangValidator not found"**, install `glslang-tools`. If you see a warning about **face_anorak.png** (or "Quake install dir not found"), set `OQUAKE_BASEDIR` to your Linux Quake game path so the apply script can copy the anorak face (optional).
+
+3. **Run:** `./RUN_OQUAKE.sh` (or `./BUILD_OQUAKE.sh run` to build then launch). If you see **"couldn't load gfx.wad"**, the run script will try to extract `gfx.wad` from `id1/pak0.pak` automatically (Steam often has only the pak files).
+
+4. **Cross-game keys (optional):** set `STAR_USERNAME` / `STAR_PASSWORD` or `STAR_API_KEY` / `STAR_AVATAR_ID`.
+
+See **OASIS Omniverse/Docs/GettingStarted_Linux.md** for the full Linux guide.
 
 ## Documentation
 
