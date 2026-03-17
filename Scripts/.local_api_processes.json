@@ -1,17 +1,17 @@
 {
-  "startedAtUtc": "2026-03-05T04:16:36.9375503Z",
+  "startedAtUtc": "2026-03-17T22:46:17.7152161Z",
   "web4Url": "http://localhost:7777",
   "web5Url": "http://localhost:8888",
   "processes": [
     {
+      "pid": 51542,
       "project": "/home/dellams/Source/OASIS/Scripts/../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj",
-      "name": "WEB4_OASIS_API",
-      "pid": 194845
+      "name": "WEB4_OASIS_API"
     },
     {
+      "pid": 51838,
       "project": "/home/dellams/Source/OASIS/Scripts/../STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj",
-      "name": "WEB5_STAR_API",
-      "pid": 195085
+      "name": "WEB5_STAR_API"
     }
   ]
 }

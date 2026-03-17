@@ -361,7 +361,8 @@ extern char *keybindings[MAX_KEYS];
 extern qboolean keydown[MAX_KEYS];
 extern int Key_StringToKeynum(const char *str);
 extern void Key_SetBinding(int keynum, const char *binding);
-extern int key_dest;
+extern void Key_ClearStates(void);
+/* key_dest is keydest_t and declared in keys.h (included via quakedef.h); do not redeclare here */
 
 cvar_t oasis_star_anorak_face = {"oasis_star_anorak_face", "0", 0}; /* Runtime state - not archived */
 cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
@@ -465,8 +466,9 @@ static int g_inventory_count = 0;
 static int g_inventory_active_tab = OQ_TAB_KEYS;
 static qboolean g_inventory_open = false;
 static double g_inventory_last_refresh = 0.0;
-static int g_inventory_refresh_pending = 0;  /* set when operation_callback(STAR_API_OP_GET_INVENTORY) fires; main thread applies cache to overlay */
-static int g_inventory_requested = 0;        /* 1 after request_inventory_in_background until callback fires (show Loading...) */
+/* Callback runs on C# thread pool; main thread reads these. Use volatile so main thread sees updates (avoids hang/crash on some platforms). */
+static volatile int g_inventory_refresh_pending = 0;  /* set when operation_callback(STAR_API_OP_GET_INVENTORY) fires */
+static volatile int g_inventory_requested = 0;        /* 1 after request_inventory_in_background until callback fires (show Loading...) */
 static char g_inventory_status[128] = "STAR inventory unavailable.";
 static int g_inventory_selected_row = 0;
 static int g_inventory_scroll_row = 0;
@@ -484,13 +486,19 @@ static int g_inventory_send_popup = OQ_SEND_POPUP_NONE;
 #if 0
 static unsigned int g_inventory_event_seq = 0;
 #endif
-static qboolean g_inventory_popup_input_captured = false;
+static qboolean g_inventory_popup_input_captured __attribute__((unused)) = false;
 static qboolean g_inventory_send_bindings_captured = false;
-static char g_inventory_saved_up_bind[128];
-static char g_inventory_saved_down_bind[128];
-static char g_inventory_saved_left_bind[128];
-static char g_inventory_saved_right_bind[128];
+static char g_inventory_saved_up_bind[128] __attribute__((unused));
+static char g_inventory_saved_down_bind[128] __attribute__((unused));
+static char g_inventory_saved_left_bind[128] __attribute__((unused));
+static char g_inventory_saved_right_bind[128] __attribute__((unused));
 static char g_inventory_saved_all_binds[MAX_KEYS][128];
+/* Movement keys (WASD + arrows): when inventory or quest popup is open, we clear these bindings so the player cannot move even if the engine was not patched (e.g. Linux without cl_input.c patch). Restored on close. */
+#define OQ_MOVEMENT_KEY_COUNT 8
+static int g_movement_key_indices[OQ_MOVEMENT_KEY_COUNT];  /* filled on first use */
+static char g_movement_saved_binds[OQ_MOVEMENT_KEY_COUNT][128];
+static qboolean g_movement_bindings_captured = false;
+static qboolean g_movement_keys_resolved = false;
 /* Pending use-item from overlay (E key): applied in callback after async use completes so inventory refresh shows correct qty/removal. */
 static char g_oq_use_pending_name[256];
 static char g_oq_use_pending_type[64];
@@ -797,9 +805,52 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
     return 1;
 }
 
+/** Resolve movement key indices once (WASD + arrows). Used so we can clear bindings when popup is open on Linux where engine may not be patched. */
+static void OQ_ResolveMovementKeys(void)
+{
+    static const char* const names[OQ_MOVEMENT_KEY_COUNT] = {
+        "w", "a", "s", "d", "uparrow", "downarrow", "leftarrow", "rightarrow"
+    };
+    int i;
+    if (g_movement_keys_resolved)
+        return;
+    g_movement_keys_resolved = true;
+    for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
+        int kn = Key_StringToKeynum(names[i]);
+        g_movement_key_indices[i] = (kn >= 0 && kn < MAX_KEYS) ? kn : -1;
+    }
+}
+
+/** When inventory or quest popup is open: clear WASD and arrow key bindings so the player cannot move (fallback when engine cl_input.c is not patched, e.g. Linux). Restore on close so keys work immediately. */
 static void OQ_UpdatePopupInputCapture(void)
 {
-    /* Intentionally no-op: inventory popup should not override gameplay bindings. */
+    int i;
+    qboolean popup_open = (g_inventory_open || g_quest_popup_open) ? true : false;
+
+    if (popup_open) {
+        OQ_ResolveMovementKeys();
+        if (!g_movement_bindings_captured) {
+            for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
+                int k = g_movement_key_indices[i];
+                if (k >= 0) {
+                    q_strlcpy(g_movement_saved_binds[i],
+                        keybindings[k] ? keybindings[k] : "",
+                        sizeof(g_movement_saved_binds[i]));
+                    Key_SetBinding(k, "");
+                }
+            }
+            Key_ClearStates();
+            g_movement_bindings_captured = true;
+        }
+    } else if (g_movement_bindings_captured) {
+        for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
+            int k = g_movement_key_indices[i];
+            if (k >= 0)
+                Key_SetBinding(k, g_movement_saved_binds[i]);
+        }
+        Key_ClearStates();
+        g_movement_bindings_captured = false;
+    }
 }
 
 static void OQ_UpdateSendPopupBindingCapture(void)
@@ -894,6 +945,7 @@ static void OQ_SendSelectedItem(void)
     }
 
     send_kind = (g_inventory_send_popup == OQ_SEND_POPUP_CLAN) ? "clan" : "avatar";
+    (void)send_kind; /* reserved for future log/API */
     OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
     if (mode != OQ_GROUP_MODE_COUNT)
         available = 1;
@@ -1050,7 +1102,7 @@ static void OQ_UseSelectedItem(void)
     q_strlcpy(g_oq_use_pending_name, item->name, sizeof(g_oq_use_pending_name));
     q_strlcpy(g_oq_use_pending_type, item->item_type, sizeof(g_oq_use_pending_type));
     q_strlcpy(g_oq_use_pending_description, item->description, sizeof(g_oq_use_pending_description));
-    OQ_StarDebugLog("UseItem (E key): starting async name='%s' type='%s' context=inventory_overlay", item->name, item->item_type ? item->item_type : "");
+    OQ_StarDebugLog("UseItem (E key): starting async name='%s' type='%s' context=inventory_overlay", item->name, item->item_type[0] ? item->item_type : "");
     star_sync_use_item_start(item->name, "inventory_overlay", OQ_OnUseItemFromOverlayDone, NULL);
     q_snprintf(g_inventory_status, sizeof(g_inventory_status), "Using: %s...", item->name);
 }
@@ -1060,11 +1112,11 @@ static const oquake_inventory_entry_t* OQ_FindFirstHealthEntry(void) {
     int i;
     for (i = 0; i < g_inventory_count; i++) {
         const oquake_inventory_entry_t* e = &g_inventory_entries[i];
-        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name && (OQ_ContainsNoCase(e->name, "Megahealth") || OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")))
+        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name[0] && (OQ_ContainsNoCase(e->name, "Megahealth") || OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")))
             return e;
-        if (e->item_type && OQ_ContainsNoCase(e->item_type, "health"))
+        if (e->item_type[0] && OQ_ContainsNoCase(e->item_type, "health"))
             return e;
-        if (e->name && (OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")) && !OQ_ItemMatchesTab(e, OQ_TAB_ARMOR))
+        if (e->name[0] && (OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")) && !OQ_ItemMatchesTab(e, OQ_TAB_ARMOR))
             return e;
     }
     return NULL;
@@ -1295,9 +1347,14 @@ static void OQ_StarApiOperationCallback(star_api_result_t result, int operation_
     }
     if (operation_type == STAR_API_OP_GET_INVENTORY) {
         star_item_list_t* list = NULL;
+        const char* err_msg = NULL;
         if (result == STAR_API_SUCCESS)
             star_api_get_inventory(&list);
-        star_sync_inventory_deliver_result(list, result, result != STAR_API_SUCCESS ? star_api_get_last_error() : NULL);
+        else if (result == STAR_API_ERROR_NOT_INITIALIZED)
+            err_msg = "Not initialized";
+        else
+            err_msg = star_api_get_last_error();
+        star_sync_inventory_deliver_result(list, result, err_msg);
         g_inventory_requested = 0;
         g_inventory_refresh_pending = 1;
     }
@@ -1339,42 +1396,63 @@ static void OQ_RefreshOverlayFromClient(void) {
         g_inventory_refresh_pending = 0;
         g_inventory_count = 0;
         if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
-            size_t i;
-            for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
-                oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
-                q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
-                q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
-                q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
-                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
-                q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
-                q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
-                dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
-                g_inventory_count++;
+            size_t i, n = list->count;
+            /* Defensive: avoid null deref or huge loop if C# returns bad data */
+            if (list->items && n <= OQ_MAX_INVENTORY_ITEMS * 2) {
+                for (i = 0; i < n && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+                    oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
+                    const char* nm = list->items[i].name;
+                    const char* desc = list->items[i].description;
+                    const char* typ = list->items[i].item_type;
+                    const char* id = list->items[i].id;
+                    const char* src = list->items[i].game_source;
+                    const char* nft = list->items[i].nft_id;
+                    q_strlcpy(dst->name, nm ? nm : "", sizeof(dst->name));
+                    q_strlcpy(dst->description, desc ? desc : "", sizeof(dst->description));
+                    q_strlcpy(dst->item_type, typ ? typ : "", sizeof(dst->item_type));
+                    q_strlcpy(dst->id, id ? id : "", sizeof(dst->id));
+                    q_strlcpy(dst->game_source, src ? src : "", sizeof(dst->game_source));
+                    q_strlcpy(dst->nft_id, nft ? nft : "", sizeof(dst->nft_id));
+                    dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
+                    g_inventory_count++;
+                }
             }
             star_api_free_item_list(list);
         }
     } else if (!g_inventory_requested && g_inventory_count == 0) {
-        /* No data yet (e.g. overlay just opened): request once and show Loading until callback delivers. */
+        /* When not beamed in: never call into C# (avoids hang on Linux). Show empty inventory and return. */
+        if (!star_initialized()) {
+            q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
+            g_inventory_last_refresh = realtime;
+            if (star_sync_send_item_in_progress())
+                return;
+            return;
+        }
+        /* No data yet (overlay just opened, and we are initialized): request once. */
         star_api_request_inventory_in_background();
         g_inventory_requested = 1;
-        if (!star_initialized())
-            q_strlcpy(g_inventory_status, "Offline - use STAR BEAMIN", sizeof(g_inventory_status));
-        else
-            q_strlcpy(g_inventory_status, "Loading...", sizeof(g_inventory_status));
+        q_strlcpy(g_inventory_status, "Loading...", sizeof(g_inventory_status));
     } else {
         /* Already have items or request in flight: re-read from cache so pickups (add_item merged in C#) show up. */
         star_item_list_t* list = NULL;
-        if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list) {
+        if (star_api_get_inventory(&list) == STAR_API_SUCCESS && list && list->items) {
+            size_t i, n = list->count;
+            if (n > OQ_MAX_INVENTORY_ITEMS * 2) n = OQ_MAX_INVENTORY_ITEMS * 2;
             g_inventory_count = 0;
-            size_t i;
-            for (i = 0; i < list->count && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
+            for (i = 0; i < n && g_inventory_count < OQ_MAX_INVENTORY_ITEMS; i++) {
                 oquake_inventory_entry_t* dst = &g_inventory_entries[g_inventory_count];
-                q_strlcpy(dst->name, list->items[i].name, sizeof(dst->name));
-                q_strlcpy(dst->description, list->items[i].description, sizeof(dst->description));
-                q_strlcpy(dst->item_type, list->items[i].item_type, sizeof(dst->item_type));
-                q_strlcpy(dst->id, list->items[i].id, sizeof(dst->id));
-                q_strlcpy(dst->game_source, list->items[i].game_source, sizeof(dst->game_source));
-                q_strlcpy(dst->nft_id, list->items[i].nft_id, sizeof(dst->nft_id));
+                const char* nm = list->items[i].name;
+                const char* desc = list->items[i].description;
+                const char* typ = list->items[i].item_type;
+                const char* id = list->items[i].id;
+                const char* src = list->items[i].game_source;
+                const char* nft = list->items[i].nft_id;
+                q_strlcpy(dst->name, nm ? nm : "", sizeof(dst->name));
+                q_strlcpy(dst->description, desc ? desc : "", sizeof(dst->description));
+                q_strlcpy(dst->item_type, typ ? typ : "", sizeof(dst->item_type));
+                q_strlcpy(dst->id, id ? id : "", sizeof(dst->id));
+                q_strlcpy(dst->game_source, src ? src : "", sizeof(dst->game_source));
+                q_strlcpy(dst->nft_id, nft ? nft : "", sizeof(dst->nft_id));
                 dst->quantity = list->items[i].quantity > 0 ? list->items[i].quantity : 1;
                 g_inventory_count++;
             }
@@ -4379,6 +4457,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
     }
 
+    /* Update movement-key capture whenever either popup is open (so WASD/arrows are disabled on Linux even if engine cl_input.c was not patched). */
+    OQ_UpdatePopupInputCapture();
+
     if (g_inventory_open)
         OQ_PollInventoryHotkeys();
 
@@ -4508,7 +4589,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static int q_prereq_count[OQ_QUEST_MAX];
         static char q_obj_id[OQ_QUEST_MAX][OQ_OBJ_MAX][64];
         static char q_obj_desc[OQ_QUEST_MAX][OQ_OBJ_MAX][128];
-        static int q_obj_done[OQ_QUEST_MAX][OQ_OBJ_MAX];
+        static int q_obj_done[OQ_QUEST_MAX][OQ_OBJ_MAX] __attribute__((unused));
         static int q_obj_count[OQ_QUEST_MAX];
         static int q_count;
         static int q_filtered_indices[OQ_QUEST_MAX];
@@ -4642,7 +4723,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int si;
             for (si = 0; si < q_count; si++) {
                 if (strcmp(q_id[si], g_quest_tracker_id) == 0) {
-                    q_strlcpy(g_quest_tracker_name, q_name[si] ? q_name[si] : "", sizeof(g_quest_tracker_name));
+                    q_strlcpy(g_quest_tracker_name, q_name[si][0] ? q_name[si] : "", sizeof(g_quest_tracker_name));
                     break;
                 }
             }
@@ -4656,7 +4737,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         static char drill_q_desc[OQ_QUEST_MAX][256];
         static char drill_q_status[OQ_QUEST_MAX][24];
         static char drill_q_pct[OQ_QUEST_MAX][8];
-        static int drill_q_is_subquest[OQ_QUEST_MAX];
+        static int drill_q_is_subquest[OQ_QUEST_MAX] __attribute__((unused));
         static int drill_q_count;
         static int drill_q_filtered_indices[OQ_QUEST_MAX];
         static int drill_q_filtered_count;
@@ -4738,7 +4819,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
                 for (di = 0; di < drill_q_count; di++) {
                     if (strcmp(drill_q_id[di], g_quest_tracker_id) == 0) {
-                        q_strlcpy(g_quest_tracker_name, drill_q_name[di] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
+                        q_strlcpy(g_quest_tracker_name, drill_q_name[di][0] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
                         break;
                     }
                 }
@@ -4998,7 +5079,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     int log_max = q_count > 24 ? 24 : q_count;
                     int ii;
                     for (ii = 0; ii < log_max; ii++)
-                        OQ_StarDebugLog("  [%d] id=%s name=%.60s status=%s", ii, q_id[ii], q_name[ii] ? q_name[ii] : "(null)", q_status[ii] ? q_status[ii] : "(null)");
+                        OQ_StarDebugLog("  [%d] id=%s name=%.60s status=%s", ii, q_id[ii], q_name[ii][0] ? q_name[ii] : "(null)", q_status[ii][0] ? q_status[ii] : "(null)");
                 } else if (n > 20) {
                     char prev[420];
                     int pi = 0;
@@ -5150,11 +5231,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                         g_quest_tracker_objective_index = 0;
                                     }
                                     q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                    q_strlcpy(g_quest_tracker_name, drill_q_name[di] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
+                                    q_strlcpy(g_quest_tracker_name, drill_q_name[di][0] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
                                     g_quest_tracker_show = 1;
                                     {
                                         static char log_buf[512];
-                                        const char* qn = drill_q_name[di] && drill_q_name[di][0] ? drill_q_name[di] : "(none)";
+                                        const char* qn = drill_q_name[di][0] ? drill_q_name[di] : "(none)";
                                         q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on drill quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
                                         star_api_log_to_file(log_buf);
                                     }
@@ -5185,11 +5266,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                         g_quest_tracker_objective_index = 0;
                                     }
                                     q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                    q_strlcpy(g_quest_tracker_name, q_name[idx] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
+                                    q_strlcpy(g_quest_tracker_name, q_name[idx][0] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
                                     g_quest_tracker_show = 1;
                                     {
                                         static char log_buf[512];
-                                        const char* qn = q_name[idx] && q_name[idx][0] ? q_name[idx] : "(none)";
+                                        const char* qn = q_name[idx][0] ? q_name[idx] : "(none)";
                                         q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on top-level quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
                                         star_api_log_to_file(log_buf);
                                     }
@@ -5205,9 +5286,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         /* Toggles: 1=Not Started, 2=In Progress, 3=Completed */
         {
             static int s_kb = -2, s_kn = -2, s_km = -2;
-            if (s_kb == -2) s_kb = Key_StringToKeynum("b"); if (s_kb < 0) s_kb = 'b';
-            if (s_kn == -2) s_kn = Key_StringToKeynum("n"); if (s_kn < 0) s_kn = 'n';
-            if (s_km == -2) s_km = Key_StringToKeynum("m"); if (s_km < 0) s_km = 'm';
+            if (s_kb == -2) s_kb = Key_StringToKeynum("b");
+            if (s_kb < 0) s_kb = 'b';
+            if (s_kn == -2) s_kn = Key_StringToKeynum("n");
+            if (s_kn < 0) s_kn = 'n';
+            if (s_km == -2) s_km = Key_StringToKeynum("m");
+            if (s_km < 0) s_km = 'm';
             if (OQ_KeyPressed(s_kb)) g_quest_filter_not_started = !g_quest_filter_not_started;
             if (OQ_KeyPressed(s_kn)) g_quest_filter_in_progress = !g_quest_filter_in_progress;
             if (OQ_KeyPressed(s_km)) g_quest_filter_completed = !g_quest_filter_completed;
@@ -5327,14 +5411,14 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     else
                         status_str = status_str[0] ? status_str : "-";
                     q_strlcpy(status_display, status_str, sizeof(status_display));
-                    q_strlcpy(name_buf, drill_q_name[idx] ? drill_q_name[idx] : "-", sizeof(name_buf));
+                    q_strlcpy(name_buf, drill_q_name[idx][0] ? drill_q_name[idx] : "-", sizeof(name_buf));
                     if ((int)strlen(name_buf) > col1_chars - 2) {
                         name_buf[col1_chars - 3] = '.';
                         name_buf[col1_chars - 2] = '.';
                         name_buf[col1_chars - 1] = '\0';
                     }
                     Draw_String(cbx, col1_x, dy, name_buf);
-                    q_snprintf(name_buf, sizeof(name_buf), "%s%%", drill_q_pct[idx] ? drill_q_pct[idx] : "0");
+                    q_snprintf(name_buf, sizeof(name_buf), "%s%%", drill_q_pct[idx][0] ? drill_q_pct[idx] : "0");
                     Draw_String(cbx, col2_x, dy, name_buf);
                     Draw_String(cbx, col3_x, dy, status_display);
                 } else {
@@ -5354,14 +5438,14 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     else
                         status_str = status_str[0] ? status_str : "-";
                     q_strlcpy(status_display, status_str, sizeof(status_display));
-                    q_strlcpy(name_buf, q_name[idx] ? q_name[idx] : "-", sizeof(name_buf));
+                    q_strlcpy(name_buf, q_name[idx][0] ? q_name[idx] : "-", sizeof(name_buf));
                     if ((int)strlen(name_buf) > col1_chars - 2) {
                         name_buf[col1_chars - 3] = '.';
                         name_buf[col1_chars - 2] = '.';
                         name_buf[col1_chars - 1] = '\0';
                     }
                     Draw_String(cbx, col1_x, dy, name_buf);
-                    q_snprintf(name_buf, sizeof(name_buf), "%s%%", q_pct[idx] ? q_pct[idx] : "0");
+                    q_snprintf(name_buf, sizeof(name_buf), "%s%%", q_pct[idx][0] ? q_pct[idx] : "0");
                     Draw_String(cbx, col2_x, dy, name_buf);
                     Draw_String(cbx, col3_x, dy, status_display);
                 }

@@ -107,6 +107,14 @@ else
   if [[ ! -f "$STAR_LIB" ]]; then
     echo "STARAPIClient not built yet or output missing; building..."
   fi
+  # Mirror Windows (publish_and_deploy_star_api.ps1): STARAPIClient AOT references API.Contracts as pre-built DLL; build it first. Windows script already does this; Unix was missing it hence Linux failed until we added this step. Do not remove or Windows/Unix will diverge.
+  CONTRACTS_PROJECT="$OMNIVERSE_ROOT/../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/NextGenSoftware.OASIS.API.Contracts.csproj"
+  if [[ -f "$CONTRACTS_PROJECT" ]]; then
+    echo "Building NextGenSoftware.OASIS.API.Contracts (Release)..."
+    dotnet build "$CONTRACTS_PROJECT" -c Release --no-restore -v q
+  else
+    echo "WARN: API.Contracts project not found at $CONTRACTS_PROJECT; publish may fail if DLL is missing."
+  fi
   echo "Publishing NativeAOT WEB5 STAR API wrapper for $RUNTIME..."
   dotnet publish "$PROJECT_PATH" -c Release -r "$RUNTIME" -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
 fi
