@@ -92,6 +92,9 @@ void star_sync_auth_get_result_jwt(char* jwt_buf, size_t jwt_size);
 /** Non-zero if an auth is currently in progress */
 int star_sync_auth_in_progress(void);
 
+/** Force-clear auth state so a new auth can be started (e.g. after timeout). Call when the game has given up waiting; the previous auth thread may still complete later and invoke the callback once. */
+void star_sync_auth_force_reset(void);
+
 /* ---------------------------------------------------------------------------
  * Async inventory refresh (optionally sync local items first, then get_inventory)
  * --------------------------------------------------------------------------- */
