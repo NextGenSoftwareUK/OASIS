@@ -136,6 +136,8 @@ star_api_result_t star_api_send_item_to_clan(const char* clan_name_or_target, co
 void star_api_queue_add_xp(int amount);
 /** Queue monster kill (XP + optional mint + add to inventory). All work runs on background thread; never blocks. provider/game_source may be NULL (game_source NULL/empty = ODOOM). */
 void star_api_queue_monster_kill(const char* engine_name, const char* display_name, int xp, int is_boss, int do_mint, const char* provider, const char* game_source);
+/** Report current level elapsed time (seconds) for quest time-limit objectives (e.g. Quake cl.time / scoreboard). Throttle in game ~10s. game_source e.g. Quake, ODOOM. */
+void star_api_queue_quest_level_time(const char* game_source, int level_elapsed_seconds);
 /** Get last known avatar XP (from get-current-avatar or after add-xp). Returns 0 if not loaded. Write to *xp_out; pass NULL to skip. Returns 1 if value is valid, 0 otherwise. */
 int star_api_get_avatar_xp(int* xp_out);
 /* REDUNDANT: removed. Use star_api_refresh_avatar_profile() only. */

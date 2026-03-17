@@ -81,6 +81,20 @@ star_sync does **not** implement the API; it runs **star_api_*** calls on a work
 
 **Summary:** STARAPIClient is the single implementation of the STAR API (C#). star_sync is a small C layer that "async-ifies" a subset of those calls for the games. star_sync now lives only in STARAPIClient and is copied from there for both Doom and Quake (migration complete).
 
+### C API export automation (no manual .def or stubs)
+
+When you add a new `[UnmanagedCallersOnly(EntryPoint = "star_api_foo", ...)]` (or `star_sync_*`) in C#, **you do not need to edit star_api.def or add stub files.** BUILD DOOM and BUILD QUAKE both run the STAR API build/deploy first, which:
+
+1. **Regenerates star_api.def** from the C# sources via `STARAPIClient/Scripts/generate_star_api_def.ps1` (invoked by `publish_and_deploy_star_api.ps1`). The script scans `StarApiClient.cs` and `StarSyncExports.cs` for `EntryPoint = "name"` and writes the full export list. One symbol is excluded from the .lib by design: `star_api_authenticate_with_jwt_out` (game forwarder provides it at runtime).
+2. **Builds star_api.lib** from that .def so the import library has every export. Games link against this .lib and resolve all symbols without LNK2001.
+3. **Deploys** the DLL, .lib, and header to the game trees. BUILD DOOM / BUILD QUAKE then build the engine against the deployed .lib.
+
+So: add the export in C#, declare it in `star_api.h` for the games to call, and run BUILD DOOM or BUILD QUAKE as usual. No manual .def edits and no per-symbol stub files. To regenerate the .def by hand (e.g. after adding exports without running a full deploy), run `STARAPIClient\Scripts\generate_star_api_def.ps1`.
+
+### Quest progress endpoint (POST /api/quests/{id}/progress)
+
+The client sends in-game progress (kills, pickups, level time) to `POST {baseApiUrl}/api/quests/{questId}/progress`. **This route is implemented in STAR ODK** (`STAR ODK/.../Controllers/QuestsController.cs`). If your base URL points at ONODE only (no STAR ODK or proxy), you will get **404** for progress calls. Either point the STAR API base URL at the STAR ODK service that exposes `/api/quests/{id}/progress`, or add an equivalent route/proxy on ONODE. The client skips sending when all deltas are zero (no 0-delta progress calls).
+
 ### Star_sync: in-client (C#) default vs C implementation
 
 STARAPIClient provides **two** ways to get the star_sync_* API. **The default is the in-client (C#) implementation.**

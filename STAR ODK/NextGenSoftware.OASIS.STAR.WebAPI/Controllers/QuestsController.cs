@@ -18,6 +18,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Concurrent;
 using System.Threading;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -1228,6 +1229,43 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// <summary>
         /// Completes an objective (sub-quest) for a quest.
         /// </summary>
+        /// <summary>Apply in-game progress (monster kills, XP, item pickups, keys, level elapsed seconds) to the tracked quest. Updates objective progress and % complete; completes objectives/quest when thresholds are met.</summary>
+        [HttpPost("{id}/progress")]
+        [ProducesResponseType(typeof(OASISResult<QuestProgressApplyResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<QuestProgressApplyResult>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ApplyQuestProgress(Guid id, [FromBody] QuestProgressRequest request)
+        {
+            try
+            {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+                if (request == null)
+                    return BadRequest(new OASISResult<QuestProgressApplyResult> { IsError = true, Message = "Body required." });
+                var delta = new QuestProgressDelta
+                {
+                    MonstersKilledDelta = request.MonstersKilledDelta,
+                    XpEarnedDelta = request.XpEarnedDelta,
+                    KeysCollectedDelta = request.KeysCollectedDelta,
+                    ArmorCollectedDelta = request.ArmorCollectedDelta,
+                    HealthCollectedDelta = request.HealthCollectedDelta,
+                    WeaponsCollectedDelta = request.WeaponsCollectedDelta,
+                    PowerupsCollectedDelta = request.PowerupsCollectedDelta,
+                    AmmoCollectedDelta = request.AmmoCollectedDelta,
+                    ItemCollectedName = request.ItemCollectedName ?? string.Empty,
+                    GenericItemPickup = request.GenericItemPickup,
+                    LevelTimeSeconds = request.LevelTimeSeconds
+                };
+                var result = await _starAPI.Quests.ApplyQuestProgressAsync(AvatarId, id, request.GameSource ?? "ODOOM", delta);
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<QuestProgressApplyResult> { IsError = true, Message = ex.Message });
+            }
+        }
+
         [HttpPost("{id}/objectives/{objectiveId}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
@@ -1552,5 +1590,22 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string GameSource { get; set; } = "";
         public string CompletionNotes { get; set; } = "";
+    }
+
+    /// <summary>Realtime quest progress from game (Doom/Quake): kills, XP, pickups by type, level time. Objective dictionaries (NeedToCollectArmor etc.) are keyed by game source (ODOOM, Quake, OQUAKE).</summary>
+    public class QuestProgressRequest
+    {
+        public string GameSource { get; set; } = "ODOOM";
+        public int MonstersKilledDelta { get; set; }
+        public int XpEarnedDelta { get; set; }
+        public int KeysCollectedDelta { get; set; }
+        public int ArmorCollectedDelta { get; set; }
+        public int HealthCollectedDelta { get; set; }
+        public int WeaponsCollectedDelta { get; set; }
+        public int PowerupsCollectedDelta { get; set; }
+        public int AmmoCollectedDelta { get; set; }
+        public string ItemCollectedName { get; set; } = "";
+        public int GenericItemPickup { get; set; }
+        public int? LevelTimeSeconds { get; set; }
     }
 }

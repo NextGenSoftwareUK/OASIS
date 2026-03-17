@@ -21,6 +21,7 @@ The STAR API (WEB5) exposes REST endpoints for quests. STARAPIClient calls these
 | Start a quest | POST | `{base}/api/quests/{questId}/start` |
 | Complete an objective | POST | `{base}/api/quests/{questId}/objectives/{objectiveId}/complete` (body: `gameSource`) |
 | Complete a quest | POST | `{base}/api/quests/{questId}/complete` |
+| **Realtime progress** | POST | `{base}/api/quests/{questId}/progress` (body: `gameSource`, `monstersKilledDelta`, `xpEarnedDelta`, `keysCollectedDelta`, `genericItemPickup`, `itemCollectedName`, optional `levelTimeSeconds`) |
 | Create quest (e.g. cross-game) | POST | `{base}/api/quests/create` (body: name, description, objectives, etc.) |
 | Get active quests | GET | `{base}/api/quests/by-status/InProgress` |
 
@@ -143,6 +144,17 @@ The WEB5 Quest API can support different quest types; games just call start/obje
 - **Combat / achievements** – Objective “kill 10 imps”; game calls `star_api_complete_quest_objective` when count is reached.
 
 Rewards (items, NFTs, karma, XP) are defined and applied on the backend when the quest is completed via `star_api_complete_quest`.
+
+### Realtime objective progress (ODOOM / OQuake)
+
+- **Active quest** must be set on the avatar (`ActiveQuestId` from beam-in / `star_api_set_active_quest`). The STARAPIClient posts progress to **`POST …/api/quests/{activeQuestId}/progress`** automatically when:
+  - **Monster kill** — `star_api_queue_monster_kill` → increments monster-kill and XP counters for objectives that define `NeedToKillMonsters` / `NeedToEarnXP` for that game source (`ODOOM`, `OQUAKE`, or `Quake` depending on game).
+  - **Pickup** — `star_api_queue_add_item` / pickup-with-mint → increments item/key counts for `NeedToCollectItems` / `NeedToCollectKeys`.
+- **% complete** is stored on the quest (`MetaData.ProgressPercent`) and derived from objective requirement vs progress dictionaries.
+- **100%** — when all objectives meet their thresholds, each objective is marked complete; when every objective is complete, the **quest** is marked completed (same as manual `complete`).
+- **Level time (OQuake)** — `star_api_queue_quest_level_time("Quake", seconds)` is called ~every 10s from the HUD path using **`cl.time`** (same clock as the scoreboard). Use for objectives with time limits (`NeedToCompleteInMins` / `TimeTaken` on the backend).
+
+Quest definitions must use **objective dictionaries** (`NeedToKillMonsters`, `NeedToEarnXP`, `NeedToCollectItems`, etc.) keyed by game source so the engine can advance progress.
 
 ---
 
