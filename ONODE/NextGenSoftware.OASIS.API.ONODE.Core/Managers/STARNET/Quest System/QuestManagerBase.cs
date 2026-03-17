@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
                     {
                         quest.ParentHolonId = parentId;
+                        // Use generic SaveAsync<T1> (Quest) so HolonManager.SaveHolonAsync<T> runs PrepareHolonForSaving (metadata mapping).
                         OASISResult<T1> questSaveResult = await quest.SaveAsync<T1>();
 
                         if (questSaveResult != null && questSaveResult.Result != null && !questSaveResult.IsError)
@@ -81,6 +82,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (chapterResult != null && chapterResult.Result != null && !chapterResult.IsError)
                     {
                         quest.ParentHolonId = parentId;
+                        // Use generic Save<T1> (Quest) so HolonManager path runs PrepareHolonForSaving (metadata mapping).
                         OASISResult<T1> questSaveResult = quest.Save<T1>();
 
                         if (questSaveResult != null && questSaveResult.Result != null && !questSaveResult.IsError)

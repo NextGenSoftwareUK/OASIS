@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -47,6 +47,11 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         ConsoleColor STARCLIColour { get; set; }
         IAvatarStats Stats { get; set; }
         IAvatarSuperPowers SuperPowers { get; set; }
+
+        /// <summary>Quest currently tracked in the game HUD (e.g. Doom/Quake). Persisted so it is restored after beam-in.</summary>
+        Guid? ActiveQuestId { get; set; }
+        /// <summary>Objective currently active within the tracked quest. Persisted so it is restored after beam-in.</summary>
+        Guid? ActiveObjectiveId { get; set; }
 
         OASISResult<KarmaAkashicRecord> KarmaEarnt(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);
         Task<OASISResult<KarmaAkashicRecord>> KarmaEarntAsync(KarmaTypePositive karmaType, KarmaSourceType karmaSourceType, string karamSourceTitle, string karmaSourceDesc, string webLink = null, bool autoSave = true, int karmaOverride = 0);

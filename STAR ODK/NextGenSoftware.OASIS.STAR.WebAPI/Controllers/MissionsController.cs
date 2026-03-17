@@ -852,7 +852,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
+        public Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
         {
             try
             {
@@ -864,11 +864,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission completed successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return HandleException<bool>(ex, "completing mission");
+                return Task.FromResult(HandleException<bool>(ex, "completing mission"));
             }
         }
 
@@ -883,7 +883,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/leaderboard")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
+        public Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
         {
             try
             {
@@ -894,16 +894,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission leaderboard retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission leaderboard: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -917,7 +917,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/rewards")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionRewards(Guid id)
+        public Task<IActionResult> GetMissionRewards(Guid id)
         {
             try
             {
@@ -928,16 +928,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission rewards retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<MissionReward>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionReward>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission rewards: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
 
@@ -950,7 +950,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("stats")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMissionStats()
+        public Task<IActionResult> GetMissionStats()
         {
             try
             {
@@ -969,16 +969,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = false,
                     Message = "Mission statistics retrieved successfully"
                 };
-                return Ok(result);
+                return Task.FromResult<IActionResult>(Ok(result));
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<Dictionary<string, object>>
+                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<Dictionary<string, object>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission statistics: {ex.Message}",
                     Exception = ex
-                });
+                }));
             }
         }
     }

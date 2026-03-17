@@ -35,6 +35,8 @@
             "HideRefreshTokens": true,
             "SecretKey": "",
             "RemoveOldRefreshTokensAfterXDays": 0,
+            "JwtTokenExpirationMinutes": 15,
+            "RefreshTokenExpirationDays": 7,
             "AvatarPassword": {
                 "BCryptEncryptionEnabled": true,
                 "Rijndael256EncryptionEnabled": true,

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using MongoDB.Driver;
 using System.Threading.Tasks;
@@ -462,6 +462,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 foreach (Holon holon in holons)
                 {
+                    if (holon.MetaData == null)
+                        continue;
                     if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
                         matchedHolons.Add(holon);
                 }
@@ -525,7 +527,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 foreach (Holon holon in holons)
                 {
-                    if (holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
+                    if (holon.MetaData != null && holon.MetaData.ContainsKey(metaKey) && holon.MetaData[metaKey] != null && holon.MetaData[metaKey].ToString() == metaValue)
                         matchedHolons.Add(holon);
                 }
                 
@@ -592,6 +594,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 foreach (Holon holon in holons)
                 {
+                    if (holon.MetaData == null)
+                        continue;
                     matchedKeys = 0;
                     foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
                     {
@@ -646,6 +650,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 foreach (Holon holon in holons)
                 {
+                    if (holon.MetaData == null)
+                        continue;
                     matchedKeys = 0;
                     foreach (KeyValuePair<string, string> metaKeyValuePair in metaKeyValuePairs)
                     {

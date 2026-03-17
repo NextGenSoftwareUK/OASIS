@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -418,6 +418,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                     foreach (Holon holon in holons)
                     {
+                        if (holon.MetaData == null)
+                            continue;
                         int matchedKeys = 0;
                         foreach (KeyValuePair<string, string> metaKeyValuePair in searchParams.FilterByMetaData)
                         {

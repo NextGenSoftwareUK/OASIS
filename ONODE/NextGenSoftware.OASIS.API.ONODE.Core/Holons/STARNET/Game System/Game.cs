@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public GameType GameType { get; set; }
 
         [CustomOASISProperty()]
-        public string Version { get; set; }
+        public new string Version { get; set; }
 
         [CustomOASISProperty()]
         public string Developer { get; set; }

@@ -10,7 +10,16 @@
  * All completion callbacks are invoked on the main thread when you call star_sync_pump().
  * Call star_sync_pump() once per frame; no per-frame polling of individual operations.
  *
- * Include star_api.h before this header. Link with star_sync.c (or build as lib) and star_api.
+ * Include star_api.h before this header.
+ *
+ * Build options:
+ * - Default: star_sync_* are exported from star_api.dll (C# implementation). Do NOT compile
+ *   star_sync.c; link only star_api. BUILD ODOOM / BUILD_OQUAKE set this by default.
+ * - To use the C implementation instead: set OASIS_STAR_SYNC_IN_CLIENT=0 and rebuild, or
+ *   undefine OASIS_STAR_SYNC_IN_CLIENT and add star_sync.c to the build again.
+ * - If you get LNK2001 for star_api_queue_quest_level_time: either link with a STAR API build
+ *   that exports it, or add star_sync.c and define STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB, or
+ *   add only star_api_quest_level_time_stub.c to the build (no macro needed).
  */
 
 #ifndef STAR_SYNC_H
@@ -23,6 +32,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/** Optional callback invoked after add_item (single or batch): (item_name, success, error_message, user_data). Called from main thread. */
+typedef void (*star_sync_add_item_log_fn)(const char* item_name, int success, const char* error_message, void* user_data);
+
+/** Set optional callback for add_item results (e.g. for debug logging). Pass NULL to clear. */
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn cb, void* user_data);
 
 /** Call once at game startup (e.g. from OQuake_STAR_Init). Required on Windows to initialize locks. */
 void star_sync_init(void);
@@ -48,7 +63,6 @@ typedef struct star_sync_local_item {
     char game_source[64];
     char item_type[64];
     char nft_id[128];  /* optional; empty = no NFT. When set, add_item stores NFTId in item MetaData. */
-    int  quantity;     /* for stack/ammo: amount to add (e.g. 20 shells). 0 = use 1 when sending. */
     int  synced;  /* output: set to 1 by sync layer when item is on remote */
 } star_sync_local_item_t;
 
@@ -72,6 +86,8 @@ int star_sync_auth_get_result(
     char* avatar_id_buf, size_t avatar_id_size,
     char* error_msg_buf, size_t error_msg_size
 );
+/** Copy JWT from last auth result into jwt_buf (call after star_sync_auth_get_result). For oasisstar.json / autobeamin. */
+void star_sync_auth_get_result_jwt(char* jwt_buf, size_t jwt_size);
 
 /** Non-zero if an auth is currently in progress */
 int star_sync_auth_in_progress(void);
@@ -108,15 +124,11 @@ int star_sync_inventory_get_result(
 /** Clear the stored result (frees the list). Call after you've copied or used the list. */
 void star_sync_inventory_clear_result(void);
 
+/** Deliver inventory result from the game's operation_callback(STAR_API_OP_GET_INVENTORY). Call after star_api_get_inventory() when callback fires. Takes ownership of list (may be NULL on error). */
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg);
+
 /** Non-zero if an inventory refresh is currently in progress */
 int star_sync_inventory_in_progress(void);
-
-/** After a sync completes, returns how many star_api_add_item calls were made (0 = old queue path or no items to add). Call from the inventory-done callback. */
-int star_sync_inventory_get_last_add_item_calls(void);
-
-/** Optional: called after each star_api_add_item during inventory sync. item_name, success (1=ok 0=fail), error_message (when fail). Called from sync worker thread. Set to NULL to disable. */
-typedef void (*star_sync_add_item_log_fn)(const char* item_name, int success, const char* error_message, void* user_data);
-void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data);
 
 /* ---------------------------------------------------------------------------
  * One-shot sync of a single local item (has_item then add_item if missing).

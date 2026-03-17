@@ -88,32 +88,37 @@ if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
   exit 1
 fi
 
-# QuakeC tree
-if [[ ! -d "$QUAKE_SRC" ]]; then
-  echo "ERROR: Quake source not found: $QUAKE_SRC"
-  echo "  Set QUAKE_SRC or clone quake-rerelease-qc to \$HOME/Source/quake-rerelease-qc"
-  exit 1
-fi
-
-# star_sync (copy if missing so local edits are not overwritten)
-if [[ ! -f "$OQUAKE_CODE/star_sync.c" ]] && [[ -f "$STARAPICLIENT/star_sync.c" ]]; then
+# star_sync (shared with Doom): always copy from STARAPIClient so Quake uses the same star_sync as Doom and the client
+if [[ -f "$STARAPICLIENT/star_sync.c" ]]; then
   mkdir -p "$OQUAKE_CODE"
   cp -f "$STARAPICLIENT/star_sync.c" "$OQUAKE_CODE/"
   cp -f "$STARAPICLIENT/star_sync.h" "$OQUAKE_CODE/"
 fi
 
+# Require vkQuake to build the exe. QUAKE_SRC (quake-rerelease-qc) is optional if you only run BUILD QUAKE.
+if [[ -z "$VKQUAKE_SRC" || ! -d "$VKQUAKE_SRC" || ! -f "$VKQUAKE_SRC/Quake/pr_ext.c" ]]; then
+  echo "ERROR: vkQuake source required. Set VKQUAKE_SRC (e.g. \$HOME/Source/vkQuake) to build the engine."
+  echo "  Optional: set QUAKE_SRC to also copy integration into a QuakeC tree."
+  exit 1
+fi
+
 echo ""
-echo "[OQuake] Installing integration into QuakeC tree..."
-cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_SRC/"
-cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_SRC/"
-[[ -f "$OQUAKE_CODE/oquake_version.h" ]] && cp -f "$OQUAKE_CODE/oquake_version.h" "$QUAKE_SRC/"
-[[ -f "$HERE/Docs/WINDOWS_INTEGRATION.md" ]] && cp -f "$HERE/Docs/WINDOWS_INTEGRATION.md" "$QUAKE_SRC/"
-[[ -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" ]] && cp -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" "$QUAKE_SRC/"
-cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_SRC/"
-[[ -f "$OQUAKE_CODE/star_sync.c" ]] && cp -f "$OQUAKE_CODE/star_sync.c" "$QUAKE_SRC/"
-[[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_SRC/"
-cp -f "$STAR_SO" "$QUAKE_SRC/"
-echo "  $QUAKE_SRC"
+echo "[OQuake] Installing..."
+if [[ -d "$QUAKE_SRC" ]]; then
+  echo "[OQuake] Installing integration into QuakeC tree..."
+  cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_SRC/"
+  cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/oquake_version.h" ]] && cp -f "$OQUAKE_CODE/oquake_version.h" "$QUAKE_SRC/"
+  [[ -f "$HERE/Docs/WINDOWS_INTEGRATION.md" ]] && cp -f "$HERE/Docs/WINDOWS_INTEGRATION.md" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" ]] && cp -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" "$QUAKE_SRC/"
+  cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/star_sync.c" ]] && cp -f "$OQUAKE_CODE/star_sync.c" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_SRC/"
+  cp -f "$STAR_SO" "$QUAKE_SRC/"
+  echo "  $QUAKE_SRC"
+else
+  echo "  QUAKE_SRC not set or missing; skipping copy to QuakeC tree (only vkQuake will get integration)."
+fi
 
 # vkQuake: patch and build
 QUAKE_ENGINE_EXE=""

@@ -322,6 +322,23 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
+            if (method == "GET" && path == "/api/quests/all-for-avatar")
+            {
+                /* Return quests with objectives and a sub-quest (flat list with parentQuestId) so client objectives/subquests parsing can be tested. */
+                object[] objectivesParent = new object[]
+                {
+                    new { Id = "obj-1", Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
+                    new { Id = "obj-2", Description = "Objective 2", GameSource = "Quake", ItemRequired = "Health", IsCompleted = true }
+                };
+                var quests = new[]
+                {
+                    new { Id = "parent-001", Name = "Parent Quest With Objectives", Description = "Integration test parent", Status = "InProgress", ParentQuestId = "", Objectives = objectivesParent },
+                    new { Id = "child-001", Name = "Sub-Quest For Right Panel", Description = "Integration test sub-quest", Status = "NotStarted", ParentQuestId = "parent-001", Objectives = Array.Empty<object>() }
+                };
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = quests }).ConfigureAwait(false);
+                return;
+            }
+
             if (method == "GET" && path == "/api/quests/by-status/InProgress")
             {
                 await WriteJsonAsync(response, 200, new

@@ -7,8 +7,8 @@ $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$nativeDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/native"
-$publishDir = Join-Path $scriptDir "bin/Release/net8.0/$Runtime/publish"
+$nativeDir = Join-Path $scriptDir "bin/Release/net9.0/$Runtime/native"
+$publishDir = Join-Path $scriptDir "bin/Release/net9.0/$Runtime/publish"
 $smokeSource = Join-Path $scriptDir "smoke_test.c"
 $smokeExe = Join-Path $scriptDir "smoke_test.exe"
 

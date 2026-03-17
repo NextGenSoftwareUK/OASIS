@@ -121,6 +121,18 @@ When the apply script has patched host.c with the poll, sbar.c should not call t
 
 ---
 
+## 4c. Quest popup and inventory popup – movement and view blocking (apply script does this)
+
+So that the player **does not move** and **arrow keys, HOME, PGDOWN, etc. do not pan the view** while the quest popup (Q) or inventory popup (I) is open, and **keys work immediately** after closing, the engine must not apply movement or view angles when either popup is open. The integration exposes **`OQuake_STAR_IsQuestPopupOpen()`** and **`OQuake_STAR_IsInventoryPopupOpen()`** and does **not** modify `keydown[]`, so key state is preserved.
+
+**The apply script patches this automatically:** it patches **cl_input.c** to add `#include "oquake_star_integration.h"` and, inside `CL_BaseMove`, a check that returns early (so `forwardmove`/`sidemove`/`upmove` stay 0) when **either** `OQuake_STAR_IsQuestPopupOpen()` or `OQuake_STAR_IsInventoryPopupOpen()` returns 1. It also patches **CL_AdjustAngles** to return early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). No manual patch is needed unless your vkQuake layout differs.
+
+**Tab key and scoreboard:** While the quest popup (Q) or inventory popup (I) is open, Tab is used by the integration (quest: switch between main list and right-side lists). The **apply script** patches **keys.c** so that when the quest or inventory popup is open, the engine does not execute the Tab key binding (+showscores). Same technique as the other keys: in **cl_input.c** the engine returns early so it does not *use* arrow/Home/PgDn for movement; in **keys.c** the engine skips executing the Tab binding so the scoreboard does not open.
+
+**If you patch by hand:** in **cl_input.c**, add the include and early return in `CL_BaseMove` and `CL_AdjustAngles` as above. In **keys.c**, add `#include "oquake_star_integration.h"` and in `Key_Event` inside the block that runs key bindings for `key_game`, add at the top: `if (key == K_TAB && (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())) return;`
+
+---
+
 ## 5. What the build script does (BUILD_OQUAKE.bat / apply_oquake_to_vkquake.ps1)
 
 When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatically** does everything (like ODOOM):
@@ -130,7 +142,8 @@ When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatic
 3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
 4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
 5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
-6. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
+6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"`; in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** or **OQuake_STAR_IsInventoryPopupOpen()** is true (so no movement); in **CL_AdjustAngles** returns early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). Keys work after closing.
+7. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
 
 No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
 
@@ -265,11 +278,12 @@ After rebuilding vkQuake with these changes, the anorak face when beamed in, the
 
 Already done if you use the provided defs/items/doors:
 
-- `defs.qc`: `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, `OQuake_OnMonsterKilled` (register builtins from pr_ext_oquake.c).
+- `defs.qc`: `OQuake_OnKeyPickup`, `OQuake_CheckDoorAccess`, `OQuake_OnBossKilled`, `OQuake_OnMonsterKilled`, `OQuake_OnPickupLeftOnFloor` (register builtins from pr_ext_oquake.c).
 - `items.qc`: after giving key, call `OQuake_OnKeyPickup("silver_key")` or `"gold_key"`.
 - When a boss is killed: call `OQuake_OnBossKilled("Shub-Niggurath")` (or use `OQuake_OnMonsterKilled` with class name).
 - When any monster is killed: call `OQuake_OnMonsterKilled("monster_ogre")` (engine class name). Grants XP and optionally mints NFT (see star config / star mint monster).
 - `doors.qc`: if player lacks local key, call `OQuake_CheckDoorAccess(..., "silver_key")` or `"gold_key"`; if it returns 1, open the door.
+- **Health/armor (same as ODOOM):** Default `max_health` and `max_armor` are 100 (in `oasisstar.json` and cvars). The player can pick up health/armor until they reach that max; when they are **at** max and touch another health/armor pickup, the item is still added to STAR inventory (and the entity is removed so it is not left on the floor). The apply script patches **sv_phys.c** (`SV_Impact`) to call `OQuake_STAR_InterceptTouchPickupAtMax(item_edict, player_edict)` before each touch is run; if the player is at max health/armor, the pickup is queued to STAR and the entity is freed (so the item is not left on the floor). It may also patch **pr_cmds.c** (Touch builtin) as a fallback. When the engine **does** apply the pickup (stats increase), do **not** add to STAR (OnStatsChangedEx does not add). To test with max 100, set `max_health` and `max_armor` to 100 in oasisstar.json (default).
 
 No changes needed there once the engine builtins are registered.
 

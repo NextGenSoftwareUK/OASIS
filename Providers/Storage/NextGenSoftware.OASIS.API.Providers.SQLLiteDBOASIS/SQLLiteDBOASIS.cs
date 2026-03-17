@@ -82,14 +82,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            _appDataContext.Dispose();
+            // Do not dispose _appDataContext so the provider can be reactivated (e.g. during failover).
             IsProviderActivated = false;
             return new OASISResult<bool>(true);
         }
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            _appDataContext.Dispose();
+            // Do not dispose _appDataContext so the provider can be reactivated (e.g. during failover).
             IsProviderActivated = false;
             return new OASISResult<bool>(true);
         }
