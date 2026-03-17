@@ -203,18 +203,20 @@ No new client code is required for a new game; the client remains generic and do
 
 ### Move star_sync into the C# client
 
-**Goal:** Implement all of **star_sync** (async auth, async inventory refresh, async send item, async use item, init/cleanup/pump) inside the C# STARAPIClient and export the same `star_sync_*` C API from the client DLL. Then remove the C implementation (`star_sync.c` / `star_sync.h` usage) from ODOOM and OQuake so games link only the client.
+**Status:** Done. star_sync is implemented in C# in **StarSyncExports.cs** and exported from star_api.dll. BUILD ODOOM and BUILD_OQUAKE default to **OASIS_STAR_SYNC_IN_CLIENT=1**, so games use the client’s star_sync and do not compile `star_sync.c`. The C file **star_sync.c** remains in STARAPIClient so you can switch back (set `OASIS_STAR_SYNC_IN_CLIENT=0` or change one line in the build script). See **STAR_INTEGRATION_AUDIT.md** (“Star_sync: in-client (C#) default vs C implementation”) and **star_sync.h** for how to switch back.
+
+**Goal:** Implement all of **star_sync** (async auth, async inventory refresh, async send item, async use item, init/cleanup/pump) inside the C# STARAPIClient and export the same `star_sync_*` C API from the client DLL. Then remove the C implementation (`star_sync.c`) from ODOOM and OQuake builds; keep `star_sync.h` for the API declarations; games link only the client and call the client’s exports.
 
 **Why:** One codebase for all STAR integration; no duplicate C threading (Win32/pthreads) in each game tree; client owns both API work and async flow. Same contract for games: they still call `star_sync_pump()` once per frame and get callbacks on the main thread.
 
-**Feasibility:** Safe. The client would run auth/inventory/send/use_item on background tasks, push completed work (callback pointer + user_data) into a queue, and when the game calls `star_sync_pump()` the client would drain the queue and invoke each callback from C# (e.g. via `Marshal.GetDelegateForFunctionPointer`). Keep `star_sync_local_item_t` and all function signatures ABI-compatible.
+**Feasibility:** Safe. The client runs auth/inventory/send/use_item on background tasks, pushes completed work (callback pointer + user_data) into a queue, and when the game calls `star_sync_pump()` the client drains the queue and invokes each callback from C# (e.g. via `Marshal.GetDelegateForFunctionPointer`). `star_sync_local_item_t` and all function signatures remain ABI-compatible.
 
-**TODO:**
+**TODO (done):**
 
-- [ ] Implement in C#: async auth, async inventory (with local-items sync), async send item, async use item; completion queue and pump that invokes game callbacks.
-- [ ] Export all `star_sync_*` symbols from the client (init, cleanup, pump, auth_start/get_result, inventory_start/get_result/clear_result, send_item_start/get_result, use_item_start/get_result, single_item).
-- [ ] Remove `star_sync.c` from ODOOM and OQuake builds; ensure `star_sync.h` (or equivalent) remains for the API; games call the client’s exports.
-- [ ] Re-test beam-in, inventory refresh, send item, and door use-item in both games after the move.
+- [x] Implement in C#: async auth, async inventory (with local-items sync), async send item, async use item; completion queue and pump that invokes game callbacks.
+- [x] Export all `star_sync_*` symbols from the client (init, cleanup, pump, auth_start/get_result, inventory_start/get_result/clear_result, send_item_start/get_result, use_item_start/get_result, single_item).
+- [x] Remove `star_sync.c` from ODOOM and OQuake builds; ensure `star_sync.h` (or equivalent) remains for the API; games call the client’s exports.
+- [x] Re-test beam-in, inventory refresh, send item, and door use-item in both games after the move.
 
 ---
 

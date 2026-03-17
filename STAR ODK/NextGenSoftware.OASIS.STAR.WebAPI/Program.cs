@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.STAR.WebAPI.JsonConverters;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
@@ -30,8 +31,10 @@ builder.Services.AddControllers(options =>
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.MaxDepth = 64;
+        options.JsonSerializerOptions.MaxDepth = 128;
         options.JsonSerializerOptions.WriteIndented = false;
+        options.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+        options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());
     });
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
@@ -211,9 +214,12 @@ app.Use(async (context, next) =>
             errorResult.DetailedMessage = ex.ToString();
         }
         
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
     catch (OASISException ex)
     {
@@ -236,9 +242,12 @@ app.Use(async (context, next) =>
             errorResult.DetailedMessage = ex.ToString();
         }
         
-        context.Response.StatusCode = 400;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.StatusCode = 400;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
     catch (Exception ex)
     {
@@ -289,8 +298,11 @@ app.Use(async (context, next) =>
             context.Response.StatusCode = 500;
         }
         
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        if (!context.Response.HasStarted)
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(errorResult));
+        }
     }
 });
 

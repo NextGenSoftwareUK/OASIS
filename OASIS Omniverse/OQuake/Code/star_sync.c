@@ -13,6 +13,17 @@ extern star_api_result_t star_api_send_item_to_avatar(const char*, const char*, 
 extern star_api_result_t star_api_send_item_to_clan(const char*, const char*, int, const char*);
 #endif
 
+/* Optional stub for star_api_queue_quest_level_time when not linking star_api.dll (e.g. vkQuake with older lib).
+ * Define STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB in the build to resolve LNK2001; otherwise link with a
+ * STAR API build that exports this (StarApiClient.cs UnmanagedCallersOnly). */
+#ifdef STAR_API_PROVIDE_QUEST_LEVEL_TIME_STUB
+void star_api_queue_quest_level_time(const char* game_source, int level_elapsed_seconds)
+{
+    (void)game_source;
+    (void)level_elapsed_seconds;
+}
+#endif
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -37,6 +48,7 @@ static void str_copy(char* dst, const char* src, size_t size) {
 #define AUTH_USERNAME_SIZE  64
 #define AUTH_AVATAR_SIZE    64
 #define AUTH_ERROR_SIZE     256
+#define AUTH_JWT_SIZE       2048
 
 static char g_auth_username_buf[AUTH_USERNAME_SIZE];
 static char g_auth_password_buf[64];
@@ -45,6 +57,7 @@ static int  g_auth_has_result = 0;
 static int  g_auth_success = 0;
 static char g_auth_username_out[AUTH_USERNAME_SIZE];
 static char g_auth_avatar_id_out[AUTH_AVATAR_SIZE];
+static char g_auth_jwt_out[AUTH_JWT_SIZE];
 static char g_auth_error_msg[AUTH_ERROR_SIZE];
 static star_sync_auth_on_done_fn g_auth_on_done = NULL;
 static void* g_auth_on_done_user = NULL;
@@ -80,7 +93,8 @@ static void* auth_thread_proc(void* param) {
     pthread_mutex_unlock(&g_auth_lock);
 #endif
 
-    auth_result = star_api_authenticate(user, pass);
+    /* Authenticate and capture JWT in one call so games can persist to oasisstar.json (no dependency on get_current_jwt export). */
+    auth_result = star_api_authenticate_with_jwt_out(user, pass, g_auth_jwt_out, sizeof(g_auth_jwt_out));
     if (auth_result == STAR_API_SUCCESS) {
         avatar_result = star_api_get_avatar_id(avatar_id, sizeof(avatar_id));
         if (avatar_result != STAR_API_SUCCESS)
@@ -198,6 +212,21 @@ int star_sync_auth_get_result(int* success_out,
     return 1;
 }
 
+void star_sync_auth_get_result_jwt(char* jwt_buf, size_t jwt_size) {
+    if (!jwt_buf || !jwt_size) return;
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
+#endif
+    str_copy(jwt_buf, g_auth_jwt_out, jwt_size);
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_unlock(&g_auth_lock);
+#endif
+}
+
 int star_sync_auth_in_progress(void) {
 #ifdef _WIN32
     EnterCriticalSection(&g_auth_lock);
@@ -227,11 +256,18 @@ static star_item_list_t* g_inv_list = NULL;
 static star_api_result_t g_inv_result = STAR_API_ERROR_NOT_INITIALIZED;
 static char g_inv_error_msg[INV_ERROR_SIZE] = {0};
 static char g_inv_add_item_error[INV_ERROR_SIZE] = {0}; /* first add_item failure reason (e.g. "Avatar ID is not set...") */
-static int g_inv_add_item_calls = 0; /* number of star_api_add_item calls in last sync (0 = old queue path or none) */
 static star_sync_inventory_on_done_fn g_inv_on_done = NULL;
 static void* g_inv_on_done_user = NULL;
-static star_sync_add_item_log_fn g_add_item_log_fn = NULL;
+
+/* Optional add_item log callback: set by star_sync_set_add_item_log_cb; invoked from main thread. */
+static star_sync_add_item_log_fn g_add_item_log_cb = NULL;
 static void* g_add_item_log_user = NULL;
+#define ADD_ITEM_LOG_NAMES_MAX 32
+#define ADD_ITEM_LOG_NAME_SIZE 128
+static char g_inv_add_item_log_names[ADD_ITEM_LOG_NAMES_MAX][ADD_ITEM_LOG_NAME_SIZE];
+static int g_inv_add_item_log_count = 0;
+static int g_inv_add_item_log_success = 0;
+static char g_inv_add_item_log_error[INV_ERROR_SIZE] = {0};
 
 #ifdef _WIN32
 static CRITICAL_SECTION g_inv_lock;
@@ -580,6 +616,11 @@ void star_sync_cleanup(void) {
     g_sync_initialized = 0;
 }
 
+void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn cb, void* user_data) {
+    g_add_item_log_cb = cb;
+    g_add_item_log_user = user_data;
+}
+
 /** Run pending completion callbacks on the main thread. Call once per frame. */
 void star_sync_pump(void) {
     star_sync_auth_on_done_fn auth_fn = NULL;
@@ -605,6 +646,12 @@ void star_sync_pump(void) {
 
     star_sync_inventory_on_done_fn inv_fn = NULL;
     void* inv_ud = NULL;
+    int add_log_count = 0;
+    int add_log_success = 0;
+    char add_log_names[ADD_ITEM_LOG_NAMES_MAX][ADD_ITEM_LOG_NAME_SIZE];
+    char add_log_error[INV_ERROR_SIZE] = {0};
+    star_sync_add_item_log_fn add_log_cb = g_add_item_log_cb;
+    void* add_log_ud = g_add_item_log_user;
 #ifdef _WIN32
     EnterCriticalSection(&g_inv_lock);
 #else
@@ -615,6 +662,14 @@ void star_sync_pump(void) {
         inv_ud = g_inv_on_done_user;
         g_inv_on_done = NULL;
         g_inv_on_done_user = NULL;
+        add_log_count = g_inv_add_item_log_count;
+        add_log_success = g_inv_add_item_log_success;
+        if (add_log_count > ADD_ITEM_LOG_NAMES_MAX) add_log_count = ADD_ITEM_LOG_NAMES_MAX;
+        for (int i = 0; i < add_log_count; i++) {
+            str_copy(add_log_names[i], g_inv_add_item_log_names[i], ADD_ITEM_LOG_NAME_SIZE);
+        }
+        str_copy(add_log_error, g_inv_add_item_log_error, sizeof(add_log_error));
+        g_inv_add_item_log_count = 0;
     }
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
@@ -623,6 +678,11 @@ void star_sync_pump(void) {
 #endif
     if (inv_fn)
         inv_fn(inv_ud);
+    if (add_log_cb && add_log_count > 0) {
+        int i;
+        for (i = 0; i < add_log_count; i++)
+            add_log_cb(add_log_names[i], add_log_success, add_log_error, add_log_ud);
+    }
 
     star_sync_send_item_on_done_fn send_fn = NULL;
     void* send_ud = NULL;
@@ -678,7 +738,8 @@ static void* inventory_thread_proc(void* param) {
     star_item_list_t* list = NULL;
     star_api_result_t result = STAR_API_ERROR_NOT_INITIALIZED;
     const char* err = NULL;
-    int add_item_calls = 0;
+    char logged_names[ADD_ITEM_LOG_NAMES_MAX][ADD_ITEM_LOG_NAME_SIZE];
+    int logged_count = 0;
 
     (void)param;
 #ifdef _WIN32
@@ -696,8 +757,7 @@ static void* inventory_thread_proc(void* param) {
     pthread_mutex_unlock(&g_inv_lock);
 #endif
 
-    /* Sync local items: one entry per type with quantity. quantity > 1 = stack (add that many). quantity == 1 = unlock (has_item then add if missing).
-     * Legacy: name ending _NNNNNN is also treated as stack (strip suffix, use quantity). */
+    /* Queue each add then flush (batching). Stack: name ends with _NNNNNN (e.g. Shells_000001) – send base name, API increments Quantity. Unlock: has_item first, queue add only if not present. */
     g_inv_add_item_error[0] = '\0';
     if (local && local_count > 0 && default_src[0]) {
         int i;
@@ -706,39 +766,30 @@ static void* inventory_thread_proc(void* param) {
             {
                 const char* n = local[i].name;
                 size_t len = strlen(n);
-                int qty = (local[i].quantity > 0) ? local[i].quantity : 1;
-                /* Stack: quantity > 1, OR name ends with _NNNNNN. Send add_item(name, qty) so API has one item per type. */
-                int is_stack = (qty > 1);
-                if (!is_stack && len >= 8 && n[len - 7] == '_') {
+                int is_stack_event = 0;
+                if (len >= 8 && n[len - 7] == '_') {
                     int j;
-                    is_stack = 1;
+                    is_stack_event = 1;
                     for (j = 0; j < 6; j++)
-                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack = 0; break; }
+                        if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { is_stack_event = 0; break; }
                 }
-                if (is_stack) {
+                if (is_stack_event) {
+                    /* Send base name (no _NNNNNN) so API increments Quantity on existing item. */
                     char base_name[128];
-                    size_t base_len = len;
-                    if (len >= 8 && n[len - 7] == '_') {
-                        int j, dig = 1;
-                        for (j = 0; j < 6; j++)
-                            if (n[len - 6 + j] < '0' || n[len - 6 + j] > '9') { dig = 0; break; }
-                        if (dig) base_len = (size_t)(len - 7);
-                    }
+                    size_t base_len = len >= 8 ? (size_t)(len - 7) : len;
                     if (base_len >= sizeof(base_name)) base_len = sizeof(base_name) - 1;
                     memcpy(base_name, n, base_len);
                     base_name[base_len] = '\0';
-                    {
-                        const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
-                        star_api_queue_add_item(
-                            base_name,
-                            local[i].description,
-                            local[i].game_source[0] ? local[i].game_source : default_src,
-                            local[i].item_type[0] ? local[i].item_type : "KeyItem",
-                            nft, qty, qty);
-                        add_item_calls++;
-                    }
+                    const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
+                    star_api_queue_add_item(
+                        base_name,
+                        local[i].description,
+                        local[i].game_source[0] ? local[i].game_source : default_src,
+                        local[i].item_type[0] ? local[i].item_type : "KeyItem",
+                        nft, 1, 1);
+                    if (logged_count < ADD_ITEM_LOG_NAMES_MAX)
+                        str_copy(logged_names[logged_count++], base_name, ADD_ITEM_LOG_NAME_SIZE);
                 } else {
-                    /* Unlock: add only if not already in inventory. */
                     if (!star_api_has_item(local[i].name)) {
                         const char* nft = (local[i].nft_id[0] != '\0') ? local[i].nft_id : NULL;
                         star_api_queue_add_item(
@@ -747,20 +798,17 @@ static void* inventory_thread_proc(void* param) {
                             local[i].game_source[0] ? local[i].game_source : default_src,
                             local[i].item_type[0] ? local[i].item_type : "KeyItem",
                             nft, 1, 1);
-                        add_item_calls++;
+                        if (logged_count < ADD_ITEM_LOG_NAMES_MAX)
+                            str_copy(logged_names[logged_count++], local[i].name, ADD_ITEM_LOG_NAME_SIZE);
                     }
                 }
                 local[i].synced = 1;
             }
         }
-        /* Send all queued add-item requests in one flush (batch). */
-        if (add_item_calls > 0) {
-            star_api_result_t flush_res = star_api_flush_add_item_jobs();
-            if (flush_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0') {
-                const char* flush_err = star_api_get_last_error();
-                str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
-            }
-            /* Do not invalidate cache here: get_inventory below already populates the client cache; invalidating caused a later refetch that could return empty (keys vanished in overlay after beam-in). */
+        star_api_result_t flush_res = star_api_flush_add_item_jobs();
+        if (flush_res != STAR_API_SUCCESS && g_inv_add_item_error[0] == '\0') {
+            const char* flush_err = star_api_get_last_error();
+            str_copy(g_inv_add_item_error, flush_err ? flush_err : "flush add_item jobs failed", sizeof(g_inv_add_item_error));
         }
     }
 
@@ -780,7 +828,6 @@ static void* inventory_thread_proc(void* param) {
 #endif
     g_inv_in_progress = 0;
     g_inv_has_result = 1;
-    g_inv_add_item_calls = add_item_calls;
     if (g_inv_list)
         star_api_free_item_list(g_inv_list);
     g_inv_list = list;
@@ -792,6 +839,15 @@ static void* inventory_thread_proc(void* param) {
         if (g_inv_result == STAR_API_SUCCESS)
             g_inv_result = STAR_API_ERROR_NOT_INITIALIZED; /* so UI shows error */
     }
+    /* Pending add_item log for main-thread callback in star_sync_pump() */
+    g_inv_add_item_log_count = logged_count;
+    g_inv_add_item_log_success = (g_inv_add_item_error[0] == '\0') ? 1 : 0;
+    str_copy(g_inv_add_item_log_error, g_inv_add_item_error, sizeof(g_inv_add_item_log_error));
+    {
+        int k;
+        for (k = 0; k < logged_count && k < ADD_ITEM_LOG_NAMES_MAX; k++)
+            str_copy(g_inv_add_item_log_names[k], logged_names[k], ADD_ITEM_LOG_NAME_SIZE);
+    }
     /* Callback is invoked from main thread in star_sync_pump(), not from this worker. */
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
@@ -799,6 +855,26 @@ static void* inventory_thread_proc(void* param) {
 #else
     pthread_mutex_unlock(&g_inv_lock);
     return NULL;
+#endif
+}
+
+void star_sync_inventory_deliver_result(star_item_list_t* list, star_api_result_t result, const char* error_msg) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_lock(&g_inv_lock);
+#endif
+    g_inv_in_progress = 0;
+    g_inv_has_result = 1;
+    if (g_inv_list)
+        star_api_free_item_list(g_inv_list);
+    g_inv_list = list;
+    g_inv_result = result;
+    str_copy(g_inv_error_msg, error_msg ? error_msg : "", sizeof(g_inv_error_msg));
+#ifdef _WIN32
+    LeaveCriticalSection(&g_inv_lock);
+#else
+    pthread_mutex_unlock(&g_inv_lock);
 #endif
 }
 
@@ -911,39 +987,6 @@ void star_sync_inventory_clear_result(void) {
     }
     g_inv_has_result = 0;
     g_inv_add_item_error[0] = '\0';
-    g_inv_add_item_calls = 0;
-#ifdef _WIN32
-    LeaveCriticalSection(&g_inv_lock);
-#else
-    pthread_mutex_unlock(&g_inv_lock);
-#endif
-}
-
-int star_sync_inventory_get_last_add_item_calls(void) {
-    int n;
-#ifdef _WIN32
-    EnterCriticalSection(&g_inv_lock);
-#else
-    pthread_mutex_lock(&g_inv_lock);
-#endif
-    n = g_inv_add_item_calls;
-    g_inv_add_item_calls = 0;
-#ifdef _WIN32
-    LeaveCriticalSection(&g_inv_lock);
-#else
-    pthread_mutex_unlock(&g_inv_lock);
-#endif
-    return n;
-}
-
-void star_sync_set_add_item_log_cb(star_sync_add_item_log_fn fn, void* user_data) {
-#ifdef _WIN32
-    EnterCriticalSection(&g_inv_lock);
-#else
-    pthread_mutex_lock(&g_inv_lock);
-#endif
-    g_add_item_log_fn = fn;
-    g_add_item_log_user = user_data;
 #ifdef _WIN32
     LeaveCriticalSection(&g_inv_lock);
 #else
@@ -971,9 +1014,16 @@ star_api_result_t star_sync_single_item(const char* name,
     const char* game_source,
     const char* item_type,
     const char* nft_id) {
+    star_api_result_t res;
     if (!name || !name[0]) return STAR_API_ERROR_INVALID_PARAM;
     if (star_api_has_item(name))
         return STAR_API_SUCCESS;
     star_api_queue_add_item(name, description ? description : "", game_source ? game_source : "", item_type ? item_type : "KeyItem", nft_id, 1, 1);
-    return star_api_flush_add_item_jobs();
+    res = star_api_flush_add_item_jobs();
+    if (g_add_item_log_cb) {
+        int success = (res == STAR_API_SUCCESS) ? 1 : 0;
+        const char* err = (res != STAR_API_SUCCESS) ? star_api_get_last_error() : "";
+        g_add_item_log_cb(name, success, err ? err : "", g_add_item_log_user);
+    }
+    return res;
 }

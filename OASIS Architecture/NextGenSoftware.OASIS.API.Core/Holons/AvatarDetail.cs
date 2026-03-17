@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
@@ -95,6 +96,14 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         public IList<ISpell> Spells { get; set; } = new List<ISpell>();
         public IList<IAchievement> Achievements { get; set; } = new List<IAchievement>();
         public IList<IInventoryItem> Inventory { get; set; } = new List<IInventoryItem>();
+
+        /// <summary>Quest currently tracked in the game HUD (e.g. Doom/Quake). Persisted via CustomOASISProperty so it is restored after beam-in.</summary>
+        [CustomOASISProperty]
+        public Guid? ActiveQuestId { get; set; }
+        /// <summary>Objective currently active within the tracked quest. Persisted via CustomOASISProperty so it is restored after beam-in.</summary>
+        [CustomOASISProperty]
+        public Guid? ActiveObjectiveId { get; set; }
+
         public int Level
         {
             get

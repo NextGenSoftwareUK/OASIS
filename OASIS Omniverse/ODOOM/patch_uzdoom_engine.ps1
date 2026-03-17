@@ -154,15 +154,43 @@ if (Test-Path $dMainCpp) {
             $changes += "d_main (inventory capture)"
         }
     }
+    # 3a1b. d_main.cpp: call ODOOM_PostTic after TryRunTics so STAR health/armor apply runs after the tic (HUD then shows correct value)
+    $dContent = Get-Content $dMainCpp -Raw
+    if ($dContent -notmatch 'ODOOM_PostTic') {
+        if ($dContent -match 'TryRunTics\s*\(\s*\)\s*;[^\r\n]*\r?\n') {
+            $dContent = $dContent -replace '(TryRunTics\s*\(\s*\)\s*;[^\r\n]*\r?\n)(\s*// Update display)', "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_PostTic();`r`n#endif`r`n`$2"
+            Set-Content $dMainCpp $dContent -NoNewline
+            $changes += "d_main (post-tic health/armor)"
+        }
+    }
 }
 
-# 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed)
+# 3a1c. d_net.cpp: call ODOOM_PostOneTic after every game tic so STAR health/armor re-apply overwrites whatever reverts it during the tic
+$dNetCpp = "$src\src\d_net.cpp"
+if (Test-Path $dNetCpp) {
+    $dnContent = Get-Content $dNetCpp -Raw
+    $dnChanged = $false
+    if ($dnContent -notmatch 'uzdoom_star_integration\.h') {
+        $dnContent = $dnContent -replace '(#include "d_main\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
+        $dnChanged = $true
+    }
+    if ($dnContent -notmatch 'ODOOM_PostOneTic') {
+        $dnContent = $dnContent -replace '(\+\+gametic;)\r?\n(\r?\n\s*if \(stabilize\))', "`$1`r`n#ifdef OASIS_STAR_API`r`n		ODOOM_PostOneTic();`r`n#endif`r`n`$2"
+        $dnChanged = $true
+    }
+    if ($dnChanged) {
+        Set-Content $dNetCpp $dnContent -NoNewline
+        $changes += "d_net (post-one-tic health re-apply)"
+    }
+}
+
+# 3a2. g_game.cpp: run inventory key capture at start of each tic (backup if d_main patch missed). Insert only ONCE (replace first match only).
 $gGameCpp = "$src\src\g_game.cpp"
 if (Test-Path $gGameCpp) {
     $gContent = Get-Content $gGameCpp -Raw
     if ($gContent -notmatch 'ODOOM_InventoryInputCaptureFrame') {
         $gChanged = $false
-        if ($gContent -match '#include "version\.h"') {
+        if ($gContent -match '#include "version\.h"' -and $gContent -notmatch 'uzdoom_star_integration\.h') {
             $gContent = $gContent -replace '(#include "version\.h")', "`$1`r`n#ifdef OASIS_STAR_API`r`n#include `"uzdoom_star_integration.h`"`r`n#endif"
             $gChanged = $true
         }
@@ -171,8 +199,10 @@ if (Test-Path $gGameCpp) {
             '(\bvoid\s+FLevelLocals::RunTic\s*\(\s*\)\s*\r?\n\s*\{\s*\r?\n)'
         )
         foreach ($pat in $runTicPatterns) {
-            if ($gContent -match $pat) {
-                $gContent = $gContent -replace $pat, "`$1#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n"
+            $m = [regex]::Match($gContent, $pat)
+            if ($m.Success) {
+                $insert = $m.Groups[1].Value + "#ifdef OASIS_STAR_API`r`n	ODOOM_InventoryInputCaptureFrame();`r`n#endif`r`n"
+                $gContent = $gContent.Substring(0, $m.Index) + $insert + $gContent.Substring($m.Index + $m.Length)
                 $gChanged = $true
                 break
             }
@@ -272,22 +302,28 @@ bool wasgibbed = (health < GetGibHealth());
             }
         }
     }
-    # Force-destroy generic pickups (health/armor/ammo) when engine didn't consume so item goes to STAR and disappears from floor. When always_allow_pickup=0 (oasisstar.json), use original Doom behavior (don't destroy).
-    if ($piContent -notmatch 'STAR_PICKUP_GENERIC_ITEM') {
-        $touchOld = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
-        $touchNew = @'
+    # Force-destroy generic pickups when engine didn't consume (e.g. at max health/armor) so item goes to STAR and disappears. No INVENTORY_ONLY path (was causing standing-on-pickup spam when engine not patched for 9003).
+    $touchNew = @'
 special->CallTouch (toucher);
 #ifdef OASIS_STAR_API
-	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
+	/* If engine didn't consume (e.g. health/armor full): when always_allow_pickup_if_max=1, take into STAR inventory and remove from floor; when 0, leave item (original Doom). */
 	if (star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup() && !(special->ObjectFlags & OF_EuthanizeMe))
 		special->Destroy();
 	if (star_key) UZDoom_STAR_PostTouchSpecial(star_key);
 #endif
 '@
-        if ($piContent -match $touchOld) {
-            $piContent = $piContent -replace $touchOld, $touchNew
-            $piChanged = $true
-        }
+    $touchOld1 = 'special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
+    $touchOld2 = '(?s)#ifdef OASIS_STAR_API\r?\n\tif \(star_key == STAR_PICKUP_INVENTORY_ONLY\).*?if \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n\t\}\r?\n#endif'
+    $touchOld3 = '(?s)special->CallTouch \(toucher\);\r?\n#ifdef OASIS_STAR_API\r?\n\t.*?if \(star_key == STAR_PICKUP_GENERIC_ITEM && UZDoom_STAR_AlwaysAllowPickup\(\) && !\(special->ObjectFlags & OF_EuthanizeMe\)\)\r?\n\t\tspecial->Destroy\(\);\r?\n\tif \(star_key\) UZDoom_STAR_PostTouchSpecial\(star_key\);\r?\n#endif'
+    if ($piContent -match $touchOld1) {
+        $piContent = $piContent -replace $touchOld1, $touchNew
+        $piChanged = $true
+    } elseif ($piContent -match $touchOld2) {
+        $piContent = $piContent -replace $touchOld2, $touchNew
+        $piChanged = $true
+    } elseif ($piContent -match $touchOld3) {
+        $piContent = $piContent -replace $touchOld3, $touchNew
+        $piChanged = $true
     }
     if ($piChanged) {
         Set-Content $pInteractionCpp $piContent -NoNewline
@@ -454,9 +490,44 @@ if (Test-Path $aKeysCpp) {
             }
         }
     }
+    # P_GetKeyNameForLock: for custom locks (129, 130, ...) STAR can resolve key name from engine
+    if ($akContent -notmatch 'P_GetKeyNameForLock') {
+        $akContent = $akContent -replace '(return !!Locks\.CheckKey\(keynum\);\r?\n\}\r?\n)(\r?\n//)', @"
+return !!Locks.CheckKey(keynum);
+}
+
+const char *P_GetKeyNameForLock (int locknum)
+{
+	auto lock = Locks.CheckKey(locknum);
+	if (!lock || lock->keylist.Size() == 0) return nullptr;
+	for (unsigned int i = 0; i < lock->keylist.Size(); i++)
+	{
+		const Keygroup &kg = lock->keylist[i];
+		if (kg.anykeylist.Size() > 0)
+		{
+			PClassActor *key = kg.anykeylist[0].key;
+			if (key) return key->TypeName.GetChars();
+		}
+	}
+	return nullptr;
+}
+
+`$2
+"@
+        $akChanged = $true
+    }
     if ($akChanged) {
         Set-Content $aKeysCpp $akContent -NoNewline
         $changes += "a_keys (STAR door check only on player use)"
+    }
+    $aKeysH = "$src\src\gamedata\a_keys.h"
+    if (Test-Path $aKeysH) {
+        $akHContent = Get-Content $aKeysH -Raw
+        if ($akHContent -notmatch 'P_GetKeyNameForLock') {
+            $akHContent = $akHContent -replace '(int P_IsLockDefined \(int lock\)\s*)(\r?\n)', "`$1`r`nconst char *P_GetKeyNameForLock (int locknum);`r`n`$2"
+            Set-Content $aKeysH $akHContent -NoNewline
+            $changes += "a_keys.h (P_GetKeyNameForLock)"
+        }
     }
     # Warn if a_keys still has no STAR block (patch patterns did not match)
     if (Test-Path $aKeysCpp) {
@@ -464,6 +535,53 @@ if (Test-Path $aKeysCpp) {
         if ($akFinal -notmatch 'UZDoom_STAR_CheckDoorAccess') {
             Write-Host "[ODOOM] WARNING: a_keys.cpp has no STAR block (E on door will not check STAR). Re-run patch after confirming P_CheckKeys in a_keys.cpp contains: if (lock->check(owner)) return true; then if (quiet) return false;"
         }
+    }
+}
+
+# 3c2c. p_lnspec.cpp: log Door_LockedRaise (special 13) lock arg so we see map lock value
+$pLnspecCpp = "$src\src\playsim\p_lnspec.cpp"
+if (Test-Path $pLnspecCpp) {
+    $plContent = Get-Content $pLnspecCpp -Raw
+    $plChanged = $false
+    if ($plContent -notmatch 'uzdoom_star_integration\.h') {
+        $plContent = $plContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+        $plChanged = $true
+    }
+    if ($plContent -notmatch 'ODOOM_STAR_LogDoorLockedRaiseLock') {
+        $plContent = $plContent -replace '(// Door_LockedRaise \(tag, speed, delay, lock, lighttag\))\r?\n(\s*\{)\r?\n(#if 0)', "`$1`r`n`$2`r`n`tODOOM_STAR_LogDoorLockedRaiseLock(arg3);`r`n`$3"
+        $plChanged = $true
+    }
+    if ($plChanged) {
+        Set-Content $pLnspecCpp $plContent -NoNewline
+        $changes += "p_lnspec (STAR Door_LockedRaise log)"
+    }
+}
+
+# 3c2b. p_spec.cpp: log when P_ActivateLine is called (E use) and when line->locknumber is checked
+$pSpecCpp = "$src\src\playsim\p_spec.cpp"
+if (Test-Path $pSpecCpp) {
+    $psContent = Get-Content $pSpecCpp -Raw
+    $psChanged = $false
+    if ($psContent -notmatch 'uzdoom_star_integration\.h') {
+        $psContent = $psContent -replace '(\#include "a_keys\.h")', "`$1`r`n#include `"uzdoom_star_integration.h`""
+        $psChanged = $true
+    }
+    # Add or fix P_ActivateLine log (log every line activation so E on door is visible)
+    if ($psContent -notmatch 'ODOOM_STAR_LogActivateLineUse\s*\(\s*activationType\s*,') {
+        if ($psContent -match 'ODOOM_STAR_LogActivateLineUse\s*\(\s*line->special\s*,') {
+            $psContent = $psContent -replace 'if \(activationType == SPAC_Use\) ODOOM_STAR_LogActivateLineUse\(line->special, line->locknumber\);', 'ODOOM_STAR_LogActivateLineUse(activationType, line->special, line->locknumber);'
+        } elseif ($psContent -notmatch 'ODOOM_STAR_LogActivateLineUse') {
+            $psContent = $psContent -replace '(auto Level = line->GetLevel\(\);)\r?\n(\r?\n)(\s*// \[MK\])', "`$1`r`n`tODOOM_STAR_LogActivateLineUse(activationType, line->special, line->locknumber);`r`n`$2`$3"
+        }
+        $psChanged = $true
+    }
+    if ($psContent -notmatch 'ODOOM_STAR_LogLineDoorKeyCheck') {
+        $psContent = $psContent -replace '(\s*)(if \(line->locknumber > 0 && !P_CheckKeys \(mo, line->locknumber, remote\)\) return false;)', "`$1if (line->locknumber > 0) { ODOOM_STAR_LogLineDoorKeyCheck(line->locknumber); if (!P_CheckKeys (mo, line->locknumber, remote)) return false; }"
+        $psChanged = $true
+    }
+    if ($psChanged) {
+        Set-Content $pSpecCpp $psContent -NoNewline
+        $changes += "p_spec (STAR door/use log)"
     }
 }
 
@@ -548,6 +666,22 @@ if (Test-Path $odoomCvarinfo) {
                 $changes += "cvarinfo(update)"
             }
         }
+        # Remove duplicate cvar definitions (e.g. odoom_quest_scroll_offset already exists): keep first occurrence of each cvar name.
+        $allLines = Get-Content $cvarinfoTxt
+        $seenCvars = @{}
+        $outLines = New-Object System.Collections.Generic.List[string]
+        foreach ($line in $allLines) {
+            if ($line -match '^\s*server\s+(int|string|bool|float)\s+(\S+)\s*=') {
+                $cvarName = $matches[2]
+                if ($seenCvars.ContainsKey($cvarName)) { continue }
+                $seenCvars[$cvarName] = $true
+            }
+            $outLines.Add($line)
+        }
+        if ($outLines.Count -lt $allLines.Count) {
+            Set-Content -Path $cvarinfoTxt -Value ($outLines -join "`r`n") -NoNewline
+            $changes += "cvarinfo(dedup)"
+        }
     } else {
         Set-Content -Path $cvarinfoTxt -Value $cvarContent -NoNewline
         $changes += "cvarinfo"
@@ -582,33 +716,68 @@ if (Test-Path $aboutPath) {
     }
 }
 
-# 4a. CMake: ensure OASIS_STAR_API is passed to compiler when -DOASIS_STAR_API=ON (otherwise a_keys.cpp, a_doors.cpp STAR blocks are compiled out)
+# 4a. CMake: ensure OASIS_STAR_API and ODOOM_STAR_API_SESSION_IMPL are passed when -DOASIS_STAR_API=ON. Add option OASIS_STAR_SYNC_IN_CLIENT (use star_sync from DLL; when ON, do not compile star_sync.c). Only patch the existing if(OASIS_STAR_API) block at top of root CMake; do NOT insert before add_subdirectory (that caused hundreds of duplicate blocks).
 $cmakeRoot = "$src\CMakeLists.txt"
 if (Test-Path $cmakeRoot) {
     $cmakeContent = Get-Content $cmakeRoot -Raw
-    if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)') {
+    $cmakeChanged = $false
+    if ($cmakeContent -notmatch 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*') {
         if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n(\s*)set\s*\(\s*STAR_API_DIR') {
-            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API)`r`n`$2`$3"
-            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
-            $changes += "cmake(OASIS_STAR_API define)"
-        } elseif ($cmakeContent -match '(\r?\n)(add_subdirectory\s*\()') {
-            $cmakeContent = $cmakeContent -replace '(\r?\n)(add_subdirectory\s*\()', "`r`nif(OASIS_STAR_API)`r`n  add_compile_definitions(OASIS_STAR_API)`r`nendif()`r`n`$1`$2"
-            Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline
-            $changes += "cmake(OASIS_STAR_API define)"
+            $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(set\s*\(\s*STAR_API_DIR)', "`$1`$2add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)`r`n`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2`$3"
+            $cmakeChanged = $true
+            $changes += "cmake(OASIS_STAR_API, ODOOM_STAR_API_SESSION_IMPL defines)"
         }
+    } elseif ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'ODOOM_STAR_API_SESSION_IMPL') {
+        $cmakeContent = $cmakeContent -replace 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*\)', 'add_compile_definitions(OASIS_STAR_API ODOOM_STAR_API_SESSION_IMPL)'
+        $cmakeChanged = $true
+        $changes += "cmake(ODOOM_STAR_API_SESSION_IMPL define)"
     }
+    if ($cmakeContent -match 'if\s*\(\s*OASIS_STAR_API\s*\)' -and $cmakeContent -notmatch 'option\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT') {
+        $cmakeContent = $cmakeContent -replace '(if\s*\(\s*OASIS_STAR_API\s*\)\s*\r?\n)(\s*)(add_compile_definitions|set\s*\(\s*STAR_API_DIR)', "`$1`$2option(OASIS_STAR_SYNC_IN_CLIENT `"Use star_sync from star_api.dll (C#) instead of compiling star_sync.c`" OFF)`r`n`$2`$3"
+        $cmakeChanged = $true
+        $changes += "cmake(option OASIS_STAR_SYNC_IN_CLIENT)"
+    }
+    if ($cmakeContent -match 'add_compile_definitions\s*\(\s*OASIS_STAR_API\s*' -and $cmakeContent -notmatch 'if\s*\(\s*OASIS_STAR_SYNC_IN_CLIENT\s*\)') {
+        $cmakeContent = $cmakeContent -replace '(add_compile_definitions\s*\(\s*OASIS_STAR_API\s+ODOOM_STAR_API_SESSION_IMPL\s*\)\s*\r?\n)(\s*)', "`$1`$2if(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2  add_compile_definitions(OASIS_STAR_SYNC_IN_CLIENT)`r`n`$2endif()`r`n`$2"
+        $cmakeChanged = $true
+        $changes += "cmake(OASIS_STAR_SYNC_IN_CLIENT define when ON)"
+    }
+    if ($cmakeChanged) { Set-Content -Path $cmakeRoot -Value $cmakeContent -NoNewline }
 }
-# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used (same list as uzdoom_star_integration.cpp)
+# 4b. CMake: add star_sync.c to build when OASIS_STAR_API is used and OASIS_STAR_SYNC_IN_CLIENT is OFF (otherwise use star_sync from star_api.dll). Use STAR_SYNC_SRC so it is conditional.
 $cmakeFiles = @()
 if (Test-Path "$src\CMakeLists.txt") { $cmakeFiles += "$src\CMakeLists.txt" }
 if (Test-Path "$src\src\CMakeLists.txt") { $cmakeFiles += "$src\src\CMakeLists.txt" }
+$starSyncSrcBlock = @"
+if(NOT OASIS_STAR_SYNC_IN_CLIENT)
+  set(STAR_SYNC_SRC star_sync.c)
+else()
+  set(STAR_SYNC_SRC "")
+endif()
+"@
 foreach ($cmakePath in $cmakeFiles) {
     if (-not (Test-Path $cmakePath)) { continue }
     $cmakeContent = Get-Content $cmakePath -Raw
-    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c') {
-        $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    star_sync.c"
-        Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
-        $changes += "cmake(star_sync.c)"
+    $cmakeChanged = $false
+    if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'STAR_SYNC_SRC') {
+        if ($cmakeContent -match '\r?\n\s*project\s*\([^)]*\)\s*\r?\n') {
+            $cmakeContent = $cmakeContent -replace '(\r?\n\s*project\s*\([^)]*\)\s*\r?\n)', "`$1`$starSyncSrcBlock`r`n"
+            $cmakeChanged = $true
+        } elseif (-not ($cmakeContent -match 'STAR_SYNC_SRC')) {
+            $cmakeContent = $starSyncSrcBlock + "`r`n" + $cmakeContent
+            $cmakeChanged = $true
+        }
+        if ($cmakeContent -match 'uzdoom_star_integration\.cpp' -and $cmakeContent -notmatch 'star_sync\.c|\$\{STAR_SYNC_SRC\}') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+            $cmakeChanged = $true
+        } elseif ($cmakeContent -match 'uzdoom_star_integration\.cpp\s*\r?\n\s*star_sync\.c') {
+            $cmakeContent = $cmakeContent -replace '(\buzdoom_star_integration\.cpp\b)\s*\r?\n\s*star_sync\.c', "`$1`r`n    `$`{STAR_SYNC_SRC`}"
+            $cmakeChanged = $true
+        }
+        if ($cmakeChanged) {
+            Set-Content -Path $cmakePath -Value $cmakeContent -NoNewline
+            $changes += "cmake(star_sync.c conditional on OASIS_STAR_SYNC_IN_CLIENT)"
+        }
     }
 }
 

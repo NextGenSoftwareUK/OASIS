@@ -326,7 +326,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Gets the current authenticated avatar with XP (for STAR client refresh). Delegates to WEB4 get-logged-in-avatar-with-xp so response includes AvatarDetail.XP.
+        /// Gets the current authenticated avatar with XP and active quest/objective (for STAR client refresh). Delegates to WEB4 get-logged-in-avatar-with-xp so response includes AvatarDetail.XP, ActiveQuestId, ActiveObjectiveId.
         /// </summary>
         [HttpGet("current")]
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
@@ -334,6 +334,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public async Task<IActionResult> GetCurrentAvatar()
         {
             return await ForwardToWeb4Async(HttpMethod.Get, "/api/avatar/get-logged-in-avatar-with-xp");
+        }
+
+        /// <summary>
+        /// Sets the active quest and objective for the logged-in avatar (tracker state). Persisted on AvatarDetail; restored after beam-in. Forwards to WEB4.
+        /// </summary>
+        [HttpPost("set-active-quest")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> SetActiveQuest([FromBody] SetActiveQuestRequest request)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(request ?? new SetActiveQuestRequest());
+            var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            return await ForwardToWeb4Async(HttpMethod.Post, "/api/avatar/set-active-quest", content);
         }
 
         #region Avatar Inventory Management
@@ -523,6 +537,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class AddXpRequest
     {
         public int Amount { get; set; }
+    }
+
+    /// <summary>Request body for setting active quest/objective on the authenticated avatar (STAR forwards to WEB4 set-active-quest).</summary>
+    public class SetActiveQuestRequest
+    {
+        public Guid? ActiveQuestId { get; set; }
+        public Guid? ActiveObjectiveId { get; set; }
     }
 }
 

@@ -1,0 +1,9 @@
+{
+  "repo_notes": [
+    {
+      "content": "Use api.oasisweb4.one (not .com) as the canonical base URL for the hosted OASIS API in all examples, code snippets, and documentation. Base URL: https://api.oasisweb4.one, API prefix: https://api.oasisweb4.one/api, Swagger: https://api.oasisweb4.one/swagger/index.html.\n\nIn the Getting Started / Developer Guides section, document both paths clearly:\n1. Using the remote API: Users can call the hosted API at https://api.oasisweb4.one without cloning or running the repo. Include: register (POST /api/avatar/register), verify-email, authenticate (POST /api/avatar/authenticate), then use the JWT in Authorization header for other endpoints. No .NET SDK or local setup required.\n2. Running locally: Clone, restore, build, and run the WebAPI project for local development.",
+      "author": "OASIS docs"
+    }
+  ],
+  "pages": []
+}

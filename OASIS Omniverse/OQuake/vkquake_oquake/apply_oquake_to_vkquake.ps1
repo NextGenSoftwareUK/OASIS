@@ -63,20 +63,16 @@ if (Test-Path (Join-Path $OQuakeCode "star_api.dll")) {
     $StarLib = Join-Path $OQuakeCode "star_api.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
-$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\publish"
+$StarPublishDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\publish"
 if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
     $StarDll = Join-Path $StarPublishDir "star_api.dll"
-    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net8.0\win-x64\native"
+    $StarLibDir = Join-Path $STARAPIClientRoot "bin\Release\net9.0\win-x64\native"
     $StarLib = Join-Path $StarLibDir "star_api.lib"
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
-# star_sync: always use OQuake Code copy so OQuake-specific sync behaviour is used. Fallback to STARAPIClient only if missing.
-$starSyncRoot = $OQuakeCode
-if (-not (Test-Path (Join-Path $OQuakeCode "star_sync.c"))) {
-    $starSyncRoot = Join-Path (Split-Path -Parent $OQuakeRoot) "STARAPIClient"
-    Write-Warning "[OQuake] OQuake\Code\star_sync.c not found; using STARAPIClient\star_sync.c. Copy star_sync.c into OQuake\Code to avoid overwriting on next apply."
-}
+# star_sync: single source of truth is STARAPIClient. Always copy from there so one place to edit.
+$starSyncRoot = $STARAPIClientRoot
 $files = @(
     @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
     @{ Src = Join-Path $OQuakeCode "oquake_star_integration.h"; Dest = "oquake_star_integration.h" },
@@ -214,13 +210,21 @@ extern void PF_OQuake_OnKeyPickup (void);
 extern void PF_OQuake_CheckDoorAccess (void);
 extern void PF_OQuake_OnBossKilled (void);
 extern void PF_OQuake_OnMonsterKilled (void);
+extern void PF_OQuake_OnPickupLeftOnFloor (void);
 "@
             $content = $content -replace [regex]::Escape($Matches[1]) + "(\r?\n)", "$Matches[1]$add`$2"
             $prExtPatched = $true
             Write-Host "[OQuake] Patched pr_ext.c: added OQuake builtin externs" -ForegroundColor Green
         }
+    } elseif ($content -notmatch 'PF_OQuake_OnPickupLeftOnFloor') {
+        $newExtern = "extern void PF_OQuake_OnPickupLeftOnFloor (void);"
+        if ($content -match [regex]::Escape("extern void PF_OQuake_OnMonsterKilled (void);") -and $content -notmatch [regex]::Escape($newExtern)) {
+            $content = $content -replace '(extern void PF_OQuake_OnMonsterKilled \(void\);)(\r?\n)', "`$1`$2$newExtern`$2"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added PF_OQuake_OnPickupLeftOnFloor extern" -ForegroundColor Green
+        }
     }
-    # Extension table: add four OQuake entries before the closing }; of extensionbuiltins
+    # Extension table: add five OQuake entries before the closing }; of extensionbuiltins
     if ($content -notmatch 'ex_OQuake_OnMonsterKilled') {
         $insert = @'
 
@@ -228,11 +232,23 @@ extern void PF_OQuake_OnMonsterKilled (void);
  {"ex_OQuake_CheckDoorAccess", PF_OQuake_CheckDoorAccess, PF_NoCSQC, 0, "float(string doorname, string requiredkey)"},
  {"ex_OQuake_OnBossKilled", PF_OQuake_OnBossKilled, PF_NoCSQC, 0, "void(string bossname)"},
  {"ex_OQuake_OnMonsterKilled", PF_OQuake_OnMonsterKilled, PF_NoCSQC, 0, "void(string monster_classname)"},
+ {"ex_OQuake_OnPickupLeftOnFloor", PF_OQuake_OnPickupLeftOnFloor, PF_NoCSQC, 0, "void(string item_name, string item_type, float quantity)"},
 '@
         if ($content -match '"ex_bot_followentity"') {
             $content = $content -replace '(\{\s*"ex_bot_followentity",\s*PF_Fixme,\s*PF_NoCSQC,\s*0,\s*"float\(entity bot, entity goal\)"\s*\},)(\r?\n)(\s*\}\s*;)', "`$1$insert`$2`$3"
             $prExtPatched = $true
             Write-Host "[OQuake] Patched pr_ext.c: added OQuake extension builtin entries" -ForegroundColor Green
+        }
+    } elseif ($content -notmatch 'ex_OQuake_OnPickupLeftOnFloor') {
+        # Already had four OQuake builtins; add the fifth (OnPickupLeftOnFloor)
+        if ($content -match '(\{\s*"ex_OQuake_OnMonsterKilled",[^\}]+\},)(\r?\n)(\s*\}\s*;)') {
+            $insert = @'
+
+ {"ex_OQuake_OnPickupLeftOnFloor", PF_OQuake_OnPickupLeftOnFloor, PF_NoCSQC, 0, "void(string item_name, string item_type, float quantity)"},
+'@
+            $content = $content -replace '(\{\s*"ex_OQuake_OnMonsterKilled",[^\}]+\},)(\r?\n)(\s*\}\s*;)', "`$1$insert`$2`$3"
+            $prExtPatched = $true
+            Write-Host "[OQuake] Patched pr_ext.c: added OQuake_OnPickupLeftOnFloor builtin" -ForegroundColor Green
         }
     }
     if ($prExtPatched) {
@@ -278,6 +294,79 @@ if (Test-Path $SbarC) {
         Set-Content $SbarC $content -NoNewline
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (sbar.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# --- cl_input.c: block movement when quest popup is open (so keys work after close) ---
+$ClInputC = Join-Path $QuakeDir "cl_input.c"
+if (Test-Path $ClInputC) {
+    $content = Get-Content $ClInputC -Raw
+    $clInputPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    # Block movement when quest popup (Q) or inventory popup (I) is open (same as arrow/Home/PgDn: engine just does not use keys). Tab/scoreboard is blocked in keys.c.
+    if ($content -notmatch 'OQuake_STAR_IsQuestPopupOpen') {
+        if ($content -match 'VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;') {
+            $content = $content -replace '(VectorCopy\s*\(\s*cl\.viewangles\s*,\s*cmd->viewangles\s*\)\s*;\s*\r?\n)(\r?\n)(\s+)(if\s*\(\s*cls\.signon\s*!=\s*SIGNONS\s*\))', "`$1`$2`tif (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())`r`n`t`treturn;`r`n`$2`$3`$4"
+            $clInputPatched = $true
+            Write-Host "[OQuake] Patched cl_input.c: block movement when quest or inventory popup open" -ForegroundColor Green
+        }
+    } elseif ($content -match 'OQuake_STAR_ClearTabKeyIfPopupOpen|keydown\[K_TAB\]\s*=\s*false') {
+        # Revert old Tab-clear approach: leave only early return (Tab is now blocked in keys.c)
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\|\|\s*OQuake_STAR_IsInventoryPopupOpen\s*\(\s*\)\s*\)\s*\{\s*OQuake_STAR_ClearTabKeyIfPopupOpen\s*\(\s*\)\s*;\s*return\s*;\s*\}', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()) return;'
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\|\|\s*OQuake_STAR_IsInventoryPopupOpen\s*\(\s*\)\s*\)\s*\{\s*keydown\[K_TAB\]\s*=\s*false\s*;\s*return\s*;\s*\}', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()) return;'
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: removed Tab clear (Tab handled in keys.c)" -ForegroundColor Green
+    } elseif ($content -notmatch 'OQuake_STAR_IsInventoryPopupOpen') {
+        # Already had quest check; add inventory check so both popups block movement
+        $content = $content -replace 'if\s*\(\s*OQuake_STAR_IsQuestPopupOpen\s*\(\s*\)\s*\)', 'if (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())'
+        $clInputPatched = $true
+        Write-Host "[OQuake] Patched cl_input.c: added inventory popup to movement block" -ForegroundColor Green
+    }
+    if ($content -notmatch 'CL_AdjustAngles[\s\S]{0,120}OQuake_STAR_IsQuestPopupOpen') {
+        if ($content -match 'void CL_AdjustAngles\s*\(\s*void\s*\)\s*\r?\n\s*\{') {
+            $content = $content -replace '(void CL_AdjustAngles\s*\(\s*void\s*\)\s*\r?\n\s*\{\s*\r?\n)(\s+)(float\s+speed;)', "`$1`tif (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ())`r`n`t`treturn;`r`n`r`n`$2`$3"
+            $clInputPatched = $true
+            Write-Host "[OQuake] Patched cl_input.c: block view angles when quest or inventory popup open" -ForegroundColor Green
+        }
+    }
+    if ($clInputPatched) {
+        Set-Content $ClInputC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (cl_input.c patched)" -ForegroundColor Yellow; break }
+        }
+    }
+}
+
+# --- keys.c: skip Tab binding when quest/inventory popup open (same technique as arrow keys in cl_input: do not use key) ---
+$KeysC = Join-Path $QuakeDir "keys.c"
+if (Test-Path $KeysC) {
+    $content = Get-Content $KeysC -Raw
+    $keysPatched = $false
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")(\r?\n)', "`$1`$2`r`n#include `"oquake_star_integration.h`"`$2"
+        $keysPatched = $true
+        Write-Host "[OQuake] Patched keys.c: added #include oquake_star_integration.h" -ForegroundColor Green
+    }
+    if ($content -notmatch 'K_TAB.*OQuake_STAR_IsQuestPopupOpen|OQuake_STAR_IsQuestPopupOpen.*K_TAB') {
+        # In Key_Event, when about to run binding for key_game etc., skip Tab so scoreboard does not open (same as not using arrow keys in CL_BaseMove)
+        if ($content -match '!consolekeys\[key\]\)\)\)') {
+            $orig = $content
+            $content = $content -replace '(\)\)\)\s*\r?\n\s*\{\s*\r?\n)(\s*)(kb\s*=\s*keybindings\[key\];)', "`$1`$2if (key == K_TAB && (OQuake_STAR_IsQuestPopupOpen () || OQuake_STAR_IsInventoryPopupOpen ()))`r`n`$2 return;`r`n`$2`$3"
+            if ($content -ne $orig) {
+                $keysPatched = $true
+                Write-Host "[OQuake] Patched keys.c: skip Tab binding when quest or inventory popup open" -ForegroundColor Green
+            }
+        }
+    }
+    if ($keysPatched) {
+        Set-Content $KeysC $content -NoNewline
+        foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
+            if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (keys.c patched)" -ForegroundColor Yellow; break }
         }
     }
 }
@@ -391,6 +480,129 @@ function Remove-MonsterHookFromPF_Remove {
     Set-Content $FilePath $content -NoNewline
     Write-Host "[OQuake] Removed monster hook from PF_Remove in pr_cmds.c" -ForegroundColor Green
     return $true
+}
+
+# --- Touch pickup at max: intercept in SV_Impact (sv_phys.c) so when player at max health/armor touches a health/armor pickup we add to STAR and remove entity. ---
+function Add-SVImpactTouchIntercept {
+    $svPhysPaths = @(
+        (Join-Path $QuakeDir "sv_phys.c"),
+        (Join-Path $VkQuakeSrc "sv_phys.c"),
+        (Join-Path $VkQuakeSrc "Quake\sv_phys.c")
+    )
+    $svPhys = $null
+    foreach ($p in $svPhysPaths) {
+        if (Test-Path $p) { $svPhys = $p; break }
+    }
+    if (-not $svPhys) {
+        Write-Host "[OQuake] sv_phys.c not found (tried Quake/sv_phys.c under VkQuakeSrc). At-max health pickup to STAR will not work until SV_Impact is patched." -ForegroundColor Yellow
+        return $false
+    }
+    $content = Get-Content $svPhys -Raw
+    if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        Write-Host "[OQuake] sv_phys.c already has touch intercept (health/armor at max -> STAR), skipping." -ForegroundColor Cyan
+        return $true
+    }
+    if ($content -notmatch 'SV_Impact|PR_ExecuteProgram\s*\(\s*\w+->v\.touch\s*\)') {
+        Write-Host "[OQuake] sv_phys.c does not contain expected SV_Impact/touch pattern; skipping patch." -ForegroundColor Yellow
+        return $false
+    }
+    if ($content -notmatch 'oquake_star_integration\.h') {
+        $content = $content -replace '(\#include\s+"quakedef\.h")', "`$1`r`n#include `"oquake_star_integration.h`""
+    }
+    # Already has return-2 handling (detection earlier for at-max health when engine only calls (player,item))
+    if ($content -match 'r == 2|oq_done:') {
+        Write-Host "[OQuake] sv_phys.c already has touch intercept (return 2 / oq_done), skipping." -ForegroundColor Cyan
+        return $true
+    }
+    $patched = $false
+    # New pattern: return 1 = free e1, return 2 = free e2; when (player,item) we return 2 so item is freed and touch is skipped (detection earlier).
+    $repl1 = @"
+		{
+			int r = OQuake_STAR_InterceptTouchPickupAtMax (e1, e2);
+			if (r == 1) ED_Free (e1);
+			else if (r == 2) { ED_Free (e2); goto oq_done; }
+			else PR_ExecuteProgram (e1->v.touch);
+		}
+"@
+    $repl2 = @"
+		{
+			int r = OQuake_STAR_InterceptTouchPickupAtMax (e2, e1);
+			if (r == 1) ED_Free (e2);
+			else if (r == 2) ED_Free (e1);
+			else PR_ExecuteProgram (e2->v.touch);
+		}
+"@
+    $doneLabel = "`r`noq_done:`r`n"
+    # Block 1: replace "if (OQuake... (e1, e2)) ED_Free(e1); else PR_ExecuteProgram(e1->v.touch);" with 3-way
+    $pat1 = 'if \(OQuake_STAR_InterceptTouchPickupAtMax \(e1, e2\)\)\r?\n\s*ED_Free \(e1\);\r?\n\s*else\r?\n\s*PR_ExecuteProgram \(e1->v\.touch\);'
+    if ($content -match $pat1) {
+        $content = $content -replace $pat1, $repl1.TrimEnd()
+        $patched = $true
+    }
+    # Block 2: replace "if (OQuake... (e2, e1)) ED_Free(e2); else PR_ExecuteProgram(e2->v.touch);" with 3-way
+    $pat2 = 'if \(OQuake_STAR_InterceptTouchPickupAtMax \(e2, e1\)\)\r?\n\s*ED_Free \(e2\);\r?\n\s*else\r?\n\s*PR_ExecuteProgram \(e2->v\.touch\);'
+    if ($content -match $pat2) {
+        $content = $content -replace $pat2, $repl2.TrimEnd()
+        $patched = $true
+    }
+    # Add oq_done label before pr_global_struct->self = old_self (only if we patched and not already present)
+    if ($patched -and $content -notmatch 'oq_done:') {
+        $content = $content -replace '(\r?\n\s*)(pr_global_struct->self = old_self;)', "$doneLabel`$1`$2"
+    }
+    if ($patched -and $content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        Set-Content $svPhys $content -NoNewline
+        Write-Host "[OQuake] Patched sv_phys.c: SV_Impact touch intercept (return 1/2, at-max and use_X=0 -> STAR)" -ForegroundColor Green
+        return $true
+    }
+    # Fallback: original pattern (no intercept yet) - replace PR_ExecuteProgram with intercept + new 3-way
+    $repl1orig = " if (OQuake_STAR_InterceptTouchPickupAtMax (e1, e2))`r`n ED_Free (e1);`r`n else`r`n PR_ExecuteProgram (e1->v.touch);"
+    $repl2orig = " if (OQuake_STAR_InterceptTouchPickupAtMax (e2, e1))`r`n ED_Free (e2);`r`n else`r`n PR_ExecuteProgram (e2->v.touch);"
+    $pat1b = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e1->v\.touch\s*\)\s*;'
+    $pat2b = '(pr_global_struct->self\s*=\s*EDICT_TO_PROG\s*\(\s*e2\s*\)\s*;\s*\r?\n\s*pr_global_struct->other\s*=\s*EDICT_TO_PROG\s*\(\s*e1\s*\)\s*;\s*\r?\n\s*)PR_ExecuteProgram\s*\(\s*e2->v\.touch\s*\)\s*;'
+    if ($content -match $pat1b -and $content -notmatch 'OQuake_STAR_InterceptTouchPickupAtMax') {
+        $content = $content -replace $pat1b, "`$1$repl1"
+        $content = $content -replace $repl1, $repl1.TrimEnd()
+        $patched = $true
+    }
+    if ($content -match $pat2b -and $content -notmatch 'r == 2') {
+        $content = $content -replace $pat2b, "`$1$repl2"
+        $content = $content -replace '(\r?\n\s*)(pr_global_struct->self = old_self;)', "$doneLabel`$1`$2"
+        $patched = $true
+    }
+    Write-Host "[OQuake] Could not apply SV_Impact patch (pattern mismatch). At-max health pickup to STAR may not work." -ForegroundColor Yellow
+    return $false
+}
+
+# --- Touch pickup at max: before running the Touch builtin (fallback; real path is SV_Impact in sv_phys.c). ---
+# Try two patterns: (1) two lines with G_EDICT(PARM0) then G_EDICT(PARM1); (2) same with optional comma/semicolon between.
+function Add-TouchPickupInterceptInPrCmds {
+    param([string]$FilePath, [string]$FileLabel)
+    if (-not (Test-Path $FilePath)) { return $false }
+    if ($FileLabel -ne 'pr_cmds.c') { return $false }
+    $content = Get-Content $FilePath -Raw
+    if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') { return $false }
+    # PF_Touch: two edict params, item = PARM0 (self), player = PARM1 (other). Free first (item) when we intercept.
+    $pattern1 = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*\r?\n)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
+    $repl = "`$1`$3`r`n`tif (OQuake_STAR_InterceptTouchPickupAtMax(`$2, `$4)) { ED_Free(`$2); return; }"
+    if ($content -match $pattern1) {
+        $content = $content -replace $pattern1, $repl
+        if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+            Set-Content $FilePath $content -NoNewline
+            Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (health/armor when player full)" -ForegroundColor Green
+            return $true
+        }
+    }
+    # Alternative: single line "edict_t *e1 = G_EDICT(OFS_PARM0); edict_t *e2 = G_EDICT(OFS_PARM1);" or with comma
+    $pattern2 = '(edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM0\s*\)\s*;\s*)(\s*edict_t\s*\*\s*(\w+)\s*=\s*G_EDICT\s*\(\s*OFS_PARM1\s*\)\s*;\s*)'
+    if ($content -match $pattern2) {
+        $content = $content -replace $pattern2, "`$1`$3`r`n`tif (OQuake_STAR_InterceptTouchPickupAtMax(`$2, `$4)) { ED_Free(`$2); return; }"
+        if ($content -match 'OQuake_STAR_InterceptTouchPickupAtMax') {
+            Set-Content $FilePath $content -NoNewline
+            Write-Host "[OQuake] Patched pr_cmds.c: touch pickup at max -> STAR (pattern 2)" -ForegroundColor Green
+            return $true
+        }
+    }
+    return $false
 }
 
 # Monster kill via SVC_KILLEDMONSTER: when QuakeC Killed() does WriteByte(MSG_ALL, SVC_KILLEDMONSTER), self is the dead monster. Primary path for XP/NFT.
@@ -590,6 +802,13 @@ if ($RevertMonsterHook) {
     if (Add-MonsterHookInPF_Remove -FilePath $path -FileLabel "pr_cmds.c") {
         $monsterHookAdded = $true
     }
+    # SV_Impact (sv_phys.c) is where touch is actually invoked for pickups; patch it first. pr_cmds Touch builtin is fallback.
+    if (Add-SVImpactTouchIntercept) {
+        $monsterHookAdded = $true
+    }
+    if (Add-TouchPickupInterceptInPrCmds -FilePath $path -FileLabel "pr_cmds.c") {
+        $monsterHookAdded = $true
+    }
     if ($monsterHookAdded) {
         foreach ($dir in @((Join-Path $VkQuakeSrc "Windows\VisualStudio\Build-vkQuake"), (Join-Path $VkQuakeSrc "Windows\VisualStudio\x64"), (Join-Path $VkQuakeSrc "build"))) {
             if (Test-Path $dir) { Remove-Item -Recurse -Force $dir; Write-Host "[OQuake] Cleared build cache (monster hook inside ED_Free + pr_cmds makestatic)" -ForegroundColor Yellow; break }
@@ -610,7 +829,7 @@ if (Test-Path $GlScreenC) {
     if ($content -notmatch 'OQuake_STAR_DrawBeamedInStatus') {
         # After SCR_DrawClock (cbx); in the normal game HUD block add the four OQuake draw calls
         $pattern = '(SCR_DrawClock \(cbx\);\s*(?://[^\r\n]*)?)(\r?\n)(\s+SCR_DrawConsole)'
-        $replacement = "`$1`$2	OQuake_STAR_DrawBeamedInStatus (cbx);`r`n	OQuake_STAR_DrawXpStatus (cbx);`r`n	OQuake_STAR_DrawVersionStatus (cbx);`r`n	OQuake_STAR_DrawInventoryOverlay (cbx);`r`n`$3"
+        $replacement = "`$1`$2	OQuake_STAR_DrawBeamedInStatus (cbx);`r`n	OQuake_STAR_DrawXpStatus (cbx);`r`n	OQuake_STAR_DrawVersionStatus (cbx);`r`n	OQuake_STAR_DrawToast (cbx);`r`n	OQuake_STAR_DrawInventoryOverlay (cbx);`r`n`$3"
         if ($content -match $pattern) {
             $content = $content -replace $pattern, $replacement
             $glPatched = $true
@@ -666,7 +885,20 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added pr_ext_oquake.c to project $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    if ($projContent -notmatch 'star_sync\.c') {
+    # Stub no longer needed: star_api.def is auto-generated from C# so star_api.lib has all symbols (see STARAPIClient/Scripts/generate_star_api_def.ps1).
+    if ($projContent -match 'star_api_quest_level_time_stub\.c') {
+        $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_api_quest_level_time_stub\.c"[^>]*>[\s\S]*?</ClCompile>\s*\r?\n', "`r`n"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Removed star_api_quest_level_time_stub.c from project (lib now has symbol)" -ForegroundColor Green
+    }
+    $useStarSyncInClient = ($env:OASIS_STAR_SYNC_IN_CLIENT -eq "1")
+    if ($useStarSyncInClient) {
+        if ($projContent -match 'star_sync\.c') {
+            $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_sync\.c"[^>]*>\s*\r?\n\s*<PrecompiledHeader>[^<]+</PrecompiledHeader>\s*\r?\n\s*</ClCompile>\s*\r?\n', "`r`n"
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Removed star_sync.c from project (using star_sync from star_api.dll; OASIS_STAR_SYNC_IN_CLIENT=1)" -ForegroundColor Green
+        }
+    } elseif ($projContent -notmatch 'star_sync\.c') {
         $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext_oquake\.c' }
         if (-not $anchor) { $anchor = 'pr_ext\.c' }
         $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockStarSync`r`n"
@@ -680,11 +912,55 @@ foreach ($vcxproj in $vcxprojPaths) {
             Write-Host "[OQuake] Added star_api.lib to linker in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
         }
     }
+    # Client exports star_api_refresh_avatar_profile (see STARAPIClient obj/.../native/star_api.def). Linker must use the deployed lib in vkQuake\Quake.
+    if ($projContent -match 'star_api\.lib' -and $projContent -notmatch 'AdditionalLibraryDirectories.*\.\.\\\.\.\\Quake') {
+        $projContent = $projContent -replace '(<AdditionalDependencies>[^<]*</AdditionalDependencies>)([\s\S]*?)(</Link>)', "`$1`r`n      <AdditionalLibraryDirectories>..\..\Quake;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>`r`n`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added AdditionalLibraryDirectories ..\..\Quake so linker uses deployed star_api.lib in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
+    # Ensure Quake folder is on include path so compiler finds star_api.h (with STAR_API_OP_PROFILE_LOADED and star_api_set_operation_callback) copied by BUILD_OQUAKE.bat / apply script.
+    if ($projContent -notmatch 'AdditionalIncludeDirectories.*\.\.\\\.\.\\Quake') {
+        $projContent = $projContent -replace '(<ClCompile>\s*\r?\n)(\s*<(?:WarningLevel|PreprocessorDefinitions))', "`$1      <AdditionalIncludeDirectories>..\..\Quake;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>`r`n`$2"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added AdditionalIncludeDirectories ..\..\Quake so compiler finds star_api.h in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
     # Define OASIS_STAR_API so #ifdef OASIS_STAR_API blocks in pr_edict.c, host.c, sbar.c, etc. are compiled (monster hook, init, HUD).
     if ($projContent -notmatch 'OASIS_STAR_API') {
         $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_API;`$2`$3"
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
+    }
+    # When OASIS_STAR_SYNC_IN_CLIENT=1, add OASIS_STAR_SYNC_IN_CLIENT so star_sync_* are taken from star_api.dll (no star_sync.c). When 0 or unset, remove the define so star_sync.c is compiled.
+    if ($useStarSyncInClient) {
+        if ($projContent -notmatch 'OASIS_STAR_SYNC_IN_CLIENT') {
+            $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_SYNC_IN_CLIENT;`$2`$3"
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Added OASIS_STAR_SYNC_IN_CLIENT to PreprocessorDefinitions (star_sync from DLL)" -ForegroundColor Green
+        }
+    } else {
+        if ($projContent -match 'OASIS_STAR_SYNC_IN_CLIENT;?') {
+            $projContent = $projContent -replace 'OASIS_STAR_SYNC_IN_CLIENT;?', ''
+            $vcxprojChanged = $true
+            Write-Host "[OQuake] Removed OASIS_STAR_SYNC_IN_CLIENT from PreprocessorDefinitions (using star_sync.c)" -ForegroundColor Green
+        }
+    }
+    # Do NOT define OQUAKE_STAR_API_TRACKER_STUBS so the game uses the real star_api.dll for tracker APIs (star_api_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
+    if ($projContent -match 'OQUAKE_STAR_API_TRACKER_STUBS') {
+        $projContent = $projContent -replace 'OQUAKE_STAR_API_TRACKER_STUBS;?', ''
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Removed OQUAKE_STAR_API_TRACKER_STUBS so star_api_set_active_quest uses real DLL (quest/objective will persist)" -ForegroundColor Green
+    }
+    # Define OQUAKE_STAR_API_SESSION_IMPL so oquake_star_integration.c provides JWT/session APIs by forwarding to star_api.dll at runtime. Use when star_api.lib does not export them (e.g. NativeAOT trimmer).
+    if ($projContent -notmatch 'OQUAKE_STAR_API_SESSION_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_SESSION_IMPL;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OQUAKE_STAR_API_SESSION_IMPL (forward star_api_set_saved_session, star_api_restore_session, get_current_username, get_current_jwt from DLL at runtime)" -ForegroundColor Green
+    }
+    # Define OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL so oquake_star_integration.c provides star_api_refresh_avatar_profile (forwards to DLL at runtime). Fixes LNK2001 when the linked star_api.lib does not export this symbol.
+    if ($projContent -notmatch 'OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL (provides star_api_refresh_avatar_profile when lib does not)" -ForegroundColor Green
     }
     if ($vcxprojChanged) { Set-Content -Path $vcxproj -Value $projContent -NoNewline; break }
 }

@@ -213,6 +213,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
+            oasisAvatar.ActiveQuestId = avatar.Result.ActiveQuestId;
+            oasisAvatar.ActiveObjectiveId = avatar.Result.ActiveObjectiveId;
             //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
             //oasisAvatar.ProviderPublicKey = avatar.Result.ProviderPublicKey;
             //oasisAvatar.ProviderUsername = avatar.Result.ProviderUsername;
@@ -346,6 +348,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             oasisAvatar.AllChildIdListCache = avatar.Result.AllChildIdListCache;
             oasisAvatar.ChildIdListCache = avatar.Result.ChildIdListCache;
+
+            if (avatar.Result.MetaData != null && avatar.Result.MetaData.Count > 0)
+                oasisAvatar.MetaData = new Dictionary<string, object>(avatar.Result.MetaData);
 
             //oasisAvatar.Children = avatar.Result.Children;
             //oasisAvatar.CustomKey = avatar.Result.CustomKey;
@@ -547,6 +552,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.IsActive = avatar.IsActive;
 
             //AvatarDetail Properties
+            mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;
+            mongoAvatar.ActiveObjectiveId = avatar.ActiveObjectiveId;
             mongoAvatar.UmaJson = avatar.UmaJson;
             //mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
@@ -707,7 +714,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
             oasisHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
-            oasisHolon.MetaData = holon.MetaData;
+            oasisHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
             oasisHolon.ProviderMetaData = holon.ProviderMetaData;
             oasisHolon.Name = holon.Name;
             oasisHolon.Description = holon.Description;
@@ -822,7 +829,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
             mongoHolon.PreviousVersionProviderUniqueStorageKey = holon.PreviousVersionProviderUniqueStorageKey;
             mongoHolon.ProviderMetaData = holon.ProviderMetaData;
-            mongoHolon.MetaData = holon.MetaData;
+            mongoHolon.MetaData = holon.MetaData != null ? new Dictionary<string, object>(holon.MetaData) : new Dictionary<string, object>();
             mongoHolon.CreatedOASISType = holon.CreatedOASISType;
             mongoHolon.CreatedProviderType = holon.CreatedProviderType;
             mongoHolon.HolonType = holon.HolonType;

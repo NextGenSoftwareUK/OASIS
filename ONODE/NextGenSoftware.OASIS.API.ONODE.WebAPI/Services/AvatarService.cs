@@ -1280,10 +1280,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_OASISDNA.OASIS.Security.SecretKey);
+            var jwtMinutes = _OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
+            if (jwtMinutes <= 0) jwtMinutes = 15;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {new Claim("id", account.Id.ToString())}),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };
@@ -1293,10 +1295,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
         private RefreshToken GenerateRefreshToken(string ipAddress)
         {
+            var refreshDays = _OASISDNA.OASIS.Security.RefreshTokenExpirationDays;
+            if (refreshDays <= 0) refreshDays = 7;
             return new()
             {
                 Token = AvatarManager.RandomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(refreshDays),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
