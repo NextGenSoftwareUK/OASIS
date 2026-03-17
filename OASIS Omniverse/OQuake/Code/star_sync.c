@@ -242,6 +242,21 @@ int star_sync_auth_in_progress(void) {
     return in_progress;
 }
 
+void star_sync_auth_force_reset(void) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
+#endif
+    g_auth_in_progress = 0;
+    g_auth_has_result = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_unlock(&g_auth_lock);
+#endif
+}
+
 /* ---------------------------------------------------------------------------
  * Inventory state
  * --------------------------------------------------------------------------- */
