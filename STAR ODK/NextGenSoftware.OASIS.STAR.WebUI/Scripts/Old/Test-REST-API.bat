@@ -26,6 +26,12 @@ call npm run build
 if %errorlevel% neq 0 (
     echo ❌ Frontend: React app build failed.
     cd ..
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
+
     exit /b %errorlevel%
 )
 echo ✅ Frontend: React app built successfully.

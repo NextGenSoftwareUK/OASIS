@@ -10,6 +10,8 @@ if not exist "run_web4_web5_integration_tests_with_apis.ps1" (
 powershell -NoProfile -ExecutionPolicy Bypass -File "run_web4_web5_integration_tests_with_apis.ps1"
 set EXITCODE=%ERRORLEVEL%
 echo.
-echo Press any key to close...
+echo ========================================
+echo   Press any key to exit
+echo ========================================
 pause >nul
 exit /b %EXITCODE%

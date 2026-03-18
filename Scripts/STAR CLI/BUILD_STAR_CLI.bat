@@ -1,6 +1,5 @@
 @echo off
-REM Build the STAR CLI (dotnet build).
-REM Run from repo root: Scripts\STAR CLI\BUILD_STAR_CLI.bat   or   Scripts\STAR CLI\BUILD_STAR_CLI.bat Debug
+REM Build STAR CLI. Pauses at end for file-manager launches.
 setlocal
 set "SCRIPT_DIR=%~dp0"
 set "REPO_ROOT=%SCRIPT_DIR%..\.."
@@ -10,5 +9,15 @@ if "%CONFIG%"=="" set "CONFIG=Release"
 
 echo Building STAR CLI (%CONFIG%) in %PROJECT_DIR%
 dotnet build "%PROJECT_DIR%\NextGenSoftware.OASIS.STAR.CLI.csproj" -c %CONFIG%
-if errorlevel 1 exit /b 1
-echo Build complete. Run with: Scripts\STAR CLI\RUN_STAR_CLI.bat
+set "EXITCODE=%ERRORLEVEL%"
+if %EXITCODE% equ 0 (
+  echo Build complete. Run with: Scripts\STAR CLI\RUN_STAR_CLI.bat
+) else (
+  echo Build failed with exit code %EXITCODE%
+)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+pause >nul
+exit /b %EXITCODE%

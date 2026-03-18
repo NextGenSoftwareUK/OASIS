@@ -11,10 +11,9 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
   </ItemGroup>
 
-  <!-- DNA folder: JSON + optional platform STARDNA.*.cs templates (copied over STARDNA.cs at boot) -->
+  <!-- DNA folder: JSON only (STARDNA.cs is chosen at build time in STAR.DNA project) -->
   <ItemGroup>
     <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\**\*.json" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
-    <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\STARDNA.*.cs" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />

@@ -4,7 +4,11 @@
 
 set -e
 
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/include/pause_on_exit.inc.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WEB5_PROJECT="$REPO_ROOT/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
 WEB5_DIR="$REPO_ROOT/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
@@ -40,4 +44,5 @@ echo "Press Ctrl+C to stop the API."
 echo ""
 
 cd "$WEB5_DIR"
-exec dotnet run --no-launch-profile --project "$WEB5_PROJECT" -c Release --urls "http://localhost:$PORT"
+dotnet run --no-launch-profile --project "$WEB5_PROJECT" -c Release --urls "http://localhost:$PORT"
+exit $?

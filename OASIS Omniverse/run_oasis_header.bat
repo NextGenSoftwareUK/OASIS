@@ -9,3 +9,10 @@ if "%~1"=="OQUAKE" set "TITLE=O A S I S   O Q U A K E"
 if "%~1"=="BUILD" set "TITLE=T H E   O A S I S   O M N I V E R S E" & set "SUB=STARAPIClient + ODOOM + OQuake"
 if not exist "%ROOT%\show_oasis_header.ps1" exit /b 0
 if defined SUB (powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\show_oasis_header.ps1" -Title "%TITLE%" -Subtitle "%SUB%") else (powershell -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\show_oasis_header.ps1" -Title "%TITLE%")
+
+REM OASIS: Explorer pause (OASIS_BAT_NO_PAUSE=1 skips)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul

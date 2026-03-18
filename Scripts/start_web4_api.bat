@@ -35,8 +35,13 @@ echo.
 REM Change to project directory and run (dotnet run builds first; DLLs must not be locked)
 cd /d "%SCRIPT_DIR%..\ONODE\NextGenSoftware.OASIS.API.ONODE.WebAPI"
 dotnet run --no-launch-profile --project "%WEB4_PROJECT%" -c Release --urls "http://localhost:5555"
-
-pause
+set EXITCODE=%ERRORLEVEL%
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+pause >nul
+exit /b %EXITCODE%
 
 
 

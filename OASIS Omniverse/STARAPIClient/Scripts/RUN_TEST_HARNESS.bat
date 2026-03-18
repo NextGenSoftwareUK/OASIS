@@ -7,5 +7,9 @@ dotnet run --project ../TestProjects\NextGenSoftware.OASIS.STARAPI.Client.TestHa
 set EXIT_CODE=%ERRORLEVEL%
 if %EXIT_CODE% neq 0 echo Test harness failed with exit code %EXIT_CODE%
 echo.
-pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
 exit /b %EXIT_CODE%

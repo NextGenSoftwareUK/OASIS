@@ -12,6 +12,8 @@ if not exist "run_starapi_client_test_suite.ps1" (
 powershell -NoProfile -ExecutionPolicy Bypass -File "run_starapi_client_test_suite.ps1" %*
 set EXITCODE=%ERRORLEVEL%
 echo.
-echo Press any key to close...
+echo ========================================
+echo   Press any key to exit
+echo ========================================
 pause >nul
 exit /b %EXITCODE%

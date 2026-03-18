@@ -12,5 +12,9 @@ if not exist "run_all_tests_with_apis.ps1" (
 powershell -NoProfile -ExecutionPolicy Bypass -File "run_all_tests_with_apis.ps1"
 set EXITCODE=%ERRORLEVEL%
 echo.
-pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
 exit /b %EXITCODE%

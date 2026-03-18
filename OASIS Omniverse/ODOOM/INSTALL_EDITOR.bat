@@ -21,7 +21,11 @@ if not exist "%ODOOM_INTEGRATION%build\Editor\Builder.exe" (
     ) else (
         echo [ODOOM] ERROR: Builder.exe not found at %ULTIMATE_DOOM_BUILDER_BUILD%
         echo         Edit ULTIMATE_DOOM_BUILDER_BUILD in this script or put Builder.exe in build\Editor manually.
-        pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
         exit /b 1
     )
 ) else (
