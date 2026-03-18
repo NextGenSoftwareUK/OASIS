@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
-using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 
@@ -135,6 +136,128 @@ namespace NextGenSoftware.OASIS.API.DNA
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.LoadDNA. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// If <see cref="SecuritySettings.SecretKey"/> is missing, generates one from two GUIDs (JWT signing)
+        /// and persists to the OASIS DNA JSON file when it exists on disk. Safe to call every boot.
+        /// </summary>
+        public static OASISResult<bool> EnsureSecuritySecretKeyPersisted(string preferredSavePath = null)
+        {
+            return EnsureSecuritySecretKeyPersistedAsync(preferredSavePath).GetAwaiter().GetResult();
+        }
+
+        public static async Task<OASISResult<bool>> EnsureSecuritySecretKeyPersistedAsync(string preferredSavePath = null)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            const string errorMessage = "OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync. Reason: ";
+
+            try
+            {
+                if (OASISDNA == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA is not loaded.");
+                    return result;
+                }
+
+                if (OASISDNA.OASIS == null)
+                    OASISDNA.OASIS = new OASIS();
+                if (OASISDNA.OASIS.Security == null)
+                    OASISDNA.OASIS.Security = new SecuritySettings();
+
+                if (!string.IsNullOrWhiteSpace(OASISDNA.OASIS.Security.SecretKey))
+                {
+                    result.Result = true;
+                    return result;
+                }
+
+                OASISDNA.OASIS.Security.SecretKey = string.Concat(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"));
+
+                string savePath = preferredSavePath ?? OASISDNAPath;
+                if (string.IsNullOrWhiteSpace(savePath))
+                {
+                    result.Result = true;
+                    result.Message = "OASIS Security.SecretKey generated for this session only (no DNA path).";
+                    return result;
+                }
+
+                if (!Path.IsPathRooted(savePath))
+                    savePath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, savePath.Replace('\\', Path.DirectorySeparatorChar)));
+
+                if (!File.Exists(savePath))
+                {
+                    result.Result = true;
+                    result.IsWarning = true;
+                    result.Message = "OASIS Security.SecretKey generated in memory; DNA file not found to persist — add SecretKey to OASIS_DNA.json or place the file at the expected path.";
+                    return result;
+                }
+
+                OASISDNAManager.OASISDNAPath = preferredSavePath ?? OASISDNAPath;
+
+                // Update only SecretKey in the file so comments and formatting in OASIS_DNA.json are preserved.
+                OASISResult<bool> patchResult = await TryUpdateSecretKeyInFileAsync(savePath, OASISDNA.OASIS.Security.SecretKey);
+                if (patchResult.IsError || !patchResult.Result)
+                {
+                    result.Result = true;
+                    result.IsWarning = true;
+                    result.Message = string.IsNullOrEmpty(patchResult.Message)
+                        ? "OASIS Security.SecretKey is set for this session but could not be written to the file (SecretKey property not found or invalid format)."
+                        : patchResult.Message;
+                    return result;
+                }
+
+                result.Result = true;
+                result.Message = "Generated and saved OASIS Security.SecretKey (fresh install).";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Updates only the OASIS.Security.SecretKey value in the JSON file so that comments and formatting are preserved.
+        /// Call this when persisting a newly generated SecretKey; do not use full SaveDNA for that case or comments will be lost.
+        /// </summary>
+        private static async Task<OASISResult<bool>> TryUpdateSecretKeyInFileAsync(string oasisdnaPath, string newSecretKey)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (string.IsNullOrEmpty(oasisdnaPath) || !File.Exists(oasisdnaPath))
+                {
+                    OASISErrorHandling.HandleError(ref result, "OASIS DNA file path is missing or file does not exist.");
+                    return result;
+                }
+
+                string content = await File.ReadAllTextAsync(oasisdnaPath);
+
+                // Match "SecretKey" : "" or "SecretKey": "value" or "SecretKey" : null (inside OASIS.Security). Replace value only.
+                // Escaped new key for JSON: backslash and quote must be escaped.
+                string escapedKey = newSecretKey.Replace("\\", "\\\\").Replace("\"", "\\\"");
+                string replacement = $"\"SecretKey\": \"{escapedKey}\"";
+
+                const string pattern = @"""SecretKey""\s*:\s*(?:""[^""]*""|null)";
+                string newContent = Regex.Replace(content, pattern, replacement);
+
+                if (newContent == content)
+                {
+                    result.Result = false;
+                    result.Message = "SecretKey property not found or already set in OASIS_DNA.json; file unchanged.";
+                    return result;
+                }
+
+                await File.WriteAllTextAsync(oasisdnaPath, newContent);
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error updating SecretKey in OASIS DNA file: {ex.Message}");
             }
 
             return result;
