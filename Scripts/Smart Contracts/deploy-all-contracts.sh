@@ -10,6 +10,12 @@
 
 set -e
 
+
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/../include/pause_on_exit.inc.sh"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

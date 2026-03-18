@@ -19,3 +19,10 @@ if not defined ODOOM_EXE (echo Build failed or path missing.) & pause & exit /b 
 :launch
 echo Launching ODOOM...
 start "" "%ODOOM_EXE%"
+
+REM OASIS: Explorer pause (OASIS_BAT_NO_PAUSE=1 skips)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul

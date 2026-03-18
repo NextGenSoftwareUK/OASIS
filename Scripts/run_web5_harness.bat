@@ -13,6 +13,8 @@ if not exist "run_web5_harness.ps1" (
 powershell -NoProfile -ExecutionPolicy Bypass -File "run_web5_harness.ps1" %*
 set EXITCODE=%ERRORLEVEL%
 echo.
-echo Press any key to close...
+echo ========================================
+echo   Press any key to exit
+echo ========================================
 pause >nul
 exit /b %EXITCODE%

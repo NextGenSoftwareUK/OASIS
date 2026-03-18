@@ -2,6 +2,20 @@
 # Run unit, integration, and test harness. Linux equivalent of RUN_ALL_TESTS.bat.
 # Uses real APIs (WEB5 :5556, WEB4 :5555) unless STARAPI_INTEGRATION_USE_FAKE=true / STARAPI_HARNESS_USE_FAKE_SERVER=true.
 set -e
+
+# OASIS: pause before exit when run from GUI (CI: OASIS_SCRIPT_NO_PAUSE=1)
+if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
+  _OASIS_TD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  while [[ "$_OASIS_TD" != "/" ]]; do
+    if [[ -f "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh" ]]; then
+      # shellcheck disable=SC1091
+      source "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh"
+      break
+    fi
+    _OASIS_TD="$(dirname "$_OASIS_TD")"
+  done
+fi
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 export STARAPI_INTEGRATION_USE_FAKE=false
 export STARAPI_HARNESS_USE_FAKE_SERVER=false

@@ -5,7 +5,11 @@
 
 set -e
 
+
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/include/pause_on_exit.inc.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WEB4_PROJECT="$REPO_ROOT/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
 WEB4_DIR="$REPO_ROOT/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
@@ -41,4 +45,5 @@ echo "Press Ctrl+C to stop the API."
 echo ""
 
 cd "$WEB4_DIR"
-exec dotnet run --no-launch-profile --project "$WEB4_PROJECT" -c Release --urls "http://localhost:$PORT"
+dotnet run --no-launch-profile --project "$WEB4_PROJECT" -c Release --urls "http://localhost:$PORT"
+exit $?

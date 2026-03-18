@@ -291,7 +291,11 @@ if not defined OQM_COUNT set "OQM_COUNT=0"
 echo [ODOOM][INFO] Sprite counts: OQW=%OQW_COUNT% OQH=%OQH_COUNT% OQM=%OQM_COUNT%
 if "%REQ_OQ_MISSING%"=="1" (
     echo "[ODOOM][ERROR] Required OQ sprites are missing. Re-run with sprite regeneration enabled."
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 echo [ODOOM][DONE] OQ runtime sprite verification passed.

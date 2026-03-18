@@ -54,6 +54,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             {
                 //ConsoleHelper.SetCurrentFont("Consolas", 8);
                 _args = args;
+                // DNA is published next to star; paths are relative to CWD. Launching from another folder
+                // (e.g. ./Scripts/STAR\ CLI/RUN_STAR_CLI.sh from repo root) breaks File.Exists("DNA/OASIS_DNA.json").
+                EnsureWorkingDirectoryNextToStarExecutableWhenDnaNotInCwd();
                 ShowHeader();
                 CLIEngine.ShowMessage("", false);
                 Console.CancelKeyPress += Console_CancelKeyPress;
@@ -138,6 +141,46 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
                 //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+            }
+        }
+
+        /// <summary>
+        /// If <c>DNA/OASIS_DNA.json</c> is not found from the current directory but exists beside the
+        /// STAR CLI binary (publish or <c>dotnet run</c> output), set CWD to that directory so boot
+        /// and file-manager-style paths behave consistently.
+        /// </summary>
+        private static void EnsureWorkingDirectoryNextToStarExecutableWhenDnaNotInCwd()
+        {
+            try
+            {
+                string oasisInCwd = Path.Combine(Environment.CurrentDirectory, "DNA", "OASIS_DNA.json");
+                if (File.Exists(oasisInCwd))
+                    return;
+
+                // Single-file publish: BaseDirectory is the extract temp folder (no DNA). DNA/ is next to the real `star` binary.
+                string proc = Environment.ProcessPath;
+                if (!string.IsNullOrEmpty(proc))
+                {
+                    string starDir = Path.GetDirectoryName(proc);
+                    if (!string.IsNullOrEmpty(starDir))
+                    {
+                        string oasisNextToStar = Path.Combine(starDir, "DNA", "OASIS_DNA.json");
+                        if (File.Exists(oasisNextToStar))
+                        {
+                            Environment.CurrentDirectory = starDir;
+                            return;
+                        }
+                    }
+                }
+
+                string exeDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string oasisNextToExe = Path.Combine(exeDir, "DNA", "OASIS_DNA.json");
+                if (File.Exists(oasisNextToExe))
+                    Environment.CurrentDirectory = exeDir;
+            }
+            catch
+            {
+                // Non-fatal; IgniteStar will surface a clear DNA load error if paths are still wrong.
             }
         }
 

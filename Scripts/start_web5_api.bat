@@ -35,8 +35,13 @@ echo.
 REM Change to project directory and run (dotnet run builds first; DLLs must not be locked)
 cd /d "%SCRIPT_DIR%..\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI"
 dotnet run --no-launch-profile --project "%WEB5_PROJECT%" -c Release --urls "http://localhost:5556"
-
-pause
+set EXITCODE=%ERRORLEVEL%
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+pause >nul
+exit /b %EXITCODE%
 
 
 

@@ -13,5 +13,9 @@ if not exist "run_demo_quest_seed.ps1" (
 powershell -NoProfile -ExecutionPolicy Bypass -File "run_demo_quest_seed.ps1" %*
 set EXITCODE=%ERRORLEVEL%
 echo.
-pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
 exit /b %EXITCODE%

@@ -4,6 +4,12 @@
 
 set -e
 
+
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
+source "$SCRIPT_DIR/include/pause_on_exit.inc.sh"
+
 MONGO_PORT=27017
 
 echo ""
@@ -55,7 +61,8 @@ fi
 if command -v mongod &>/dev/null; then
   echo "Starting mongod in the foreground (Ctrl+C to stop)..."
   echo "For production, install the MongoDB package that registers a systemd service."
-  exec mongod --bind_ip 127.0.0.1 --port $MONGO_PORT
+  mongod --bind_ip 127.0.0.1 --port $MONGO_PORT
+  exit $?
 fi
 
 echo "MongoDB is not installed or not in PATH."
