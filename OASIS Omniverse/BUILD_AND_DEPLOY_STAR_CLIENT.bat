@@ -25,4 +25,10 @@ powershell -ExecutionPolicy Bypass -File "STARAPIClient\Scripts\publish_and_depl
 set "EXIT_CODE=%ERRORLEVEL%"
 
 endlocal
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
+
 exit /b %EXIT_CODE%

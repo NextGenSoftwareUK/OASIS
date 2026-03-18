@@ -66,7 +66,11 @@ if not exist "%OUR_WORLD_PATH%" (
 if "%ALL_PATHS_EXIST%"=="false" (
     echo.
     echo ❌ Some paths are missing. Please check the paths and try again.
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 

@@ -26,4 +26,10 @@ if errorlevel 1 (
     pause
 )
 
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
+
 exit /b 0

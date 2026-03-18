@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 
@@ -13,6 +14,9 @@ namespace NextGenSoftware.OASIS.API.DNA
         private static string SYSTEMOASISDNAPath = "OASIS_DNA_SYSTEM.json";
         public static string OASISDNAPath = "OASIS_DNA.json";
         public static OASISDNA OASISDNA { get; set; }
+
+        /// <summary>Full path to OASIS_DNA.json after the last successful <see cref="LoadDNA(string)"/> (for single-file apps where CWD/BaseDirectory differ from the publish folder).</summary>
+        public static string LastResolvedOASISDnaPhysicalPath { get; private set; }
 
         private static OASISResult<OASISDNA> GetSystemOASISDNA()
         {
@@ -97,6 +101,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                         //    OASISDNA.OASIS.Email.SmtpPass = GetSystemOASISDNA().Result.OASIS.Email.SmtpPass;
 
                         result.Result = OASISDNA;
+                        RecordLastResolvedOasisDnaPath(OASISDNAPath);
                     }
                 }
             }
@@ -106,6 +111,23 @@ namespace NextGenSoftware.OASIS.API.DNA
             }
 
             return result;
+        }
+
+        private static void RecordLastResolvedOasisDnaPath(string pathUsedForOpen)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(pathUsedForOpen))
+                    return;
+                LastResolvedOASISDnaPhysicalPath = Path.GetFullPath(
+                    Path.IsPathRooted(pathUsedForOpen)
+                        ? pathUsedForOpen
+                        : Path.Combine(Environment.CurrentDirectory, pathUsedForOpen.Replace('\\', Path.DirectorySeparatorChar)));
+            }
+            catch
+            {
+                // non-fatal
+            }
         }
 
         public static async Task<OASISResult<OASISDNA>> LoadDNAAsync(string OASISDNAPath)
@@ -130,6 +152,7 @@ namespace NextGenSoftware.OASIS.API.DNA
                         string json = await r.ReadToEndAsync();
                         OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
                         result.Result = OASISDNA;
+                        RecordLastResolvedOasisDnaPath(OASISDNAPath);
                     }
                 }
             }
@@ -215,6 +238,154 @@ namespace NextGenSoftware.OASIS.API.DNA
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}");
+            }
+
+            return result;
+        }
+
+        private static string ResolveOasisDnaPhysicalPath()
+        {
+            if (!string.IsNullOrEmpty(LastResolvedOASISDnaPhysicalPath) && File.Exists(LastResolvedOASISDnaPhysicalPath))
+                return LastResolvedOASISDnaPhysicalPath;
+
+            try
+            {
+                string proc = Environment.ProcessPath;
+                if (!string.IsNullOrEmpty(proc))
+                {
+                    string starDir = Path.GetDirectoryName(proc);
+                    if (!string.IsNullOrEmpty(starDir))
+                    {
+                        string nextToStar = Path.Combine(starDir, "DNA", "OASIS_DNA.json");
+                        if (File.Exists(nextToStar))
+                            return Path.GetFullPath(nextToStar);
+                    }
+                }
+            }
+            catch
+            {
+                // non-fatal
+            }
+
+            string rel = string.IsNullOrWhiteSpace(OASISDNAPath)
+                ? Path.Combine("DNA", "OASIS_DNA.json")
+                : OASISDNAPath.Replace('\\', Path.DirectorySeparatorChar);
+            if (Path.IsPathRooted(rel) && File.Exists(rel))
+                return Path.GetFullPath(rel);
+            string fromCwd = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, rel));
+            if (File.Exists(fromCwd))
+                return fromCwd;
+            string baseDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            string fromExe = Path.GetFullPath(Path.Combine(baseDir, rel));
+            if (File.Exists(fromExe))
+                return fromExe;
+            return fromCwd;
+        }
+
+        private static async Task<OASISResult<bool>> PersistSecretKeyWithJObjectAsync(string oasisdnaPath, string newSecretKey)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            try
+            {
+                if (string.IsNullOrEmpty(oasisdnaPath) || !File.Exists(oasisdnaPath))
+                {
+                    OASISErrorHandling.HandleError(ref result, "OASIS DNA file path is missing or file does not exist.");
+                    return result;
+                }
+
+                string content = await File.ReadAllTextAsync(oasisdnaPath);
+                JObject jo = JObject.Parse(content);
+                JObject oasis = jo["OASIS"] as JObject;
+                if (oasis == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "OASIS_DNA.json has no OASIS root object.");
+                    return result;
+                }
+
+                JObject sec = oasis["Security"] as JObject;
+                if (sec == null)
+                {
+                    sec = new JObject();
+                    oasis["Security"] = sec;
+                }
+
+                sec["SecretKey"] = newSecretKey;
+                await File.WriteAllTextAsync(oasisdnaPath, jo.ToString(Formatting.Indented));
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"PersistSecretKeyWithJObjectAsync: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Ensures JWT SecretKey is set on <see cref="OASISDNA"/> and written to disk (regex patch or JObject fallback).
+        /// Reloads from disk if the static DNA instance is null. Call before beam-in / JWT issuance.
+        /// </summary>
+        public static OASISResult<bool> EnsureJwtSecretKeyReadyForAvatarAuth()
+        {
+            return EnsureJwtSecretKeyReadyForAvatarAuthAsync().GetAwaiter().GetResult();
+        }
+
+        public static async Task<OASISResult<bool>> EnsureJwtSecretKeyReadyForAvatarAuthAsync()
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            const string err = "OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuthAsync. Reason: ";
+            try
+            {
+                string path = ResolveOasisDnaPhysicalPath();
+                if (!File.Exists(path))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{err}OASIS DNA file not found. Tried: {path}");
+                    return result;
+                }
+
+                if (OASISDNA == null)
+                {
+                    OASISResult<OASISDNA> loadResult = await LoadDNAAsync(path);
+                    if (loadResult == null || loadResult.IsError || loadResult.Result == null)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{err}{loadResult?.Message ?? "LoadDNA failed."}");
+                        return result;
+                    }
+                }
+
+                if (OASISDNA.OASIS == null)
+                    OASISDNA.OASIS = new OASIS();
+                if (OASISDNA.OASIS.Security == null)
+                    OASISDNA.OASIS.Security = new SecuritySettings();
+
+                if (string.IsNullOrWhiteSpace(OASISDNA.OASIS.Security.SecretKey))
+                    OASISDNA.OASIS.Security.SecretKey = string.Concat(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"));
+
+                OASISDNAPath = path;
+
+                OASISResult<bool> patchResult = await TryUpdateSecretKeyInFileAsync(path, OASISDNA.OASIS.Security.SecretKey);
+                if (!patchResult.IsError && patchResult.Result)
+                {
+                    result.Result = true;
+                    return result;
+                }
+
+                OASISResult<bool> jResult = await PersistSecretKeyWithJObjectAsync(path, OASISDNA.OASIS.Security.SecretKey);
+                if (jResult.IsError || !jResult.Result)
+                {
+                    result.Result = true;
+                    result.IsWarning = true;
+                    result.Message = string.IsNullOrEmpty(jResult.Message)
+                        ? "SecretKey generated in memory; could not write OASIS_DNA.json (read-only or permission)."
+                        : jResult.Message;
+                    return result;
+                }
+
+                result.Result = true;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{err}{ex.Message}");
             }
 
             return result;

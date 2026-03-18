@@ -27,7 +27,11 @@ if not exist "%OUR_WORLD_PATH%" (
 
 if not exist "%OASIS_OMNIVERSE_PATH%" (
     echo ❌ Error: OASIS Omniverse path does not exist: %OASIS_OMNIVERSE_PATH%
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 

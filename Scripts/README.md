@@ -1,6 +1,14 @@
 # Scripts
 
-Scripts for running WEB4 (ONODE) and WEB5 (STAR) APIs and their tests. All scripts that start both APIs do so **in serial** (WEB4 first, then WEB5).
+Scripts for running WEB4 (ONODE) and WEB5 (STAR) APIs and their tests.
+
+**Linux:** To run `.sh` scripts by double-clicking (like `.bat` on Windows), see **[RUNNING_SHELL_SCRIPTS_ON_LINUX.md](RUNNING_SHELL_SCRIPTS_ON_LINUX.md)**. All `.sh` scripts in the repo are executable (`chmod +x`).
+
+**Pause before exit (file manager / double-click):** All launchers under **`Scripts/`** (`.sh` and `.bat`) show **“Press Enter to exit”** (Linux) or **“Press any key to exit”** (Windows) when the script finishes so the window stays open and you can read success or errors. **Automation / CI:** set **`OASIS_SCRIPT_NO_PAUSE=1`** before running any `.sh` in this folder to skip the pause (otherwise the job can hang waiting for input).
+
+**Repo-wide:** Other `.sh` scripts (Omniverse, STAR ODK, Providers, etc.) locate `Scripts/include/pause_on_exit.inc.sh` by walking up the tree and pause the same way unless **`OASIS_SCRIPT_NO_PAUSE=1`**. **`run_oasis_header.sh`** is excluded (short banner helper). **Windows `.bat` outside `Scripts/`:** pause uses the same banner; set **`OASIS_BAT_NO_PAUSE=1`** to skip.
+
+All scripts that start both APIs do so **in serial** (WEB4 first, then WEB5).
 
 **Windows:** Run from the repository root or this folder, e.g. `.\Scripts\run_web4_web5_unit_tests.ps1`. `.bat` files launch the matching PowerShell script.
 

@@ -9,6 +9,12 @@
   <ItemGroup>
     <None Remove="DNA\OASIS_DNA.json" />
     <None Remove="DNA\STAR_DNA.json" />
+    <Compile Remove="DNA\Code\STARDNA.Linux.cs" />
+    <None Include="DNA\Code\STARDNA.Linux.cs" />
+    <Compile Remove="DNA\Code\STARDNA.Windows.cs" />
+    <None Include="DNA\Code\STARDNA.Windows.cs" />
+    <Compile Remove="DNA\Code\STARDNA.OSX.cs" />
+    <None Include="DNA\Code\STARDNA.OSX.cs" Condition="Exists('$(MSBuildProjectDirectory)\DNA\Code\STARDNA.OSX.cs')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,6 +53,26 @@
     <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
   </ItemGroup>
+
+  <!-- Before compile: copy platform STARDNA.*.cs onto STARDNA.cs (only STARDNA.cs is compiled). -->
+  <Target Name="PrepareSTARDNACS" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <_StardnaCodeDir>$(MSBuildProjectDirectory)\DNA\Code</_StardnaCodeDir>
+      <_StardnaOut>$(_StardnaCodeDir)\STARDNA.cs</_StardnaOut>
+    </PropertyGroup>
+    <Copy Condition="$([MSBuild]::IsOSPlatform('windows'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Windows.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="$([MSBuild]::IsOSPlatform('osx')) AND Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs')"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.OSX.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="!$([MSBuild]::IsOSPlatform('windows')) AND (!$([MSBuild]::IsOSPlatform('osx')) OR !Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Linux.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+  </Target>
 
   <!-- Test packages removed: STAR.DNA is a library; test runner was causing adapter conflict when referenced by STAR IntegrationTests -->
   <!-- <ItemGroup>

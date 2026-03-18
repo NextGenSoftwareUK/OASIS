@@ -28,5 +28,9 @@ if %TOTAL_EXIT% equ 0 (
     echo One or more test runs failed.
 )
 echo.
-pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
 exit /b %TOTAL_EXIT%

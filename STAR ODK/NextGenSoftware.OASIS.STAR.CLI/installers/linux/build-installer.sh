@@ -4,6 +4,20 @@
 # Usage: ./build-installer.sh [linux-x64|linux-arm64]  (default: linux-x64)
 
 set -e
+
+# OASIS: pause before exit when run from GUI (CI: OASIS_SCRIPT_NO_PAUSE=1)
+if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
+  _OASIS_TD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  while [[ "$_OASIS_TD" != "/" ]]; do
+    if [[ -f "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh" ]]; then
+      # shellcheck disable=SC1091
+      source "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh"
+      break
+    fi
+    _OASIS_TD="$(dirname "$_OASIS_TD")"
+  done
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PUBLISH_DIR="$PROJECT_DIR/publish"

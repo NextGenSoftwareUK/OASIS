@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.STAR
         /// <item><description><c>STAR_DNA.Windows.json</c> → <c>STAR_DNA.json</c> (Windows)</description></item>
         /// <item><description><c>STAR_DNA.Linux.json</c> → <c>STAR_DNA.json</c> (Linux)</description></item>
         /// <item><description><c>STAR_DNA.OSX.json</c> then <c>STAR_DNA.Linux.json</c> (macOS)</description></item>
-        /// <item><description>Same pattern for <c>STARDNA.json</c> and <c>STARDNA.cs</c> in the same folder</description></item>
+        /// <item><description>Same pattern for optional <c>STARDNA.json</c> in the same folder (C# uses pre-build copy of <c>STARDNA.*.cs</c> → <c>STARDNA.cs</c>, not runtime)</description></item>
         /// </list>
         /// Set environment variable <c>OASIS_SKIP_PLATFORM_DNA=1</c> to skip.
         /// </summary>
@@ -114,8 +114,6 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!string.Equals(mainBase, "STARDNA", StringComparison.OrdinalIgnoreCase) || !string.Equals(mainExt, ".json", StringComparison.OrdinalIgnoreCase))
                 TryCopy(dnaDir, "STARDNA", ".json", suffixes);
-
-            TryCopy(dnaDir, "STARDNA", ".cs", suffixes);
         }
 
         public static STARDNA STARDNA

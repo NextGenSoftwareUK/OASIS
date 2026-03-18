@@ -3,6 +3,20 @@
 # Linux equivalent of "RUN OQUAKE.bat". Set OQUAKE_BASEDIR to Quake game data (id1 with pak0.pak, pak1.pak). Default: Steam Quake path.
 # Optional: create ~/.config/oquake/basedir (or OQuake/.quake_basedir) with one line = path to Quake, to override auto-detect.
 
+
+# OASIS: pause before exit when run from GUI (CI: OASIS_SCRIPT_NO_PAUSE=1)
+if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
+  _OASIS_TD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  while [[ "$_OASIS_TD" != "/" ]]; do
+    if [[ -f "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh" ]]; then
+      # shellcheck disable=SC1091
+      source "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh"
+      break
+    fi
+    _OASIS_TD="$(dirname "$_OASIS_TD")"
+  done
+fi
+
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OMNIVERSE="$(cd "$HERE/.." && pwd)"
 # Banner (centre-aligned, colours, slogan - same as RUN_ODOOM)

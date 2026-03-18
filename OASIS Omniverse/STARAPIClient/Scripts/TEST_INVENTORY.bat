@@ -11,3 +11,10 @@ if /i "%REBUILD%"=="n" (
 ) else (
     powershell -ExecutionPolicy Bypass -Command "& '%~dp0compile_and_test_inventory.ps1' -BaseUrl 'http://localhost:5556' -Username 'dellams' -Password 'test!' -RebuildClient:$true"
 )
+
+REM OASIS: Explorer pause (OASIS_BAT_NO_PAUSE=1 skips)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
