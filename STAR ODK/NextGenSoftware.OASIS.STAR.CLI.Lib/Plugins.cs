@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -206,10 +207,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 sb.AppendLine("    // Note: These paths are relative to BaseSTARNETPath in your STARDNA.json");
                 sb.AppendLine("    // =========================================");
                 sb.AppendLine();
-                sb.AppendLine($"    \"{pluginFolderName}PluginSourcePath\": \"Plugins\\\\Source\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginPublishedPath\": \"Plugins\\\\Published\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginDownloadedPath\": \"Plugins\\\\Downloaded\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginInstalledPath\": \"Plugins\\\\Installed\\\\{pluginFolderName}\"");
+                // Path.Combine so Windows gets backslashes, Linux forward slashes; JsonSerializer escapes for valid JSON.
+                string j(string path) => JsonSerializer.Serialize(path);
+                sb.AppendLine($"    \"{pluginFolderName}PluginSourcePath\": {j(Path.Combine("Plugins", "Source", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginPublishedPath\": {j(Path.Combine("Plugins", "Published", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginDownloadedPath\": {j(Path.Combine("Plugins", "Downloaded", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginInstalledPath\": {j(Path.Combine("Plugins", "Installed", pluginFolderName))}");
                 sb.AppendLine("}");
 
                 string stardnaPath = Path.Combine(pluginPath, "STARDNA_Partial.json");

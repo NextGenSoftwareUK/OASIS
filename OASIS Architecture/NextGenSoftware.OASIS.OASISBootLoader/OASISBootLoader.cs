@@ -178,6 +178,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     OASISDNAManager.OASISDNA = OASISDNA;
+
+                    OASISResult<bool> secretKeyResult = await OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync();
+                    if (secretKeyResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}{secretKeyResult.Message}");
+                        IsOASISBooting = false;
+                        return result;
+                    }
+
+                    if (secretKeyResult.IsWarning && !string.IsNullOrEmpty(secretKeyResult.Message))
+                        OASISErrorHandling.HandleWarning(ref result, secretKeyResult.Message);
+
                     LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
 
                     switch (LoggingManager.CurrentLoggingFramework)

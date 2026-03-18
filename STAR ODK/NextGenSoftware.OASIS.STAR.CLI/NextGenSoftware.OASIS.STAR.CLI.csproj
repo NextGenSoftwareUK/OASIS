@@ -11,9 +11,54 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.STAR\NextGenSoftware.OASIS.STAR.csproj" />
   </ItemGroup>
 
-  <!-- DNA folder: include only JSON from STARDNA so publish/installers have DNA next to star.exe -->
+  <!-- DNA folder: JSON + optional platform STARDNA.*.cs templates (copied over STARDNA.cs at boot) -->
   <ItemGroup>
     <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\**\*.json" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\STARDNA.*.cs" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Types\bool.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Types\int.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Types\string.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Interfaces\ICelestialBodyDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Interfaces\ICelestialBodyDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Interfaces\IHolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Interfaces\IHolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
+    <None Include="installers\DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" />
+    <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
+    <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
   </ItemGroup>
 
 </Project>
