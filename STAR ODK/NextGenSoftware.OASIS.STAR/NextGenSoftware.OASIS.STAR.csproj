@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -103,6 +103,25 @@
     <Compile Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
     <EmbeddedResource Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
     <None Remove="NextGenSoftware.OASIS.STAR.IntegrationTests\**" />
+  </ItemGroup>
+
+  <!-- Copy full DNATemplates tree to build/publish output (Rust, hApp, C# snippets, etc.) -->
+  <ItemGroup>
+    <Content Include="DNATemplates\**\*"
+             Exclude="DNATemplates\CSharpDNATemplates\**\*.cs;DNATemplates\MetaDataDNATemplates\**\*.cs"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest"
+             Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="DNATemplates\CSharpDNATemplates\**\*.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="DNATemplates\MetaDataDNATemplates\**\*.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

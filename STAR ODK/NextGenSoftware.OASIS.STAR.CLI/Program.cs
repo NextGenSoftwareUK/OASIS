@@ -30,6 +30,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.Game;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using System.IO;
+using System.Reflection;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 { //test
@@ -156,6 +157,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 string oasisInCwd = Path.Combine(Environment.CurrentDirectory, "DNA", "OASIS_DNA.json");
                 if (File.Exists(oasisInCwd))
                     return;
+
+                // dotnet run: host is "dotnet"; DNA is next to star.dll under bin/Release/net8.0/
+                try
+                {
+                    string loc = Assembly.GetExecutingAssembly().Location;
+                    if (!string.IsNullOrEmpty(loc))
+                    {
+                        string dllDir = Path.GetDirectoryName(loc);
+                        if (!string.IsNullOrEmpty(dllDir))
+                        {
+                            string oasisByDll = Path.Combine(dllDir, "DNA", "OASIS_DNA.json");
+                            if (File.Exists(oasisByDll))
+                            {
+                                Environment.CurrentDirectory = dllDir;
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // non-fatal
+                }
 
                 // Single-file publish: BaseDirectory is the extract temp folder (no DNA). DNA/ is next to the real `star` binary.
                 string proc = Environment.ProcessPath;

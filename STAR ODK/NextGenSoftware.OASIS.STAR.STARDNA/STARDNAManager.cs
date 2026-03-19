@@ -1,8 +1,12 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.STAR.DNA
 {
+    /// <summary>
+    /// Loads and saves STAR_DNA.json. After loading, ResolveRuntimeBasePaths() is called so
+    /// STARBasePath and STARNETBasePath are resolved when left blank (see STARDNA).
+    /// </summary>
     public static class STARDNAManager
     {
         public static string STARDNAPath = Path.Combine("DNA", "STARDNA.json");
@@ -39,6 +43,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
                     {
                         string json = r.ReadToEnd();
                         STARDNA = JsonConvert.DeserializeObject<STARDNA>(json);
+                        STARDNA?.ResolveRuntimeBasePaths();
                         result.Result = STARDNA;
                     }
                 }
@@ -72,6 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.DNA
                     {
                         string json = await r.ReadToEndAsync();
                         STARDNA = JsonConvert.DeserializeObject<STARDNA>(json);
+                        STARDNA?.ResolveRuntimeBasePaths();
                         result.Result = STARDNA;
                     }
                 }

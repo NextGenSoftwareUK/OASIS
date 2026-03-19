@@ -111,10 +111,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             // Get folder path - use plugin name as subdirectory
             string basePluginPath = "";
-            if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 basePluginPath = SourcePath;
             else
-                basePluginPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                basePluginPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
             // Create plugin-specific subdirectory
             string pluginPath = Path.Combine(basePluginPath, pluginName.Replace(" ", "_"));
@@ -204,7 +204,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 sb.AppendLine("    // 4. Paste this JSON into the Plugins section");
                 sb.AppendLine("    // 5. Save the file");
                 sb.AppendLine("    //");
-                sb.AppendLine("    // Note: These paths are relative to BaseSTARNETPath in your STARDNA.json");
+                sb.AppendLine("    // Note: These paths are relative to STARNETBasePath in your STARDNA.json");
                 sb.AppendLine("    // =========================================");
                 sb.AppendLine();
                 // Path.Combine so Windows gets backslashes, Linux forward slashes; JsonSerializer escapes for valid JSON.

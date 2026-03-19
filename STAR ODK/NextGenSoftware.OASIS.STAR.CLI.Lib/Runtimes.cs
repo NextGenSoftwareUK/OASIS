@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -50,10 +50,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (installRunTimeFor == InstallRuntimesFor.OAPPTemplate)
                 installRunTimeForDisplay = "OAPP Template";
 
-            if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (!string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
             {
-                OASISRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
-                STARRunTimePath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledSTARPath);
+                OASISRunTimePath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
+                STARRunTimePath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultRuntimesInstalledSTARPath);
             }
 
             string OASISRuntimeFolderName = string.Concat("OASIS Runtime_v", STARNETDNA.OASISRuntimeVersion);
@@ -95,16 +95,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                         {
-                            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesDownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                                 downloadPath = STAR.STARDNA.DefaultRuntimesDownloadedPath;
                             else
-                                downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesDownloadedPath);
+                                downloadPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultRuntimesDownloadedPath);
 
 
-                            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledOASISPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                            if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledOASISPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                                 installPath = STAR.STARDNA.DefaultRuntimesInstalledOASISPath;
                             else
-                                installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
+                                installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
 
                             Console.WriteLine("");
                             installResult = await ((RuntimeManager)STARNETManager).DownloadAndInstallOASISRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.OASISRuntimeVersion, downloadPath, installPath, providerType);
@@ -193,10 +193,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (CLIEngine.GetConfirmation("Do you wish to download & install now?"))
                     {
-                        if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledSTARPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                        if (Path.IsPathRooted(STAR.STARDNA.DefaultRuntimesInstalledSTARPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                             installPath = STAR.STARDNA.DefaultRuntimesInstalledSTARPath;
                         else
-                            installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
+                            installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultRuntimesInstalledOASISPath);
 
                         Console.WriteLine("");
                         installResult = await ((RuntimeManager)STARNETManager).DownloadAndInstallSTARRuntimeAsync(STAR.BeamedInAvatar.Id, STARNETDNA.STARRuntimeVersion, downloadPath, installPath, providerType);
