@@ -348,6 +348,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($".NET VERSION:          v{DotNetVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
+
+                        OASISResult<bool> jwtReady = await OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuthAsync();
+                        if (jwtReady.IsWarning && !string.IsNullOrEmpty(jwtReady.Message))
+                            LoggingManager.Log(jwtReady.Message, LogType.Warning);
+                        if (jwtReady.IsError)
+                            OASISErrorHandling.HandleWarning(ref result, jwtReady.Message ?? "EnsureJwtSecretKeyReadyForAvatarAuth failed.");
+                        try
+                        {
+                            ProviderManager.Instance.OASISDNA = OASISDNA;
+                        }
+                        catch
+                        {
+                            // non-fatal
+                        }
                     }
 
                     IsOASISBooting = false;

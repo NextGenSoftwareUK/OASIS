@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -102,10 +102,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 string holonPath = "";
 
-                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     holonPath = SourcePath;
                 else
-                    holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                    holonPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
                 (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
 

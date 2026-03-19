@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
@@ -431,7 +431,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         string OAPPMetaDataDNAFolder = STAR.STARDNA.OAPPMetaDataDNAFolder;
 
                         if (!Path.IsPathRooted(STAR.STARDNA.OAPPMetaDataDNAFolder))
-                            OAPPMetaDataDNAFolder = Path.Combine(STAR.STARDNA.BaseSTARPath, STAR.STARDNA.OAPPMetaDataDNAFolder);
+                            OAPPMetaDataDNAFolder = Path.Combine(STAR.STARDNA.STARBasePath, STAR.STARDNA.OAPPMetaDataDNAFolder);
 
                         Console.WriteLine("");
                         (lightResult, OAPPMetaDataDNAFolder) = GetValidFolder(lightResult, OAPPMetaDataDNAFolder, "CelestialBody/Zomes/Holons MetaData DNA", "OAPPMetaDataDNAFolder", false);
@@ -523,8 +523,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     string oappPath = "";
 
-                    if (!string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
-                        oappPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultOAPPsSourcePath);
+                    if (!string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
+                        oappPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultOAPPsSourcePath);
                     else
                         oappPath = STAR.STARDNA.DefaultOAPPsSourcePath;
 

@@ -31,6 +31,7 @@ using NextGenSoftware.OASIS.STAR.Interfaces;
 using SevenZip.Buffer;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 
 namespace NextGenSoftware.OASIS.STAR
@@ -79,6 +80,16 @@ namespace NextGenSoftware.OASIS.STAR
             if (string.IsNullOrEmpty(dnaDir))
                 dnaDir = Environment.CurrentDirectory;
 
+            // Optional safety net to keep platform-specific DNA in sync (prevents accidentally reintroducing Windows-only defaults)
+            // Enable with: OASIS_VALIDATE_PLATFORM_DNA_SYNC=1 (or true)
+            string validateEnv = Environment.GetEnvironmentVariable("OASIS_VALIDATE_PLATFORM_DNA_SYNC");
+            if (!string.IsNullOrWhiteSpace(validateEnv) &&
+                (validateEnv == "1" || validateEnv.Equals("true", StringComparison.OrdinalIgnoreCase)))
+            {
+                // Non-fatal validation; warnings are logged via OASISErrorHandling.
+                ValidatePlatformDnaFilesSync(fullStarPath);
+            }
+
             string[] suffixes;
             if (OperatingSystem.IsWindows())
                 suffixes = new[] { "Windows" };
@@ -114,6 +125,221 @@ namespace NextGenSoftware.OASIS.STAR
 
             if (!string.Equals(mainBase, "STARDNA", StringComparison.OrdinalIgnoreCase) || !string.Equals(mainExt, ".json", StringComparison.OrdinalIgnoreCase))
                 TryCopy(dnaDir, "STARDNA", ".json", suffixes);
+        }
+
+        /// <summary>
+        /// Validates that platform-specific STAR DNA files (e.g. STAR_DNA.Linux.json) are in sync with the expected schema:
+        /// - Required keys exist: STARBasePath / STARNETBasePath
+        /// - On Linux/macOS, required path strings do not contain Windows drive/path separators.
+        ///
+        /// This is a lightweight check meant to prevent accidental drift while still allowing platform-specific overrides.
+        /// </summary>
+        public static OASISResult<bool> ValidatePlatformDnaFilesSync(string starDnaPath)
+        {
+            OASISResult<bool> result = new OASISResult<bool>();
+            result.Result = true;
+
+            if (string.IsNullOrWhiteSpace(starDnaPath))
+            {
+                OASISErrorHandling.HandleWarning(ref result, "ValidatePlatformDnaFilesSync skipped: starDnaPath is null/empty.");
+                return result;
+            }
+
+            try
+            {
+                string fullStarPath = Path.IsPathRooted(starDnaPath)
+                    ? starDnaPath
+                    : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, starDnaPath.Replace('\\', Path.DirectorySeparatorChar)));
+
+                string dnaDir = Path.GetDirectoryName(fullStarPath);
+                if (string.IsNullOrEmpty(dnaDir))
+                    dnaDir = Environment.CurrentDirectory;
+
+                string mainBase = Path.GetFileNameWithoutExtension(fullStarPath);
+                string mainExt = Path.GetExtension(fullStarPath); // includes dot (e.g. ".json")
+                if (string.IsNullOrEmpty(mainExt))
+                    mainExt = ".json";
+
+                // All path-related keys from STAR DNA schema (for schema drift and accidental Windows path check on non-Windows).
+                string[] requiredKeys = new[]
+                {
+                    "STARBasePath",
+                    "STARNETBasePath",
+                    "MetaDataDNATemplateFolder",
+                    "CSharpDNATemplateFolder",
+                    "CSharpDNATemplateNamespace",
+                    "OAPPMetaDataDNAFolder",
+                    "ZomeMetaDataDNA",
+                    "HolonMetaDataDNA",
+                    "DefaultGenesisNamespace",
+                    "OAPPGeneratedCodeFolder",
+                    "CSharpTemplateIHolonDNA",
+                    "CSharpTemplateHolonDNA",
+                    "CSharpTemplateIZomeDNA",
+                    "CSharpTemplateZomeDNA",
+                    "CSharpTemplateICelestialBodyDNA",
+                    "CSharpTemplateCelestialBodyDNA",
+                    "CSharpTemplateLoadHolonDNA",
+                    "CSharpTemplateSaveHolonDNA",
+                    "CSharpTemplateILoadHolonDNA",
+                    "CSharpTemplateISaveHolonDNA",
+                    "CSharpTemplateInt",
+                    "CSharpTemplateString",
+                    "CSharpTemplateBool",
+                    "DefaultOAPPsSourcePath",
+                    "DefaultOAPPsPublishedPath",
+                    "DefaultOAPPsDownloadedPath",
+                    "DefaultOAPPsInstalledPath",
+                    "DefaultOAPPTemplatesSourcePath",
+                    "DefaultOAPPTemplatesPublishedPath",
+                    "DefaultOAPPTemplatesDownloadedPath",
+                    "DefaultOAPPTemplatesInstalledPath",
+                    "DefaultRuntimesSourcePath",
+                    "DefaultRuntimesPublishedPath",
+                    "DefaultRuntimesDownloadedPath",
+                    "DefaultRuntimesInstalledPath",
+                    "DefaultRuntimesInstalledOASISPath",
+                    "DefaultRuntimesInstalledSTARPath",
+                    "DefaultLibsSourcePath",
+                    "DefaultLibsPublishedPath",
+                    "DefaultLibsDownloadedPath",
+                    "DefaultLibsInstalledPath",
+                    "DefaultChaptersSourcePath",
+                    "DefaultChaptersPublishedPath",
+                    "DefaultChaptersDownloadedPath",
+                    "DefaultChaptersInstalledPath",
+                    "DefaultMissionsSourcePath",
+                    "DefaultMissionsPublishedPath",
+                    "DefaultMissionsDownloadedPath",
+                    "DefaultMissionsInstalledPath",
+                    "DefaultQuestsSourcePath",
+                    "DefaultQuestsPublishedPath",
+                    "DefaultQuestsDownloadedPath",
+                    "DefaultQuestsInstalledPath",
+                    "DefaultGamesSourcePath",
+                    "DefaultGamesPublishedPath",
+                    "DefaultGamesDownloadedPath",
+                    "DefaultGamesInstalledPath",
+                    "DefaultNFTsSourcePath",
+                    "DefaultNFTsPublishedPath",
+                    "DefaultNFTsDownloadedPath",
+                    "DefaultNFTsInstalledPath",
+                    "DefaultGeoNFTsSourcePath",
+                    "DefaultGeoNFTsPublishedPath",
+                    "DefaultGeoNFTsDownloadedPath",
+                    "DefaultGeoNFTsInstalledPath",
+                    "DefaultNFTCollectionsSourcePath",
+                    "DefaultNFTCollectionsPublishedPath",
+                    "DefaultNFTCollectionsDownloadedPath",
+                    "DefaultNFTCollectionsInstalledPath",
+                    "DefaultGeoNFTCollectionsSourcePath",
+                    "DefaultGeoNFTCollectionsPublishedPath",
+                    "DefaultGeoNFTCollectionsDownloadedPath",
+                    "DefaultGeoNFTCollectionsInstalledPath",
+                    "DefaultGeoHotSpotsSourcePath",
+                    "DefaultGeoHotSpotsPublishedPath",
+                    "DefaultGeoHotSpotsDownloadedPath",
+                    "DefaultGeoHotSpotsInstalledPath",
+                    "DefaultInventoryItemsSourcePath",
+                    "DefaultInventoryItemsPublishedPath",
+                    "DefaultInventoryItemsDownloadedPath",
+                    "DefaultInventoryItemsInstalledPath",
+                    "DefaultCelestialSpacesSourcePath",
+                    "DefaultCelestialSpacesPublishedPath",
+                    "DefaultCelestialSpacesDownloadedPath",
+                    "DefaultCelestialSpacesInstalledPath",
+                    "DefaultCelestialBodiesSourcePath",
+                    "DefaultCelestialBodiesPublishedPath",
+                    "DefaultCelestialBodiesDownloadedPath",
+                    "DefaultCelestialBodiesInstalledPath",
+                    "DefaultZomesSourcePath",
+                    "DefaultZomesPublishedPath",
+                    "DefaultZomesDownloadedPath",
+                    "DefaultZomesInstalledPath",
+                    "DefaultHolonsSourcePath",
+                    "DefaultHolonsPublishedPath",
+                    "DefaultHolonsDownloadedPath",
+                    "DefaultHolonsInstalledPath",
+                    "DefaultCelestialBodiesMetaDataDNASourcePath",
+                    "DefaultCelestialBodiesMetaDataDNAPublishedPath",
+                    "DefaultCelestialBodiesMetaDataDNADownloadedPath",
+                    "DefaultCelestialBodiesMetaDataDNAInstalledPath",
+                    "DefaultZomesMetaDataDNASourcePath",
+                    "DefaultZomesMetaDataDNAPublishedPath",
+                    "DefaultZomesMetaDataDNADownloadedPath",
+                    "DefaultZomesMetaDataDNAInstalledPath",
+                    "DefaultHolonsMetaDataDNASourcePath",
+                    "DefaultHolonsMetaDataDNAPublishedPath",
+                    "DefaultHolonsMetaDataDNADownloadedPath",
+                    "DefaultHolonsMetaDataDNAInstalledPath",
+                    "DefaultPluginsSourcePath",
+                    "DefaultPluginsPublishedPath",
+                    "DefaultPluginsDownloadedPath",
+                    "DefaultPluginsInstalledPath"
+                };
+
+                string[] platformSuffixes = new[] { "Windows", "Linux", "OSX" };
+                foreach (string suffix in platformSuffixes)
+                {
+                    string platformFile = Path.Combine(dnaDir, string.Concat(mainBase, ".", suffix, mainExt));
+                    if (!File.Exists(platformFile))
+                        continue;
+
+                    string json = File.ReadAllText(platformFile);
+
+                    foreach (string key in requiredKeys)
+                    {
+                        var valueResult = TryExtractJsonStringValue(json, key);
+                        if (valueResult.IsWarning || valueResult.Result == null)
+                        {
+                            OASISErrorHandling.HandleWarning(
+                                ref result,
+                                $"Platform DNA key drift detected in '{platformFile}': missing required key '{key}'.");
+                            continue;
+                        }
+
+                        string value = valueResult.Result;
+
+                        // For Linux/macOS, ensure we don't accidentally embed Windows path separators/drive letters
+                        // in the required path-related values.
+                        if (!string.Equals(suffix, "Windows", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (value.Contains(':') || value.Contains("\\"))
+                            {
+                                OASISErrorHandling.HandleWarning(
+                                    ref result,
+                                    $"Platform DNA path drift detected in '{platformFile}': key '{key}' contains Windows-style separators or drive letters ('{value}').");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"ValidatePlatformDnaFilesSync failed. Reason: {ex.Message}");
+            }
+
+            return result;
+        }
+
+        private static OASISResult<string> TryExtractJsonStringValue(string json, string key)
+        {
+            OASISResult<string> result = new OASISResult<string>();
+
+            // NOTE: STAR DNA JSON uses // comments. Since we only need lightweight validation,
+            // this regex is good enough for extracting string values from present keys.
+            // It intentionally does not attempt to fully parse JSON.
+            string pattern = $"\"{Regex.Escape(key)}\"\\s*:\\s*\"(?<val>[^\"]*)\"";
+            Match match = Regex.Match(json, pattern);
+            if (!match.Success)
+            {
+                result.IsWarning = true;
+                result.Message = $"Key '{key}' not found.";
+                return result;
+            }
+
+            result.Result = match.Groups["val"].Value;
+            return result;
         }
 
         public static STARDNA STARDNA
@@ -389,6 +615,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 STARDNA = new STARDNA();
                 await STARDNAManager.SaveDNAAsync(STARDNAPath, STARDNA);
+                STARDNA.ResolveRuntimeBasePaths();
             }
 
             ValidateSTARDNA(STARDNA);
@@ -465,6 +692,7 @@ namespace NextGenSoftware.OASIS.STAR
             {
                 STARDNA = new STARDNA();
                 STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
+                STARDNA.ResolveRuntimeBasePaths();
             }
 
             ValidateSTARDNA(STARDNA);
@@ -751,7 +979,7 @@ namespace NextGenSoftware.OASIS.STAR
                 if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNAFolder))
                     celestialBodyDNAFolder = Path.Combine(STARDNA.OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
                 else
-                    celestialBodyDNAFolder = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
+                    celestialBodyDNAFolder = Path.Combine(STARDNA.STARBasePath, STARDNA.OAPPMetaDataDNAFolder, OAPPName, "CelestialBodyDNA");
             }
 
             if (string.IsNullOrEmpty(genesisFolder))
@@ -772,9 +1000,9 @@ namespace NextGenSoftware.OASIS.STAR
 
             ValidateLightDNA(celestialBodyDNAFolder, genesisFolder);
 
-            string dnaCSharpRoot = string.IsNullOrEmpty(STARDNA.BaseSTARPath)
+            string dnaCSharpRoot = string.IsNullOrEmpty(STARDNA.STARBasePath)
                 ? (STARDNA.CSharpDNATemplateFolder ?? string.Empty)
-                : Path.Combine(STARDNA.BaseSTARPath, STARDNA.CSharpDNATemplateFolder ?? string.Empty);
+                : Path.Combine(STARDNA.STARBasePath, STARDNA.CSharpDNATemplateFolder ?? string.Empty);
             string iHolonTemplate = File.ReadAllText(Path.Combine(dnaCSharpRoot, STARDNA.CSharpTemplateIHolonDNA));
             string holonTemplateCsharp = File.ReadAllText(Path.Combine(dnaCSharpRoot, STARDNA.CSharpTemplateHolonDNA));
             string iZomeTemplate = File.ReadAllText(Path.Combine(dnaCSharpRoot, STARDNA.CSharpTemplateIZomeDNA));
@@ -792,12 +1020,12 @@ namespace NextGenSoftware.OASIS.STAR
 
             
             if (string.IsNullOrEmpty(genesisFolder))
-                genesisFolder = Path.Combine(STARDNA.BaseSTARNETPath ?? string.Empty, STARDNA.DefaultOAPPsSourcePath ?? string.Empty);
-                //genesisFolder = $"{STARDNA.BaseSTARPath}\\{STARDNA.GenesisFolder}";
+                genesisFolder = Path.Combine(STARDNA.STARNETBasePath ?? string.Empty, STARDNA.DefaultOAPPsSourcePath ?? string.Empty);
+                //genesisFolder = $"{STARDNA.STARBasePath}\\{STARDNA.GenesisFolder}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = $"{STARDNA.DefaultGenesisNamespace}";
-                //genesisNameSpace = $"{STARDNA.BaseSTARPath}\\{STARDNA.DefaultGenesisNamespace}";
+                //genesisNameSpace = $"{STARDNA.STARBasePath}\\{STARDNA.DefaultGenesisNamespace}";
 
             if (string.IsNullOrEmpty(genesisNameSpace))
                 genesisNameSpace = string.Concat(OAPPName, "OAPP");
@@ -1404,7 +1632,7 @@ namespace NextGenSoftware.OASIS.STAR
         //        if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNA))
         //            OAPPMetaDataDNAPath = STARDNA.OAPPMetaDataDNA;
         //        else
-        //            OAPPMetaDataDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNA);
+        //            OAPPMetaDataDNAPath = Path.Combine(STARDNA.STARBasePath, STARDNA.OAPPMetaDataDNA);
         //    }
 
         //    //if (string.IsNullOrEmpty(OAPPMetaDataDNAPath))
@@ -1412,11 +1640,11 @@ namespace NextGenSoftware.OASIS.STAR
         //    //    if (Path.IsPathRooted(STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath))
         //    //        fullPathToCelestialBodySourcePath = STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath;
 
-        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
-        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
+        //    //    else if (Path.IsPathRooted(STARDNA.STARNETBasePath))
+        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.STARNETBasePath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
 
         //    //    else
-        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
+        //    //        fullPathToCelestialBodySourcePath = Path.Combine(STARDNA.STARBasePath, STARDNA.STARNETBasePath, STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath);
         //    //}
 
         //    //if (string.IsNullOrEmpty(fullPathToZomeSourcePath))
@@ -1424,11 +1652,11 @@ namespace NextGenSoftware.OASIS.STAR
         //    //    if (Path.IsPathRooted(STARDNA.DefaultZomesMetaDataDNASourcePath))
         //    //        fullPathToZomeSourcePath = STARDNA.DefaultZomesMetaDataDNASourcePath;
 
-        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
-        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultZomesMetaDataDNASourcePath);
+        //    //    else if (Path.IsPathRooted(STARDNA.STARNETBasePath))
+        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.STARNETBasePath, STARDNA.DefaultZomesMetaDataDNASourcePath);
 
         //    //    else
-        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultZomesMetaDataDNASourcePath);
+        //    //        fullPathToZomeSourcePath = Path.Combine(STARDNA.STARBasePath, STARDNA.STARNETBasePath, STARDNA.DefaultZomesMetaDataDNASourcePath);
         //    //}
 
         //    //if (string.IsNullOrEmpty(fullPathToHolonSourcePath))
@@ -1436,11 +1664,11 @@ namespace NextGenSoftware.OASIS.STAR
         //    //    if (Path.IsPathRooted(STARDNA.DefaultHolonsMetaDataDNASourcePath))
         //    //        fullPathToHolonSourcePath = STARDNA.DefaultHolonsMetaDataDNASourcePath;
 
-        //    //    else if (Path.IsPathRooted(STARDNA.BaseSTARNETPath))
-        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.BaseSTARNETPath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
+        //    //    else if (Path.IsPathRooted(STARDNA.STARNETBasePath))
+        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.STARNETBasePath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
 
         //    //    else
-        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.BaseSTARNETPath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
+        //    //        fullPathToHolonSourcePath = Path.Combine(STARDNA.STARBasePath, STARDNA.STARNETBasePath, STARDNA.DefaultHolonsMetaDataDNASourcePath);
         //    //}
 
 
@@ -1499,7 +1727,7 @@ namespace NextGenSoftware.OASIS.STAR
                     if (Path.IsPathRooted(STARDNA.OAPPMetaDataDNAFolder))
                         OAPPMetaDataDNAPath = STARDNA.OAPPMetaDataDNAFolder;
                     else
-                        OAPPMetaDataDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.OAPPMetaDataDNAFolder);
+                        OAPPMetaDataDNAPath = Path.Combine(STARDNA.STARBasePath, STARDNA.OAPPMetaDataDNAFolder);
                 }
 
                 result.Result = new GenerateMetaDataDNAResult()
@@ -1528,7 +1756,7 @@ namespace NextGenSoftware.OASIS.STAR
                     if (Path.IsPathRooted(STARDNA.MetaDataDNATemplateFolder))
                         zomeDNAPath = Path.Combine(STARDNA.MetaDataDNATemplateFolder, STARDNA.ZomeMetaDataDNA);
                     else
-                        zomeDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.MetaDataDNATemplateFolder, STARDNA.ZomeMetaDataDNA);
+                        zomeDNAPath = Path.Combine(STARDNA.STARBasePath, STARDNA.MetaDataDNATemplateFolder, STARDNA.ZomeMetaDataDNA);
                 }
                 else
                     zomeDNAPath = STARDNA.ZomeMetaDataDNA;
@@ -1539,7 +1767,7 @@ namespace NextGenSoftware.OASIS.STAR
                     if (Path.IsPathRooted(STARDNA.MetaDataDNATemplateFolder))
                         holonDNAPath = Path.Combine(STARDNA.MetaDataDNATemplateFolder, STARDNA.HolonMetaDataDNA);
                     else
-                        holonDNAPath = Path.Combine(STARDNA.BaseSTARPath, STARDNA.MetaDataDNATemplateFolder, STARDNA.HolonMetaDataDNA);
+                        holonDNAPath = Path.Combine(STARDNA.STARBasePath, STARDNA.MetaDataDNATemplateFolder, STARDNA.HolonMetaDataDNA);
                 }
                 else
                     holonDNAPath = STARDNA.HolonMetaDataDNA;
@@ -1931,49 +2159,55 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder", false, true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateLoadHolonDNA, "STARDNA.CSharpTemplateLoadHolonDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateSaveHolonDNA, "STARDNA.CSharpTemplateSaveHolonDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateILoadHolonDNA, "STARDNA.CSharpTemplateILoadHolonDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateISaveHolonDNA, "STARDNA.CSharpTemplateISaveHolonDNA");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
-                ValidateFile(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
+                starDNA.ResolveRuntimeBasePaths();
 
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMAUITemplateDNA, "STARDNA.OAPPMAUITemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPRESTServiceTemplateDNA, "STARDNA.OAPPRESTServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPUnityTemplateDNA, "STARDNA.OAPPUnityTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWebMVCTemplateDNA, "STARDNA.OAPPWebMVCTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWindowsServiceTemplateDNA, "STARDNA.OAPPWindowsServiceTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWinFormsTemplateDNA, "STARDNA.OAPPWinFormsTemplateDNA", true);
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
+                ValidateFolder("", starDNA.STARBasePath, "STARDNA.STARBasePath");
+                ValidateFolder(starDNA.STARBasePath, starDNA.MetaDataDNATemplateFolder, "STARDNA.MetaDataDNATemplateFolder");
+                ValidateFolder(starDNA.STARBasePath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder", false, true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
+                ValidateFolder(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateHolonDNA, "STARDNA.CSharpTemplateHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateZomeDNA, "STARDNA.CSharpTemplateZomeDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateCelestialBodyDNA, "STARDNA.CSharpTemplateCelestialBodyDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateLoadHolonDNA, "STARDNA.CSharpTemplateLoadHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateSaveHolonDNA, "STARDNA.CSharpTemplateSaveHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateILoadHolonDNA, "STARDNA.CSharpTemplateILoadHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateISaveHolonDNA, "STARDNA.CSharpTemplateISaveHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateInt, "STARDNA.CSharpTemplateInt");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateString, "STARDNA.CSharpTemplateString");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateBool, "STARDNA.CSharpTemplateBool");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIHolonDNA, "STARDNA.CSharpTemplateIHolonDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateIZomeDNA, "STARDNA.CSharpTemplateIZomeDNA");
+                ValidateFile(starDNA.STARBasePath, starDNA.CSharpDNATemplateFolder, starDNA.CSharpTemplateICelestialBodyDNA, "STARDNA.CSharpTemplateICelestialBodyDNA");
+
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPBlazorTemplateDNA, "STARDNA.OAPPBlazorTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPConsoleTemplateDNA, "STARDNA.OAPPConsoleTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPCustomTemplateDNA, "STARDNA.OAPPCustomTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPGraphQLServiceTemplateDNA, "STARDNA.OAPPGraphQLServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPgRPCServiceTemplateDNA, "STARDNA.OAPPgRPCServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPMAUITemplateDNA, "STARDNA.OAPPMAUITemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPRESTServiceTemplateDNA, "STARDNA.OAPPRESTServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPUnityTemplateDNA, "STARDNA.OAPPUnityTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPWebMVCTemplateDNA, "STARDNA.OAPPWebMVCTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPWindowsServiceTemplateDNA, "STARDNA.OAPPWindowsServiceTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPWinFormsTemplateDNA, "STARDNA.OAPPWinFormsTemplateDNA", true);
+                //ValidateFolder(starDNA.STARBasePath, starDNA.OAPPWPFTemplateDNA, "STARDNA.OAPPWPFTemplateDNA", true);
 
 
                 // Rust template validation moved to HoloOASIS - commented out for rollback purposes:
-                //ValidateFolder(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
-                //ValidateFile(starDNA.BaseSTARPath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
+                //ValidateFolder(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, "STARDNA.RustDNARSMTemplateFolder");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateLib, "STARDNA.RustTemplateLib");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateCreate, "STARDNA.RustTemplateCreate");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateDelete, "STARDNA.RustTemplateDelete");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateRead, "STARDNA.RustTemplateRead");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateUpdate, "STARDNA.RustTemplateUpdate");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateList, "STARDNA.RustTemplateList");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateValidation, "STARDNA.RustTemplateValidation");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateInt, "STARDNA.RustTemplateInt");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateString, "STARDNA.RustTemplateString");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateBool, "STARDNA.RustTemplateBool");
+                //ValidateFile(starDNA.STARBasePath, starDNA.RustDNARSMTemplateFolder, starDNA.RustTemplateHolon, "STARDNA.RustTemplateHolon");
 
                 if (string.IsNullOrEmpty(starDNA.DefaultOAPPsSourcePath))
                     starDNA.DefaultOAPPsSourcePath = Path.Combine("OAPPs", "Source");
@@ -2022,20 +2256,97 @@ namespace NextGenSoftware.OASIS.STAR
 
                 STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
 
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsDownloadedPath, "STARDNA.DefaultOAPPsDownloadedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPsInstalledPath, "STARDNA.DefaultOAPPsInstalledPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesSourcePath, "STARDNA.DefaultOAPPTemplatesSourcePath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesPublishedPath, "STARDNA.DefaultOAPPTemplatesPublishedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesDownloadedPath, "STARDNA.DefaultOAPPTemplatesDownloadedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultOAPPTemplatesInstalledPath, "STARDNA.DefaultOAPPTemplatesInstalledPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesSourcePath, "STARDNA.DefaultRuntimesSourcePath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesPublishedPath, "STARDNA.DefaultRuntimesPublishedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesDownloadedPath, "STARDNA.DefaultRuntimesDownloadedPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledPath, "STARDNA.DefaultRuntimesInstalledPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledOASISPath, "STARDNA.DefaultRuntimesInstalledOASISPath", false, true);
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.DefaultRuntimesInstalledSTARPath, "STARDNA.DefaultRuntimesInstalledSTARPath", false, true);
+                ValidateFolder("", starDNA.STARNETBasePath, "STARDNA.STARNETBasePath");
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsDownloadedPath, "STARDNA.DefaultOAPPsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsInstalledPath, "STARDNA.DefaultOAPPsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPTemplatesSourcePath, "STARDNA.DefaultOAPPTemplatesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPTemplatesPublishedPath, "STARDNA.DefaultOAPPTemplatesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPTemplatesDownloadedPath, "STARDNA.DefaultOAPPTemplatesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPTemplatesInstalledPath, "STARDNA.DefaultOAPPTemplatesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesSourcePath, "STARDNA.DefaultRuntimesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesPublishedPath, "STARDNA.DefaultRuntimesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesDownloadedPath, "STARDNA.DefaultRuntimesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesInstalledPath, "STARDNA.DefaultRuntimesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesInstalledOASISPath, "STARDNA.DefaultRuntimesInstalledOASISPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultRuntimesInstalledSTARPath, "STARDNA.DefaultRuntimesInstalledSTARPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultLibsSourcePath, "STARDNA.DefaultLibsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultLibsPublishedPath, "STARDNA.DefaultLibsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultLibsDownloadedPath, "STARDNA.DefaultLibsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultLibsInstalledPath, "STARDNA.DefaultLibsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultChaptersSourcePath, "STARDNA.DefaultChaptersSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultChaptersPublishedPath, "STARDNA.DefaultChaptersPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultChaptersDownloadedPath, "STARDNA.DefaultChaptersDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultChaptersInstalledPath, "STARDNA.DefaultChaptersInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultMissionsSourcePath, "STARDNA.DefaultMissionsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultMissionsPublishedPath, "STARDNA.DefaultMissionsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultMissionsDownloadedPath, "STARDNA.DefaultMissionsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultMissionsInstalledPath, "STARDNA.DefaultMissionsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultQuestsSourcePath, "STARDNA.DefaultQuestsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultQuestsPublishedPath, "STARDNA.DefaultQuestsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultQuestsDownloadedPath, "STARDNA.DefaultQuestsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultQuestsInstalledPath, "STARDNA.DefaultQuestsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGamesSourcePath, "STARDNA.DefaultGamesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGamesPublishedPath, "STARDNA.DefaultGamesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGamesDownloadedPath, "STARDNA.DefaultGamesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGamesInstalledPath, "STARDNA.DefaultGamesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTsSourcePath, "STARDNA.DefaultNFTsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTsPublishedPath, "STARDNA.DefaultNFTsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTsDownloadedPath, "STARDNA.DefaultNFTsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTsInstalledPath, "STARDNA.DefaultNFTsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTsSourcePath, "STARDNA.DefaultGeoNFTsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTsPublishedPath, "STARDNA.DefaultGeoNFTsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTsDownloadedPath, "STARDNA.DefaultGeoNFTsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTsInstalledPath, "STARDNA.DefaultGeoNFTsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTCollectionsSourcePath, "STARDNA.DefaultNFTCollectionsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTCollectionsPublishedPath, "STARDNA.DefaultNFTCollectionsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTCollectionsDownloadedPath, "STARDNA.DefaultNFTCollectionsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultNFTCollectionsInstalledPath, "STARDNA.DefaultNFTCollectionsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTCollectionsSourcePath, "STARDNA.DefaultGeoNFTCollectionsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTCollectionsPublishedPath, "STARDNA.DefaultGeoNFTCollectionsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTCollectionsDownloadedPath, "STARDNA.DefaultGeoNFTCollectionsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoNFTCollectionsInstalledPath, "STARDNA.DefaultGeoNFTCollectionsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoHotSpotsSourcePath, "STARDNA.DefaultGeoHotSpotsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoHotSpotsPublishedPath, "STARDNA.DefaultGeoHotSpotsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoHotSpotsDownloadedPath, "STARDNA.DefaultGeoHotSpotsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultGeoHotSpotsInstalledPath, "STARDNA.DefaultGeoHotSpotsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultInventoryItemsSourcePath, "STARDNA.DefaultInventoryItemsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultInventoryItemsPublishedPath, "STARDNA.DefaultInventoryItemsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultInventoryItemsDownloadedPath, "STARDNA.DefaultInventoryItemsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultInventoryItemsInstalledPath, "STARDNA.DefaultInventoryItemsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialSpacesSourcePath, "STARDNA.DefaultCelestialSpacesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialSpacesPublishedPath, "STARDNA.DefaultCelestialSpacesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialSpacesDownloadedPath, "STARDNA.DefaultCelestialSpacesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialSpacesInstalledPath, "STARDNA.DefaultCelestialSpacesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesSourcePath, "STARDNA.DefaultCelestialBodiesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesPublishedPath, "STARDNA.DefaultCelestialBodiesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesDownloadedPath, "STARDNA.DefaultCelestialBodiesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesInstalledPath, "STARDNA.DefaultCelestialBodiesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesSourcePath, "STARDNA.DefaultZomesSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesPublishedPath, "STARDNA.DefaultZomesPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesDownloadedPath, "STARDNA.DefaultZomesDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesInstalledPath, "STARDNA.DefaultZomesInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsSourcePath, "STARDNA.DefaultHolonsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsPublishedPath, "STARDNA.DefaultHolonsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsDownloadedPath, "STARDNA.DefaultHolonsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsInstalledPath, "STARDNA.DefaultHolonsInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesMetaDataDNASourcePath, "STARDNA.DefaultCelestialBodiesMetaDataDNASourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath, "STARDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath, "STARDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath, "STARDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesMetaDataDNASourcePath, "STARDNA.DefaultZomesMetaDataDNASourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesMetaDataDNAPublishedPath, "STARDNA.DefaultZomesMetaDataDNAPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesMetaDataDNADownloadedPath, "STARDNA.DefaultZomesMetaDataDNADownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultZomesMetaDataDNAInstalledPath, "STARDNA.DefaultZomesMetaDataDNAInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsMetaDataDNASourcePath, "STARDNA.DefaultHolonsMetaDataDNASourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsMetaDataDNAPublishedPath, "STARDNA.DefaultHolonsMetaDataDNAPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsMetaDataDNADownloadedPath, "STARDNA.DefaultHolonsMetaDataDNADownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultHolonsMetaDataDNAInstalledPath, "STARDNA.DefaultHolonsMetaDataDNAInstalledPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultPluginsSourcePath, "STARDNA.DefaultPluginsSourcePath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultPluginsPublishedPath, "STARDNA.DefaultPluginsPublishedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultPluginsDownloadedPath, "STARDNA.DefaultPluginsDownloadedPath", false, true);
+                ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultPluginsInstalledPath, "STARDNA.DefaultPluginsInstalledPath", false, true);
             }
             else
                 throw new ArgumentNullException("STARDNA is null, please check and try again.");

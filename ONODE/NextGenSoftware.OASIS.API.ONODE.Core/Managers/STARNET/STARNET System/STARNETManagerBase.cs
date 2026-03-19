@@ -6014,15 +6014,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             string downloadPath = "";
             string installPath = "";
 
-            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.STARNETBasePath))
                 downloadPath = defaultDownloadPath;
             else
-                downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultDownloadPath);
+                downloadPath = Path.Combine(STARDNA.STARNETBasePath, defaultDownloadPath);
 
-            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.STARNETBasePath))
                 installPath = defaultInstallPath;
             else
-                installPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultInstallPath);
+                installPath = Path.Combine(STARDNA.STARNETBasePath, defaultInstallPath);
 
             switch (dependency.Type)
             {
@@ -6322,15 +6322,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base
             string downloadPath = "";
             string installPath = "";
 
-            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(defaultDownloadPath) || string.IsNullOrEmpty(STARDNA.STARNETBasePath))
                 downloadPath = defaultDownloadPath;
             else
-                downloadPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultDownloadPath);
+                downloadPath = Path.Combine(STARDNA.STARNETBasePath, defaultDownloadPath);
 
-            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(defaultInstallPath) || string.IsNullOrEmpty(STARDNA.STARNETBasePath))
                 installPath = defaultInstallPath;
             else
-                installPath = Path.Combine(STARDNA.BaseSTARNETPath, defaultInstallPath);
+                installPath = Path.Combine(STARDNA.STARNETBasePath, defaultInstallPath);
 
             switch (dependency.Type)
             {

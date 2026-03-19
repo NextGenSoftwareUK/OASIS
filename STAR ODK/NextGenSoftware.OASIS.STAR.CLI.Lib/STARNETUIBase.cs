@@ -118,10 +118,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //Type STARNETHolonType = (Type)value;
                 string holonPath = "";
 
-                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     holonPath = SourcePath;
                 else
-                    holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                    holonPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
                 (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
 
@@ -1495,10 +1495,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<string> result = new OASISResult<string>();
             string publishPath = "";
 
-            if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 publishPath = PublishedPath;
             else
-                publishPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, PublishedPath);
+                publishPath = Path.Combine(STAR.STARDNA.STARNETBasePath, PublishedPath);
 
             if (!simpleWizard)
             {
@@ -1647,16 +1647,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (installMode == InstallMode.DownloadOnly)
                 operation = "download";
 
-            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 downloadPath = DownloadedPath;
             else
-                downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, DownloadedPath);
+                downloadPath = Path.Combine(STAR.STARDNA.STARNETBasePath, DownloadedPath);
 
 
-            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 installPath = InstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, InstalledPath);
+                installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, InstalledPath);
 
             Console.WriteLine("");
 
@@ -1780,16 +1780,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string downloadPath = "";
             string installPath = "";
 
-            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 downloadPath = SourcePath;
             else
-                downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, DownloadedPath);
+                downloadPath = Path.Combine(STAR.STARDNA.STARNETBasePath, DownloadedPath);
 
 
-            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 installPath = SourcePath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, InstalledPath);
+                installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, InstalledPath);
 
             Console.WriteLine("");
 
