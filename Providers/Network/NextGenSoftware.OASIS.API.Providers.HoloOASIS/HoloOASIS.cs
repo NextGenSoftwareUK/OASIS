@@ -1379,8 +1379,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 var holoSettings = _oasisDNA.OASIS.StorageProviders.HoloOASIS;
                 
                 // Get base STAR path and Rust template folder from OASISDNA (JSON may use forward slashes; normalize for current OS)
-                string starBasePath = PathHelper.NormalizePathFromConfig(holoSettings.STARBasePath);
-                string rustTemplateFolder = PathHelper.NormalizePathFromConfig(holoSettings.RustDNARSMTemplateFolder);
+                string starBasePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.STARBasePath);
+                string rustTemplateFolder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustDNARSMTemplateFolder);
                 
                 // Construct full path to Rust templates
                 string baseSTARPathFull = string.IsNullOrEmpty(starBasePath) 
@@ -1391,16 +1391,16 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     return false;
 
                 // Load Rust templates using paths from OASISDNA
-                string libTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateLib)));
-                string createTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateCreate)));
-                string readTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateRead)));
-                string updateTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateUpdate)));
-                string deleteTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateDelete)));
-                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateValidation)));
-                string holonTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateHolon)));
-                string intTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateInt)));
-                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateString)));
-                string boolTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateBool)));
+                string libTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateLib)));
+                string createTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateCreate)));
+                string readTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateRead)));
+                string updateTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateUpdate)));
+                string deleteTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateDelete)));
+                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateValidation)));
+                string holonTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateHolon)));
+                string intTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateInt)));
+                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateString)));
+                string boolTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateBool)));
 
                 // Process DNA files to generate Rust code
                 string libBuffer = "";
@@ -1421,7 +1421,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     using (StreamReader reader = file.OpenText())
                     {
                         bool holonReached = false;
-                        IHolon currentHolon = null;
 
                         while (!reader.EndOfStream)
                         {
@@ -1522,7 +1521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log error if logging available
                 return false;
