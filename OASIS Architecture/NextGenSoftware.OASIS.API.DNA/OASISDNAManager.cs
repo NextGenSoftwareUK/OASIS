@@ -18,6 +18,32 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// <summary>Full path to OASIS_DNA.json after the last successful <see cref="LoadDNA(string)"/> (for single-file apps where CWD/BaseDirectory differ from the publish folder).</summary>
         public static string LastResolvedOASISDnaPhysicalPath { get; private set; }
 
+        /// <summary>When install path (e.g. /usr/local/bin/DNA/) is read-only, resolve to user config path so load/save succeed.</summary>
+        private static string ResolveEffectiveOASISDNAPath(string requestedPath)
+        {
+            if (string.IsNullOrWhiteSpace(requestedPath)) return requestedPath;
+            string appRoot = AppPathHelper.ResolveAppRootDirectory();
+            string fullPath = Path.IsPathRooted(requestedPath)
+                ? Path.GetFullPath(requestedPath)
+                : Path.GetFullPath(Path.Combine(appRoot, requestedPath.Replace('\\', Path.DirectorySeparatorChar)));
+            string dir = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(dir) && AppPathHelper.IsDirectoryWritable(dir))
+                return fullPath;
+            string userPath = Path.Combine(GetUserDNADirectory(), "OASIS_DNA.json");
+            try
+            {
+                if (File.Exists(fullPath) && !File.Exists(userPath))
+                    File.Copy(fullPath, userPath);
+            }
+            catch { /* non-fatal */ }
+            return userPath;
+        }
+
+        private static string GetUserDNADirectory()
+        {
+            return AppPathHelper.GetUserDataSubDirectory("oasis-star-cli", "DNA");
+        }
+
         private static OASISResult<OASISDNA> GetSystemOASISDNA()
         {
             OASISResult<OASISDNA> result = new OASISResult<OASISDNA>();
@@ -44,18 +70,19 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
-
-                else if (!File.Exists(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
-                
                 else
                 {
-                    OASISDNAManager.OASISDNAPath = OASISDNAPath;
-
-                    using (StreamReader r = new StreamReader(OASISDNAPath))
+                    string effectivePath = ResolveEffectiveOASISDNAPath(OASISDNAPath);
+                    if (!File.Exists(effectivePath))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
+                    else
                     {
-                        string json = r.ReadToEnd();
-                        OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+                        OASISDNAManager.OASISDNAPath = effectivePath;
+
+                        using (StreamReader r = new StreamReader(effectivePath))
+                        {
+                            string json = r.ReadToEnd();
+                            OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
 
                         //OASISResult<OASISDNA> OASISDNAResult = GetSystemOASISDNA();
 
@@ -100,8 +127,9 @@ namespace NextGenSoftware.OASIS.API.DNA
                         //if (string.IsNullOrEmpty(OASISDNA.OASIS.Email.SmtpPass))
                         //    OASISDNA.OASIS.Email.SmtpPass = GetSystemOASISDNA().Result.OASIS.Email.SmtpPass;
 
-                        result.Result = OASISDNA;
-                        RecordLastResolvedOasisDnaPath(OASISDNAPath);
+                            result.Result = OASISDNA;
+                            RecordLastResolvedOasisDnaPath(effectivePath);
+                        }
                     }
                 }
             }
@@ -139,20 +167,22 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
-
-                else if (!File.Exists(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
-
                 else
                 {
-                    OASISDNAManager.OASISDNAPath = OASISDNAPath;
-
-                    using (StreamReader r = new StreamReader(OASISDNAPath))
+                    string effectivePath = ResolveEffectiveOASISDNAPath(OASISDNAPath);
+                    if (!File.Exists(effectivePath))
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
+                    else
                     {
-                        string json = await r.ReadToEndAsync();
-                        OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
-                        result.Result = OASISDNA;
-                        RecordLastResolvedOasisDnaPath(OASISDNAPath);
+                        OASISDNAManager.OASISDNAPath = effectivePath;
+
+                        using (StreamReader r = new StreamReader(effectivePath))
+                        {
+                            string json = await r.ReadToEndAsync();
+                            OASISDNA = JsonConvert.DeserializeObject<OASISDNA>(json);
+                            result.Result = OASISDNA;
+                            RecordLastResolvedOasisDnaPath(effectivePath);
+                        }
                     }
                 }
             }
@@ -243,10 +273,28 @@ namespace NextGenSoftware.OASIS.API.DNA
             return result;
         }
 
+        /// <summary>If candidate's directory is not writable (e.g. install path), return user path and copy file if needed.</summary>
+        private static string EnsureWritableOASISDNAPath(string candidate)
+        {
+            if (string.IsNullOrEmpty(candidate)) return candidate;
+            string dir = Path.GetDirectoryName(candidate);
+            if (!string.IsNullOrEmpty(dir) && AppPathHelper.IsDirectoryWritable(dir))
+                return candidate;
+            string userPath = Path.Combine(GetUserDNADirectory(), "OASIS_DNA.json");
+            try
+            {
+                if (File.Exists(candidate) && !File.Exists(userPath))
+                    File.Copy(candidate, userPath);
+            }
+            catch { /* non-fatal */ }
+            return userPath;
+        }
+
         private static string ResolveOasisDnaPhysicalPath()
         {
             // Prefer DNA next to the real executable (publish/linux-x64/DNA/). Single-file extract dirs
             // under /tmp/.net/... are ephemeral — SecretKey must persist beside star, not in extract.
+            string candidate = null;
             try
             {
                 string proc = Environment.ProcessPath;
@@ -257,31 +305,36 @@ namespace NextGenSoftware.OASIS.API.DNA
                     {
                         string nextToStar = Path.Combine(starDir, "DNA", "OASIS_DNA.json");
                         if (File.Exists(nextToStar))
-                            return Path.GetFullPath(nextToStar);
+                            candidate = Path.GetFullPath(nextToStar);
                     }
                 }
             }
-            catch
+            catch { /* non-fatal */ }
+
+            if (string.IsNullOrEmpty(candidate) && !string.IsNullOrEmpty(LastResolvedOASISDnaPhysicalPath) && File.Exists(LastResolvedOASISDnaPhysicalPath))
+                candidate = LastResolvedOASISDnaPhysicalPath;
+
+            if (string.IsNullOrEmpty(candidate))
             {
-                // non-fatal
+                string rel = string.IsNullOrWhiteSpace(OASISDNAPath)
+                    ? Path.Combine("DNA", "OASIS_DNA.json")
+                    : OASISDNAPath.Replace('\\', Path.DirectorySeparatorChar);
+                if (Path.IsPathRooted(rel) && File.Exists(rel))
+                    candidate = Path.GetFullPath(rel);
+                if (string.IsNullOrEmpty(candidate))
+                {
+                    string fromCwd = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, rel));
+                    candidate = File.Exists(fromCwd) ? fromCwd : null;
+                }
+                if (string.IsNullOrEmpty(candidate))
+                {
+                    string baseDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                    string fromExe = Path.GetFullPath(Path.Combine(baseDir, rel));
+                    candidate = File.Exists(fromExe) ? fromExe : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, rel));
+                }
             }
 
-            if (!string.IsNullOrEmpty(LastResolvedOASISDnaPhysicalPath) && File.Exists(LastResolvedOASISDnaPhysicalPath))
-                return LastResolvedOASISDnaPhysicalPath;
-
-            string rel = string.IsNullOrWhiteSpace(OASISDNAPath)
-                ? Path.Combine("DNA", "OASIS_DNA.json")
-                : OASISDNAPath.Replace('\\', Path.DirectorySeparatorChar);
-            if (Path.IsPathRooted(rel) && File.Exists(rel))
-                return Path.GetFullPath(rel);
-            string fromCwd = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, rel));
-            if (File.Exists(fromCwd))
-                return fromCwd;
-            string baseDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            string fromExe = Path.GetFullPath(Path.Combine(baseDir, rel));
-            if (File.Exists(fromExe))
-                return fromExe;
-            return fromCwd;
+            return EnsureWritableOASISDNAPath(candidate);
         }
 
         private static async Task<OASISResult<bool>> PersistSecretKeyWithJObjectAsync(string oasisdnaPath, string newSecretKey)
@@ -450,22 +503,21 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
-
-                else if (!File.Exists(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
-
+                else if (OASISDNA == null)
+                    OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNA cannot be null.");
                 else
                 {
-                    if (OASISDNA == null)
-                        OASISErrorHandling.HandleError(ref result, $"Error occured in OASISDNAManager.SaveDNA. Reason: OASISDNA cannot be null.");
+                    string effectivePath = ResolveEffectiveOASISDNAPath(OASISDNAPath);
+                    string dir = Path.GetDirectoryName(effectivePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
 
                     OASISDNAManager.OASISDNA = OASISDNA;
-                    OASISDNAManager.OASISDNAPath = OASISDNAPath;
+                    OASISDNAManager.OASISDNAPath = effectivePath;
 
                     string json = JsonConvert.SerializeObject(OASISDNA);
-                    StreamWriter writer = new StreamWriter(OASISDNAPath);
-                    writer.Write(json);
-                    writer.Close();
+                    using (var writer = new StreamWriter(effectivePath))
+                        writer.Write(json);
                     result.Result = true;
                 }
             }
@@ -491,22 +543,21 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 if (string.IsNullOrEmpty(OASISDNAPath))
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNAPath cannot be null.");
-
-                else if (!File.Exists(OASISDNAPath))
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}The OASISDNAPath ({OASISDNAPath}) is not valid. Please make sure the OASISDNAPath is valid and that it points to the OASISDNA.json file.");
-
+                else if (OASISDNA == null)
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA cannot be null.");
                 else
                 {
-                    if (OASISDNA == null)
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}OASISDNA cannot be null.");
+                    string effectivePath = ResolveEffectiveOASISDNAPath(OASISDNAPath);
+                    string dir = Path.GetDirectoryName(effectivePath);
+                    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                        Directory.CreateDirectory(dir);
 
                     OASISDNAManager.OASISDNA = OASISDNA;
-                    OASISDNAManager.OASISDNAPath = OASISDNAPath;
+                    OASISDNAManager.OASISDNAPath = effectivePath;
 
                     string json = JsonConvert.SerializeObject(OASISDNA);
-                    StreamWriter writer = new StreamWriter(OASISDNAPath);
-                    await writer.WriteAsync(json);
-                    writer.Close();
+                    using (var writer = new StreamWriter(effectivePath))
+                        await writer.WriteAsync(json);
                     result.Result = true;
                 }
             }

@@ -50,7 +50,7 @@ if [ ! -f "$STAR_BIN" ]; then
   exit 1
 fi
 
-# Stage: star in /usr/local/bin; DNA folder (JSON only) next to it (same rule as Windows/Linux)
+# Stage: star in /usr/local/bin; DNA and DNATemplates next to it (same rule as Windows/Linux)
 PKG_ROOT="$INSTALLER_OUT/pkgroot"
 rm -rf "$PKG_ROOT"
 mkdir -p "$PKG_ROOT/usr/local/bin"
@@ -59,15 +59,32 @@ chmod 755 "$PKG_ROOT/usr/local/bin/star"
 if [ -d "$PUBLISH_DIR/$ARCH/DNA" ]; then
   cp -R "$PUBLISH_DIR/$ARCH/DNA" "$PKG_ROOT/usr/local/bin/"
 fi
+if [ -d "$PUBLISH_DIR/$ARCH/DNATemplates" ]; then
+  cp -R "$PUBLISH_DIR/$ARCH/DNATemplates" "$PKG_ROOT/usr/local/bin/"
+fi
 
-# Build .pkg (flat package)
+# Build .pkg (flat package) — proper macOS installer (double-click to run Installer wizard)
 OUTPUT_PKG="$INSTALLER_OUT/star-cli-${VERSION}-${ARCH}.pkg"
 pkgbuild --root "$PKG_ROOT" \
   --identifier com.oasis.star.cli \
   --version "$VERSION" \
   --install-location / \
   "$OUTPUT_PKG"
+echo "Package installer: $OUTPUT_PKG"
+
+# Build .dmg for distribution (disk image containing the .pkg; double-click to open then run the .pkg)
+DMG_NAME="star-cli-${VERSION}-${ARCH}"
+DMG_ROOT="$INSTALLER_OUT/dmgroot"
+rm -rf "$DMG_ROOT"
+mkdir -p "$DMG_ROOT"
+cp "$OUTPUT_PKG" "$DMG_ROOT/"
+# Optional: symlink to /Applications so users can drag .pkg there if they prefer
+ln -s /Applications "$DMG_ROOT/Applications" 2>/dev/null || true
+OUTPUT_DMG="$INSTALLER_OUT/${DMG_NAME}.dmg"
+rm -f "$OUTPUT_DMG"
+hdiutil create -volname "STAR CLI $VERSION" -srcfolder "$DMG_ROOT" -ov -format UDZO "$OUTPUT_DMG"
+rm -rf "$DMG_ROOT"
+echo "Disk image: $OUTPUT_DMG"
 
 rm -rf "$PKG_ROOT"
-echo "Installer: $OUTPUT_PKG"
 echo "Done."

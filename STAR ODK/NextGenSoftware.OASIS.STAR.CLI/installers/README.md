@@ -1,6 +1,6 @@
 # STAR CLI – Platform-specific installers (Option 3)
 
-This folder contains scripts to build **native installers** for Windows, macOS, and Linux. Run the scripts on (or for) each platform to produce installable packages.
+This folder contains scripts to build **proper native installers** for Windows, macOS, and Linux — like the Windows Inno Setup installer, each platform gets a real installable package.
 
 **Getting Started (installer + manual setup):** For step-by-step guides per platform, see the repo docs:
 - [STAR CLI Getting Started — Windows](../../../Docs/Devs/STAR_CLI_GettingStarted_Windows.md)
@@ -9,11 +9,11 @@ This folder contains scripts to build **native installers** for Windows, macOS, 
 
 | Platform | Location | What you get |
 |----------|----------|----------------|
-| **Windows** | `windows/` | **Inno Setup** EXE installer: adds `star.exe` to Program Files and optionally to system PATH. |
-| **macOS** | `macos/` | **.pkg** installer: installs `star` to `/usr/local/bin`. |
-| **Linux** | `linux/` | **.deb** and **.rpm** packages (via **fpm**): install `star` to `/usr/local/bin`. |
+| **Windows** | `windows/` | **Inno Setup** `.exe` installer (wizard, PATH option, uninstall). |
+| **macOS** | `macos/` | **.pkg** installer (double-click) + **.dmg** disk image for distribution. |
+| **Linux** | `linux/` | **.tar.gz** with `install.sh` (always), plus **.deb** / **.rpm** when `fpm` is installed. |
 
-All scripts publish the STAR CLI (single-file, self-contained) for the target platform first, then build the installer. Output goes to `publish/installers/` (and for Windows, the Inno script also expects publish output under `publish/win-x64/`).
+All scripts publish the STAR CLI (single-file, self-contained) for the target platform first, then package it. Output goes to `publish/installers/` (and for Windows, the Inno script also expects publish output under `publish/win-x64/`).
 
 **DNA folder rule:** Wherever `star` (or `star.exe`) is installed, a **DNA** folder must sit next to it with config/default JSON files. Only **JSON** files are included (no `.cs` or other source). This is enforced in `NextGenSoftware.OASIS.STAR.CLI.csproj` (Content: `DNA\**\*.json`); all installers copy the DNA folder from that publish output.
 
@@ -38,17 +38,20 @@ All scripts publish the STAR CLI (single-file, self-contained) for the target pl
    chmod +x installers/macos/build-installer.sh
    ./installers/macos/build-installer.sh
    ```
-2. Installer: `publish/installers/star-cli-1.0.0-osx-arm64.pkg` (or `osx-x64` on Intel). Double-click to install.
+2. **.pkg** installer: `publish/installers/star-cli-1.0.0-osx-arm64.pkg` (or `osx-x64` on Intel). Double-click to run the installer wizard.
+3. **.dmg** disk image: `star-cli-1.0.0-osx-arm64.dmg` — open and double-click the .pkg inside, or use for distribution.
 
 ### Linux (run on Linux)
 
-1. Install **fpm**: `gem install fpm`
-2. Run:
+1. Run:
    ```bash
    chmod +x installers/linux/build-installer.sh
    ./installers/linux/build-installer.sh
    ```
-3. Packages: `publish/installers/star-cli_1.0.0_amd64.deb` and `star-cli-1.0.0-1.x86_64.rpm`  
+2. You always get a **tarball** installer: `publish/installers/star-cli-1.0.0-linux-x64.tar.gz`  
+   Extract and run `./install.sh` to install to `/usr/local/bin`.
+3. If **fpm** is installed (`gem install fpm`), you also get:  
+   `star-cli_1.0.0_amd64.deb` and `star-cli-1.0.0-1.x86_64.rpm`  
    Install: `sudo dpkg -i star-cli_1.0.0_amd64.deb` or `sudo rpm -i star-cli-1.0.0-1.x86_64.rpm`
 
 ---
@@ -57,9 +60,9 @@ All scripts publish the STAR CLI (single-file, self-contained) for the target pl
 
 - **All:** .NET 8 SDK.
 - **Windows:** Inno Setup 6 (optional) for the EXE installer.
-- **macOS:** None beyond .NET 8 (uses built-in `pkgbuild`).
-- **Linux:** Ruby and **fpm** (`gem install fpm`) for .deb/.rpm; `rpm` for RPM builds.
+- **macOS:** None beyond .NET 8 (uses built-in `pkgbuild` and `hdiutil` for .pkg and .dmg).
+- **Linux:** No extra tools required for the tarball installer. For .deb/.rpm: Ruby and **fpm** (`gem install fpm`); `rpm` for RPM builds.
 
-The **Linux** installer script has been tested: it publishes the binary and, when **fpm** is installed, produces .deb and .rpm packages; without fpm it still publishes `star` to `publish/linux-x64/` for manual install.
+Every run produces at least one proper installer: Windows → .exe (if Inno installed), macOS → .pkg + .dmg, Linux → .tar.gz (extract and run `install.sh`), plus .deb/.rpm when fpm is available.
 
 See each platform’s subfolder for more detail (e.g. `windows/`, `macos/README.md`, `linux/README.md`).

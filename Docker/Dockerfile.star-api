@@ -6,26 +6,21 @@ EXPOSE 8081
 
 # Use the .NET 9 SDK for building
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
 
-# Copy the entire OASIS project structure
-COPY . .
+# Same layout as Dockerfile.clean: build context = parent folder containing OASIS + NextGenSoftware-Libraries.
+#   docker build -f OASIS/Docker/Dockerfile.star-api -t oasis-star-api .
+ARG OASIS_DIR=OASIS
+WORKDIR /build
+COPY ${OASIS_DIR}/ /build/oasis-root/
+COPY NextGenSoftware-Libraries/ /build/NextGenSoftware-Libraries/
 
-# Copy external libraries to a location within the build context
-COPY external-libs/NextGenSoftware-Libraries/NextGenSoftware\ Libraries/ NextGenSoftware-Libraries/NextGenSoftware\ Libraries/
+# Same path as Dockerfile.clean: ..\..\..\..\holochain-client-csharp from HoloOASIS = /build/holochain-client-csharp
+ARG HOLOCHAIN_REPO=https://github.com/NextGenSoftwareUK/holochain-client-csharp.git
+RUN apt-get update && apt-get install -y git \
+    && git clone --depth 1 "${HOLOCHAIN_REPO}" /build/holochain-client-csharp \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Clone holochain-client-csharp from GitHub
-RUN apt-get update && apt-get install -y git
-RUN git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git temp-holo
-RUN mkdir -p "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp"
-RUN cp -r temp-holo/* "Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/holochain-client-csharp/"
-
-# Clean up
-RUN rm -rf temp-holo
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Build the STAR WebAPI project from the root directory
-WORKDIR "/src"
+WORKDIR "/build/oasis-root"
 
 # Restore and build
 RUN dotnet restore "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
@@ -33,7 +28,7 @@ RUN dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OAS
 
 # Publish the application
 FROM build AS publish
-WORKDIR "/src"
+WORKDIR "/build/oasis-root"
 RUN dotnet publish "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Final stage
