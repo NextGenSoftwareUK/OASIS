@@ -272,6 +272,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //await Test(celestialBodyDNAFolder, geneisFolder);
 
             bool exit = false;
+            bool shellMode = _args != null && _args.Length > 0;
+            bool shellModeCommandConsumed = false;
             do
             {
                 try
@@ -280,18 +282,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     if (_exiting)
                         exit = true;
 
-                    _inMainMenu = true;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("");
-                    CLIEngine.ShowMessage("STAR: ", false, true);
-                    string input = Console.ReadLine();
-
-                    if (!string.IsNullOrEmpty(input))
+                    string[] inputArgs = null;
+                    if (shellMode && !shellModeCommandConsumed)
                     {
-                        string[] inputArgs = input.Split(" ");
+                        // Non-interactive shell invocation: star <command> [subcommand] [params...]
+                        inputArgs = _args;
+                        shellModeCommandConsumed = true;
+                    }
+                    else
+                    {
+                        _inMainMenu = true;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("");
+                        CLIEngine.ShowMessage("STAR: ", false, true);
+                        string input = Console.ReadLine();
 
-                        if (inputArgs.Length > 0)
-                        {
+                        if (!string.IsNullOrEmpty(input))
+                            inputArgs = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                    }
+
+                    if (inputArgs != null && inputArgs.Length > 0)
+                    {
                             switch (inputArgs[0].ToLower())
                             {
                                 case "ignite":
@@ -343,6 +354,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
                                         CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
                                         CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        Console.WriteLine("");
+                                        ShowDNAPaths();
+                                    }
+                                    break;
+
+                                case "dna":
+                                    {
+                                        Console.WriteLine("");
+                                        ShowDNAPaths();
                                     }
                                     break;
 
@@ -1051,9 +1071,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 default:
                                     CLIEngine.ShowErrorMessage("Command Unknown.");
+                                    if (shellMode)
+                                        Environment.ExitCode = 1;
                                     break;
                             }
-                        }
+
+                        // In shell mode, execute a single command and then exit.
+                        if (shellMode)
+                            exit = true;
                     }
                     else
                     {
@@ -3127,10 +3152,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task ShowConfigSubCommandAsync(string[] inputArgs)
         {
+            Console.WriteLine("");
+            if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "dna")
+            {
+                ShowDNAPaths();
+                Console.WriteLine("");
+                return;
+            }
+            ShowDNAPaths();
+            Console.WriteLine("");
             if (inputArgs.Length > 1)
             {
                 switch (inputArgs[1].ToLower())
                 {
+                    case "dna":
+                        // Handled above
+                        break;
+
                     case "cosmicdetailedoutput":
                         { 
                             if (inputArgs.Length > 2)
@@ -3273,6 +3311,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"CONFIG SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    dna                       Shows paths to DNATemplates, OASIS DNA and STAR DNA.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    logproviderswitching     [enable/disable/status] Enables/disables OASIS Hyperdrive Provider Switching Logging.", ConsoleColor.Green, false);
@@ -3728,6 +3767,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             DisplaySummary("help [full]", "Show this help page. If the [full] flag is omitted it will show only the top level sub-commands, if [full] is included it will show every option for each sub-command.");
             DisplaySummary("version", "Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers...");
             DisplaySummary("status", "Show the status of STAR ODK.");
+            DisplaySummary("dna", "Show paths to DNATemplates, OASIS DNA and STAR DNA.");
             DisplaySummary("exit", "Exit the STAR CLI.");
 
             //Console.WriteLine("    ignite           Ignite STAR & Boot The OASIS");
@@ -3927,6 +3967,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
 
                 //Config Commands
+                DisplayCommand("config dna", "", "Shows paths to DNATemplates, OASIS DNA and STAR DNA.");
                 DisplayCommand("config cosmicdetailedoutput", "{enable/disable/status}", "Enables/disables COSMIC Detailed Output.");
                 DisplayCommand("config starstatusdetailedoutput", "{enable/disable/status}", "Enables/disables STAR ODK Detailed Output.");
 
@@ -4068,6 +4109,40 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static void STAR_OnStarIgnited(object sender, System.EventArgs e)
         {
             //CLIEngine.ShowSuccessMessage("STAR IGNITED");
+            Console.WriteLine("");
+            ShowDNAPaths();
+        }
+
+        /// <summary>
+        /// Resolves a path to a full path (relative paths are resolved against CurrentDirectory).
+        /// </summary>
+        private static string ResolveFullPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return path ?? "";
+            return Path.IsPathRooted(path)
+                ? Path.GetFullPath(path)
+                : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, path.Replace('\\', Path.DirectorySeparatorChar)));
+        }
+
+        /// <summary>
+        /// Shows the paths STAR is using for DNATemplates, OASIS DNA and STAR DNA (used at boot and by status/config/dna commands).
+        /// </summary>
+        private static void ShowDNAPaths()
+        {
+            string oasisPath = ResolveFullPath(STAR.OASISDNAPath);
+            string starPath = ResolveFullPath(STAR.STARDNAPath);
+            CLIEngine.ShowMessage("DNA paths in use:", ConsoleColor.Cyan, false);
+            CLIEngine.ShowMessage($"  OASIS DNA:   {oasisPath}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  STAR DNA:    {starPath}", ConsoleColor.White, false);
+            if (STAR.IsStarIgnited && STAR.STARDNA != null)
+            {
+                string dnatemplatesPath = string.IsNullOrEmpty(STAR.STARDNA.STARBasePath)
+                    ? "(N/A)"
+                    : Path.GetFullPath(Path.Combine(STAR.STARDNA.STARBasePath, "DNATemplates"));
+                CLIEngine.ShowMessage($"  DNATemplates: {dnatemplatesPath}", ConsoleColor.White, false);
+            }
+            else
+                CLIEngine.ShowMessage("  DNATemplates: (N/A — STAR not ignited)", ConsoleColor.Gray, false);
         }
 
         private static void STAR_OnStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
