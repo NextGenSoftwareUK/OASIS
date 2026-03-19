@@ -1,0 +1,67 @@
+{
+  "$comment": "Example only — replace with real programmes; coordinates are illustrative.",
+  "sites": [
+    {
+      "id": "a0000001-0000-4000-8000-000000000001",
+      "name": "Impact Hub Abidjan — Vibe Code kickoff",
+      "lat": 5.36,
+      "lng": -4.02,
+      "venueType": "impact_hub",
+      "status": "active",
+      "city": "Abidjan",
+      "country": "Côte d'Ivoire",
+      "summary": "Hybrid kickoff + online cohort; builder onboarding for local guides.",
+      "cohortName": "Heart of Gold West Africa",
+      "dateStart": "2026-03-01",
+      "dateEnd": "2026-04-15",
+      "pgtCircleIds": [],
+      "links": { "web": "https://hitchhikers.earth" }
+    },
+    {
+      "id": "a0000001-0000-4000-8000-000000000002",
+      "name": "Leeds Student Union — Guide sprint",
+      "lat": 53.8,
+      "lng": -1.55,
+      "venueType": "student_union",
+      "status": "active",
+      "city": "Leeds",
+      "country": "UK",
+      "summary": "42-student cap intro; feeds 42-day workshop.",
+      "cohortName": "SU Builders 2026Q2",
+      "dateStart": "2026-04-01",
+      "dateEnd": "2026-05-15",
+      "pgtCircleIds": [],
+      "planningSprintPathPrefix": "Hitchhikers/Planning-Sprint"
+    },
+    {
+      "id": "a0000001-0000-4000-8000-000000000003",
+      "name": "St. Mary’s — community hack weekend",
+      "lat": 51.5,
+      "lng": -0.08,
+      "venueType": "church",
+      "status": "planned",
+      "city": "London",
+      "country": "UK",
+      "summary": "Weekend build + interfaith open lab; time pledges for setup/teardown.",
+      "cohortName": null,
+      "dateStart": "2026-06-01",
+      "dateEnd": "2026-06-02",
+      "pgtCircleIds": []
+    },
+    {
+      "id": "a0000001-0000-4000-8000-000000000004",
+      "name": "Burning Man — Deep Thought capstone (camp)",
+      "lat": 40.79,
+      "lng": -119.2,
+      "venueType": "other",
+      "status": "planned",
+      "city": "Black Rock City",
+      "country": "USA",
+      "summary": "Capstone installation & holonic braid prototype (conceptual pin).",
+      "cohortName": "Save the Planet capstone",
+      "dateStart": "2026-08-25",
+      "dateEnd": "2026-09-02",
+      "pgtCircleIds": []
+    }
+  ]
+}
