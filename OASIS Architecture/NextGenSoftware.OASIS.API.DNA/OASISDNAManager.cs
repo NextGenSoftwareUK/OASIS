@@ -245,9 +245,8 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         private static string ResolveOasisDnaPhysicalPath()
         {
-            if (!string.IsNullOrEmpty(LastResolvedOASISDnaPhysicalPath) && File.Exists(LastResolvedOASISDnaPhysicalPath))
-                return LastResolvedOASISDnaPhysicalPath;
-
+            // Prefer DNA next to the real executable (publish/linux-x64/DNA/). Single-file extract dirs
+            // under /tmp/.net/... are ephemeral — SecretKey must persist beside star, not in extract.
             try
             {
                 string proc = Environment.ProcessPath;
@@ -266,6 +265,9 @@ namespace NextGenSoftware.OASIS.API.DNA
             {
                 // non-fatal
             }
+
+            if (!string.IsNullOrEmpty(LastResolvedOASISDnaPhysicalPath) && File.Exists(LastResolvedOASISDnaPhysicalPath))
+                return LastResolvedOASISDnaPhysicalPath;
 
             string rel = string.IsNullOrWhiteSpace(OASISDNAPath)
                 ? Path.Combine("DNA", "OASIS_DNA.json")

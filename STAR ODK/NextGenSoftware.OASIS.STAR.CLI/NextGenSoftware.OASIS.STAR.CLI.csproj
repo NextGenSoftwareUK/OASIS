@@ -13,7 +13,16 @@
 
   <!-- DNA folder: JSON only (STARDNA.cs is chosen at build time in STAR.DNA project) -->
   <ItemGroup>
-    <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\**\*.json" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\**\*.json" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+  </ItemGroup>
+  <!-- STAR DNATemplates (Rust, hApp, C#, etc.) — beside star output; excluded from single-file bundle -->
+  <ItemGroup>
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\**\*"
+             LinkBase="DNATemplates"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest"
+             Visible="false"
+             ExcludeFromSingleFile="true" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />

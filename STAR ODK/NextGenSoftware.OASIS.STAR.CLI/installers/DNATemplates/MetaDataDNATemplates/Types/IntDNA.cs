@@ -1,1 +1,0 @@
-﻿public int {PROPERTYNAME} { get; set; }
