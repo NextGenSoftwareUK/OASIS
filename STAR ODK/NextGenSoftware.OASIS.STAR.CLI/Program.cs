@@ -49,17 +49,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static bool _inMainMenu = false;
         private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
 
+        private static async Task<bool> TryBootBeamInAsync(StarCliInvocation inv, string beamUser, string beamPass)
+        {
+            if (!inv.NonInteractive)
+            {
+                await STARCLI.Avatars.BeamInAvatar();
+                return true;
+            }
+
+            bool skipBeamIn = _args.Length > 0 && StarCliInvocation.CommandSkipsAvatarBeamIn(_args[0]);
+            if (skipBeamIn)
+                return true;
+
+            if (string.IsNullOrWhiteSpace(beamUser) || string.IsNullOrWhiteSpace(beamPass))
+            {
+                StarCliShellOutput.WriteError(inv.JsonOutput, 2,
+                    "Non-interactive mode requires credentials for this command: set STAR_CLI_USERNAME and STAR_CLI_PASSWORD, or use --username / --password, or prefix: avatar beamin <username> <password>",
+                    null);
+                return false;
+            }
+
+            string verifyToken = Environment.GetEnvironmentVariable("STAR_CLI_EMAIL_VERIFY_TOKEN");
+            await STARCLI.Avatars.BeamInWithCredentialsAsync(beamUser, beamPass, verifyToken);
+            return true;
+        }
+
         static async Task Main(string[] args)
         {
             try
             {
+                StarCliInvocation inv = StarCliInvocation.Parse(args);
+                CLIEngine.NonInteractive = inv.NonInteractive;
+                CLIEngine.JsonOutput = inv.JsonOutput;
+                CLIEngine.Quiet = inv.Quiet;
+                CLIEngine.AssumeYes = inv.AssumeYes;
+
+                _args = inv.GetCommandArgsAfterOptionalAvatarBeamIn(out string beamUser, out string beamPass);
+
+                if (inv.NonInteractive && _args.Length == 0 && (string.IsNullOrWhiteSpace(beamUser) || string.IsNullOrWhiteSpace(beamPass)))
+                {
+                    StarCliShellOutput.WriteError(inv.JsonOutput, 2,
+                        "No command specified. Examples: star --non-interactive version | star --non-interactive --username USER --password PASS (beam-in only)",
+                        null);
+                    return;
+                }
+
                 //ConsoleHelper.SetCurrentFont("Consolas", 8);
-                _args = args;
                 // DNA is published next to star; paths are relative to CWD. Launching from another folder
                 // (e.g. ./Scripts/STAR\ CLI/RUN_STAR_CLI.sh from repo root) breaks File.Exists("DNA/OASIS_DNA.json").
                 EnsureWorkingDirectoryNextToStarExecutableWhenDnaNotInCwd();
                 ShowHeader();
-                CLIEngine.ShowMessage("", false);
+                if (!CLIEngine.Quiet)
+                    CLIEngine.ShowMessage("", false);
                 Console.CancelKeyPress += Console_CancelKeyPress;
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
@@ -123,25 +164,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 OASISResult<IOmiverse> result = STAR.IgniteStar();
 
                 if (result.IsError)
-                    CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
-                else
                 {
-                    DEFAULT_DNA_FOLDER = STAR.STARDNA.OAPPMetaDataDNAFolder;
-                    DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
-
-                    await STARCLI.Avatars.BeamInAvatar();
-                    
-                    // Scan and load installed plugins at boot time
-                    await ScanAndLoadPluginsAtBoot();
-                    
-                    await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
+                    if (CLIEngine.JsonOutput)
+                        StarCliShellOutput.WriteError(true, 1, "Failed to ignite STAR.", result.Message);
+                    else
+                        CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
+                    return;
                 }
+
+                DEFAULT_DNA_FOLDER = STAR.STARDNA.OAPPMetaDataDNAFolder;
+                DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
+
+                if (!await TryBootBeamInAsync(inv, beamUser, beamPass))
+                    return;
+
+                // Scan and load installed plugins at boot time
+                await ScanAndLoadPluginsAtBoot();
+
+                if (inv.NonInteractive && _args.Length == 0)
+                {
+                    StarCliShellOutput.WriteSuccess(CLIEngine.JsonOutput, "Beam-in completed.",
+                        STAR.BeamedInAvatar != null
+                            ? new { username = STAR.BeamedInAvatar.Username }
+                            : null);
+                    return;
+                }
+
+                await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
+            }
+            catch (CLIEngineNonInteractiveInputRequiredException niex)
+            {
+                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 3, niex.Message, null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("");
-                CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
-                //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+                if (CLIEngine.JsonOutput)
+                    StarCliShellOutput.WriteError(true, 1, ex.Message, ex.ToString());
+                else
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
+                }
             }
         }
 
@@ -215,7 +278,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 var pluginLoader = new PluginLoader();
                 var scanResult = await pluginLoader.ScanAndLoadPluginsAsync();
                 
-                if (scanResult != null && !scanResult.IsError && scanResult.Result != null && scanResult.Result.Count > 0)
+                if (!CLIEngine.Quiet && scanResult != null && !scanResult.IsError && scanResult.Result != null && scanResult.Result.Count > 0)
                 {
                     CLIEngine.ShowMessage($"", false);
                     CLIEngine.ShowSuccessMessage($"Loaded {scanResult.Result.Count} installed plugin(s) at boot time.");
@@ -262,9 +325,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //ShowAvatarStats(); //TODO: Temp, put back in after testing! ;-)
 
             CLIEngine.ShowMessage("", false);
-            CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
-
-            CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            if (!CLIEngine.Quiet)
+            {
+                CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
+                CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            }
             
             //CLIEngine.ShowMessage("", false);
 
@@ -325,7 +390,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "help":
                                     {
-                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true,
+                                                "Human-readable command reference: run without --json or see Docs/Devs/STAR_CLI_NonInteractive.md",
+                                                new { shellFlags = new[] { "--non-interactive (-n)", "--json", "--quiet (-q)", "--yes (-y)", "--username", "--password" } });
+                                        }
+                                        else if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
                                             ShowCommands(true);
                                         else
                                             ShowCommands(false);
@@ -334,28 +405,59 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "version":
                                     {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage($"OASIS RUNTIME VERSION:   v{OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS API VERSION:       v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"COSMIC ORM VERSION:      v{OASISBootLoader.OASISBootLoader.COSMICVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR RUNTIME VERSION:    v{OASISBootLoader.OASISBootLoader.STARRuntimeVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR ODK VERSION:        v{OASISBootLoader.OASISBootLoader.STARODKVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STARNET VERSION:         v{OASISBootLoader.OASISBootLoader.STARNETVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR API VERSION:        v{OASISBootLoader.OASISBootLoader.STARAPIVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($".NET VERSION:            v{OASISBootLoader.OASISBootLoader.DotNetVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS PROVIDER VERSIONS: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true, null, new
+                                            {
+                                                oasisRuntime = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion,
+                                                oasisApi = OASISBootLoader.OASISBootLoader.OASISAPIVersion,
+                                                cosmicOrm = OASISBootLoader.OASISBootLoader.COSMICVersion,
+                                                starRuntime = OASISBootLoader.OASISBootLoader.STARRuntimeVersion,
+                                                starOdk = OASISBootLoader.OASISBootLoader.STARODKVersion,
+                                                starnet = OASISBootLoader.OASISBootLoader.STARNETVersion,
+                                                starApi = OASISBootLoader.OASISBootLoader.STARAPIVersion,
+                                                dotNet = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                                                oasisProviderVersions = "Coming Soon"
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowMessage($"OASIS RUNTIME VERSION:   v{OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS API VERSION:       v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"COSMIC ORM VERSION:      v{OASISBootLoader.OASISBootLoader.COSMICVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR RUNTIME VERSION:    v{OASISBootLoader.OASISBootLoader.STARRuntimeVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR ODK VERSION:        v{OASISBootLoader.OASISBootLoader.STARODKVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STARNET VERSION:         v{OASISBootLoader.OASISBootLoader.STARNETVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR API VERSION:        v{OASISBootLoader.OASISBootLoader.STARAPIVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($".NET VERSION:            v{OASISBootLoader.OASISBootLoader.DotNetVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS PROVIDER VERSIONS: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        }
                                     }
                                     break;
 
                                 case "status":
                                     {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
-                                        Console.WriteLine("");
-                                        ShowDNAPaths();
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true, null, new
+                                            {
+                                                starOdkStatus = Enum.GetName(typeof(StarStatus), STAR.Status),
+                                                cosmicOrmStatus = "Online",
+                                                oasisRuntimeStatus = "Online",
+                                                oasisProviderStatus = "Coming Soon"
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                            Console.WriteLine("");
+                                            ShowDNAPaths();
+                                        }
                                     }
                                     break;
 
@@ -367,7 +469,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 case "exit":
-                                    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                                    exit = CLIEngine.NonInteractive || CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                                     break;
 
                                 case "light":
@@ -455,33 +557,51 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
                                         else
                                         {
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowMessage("LIGHT SUBCOMMAND:", ConsoleColor.Green);
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowMessage("OAPPName               The name of the OAPP.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage($"OAPPType               The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("DnaFolder              The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("GenesisFolder          The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("GenesisNameSpace       The namespace of the OAPP to generate.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage($"GenesisType            The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("ParentCelestialBodyId  The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
-
-                                            if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                            if (CLIEngine.NonInteractive)
                                             {
-                                                Console.WriteLine("");
-                                                await STARCLI.OAPPs.LightWizardAsync(null);
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    "Non-interactive mode requires full 'light' arguments or use 'light wiz' only in interactive mode.",
+                                                    "See Docs/Devs/STAR_CLI_NonInteractive.md and existing 'light' positional parameter help in ShowCommands.");
+                                                if (shellMode)
+                                                    Environment.ExitCode = 2;
                                             }
                                             else
+                                            {
                                                 Console.WriteLine("");
+                                                CLIEngine.ShowMessage("LIGHT SUBCOMMAND:", ConsoleColor.Green);
+                                                Console.WriteLine("");
+                                                CLIEngine.ShowMessage("OAPPName               The name of the OAPP.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage($"OAPPType               The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("DnaFolder              The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("GenesisFolder          The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("GenesisNameSpace       The namespace of the OAPP to generate.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage($"GenesisType            The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("ParentCelestialBodyId  The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
 
-                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                                if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                                {
+                                                    Console.WriteLine("");
+                                                    await STARCLI.OAPPs.LightWizardAsync(null);
+                                                }
+                                                else
+                                                    Console.WriteLine("");
+
+                                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                            }
                                         }
                                     }
                                     break;
 
                                 case "bang":
                                     {
+                                        if (CLIEngine.NonInteractive)
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2, "Command 'bang' is interactive-only. Omit --non-interactive or use a scripted workflow.", null);
+                                            if (shellMode)
+                                                Environment.ExitCode = 2;
+                                            break;
+                                        }
                                         _inMainMenu = false;
                                         object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
 
@@ -494,6 +614,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "wiz":
                                     {
+                                        if (CLIEngine.NonInteractive)
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2, "Command 'wiz' is interactive-only. Use 'light <args>' with full parameters or interactive mode.", null);
+                                            if (shellMode)
+                                                Environment.ExitCode = 2;
+                                            break;
+                                        }
                                         _inMainMenu = false;
                                         OASISResult<CoronalEjection> lightResult = null;
                                         string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
@@ -1070,7 +1197,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 default:
-                                    CLIEngine.ShowErrorMessage("Command Unknown.");
+                                    if (CLIEngine.JsonOutput)
+                                        StarCliShellOutput.WriteError(true, 1, "Command unknown.", inputArgs[0]);
+                                    else
+                                        CLIEngine.ShowErrorMessage("Command Unknown.");
                                     if (shellMode)
                                         Environment.ExitCode = 1;
                                     break;
@@ -1088,6 +1218,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                     }
                 }
+                catch (CLIEngineNonInteractiveInputRequiredException niex)
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 3, niex.Message, null);
+                    if (shellMode)
+                    {
+                        Environment.ExitCode = 3;
+                        exit = true;
+                    }
+                    else
+                        OASISErrorHandling.HandleError($"STAR CLI: {niex.Message}", niex);
+                }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError($"An unknown error occurred in STARCLI.ReadyPlayerOne. Reason: {ex}", ex);
@@ -1095,7 +1236,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             while (!exit);
 
-            CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
+            if (!CLIEngine.Quiet)
+                CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
             Console.ForegroundColor = ConsoleColor.White;
         }
 
@@ -1759,6 +1901,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             else
             {
+                if (CLIEngine.NonInteractive)
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                        $"Non-interactive mode requires an explicit subcommand and arguments for '{subCommand}'.",
+                        "Examples: oapp list | runtime show <idOrName> | holon list. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(subCommandPlural))
                     subCommandPlural = $"{subCommand}'s";
 
@@ -1923,10 +2073,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "beamin":
                         {
-                            if (STAR.BeamedInAvatar == null)
-                                await STARCLI.Avatars.BeamInAvatar();
-                            else
+                            if (STAR.BeamedInAvatar != null)
+                            {
                                 CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                                break;
+                            }
+
+                            if (CLIEngine.NonInteractive && inputArgs.Length >= 4)
+                            {
+                                string verify = Environment.GetEnvironmentVariable("STAR_CLI_EMAIL_VERIFY_TOKEN");
+                                await STARCLI.Avatars.BeamInWithCredentialsAsync(inputArgs[2], inputArgs[3], verify);
+                            }
+                            else if (CLIEngine.NonInteractive)
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    "Non-interactive beam-in requires: avatar beamin <username> <password>",
+                                    "Or set STAR_CLI_USERNAME / STAR_CLI_PASSWORD before boot (see STAR_CLI_NonInteractive.md).");
+                            }
+                            else
+                                await STARCLI.Avatars.BeamInAvatar();
                         }
                         break;
 
@@ -3653,6 +3818,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowHeader()
         {
+            if (CLIEngine.Quiet)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"STAR ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} (non-interactive)");
+                Console.ResetColor();
+                return;
+            }
+
             // Console.SetWindowSize(300, Console.WindowHeight);
             Console.WriteLine("");
             Console.ForegroundColor = ConsoleColor.Green;
