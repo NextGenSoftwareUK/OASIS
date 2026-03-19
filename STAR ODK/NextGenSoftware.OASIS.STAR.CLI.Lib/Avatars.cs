@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -20,6 +20,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!emailValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Email input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
@@ -65,6 +68,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!emailValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Email input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
@@ -98,6 +104,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!usernameValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Username input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 username = Console.ReadLine();
 
@@ -167,6 +176,59 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Beam in using explicit credentials (shell / CI). Optional <paramref name="emailVerifyToken"/> if the API reports an unverified avatar.
+        /// </summary>
+        public async Task BeamInWithCredentialsAsync(string username, string password, string emailVerifyToken = null, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Username and password are required.", nameof(username));
+
+            OASISResult<IAvatar> beamInResult;
+
+            CLIEngine.SupressConsoleLogging = true;
+            beamInResult = await STAR.BeamInAsync(username, password);
+            CLIEngine.SupressConsoleLogging = false;
+
+            if (!beamInResult.IsError && STAR.BeamedInAvatar != null)
+            {
+                CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+                return;
+            }
+
+            if (beamInResult.Message != null && beamInResult.Message.Contains("not been verified", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(emailVerifyToken))
+                {
+                    CLIEngine.SupressConsoleLogging = true;
+                    OASISResult<bool> verifyEmailResult = STAR.OASISAPI.Avatars.VerifyEmail(emailVerifyToken);
+                    CLIEngine.SupressConsoleLogging = false;
+
+                    if (verifyEmailResult.IsError)
+                        throw new InvalidOperationException(verifyEmailResult.Message);
+
+                    CLIEngine.SupressConsoleLogging = true;
+                    beamInResult = await STAR.BeamInAsync(username, password);
+                    CLIEngine.SupressConsoleLogging = false;
+
+                    if (!beamInResult.IsError && STAR.BeamedInAvatar != null)
+                    {
+                        CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+                        return;
+                    }
+                }
+
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException(
+                        "Avatar is not verified. Set environment variable STAR_CLI_EMAIL_VERIFY_TOKEN to the token from your verification email, or verify the account in interactive mode.");
+            }
+
+            if (STAR.BeamedInAvatar == null)
+                throw new InvalidOperationException(string.IsNullOrEmpty(beamInResult.Message)
+                    ? "Beam-in failed (no session)."
+                    : beamInResult.Message);
         }
 
         public async Task BeamInAvatar(ProviderType providerType = ProviderType.Default)
