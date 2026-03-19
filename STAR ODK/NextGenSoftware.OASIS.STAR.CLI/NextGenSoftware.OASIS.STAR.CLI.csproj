@@ -15,6 +15,10 @@
   <ItemGroup>
     <Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\**\*.json" LinkBase="DNA" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
   </ItemGroup>
+  <!-- Exclude publish output from compilation: DNATemplates etc. are copied into publish/ and must not be compiled (they are templates with placeholders). -->
+  <ItemGroup>
+    <Compile Remove="publish\**\*.cs" />
+  </ItemGroup>
   <!-- STAR DNATemplates (Rust, hApp, C#, etc.) — beside star output; excluded from single-file bundle -->
   <ItemGroup>
     <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\**\*"
