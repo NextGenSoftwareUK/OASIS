@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -83,6 +84,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.JsonOutput = inv.JsonOutput;
                 CLIEngine.Quiet = inv.Quiet;
                 CLIEngine.AssumeYes = inv.AssumeYes;
+                CLIEngine.MaxHolonSearchResults = inv.MaxHolonSearchResults;
 
                 _args = inv.GetCommandArgsAfterOptionalAvatarBeamIn(out string beamUser, out string beamPass);
 
@@ -811,6 +813,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
                                                             dotNetPublish = true;
 
+                                                        if (CLIEngine.NonInteractive && string.IsNullOrWhiteSpace(oappPath))
+                                                        {
+                                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                                "Non-interactive oapp publish requires a source path.",
+                                                                "Example: star --non-interactive oapp publish /path/to/oapp/source [dotnetpublish]");
+                                                            break;
+                                                        }
+
                                                         await STARCLI.OAPPs.PublishAsync(oappPath, dotNetPublish);
                                                     }
                                                     break;
@@ -1262,7 +1272,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
-            Func<string, Guid, bool, bool, ProviderType, Task> searchPredicate = null,
+            Func<string, Guid, bool, bool, ProviderType, int, Task> searchPredicate = null,
             Func<string, ISTARNETDNA, string, string, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
             Func<object, Task> clonePredicate = null,
@@ -1355,6 +1365,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 web3 = subCommandParam == "web3" || subCommandParam2 == "web3" || subCommandParam3 == "web3" || subCommandParam4 == "web3" ? true : false;
                 web4 = subCommandParam == "web4" || subCommandParam2 == "web4" || subCommandParam3 == "web4" || subCommandParam4 == "web4" ? true : false;
 
+                if (CLIEngine.NonInteractive && StarCliStarnetNonInteractiveGuard.IsWizardOnlySubcommand(subCommandParam))
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                        $"Subcommand '{subCommandParam}' is interactive-only (wizard). Omit --non-interactive for wizards.",
+                        $"Entity: {subCommand}. Scriptable flows: list, show/update/delete/install/... with explicit id or GUID; oapp publish <path>; search <term>. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                    return;
+                }
+
+                if (CLIEngine.NonInteractive &&
+                    StarCliStarnetNonInteractiveGuard.WriteHolonSubCommandViolationIfNeeded(
+                        CLIEngine.JsonOutput,
+                        subCommand,
+                        subCommandParam,
+                        id,
+                        inputArgs,
+                        subCommandParam3,
+                        subCommandParam4,
+                        web3,
+                        web4,
+                        mintPredicate != null,
+                        burnPredicate != null,
+                        clonePredicate != null,
+                        convertPredicate != null,
+                        importPredicate != null,
+                        exportPredicate != null,
+                        addWeb4NFTToCollectionPredicate != null,
+                        removeWeb4NFTFromCollectionPredicate != null,
+                        addDependencyPredicate != null,
+                        removeDependencyPredicate != null))
+                    return;
+
                 switch (subCommandParam)
                 {
                     case "create":
@@ -1363,15 +1404,139 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             {
                                 if (web4)
                                 {
-                                    if (createWeb4Predicate != null)
-                                        await createWeb4Predicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    if (CLIEngine.NonInteractive)
+                                    {
+                                        if (createWeb4Predicate != null)
+                                            await createWeb4Predicate(null, providerType);
+                                        else if (createPredicate != null && !StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate(subCommand))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseCreateArgv(inputArgs, subCommand, out string w4Name, out string w4Desc, out string w4Cat, out string w4LibLang, out string w4Parent, out string w4Err))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    w4Err ?? "Invalid create arguments.",
+                                                    "web4 flag with no web4-specific create: using same argv as web5 scripted create.");
+                                                break;
+                                            }
+
+                                            var w4Opts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildScriptedCustomCreateParams(w4Name, w4Desc, w4Cat, w4Parent, w4LibLang)
+                                            };
+                                            await createPredicate(w4Opts, null, false, false, providerType);
+                                        }
+                                        else
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                "Non-interactive web4 create is not available for this entity.",
+                                                "Omit web4 keyword or use a holon with scripted create. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                                        }
+                                    }
+                                    else if (createWeb4Predicate != null)
+                                        await createWeb4Predicate(null, providerType);
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
                                 else
                                 {
-                                    if (createPredicate != null)
-                                        await createPredicate(null, null, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    if (CLIEngine.NonInteractive)
+                                    {
+                                        if (StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate(subCommand))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                $"Non-interactive scripted create is not available for '{subCommand}' (this holon type does not delegate to STARNETUIBase scripted create).",
+                                                "See StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate in STAR.CLI.Lib and Docs/Devs/STAR_CLI_NonInteractive.md (Generic design).");
+                                            break;
+                                        }
+
+                                        STARNETCreateOptions<T, STARNETDNA> scriptedOpts;
+                                        if (string.Equals(subCommand, "geo-hotspot", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseGeoHotSpotCreateArgv(inputArgs, out string ghName, out string ghDesc, out string ghType, out double ghLat, out double ghLon, out int ghRad, out string ghTrig, out int? ghTime, out string ghParent, out string ghErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    ghErr ?? "Invalid geo-hotspot create arguments.",
+                                                    "Example: geo-hotspot create MyHS \"Desc\" AR 51.5 -0.1 25 WhenArrivedAtGeoLocation /optional/parent");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildGeoHotSpotScriptedCustomCreateParams(ghName, ghDesc, ghType, ghLat, ghLon, ghRad, ghTrig, ghTime, ghParent)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CreateArgv(inputArgs, out string wrapNftId, out string wErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    wErr ?? "Invalid nft create arguments.",
+                                                    "Example: nft create <web4NftGuid>");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4NftScriptedParams(wrapNftId)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CreateArgv(inputArgs, out string wrapGeoId, out string wgErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    wgErr ?? "Invalid geo-nft create arguments.",
+                                                    "Example: geo-nft create <web4GeoNftGuid>");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4GeoSpatialNftScriptedParams(wrapGeoId)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "plugin", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParsePluginCreateArgv(inputArgs, out string plugName, out string plugDesc, out string plugParent, out string plugErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    plugErr ?? "Invalid plugin create arguments.",
+                                                    "Example: plugin create \"MyPlugin\" \"Description\" [/optional/parent/dir]");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildPluginScriptedCustomCreateParams(plugName, plugDesc, plugParent)
+                                            };
+                                        }
+                                        else if (!StarnetUiScriptedCreateCli.TryParseCreateArgv(inputArgs, subCommand, out string cName, out string cDesc, out string cCat, out string cLibLang, out string cParent, out string cErr))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                cErr ?? "Invalid create arguments.",
+                                                "Example: star --non-interactive oapp template create \"MyTpl\" \"Desc\" Console /optional/parent/dir");
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildScriptedCustomCreateParams(cName, cDesc, cCat, cParent, cLibLang)
+                                            };
+                                        }
+
+                                        if (createPredicate != null)
+                                            await createPredicate(scriptedOpts, null, false, false, providerType);
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    else if (createPredicate != null)
+                                        await createPredicate(null, null, true, true, providerType);
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1384,7 +1549,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "mint":
                         {
                             if (mintPredicate != null)
-                                await mintPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetMintRequestJsonPath(inputArgs, out string mintJson, out string mintErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            mintErr ?? "Invalid mint arguments.",
+                                            "Example: nft mint /path/to/MintWeb4NFTRequest.json");
+                                        break;
+                                    }
+
+                                    await mintPredicate(mintJson);
+                                }
+                                else
+                                    await mintPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
                         }
@@ -1392,11 +1572,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "remint":
                         {
-                            if (subCommand.ToUpper() == "NFT")
-                                await STARCLI.NFTs.RemintNFTAsync();
+                            bool isNftEntity = string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase);
+                            bool isGeoNftEntity = string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase);
+                            string remintTarget = null;
 
-                            else if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.RemintGeoNFTAsync();
+                            if (CLIEngine.NonInteractive)
+                            {
+                                if (!StarCliNftStructuredArgv.TryGetRemintTargetId(inputArgs, out remintTarget, out string remintErr))
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        remintErr ?? "remint requires a target id.",
+                                        "Example: nft remint <web4NftGuid>");
+                                    break;
+                                }
+                            }
+
+                            if (isNftEntity)
+                                await STARCLI.NFTs.RemintNFTAsync(remintTarget);
+
+                            else if (isGeoNftEntity)
+                                await STARCLI.GeoNFTs.RemintGeoNFTAsync(remintTarget);
 
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
@@ -1405,17 +1600,47 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "place":
                         {
-                            if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.PublishAsync();
+                            if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetPlaceGeoJsonPath(inputArgs, out string placeJson, out string placeErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            placeErr ?? "Invalid place arguments.",
+                                            "Example: geo-nft place /path/to/PlaceWeb4GeoSpatialNFTRequest.json");
+                                        break;
+                                    }
+
+                                    await STARCLI.GeoNFTs.PlaceGeoNFTFromJsonFileAsync(placeJson);
+                                }
+                                else
+                                    await STARCLI.GeoNFTs.PlaceGeoNFTAsync();
+                            }
                             else
-                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft'.");
+                                CLIEngine.ShowWarningMessage("place with JSON is supported for 'geo-nft' (WEB4).");
                         }
                         break;
 
                     case "burn":
                         {
                             if (burnPredicate != null)
-                                await burnPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetBurnRequestJsonPath(inputArgs, out string burnJson, out string burnErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            burnErr ?? "Invalid burn arguments.",
+                                            "Example: nft burn /path/to/BurnWeb3NFTRequest.json");
+                                        break;
+                                    }
+
+                                    await burnPredicate(burnJson);
+                                }
+                                else
+                                    await burnPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1424,7 +1649,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "import":
                         {
                             if (importPredicate != null)
-                                await importPredicate(web3);
+                            {
+                                bool niWeb4NftImport = CLIEngine.NonInteractive
+                                    && (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase));
+
+                                if (niWeb4NftImport)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetImportPath(inputArgs, out string importPath, out string importErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            importErr ?? "Invalid import arguments.",
+                                            "Example: nft import /path/to/file  |  geo-nft import /path/to/file");
+                                        break;
+                                    }
+
+                                    await importPredicate(importPath);
+                                }
+                                else
+                                    await importPredicate(web3);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1433,7 +1677,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "export":
                         {
                             if (exportPredicate != null)
-                                await exportPredicate(null);
+                            {
+                                bool niWeb4NftExport = CLIEngine.NonInteractive
+                                    && (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase));
+
+                                if (niWeb4NftExport)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetExportDest(inputArgs, out string exId, out string exPath, out string exErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            exErr ?? "Invalid export arguments.",
+                                            "Example: nft export <idOrGuid> /dest/path  |  geo-nft export <idOrGuid> /dest/path");
+                                        break;
+                                    }
+
+                                    if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                        await STARCLI.NFTs.ExportNFTNonInteractiveAsync(exId, exPath, providerType);
+                                    else
+                                        await STARCLI.GeoNFTs.ExportGeoNFTNonInteractiveAsync(exId, exPath, providerType);
+                                }
+                                else
+                                    await exportPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1442,7 +1708,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "clone":
                         {
                             if (clonePredicate != null)
-                                await clonePredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetFirstTokenAfterVerb(inputArgs, "clone", out string cloneSourceId, out string cloneErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            cloneErr ?? "clone requires a source id or name.",
+                                            $"Example: {subCommand} clone <sourceIdOrName>");
+                                        break;
+                                    }
+
+                                    await clonePredicate(cloneSourceId);
+                                }
+                                else
+                                    await clonePredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1451,9 +1732,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "convert":
                         {
                             if (convertPredicate != null)
-                                await convertPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetFirstTokenAfterVerb(inputArgs, "convert", out string convertSourceId, out string convertErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            convertErr ?? "convert requires a source id or name.",
+                                            $"Example: {subCommand} convert <sourceIdOrName>");
+                                        break;
+                                    }
+
+                                    await convertPredicate(convertSourceId);
+                                }
+                                else
+                                    await convertPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "send":
+                        {
+                            bool isNftSend = string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase);
+                            bool isGeoNftSend = string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase);
+
+                            if (CLIEngine.NonInteractive)
+                            {
+                                if (!StarCliNftStructuredArgv.TryGetSendArgs(inputArgs, out string sFrom, out string sTo, out string sTok, out string sMemo, out string sendErr))
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        sendErr ?? "Invalid send arguments.",
+                                        "Example: nft send <fromWallet> <toWallet> <tokenAddress> <memo>");
+                                    break;
+                                }
+
+                                if (isNftSend)
+                                    await STARCLI.NFTs.SendNFTAsync(sFrom, sTo, sTok, sMemo);
+                                else if (isGeoNftSend)
+                                    await STARCLI.GeoNFTs.SendGeoNFTAsync(sFrom, sTo, sTok, sMemo);
+                                else
+                                    CLIEngine.ShowErrorMessage("Command not supported.");
+                            }
+                            else
+                            {
+                                if (isNftSend)
+                                    await STARCLI.NFTs.SendNFTAsync();
+                                else if (isGeoNftSend)
+                                    await STARCLI.GeoNFTs.SendGeoNFTAsync();
+                                else
+                                    CLIEngine.ShowErrorMessage("Command not supported.");
+                            }
                         }
                         break;
 
@@ -1740,19 +2070,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
-                    case "send":
-                        {
-                            if (subCommand.ToUpper() == "NFT")
-                                await STARCLI.NFTs.SendNFTAsync();
-
-                            else if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.SendGeoNFTAsync();
-                            
-                            else
-                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft' or 'nft'.");
-                        }
-                        break;
-
                     case "add":
                         {
                             if (addWeb4NFTToCollectionPredicate != null)
@@ -1869,25 +2186,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "search":
                         {
+                            string searchCriteria;
+                            int searchMax = 0;
+                            if (StarCliStarnetSearchArgv.TryParse(inputArgs, out string parsedCriteria, out int parsedMax, out _))
+                            {
+                                searchCriteria = parsedCriteria;
+                                searchMax = parsedMax;
+                            }
+                            else
+                            {
+                                searchCriteria = !string.IsNullOrWhiteSpace(subCommandParam3) ? subCommandParam3 : subCommandParam2;
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        "search requires explicit criteria in non-interactive mode.",
+                                        $"Example: {subCommand} search <criteria> [<maxResults>]  |  Global: --search-limit N");
+                                    break;
+                                }
+                            }
+
+                            if (CLIEngine.NonInteractive && string.IsNullOrWhiteSpace(searchCriteria))
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    "search requires a criteria token (name fragment or id). Example: oapp search MyOAPP 25",
+                                    $"Entity: {subCommand}. Optional trailing integer limits rows (or use --search-limit N).");
+                                break;
+                            }
+
+                            int effectiveSearchMax = searchMax > 0 ? searchMax : CLIEngine.MaxHolonSearchResults;
+
                             if (web3)
                             {
                                 if (searchWeb3Predicate != null)
-                                    await searchWeb3Predicate(subCommandParam3, showForAllAvatars, providerType);
+                                    await searchWeb3Predicate(searchCriteria, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else if (web4)
                             {
-                                if (showWeb4Predicate != null)
-                                    await searchWeb4Predicate(subCommandParam3, showForAllAvatars, providerType);
+                                if (searchWeb4Predicate != null)
+                                    await searchWeb4Predicate(searchCriteria, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
                             {
                                 if (searchPredicate != null)
-                                    //TODO: add support to pass parentId in later...
-                                    await searchPredicate(subCommandParam3, default, showAllVersions, showForAllAvatars, providerType);
+                                    await searchPredicate(searchCriteria, default, showAllVersions, showForAllAvatars, providerType, effectiveSearchMax);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }

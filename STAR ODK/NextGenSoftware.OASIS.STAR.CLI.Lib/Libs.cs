@@ -43,6 +43,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<Library> result = new OASISResult<Library>();
 
+            if (createOptions?.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb)
+            {
+                if (!createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.LibraryStarnetSubCategory, out object langObj)
+                    || langObj == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Scripted library create requires a Languages value in CustomCreateParams (see StarnetUiScriptedCreateCli / --non-interactive lib create argv).");
+                    return result;
+                }
+
+                return await base.CreateAsync(createOptions, null, showHeaderAndInro, addDependencies, providerType);
+            }
+
             if (showHeaderAndInro)
                 ShowHeader();
 
@@ -92,7 +106,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         createOptions.CustomCreateParams = new Dictionary<string, object>();
                     }
 
-                    createOptions.CustomCreateParams["STARNETSubCategory"] = language;
+                    createOptions.CustomCreateParams[StarCliNonInteractiveCreateKeys.LibraryStarnetSubCategory] = language;
                 }
                 else if (language != null && language.ToString() == "exit")
                 {
