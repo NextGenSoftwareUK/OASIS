@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pan Galactic Monitor</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600&family=Syne:wght@600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/globe.gl@2.33.0"></script>
+  <style>
+    :root {
+      --bg:      #0e0c0a;
+      --panel:   rgba(22, 19, 16, 0.96);
+      --border:  rgba(212, 165, 100, 0.20);
+      --text:    #f2ebe1;
+      --muted:   #8f867a;
+      --accent:  #e8b565;
+      --teal:    #6ecfb8;
+      --purple:  #b388ff;
+      --orange:  #ff9e4c;
+      --amber2:  #ffb84c;
+    }
+
+    /* Pin type palette */
+    .c-pledge    { color: var(--accent); }
+    .c-exchange  { color: var(--teal); }
+    .c-guide     { color: var(--purple); }
+    .c-equity    { color: var(--orange); }
+    .c-site      { color: var(--teal); }
+    .c-hackathon { color: #c4906a; }
+    .c-builder   { color: #64b5f6; }
+
+    /* OpenSERV Builders Fund badge */
+    .serv-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(196,144,106,0.12); border: 1px solid rgba(196,144,106,0.35);
+      color: #c4906a; border-radius: 4px; padding: 2px 8px;
+      font-size: 0.6rem; font-family: "IBM Plex Mono", monospace; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .serv-badge::before { content: "⬡"; font-size: 0.7em; }
+
+    /* Builder token chip */
+    .token-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(100,181,246,0.1); border: 1px solid rgba(100,181,246,0.3);
+      color: #64b5f6; border-radius: 4px; padding: 2px 8px;
+      font-size: 0.62rem; font-family: "IBM Plex Mono", monospace;
+    }
+    .token-chip.live { background: rgba(110,207,184,0.1); border-color: rgba(110,207,184,0.35); color: #6ecfb8; }
+
+    /* GitHub commit bar */
+    .commit-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+    .commit-bar-inner { flex: 1; height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; }
+    .commit-bar-fill  { height: 100%; border-radius: 2px; background: linear-gradient(90deg, #64b5f6, #6ecfb8); transition: width 0.6s ease; }
+
+    /* Guide progress pill */
+    .guide-progress { display: flex; align-items: center; gap: 8px; }
+    .guide-status-dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .guide-status-dot.seeding  { background: #e8b565; box-shadow: 0 0 4px #e8b56560; }
+    .guide-status-dot.draft    { background: #b388ff; box-shadow: 0 0 4px #b388ff60; }
+    .guide-status-dot.review   { background: #64b5f6; box-shadow: 0 0 4px #64b5f660; }
+    .guide-status-dot.final-review { background: #6ecfb8; box-shadow: 0 0 4px #6ecfb860; }
+    .guide-status-dot.complete { background: #6ecfb8; box-shadow: 0 0 6px #6ecfb880; }
+
+    /* Hackathon cohort progress bar */
+    .cohort-bar { margin: 6px 0; }
+    .cohort-bar-track { height: 5px; background: rgba(255,255,255,0.07); border-radius: 3px; margin-top: 4px; }
+    .cohort-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #c4906a, #e8b565); }
+
+    /* Builder marketing card */
+    .mktg-post {
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 6px; padding: 8px 10px; font-size: 0.72rem;
+      color: rgba(242,235,225,0.8); line-height: 1.5; font-style: italic;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: "Newsreader", Georgia, serif; }
+    .mono { font-family: "IBM Plex Mono", monospace; }
+
+    .page { display: flex; flex-direction: column; height: 100%; min-height: 100vh; overflow: hidden; }
+
+    /* ── Top bar ─────────────────────────────────────────── */
+    .top {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+      padding: 10px 18px; border-bottom: 1px solid var(--border);
+      background: var(--panel);
+    }
+    .top h1 { font-family: "Syne", sans-serif; font-size: 1.05rem; font-weight: 700; }
+    .top .sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+    .top-right { display: flex; align-items: center; gap: 8px; }
+    .btn {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; text-transform: uppercase;
+      letter-spacing: 0.08em; padding: 7px 14px; border: 1px solid var(--border);
+      background: transparent; color: var(--accent); cursor: pointer;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--text); }
+
+    /* ── Live tally strip ────────────────────────────────── */
+    .tally {
+      flex-shrink: 0;
+      display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px;
+      padding: 7px 18px; border-bottom: 1px solid var(--border);
+      background: rgba(10, 9, 7, 0.97);
+    }
+    .tally-label {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.58rem;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); flex-shrink: 0;
+    }
+    .tally-chip {
+      display: flex; align-items: baseline; gap: 5px;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem;
+      padding: 3px 10px; border-radius: 6px; border: 1px solid var(--border);
+    }
+    .tally-chip .tv { font-size: 0.9rem; font-weight: 600; }
+    .tally-chip .tl { color: var(--muted); }
+    .tally-chip.pledge  { border-color: rgba(232,181,101,0.35); }
+    .tally-chip.pledge .tv  { color: var(--accent); }
+    .tally-chip.exchange { border-color: rgba(110,207,184,0.30); }
+    .tally-chip.exchange .tv { color: var(--teal); }
+    .tally-chip.guide   { border-color: rgba(179,136,255,0.30); }
+    .tally-chip.guide .tv   { color: var(--purple); }
+    .tally-chip.equity  { border-color: rgba(255,158,76,0.30); }
+    .tally-chip.equity .tv  { color: var(--orange); }
+    .tally-chip.builders { border-color: rgba(242,235,225,0.12); }
+    .tally-chip.builders .tv { color: #c9c2b8; }
+    .live-dot {
+      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal); box-shadow: 0 0 5px var(--teal);
+      margin-left: auto; animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── Activity marquee ────────────────────────────────── */
+    .banner {
+      flex-shrink: 0; padding: 6px 18px 8px;
+      border-bottom: 1px solid var(--border); background: rgba(16,14,12,0.92);
+    }
+    .banner-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; font-size: 0.8rem; color: #c9c2b8; }
+    details.nest { margin-top: 6px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.35); }
+    details.nest > summary {
+      cursor: pointer; padding: 7px 12px; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); list-style: none;
+    }
+    details.nest > summary::-webkit-details-marker { display: none; }
+    details.nest > summary::after { content: " +"; margin-left: 8px; color: var(--muted); }
+    details.nest[open] > summary::after { content: " −"; }
+    .nest-body { padding: 0 12px 12px; border-top: 1px solid rgba(255,255,255,0.06); }
+    .marquee-wrap { overflow: hidden; mask-image: linear-gradient(90deg, transparent, black 5%, black 95%, transparent); }
+    .marquee { display: flex; gap: 60px; padding: 10px 0; width: max-content; animation: scroll-slow 360s linear infinite; }
+    .marquee:hover { animation-play-state: paused; }
+    @keyframes scroll-slow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .marquee-item { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: #a0988e; white-space: nowrap; flex-shrink: 0; }
+
+    /* ── Pin type legend in banner ───────────────────────── */
+    .type-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle;
+    }
+
+    /* ── Main grid ───────────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 200px) minmax(320px, 1fr) minmax(0, 280px);
+      min-height: 0; overflow: hidden;
+    }
+    @media (max-width: 1000px) {
+      .main { grid-template-columns: 1fr; grid-template-rows: auto 55vh auto; overflow-y: auto; }
+      .rail { max-height: 160px; order: 2; }
+      .globe-col { order: 1; min-height: 55vh; }
+      .detail-col { order: 3; max-height: 240px; }
+    }
+
+    /* ── Left rail ───────────────────────────────────────── */
+    .rail { border-right: 1px solid var(--border); padding: 10px; overflow-y: auto; background: var(--bg); min-height: 0; }
+    details.rail-sec { margin-bottom: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); }
+    details.rail-sec > summary {
+      padding: 8px 10px; cursor: pointer; font-family: "Syne", sans-serif; font-size: 0.58rem;
+      text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+    }
+    details.rail-sec[open] > summary { color: var(--accent); }
+    .rail-sec-body { padding: 0 10px 10px; }
+    .row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.78rem; }
+    .row span:last-child { font-family: "IBM Plex Mono", monospace; color: var(--teal); font-size: 0.72rem; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+
+    /* ── Globe ───────────────────────────────────────────── */
+    .globe-col { display: flex; flex-direction: column; min-height: 0; min-width: 0; border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
+    .map-wrap { position: relative; width: 100%; height: 100%; min-height: 420px; flex: 1; background: radial-gradient(ellipse at center, #1a1814 0%, #0a0908 70%); }
+    #globeViz { position: absolute; inset: 0; width: 100% !important; height: 100% !important; min-height: 420px; }
+    .map-hint { position: absolute; bottom: 8px; left: 10px; z-index: 5; font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; color: var(--muted); text-shadow: 0 1px 3px #000; max-width: 300px; line-height: 1.4; }
+
+    /* ── Right detail col ────────────────────────────────── */
+    .detail-col { padding: 12px; overflow-y: auto; background: var(--panel); min-height: 0; }
+    .detail-col.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.85rem; text-align: center; }
+    .detail-col h3 { font-family: "Syne", sans-serif; font-size: 0.95rem; margin-bottom: 6px; }
+    .detail-col .meta { font-size: 0.7rem; color: var(--muted); margin-bottom: 10px; font-family: "IBM Plex Mono", monospace; }
+    .badge { font-size: 0.58rem; padding: 2px 7px; border: 1px solid var(--border); margin-right: 4px; text-transform: uppercase; font-family: "IBM Plex Mono", monospace; }
+    .badge-pledge    { border-color: rgba(232,181,101,0.4); color: var(--accent); }
+    .badge-exchange  { border-color: rgba(110,207,184,0.4); color: var(--teal); }
+    .badge-guide     { border-color: rgba(179,136,255,0.4); color: var(--purple); }
+    .badge-equity    { border-color: rgba(255,158,76,0.4);  color: var(--orange); }
+    .badge-hackathon { border-color: rgba(196,144,106,0.45); color: #c4906a; }
+    .badge-builder   { border-color: rgba(100,181,246,0.4);  color: #64b5f6; }
+    .badge-site    { border-color: rgba(110,207,184,0.4); color: var(--teal); }
+    .btn-detail { margin-top: 12px; width: 100%; }
+
+    /* ── Skill chips ─────────────────────────────────────── */
+    .skill-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+    .skill-chip {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.58rem; padding: 2px 8px;
+      border-radius: 10px; border: 1px solid rgba(110,207,184,0.25); color: var(--teal); background: rgba(110,207,184,0.06);
+    }
+    .skill-chip.offer { border-color: rgba(232,181,101,0.25); color: var(--accent); background: rgba(232,181,101,0.06); }
+
+    /* ── Hours bar ───────────────────────────────────────── */
+    .hours-bar { margin: 8px 0; }
+    .hours-bar-label { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; color: var(--muted); margin-bottom: 4px; }
+    .hours-bar-track { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; overflow: hidden; }
+    .hours-bar-fill  { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+
+    /* ── Guide contributor progress ─────────────────────── */
+    .contributor-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.78rem; }
+    .contrib-name  { flex: 1; }
+    .contrib-hours { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--teal); }
+    .contrib-equity { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--orange); }
+
+    /* ── Modal ───────────────────────────────────────────── */
+    .modal-back {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(6,5,4,0.75); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    }
+    .modal-back.open { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      width: min(560px, 100%); max-height: min(90vh, 780px);
+      display: flex; flex-direction: column;
+      border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+    .modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    .modal-head h2 { font-family: "Syne", sans-serif; font-size: 1.1rem; }
+    .modal-close { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; padding: 6px 12px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { overflow-y: auto; padding: 14px 16px 20px; }
+    details.modal-nest { margin-top: 8px; border: 1px solid var(--border); border-radius: 8px; }
+    details.modal-nest > summary { padding: 10px 12px; cursor: pointer; font-size: 0.75rem; color: var(--accent); }
+    details.modal-nest .inner { padding: 0 12px 12px; font-size: 0.82rem; line-height: 1.45; color: #d5cec4; }
+    .person-row { display: flex; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; }
+    .avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; background: rgba(110,207,184,0.12); border: 1px solid var(--border); flex-shrink: 0; }
+
+    /* ── SERV agent strip ────────────────────────────────── */
+    .serv-strip {
+      flex-shrink: 0;
+      display: flex; align-items: stretch; gap: 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8, 7, 6, 0.98);
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .serv-strip::-webkit-scrollbar { display: none; }
+    .serv-strip-label {
+      flex-shrink: 0; display: flex; flex-direction: column; justify-content: center;
+      padding: 7px 14px 7px 18px; border-right: 1px solid var(--border);
+    }
+    .serv-strip-label .sl-top {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.55rem;
+      text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+    }
+    .serv-strip-label .sl-bot {
+      font-family: "Syne", sans-serif; font-size: 0.68rem; font-weight: 700;
+      color: var(--accent); margin-top: 2px;
+    }
+    .serv-agent-card {
+      flex-shrink: 0; display: flex; align-items: center; gap: 10px;
+      padding: 7px 16px; border-right: 1px solid var(--border);
+      cursor: pointer; transition: background 0.1s;
+    }
+    .serv-agent-card:hover { background: rgba(232,181,101,0.04); }
+    .serv-agent-avatar {
+      width: 28px; height: 28px; border-radius: 6px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; font-weight: 600;
+      border: 1px solid;
+    }
+    .serv-agent-info { display: flex; flex-direction: column; gap: 2px; }
+    .serv-agent-name {
+      font-family: "Syne", sans-serif; font-size: 0.7rem; font-weight: 700; white-space: nowrap;
+    }
+    .serv-agent-loc {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.58rem;
+      color: var(--muted); white-space: nowrap;
+    }
+    .serv-agent-stats {
+      display: flex; gap: 8px; align-items: center; flex-wrap: nowrap;
+    }
+    .serv-stat {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .serv-stat .sv { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600; }
+    .serv-stat .sl { font-family: "IBM Plex Mono", monospace; font-size: 0.52rem; color: var(--muted); white-space: nowrap; }
+    .serv-status-dot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+    }
+    .serv-status-dot.active      { background: var(--teal); box-shadow: 0 0 4px var(--teal); animation: blink 2s ease-in-out infinite; }
+    .serv-status-dot.standby     { background: var(--accent); }
+    .serv-status-dot.initialising { background: var(--purple); animation: blink 1.2s ease-in-out infinite; }
+
+    /* character colour map */
+    .char-marvin     { color: #c4906a; border-color: rgba(196,144,106,0.3); background: rgba(196,144,106,0.08); }
+    .char-zaphod     { color: var(--accent); border-color: rgba(232,181,101,0.3); background: rgba(232,181,101,0.08); }
+    .char-trillian   { color: var(--purple); border-color: rgba(179,136,255,0.3); background: rgba(179,136,255,0.08); }
+    .char-arthur     { color: var(--teal); border-color: rgba(110,207,184,0.3); background: rgba(110,207,184,0.08); }
+    .char-deep-thought { color: #a8d8ff; border-color: rgba(168,216,255,0.3); background: rgba(168,216,255,0.08); }
+
+    /* ── Metrics grid ────────────────────────────────────── */
+    details.lower-nest { flex-shrink: 0; border-top: 1px solid var(--border); background: rgba(14,12,10,0.95); }
+    details.lower-nest > summary { padding: 8px 14px; cursor: pointer; font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    details.lower-nest[open] > summary { color: var(--teal); }
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 6px; padding: 0 14px 12px; max-height: 28vh; overflow-y: auto; }
+    .metric-tile { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); font-size: 0.55rem; color: var(--muted); }
+    .metric-tile b { display: block; font-family: "Syne", sans-serif; font-size: 0.95rem; color: var(--text); margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <h1>Pan Galactic Monitor</h1>
+        <div class="sub mono" id="subMeta">Loading…</div>
+      </div>
+      <div class="top-right">
+        <span class="mono" style="font-size:0.6rem;color:var(--muted)" id="pinCount"></span>
+        <button type="button" class="btn" id="btnSweep">Sweep now</button>
+      </div>
+    </header>
+
+    <!-- Live tally strip -->
+    <div class="tally" id="tallyRow">
+      <span class="tally-label">Live tally</span>
+      <div class="tally-chip pledge"><span class="tv" id="tv-pledged">—</span><span class="tl">h pledged</span></div>
+      <div class="tally-chip exchange"><span class="tv" id="tv-exchanged">—</span><span class="tl">h exchanged</span></div>
+      <div class="tally-chip guide"><span class="tv" id="tv-guides">—</span><span class="tl">h in guides</span></div>
+      <div class="tally-chip equity"><span class="tv" id="tv-equity">—</span><span class="tl">h equity</span></div>
+      <div class="tally-chip builders"><span class="tv" id="tv-builders">—</span><span class="tl">builders</span></div>
+      <a href="https://cosmic-studio-git-dev-alaskanmagpies-projects.vercel.app/Galaxy-Map" target="_blank" rel="noopener"
+         class="tally-chip" style="border-color:rgba(196,144,106,0.3);color:#c4906a;text-decoration:none;cursor:pointer"
+         title="View Galaxy Map → OpenSERV Builders">
+        <span class="tv" id="tv-serv-builders">—</span><span class="tl">⬡ serv builders ↗</span>
+      </a>
+      <span class="live-dot"></span>
+    </div>
+
+    <!-- SERV agent activity strip -->
+    <div class="serv-strip" id="servStrip">
+      <div class="serv-strip-label">
+        <span class="sl-top">OpenSERV</span>
+        <span class="sl-bot">Agents active</span>
+      </div>
+    </div>
+
+    <!-- Activity banner -->
+    <div class="banner">
+      <div class="banner-row" id="bannerSummary"></div>
+      <details class="nest" id="feedDetails">
+        <summary>Activity ticker — pledge · exchange · guide pulse from across the network</summary>
+        <div class="nest-body">
+          <div class="marquee-wrap"><div class="marquee" id="marqueeSingle"></div></div>
+          <p class="mono" style="font-size:0.6rem;color:var(--muted);margin-top:8px">Hover to pause · Collapsed by default</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="main">
+      <aside class="rail" id="leftRail"></aside>
+
+      <div class="globe-col">
+        <div class="map-wrap" id="mapWrap">
+          <div id="globeViz"></div>
+          <div class="map-hint">
+            Click any pin → detail · "Full details" for more<br>
+            <span style="color:var(--accent)">●</span> pledge &nbsp;
+            <span style="color:var(--teal)">●</span> exchange/site &nbsp;
+            <span style="color:var(--purple)">●</span> guide &nbsp;
+            <span style="color:var(--orange)">●</span> equity &nbsp;
+            <span style="color:#c4906a">●</span> hackathon &nbsp;
+            <span style="color:#64b5f6">●</span> builder · Don't Panic
+          </div>
+        </div>
+        <details class="lower-nest">
+          <summary>More metrics</summary>
+          <div class="metric-grid" id="metricWall"></div>
+        </details>
+      </div>
+
+      <aside class="detail-col empty" id="detail">
+        Select a pin on the globe.
+      </aside>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-back" id="siteModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div>
+          <h2 id="modalTitle">—</h2>
+          <p class="mono" style="font-size:0.68rem;color:var(--muted);margin-top:4px" id="modalMeta"></p>
+        </div>
+        <button type="button" class="modal-close" id="modalClose">Close</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // ── Pin type colours ──────────────────────────────────────────────────────
+    const TYPE_COLOR = {
+      pledge:    "#e8b565",
+      exchange:  "#6ecfb8",
+      guide:     "#b388ff",
+      equity:    "#ff9e4c",
+      site:      "#6ecfb8",
+      hackathon: "#c4906a",
+      builder:   "#64b5f6",
+    };
+
+    function pinColor(s) {
+      return TYPE_COLOR[s.pinType ?? "site"] ?? "#c4a882";
+    }
+
+    function pinSize(s) {
+      const pt = s.pinType ?? "site";
+      if (pt === "pledge")    return Math.min(1.2, 0.35 + (s.pledgedHours ?? 42) / 400);
+      if (pt === "exchange")  return Math.min(0.9, 0.3  + (s.exchangeHours ?? 8) / 120);
+      if (pt === "guide")     return Math.min(1.4, 0.5  + (s.totalHoursCrowdfunded ?? 0) / 2000);
+      if (pt === "equity")    return Math.min(1.0, 0.4  + (s.totalHoursRecorded ?? 0) / 800);
+      if (pt === "hackathon") return Math.min(1.5, 0.6  + (s.buildersCount ?? 0) / 60);
+      if (pt === "builder")   return Math.min(1.0, 0.35 + (s.github?.recentCommits ?? 0) / 400);
+      return s.status === "active" ? 0.55 : 0.35;
+    }
+
+    // hackathon pins pulse
+    function pinAltitude(s) {
+      if (s.pinType === "hackathon") return 0.06;
+      if (s.pinType === "builder") return 0.04;
+      return 0.025;
+    }
+
+    function esc(x) {
+      if (x == null || x === "") return "";
+      const d = document.createElement("div"); d.textContent = x; return d.innerHTML;
+    }
+
+    function badgeFor(s) {
+      const pt = s.pinType ?? "site";
+      const labels = { pledge: "pledge", exchange: "exchange", guide: "guide", equity: "equity", site: "venue", hackathon: "hackathon", builder: "builder" };
+      return `<span class="badge badge-${pt}">${labels[pt] ?? pt}</span>`;
+    }
+
+    // ── OpenSERV Builders Fund badge ──────────────────────────────────────────
+    function servFundBadge(s) {
+      if (!s.servBacked && s.pinType !== "builder") return "";
+      const amt = s.buildersGrantAmount ?? s.buildersGrant?.amount ?? 0;
+      const cur = s.buildersGrantCurrency ?? s.buildersGrant?.currency ?? "USD";
+      const status = s.buildersGrantStatus ?? s.buildersGrant?.status ?? "";
+      const label = status === "disbursed" || status === "received"
+        ? `OpenSERV Builders Fund · ${cur === "GBP" ? "£" : "$"}${amt.toLocaleString()}`
+        : `OpenSERV Builders Fund · ${cur === "GBP" ? "£" : "$"}${amt.toLocaleString()} ${status}`;
+      return `<span class="serv-badge">${esc(label)}</span>`;
+    }
+
+    // ── Token chip ────────────────────────────────────────────────────────────
+    function tokenChip(token) {
+      if (!token) return "";
+      const live = token.status === "live";
+      const holdersStr = token.holders ? ` · ${token.holders.toLocaleString()} holders` : "";
+      const etaStr = token.launchEta ? ` · ETA ${token.launchEta}` : "";
+      return `<span class="token-chip${live ? " live" : ""}">
+        ${esc(token.ticker)} · ${esc(token.status)}${live ? holdersStr : etaStr}
+      </span>`;
+    }
+
+    // ── GitHub bar ────────────────────────────────────────────────────────────
+    function githubBar(gh, maxCommits = 200) {
+      if (!gh) return "";
+      const pct = Math.min(100, Math.round((gh.recentCommits / maxCommits) * 100));
+      return `<div class="commit-bar">
+        <div class="commit-bar-inner"><div class="commit-bar-fill" style="width:${pct}%"></div></div>
+        <span class="mono" style="font-size:0.6rem;color:var(--muted);white-space:nowrap">${gh.recentCommits} commits · ${gh.streak}d streak</span>
+      </div>`;
+    }
+
+    // ── Guide list rows ───────────────────────────────────────────────────────
+    function guideRows(guides) {
+      if (!guides?.length) return "";
+      return guides.map((g) => {
+        const pct = g.hoursLogged && g.status !== "seeding" ? Math.min(100, Math.round((g.hoursLogged / 200) * 100)) : 0;
+        return `<div class="guide-progress" style="margin:5px 0;gap:6px;flex-wrap:wrap">
+          <div class="guide-status-dot ${esc(g.status ?? "draft")}"></div>
+          <div style="flex:1;min-width:120px">
+            <div style="font-size:0.7rem;color:var(--text)">${esc(g.name)}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+              <div style="flex:1;height:3px;background:rgba(255,255,255,0.06);border-radius:2px">
+                <div style="width:${pct}%;height:100%;border-radius:2px;background:#b388ff"></div>
+              </div>
+              <span class="mono" style="font-size:0.58rem;color:var(--muted);white-space:nowrap">${g.hoursLogged}h · ${g.builderCount} builders</span>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+    // ── Cohort progress bar ───────────────────────────────────────────────────
+    function cohortBar(s) {
+      if (!s.cohortWeek) return "";
+      const pct = Math.min(100, Math.round((s.cohortWeek / s.cohortTotal) * 100));
+      return `<div class="cohort-bar">
+        <div class="mono" style="font-size:0.6rem;color:var(--muted)">Week ${s.cohortWeek} of ${s.cohortTotal}</div>
+        <div class="cohort-bar-track"><div class="cohort-bar-fill" style="width:${pct}%"></div></div>
+      </div>`;
+    }
+
+    // ── Skill chips ───────────────────────────────────────────────────────────
+    function skillChips(arr, cls = "") {
+      if (!arr?.length) return "";
+      return `<div class="skill-list">${arr.map((sk) => `<span class="skill-chip ${cls}">${esc(sk)}</span>`).join("")}</div>`;
+    }
+
+    // ── Hours bar ─────────────────────────────────────────────────────────────
+    function hoursBar(spent, total, color) {
+      const pct = total ? Math.min(100, Math.round((spent / total) * 100)) : 0;
+      return `<div class="hours-bar">
+        <div class="hours-bar-label"><span>${spent}h used</span><span>${total}h crowdfunded</span></div>
+        <div class="hours-bar-track"><div class="hours-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+      </div>`;
+    }
+
+    // ── Detail panel (right col) ──────────────────────────────────────────────
+    function showDetail(s) {
+      const el = document.getElementById("detail");
+      el.classList.remove("empty");
+      const pt = s.pinType ?? "site";
+      const t  = s.telemetry ?? {};
+      const col = pinColor(s);
+
+      let inner = `
+        <h3 style="color:${col}">${esc(s.name)}</h3>
+        <div class="meta">
+          ${badgeFor(s)}
+          <span class="badge">${esc(s.status ?? "—")}</span>
+          ${s.city ? esc(s.city) + (s.country ? ", " + esc(s.country) : "") : ""}
+        </div>
+        <p style="font-size:0.85rem;line-height:1.45;margin-top:8px;color:#d8d2c8">${esc(s.summary)}</p>
+      `;
+
+      if (pt === "pledge") {
+        inner += `
+          <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+            <span style="color:var(--muted)">Pledger</span>  &nbsp;
+            <strong style="color:var(--text)">${esc(s.person?.name ?? s.name)}</strong>
+            ${s.person?.org ? `<em style="color:var(--muted)"> · ${esc(s.person.org)}</em>` : ""}
+          </p>
+          <p style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem">
+            <span style="color:var(--muted)">Pledged</span> &nbsp;
+            <span style="color:var(--accent)">${s.pledgedHours ?? "—"}h</span>
+          </p>
+          ${skillChips(s.skills, "offer")}
+        `;
+      }
+
+      // SERV agent chips on any pin that has them (shown in detail col)
+      if ((s.servAgents?.length) && pt !== "guide") {
+        inner += `<div style="margin-top:8px;display:flex;gap:5px;flex-wrap:wrap">`;
+        for (const agent of s.servAgents) {
+          const cm = charMeta(agent.character);
+          inner += `<span onclick="showServAgentDetail('${esc(s.id)}','${esc(agent.character)}')"
+            style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:2px 8px;border-radius:10px;border:1px solid;color:${cm.statColor};border-color:${cm.statColor}40;background:${cm.statColor}0d;cursor:pointer">
+            ${cm.initials} ${esc(agent.character)} · ${esc(agent.status)}</span>`;
+        }
+        inner += `</div>`;
+      }
+
+      if (pt === "exchange") {
+        inner += `
+          <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+            <span style="color:var(--muted)">Task</span> &nbsp;
+            <span style="color:var(--text)">${esc(s.task ?? "—")}</span>
+          </p>
+          <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+            <span style="color:var(--muted)">Giver</span> &nbsp; ${esc(s.giver ?? "—")} &nbsp;→&nbsp;
+            <span style="color:var(--muted)">Receiver</span> &nbsp; ${esc(s.receiver ?? "—")}
+          </p>
+          <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem">
+            <span style="color:var(--muted)">Hours</span> &nbsp;
+            <span style="color:var(--teal)">${s.exchangeHours ?? "—"}h</span>
+          </p>
+          ${skillChips(s.skills)}
+        `;
+      }
+
+      if (pt === "guide") {
+        inner += hoursBar(s.hoursSpent ?? 0, s.totalHoursCrowdfunded ?? 0, col);
+        inner += `<p style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted)">
+          ${s.builderCount ?? 0} builders · ${esc(s.equityModel ?? "—")} model
+        </p>`;
+        if (s.servAgents?.length) {
+          inner += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">`;
+          for (const agent of s.servAgents) {
+            const cm = charMeta(agent.character);
+            inner += `<span onclick="showServAgentDetail('${esc(s.id)}','${esc(agent.character)}')"
+              style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;padding:2px 8px;border-radius:10px;border:1px solid;color:${cm.statColor};border-color:${cm.statColor}40;background:${cm.statColor}0d;cursor:pointer">
+              ${cm.initials} ${esc(agent.character)}</span>`;
+          }
+          inner += `</div>`;
+        }
+      }
+
+      if (pt === "equity") {
+        inner += `
+          <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+            <span style="color:var(--muted)">Model</span> &nbsp;
+            <span style="color:var(--orange)">${esc(s.equityModel ?? "—")}</span>
+          </p>
+          <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted)">
+            ${s.totalHoursRecorded ?? 0}h recorded · ${s.builderCount ?? 0} contributors · ${s.tithePercent ?? 0}% tithe
+          </p>
+        `;
+        if (s.topContributors?.length) {
+          inner += `<div style="margin-top:8px">` + s.topContributors.map((c) =>
+            `<div class="contributor-row">
+              <span class="contrib-name">${esc(c.name)}</span>
+              <span class="contrib-hours">${c.hours}h</span>
+              <span class="contrib-equity">${esc(c.equity)}</span>
+            </div>`
+          ).join("") + `</div>`;
+        }
+      }
+
+      if (pt === "hackathon") {
+        inner += `<div style="margin-top:8px">${servFundBadge(s)}</div>`;
+        inner += cohortBar(s);
+        const guideCount = (s.guidesProduced ?? []).length;
+        const totalH = (s.guidesProduced ?? []).reduce((a, g) => a + (g.hoursLogged ?? 0), 0);
+        inner += `<p class="mono" style="font-size:0.68rem;color:var(--muted);margin-top:5px">
+          ${s.buildersCount ?? 0} builders &nbsp;·&nbsp; ${guideCount} guide${guideCount !== 1 ? "s" : ""} in progress &nbsp;·&nbsp; ${totalH}h logged
+        </p>`;
+      }
+
+      if (pt === "builder") {
+        inner += `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">`;
+        inner += servFundBadge(s);
+        if (s.token) inner += tokenChip(s.token);
+        inner += `</div>`;
+        inner += `<p class="mono" style="font-size:0.68rem;color:var(--muted);margin-top:6px">Building: <span style="color:var(--text)">${esc(s.guideOutput ?? "—")}</span></p>`;
+        inner += githubBar(s.github);
+      }
+
+      inner += `<button type="button" class="btn btn-detail" id="openModalBtn">Full details…</button>`;
+      el.innerHTML = inner;
+      document.getElementById("openModalBtn").onclick = () => openModal(s);
+    }
+
+    // ── Full modal ────────────────────────────────────────────────────────────
+    function openModal(s) {
+      const pt  = s.pinType ?? "site";
+      const col = pinColor(s);
+      const t   = s.telemetry ?? {};
+      const pop = (D.popupBySite && D.popupBySite[s.id]) || {};
+
+      document.getElementById("modalTitle").textContent = s.name;
+      document.getElementById("modalMeta").innerHTML =
+        `${badgeFor(s)} &nbsp; ${esc([s.city, s.country].filter(Boolean).join(", "))}`;
+
+      let body = `<p style="font-size:0.9rem;line-height:1.5;margin-bottom:12px;color:#d8d2c8">${esc(s.summary)}</p>`;
+
+      if (pt === "pledge") {
+        body += `
+          <div style="margin-bottom:12px;padding:10px 12px;border:1px solid rgba(232,181,101,0.2);border-radius:6px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:6px">PLEDGER</p>
+            <p style="font-size:0.95rem;color:var(--text)"><strong>${esc(s.person?.name ?? "—")}</strong></p>
+            ${s.person?.org ? `<p style="font-size:0.8rem;color:var(--muted)">${esc(s.person.org)}</p>` : ""}
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.9rem;color:var(--accent);margin-top:6px">${s.pledgedHours ?? "—"}h pledged</p>
+            ${s.pledgedAt ? `<p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);margin-top:4px">Pledged ${esc(s.pledgedAt)}</p>` : ""}
+          </div>
+          <div style="margin-bottom:10px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:6px">WHAT'S ON OFFER</p>
+            <p style="font-size:0.85rem;line-height:1.45;color:#c9c2b8">${esc(s.offers ?? "—")}</p>
+          </div>
+          <div>
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:4px">SKILLS</p>
+            ${skillChips(s.skills, "offer")}
+          </div>
+        `;
+      }
+
+      if (pt === "exchange") {
+        body += `
+          <div style="margin-bottom:12px;padding:10px 12px;border:1px solid rgba(110,207,184,0.2);border-radius:6px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);margin-bottom:4px">EXCHANGE</p>
+            <p style="font-size:0.88rem;color:var(--text)">${esc(s.task ?? "—")}</p>
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--teal);margin-top:6px">${s.exchangeHours ?? "—"}h</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px">
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:3px">GIVER</p>
+              <p style="font-size:0.82rem">${esc(s.giver ?? "—")}</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px">
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:3px">RECEIVER</p>
+              <p style="font-size:0.82rem">${esc(s.receiver ?? "—")}</p>
+            </div>
+          </div>
+          ${s.exchangedAt ? `<p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:10px">Completed ${esc(s.exchangedAt)}</p>` : ""}
+          ${skillChips(s.skills)}
+        `;
+        if (s.links?.recording) {
+          body += `<p style="margin-top:10px"><a href="${esc(s.links.recording)}" target="_blank" style="color:var(--teal);font-family:'IBM Plex Mono',monospace;font-size:0.7rem">▶ View recording</a></p>`;
+        }
+      }
+
+      if (pt === "guide") {
+        body += hoursBar(s.hoursSpent ?? 0, s.totalHoursCrowdfunded ?? 0, col);
+        body += `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--purple)">${s.totalHoursCrowdfunded ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours crowdfunded</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--teal)">${s.hoursSpent ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours deployed</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--text)">${s.builderCount ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">builders</p>
+            </div>
+          </div>
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:8px">
+            Equity model: <span style="color:var(--accent)">${esc(s.equityModel ?? "—")}</span> &nbsp;·&nbsp;
+            Status: <span style="color:var(--teal)">${esc(s.guideStatus ?? s.status ?? "—")}</span>
+          </p>
+        `;
+        if (s.highlights?.length) {
+          body += `<details class="modal-nest"><summary>Highlights</summary><div class="inner"><ul style="padding-left:1.2em;margin-top:4px">` +
+            s.highlights.map((h) => `<li style="margin-bottom:4px">${esc(h)}</li>`).join("") +
+            `</ul></div></details>`;
+        }
+      }
+
+      if (pt === "equity") {
+        body += `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--orange)">${s.totalHoursRecorded ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours recorded</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--text)">${s.builderCount ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">contributors</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent)">${s.tithePercent ?? 0}%</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">tithe</p>
+            </div>
+          </div>
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--orange);margin-bottom:10px">${esc(s.equityModel ?? "—")}</p>
+        `;
+        if (s.topContributors?.length) {
+          body += `<details class="modal-nest" open><summary>Equity table</summary><div class="inner">` +
+            s.topContributors.map((c) =>
+              `<div class="contributor-row">
+                <div class="avatar">${esc((c.name ?? "?").split(" ").map((w) => w[0]).join("").slice(0,2))}</div>
+                <span class="contrib-name">${esc(c.name)}</span>
+                <span class="contrib-hours">${c.hours}h</span>
+                <span class="contrib-equity">${esc(c.equity)}</span>
+              </div>`
+            ).join("") + `</div></details>`;
+        }
+      }
+
+      if (pt === "hackathon") {
+        body += `<div style="margin-bottom:12px">${servFundBadge(s)}</div>`;
+        body += cohortBar(s);
+        body += `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+            <div style="padding:8px;border:1px solid rgba(196,144,106,0.2);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:#c4906a">${s.buildersCount ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">builders</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:#b388ff">${(s.guidesProduced ?? []).length}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">guides in progress</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent)">${(s.guidesProduced ?? []).reduce((acc, g) => acc + (g.hoursLogged ?? 0), 0)}h</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">logged so far</p>
+            </div>
+          </div>
+        `;
+        if (s.dateStart) body += `<p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:8px">📅 ${esc(s.dateStart)} → ${esc(s.dateEnd ?? "ongoing")}</p>`;
+        if (s.guidesProduced?.length) {
+          body += `<details class="modal-nest" open><summary>Guides in production (${s.guidesProduced.length})</summary><div class="inner">${guideRows(s.guidesProduced)}</div></details>`;
+        }
+        if (s.servAgents?.length) {
+          body += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:8px">OpenSERV agents active</p>`;
+          for (const agent of s.servAgents) {
+            const cm = charMeta(agent.character);
+            body += `
+              <div onclick="showServAgentDetail('${esc(s.id)}', '${esc(agent.character)}')"
+                   style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:4px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;cursor:pointer;transition:background 0.1s"
+                   onmouseover="this.style.background='rgba(196,144,106,0.05)'" onmouseout="this.style.background='transparent'">
+                <div class="serv-agent-avatar ${cm.colorClass}" style="width:24px;height:24px;font-size:0.52rem">${cm.initials}</div>
+                <div style="flex:1;min-width:0">
+                  <span style="font-family:'Syne',sans-serif;font-size:0.72rem;color:${cm.statColor}">${esc(agent.character)}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);margin-left:6px">${esc(agent.role)}</span>
+                </div>
+                <span class="serv-status-dot ${(agent.status||'standby').toLowerCase().replace(/\s+/g,'-')}"></span>
+              </div>`;
+          }
+          body += `</div>`;
+        }
+        // Links
+        const links = s.links ?? {};
+        if (Object.keys(links).length) {
+          body += `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">`;
+          if (links.openserv) body += `<a href="${esc(links.openserv)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:#c4906a">⬡ openserv.ai</a>`;
+          if (links.hitchhikers) body += `<a href="${esc(links.hitchhikers)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--accent)">↗ hitchhikers.earth</a>`;
+          if (links.venue) body += `<a href="${esc(links.venue)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted)">↗ venue</a>`;
+          body += `</div>`;
+        }
+      }
+
+      if (pt === "builder") {
+        body += `
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;align-items:center">
+            ${servFundBadge(s)}
+            ${s.token ? tokenChip(s.token) : ""}
+          </div>
+        `;
+        body += `
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+            <div style="padding:8px;border:1px solid rgba(100,181,246,0.2);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:#64b5f6">${s.hoursLogged ?? 0}h</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours logged</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:#6ecfb8">${s.github?.recentCommits ?? 0}</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">commits</p>
+            </div>
+            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent)">${s.github?.streak ?? 0}d</p>
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">commit streak</p>
+            </div>
+          </div>
+        `;
+        // Guide output
+        body += `
+          <div style="margin-bottom:10px;padding:10px 12px;border:1px solid rgba(179,136,255,0.2);border-radius:6px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);margin-bottom:3px">GUIDE OUTPUT</p>
+            <p style="font-size:0.88rem;color:var(--text)">${esc(s.guideOutput ?? "—")}</p>
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:#b388ff;margin-top:3px">${esc(s.guideStatus ?? "—")}</p>
+          </div>
+        `;
+        // GitHub detail
+        if (s.github) {
+          const gh = s.github;
+          body += `<details class="modal-nest" open><summary>GitHub activity</summary><div class="inner">
+            <p class="mono" style="font-size:0.7rem;margin-bottom:4px">
+              <span style="color:var(--muted)">repo</span> &nbsp;
+              <a href="${esc(s.links?.github ?? '#')}" target="_blank" style="color:#64b5f6">${esc(gh.topRepo)}</a>
+            </p>
+            ${githubBar(gh, 250)}
+            <p class="mono" style="font-size:0.62rem;color:var(--muted);margin-top:4px">Last commit: ${esc(gh.lastCommit)} · ${(gh.linesAdded ?? 0).toLocaleString()} lines added</p>
+          </div></details>`;
+        }
+        // Token detail
+        if (s.token) {
+          const tk = s.token;
+          body += `<details class="modal-nest"><summary>Token — ${esc(tk.ticker)}</summary><div class="inner">
+            <p style="font-size:0.82rem;margin-bottom:6px">${esc(tk.description)}</p>
+            <p class="mono" style="font-size:0.68rem;color:var(--muted)">
+              Status: <span style="color:#64b5f6">${esc(tk.status)}</span>
+              ${tk.holders ? ` · ${tk.holders.toLocaleString()} holders` : ""}
+              ${tk.launchDate ? ` · Launched ${esc(tk.launchDate)}` : ""}
+              ${tk.launchEta ? ` · ETA ${esc(tk.launchEta)}` : ""}
+            </p>
+            ${s.links?.token ? `<p style="margin-top:6px"><a href="${esc(s.links.token)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:#c4906a">⬡ openserv.ai launchpad</a></p>` : ""}
+          </div></details>`;
+        }
+        // Builders grant
+        if (s.buildersGrant) {
+          const bg = s.buildersGrant;
+          const statusColor = bg.status === "received" ? "#6ecfb8" : "#e8b565";
+          body += `<details class="modal-nest"><summary>Builders Fund grant</summary><div class="inner">
+            <p class="mono" style="font-size:0.78rem">
+              <span style="color:var(--muted)">Amount</span> &nbsp;
+              <span style="color:${statusColor}">${bg.currency === "GBP" ? "£" : "$"}${(bg.amount).toLocaleString()} ${bg.currency}</span>
+            </p>
+            <p class="mono" style="font-size:0.68rem;color:var(--muted)">
+              Status: <span style="color:${statusColor}">${esc(bg.status)}</span>
+              ${bg.disbursedAt ? ` · Disbursed ${esc(bg.disbursedAt)}` : ""}
+              ${bg.appliedAt ? ` · Applied ${esc(bg.appliedAt)}` : ""}
+            </p>
+          </div></details>`;
+        }
+        // Marketing
+        if (s.marketing) {
+          const mk = s.marketing;
+          body += `<details class="modal-nest"><summary>Marketing</summary><div class="inner">
+            <div class="mktg-post" style="margin-bottom:8px">"${esc(mk.latestPost)}"</div>
+            <p class="mono" style="font-size:0.62rem;color:var(--muted)">
+              <a href="${esc(s.links?.x ?? '#')}" target="_blank" style="color:#64b5f6">${esc(mk.xHandle)}</a>
+              &nbsp;·&nbsp; ${mk.xFollowers.toLocaleString()} followers
+              &nbsp;·&nbsp; ${mk.postsThisWeek} posts this week
+              &nbsp;·&nbsp; ${mk.campaignsActive} campaigns active
+            </p>
+          </div></details>`;
+        }
+        // Links block
+        const links = s.links ?? {};
+        body += `<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px">`;
+        if (links.github)     body += `<a href="${esc(links.github)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:#64b5f6">↗ GitHub</a>`;
+        if (links.openserv)   body += `<a href="${esc(links.openserv)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:#c4906a">⬡ OpenSERV</a>`;
+        if (links.token)      body += `<a href="${esc(links.token)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:#6ecfb8">⬡ Token launchpad</a>`;
+        if (links.guide)      body += `<a href="${esc(links.guide)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:#b388ff">↗ Guide</a>`;
+        if (links.x)          body += `<a href="${esc(links.x)}" target="_blank" style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted)">↗ X/Twitter</a>`;
+        body += `</div>`;
+      }
+
+      if (pt === "site") {
+        const t2 = s.telemetry ?? {};
+        body += `
+          <p style="font-size:0.82rem;margin-bottom:8px">
+            <strong>Time pledged</strong>
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--teal)">${t2.hoursPledged7d ?? "—"}h / 7d &nbsp;·&nbsp; ${t2.hoursPledged30d ?? "—"}h / 30d</span>
+          </p>
+          <p style="font-size:0.82rem;margin-bottom:8px">
+            <strong>Active builders</strong>
+            <span style="font-family:'IBM Plex Mono',monospace;color:var(--teal)">${t2.activeMembers ?? "—"}</span>
+          </p>
+        `;
+        if (s.cohortName) body += `<p style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--teal);margin-bottom:8px">${esc(s.cohortName)}</p>`;
+        if (s.dateStart)  body += `<p style="font-size:0.82rem;margin-bottom:8px"><strong>Dates</strong> ${esc(s.dateStart)} → ${esc(s.dateEnd)}</p>`;
+
+        // SERV agents
+        if (s.servAgents?.length) {
+          body += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:8px">OpenSERV agents</p>`;
+          for (const agent of s.servAgents) {
+            const cm = charMeta(agent.character);
+            body += `
+              <div onclick="showServAgentDetail('${esc(s.id)}', '${esc(agent.character)}')"
+                   style="display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:4px;border:1px solid rgba(255,255,255,0.06);border-radius:6px;cursor:pointer;transition:background 0.1s"
+                   onmouseover="this.style.background='rgba(232,181,101,0.05)'" onmouseout="this.style.background='transparent'">
+                <div class="serv-agent-avatar ${cm.colorClass}" style="width:24px;height:24px;font-size:0.52rem">${cm.initials}</div>
+                <div style="flex:1;min-width:0">
+                  <span style="font-family:'Syne',sans-serif;font-size:0.72rem;color:${cm.statColor}">${esc(agent.character)}</span>
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);margin-left:6px">${esc(agent.role)}</span>
+                </div>
+                <span class="serv-status-dot ${(agent.status||'standby').toLowerCase().replace(/\s+/g,'-')}"></span>
+              </div>`;
+          }
+          body += `</div>`;
+        }
+
+        const people = pop.people || [];
+        if (people.length) {
+          body += `<details class="modal-nest"><summary>People on site</summary><div class="inner">` +
+            people.map((p) =>
+              `<div class="person-row"><div class="avatar">${esc(p.initials)}</div>
+              <div><strong>${esc(p.name)}</strong> — ${esc(p.role)}</div></div>`
+            ).join("") + `</div></details>`;
+        }
+        const feedHtml = (pop.venueFeed || []).map((f) =>
+          `<div style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)">${esc(f.text)} <span class="mono" style="color:var(--muted);font-size:0.65rem">${esc(f.time)}</span></div>`
+        ).join("");
+        if (feedHtml) body += `<details class="modal-nest"><summary>Activity at this venue</summary><div class="inner">${feedHtml}</div></details>`;
+      }
+
+      if (s.links && Object.keys(s.links).length) {
+        body += `<p style="margin-top:12px;font-size:0.8rem">` +
+          Object.entries(s.links).map(([k, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener" style="color:var(--accent);margin-right:10px">${esc(k)}</a>`).join("") + `</p>`;
+      }
+
+      document.getElementById("modalBody").innerHTML = body;
+      document.getElementById("siteModal").classList.add("open");
+    }
+
+    function closeModal() { document.getElementById("siteModal").classList.remove("open"); }
+
+    // ── Globe ─────────────────────────────────────────────────────────────────
+    let D = null, globe = null, selectedId = null;
+
+    function globePoints(sites) {
+      return sites.map((s) => ({
+        lat: s.lat, lng: s.lng, siteId: s.id,
+        size:     pinSize(s),
+        color:    pinColor(s),
+        altitude: pinAltitude(s),
+        name:     s.name,
+        pinType:  s.pinType ?? "site",
+      }));
+    }
+
+    function sizeGlobe() {
+      const wrap = document.getElementById("mapWrap");
+      if (!wrap || !globe) return;
+      const w = Math.max(320, wrap.clientWidth || wrap.offsetWidth);
+      const h = Math.max(420, wrap.clientHeight || wrap.offsetHeight);
+      globe.width(w).height(h);
+    }
+
+    function initGlobe() {
+      const wrap = document.getElementById("mapWrap");
+      const w = Math.max(320, wrap.clientWidth || 400);
+      const h = Math.max(420, wrap.clientHeight || 480);
+
+      globe = Globe()(document.getElementById("globeViz"))
+        .width(w).height(h)
+        .globeImageUrl("https://unpkg.com/three-globe@2.33.0/example/img/earth-night.jpg")
+        .bumpImageUrl("https://unpkg.com/three-globe@2.33.0/example/img/earth-topology.png")
+        .backgroundColor("rgba(0,0,0,0)")
+        .atmosphereColor("#d4a574")
+        .atmosphereAltitude(0.14)
+        .showGraticules(true)
+        .pointsData(globePoints(D.sites))
+        .pointAltitude((d) => d.altitude)
+        .pointRadius((d) => d.size)
+        .pointColor((d) => d.color)
+        .pointLabel((d) => {
+          const typeLabels = { pledge:"pledge", exchange:"exchange", guide:"guide", equity:"equity", site:"venue" };
+          return `<span style="color:${d.color};font-family:'IBM Plex Mono',monospace;font-size:0.75rem">
+            <strong>${esc(d.name)}</strong><br>
+            <span style="color:#8f867a">${typeLabels[d.pinType]??d.pinType}</span>
+          </span>`;
+        });
+
+      globe.pointOfView({ lat: 20, lng: 0, altitude: 1.75 }, 0);
+      globe.controls().autoRotate = true;
+      globe.controls().autoRotateSpeed = 0.18;
+      globe.controls().enableDamping = true;
+
+      globe.onPointClick((pt) => {
+        const s = D.sites.find((x) => x.id === pt.siteId);
+        if (s) {
+          selectedId = s.id;
+          showDetail(s);
+          globe.pointOfView({ lat: pt.lat, lng: pt.lng, altitude: 1.2 }, 900);
+        }
+      });
+
+      window.addEventListener("resize", () => requestAnimationFrame(sizeGlobe));
+      if (typeof ResizeObserver !== "undefined") {
+        new ResizeObserver(() => requestAnimationFrame(sizeGlobe)).observe(wrap);
+      }
+    }
+
+    function refreshGlobe() {
+      if (globe && D.sites) { globe.pointsData(globePoints(D.sites)); sizeGlobe(); }
+      if (selectedId) {
+        const s = D.sites.find((x) => x.id === selectedId);
+        if (s) showDetail(s);
+      }
+    }
+
+    // ── SERV character config ─────────────────────────────────────────────────
+    const CHAR_META = {
+      marvin:      { initials: "MV", colorClass: "char-marvin",      statColor: "#c4906a" },
+      zaphod:      { initials: "ZB", colorClass: "char-zaphod",      statColor: "#e8b565" },
+      trillian:    { initials: "TR", colorClass: "char-trillian",    statColor: "#b388ff" },
+      arthur:      { initials: "AD", colorClass: "char-arthur",      statColor: "#6ecfb8" },
+      "deep thought": { initials: "DT", colorClass: "char-deep-thought", statColor: "#a8d8ff" },
+    };
+
+    function charKey(name) { return (name || "").toLowerCase().replace(/[^a-z ]/g, "").trim(); }
+
+    function charMeta(name) { return CHAR_META[charKey(name)] ?? { initials: name.slice(0,2).toUpperCase(), colorClass: "char-arthur", statColor: "#6ecfb8" }; }
+
+    // ── SERV strip ────────────────────────────────────────────────────────────
+    function renderServStrip() {
+      const strip = document.getElementById("servStrip");
+      // collect all agents across all sites
+      const cards = [];
+      for (const site of (D.sites || [])) {
+        for (const agent of (site.servAgents || [])) {
+          cards.push({ site, agent });
+        }
+      }
+      if (!cards.length) { strip.style.display = "none"; return; }
+      strip.style.display = "";
+
+      const html = cards.map(({ site, agent }) => {
+        const cm = charMeta(agent.character);
+        const statusClass = (agent.status || "standby").toLowerCase().replace(/\s+/g, "-");
+        const topStats = (agent.stats || []).slice(0, 3);
+        return `
+          <div class="serv-agent-card" onclick="showServAgentDetail('${esc(site.id)}', '${esc(agent.character)}')">
+            <div class="serv-agent-avatar ${cm.colorClass}">${cm.initials}</div>
+            <div class="serv-agent-info">
+              <span class="serv-agent-name" style="color:${cm.statColor}">${esc(agent.character)}</span>
+              <span class="serv-agent-loc">${esc(agent.role)} · ${esc(site.city)}</span>
+            </div>
+            <span class="serv-status-dot ${statusClass}" title="${esc(agent.status)}"></span>
+            <div class="serv-agent-stats">
+              ${topStats.map((s) => `
+                <div class="serv-stat">
+                  <span class="sv" style="color:${cm.statColor}">${esc(String(s.value))}</span>
+                  <span class="sl">${esc(s.label)}</span>
+                </div>
+              `).join("")}
+              ${agent.x402Settled ? `<div class="serv-stat">
+                <span class="sv" style="color:var(--teal)">$${agent.x402Settled}</span>
+                <span class="sl">x402 settled</span>
+              </div>` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      strip.innerHTML = strip.innerHTML.split("</div>")[0] + "</div>" + html;
+    }
+
+    function showServAgentDetail(siteId, characterName) {
+      const site = D.sites.find((s) => s.id === siteId);
+      if (!site) return;
+      const agent = (site.servAgents || []).find((a) => a.character === characterName);
+      if (!agent) return;
+      const cm = charMeta(agent.character);
+
+      document.getElementById("modalTitle").innerHTML =
+        `<span style="color:${cm.statColor}">${esc(agent.character)}</span> <span style="font-size:0.75rem;color:var(--muted);font-family:'IBM Plex Mono',monospace">· ${esc(agent.role)}</span>`;
+      document.getElementById("modalMeta").innerHTML =
+        `<span class="badge badge-site">OpenSERV agent</span> &nbsp; ${esc(site.name)} &nbsp; · &nbsp; ${esc(agent.status)} &nbsp; · &nbsp; ${esc(agent.mood || "")}`;
+
+      const statsHtml = (agent.stats || []).map((s) =>
+        `<div class="contributor-row">
+          <span class="contrib-name">${esc(s.label)}</span>
+          <span class="contrib-hours" style="color:${cm.statColor}">${esc(String(s.value))}</span>
+        </div>`
+      ).join("");
+
+      document.getElementById("modalBody").innerHTML = `
+        <div style="margin-bottom:14px;padding:12px;border:1px solid rgba(255,255,255,0.07);border-radius:8px;border-left:3px solid ${cm.statColor}">
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">Last output</p>
+          <p style="font-size:0.88rem;line-height:1.55;color:#d8d2c8;font-style:italic">"${esc(agent.lastOutput || "—")}"</p>
+        </div>
+        <div style="margin-bottom:12px">
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Activity metrics</p>
+          ${statsHtml}
+        </div>
+        ${agent.x402Settled ? `
+          <div style="padding:8px 12px;border:1px solid rgba(110,207,184,0.25);border-radius:6px;margin-bottom:12px">
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--muted);margin-bottom:2px">x402 payments settled</p>
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.9rem;color:var(--teal)">$${agent.x402Settled} USDC</p>
+          </div>
+        ` : ""}
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:10px">
+          Deployed via <span style="color:var(--accent);font-family:'IBM Plex Mono',monospace">OpenSERV</span> 
+          agent orchestration · BRAID reasoning framework ·
+          <a href="https://openserv.ai" target="_blank" style="color:var(--accent)">openserv.ai</a>
+        </p>
+      `;
+      document.getElementById("siteModal").classList.add("open");
+    }
+
+    // ── Tally strip ───────────────────────────────────────────────────────────
+    function renderTally() {
+      const tally = D.tally || {};
+      document.getElementById("tv-pledged").textContent    = (tally.totalHoursPledged ?? 0).toLocaleString();
+      document.getElementById("tv-exchanged").textContent  = (tally.totalHoursExchanged ?? 0).toLocaleString();
+      document.getElementById("tv-guides").textContent     = (tally.totalGuideCrowdfund ?? 0).toLocaleString();
+      document.getElementById("tv-equity").textContent     = (tally.totalEquityHours ?? 0).toLocaleString();
+      document.getElementById("tv-builders").textContent   = (tally.totalBuilders ?? 0).toLocaleString();
+      document.getElementById("tv-serv-builders").textContent = (tally.totalHackathonBuilders ?? 0) + (tally.builderCount ?? 0);
+      document.getElementById("pinCount").textContent      = `${D.sites?.length ?? 0} pins · ${(tally.pledgeCount ?? 0)} pledges · ${(tally.exchangeCount ?? 0)} exchanges · ${(tally.guideCount ?? 0)} guides · ${(tally.hackathonCount ?? 0)} hackathons · ${(tally.builderCount ?? 0)} builders`;
+    }
+
+    // ── Banner ────────────────────────────────────────────────────────────────
+    function renderBanner() {
+      const act  = D.activity || {};
+      const feed = act.feedStream || [];
+      const planning = D.planning || {};
+      const tally    = D.tally || {};
+
+      document.getElementById("bannerSummary").innerHTML = `
+        <span>${D.sites?.length || 0} pins across ${new Set(D.sites.map(s=>s.country).filter(Boolean)).size} countries</span>
+        <span style="color:var(--accent)">● ${tally.pledgeCount??0} pledges · ${(tally.totalHoursPledged??0)}h</span>
+        <span style="color:var(--teal)">● ${tally.exchangeCount??0} exchanges · ${(tally.totalHoursExchanged??0)}h</span>
+        <span style="color:var(--purple)">● ${tally.guideCount??0} guides · ${(tally.totalGuideCrowdfund??0)}h</span>
+        <span style="color:var(--orange)">● ${tally.equityCount??0} equity deals</span>
+        <span style="color:#c4906a">⬡ ${(tally.hackathonCount??0) + (tally.builderCount??0)} OpenSERV builders · ${(tally.liveTokens??0)} live tokens</span>
+        ${planning.scanned ? `<span style="color:var(--muted);font-size:0.72rem">${planning.count7d} planning docs · 7d</span>` : ""}
+      `;
+
+      // Build marquee from pledge/exchange feeds
+      const pledgeFeed = (D.sites || []).filter(s => s.pinType === "pledge").map(s =>
+        `${s.person?.name ?? s.name} pledged ${s.pledgedHours}h · ${s.city}`
+      );
+      const exchangeFeed = (D.sites || []).filter(s => s.pinType === "exchange").map(s =>
+        `${s.giver} → ${s.receiver}: ${s.exchangeHours}h · ${s.city}`
+      );
+      const guideFeed = (D.sites || []).filter(s => s.pinType === "guide").map(s =>
+        `${s.guideName}: ${s.totalHoursCrowdfunded}h crowdfunded · ${s.builderCount} builders`
+      );
+      const hackathonFeed = (D.sites || []).filter(s => s.pinType === "hackathon").map(s =>
+        `⬡ SERV · ${s.name} — ${s.buildersCount} builders · week ${s.cohortWeek}/${s.cohortTotal} · ${(s.guidesProduced||[]).length} guides`
+      );
+      const builderFeed = (D.sites || []).filter(s => s.pinType === "builder").map(s =>
+        `⬡ SERV builder · ${s.person?.name ?? s.name} · ${s.hoursLogged}h logged · ${s.github?.recentCommits ?? 0} commits · ${s.token?.ticker ?? "token pending"}`
+      );
+      const allItems = [...hackathonFeed, ...builderFeed, ...pledgeFeed, ...exchangeFeed, ...guideFeed, ...(feed.map(i => i.text))];
+      const slice = allItems.slice(0, 32);
+      const items = [...slice, ...slice];
+
+      document.getElementById("marqueeSingle").innerHTML = items.length
+        ? items.map((txt) => `<span class="marquee-item">${esc(txt)}</span>`).join("")
+        : "<span class='marquee-item'>No feed.</span>";
+
+      const metrics = (act.microMetrics || []).slice(0, 24);
+      document.getElementById("metricWall").innerHTML = metrics.map((m) =>
+        `<div class="metric-tile"><b>${m.value}</b>${esc(m.label)}</div>`
+      ).join("") || `
+        <div class="metric-tile"><b>${tally.pledgeCount??0}</b>pledges</div>
+        <div class="metric-tile"><b>${tally.totalHoursPledged??0}h</b>pledged total</div>
+        <div class="metric-tile"><b>${tally.exchangeCount??0}</b>exchanges</div>
+        <div class="metric-tile"><b>${tally.totalHoursExchanged??0}h</b>exchanged</div>
+        <div class="metric-tile"><b>${tally.guideCount??0}</b>guides</div>
+        <div class="metric-tile"><b>${tally.totalGuideCrowdfund??0}h</b>guide hours</div>
+        <div class="metric-tile"><b>${tally.equityCount??0}</b>equity deals</div>
+        <div class="metric-tile"><b style="color:#c4906a">${tally.hackathonCount??0}</b>⬡ hackathons</div>
+        <div class="metric-tile"><b style="color:#c4906a">${(tally.totalHackathonBuilders??0) + (tally.builderCount??0)}</b>SERV builders</div>
+        <div class="metric-tile"><b>${tally.totalBuilders??0}</b>all builders</div>
+      `;
+    }
+
+    // ── Left rail ─────────────────────────────────────────────────────────────
+    function renderLeft() {
+      const domains = D.domains || {};
+      const keys = ["sites", "timebank_global", "builders_docs", "venues_by_type"];
+      let html = "";
+      keys.forEach((key, i) => {
+        const b = domains[key];
+        if (!b?.kpis?.length) return;
+        const open = i <= 1 ? " open" : "";
+        html += `<details class="rail-sec"${open}><summary>${esc(b.label)}</summary><div class="rail-sec-body">`;
+        for (const k of b.kpis) {
+          const v = k.value;
+          const vs = typeof v === "number" ? v.toLocaleString() : esc(String(v));
+          html += `<div class="row"><span>${esc(k.label)}</span><span>${vs}${k.unit ? " " + k.unit : ""}</span></div>`;
+        }
+        html += "</div></details>";
+      });
+
+      // Pin type legend
+      const legend = D.pinTypeLegend || {};
+      html += `<details class="rail-sec"><summary>Pin types</summary><div class="rail-sec-body">`;
+      const typeColors = { pledge:"#e8b565", exchange:"#6ecfb8", guide:"#b388ff", equity:"#ff9e4c", site:"#6ecfb8" };
+      for (const [pt, label] of Object.entries(legend)) {
+        html += `<div class="row"><span><span class="dot" style="background:${typeColors[pt]??'#aaa'}"></span>${esc(label)}</span></div>`;
+      }
+      html += "</div></details>";
+
+      document.getElementById("leftRail").innerHTML = html;
+    }
+
+    function renderMeta() {
+      const m = D.meta;
+      document.getElementById("subMeta").textContent =
+        `Sweep ${(m.sweepId || "").slice(0, 8)} · ${new Date(m.generatedAt).toLocaleString()}`;
+    }
+
+    async function load() {
+      const r = await fetch("/api/data");
+      if (!r.ok) return;
+      D = await r.json();
+      renderMeta();
+      renderTally();
+      renderServStrip();
+      renderLeft();
+      renderBanner();
+      if (!globe) {
+        initGlobe();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          sizeGlobe();
+          setTimeout(sizeGlobe, 100);
+          setTimeout(sizeGlobe, 400);
+        }));
+      } else refreshGlobe();
+    }
+
+    document.getElementById("btnSweep").addEventListener("click", async () => {
+      await fetch("/api/sweep", { method: "POST" });
+      await load();
+    });
+
+    document.getElementById("modalClose").addEventListener("click", closeModal);
+    document.getElementById("siteModal").addEventListener("click", (e) => {
+      if (e.target.id === "siteModal") closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+
+    const es = new EventSource("/events");
+    es.addEventListener("sweep", () => load());
+    es.onerror = () => { es.close(); setTimeout(() => location.reload(), 12000); };
+
+    load();
+  </script>
+</body>
+</html>

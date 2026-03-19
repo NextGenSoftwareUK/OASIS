@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hitchhikers.earth/pan-galactic-monitor/site",
+  "title": "Pan Galactic Monitor site (map pin)",
+  "type": "object",
+  "required": ["id", "name", "lat", "lng", "venueType", "status"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "name": { "type": "string", "minLength": 1 },
+    "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+    "lng": { "type": "number", "minimum": -180, "maximum": 180 },
+    "venueType": {
+      "type": "string",
+      "enum": ["impact_hub", "student_union", "church", "hackerspace", "other"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "active", "paused", "completed"]
+    },
+    "city": { "type": "string" },
+    "country": { "type": "string" },
+    "summary": { "type": "string", "description": "What's occurring — shown in detail panel" },
+    "cohortName": { "type": "string" },
+    "dateStart": { "type": "string", "format": "date" },
+    "dateEnd": { "type": "string", "format": "date" },
+    "pgtCircleIds": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" },
+      "description": "Pan Galactic Timebank circle UUIDs"
+    },
+    "planningSprintPathPrefix": {
+      "type": "string",
+      "description": "Optional path prefix to scope doc activity to this site"
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    }
+  }
+}
