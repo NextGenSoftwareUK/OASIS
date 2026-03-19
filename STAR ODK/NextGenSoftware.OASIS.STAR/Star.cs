@@ -2253,10 +2253,180 @@ namespace NextGenSoftware.OASIS.STAR
                 if (string.IsNullOrEmpty(starDNA.DefaultRuntimesInstalledSTARPath))
                     starDNA.DefaultRuntimesInstalledSTARPath = Path.Combine("Runtimes", "Installed", "STAR");
 
+                if (string.IsNullOrEmpty(starDNA.DefaultLibsSourcePath))
+                    starDNA.DefaultLibsSourcePath = Path.Combine("Libs", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultLibsPublishedPath))
+                    starDNA.DefaultLibsPublishedPath = Path.Combine("Libs", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultLibsDownloadedPath))
+                    starDNA.DefaultLibsDownloadedPath = Path.Combine("Libs", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultLibsInstalledPath))
+                    starDNA.DefaultLibsInstalledPath = Path.Combine("Libs", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultChaptersSourcePath))
+                    starDNA.DefaultChaptersSourcePath = Path.Combine("Chapters", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultChaptersPublishedPath))
+                    starDNA.DefaultChaptersPublishedPath = Path.Combine("Chapters", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultChaptersDownloadedPath))
+                    starDNA.DefaultChaptersDownloadedPath = Path.Combine("Chapters", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultChaptersInstalledPath))
+                    starDNA.DefaultChaptersInstalledPath = Path.Combine("Chapters", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultMissionsSourcePath))
+                    starDNA.DefaultMissionsSourcePath = Path.Combine("Missions", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultMissionsPublishedPath))
+                    starDNA.DefaultMissionsPublishedPath = Path.Combine("Missions", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultMissionsDownloadedPath))
+                    starDNA.DefaultMissionsDownloadedPath = Path.Combine("Missions", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultMissionsInstalledPath))
+                    starDNA.DefaultMissionsInstalledPath = Path.Combine("Missions", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultQuestsSourcePath))
+                    starDNA.DefaultQuestsSourcePath = Path.Combine("Quests", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultQuestsPublishedPath))
+                    starDNA.DefaultQuestsPublishedPath = Path.Combine("Quests", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultQuestsDownloadedPath))
+                    starDNA.DefaultQuestsDownloadedPath = Path.Combine("Quests", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultQuestsInstalledPath))
+                    starDNA.DefaultQuestsInstalledPath = Path.Combine("Quests", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultGamesSourcePath))
+                    starDNA.DefaultGamesSourcePath = Path.Combine("Games", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultGamesPublishedPath))
+                    starDNA.DefaultGamesPublishedPath = Path.Combine("Games", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultGamesDownloadedPath))
+                    starDNA.DefaultGamesDownloadedPath = Path.Combine("Games", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultGamesInstalledPath))
+                    starDNA.DefaultGamesInstalledPath = Path.Combine("Games", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTsSourcePath))
+                    starDNA.DefaultNFTsSourcePath = Path.Combine("NFTs", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTsPublishedPath))
+                    starDNA.DefaultNFTsPublishedPath = Path.Combine("NFTs", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTsDownloadedPath))
+                    starDNA.DefaultNFTsDownloadedPath = Path.Combine("NFTs", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTsInstalledPath))
+                    starDNA.DefaultNFTsInstalledPath = Path.Combine("NFTs", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTsSourcePath))
+                    starDNA.DefaultGeoNFTsSourcePath = Path.Combine("GeoNFTs", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTsPublishedPath))
+                    starDNA.DefaultGeoNFTsPublishedPath = Path.Combine("GeoNFTs", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTsDownloadedPath))
+                    starDNA.DefaultGeoNFTsDownloadedPath = Path.Combine("GeoNFTs", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTsInstalledPath))
+                    starDNA.DefaultGeoNFTsInstalledPath = Path.Combine("GeoNFTs", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTCollectionsSourcePath))
+                    starDNA.DefaultNFTCollectionsSourcePath = Path.Combine("NFTCollections", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTCollectionsPublishedPath))
+                    starDNA.DefaultNFTCollectionsPublishedPath = Path.Combine("NFTCollections", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTCollectionsDownloadedPath))
+                    starDNA.DefaultNFTCollectionsDownloadedPath = Path.Combine("NFTCollections", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultNFTCollectionsInstalledPath))
+                    starDNA.DefaultNFTCollectionsInstalledPath = Path.Combine("NFTCollections", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTCollectionsSourcePath))
+                    starDNA.DefaultGeoNFTCollectionsSourcePath = Path.Combine("GeoNFTCollections", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTCollectionsPublishedPath))
+                    starDNA.DefaultGeoNFTCollectionsPublishedPath = Path.Combine("GeoNFTCollections", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTCollectionsDownloadedPath))
+                    starDNA.DefaultGeoNFTCollectionsDownloadedPath = Path.Combine("GeoNFTCollections", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoNFTCollectionsInstalledPath))
+                    starDNA.DefaultGeoNFTCollectionsInstalledPath = Path.Combine("GeoNFTCollections", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoHotSpotsSourcePath))
+                    starDNA.DefaultGeoHotSpotsSourcePath = Path.Combine("GeoHotSpots", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoHotSpotsPublishedPath))
+                    starDNA.DefaultGeoHotSpotsPublishedPath = Path.Combine("GeoHotSpots", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoHotSpotsDownloadedPath))
+                    starDNA.DefaultGeoHotSpotsDownloadedPath = Path.Combine("GeoHotSpots", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultGeoHotSpotsInstalledPath))
+                    starDNA.DefaultGeoHotSpotsInstalledPath = Path.Combine("GeoHotSpots", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultInventoryItemsSourcePath))
+                    starDNA.DefaultInventoryItemsSourcePath = Path.Combine("InventoryItems", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultInventoryItemsPublishedPath))
+                    starDNA.DefaultInventoryItemsPublishedPath = Path.Combine("InventoryItems", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultInventoryItemsDownloadedPath))
+                    starDNA.DefaultInventoryItemsDownloadedPath = Path.Combine("InventoryItems", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultInventoryItemsInstalledPath))
+                    starDNA.DefaultInventoryItemsInstalledPath = Path.Combine("InventoryItems", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialSpacesSourcePath))
+                    starDNA.DefaultCelestialSpacesSourcePath = Path.Combine("CelestialSpaces", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialSpacesPublishedPath))
+                    starDNA.DefaultCelestialSpacesPublishedPath = Path.Combine("CelestialSpaces", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialSpacesDownloadedPath))
+                    starDNA.DefaultCelestialSpacesDownloadedPath = Path.Combine("CelestialSpaces", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialSpacesInstalledPath))
+                    starDNA.DefaultCelestialSpacesInstalledPath = Path.Combine("CelestialSpaces", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesSourcePath))
+                    starDNA.DefaultCelestialBodiesSourcePath = Path.Combine("CelestialBodies", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesPublishedPath))
+                    starDNA.DefaultCelestialBodiesPublishedPath = Path.Combine("CelestialBodies", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesDownloadedPath))
+                    starDNA.DefaultCelestialBodiesDownloadedPath = Path.Combine("CelestialBodies", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesInstalledPath))
+                    starDNA.DefaultCelestialBodiesInstalledPath = Path.Combine("CelestialBodies", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesSourcePath))
+                    starDNA.DefaultZomesSourcePath = Path.Combine("Zomes", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesPublishedPath))
+                    starDNA.DefaultZomesPublishedPath = Path.Combine("Zomes", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesDownloadedPath))
+                    starDNA.DefaultZomesDownloadedPath = Path.Combine("Zomes", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesInstalledPath))
+                    starDNA.DefaultZomesInstalledPath = Path.Combine("Zomes", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsSourcePath))
+                    starDNA.DefaultHolonsSourcePath = Path.Combine("Holons", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsPublishedPath))
+                    starDNA.DefaultHolonsPublishedPath = Path.Combine("Holons", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsDownloadedPath))
+                    starDNA.DefaultHolonsDownloadedPath = Path.Combine("Holons", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsInstalledPath))
+                    starDNA.DefaultHolonsInstalledPath = Path.Combine("Holons", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesMetaDataDNASourcePath))
+                    starDNA.DefaultCelestialBodiesMetaDataDNASourcePath = Path.Combine("CelestialBodies", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath))
+                    starDNA.DefaultCelestialBodiesMetaDataDNAPublishedPath = Path.Combine("CelestialBodies", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath))
+                    starDNA.DefaultCelestialBodiesMetaDataDNADownloadedPath = Path.Combine("CelestialBodies", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath))
+                    starDNA.DefaultCelestialBodiesMetaDataDNAInstalledPath = Path.Combine("CelestialBodies", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesMetaDataDNASourcePath))
+                    starDNA.DefaultZomesMetaDataDNASourcePath = Path.Combine("Zomes", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesMetaDataDNAPublishedPath))
+                    starDNA.DefaultZomesMetaDataDNAPublishedPath = Path.Combine("Zomes", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesMetaDataDNADownloadedPath))
+                    starDNA.DefaultZomesMetaDataDNADownloadedPath = Path.Combine("Zomes", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultZomesMetaDataDNAInstalledPath))
+                    starDNA.DefaultZomesMetaDataDNAInstalledPath = Path.Combine("Zomes", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsMetaDataDNASourcePath))
+                    starDNA.DefaultHolonsMetaDataDNASourcePath = Path.Combine("Holons", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsMetaDataDNAPublishedPath))
+                    starDNA.DefaultHolonsMetaDataDNAPublishedPath = Path.Combine("Holons", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsMetaDataDNADownloadedPath))
+                    starDNA.DefaultHolonsMetaDataDNADownloadedPath = Path.Combine("Holons", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultHolonsMetaDataDNAInstalledPath))
+                    starDNA.DefaultHolonsMetaDataDNAInstalledPath = Path.Combine("Holons", "Installed");
+
+                if (string.IsNullOrEmpty(starDNA.DefaultPluginsSourcePath))
+                    starDNA.DefaultPluginsSourcePath = Path.Combine("Plugins", "Source");
+                if (string.IsNullOrEmpty(starDNA.DefaultPluginsPublishedPath))
+                    starDNA.DefaultPluginsPublishedPath = Path.Combine("Plugins", "Published");
+                if (string.IsNullOrEmpty(starDNA.DefaultPluginsDownloadedPath))
+                    starDNA.DefaultPluginsDownloadedPath = Path.Combine("Plugins", "Downloaded");
+                if (string.IsNullOrEmpty(starDNA.DefaultPluginsInstalledPath))
+                    starDNA.DefaultPluginsInstalledPath = Path.Combine("Plugins", "Installed");
 
                 STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
 
-                ValidateFolder("", starDNA.STARNETBasePath, "STARDNA.STARNETBasePath");
+                ValidateFolder("", starDNA.STARNETBasePath, "STARDNA.STARNETBasePath", false, true);
                 ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsSourcePath, "STARDNA.DefaultOAPPsSourcePath", false, true);
                 ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsPublishedPath, "STARDNA.DefaultOAPPsPublishedPath", false, true);
                 ValidateFolder(starDNA.STARNETBasePath, starDNA.DefaultOAPPsDownloadedPath, "STARDNA.DefaultOAPPsDownloadedPath", false, true);
