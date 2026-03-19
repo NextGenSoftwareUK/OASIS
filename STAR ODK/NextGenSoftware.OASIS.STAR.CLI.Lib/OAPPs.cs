@@ -67,6 +67,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         public override async Task<OASISResult<OAPP>> CreateAsync(ISTARNETCreateOptions<OAPP, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
+            if (createOptions?.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb)
+                return await base.CreateAsync(createOptions, null, showHeaderAndInro, addDependencies, providerType);
+
             OASISResult<CoronalEjection> result = await LightWizardAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
             return new OASISResult<OAPP>
