@@ -27,6 +27,30 @@
              CopyToPublishDirectory="PreserveNewest"
              Visible="false"
              ExcludeFromSingleFile="true" />
+    <!-- C# template .cs files: listed manually so publish always copies them -->
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\HolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\LoadHolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\SaveHolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\ZomeDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\ZomeTemplate.cs" Link="DNATemplates\CSharpDNATemplates\ZomeTemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\ZomeTemplate.tt" Link="DNATemplates\CSharpDNATemplates\ZomeTemplate.tt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Interfaces\ICelestialBodyDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\Interfaces\ICelestialBodyDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Interfaces\IHolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\Interfaces\IHolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\Interfaces\ILoadHolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\Interfaces\ISaveHolonDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" Link="DNATemplates\CSharpDNATemplates\Interfaces\IZomeDNATemplate.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Types\bool.cs" Link="DNATemplates\CSharpDNATemplates\Types\bool.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Types\int.cs" Link="DNATemplates\CSharpDNATemplates\Types\int.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\CSharpDNATemplates\Types\string.cs" Link="DNATemplates\CSharpDNATemplates\Types\string.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" Link="DNATemplates\MetaDataDNATemplates\HolonMetaDataDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" Link="DNATemplates\MetaDataDNATemplates\ZomeMetaDataDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\BoolDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\DateTimeDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\DoubleDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+    <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
@@ -72,5 +96,17 @@
     <Compile Remove="installers\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
     <None Include="installers\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" />
   </ItemGroup>
+
+  <!-- Force-copy entire DNATemplates from STAR project into publish output (runs after publish so files are always there) -->
+  <Target Name="CopyDNATemplatesToPublish" AfterTargets="Publish">
+    <PropertyGroup>
+      <_StarDnaTemplatesPath>$([MSBuild]::NormalizePath('$(MSBuildProjectDirectory)', '..', 'NextGenSoftware.OASIS.STAR', 'DNATemplates'))</_StarDnaTemplatesPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_DnaTemplateFiles Include="$(_StarDnaTemplatesPath)\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_DnaTemplateFiles)" DestinationFolder="$(PublishDir)DNATemplates\%(RecursiveDir)" SkipUnchangedFiles="true" />
+    <Message Importance="high" Text="Copied DNATemplates to $(PublishDir)DNATemplates" />
+  </Target>
 
 </Project>

@@ -73,12 +73,10 @@ namespace NextGenSoftware.OASIS.STAR
             if (!string.IsNullOrEmpty(skip) && (skip == "1" || skip.Equals("true", StringComparison.OrdinalIgnoreCase)))
                 return;
 
-            string fullStarPath = Path.IsPathRooted(starDnaPath)
-                ? starDnaPath
-                : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, starDnaPath.Replace('\\', Path.DirectorySeparatorChar)));
+            string fullStarPath = AppPathHelper.ResolvePathFromAppRoot(starDnaPath);
             string dnaDir = Path.GetDirectoryName(fullStarPath);
             if (string.IsNullOrEmpty(dnaDir))
-                dnaDir = Environment.CurrentDirectory;
+                dnaDir = AppPathHelper.ResolveAppRootDirectory();
 
             // Optional safety net to keep platform-specific DNA in sync (prevents accidentally reintroducing Windows-only defaults)
             // Enable with: OASIS_VALIDATE_PLATFORM_DNA_SYNC=1 (or true)
@@ -147,13 +145,11 @@ namespace NextGenSoftware.OASIS.STAR
 
             try
             {
-                string fullStarPath = Path.IsPathRooted(starDnaPath)
-                    ? starDnaPath
-                    : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, starDnaPath.Replace('\\', Path.DirectorySeparatorChar)));
+                string fullStarPath = AppPathHelper.ResolvePathFromAppRoot(starDnaPath);
 
                 string dnaDir = Path.GetDirectoryName(fullStarPath);
                 if (string.IsNullOrEmpty(dnaDir))
-                    dnaDir = Environment.CurrentDirectory;
+                    dnaDir = AppPathHelper.ResolveAppRootDirectory();
 
                 string mainBase = Path.GetFileNameWithoutExtension(fullStarPath);
                 string mainExt = Path.GetExtension(fullStarPath); // includes dot (e.g. ".json")
@@ -609,14 +605,15 @@ namespace NextGenSoftware.OASIS.STAR
 
             ApplyPlatformSpecificDnaFiles(STARDNAPath);
 
-            if (File.Exists(STARDNAPath))
+            if (File.Exists(AppPathHelper.ResolvePathFromAppRoot(STARDNAPath)))
                 await STARDNAManager.LoadDNAAsync(STARDNAPath);
             else
             {
                 STARDNA = new STARDNA();
                 await STARDNAManager.SaveDNAAsync(STARDNAPath, STARDNA);
-                STARDNA.ResolveRuntimeBasePaths();
+                STARDNAManager.ResolveRuntimeBasePaths(STARDNA);
             }
+            STARDNAPath = STARDNAManager.STARDNAPath;
 
             ValidateSTARDNA(STARDNA);
             Status = StarStatus.BootingOASIS;
@@ -634,6 +631,7 @@ namespace NextGenSoftware.OASIS.STAR
             else
                 OnOASISBooted?.Invoke(null, new OASISBootedEventArgs() { Message = result.Message });
 
+            OASISDNAPath = OASISBootLoader.OASISBootLoader.OASISDNAPath;
             Status = StarStatus.OASISBooted;
 
             // If the starId is passed in and is valid then convert to Guid, otherwise get it from the STARDNA file.
@@ -659,8 +657,8 @@ namespace NextGenSoftware.OASIS.STAR
             else
             {
                 Status = StarStatus.Ignited;
-                OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
+                OnStarIgnited.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
             }
 
             return result;
@@ -686,14 +684,15 @@ namespace NextGenSoftware.OASIS.STAR
 
             ApplyPlatformSpecificDnaFiles(STARDNAPath);
 
-            if (File.Exists(STARDNAPath))
+            if (File.Exists(AppPathHelper.ResolvePathFromAppRoot(STARDNAPath)))
                 STARDNAManager.LoadDNA(STARDNAPath);
             else
             {
                 STARDNA = new STARDNA();
                 STARDNAManager.SaveDNA(STARDNAPath, STARDNA);
-                STARDNA.ResolveRuntimeBasePaths();
+                STARDNAManager.ResolveRuntimeBasePaths(STARDNA);
             }
+            STARDNAPath = STARDNAManager.STARDNAPath;
 
             ValidateSTARDNA(STARDNA);
 
@@ -715,6 +714,7 @@ namespace NextGenSoftware.OASIS.STAR
             else
                 OnOASISBooted?.Invoke(null, new OASISBootedEventArgs() { Message = result.Message });
 
+            OASISDNAPath = OASISBootLoader.OASISBootLoader.OASISDNAPath;
             Status = StarStatus.OASISBooted;
             BeamedInAvatar = AvatarManager.LoggedInAvatar;
 
@@ -741,8 +741,8 @@ namespace NextGenSoftware.OASIS.STAR
             else
             {
                 Status = StarStatus.Ignited;
-                OnStarIgnited?.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
                 IsStarIgnited = true;
+                OnStarIgnited?.Invoke(null, new StarIgnitedEventArgs() { Message = result.Message });
             }
 
             return result;
@@ -2159,7 +2159,7 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                starDNA.ResolveRuntimeBasePaths();
+                STARDNAManager.ResolveRuntimeBasePaths(starDNA);
 
                 ValidateFolder("", starDNA.STARBasePath, "STARDNA.STARBasePath");
                 ValidateFolder(starDNA.STARBasePath, starDNA.MetaDataDNATemplateFolder, "STARDNA.MetaDataDNATemplateFolder");
