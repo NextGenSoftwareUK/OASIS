@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
@@ -1265,6 +1266,78 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>Complete a quest objective using string identifiers in the JSON body (GUIDs or client slugs such as cross_dimensional_keycard_hunt / doom_red_keycard). Native games use this path; route parameters remain Guid-only.</summary>
+        [HttpPost("objectives/complete")]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CompleteQuestObjectiveByIdentifiers([FromBody] CompleteQuestObjectiveIdentifiersRequest request)
+        {
+            try
+            {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+
+                if (request == null || string.IsNullOrWhiteSpace(request.QuestId) || string.IsNullOrWhiteSpace(request.ObjectiveId))
+                {
+                    return BadRequest(new OASISResult<bool> { IsError = true, Message = "questId and objectiveId are required in the JSON body." });
+                }
+
+                var avatarId = AvatarId;
+                var qToken = request.QuestId.Trim();
+                var oToken = request.ObjectiveId.Trim();
+                var gs = string.IsNullOrWhiteSpace(request.GameSource) ? null : request.GameSource.Trim();
+                var notes = string.IsNullOrWhiteSpace(request.CompletionNotes) ? null : request.CompletionNotes.Trim();
+
+                if (Guid.TryParse(qToken, out var questGuid) && Guid.TryParse(oToken, out var objectiveGuid))
+                {
+                    var direct = await _starAPI.Quests.CompleteQuestObjectiveAsync(avatarId, questGuid, objectiveGuid, gs, notes);
+                    if (direct.IsError)
+                        return BadRequest(direct);
+                    return Ok(direct);
+                }
+
+                var loadResult = await _starAPI.Quests.LoadAllQuestsForAvatarAsync(avatarId);
+                if (loadResult.IsError || loadResult.Result == null)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = loadResult.IsError ? loadResult.Message : "Could not load quests for avatar."
+                    });
+                }
+
+                var questList = loadResult.Result.ToList();
+                var quest = ResolveQuestByClientToken(questList, qToken);
+                if (quest == null)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = $"Quest not found for identifier '{qToken}'."
+                    });
+                }
+
+                var resolvedObjectiveId = ResolveObjectiveClientToken(quest, oToken, gs);
+                if (!resolvedObjectiveId.HasValue)
+                {
+                    return BadRequest(new OASISResult<bool>
+                    {
+                        IsError = true,
+                        Message = $"Objective not found for identifier '{oToken}' on quest '{quest.Name}' ({quest.Id})."
+                    });
+                }
+
+                var result = await _starAPI.Quests.CompleteQuestObjectiveAsync(avatarId, quest.Id, resolvedObjectiveId.Value, gs, notes);
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<bool>(ex, "completing quest objective (by identifiers)");
+            }
+        }
+
         [HttpPost("{id}/objectives/{objectiveId}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
@@ -1434,6 +1507,168 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        private static IQuest? ResolveQuestByClientToken(IReadOnlyList<IQuest> quests, string token)
+        {
+            if (quests == null || string.IsNullOrWhiteSpace(token))
+                return null;
+            var t = token.Trim();
+            if (Guid.TryParse(t, out var g))
+            {
+                var byId = quests.FirstOrDefault(q => q.Id == g);
+                if (byId != null)
+                    return byId;
+            }
+
+            var ordered = quests.OrderBy(q => q.ParentQuestId == Guid.Empty ? 0 : 1).ThenBy(q => q.Name ?? "");
+            foreach (var q in ordered)
+            {
+                if (!string.IsNullOrEmpty(q.Name) && string.Equals(q.Name, t, StringComparison.OrdinalIgnoreCase))
+                    return q;
+            }
+
+            foreach (var q in ordered)
+            {
+                if (q.MetaData == null)
+                    continue;
+                foreach (var metaKey in new[] { "Slug", "ExternalId", "QuestSlug", "slug", "id" })
+                {
+                    if (!q.MetaData.TryGetValue(metaKey, out var mv) || mv == null)
+                        continue;
+                    if (string.Equals(mv.ToString(), t, StringComparison.OrdinalIgnoreCase))
+                        return q;
+                }
+            }
+
+            var spaced = t.Replace('_', ' ');
+            return ordered.FirstOrDefault(q => !string.IsNullOrEmpty(q.Name) &&
+                (q.Name.IndexOf(t, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                 q.Name.IndexOf(spaced, StringComparison.OrdinalIgnoreCase) >= 0));
+        }
+
+        private static Guid? ResolveObjectiveClientToken(IQuest quest, string token, string? gameSource)
+        {
+            if (quest == null || string.IsNullOrWhiteSpace(token))
+                return null;
+            var t = token.Trim();
+
+            if (Guid.TryParse(t, out var og))
+            {
+                if (quest.Objectives?.Any(o => o.Id == og) == true)
+                    return og;
+                if (quest.Quests?.Any(sq => sq.Id == og) == true)
+                    return og;
+            }
+
+            if (quest.Objectives != null)
+            {
+                foreach (var io in quest.Objectives)
+                {
+                    if (io is Objective ob && ObjectiveMatchesClientToken(ob, t, gameSource))
+                        return ob.Id;
+                }
+            }
+
+            if (quest.Quests != null)
+            {
+                foreach (var sq in quest.Quests)
+                {
+                    if (LegacySubQuestMatchesClientToken(sq, t, gameSource))
+                        return sq.Id;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool ObjectiveMatchesClientToken(Objective ob, string token, string? gameSource)
+        {
+            if (string.Equals(ob.Id.ToString("D"), token, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            if (SlugMatchesObjectiveDictionaries(ob.NeedToCollectKeys, token, gameSource))
+                return true;
+            if (SlugMatchesObjectiveDictionaries(ob.NeedToCollectItems, token, gameSource))
+                return true;
+
+            if (!string.IsNullOrEmpty(ob.ObjectiveText))
+            {
+                if (ob.ObjectiveText.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+                var spaced = token.Replace('_', ' ');
+                if (ob.ObjectiveText.IndexOf(spaced, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool SlugMatchesObjectiveDictionaries(IDictionary<string, IList<string>>? dict, string token, string? gameSource)
+        {
+            if (dict == null)
+                return false;
+            foreach (var kv in dict)
+            {
+                if (!SourceKeyMatchesGame(kv.Key, gameSource))
+                    continue;
+                if (kv.Value == null)
+                    continue;
+                foreach (var v in kv.Value)
+                {
+                    if (string.IsNullOrEmpty(v))
+                        continue;
+                    if (string.Equals(v, token, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                    if (v.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                    if (token.Length >= 4 && token.IndexOf(v, StringComparison.OrdinalIgnoreCase) >= 0)
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool SourceKeyMatchesGame(string? sourceKey, string? gameSource)
+        {
+            if (string.IsNullOrWhiteSpace(gameSource))
+                return true;
+            var g = gameSource.Trim();
+            var k = sourceKey ?? "";
+            if (string.Equals(k, g, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (k.IndexOf(g, StringComparison.OrdinalIgnoreCase) >= 0 || g.IndexOf(k, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            var gUp = g.ToUpperInvariant();
+            var kUp = k.ToUpperInvariant();
+            if (gUp.Contains("DOOM", StringComparison.Ordinal) && kUp.Contains("DOOM", StringComparison.Ordinal))
+                return true;
+            if (gUp.Contains("QUAKE", StringComparison.Ordinal) && kUp.Contains("QUAKE", StringComparison.Ordinal))
+                return true;
+            return false;
+        }
+
+        private static bool LegacySubQuestMatchesClientToken(IQuest sq, string token, string? gameSource)
+        {
+            if (string.Equals(sq.Id.ToString("D"), token, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (!string.IsNullOrEmpty(sq.Name) && string.Equals(sq.Name, token, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (!string.IsNullOrWhiteSpace(gameSource) && !string.IsNullOrEmpty(sq.GameSource) &&
+                SourceKeyMatchesGame(sq.GameSource, gameSource) &&
+                !string.IsNullOrEmpty(sq.Name) &&
+                sq.Name.IndexOf(token.Replace('_', ' '), StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+            if (sq.MetaData == null)
+                return false;
+            foreach (var metaKey in new[] { "Slug", "ExternalId", "ObjectiveSlug", "slug", "id" })
+            {
+                if (!sq.MetaData.TryGetValue(metaKey, out var mv) || mv == null)
+                    continue;
+                if (string.Equals(mv.ToString(), token, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>Creates an Objective (Option B) from a create/add objective request. Uses Dictionaries when present; otherwise populates from ItemRequired/Description to match backend Objective.</summary>
         private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
         {
@@ -1587,6 +1822,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
     public class CompleteQuestObjectiveRequest
     {
+        public string GameSource { get; set; } = "";
+        public string CompletionNotes { get; set; } = "";
+    }
+
+    /// <summary>Body for POST api/quests/objectives/complete — questId and objectiveId may be GUID strings or client slugs (e.g. cross_dimensional_keycard_hunt, doom_red_keycard).</summary>
+    public class CompleteQuestObjectiveIdentifiersRequest
+    {
+        public string QuestId { get; set; } = "";
+        public string ObjectiveId { get; set; } = "";
         public string GameSource { get; set; } = "";
         public string CompletionNotes { get; set; } = "";
     }
