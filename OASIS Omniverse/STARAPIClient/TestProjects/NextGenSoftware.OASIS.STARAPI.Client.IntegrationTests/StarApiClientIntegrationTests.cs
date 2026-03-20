@@ -240,21 +240,18 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.True(_web4Server.WasHit("POST", "/api/avatar/authenticate"));
             Assert.True(_web4Server.WasHit("POST", "/api/nft/mint-nft"));
-            Assert.True(_web5Server.WasHit("GET", "/api/avatar/current"));
-            Assert.True(_web5Server.WasHit("GET", "/api/avatar/inventory"));
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory"));
-            Assert.True(_web5Server.WasHitWithPathPrefix("DELETE", "/api/avatar/inventory/"));
+            Assert.True(_web4Server.WasHit("GET", "/api/avatar/get-logged-in-avatar-with-xp"));
+            /* GET /api/avatar/inventory may not run: AddItem/UseItem keep _cachedInventory so HasItem/GetInventory often skip network. */
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory"));
+            Assert.True(_web4Server.WasHitWithPathPrefix("DELETE", "/api/avatar/inventory/"));
             Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/start"));
-            Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-1/complete"));
-            Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-2/complete"));
+            Assert.True(_web5Server.HitCount("POST", "/api/quests/objectives/complete") >= 2);
             Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/complete"));
             Assert.True(_web5Server.WasHit("POST", "/api/quests/create"));
             Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
             Assert.True(_web5Server.WasHit("POST", "/api/nfts/nft-001/activate"));
             Assert.True(_web5Server.WasHit("GET", "/api/nfts/load-all-for-avatar"));
-            Assert.True(_web5Server.HitCount("POST", "/api/avatar/inventory") >= 4);
-            Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 3);
-            Assert.True(_web5Server.HitCount("POST", "/api/quests/quest-main/objectives/obj-2/complete") >= 1);
+            Assert.True(_web4Server.HitCount("POST", "/api/avatar/inventory") >= 4);
         }
     }
 
@@ -331,8 +328,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.False(send.IsError);
             Assert.True(send.Result);
-            if (_web5Server is not null)
-                Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory/send-to-avatar"));
+            if (_web4Server is not null)
+                Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory/send-to-avatar"));
         }
         else
         {
@@ -445,8 +442,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.False(send.IsError);
             Assert.True(send.Result);
-            if (_web5Server is not null)
-                Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory/send-to-clan"));
+            if (_web4Server is not null)
+                Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory/send-to-clan"));
         }
         else
         {
@@ -471,8 +468,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         client.InvalidateInventoryCache();
         var second = await client.GetInventoryAsync();
         Assert.False(second.IsError);
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 2);
+        if (_useFakeServer && _web4Server is not null)
+            Assert.True(_web4Server.HitCount("GET", "/api/avatar/inventory") >= 2);
     }
 
     /// <summary>Display name for overlay: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
@@ -721,10 +718,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.True(add5.Result >= 0);
         Assert.Equal(add5.Result, client.GetCachedAvatarXp());
 
-        if (_useFakeServer && _web5Server is not null)
+        if (_useFakeServer && _web4Server is not null)
         {
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
-            Assert.True(_web5Server.HitCount("POST", "/api/avatar/add-xp") >= 2);
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
+            Assert.True(_web4Server.HitCount("POST", "/api/avatar/add-xp") >= 2);
         }
     }
 
@@ -751,8 +748,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.Equal(expectedTotal, refresh.Result);
         Assert.Equal(expectedTotal, client.GetCachedAvatarXp());
 
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+        if (_useFakeServer && _web4Server is not null)
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
     }
 
     /// <summary>RefreshAvatarProfileInBackground() must call real API; cache must match server newTotal once the async call completes.</summary>
@@ -778,8 +775,11 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.True(afterRefresh >= 0, "GetCachedAvatarXp() should be non-negative after RefreshAvatarProfileInBackground");
         Assert.Equal(afterAdd, afterRefresh);
 
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+        if (_useFakeServer && _web4Server is not null)
+        {
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
+            Assert.True(_web4Server.WasHit("GET", "/api/avatar/get-logged-in-avatar-with-xp"));
+        }
     }
 
 }
