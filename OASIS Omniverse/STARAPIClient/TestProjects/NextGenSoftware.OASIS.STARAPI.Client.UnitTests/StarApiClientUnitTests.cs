@@ -261,7 +261,7 @@ public class StarApiClientUnitTests
     public async Task AddQuestObjectiveAsync_WhenQuestIdEmpty_ReturnsInvalidParam()
     {
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:8888", Web4OasisApiBaseUrl = "http://localhost:7777" });
         var result = await client.AddQuestObjectiveAsync("", "Objective description");
         Assert.True(result.IsError);
         Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
@@ -271,7 +271,7 @@ public class StarApiClientUnitTests
     public async Task RemoveQuestObjectiveAsync_WhenQuestIdOrObjectiveIdEmpty_ReturnsInvalidParam()
     {
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:8888", Web4OasisApiBaseUrl = "http://localhost:7777" });
         var result = await client.RemoveQuestObjectiveAsync("quest-id", "");
         Assert.True(result.IsError);
         Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);

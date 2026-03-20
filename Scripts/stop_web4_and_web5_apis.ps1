@@ -92,8 +92,8 @@ else
 
 if ($UsePortFallback)
 {
-    # 5555 = WEB4 (ONODE), 5556 = WEB5 (STAR API)
-    if (Stop-ByPorts -Ports @(5003, 5004, 5055, 5056, 5555, 5556))
+    # 7777/8888 = current local WEB4/WEB5; 5555/5556 = legacy ports
+    if (Stop-ByPorts -Ports @(5003, 5004, 5055, 5056, 5555, 5556, 7777, 8888))
     {
         $stopped = $true
     }

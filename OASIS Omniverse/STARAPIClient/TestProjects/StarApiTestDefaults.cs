@@ -5,6 +5,6 @@ public static class StarApiTestDefaults
 {
     public const string Username = "dellams";
     public const string Password = "test!";
-    public const string Web5BaseUrl = "http://localhost:5556";
-    public const string Web4BaseUrl = "http://localhost:5555";
+    public const string Web5BaseUrl = "http://localhost:8888";
+    public const string Web4BaseUrl = "http://localhost:7777";
 }

@@ -2,8 +2,8 @@
 # WEB4 and WEB5 must be running (e.g. start_web4_and_web5_apis.ps1). Uses default URLs unless -Web4BaseUrl / -Web5BaseUrl are set.
 
 param(
-    [string]$Web4BaseUrl = "http://localhost:5555",
-    [string]$Web5BaseUrl = "http://localhost:5556"
+    [string]$Web4BaseUrl = "http://localhost:7777",
+    [string]$Web5BaseUrl = "http://localhost:8888"
 )
 
 $ErrorActionPreference = "Stop"

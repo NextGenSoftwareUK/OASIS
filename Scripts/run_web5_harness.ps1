@@ -1,8 +1,8 @@
-# Run only the WEB5 (STAR) API test harness. Optionally pass -Web5BaseUrl (default http://localhost:5556).
+# Run only the WEB5 (STAR) API test harness. Optionally pass -Web5BaseUrl (default http://localhost:8888).
 # WEB5 API should be running, or use run_web4_web5_harnesses_with_apis.ps1 to start APIs and run both harnesses.
 
 param(
-    [string]$Web5BaseUrl = "http://localhost:5556"
+    [string]$Web5BaseUrl = "http://localhost:8888"
 )
 
 $ErrorActionPreference = "Continue"

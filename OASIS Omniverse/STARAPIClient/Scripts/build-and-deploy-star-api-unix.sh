@@ -70,12 +70,13 @@ fi
 case "$RUNTIME" in
   linux-x64)
     LIB_EXT=".so"
-    LIB_NAMES=("libstar_api.so" "star_api.so")
+    # NativeAOT uses AssemblyName (star_api) → star_api.so. Prefer it over any leftover libstar_api.*.
+    LIB_NAMES=("star_api.so" "libstar_api.so")
     PLATFORM_LABEL="Linux"
     ;;
   osx-x64|osx-arm64)
     LIB_EXT=".dylib"
-    LIB_NAMES=("libstar_api.dylib" "star_api.dylib")
+    LIB_NAMES=("star_api.dylib" "libstar_api.dylib")
     PLATFORM_LABEL="macOS ($RUNTIME)"
     ;;
   *)
@@ -102,7 +103,8 @@ done
 
 need_build=$FORCE_BUILD
 if [[ $need_build -eq 0 && -n "$STAR_LIB" && -f "$STAR_LIB" ]]; then
-  if [[ -n "$(find "$PROJECT_DIR" -maxdepth 1 \( -name "*.cs" -o -name "*.csproj" \) -newer "$STAR_LIB" 2>/dev/null)" ]]; then
+  # Match Windows publish script: any .cs/.csproj under the project (excluding bin/obj) newer than the native lib triggers rebuild.
+  if [[ -n "$(find "$PROJECT_DIR" \( -path "*/bin/*" -o -path "*/obj/*" \) -prune -o \( -name "*.cs" -o -name "*.csproj" \) -type f -newer "$STAR_LIB" -print 2>/dev/null | head -1)" ]]; then
     need_build=1
   fi
   if [[ $need_build -eq 0 && -f "$HEADER_PATH" ]] && [[ "$HEADER_PATH" -nt "$STAR_LIB" ]]; then
@@ -147,7 +149,7 @@ for name in "${LIB_NAMES[@]}"; do
 done
 
 if [[ -z "$STAR_LIB" || ! -f "$STAR_LIB" ]]; then
-  echo "ERROR: Build did not produce ${LIB_NAMES[0]} in publish/native dir." >&2
+  echo "ERROR: Build did not produce star_api${LIB_EXT} (or libstar_api${LIB_EXT}) in publish/native dir." >&2
   echo "  Checked: $PUBLISH_DIR, $NATIVE_DIR" >&2
   exit 1
 fi
@@ -167,6 +169,10 @@ for target in "$ODOOM_DIR" "$OQUAKE_DIR"; do
       cp -f "$HEADER_PATH" "$OQUAKE_DIR/Code/"
     fi
   fi
+done
+# Drop stale linker-named copies so BUILD_ODOOM / BUILD_OQUAKE never pick an old libstar_api.* over fresh star_api.*.
+for stale in "$ODOOM_DIR/libstar_api.so" "$ODOOM_DIR/libstar_api.dylib" "$OQUAKE_DIR/libstar_api.so" "$OQUAKE_DIR/libstar_api.dylib" "$OQUAKE_DIR/Code/libstar_api.so" "$OQUAKE_DIR/Code/libstar_api.dylib"; do
+  [[ -f "$stale" ]] && rm -f "$stale"
 done
 
 echo ""

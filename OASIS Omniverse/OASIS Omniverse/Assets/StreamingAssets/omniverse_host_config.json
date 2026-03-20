@@ -2,8 +2,8 @@
   "staleGameMinutes": 10,
   "maintenancePollSeconds": 20,
   "lowMemoryAvailableMbThreshold": 2048,
-  "web4OasisApiBaseUrl": "http://localhost:5555",
-  "web5StarApiBaseUrl": "http://localhost:5556",
+  "web4OasisApiBaseUrl": "http://localhost:7777",
+  "web5StarApiBaseUrl": "http://localhost:8888",
   "avatarId": "f9ccf5b2-3991-42ec-8155-65b94b2e0f0c",
   "apiKey": "",
   "games": [

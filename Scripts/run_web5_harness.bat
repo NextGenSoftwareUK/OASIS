@@ -1,6 +1,6 @@
 @echo off
-REM Run only the WEB5 (STAR) API test harness. API should already be running (default: 5556).
-REM Invokes run_web5_harness.ps1. Optional: run with --Web5BaseUrl=http://localhost:5556
+REM Run only the WEB5 (STAR) API test harness. API should already be running (default: 8888).
+REM Invokes run_web5_harness.ps1. Optional: run with --Web5BaseUrl=http://localhost:8888
 
 cd /d "%~dp0"
 

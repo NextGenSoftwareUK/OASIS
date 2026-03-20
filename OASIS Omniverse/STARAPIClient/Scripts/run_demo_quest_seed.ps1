@@ -13,7 +13,7 @@ Set-StrictMode -Version Latest
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $starApiClientRoot = (Resolve-Path (Join-Path $scriptDir "..")).Path
-$demoQuestSeedDir = Join-Path $starApiClientRoot "TestProjects\DemoQuestSeed"
+$demoQuestSeedDir = Join-Path (Join-Path $starApiClientRoot "TestProjects") "DemoQuestSeed"
 $projectPath = Join-Path $demoQuestSeedDir "DemoQuestSeed.csproj"
 
 if (-not (Test-Path $projectPath)) {
@@ -31,7 +31,7 @@ Push-Location $starApiClientRoot | Out-Null
 try {
     if (-not $NoBuild) {
         Write-Host "Building DemoQuestSeed ($Configuration)..." -ForegroundColor Yellow
-        dotnet build "TestProjects\DemoQuestSeed\DemoQuestSeed.csproj" -c $Configuration --nologo -v q
+        dotnet build $projectPath -c $Configuration --nologo -v q
         if ($LASTEXITCODE -ne 0) {
             Write-Error "Build failed."
             exit $LASTEXITCODE
@@ -40,7 +40,7 @@ try {
     }
 
     Write-Host "Running Demo Quest Seed..." -ForegroundColor Green
-    dotnet run --project "TestProjects\DemoQuestSeed\DemoQuestSeed.csproj" -c $Configuration --no-build
+    dotnet run --project $projectPath -c $Configuration --no-build
     $exitCode = $LASTEXITCODE
     Write-Host ''
     Write-Host 'Press any key to exit...' -ForegroundColor Gray
