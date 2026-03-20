@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using ADRaffy.ENSNormalize;
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
@@ -59,6 +61,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<STARNFTCollection> result = new OASISResult<STARNFTCollection>();
             OASISResult<IWeb4NFTCollection> collectionResult = null;
             bool mint = false;
+
+            if (CLIEngine.NonInteractive
+                && createOptions?.CustomCreateParams is Dictionary<string, object> scriptedParams
+                && TryReadWrapWeb4NFTCollectionId(scriptedParams, out string wrapCollectionId))
+            {
+                collectionResult = await ResolveWeb4NFTCollectionNonInteractiveAsync(wrapCollectionId, providerType);
+                return await SubmitWeb5NftCollectionWrapAsync(collectionResult, holonSubType, showHeaderAndInro, providerType);
+            }
+
+            if (CLIEngine.NonInteractive
+                && createOptions?.CustomCreateParams is Dictionary<string, object> scriptedParamsNi
+                && TryReadMinimalNftCollectionCreate(scriptedParamsNi, out string minTitle, out string minDesc))
+            {
+                CreateWeb4NFTCollectionRequest minRequest = new CreateWeb4NFTCollectionRequest
+                {
+                    Title = minTitle,
+                    Description = minDesc ?? "",
+                    CreatedBy = STAR.BeamedInAvatar.Id,
+                    Web4NFTs = new List<IWeb4NFT>(),
+                    MetaData = new Dictionary<string, string>()
+                };
+                collectionResult = await NFTCommon.NFTManager.CreateWeb4NFTCollectionAsync(minRequest, providerType);
+                return await SubmitWeb5NftCollectionWrapAsync(collectionResult, holonSubType, showHeaderAndInro, providerType);
+            }
 
             ShowHeader();
 
@@ -131,6 +157,113 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating WEB4 NFT Collection in CreateWeb4NFTCollectionAsync method. Reason: {collectionResult.Message}");
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 NFT Collection in LoadOASISNFTCollectionAsync method. Reason: {collectionResult.Message}");
+            }
+
+            return result;
+        }
+
+        private static bool TryReadWrapWeb4NFTCollectionId(Dictionary<string, object> p, out string id)
+        {
+            id = null;
+            if (p == null)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedObj) || scriptedObj is not bool scripted || !scripted)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.WrapWeb4NFTCollectionId, out object idObj) || idObj is not string s || string.IsNullOrWhiteSpace(s))
+                return false;
+            id = s.Trim();
+            return true;
+        }
+
+        private static bool TryReadMinimalNftCollectionCreate(Dictionary<string, object> p, out string title, out string description)
+        {
+            title = description = null;
+            if (p == null)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedObj) || scriptedObj is not bool scripted || !scripted)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.CreateMinimalNftCollection, out object minObj) || minObj is not bool minB || !minB)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Name, out object nameObj) || nameObj is not string ns || string.IsNullOrWhiteSpace(ns))
+                return false;
+            title = ns.Trim();
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.Description, out object descObj) && descObj is string ds)
+                description = ds;
+            else
+                description = "";
+            return true;
+        }
+
+        private async Task<OASISResult<IWeb4NFTCollection>> ResolveWeb4NFTCollectionNonInteractiveAsync(string idOrName, ProviderType providerType)
+        {
+            OASISResult<IWeb4NFTCollection> result = new OASISResult<IWeb4NFTCollection>();
+            if (Guid.TryParse(idOrName, out Guid gid))
+                return await NFTCommon.NFTManager.LoadWeb4NFTCollectionAsync(gid, providerType: providerType);
+
+            OASISResult<IEnumerable<IWeb4NFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4NFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, false, providerType);
+            if (searchResults == null || searchResults.IsError || searchResults.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, searchResults?.Message ?? "Search failed.");
+                return result;
+            }
+
+            List<IWeb4NFTCollection> list = searchResults.Result.ToList();
+            if (list.Count == 0)
+            {
+                OASISErrorHandling.HandleError(ref result, $"No WEB4 NFT Collection found for '{idOrName}'.");
+                return result;
+            }
+
+            if (list.Count > 1)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Multiple WEB4 NFT Collections match '{idOrName}'; use a GUID.");
+                return result;
+            }
+
+            result.Result = list[0];
+            return result;
+        }
+
+        private async Task<OASISResult<STARNFTCollection>> SubmitWeb5NftCollectionWrapAsync(OASISResult<IWeb4NFTCollection> collectionResult, object holonSubType, bool showHeaderAndInro, ProviderType providerType)
+        {
+            OASISResult<STARNFTCollection> result = new OASISResult<STARNFTCollection>();
+            if (collectionResult == null || collectionResult.Result == null || collectionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 NFT Collection in non-interactive wrap. Reason: {collectionResult?.Message}");
+                return result;
+            }
+
+            IWeb4NFTCollection collection = collectionResult.Result;
+            collection.Web4NFTs.Clear();
+            Console.WriteLine("");
+
+            result = await base.CreateAsync(new STARNETCreateOptions<STARNFTCollection, STARNETDNA>()
+            {
+                STARNETDNA = new STARNETDNA()
+                {
+                    MetaData = new Dictionary<string, object>() { { "NFTCollection", collection } }
+                },
+                STARNETHolon = new STARNFTCollection()
+                {
+                    NFTCollectionId = collection.Id
+                }
+            }, holonSubType, showHeaderAndInro, providerType: providerType);
+
+            if (result != null && result.Result != null && !result.IsError)
+            {
+                result.Result.NFTCollectionType = (NFTCollectionType)Enum.Parse(typeof(NFTCollectionType), result.Result.STARNETDNA.STARNETCategory.ToString());
+                OASISResult<STARNFTCollection> saveResult = await result.Result.SaveAsync<STARNFTCollection>();
+
+                if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                {
+                    collection.MetaData["Web5STARGeoNFTId"] = saveResult.Result.Id.ToString();
+                    OASISResult<IWeb4NFTCollection> web4NFTCollection = await NFTCommon.NFTManager.UpdateWeb4NFTCollectionAsync(new UpdateWeb4NFTCollectionRequest() { Id = collection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = collection.MetaData }, providerType: providerType);
+
+                    if (!(web4NFTCollection != null && web4NFTCollection.Result != null && !web4NFTCollection.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 NFT Collection after creation of WEB5 STAR NFT Collection in SubmitWeb5NftCollectionWrapAsync. Reason: {web4NFTCollection.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured saving WEB5 STAR NFT Collection after creation in SubmitWeb5NftCollectionWrapAsync. Reason: {saveResult.Message}");
             }
 
             return result;

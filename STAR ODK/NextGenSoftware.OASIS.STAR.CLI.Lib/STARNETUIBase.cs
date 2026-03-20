@@ -3090,11 +3090,54 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        /// <summary>
+        /// Clones a STARNET holon via <see cref="ISTARNETManagerBase{T1,T2,T3,T4}.CloneAsync"/>.
+        /// <paramref name="options"/> may be a source id or name string (non-interactive argv); when null/empty in interactive mode, <see cref="FindAsync"/> prompts.
+        /// </summary>
         public async Task<OASISResult<T1>> CloneAsync(object options = null)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            OASISErrorHandling.HandleError(ref result, $"Clone is not implemented yet for {STARNETManager.STARNETHolonUIName}.");
-            return await Task.FromResult(result);
+            string idOrName = options != null ? options.ToString()?.Trim() : null;
+            if (string.IsNullOrEmpty(idOrName))
+                idOrName = "";
+
+            OASISResult<T1> findResult = await FindAsync("clone", idOrName, default, true, providerType: ProviderType.Default);
+            if (findResult == null || findResult.IsError || findResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, findResult?.Message ?? $"Could not find {STARNETManager.STARNETHolonUIName} to clone.");
+                return result;
+            }
+
+            T1 source = findResult.Result;
+            if (source.STARNETDNA == null || source.STARNETDNA.Id == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, "Source holon has no STARNET DNA id; cannot clone.");
+                return result;
+            }
+
+            string newName = null;
+            if (!CLIEngine.NonInteractive)
+            {
+                if (CLIEngine.GetConfirmation($"Do you wish to give the clone a custom name? (No = append \" - Clone\" to '{source.STARNETDNA.Name}')"))
+                    newName = CLIEngine.GetValidInput($"New name for the cloned {STARNETManager.STARNETHolonUIName}:");
+            }
+
+            OASISResult<T1> cloneResult = await STARNETManager.CloneAsync(STAR.BeamedInAvatar.Id, source.STARNETDNA.Id, newName, ProviderType.Default);
+            if (cloneResult != null && !cloneResult.IsError && cloneResult.Result != null)
+            {
+                if (!CLIEngine.JsonOutput)
+                    CLIEngine.ShowSuccessMessage(cloneResult.Message ?? "Clone completed.");
+                // JSON / non-interactive: avoid dumping the full holon UI to stdout (use follow-up show <id> if needed).
+                if (!CLIEngine.NonInteractive && !CLIEngine.JsonOutput)
+                    await ShowAsync(cloneResult.Result);
+                return cloneResult;
+            }
+
+            if (cloneResult != null && !string.IsNullOrEmpty(cloneResult.Message))
+                OASISErrorHandling.HandleError(ref result, cloneResult.Message);
+            else
+                OASISErrorHandling.HandleError(ref result, "Clone failed.");
+            return result;
         }
 
         //TODO: Finish implementing later!
