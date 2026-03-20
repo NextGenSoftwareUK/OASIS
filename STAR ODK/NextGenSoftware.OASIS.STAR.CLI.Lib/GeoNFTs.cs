@@ -401,12 +401,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             await PlaceWeb4GeoNFTCoreAsync(geoRequest);
         }
 
-        public async Task PlaceGeoNFTFromJsonFileAsync(string jsonFilePath)
+        public async Task<OASISResult<IWeb4GeoSpatialNFT>> PlaceGeoNFTFromJsonFileAsync(string jsonFilePath)
         {
+            OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
             if (string.IsNullOrWhiteSpace(jsonFilePath) || !File.Exists(jsonFilePath))
             {
-                CLIEngine.ShowErrorMessage("Place GeoNFT: JSON file path is missing or does not exist.");
-                return;
+                OASISErrorHandling.HandleError(ref result, "Place GeoNFT: JSON file path is missing or does not exist.");
+                CLIEngine.ShowErrorMessage(result.Message);
+                return result;
             }
 
             try
@@ -415,20 +417,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 PlaceWeb4GeoSpatialNFTRequest request = JsonConvert.DeserializeObject<PlaceWeb4GeoSpatialNFTRequest>(json);
                 if (request == null)
                 {
-                    CLIEngine.ShowErrorMessage("Place GeoNFT: JSON deserialized to null. Expected PlaceWeb4GeoSpatialNFTRequest.");
-                    return;
+                    OASISErrorHandling.HandleError(ref result, "Place GeoNFT: JSON deserialized to null. Expected PlaceWeb4GeoSpatialNFTRequest.");
+                    CLIEngine.ShowErrorMessage(result.Message);
+                    return result;
                 }
 
                 request.PlacedByAvatarId = STAR.BeamedInAvatar.Id;
-                await PlaceWeb4GeoNFTCoreAsync(request);
+                return await PlaceWeb4GeoNFTCoreAsync(request);
             }
             catch (Exception ex)
             {
-                CLIEngine.ShowErrorMessage($"Place GeoNFT from JSON failed: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result, $"Place GeoNFT from JSON failed: {ex.Message}", ex);
+                CLIEngine.ShowErrorMessage(result.Message);
+                return result;
             }
         }
 
-        private async Task PlaceWeb4GeoNFTCoreAsync(IPlaceWeb4GeoSpatialNFTRequest geoRequest)
+        private async Task<OASISResult<IWeb4GeoSpatialNFT>> PlaceWeb4GeoNFTCoreAsync(IPlaceWeb4GeoSpatialNFTRequest geoRequest)
         {
             CLIEngine.ShowWorkingMessage("Placing WEB4 OASIS Geo-NFT...");
             OASISResult<IWeb4GeoSpatialNFT> nftResult = await STAR.OASISAPI.NFTs.PlaceWeb4GeoNFTAsync(geoRequest);
@@ -440,6 +445,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string msg = nftResult != null ? nftResult.Message : "";
                 CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
             }
+
+            return nftResult ?? new OASISResult<IWeb4GeoSpatialNFT> { IsError = true, Message = "Null result from PlaceWeb4GeoNFTAsync." };
         }
 
         public async Task SendGeoNFTAsync()
@@ -451,7 +458,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             await SendGeoNFTAsync(fromWalletAddress, toWalletAddress, tokenAddress, memoText);
         }
 
-        public async Task SendGeoNFTAsync(string fromWalletAddress, string toWalletAddress, string tokenAddress, string memoText)
+        public async Task<OASISResult<ISendWeb4NFTResponse>> SendGeoNFTAsync(string fromWalletAddress, string toWalletAddress, string tokenAddress, string memoText)
         {
             CLIEngine.ShowWorkingMessage("Sending WEB4 GeoNFT...");
 
@@ -470,6 +477,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string msg = response != null ? response.Message : "";
                 CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
             }
+
+            if (response == null)
+            {
+                OASISResult<ISendWeb4NFTResponse> err = new OASISResult<ISendWeb4NFTResponse>();
+                OASISErrorHandling.HandleError(ref err, "Null response from SendNFTAsync API.");
+                return err;
+            }
+
+            return response;
         }
 
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> BurnGeoNFTAsync(object mintParams = null)
@@ -511,9 +527,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IWeb3NFTTransactionResponse> burnResult = await NFTCommon.NFTManager.BurnWeb3NFTAsync(burnRequest);
 
             if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
+            {
                 CLIEngine.ShowSuccessMessage("NFT Successfully Burnt.");
+                result.Message = burnResult.Message ?? "NFT Successfully Burnt.";
+            }
             else
-                CLIEngine.ShowErrorMessage($"Error Burning NFT, Reason: {burnResult?.Message}");
+            {
+                string msg = burnResult?.Message ?? "Error burning NFT.";
+                CLIEngine.ShowErrorMessage($"Error Burning NFT, Reason: {msg}");
+                OASISErrorHandling.HandleError(ref result, msg);
+            }
 
             return result;
         }
@@ -637,7 +660,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4GeoSpatialNFT>> ConvertGeoNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4GeoSpatialNFT> result = new OASISResult<IWeb4GeoSpatialNFT>();
-            OASISErrorHandling.HandleError(ref result, "WEB4 GeoNFT convert is not implemented in STAR CLI yet.");
+            OASISErrorHandling.HandleError(ref result, "WEB4 GeoNFT convert is not available: the STAR CLI has no wired ONODE/NFTManager convert API yet (use remint, wrap/create, or interactive flows where applicable).");
             return await Task.FromResult(result);
         }
 

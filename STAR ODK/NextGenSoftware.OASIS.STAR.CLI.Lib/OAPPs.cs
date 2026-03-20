@@ -23,7 +23,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     //public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, OAPPDNA>
-    public class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>
+    public partial class OAPPs : STARNETUIBase<OAPP, DownloadedOAPP, InstalledOAPP, STARNETDNA>
     {
         public OAPPs(Guid avatarId, STARDNA STARDNA) : base(new OAPPManager(avatarId, STARDNA),
             "Welcome to the OASIS Omniverse/MagicVerse Light Wizard!", new List<string>
@@ -68,9 +68,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<OAPP>> CreateAsync(ISTARNETCreateOptions<OAPP, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             if (createOptions?.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.LightRequestJsonPath, out object lightJsonObj)
+                && lightJsonObj is string lightJsonPath
+                && !string.IsNullOrWhiteSpace(lightJsonPath))
+            {
+                OASISResult<CoronalEjection> lightCor = await LightFromJsonFileAsync(lightJsonPath.Trim(), providerType);
+                return MapCoronalToOapp(lightCor);
+            }
+
+            if (createOptions?.CustomCreateParams != null
                 && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
                 && scriptedFlag is bool sb && sb)
                 return await base.CreateAsync(createOptions, null, showHeaderAndInro, addDependencies, providerType);
+
+            if (CLIEngine.NonInteractive)
+            {
+                OASISResult<OAPP> blocked = new OASISResult<OAPP>();
+                OASISErrorHandling.HandleError(ref blocked,
+                    "Non-interactive OAPP create requires one of: (1) `oapp light <LightRequest.json>` / `happ light <file>` (or alias `oapp create light <file>`) — full STAR.LightAsync + STARNET registration from JSON; (2) scripted argv `create <name> <description> <OAPPType> [parentFolder]`; or (3) top-level `light <LightRequest.json>` / `light json <file>` / `light <full positional args>`. The interactive Light wizard (`light wiz` / prompts) is not available in -n.");
+                return blocked;
+            }
 
             OASISResult<CoronalEjection> result = await LightWizardAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
 
