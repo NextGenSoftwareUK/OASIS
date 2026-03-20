@@ -19,7 +19,7 @@
 **Where is STAR installed?**
 - **Command on PATH:** `/usr/local/bin/star` (wrapper script that runs the real binary)
 - **App directory (binary, shipped DNA JSON, DNATemplates):** `/usr/local/lib/oasis-star-cli/`
-- **Uninstall:** `sudo /usr/local/lib/oasis-star-cli/uninstall.sh` (or `./uninstall.sh` from an extracted tarball)
+- **Uninstall:** `/usr/local/lib/oasis-star-cli/uninstall.sh` (prompts for `sudo` if needed), or `./uninstall.sh` from an extracted tarball — same behavior
 - **User config / writable data (after first run):** `~/.local/share/oasis-star-cli/` (e.g. copied DNA JSON)
 - **Application menu entry:** `/usr/share/applications/oasis-star-cli.desktop`
 
