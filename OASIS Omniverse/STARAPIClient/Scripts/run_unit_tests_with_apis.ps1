@@ -33,7 +33,7 @@ try {
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
 
-    & $startPs1 -NoWait -Web4OasisApiBaseUrl "http://localhost:5555" -Web5StarApiBaseUrl "http://localhost:5556"
+    & $startPs1 -NoWait -Web4OasisApiBaseUrl "http://localhost:7777" -Web5StarApiBaseUrl "http://localhost:8888"
 
     Write-Host ""
     Write-Host "Waiting a few seconds for APIs to be ready..." -ForegroundColor Yellow

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build STARAPIClient and deploy native lib (libstar_api.so / libstar_api.dylib) + star_api.h to game folders.
+# Build STARAPIClient and deploy native lib (star_api.so / star_api.dylib from NativeAOT) + star_api.h to game folders.
 # Linux/macOS equivalent of BUILD_AND_DEPLOY_STAR_CLIENT.bat.
 # Usage: ./BUILD_AND_DEPLOY_STAR_CLIENT.sh [ -ForceBuild ] [ -Runtime linux-x64|osx-x64|osx-arm64 ]
 # Build is skipped if library is up to date unless -ForceBuild is passed.

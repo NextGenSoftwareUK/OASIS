@@ -29,7 +29,7 @@ brew install powershell/tap/powershell
 ./Scripts/start_web5_api.sh
 ```
 
-Each Windows script has a matching `.sh`: same name with `.sh` instead of `.bat` (e.g. `run_web4_web5_harnesses.sh` → `run_web4_web5_harnesses.ps1`). Pass any arguments the same way: `./Scripts/run_web4_web5_harnesses.sh -Web5BaseUrl http://localhost:5556`. The tables below list `.ps1` / `.bat`; on Linux/macOS use the same name with `.sh` instead of `.bat`.
+Each Windows script has a matching `.sh`: same name with `.sh` instead of `.bat` (e.g. `run_web4_web5_harnesses.sh` → `run_web4_web5_harnesses.ps1`). Pass any arguments the same way: `./Scripts/run_web4_web5_harnesses.sh -Web5BaseUrl http://localhost:8888`. The tables below list `.ps1` / `.bat`; on Linux/macOS use the same name with `.sh` instead of `.bat`.
 
 ---
 

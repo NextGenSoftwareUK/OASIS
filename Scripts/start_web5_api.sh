@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start only the WEB5 (STAR) OASIS API. Linux/macOS equivalent of start_web5_api.bat.
-# Stops any existing process on port 5556 so dotnet run can build and copy DLLs.
+# Stops any existing process on port 8888 so dotnet run can build and copy DLLs.
 
 set -e
 
@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/include/pause_on_exit.inc.sh"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 WEB5_PROJECT="$REPO_ROOT/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj"
 WEB5_DIR="$REPO_ROOT/STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI"
-PORT=5556
+PORT=8888
 
 echo ""
 echo "========================================"

@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 set TOTAL_EXIT=0
 
-REM Force real APIs (WEB5/WEB4 localhost:5556/5555). Override with STARAPI_INTEGRATION_USE_FAKE=true or STARAPI_HARNESS_USE_FAKE_SERVER=true if you need fake.
+REM Force real APIs (WEB5/WEB4 localhost:8888/7777). Override with STARAPI_INTEGRATION_USE_FAKE=true or STARAPI_HARNESS_USE_FAKE_SERVER=true if you need fake.
 set STARAPI_INTEGRATION_USE_FAKE=false
 set STARAPI_HARNESS_USE_FAKE_SERVER=false
 
@@ -12,12 +12,12 @@ dotnet test ../TestProjects\NextGenSoftware.OASIS.STARAPI.Client.UnitTests\NextG
 if %ERRORLEVEL% neq 0 set TOTAL_EXIT=1
 
 echo.
-echo ========== 2/3 Integration tests (real APIs: WEB5 :5556, WEB4 :5555) ==========
+echo ========== 2/3 Integration tests (real APIs: WEB5 :8888, WEB4 :7777) ==========
 dotnet test ../TestProjects\NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests\NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests.csproj -c Release --no-restore
 if %ERRORLEVEL% neq 0 set TOTAL_EXIT=1
 
 echo.
-echo ========== 3/3 Test harness (real APIs: WEB5 :5556, WEB4 :5555) ==========
+echo ========== 3/3 Test harness (real APIs: WEB5 :8888, WEB4 :7777) ==========
 dotnet run --project ../TestProjects\NextGenSoftware.OASIS.STARAPI.Client.TestHarness\NextGenSoftware.OASIS.STARAPI.Client.TestHarness.csproj -c Release
 if %ERRORLEVEL% neq 0 set TOTAL_EXIT=1
 
