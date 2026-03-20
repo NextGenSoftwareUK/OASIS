@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.STARAPI.Client.Tests;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests;
 
-/// <summary>Integration tests run against real APIs by default (WEB5/WEB4 localhost:5556/5555) using credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_INTEGRATION_USE_FAKE=true to use in-process fake servers instead.</summary>
+/// <summary>Integration tests run against real APIs by default (WEB5/WEB4 localhost:8888/7777) using credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_INTEGRATION_USE_FAKE=true to use in-process fake servers instead.</summary>
 public class StarApiClientIntegrationTests : IAsyncLifetime
 {
     private FakeStarApiServer? _web5Server;

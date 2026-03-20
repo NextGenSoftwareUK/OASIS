@@ -36,7 +36,7 @@ From OASIS repo root:
 Scripts\start_web4_and_web5_apis.bat
 ```
 
-Use `oasisstar.json` in each game’s **build** folder with `http://localhost:5555` (WEB4) and `http://localhost:5556` (WEB5). For live APIs, set URLs to `https://oasisweb4.one/api` and `https://oasisweb4.one/star/api` (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)).
+Use `oasisstar.json` in each game’s **build** folder with `http://localhost:7777` (WEB4) and `http://localhost:8888` (WEB5). For live APIs, set URLs to `https://oasisweb4.one/api` and `https://oasisweb4.one/star/api` (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)).
 
 ## 4. Build ODOOM
 

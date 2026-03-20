@@ -125,8 +125,8 @@ You can either run these **locally** or point the games at the **live** OASIS AP
    Scripts\start_web4_and_web5_apis.bat
    ```
    This calls `Scripts\start_web4_and_web5_apis.ps1`, which starts WEB4 (ONODE) then WEB5 (STAR) in serial. Default URLs:
-   - WEB4: `http://localhost:5555`
-   - WEB5: `http://localhost:5556`
+   - WEB4: `http://localhost:7777`
+   - WEB5: `http://localhost:8888`
 
 2. Keep the window open (or run with `-NoWait` if the script supports it) so the APIs stay up.
 
@@ -156,8 +156,8 @@ Both games read STAR/WEB4 URLs and options from a config file named **oasisstar.
 
 ### Relevant keys
 
-- **star_api_url** – WEB5 (STAR) API base URL (e.g. `http://localhost:5556` or `https://oasisweb4.one/star/api`).
-- **oasis_api_url** – WEB4 (OASIS/ONODE) API base URL (e.g. `http://localhost:5555` or `https://oasisweb4.one/api`).
+- **star_api_url** – WEB5 (STAR) API base URL (e.g. `http://localhost:8888` or `https://oasisweb4.one/star/api`).
+- **oasis_api_url** – WEB4 (OASIS/ONODE) API base URL (e.g. `http://localhost:7777` or `https://oasisweb4.one/api`).
 - **mint_weapons**, **mint_armor**, **mint_powerups**, **mint_keys** – Set to `1` to mint an NFT (WEB4 NFTHolon) when collecting that category; `0` to disable. Optional; default off for keys/weapons/armor/powerups if omitted.
 - **nft_provider** – NFT mint provider (e.g. `SolanaOASIS`). Optional.
 
@@ -167,8 +167,8 @@ Other keys (e.g. `beam_face`, `stack_armor`, `stack_keys`) control behavior; you
 
 ```json
 {
-  "star_api_url": "http://localhost:5556",
-  "oasis_api_url": "http://localhost:5555",
+  "star_api_url": "http://localhost:8888",
+  "oasis_api_url": "http://localhost:7777",
   "beam_face": 1,
   "stack_armor": 1,
   "stack_weapons": 1,
@@ -208,7 +208,7 @@ Optional: **`send_to_address_after_minting`** – wallet address to send the min
 
 Summary:
 
-- **Local:** Run `Scripts\start_web4_and_web5_apis.bat` and use `localhost:5555` / `localhost:5556` in oasisstar.json.
+- **Local:** Run `Scripts\start_web4_and_web5_apis.bat` and use `localhost:7777` / `localhost:8888` in oasisstar.json.
 - **Live:** Do not start the bat; set `oasis_api_url` and `star_api_url` in both games’ `build\oasisstar.json` to the URLs above.
 
 ---

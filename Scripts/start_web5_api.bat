@@ -1,6 +1,6 @@
 @echo off
 REM Batch script to start only WEB5 STAR API.
-REM Stops any existing process on port 5556 so the build (from dotnet run) can copy DLLs.
+REM Stops any existing process on port 8888 so the build (from dotnet run) can copy DLLs.
 
 echo.
 echo ========================================
@@ -20,21 +20,21 @@ if not exist "%WEB5_PROJECT%" (
     exit /b 1
 )
 
-REM Stop any process already using port 5556 so dotnet run can build and copy DLLs
-echo Checking for existing WEB5 STAR API on port 5556...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 5556 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped existing process on port 5556 (pid' $_.OwningProcess ')' }"
+REM Stop any process already using port 8888 so dotnet run can build and copy DLLs
+echo Checking for existing WEB5 STAR API on port 8888...
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8888 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped existing process on port 8888 (pid' $_.OwningProcess ')' }"
 if %ERRORLEVEL% NEQ 0 (
     echo Port check completed (or PowerShell unavailable).
 )
 
 echo.
-echo Starting WEB5 STAR API on http://localhost:5556...
+echo Starting WEB5 STAR API on http://localhost:8888...
 echo Press Ctrl+C to stop the API.
 echo.
 
 REM Change to project directory and run (dotnet run builds first; DLLs must not be locked)
 cd /d "%SCRIPT_DIR%..\STAR ODK\NextGenSoftware.OASIS.STAR.WebAPI"
-dotnet run --no-launch-profile --project "%WEB5_PROJECT%" -c Release --urls "http://localhost:5556"
+dotnet run --no-launch-profile --project "%WEB5_PROJECT%" -c Release --urls "http://localhost:8888"
 set EXITCODE=%ERRORLEVEL%
 echo.
 echo ========================================

@@ -204,7 +204,7 @@ powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_
 
 The C inventory test (`test_inventory.c`) exercises init, auth, get inventory, has_item, add_item, sync, **send-to-avatar**, and **send-to-clan**. Build and run with:
 
-**One-click (defaults: `http://localhost:5556`, user `dellams`):**
+**One-click (defaults: `http://localhost:8888`, user `dellams`):**
 
 ```batch
 OASIS Omniverse\STARAPIClient\TEST_INVENTORY.bat
@@ -213,7 +213,7 @@ OASIS Omniverse\STARAPIClient\TEST_INVENTORY.bat
 **PowerShell (custom URL/auth):**
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_and_test_inventory.ps1" -BaseUrl "http://localhost:5556" -Username "user" -Password "pass"
+powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_and_test_inventory.ps1" -BaseUrl "http://localhost:8888" -Username "user" -Password "pass"
 ```
 
 **Optional: send-to-avatar and send-to-clan**
@@ -226,20 +226,20 @@ powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/compile_
 Example (PowerShell):
 
 ```powershell
-.\compile_and_test_inventory.ps1 -BaseUrl "http://localhost:5556" -Username "user" -Password "pass" -SendAvatarTarget "other_user" -SendClanName "MyClan"
+.\compile_and_test_inventory.ps1 -BaseUrl "http://localhost:8888" -Username "user" -Password "pass" -SendAvatarTarget "other_user" -SendClanName "MyClan"
 ```
 
 Example (run built exe directly):
 
 ```text
-test_inventory.exe http://localhost:5556 user pass "" "" other_user MyClan
+test_inventory.exe http://localhost:8888 user pass "" "" other_user MyClan
 ```
 
 (Use `""` for api_key and avatar_id if you don’t need them.)
 
 ## Unit + Integration + Harness (one click)
 
-The **test harness** (`TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness`) covers the same flows as the C **test_inventory** (init, auth, get avatar, get inventory, has_item, add_item, queue add, flush, use_item, quests, boss NFT, send-to-avatar, send-to-clan, invalidate cache) plus **NFT minting** and **[NFT] prefix**: direct `MintInventoryItemNftAsync` (Id + Hash), pickup-with-mint via `EnqueuePickupWithMintJobOnly` + flush, `ConsumeLastMintResult` for console display, and a **real-API [NFT] prefix** check (add item with `nftId`, GET inventory, assert item has `NftId` and display would be `[NFT] ...`). The harness defaults to **real APIs** (WEB5 localhost:5556, WEB4 localhost:5555); set `STARAPI_HARNESS_USE_FAKE_SERVER=true` or `STARAPI_HARNESS_MODE=fake` to use fake servers. **Unit tests** cover not-initialized paths, `ConsumeLastMintResult` when no mint, WEB4-required mint, and the **[NFT] prefix** contract (when `NftId` is set, display name is `"[NFT] " + Name` for Doom/Quake overlay). **Integration tests** run against **real APIs by default** (localhost:5556/5555); set `STARAPI_INTEGRATION_USE_FAKE=true` for in-process fake servers. They cover full workflow, mint (Id + Hash), pickup-with-mint + consume, send-to-avatar, send-to-clan, invalidate cache + refetch, and **GET inventory with NftId** (add item with `nftId`, GET inventory, assert item has `NftId` and display prefix `[NFT] ...`); this test passes with real APIs when the backend returns `NftId` on GET inventory.
+The **test harness** (`TestProjects/NextGenSoftware.OASIS.STARAPI.Client.TestHarness`) covers the same flows as the C **test_inventory** (init, auth, get avatar, get inventory, has_item, add_item, queue add, flush, use_item, quests, boss NFT, send-to-avatar, send-to-clan, invalidate cache) plus **NFT minting** and **[NFT] prefix**: direct `MintInventoryItemNftAsync` (Id + Hash), pickup-with-mint via `EnqueuePickupWithMintJobOnly` + flush, `ConsumeLastMintResult` for console display, and a **real-API [NFT] prefix** check (add item with `nftId`, GET inventory, assert item has `NftId` and display would be `[NFT] ...`). The harness defaults to **real APIs** (WEB5 localhost:8888, WEB4 localhost:7777); set `STARAPI_HARNESS_USE_FAKE_SERVER=true` or `STARAPI_HARNESS_MODE=fake` to use fake servers. **Unit tests** cover not-initialized paths, `ConsumeLastMintResult` when no mint, WEB4-required mint, and the **[NFT] prefix** contract (when `NftId` is set, display name is `"[NFT] " + Name` for Doom/Quake overlay). **Integration tests** run against **real APIs by default** (localhost:8888/5555); set `STARAPI_INTEGRATION_USE_FAKE=true` for in-process fake servers. They cover full workflow, mint (Id + Hash), pickup-with-mint + consume, send-to-avatar, send-to-clan, invalidate cache + refetch, and **GET inventory with NftId** (add item with `nftId`, GET inventory, assert item has `NftId` and display prefix `[NFT] ...`); this test passes with real APIs when the backend returns `NftId` on GET inventory.
 
 **Batch scripts** (run from `OASIS Omniverse/STARAPIClient` or with full path):
 
@@ -298,11 +298,11 @@ Optional fallback stop by known local ports:
 powershell -ExecutionPolicy Bypass -File "OASIS Omniverse/STARAPIClient/stop_local_web4_and_web5_apis.ps1" -UsePortFallback
 ```
 
-Tests default to **real APIs**: WEB5 STAR API `http://localhost:5556`, WEB4 OASIS API `http://localhost:5555`. Override with env vars; use fake servers only when you opt in (e.g. CI with no real servers).
+Tests default to **real APIs**: WEB5 STAR API `http://localhost:8888`, WEB4 OASIS API `http://localhost:7777`. Override with env vars; use fake servers only when you opt in (e.g. CI with no real servers).
 
 **Test Harness** (console app):
 
-- Default: real APIs at WEB5 `http://localhost:5556`, WEB4 `http://localhost:5555`.
+- Default: real APIs at WEB5 `http://localhost:8888`, WEB4 `http://localhost:7777`.
 - `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL` – override endpoints (defaults above).
 - `STARAPI_HARNESS_USE_FAKE_SERVER=true` or `STARAPI_HARNESS_MODE=fake` – use in-process fake servers instead of real APIs.
 - `STARAPI_HARNESS_MODE` – `real` (default), `fake`, `real-local`, `real-live`.
@@ -311,7 +311,7 @@ Tests default to **real APIs**: WEB5 STAR API `http://localhost:5556`, WEB4 OASI
 
 **Integration tests** (xunit):
 
-- Default: real APIs at WEB5 `http://localhost:5556`, WEB4 `http://localhost:5555`.
+- Default: real APIs at WEB5 `http://localhost:8888`, WEB4 `http://localhost:7777`.
 - `STARAPI_WEB5_BASE_URL` / `STARAPI_WEB4_BASE_URL` – override endpoints.
 - `STARAPI_INTEGRATION_USE_FAKE=true` – use in-process fake servers (e.g. for CI).
 - `STARAPI_USERNAME` / `STARAPI_PASSWORD` – credentials when running against real APIs.
