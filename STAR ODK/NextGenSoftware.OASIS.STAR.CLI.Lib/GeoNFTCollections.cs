@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -49,6 +51,30 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<STARGeoNFTCollection> result = new OASISResult<STARGeoNFTCollection>();
             OASISResult<IWeb4GeoNFTCollection> geoNFTCollectionResult = null;
             bool mint = false;
+
+            if (CLIEngine.NonInteractive
+                && createOptions?.CustomCreateParams is Dictionary<string, object> scriptedWrapParams
+                && TryReadWrapWeb4GeoNFTCollectionId(scriptedWrapParams, out string wrapGeoCollectionId))
+            {
+                geoNFTCollectionResult = await ResolveWeb4GeoNFTCollectionNonInteractiveAsync(wrapGeoCollectionId, providerType);
+                return await SubmitWeb5GeoNftCollectionWrapAsync(geoNFTCollectionResult, holonSubType, showHeaderAndInro, providerType);
+            }
+
+            if (CLIEngine.NonInteractive
+                && createOptions?.CustomCreateParams is Dictionary<string, object> scriptedMinGeoParams
+                && TryReadMinimalGeoNftCollectionCreate(scriptedMinGeoParams, out string minGeoTitle, out string minGeoDesc))
+            {
+                CreateWeb4GeoNFTCollectionRequest minGeoRequest = new CreateWeb4GeoNFTCollectionRequest
+                {
+                    Title = minGeoTitle,
+                    Description = minGeoDesc ?? "",
+                    CreatedBy = STAR.BeamedInAvatar.Id,
+                    Web4GeoNFTs = new List<IWeb4GeoSpatialNFT>(),
+                    MetaData = new Dictionary<string, string>()
+                };
+                geoNFTCollectionResult = await NFTCommon.NFTManager.CreateWeb4GeoNFTCollectionAsyc(minGeoRequest, providerType);
+                return await SubmitWeb5GeoNftCollectionWrapAsync(geoNFTCollectionResult, holonSubType, showHeaderAndInro, providerType);
+            }
 
             ShowHeader();
 
@@ -121,6 +147,113 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating WEB4 GeoNFT Collection in CreateWeb4GeoNFTCollectionAsync method. Reason: {geoNFTCollectionResult.Message}");
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 GeoNFT Collection in LoadOASISGeoNFTCollectionAsync method. Reason: {geoNFTCollectionResult.Message}");
+            }
+
+            return result;
+        }
+
+        private static bool TryReadWrapWeb4GeoNFTCollectionId(Dictionary<string, object> p, out string id)
+        {
+            id = null;
+            if (p == null)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedObj) || scriptedObj is not bool scripted || !scripted)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.WrapWeb4GeoNFTCollectionId, out object idObj) || idObj is not string s || string.IsNullOrWhiteSpace(s))
+                return false;
+            id = s.Trim();
+            return true;
+        }
+
+        private static bool TryReadMinimalGeoNftCollectionCreate(Dictionary<string, object> p, out string title, out string description)
+        {
+            title = description = null;
+            if (p == null)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedObj) || scriptedObj is not bool scripted || !scripted)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.CreateMinimalGeoNftCollection, out object minObj) || minObj is not bool minB || !minB)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Name, out object nameObj) || nameObj is not string ns || string.IsNullOrWhiteSpace(ns))
+                return false;
+            title = ns.Trim();
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.Description, out object descObj) && descObj is string ds)
+                description = ds;
+            else
+                description = "";
+            return true;
+        }
+
+        private async Task<OASISResult<IWeb4GeoNFTCollection>> ResolveWeb4GeoNFTCollectionNonInteractiveAsync(string idOrName, ProviderType providerType)
+        {
+            OASISResult<IWeb4GeoNFTCollection> result = new OASISResult<IWeb4GeoNFTCollection>();
+            if (Guid.TryParse(idOrName, out Guid gid))
+                return await NFTCommon.NFTManager.LoadWeb4GeoNFTCollectionAsync(gid, providerType: providerType);
+
+            OASISResult<IEnumerable<IWeb4GeoNFTCollection>> searchResults = await NFTCommon.NFTManager.SearchWeb4GeoNFTCollectionsAsync(idOrName, STAR.BeamedInAvatar.Id, null, MetaKeyValuePairMatchMode.All, false, providerType);
+            if (searchResults == null || searchResults.IsError || searchResults.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, searchResults?.Message ?? "Search failed.");
+                return result;
+            }
+
+            List<IWeb4GeoNFTCollection> list = searchResults.Result.ToList();
+            if (list.Count == 0)
+            {
+                OASISErrorHandling.HandleError(ref result, $"No WEB4 Geo-NFT Collection found for '{idOrName}'.");
+                return result;
+            }
+
+            if (list.Count > 1)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Multiple WEB4 Geo-NFT Collections match '{idOrName}'; use a GUID.");
+                return result;
+            }
+
+            result.Result = list[0];
+            return result;
+        }
+
+        private async Task<OASISResult<STARGeoNFTCollection>> SubmitWeb5GeoNftCollectionWrapAsync(OASISResult<IWeb4GeoNFTCollection> collectionResult, object holonSubType, bool showHeaderAndInro, ProviderType providerType)
+        {
+            OASISResult<STARGeoNFTCollection> result = new OASISResult<STARGeoNFTCollection>();
+            if (collectionResult == null || collectionResult.Result == null || collectionResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error occured loading WEB4 Geo-NFT Collection in non-interactive wrap. Reason: {collectionResult?.Message}");
+                return result;
+            }
+
+            IWeb4GeoNFTCollection geoNFTCollection = collectionResult.Result;
+            geoNFTCollection.Web4GeoNFTs.Clear();
+            Console.WriteLine("");
+
+            result = await base.CreateAsync(new STARNETCreateOptions<STARGeoNFTCollection, STARNETDNA>()
+            {
+                STARNETDNA = new STARNETDNA()
+                {
+                    MetaData = new Dictionary<string, object>() { { "GeoNFTCollection", geoNFTCollection } }
+                },
+                STARNETHolon = new STARGeoNFTCollection()
+                {
+                    GeoNFTCollectionId = geoNFTCollection.Id
+                }
+            }, holonSubType, showHeaderAndInro, providerType: providerType);
+
+            if (result != null && result.Result != null && !result.IsError)
+            {
+                result.Result.GeoNFTCollectionType = (NFTCollectionType)Enum.Parse(typeof(NFTCollectionType), result.Result.STARNETDNA.STARNETCategory.ToString());
+                OASISResult<STARGeoNFTCollection> saveResult = await result.Result.SaveAsync<STARGeoNFTCollection>();
+
+                if (saveResult != null && saveResult.Result != null && !saveResult.IsError)
+                {
+                    geoNFTCollection.MetaData["Web5STARGeoNFTCollectionId"] = saveResult.Result.Id.ToString();
+                    OASISResult<IWeb4GeoNFTCollection> web4GeoNFTCollection = await NFTCommon.NFTManager.UpdateWeb4GeoNFTCollectionAsync(new UpdateWeb4GeoNFTCollectionRequest() { Id = geoNFTCollection.Id, ModifiedBy = STAR.BeamedInAvatar.Id, MetaData = geoNFTCollection.MetaData }, providerType: providerType);
+
+                    if (!(web4GeoNFTCollection != null && web4GeoNFTCollection.Result != null && !web4GeoNFTCollection.IsError))
+                        OASISErrorHandling.HandleError(ref result, $"Error occured updating WEB4 Geo-NFT Collection after creation of WEB5 STAR Geo-NFT Collection in SubmitWeb5GeoNftCollectionWrapAsync. Reason: {web4GeoNFTCollection.Message}");
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, $"Error occured saving WEB5 STAR Geo-NFT Collection after creation in SubmitWeb5GeoNftCollectionWrapAsync. Reason: {saveResult.Message}");
             }
 
             return result;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -361,7 +362,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             await SendNFTAsync(fromWalletAddress, toWalletAddress, tokenAddress, memoText);
         }
 
-        public async Task SendNFTAsync(string fromWalletAddress, string toWalletAddress, string tokenAddress, string memoText)
+        public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(string fromWalletAddress, string toWalletAddress, string tokenAddress, string memoText)
         {
             CLIEngine.ShowWorkingMessage("Sending NFT...");
 
@@ -381,6 +382,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string msg = response != null ? response.Message : "";
                 CLIEngine.ShowErrorMessage($"Error Occured: {msg}");
             }
+
+            if (response == null)
+            {
+                OASISResult<ISendWeb4NFTResponse> err = new OASISResult<ISendWeb4NFTResponse>();
+                OASISErrorHandling.HandleError(ref err, "Null response from SendNFTAsync API.");
+                return err;
+            }
+
+            return response;
         }
 
         public async Task<OASISResult<IWeb4NFT>> BurnNFTAsync(object mintParams = null)
@@ -422,9 +432,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<IWeb3NFTTransactionResponse> burnResult = await NFTCommon.NFTManager.BurnWeb3NFTAsync(burnRequest);
 
             if (burnResult != null && burnResult.Result != null && !burnResult.IsError)
+            {
                 CLIEngine.ShowSuccessMessage("NFT Successfully Burnt.");
+                result.Message = burnResult.Message ?? "NFT Successfully Burnt.";
+            }
             else
-                CLIEngine.ShowErrorMessage($"Error Burning NFT, Reason: {burnResult?.Message}");
+            {
+                string msg = burnResult?.Message ?? "Error burning NFT.";
+                CLIEngine.ShowErrorMessage($"Error Burning NFT, Reason: {msg}");
+                OASISErrorHandling.HandleError(ref result, msg);
+            }
 
             return result;
         }
@@ -545,6 +562,90 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        /// <summary>Non-interactive WEB3 path: mint from a <see cref="MintWeb4NFTRequest"/> JSON file (same shape as <c>nft mint</c>).</summary>
+        public async Task<OASISResult<IWeb4NFT>> ImportNFTWeb3MintFromJsonFileAsync(string jsonPath)
+        {
+            OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            if (string.IsNullOrWhiteSpace(jsonPath) || !File.Exists(jsonPath))
+            {
+                OASISErrorHandling.HandleError(ref result, "JSON file path is missing or does not exist.");
+                return result;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(jsonPath);
+                MintWeb4NFTRequest request = JsonConvert.DeserializeObject<MintWeb4NFTRequest>(json);
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not deserialize MintWeb4NFTRequest from JSON.");
+                    return result;
+                }
+
+                if (request.MintedByAvatarId == Guid.Empty)
+                    request.MintedByAvatarId = STAR.BeamedInAvatar.Id;
+
+                CLIEngine.ShowWorkingMessage("Minting WEB4 OASIS NFT from JSON...");
+                OASISResult<IWeb4NFT> nftResult = await STAR.OASISAPI.NFTs.MintNftAsync(request);
+
+                if (nftResult != null && nftResult.Result != null && !nftResult.IsError)
+                {
+                    CLIEngine.ShowSuccessMessage(nftResult.Message);
+                    result.Result = nftResult.Result;
+                    result.Message = nftResult.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, nftResult?.Message ?? "Mint failed.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error minting from WEB3 JSON file: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>Non-interactive WEB3 path: import an already-minted token using <see cref="ImportWeb3NFTRequest"/> JSON.</summary>
+        public async Task<OASISResult<IWeb4NFT>> ImportNFTWeb3TokenFromJsonFileAsync(string jsonPath)
+        {
+            OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
+            if (string.IsNullOrWhiteSpace(jsonPath) || !File.Exists(jsonPath))
+            {
+                OASISErrorHandling.HandleError(ref result, "JSON file path is missing or does not exist.");
+                return result;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(jsonPath);
+                ImportWeb3NFTRequest request = JsonConvert.DeserializeObject<ImportWeb3NFTRequest>(json);
+                if (request == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Could not deserialize ImportWeb3NFTRequest from JSON.");
+                    return result;
+                }
+
+                request.ImportedByAvatarId = STAR.BeamedInAvatar.Id;
+                CLIEngine.ShowWorkingMessage("Importing WEB3 NFT from JSON...");
+                OASISResult<IWeb4NFT> importResult = await NFTCommon.NFTManager.ImportWeb3NFTAsync(request);
+
+                if (importResult != null && importResult.Result != null && !importResult.IsError)
+                {
+                    CLIEngine.ShowSuccessMessage(importResult.Message);
+                    result.Result = importResult.Result;
+                    result.Message = importResult.Message;
+                }
+                else
+                    OASISErrorHandling.HandleError(ref result, importResult?.Message ?? "WEB3 token import failed.");
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error importing WEB3 NFT from JSON: {ex.Message}", ex);
+            }
+
+            return result;
+        }
+
         public async Task<OASISResult<IWeb4NFT>> ExportNFTNonInteractiveAsync(string idOrName, string destinationFilePath, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
@@ -610,7 +711,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public async Task<OASISResult<IWeb4NFT>> ConvertNFTAsync(object mintParams = null)
         {
             OASISResult<IWeb4NFT> result = new OASISResult<IWeb4NFT>();
-            OASISErrorHandling.HandleError(ref result, "WEB4 NFT convert is not implemented in STAR CLI yet.");
+            OASISErrorHandling.HandleError(ref result, "WEB4 NFT convert is not available: the STAR CLI has no wired ONODE/NFTManager convert API yet (use remint, wrap/create, or interactive flows where applicable).");
             return await Task.FromResult(result);
         }
 

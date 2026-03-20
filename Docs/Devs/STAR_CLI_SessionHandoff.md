@@ -29,6 +29,8 @@
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI/Program.cs` | `Main`, `ReadyPlayerOne`, `ShowSubCommandAsync`, command `switch` |
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI/StarCliStarnetNonInteractiveGuard.cs` | Non-interactive argv checks before STARNET predicates |
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/StarnetUiScriptedCreateCli.cs` | Generic argv → `CustomCreateParams`; holon labels that bypass base scripted create |
+| `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/StarCliLightRequest.cs` | JSON schema for non-interactive **Light** (`oapp light` / `light <file.json>` / `light json` alias / `oapp create light`) |
+| `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/OAPPs.NonInteractiveLight.cs` | `OAPPs.LightFromJsonFileAsync` + STARNET registration after `STAR.LightAsync` |
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI.Lib/StarCliNonInteractiveCreateKeys.cs` | `CustomCreateParams` keys (consumed by `STARNETUIBase.CreateAsync`) |
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI/StarCliInvocation.cs` | Flag parsing (`--search-limit`), `CommandSkipsAvatarBeamIn`, `GetCommandArgsAfterOptionalAvatarBeamIn` |
 | `STAR ODK/NextGenSoftware.OASIS.STAR.CLI/StarCliStarnetSearchArgv.cs` | `search` argv: criteria + optional trailing max rows |
@@ -48,18 +50,25 @@
 
 **`ShowSubCommandAsync` + `StarCliStarnetNonInteractiveGuard`:** In `--non-interactive`, holon subcommands that need a target require argv ids/names (exit **2** + example) for `show`/`update`/`delete`/install-family/publish-family/activate/deps/collection add-remove. **`search`:** `StarCliStarnetSearchArgv` + optional trailing **max rows**; merged with global `--search-limit` in `Program` → `STARNETUIBase.SearchAsync(..., maxResults)` (**unlimited** when both are unset). Ambiguous find: list **all** candidates unless `MaxHolonSearchResults` &gt; 0 (`--search-limit`).
 
-**NFT / GeoNFT argv:** `StarCliNftStructuredArgv` + `Program` branches: **mint** / **burn** / **import** (JSON path), **export** (id + path), **remint** (id), **place** (Geo — JSON path), **send** (four tokens). Lib: `NFTs` / `GeoNFTs` scripted wrap, mint/burn/import/export helpers; `InventoryItems` / `GeoHotSpots` skip wizards when scripted params present.
+**NFT / GeoNFT argv:** `StarCliNftStructuredArgv` + `Program`: **mint** / **burn** / **import**, **export**, **remint**, **place**, **send**, **`clone` / `convert`** first token after verb. **`STARNETUIBase.CloneAsync`** calls **`ISTARNETManagerBase.CloneAsync`** (ONODE `STARNETManagerBase`). **ConvertNFTAsync** / **ConvertGeoNFTAsync**: explicit `OASISResult` errors (no ONODE convert API wired). Lib: `GeoNFTs.BurnGeoNFTAsync` accepts **BurnWeb3NFTRequest** JSON like `NFTs`.
 
-**Scripted web5 `create`:** `StarnetUiScriptedCreateCli` — **`geo-hotspot`** full argv; **`nft` / `geo-nft` / `geonft`** wrap `create <web4Id>`; bypass list is mainly **`plugin`**. **`library`**, minimal **`oapp` / `hApp`**, default holons unchanged. **`STARNETUIBase.Find` / `FindAsync`:** ambiguous name → candidate list (size as above).
+**`--json` + `-n` NFT/GeoNFT verbs:** `Program.EmitNiJsonForOasisResult` emits structured stdout for **mint**, **burn**, **import** (including web3-mint/web3-token), **export**, **remint**, **convert**, **place** (geo-nft JSON file), **send** (errors → exit **1**). **`BurnNFTAsync` / `BurnGeoNFTAsync`** now set **`OASISResult.Message`** / **`IsError`** on success/failure for consumers. **`PlaceGeoNFTFromJsonFileAsync`** returns **`OASISResult<IWeb4GeoSpatialNFT>`**; **`SendNFTAsync` / `SendGeoNFTAsync` (4-arg)** return **`OASISResult<ISendWeb4NFTResponse>`**.
 
-**Build verified:** `dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.CLI/NextGenSoftware.OASIS.STAR.CLI.csproj" -c Release` (fix: `--search-limit` parse + `send` NI branch definite assignment).
+**STARNET `clone` + `--json`:** `ShowSubCommandAsync` **`clonePredicate`** is **`Func<object, Task<OASISResult<T>>>`**; after **`CloneAsync`**, **`EmitNiJsonForOasisResult`** runs when **`CLIEngine.JsonOutput`**. **`Program`** registrations use each holon manager’s **`CloneAsync`** (not **`OAPPTemplates.CloneAsync`**) except **`oapp template`**. **`STARNETUIBase.CloneAsync`:** skip **`ShowSuccessMessage`** when **`JsonOutput`**; skip **`ShowAsync`** when **`NonInteractive`** or **`JsonOutput`**.
+
+**`OAPPs.CreateAsync`:** **`star.cli.lightRequestJsonPath`** → **`LightFromJsonFileAsync`** (full **`STAR.LightAsync`** + STARNET OAPP record + runtimes + DNA refresh). If **`CLIEngine.NonInteractive`** and neither light JSON nor scripted **`star.cli.scriptedCreate`**, returns an **`OASISResult`** error instead of **LightWizardAsync**. **`oapp light <file>`** / **`happ light <file>`** (primary) and alias **`oapp create light <file>`**; top-level **`light <file>`** / **`light json <file>`**; **`--json`** uses labels **`OAPP light`** / **`light`** as wired in **`Program`**. **`nft import <file>`** auto-detects WEB3 mint vs token vs WEB4; legacy **`import web3-mint`** / **`web3-token`** remain.
+
+**Scripted `create`:** `StarnetUiScriptedCreateCli` — **`geo-hotspot`**, **`nft` / `geo-nft`** wrap, **`nft collection` / `geo-nft collection`**: **wrap** = exactly 4 argv tokens (`… collection create <web4IdOrName>`); **new minimal WEB4 + WEB5 wrap** = 5 tokens (`… collection create <name> <description>`) via `CreateMinimalNftCollection` / `CreateMinimalGeoNftCollection` keys in **`StarCliNonInteractiveCreateKeys`**. **`GeoNFTCollections.CreateAsync`** handles **`--non-interactive`** wrap at the top (same pattern as **`NFTCollections`**). Default **`TryParseCreateArgv`** holons; **`plugin`** `TryParsePluginCreateArgv` → `Plugins.CreateAsync` scripted branch. **`HolonSubCommandLabelsThatBypassBaseScriptedCreate`** is empty; **`nft collection` / `geo-nft collection`** are excluded from the legacy “NFT substring” bypass. **`STARNETUIBase.Find` / `FindAsync`:** ambiguous name → full candidate list unless `--search-limit`.
+
+**Wallet import:** **`wallet import <file.json>`** (existing path, `.json` extension) imports one wallet; **`wallet import all <file.json>`** bulk import; legacy **`wallet import json <file>`** / **`wallet import json all <file>`** unchanged.
+
+**NFT import (non-interactive):** primary **`nft import <file>`** with JSON shape auto-detection (**`StarCliNftStructuredArgv.TryResolveNftNonInteractiveImport`**); legacy **`nft import web3-mint <file>`** / **`web3-token <file>`**. **`convert`:** explicit `OASISResult` error (no ONODE convert API wired).
+
+**Build verified:** `dotnet build "STAR ODK/NextGenSoftware.OASIS.STAR.CLI/NextGenSoftware.OASIS.STAR.CLI.csproj" -c Release`.
 
 ## Not done / next priority
 
-1. **Full OAPP Light** wizard on argv.
-2. **`plugin`** scripted create (still bypasses base path).
-3. **`clone` / `convert`** non-interactive wiring.
-4. **Collection** create and richer **GeoNFT export** / **web3 import** argv if needed.
+1. **NFT / GeoNFT convert** — requires a real **ONODE / NFTManager (or API) convert** implementation; CLI can then call it (today: clear `OASISResult` error only).
 
 ---
 
