@@ -56,15 +56,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task<bool> TryBootBeamInAsync(StarCliInvocation inv, string beamUser, string beamPass)
         {
+            // Same skip list as STAR_CLI_NonInteractive.md — do not require avatar for these verbs (interactive or -n).
+            bool skipBeamIn = _args.Length > 0 && StarCliInvocation.CommandSkipsAvatarBeamIn(_args[0]);
+            if (skipBeamIn)
+                return true;
+
             if (!inv.NonInteractive)
             {
                 await STARCLI.Avatars.BeamInAvatar();
                 return true;
             }
-
-            bool skipBeamIn = _args.Length > 0 && StarCliInvocation.CommandSkipsAvatarBeamIn(_args[0]);
-            if (skipBeamIn)
-                return true;
 
             if (string.IsNullOrWhiteSpace(beamUser) || string.IsNullOrWhiteSpace(beamPass))
             {
@@ -298,22 +299,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            //e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-            //_exiting = !e.Cancel;
-
-             e.Cancel = true;
-
-            //if (_inMainMenu)
-            //    e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-            //else
-            //    e.Cancel = true;
-
-            ////Console.WriteLine("\nThe read operation has been interrupted.");
-            ////Console.WriteLine($"  Key pressed: {e.SpecialKey}");
-            ////Console.WriteLine($"  Cancel property: {e.Cancel}");
-
-            //if (e.Cancel)
-            //    ReadyPlayerOne();
+            // Allow default: Ctrl+C terminates the process. (e.Cancel = true would swallow SIGINT and trap the user.)
+            e.Cancel = false;
         }
 
         private static void STAR_OnDefaultCeletialBodyInit(object sender, EventArgs.DefaultCelestialBodyInitEventArgs e)
@@ -4712,8 +4699,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n USAGE:");
             Console.WriteLine("    star {SUBCOMMAND}");
+            Console.WriteLine("    star [--non-interactive|-n] [--json] [--quiet|-q] [--yes|-y] [--username U] [--password P] {SUBCOMMAND} ...");
+            Console.WriteLine("         (automation flags may appear anywhere; see Docs/Devs/STAR_CLI_NonInteractive.md)");
             Console.WriteLine("");
             Console.WriteLine(" FLAGS:");
+            DisplaySummary("--non-interactive (-n)", "Script/CI: no stdin prompts; omit for interactive wizards.");
+            DisplaySummary("--json", "Machine-readable JSON on stdout where supported; quieter startup.");
             DisplaySummary("ignite", "Ignite STAR & Boot The OASIS");
             DisplaySummary("extinguish", "Extinguish STAR & Shutdown The OASIS");
             DisplaySummary("help [full]", "Show this help page. If the [full] flag is omitted it will show only the top level sub-commands, if [full] is included it will show every option for each sub-command.");
