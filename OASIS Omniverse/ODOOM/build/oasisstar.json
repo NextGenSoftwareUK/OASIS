@@ -49,6 +49,9 @@
   "mint_monster_oquake_spawn": 1,
   "mint_monster_oquake_knight": 1,
   "mint_monster_oquake_scrag": 1,
-  "mint_monster_oquake_shub": 1
+  "mint_monster_oquake_shub": 1,
+  "beamedin_avatar": "dellams",
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3Mzk2OTI2NCwiZXhwIjoxNzczOTcwMTY0LCJpYXQiOjE3NzM5NjkyNjR9.qsUL4tRhjgcljK2mPEFhkgUzN_ckXsALob7NKD8RdbM",
+  "refresh_token": "C87D8098BFF3553E0420CCFDDA2C64D07C74943607283B3AD04E191C4621519BA4DE67FB275214BF"
 
 }
