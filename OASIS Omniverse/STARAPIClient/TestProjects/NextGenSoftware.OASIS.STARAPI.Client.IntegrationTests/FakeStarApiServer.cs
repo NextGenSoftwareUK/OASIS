@@ -118,7 +118,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/avatar/current")
+            /* Client calls WEB4 GET get-logged-in-avatar-with-xp directly (STAR WebAPI used to expose this as GET /api/avatar/current). */
+            if (method == "GET" && (path == "/api/avatar/current" || path == "/api/avatar/get-logged-in-avatar-with-xp"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
@@ -254,6 +255,12 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
             }
 
             if (method == "POST" && path.StartsWith("/api/quests/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/start", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
+            if (method == "POST" && string.Equals(path, "/api/quests/objectives/complete", StringComparison.OrdinalIgnoreCase))
             {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
                 return;

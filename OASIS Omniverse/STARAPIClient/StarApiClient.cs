@@ -26,9 +26,9 @@ public enum StarApiResultCode
 
 public sealed class StarApiConfig
 {
-    // WEB5 STAR API base URI (for STAR gameplay/inventory/quest endpoints).
+    // WEB5 STAR API base URI (quests, STAR status/ignite, optional WEB5 auth sync, NFT activate, etc.).
     public string Web5StarApiBaseUrl { get; init; } = string.Empty;
-    // WEB4 OASIS API base URI (for avatar auth and NFT mint endpoints). Optional.
+    // WEB4 OASIS API base URI (avatar auth, profile, inventory, XP, active quest, send-item, NFT mint). Required for those features when using the native client.
     public string? Web4OasisApiBaseUrl { get; init; }
     public string? ApiKey { get; init; }
     public string? AvatarId { get; init; }
@@ -115,6 +115,27 @@ public sealed class StarApiClient : IDisposable
     private string _baseApiUrl = string.Empty;
     // WEB4 OASIS API base URI.
     private string _oasisBaseUrl = string.Empty;
+
+    /// <summary>WEB4 endpoint STAR WebAPI mapped from GET /api/avatar/current (<c>AvatarController.GetCurrentAvatar</c>).</summary>
+    private const string Web4GetLoggedInAvatarWithXpPath = "/api/avatar/get-logged-in-avatar-with-xp";
+
+    /// <summary>Avatar profile, inventory, XP, active quest, and send-item calls go to WEB4 directly so client <c>oasis_api_url</c> matches server behavior (no separate Web4OasisApiBaseUrl on WEB5).</summary>
+    private bool TryGetWeb4BaseTrimmed(out string web4Base, out string missingMessage)
+    {
+        lock (_stateLock)
+        {
+            if (string.IsNullOrWhiteSpace(_oasisBaseUrl))
+            {
+                web4Base = string.Empty;
+                missingMessage = "WEB4 OASIS API base URL is not set. Set oasis_api_url in oasisstar.json, Web4OasisApiBaseUrl in STAR init, or OASIS_WEB4_API_BASE_URL (required for avatar profile and inventory).";
+                return false;
+            }
+
+            web4Base = _oasisBaseUrl.TrimEnd('/');
+            missingMessage = string.Empty;
+            return true;
+        }
+    }
     private string? _jwtToken;
     private string? _refreshToken;
     private string? _avatarId;
@@ -620,32 +641,35 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized())
             return invokeCallback ? FailAndCallback<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized) : Fail<StarAvatarProfile>("Client is not initialized.", StarApiResultCode.NotInitialized);
 
-        var url = $"{_baseApiUrl}/api/avatar/current";
-        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current url={url}");
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return invokeCallback ? FailAndCallback<StarAvatarProfile>(missingWeb4, StarApiResultCode.InvalidParam) : Fail<StarAvatarProfile>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var url = $"{web4Base}{Web4GetLoggedInAvatarWithXpPath}";
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 get-logged-in-avatar-with-xp url={url}");
         var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             /* Do NOT return Success with a stub profile when GET fails: game would get "profile loaded" but cache has no XP/quest (causes 0 XP in Quake). Always return Fail so callback is not invoked with Success. */
-            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current FAILED: IsError=True Message={response.Message ?? "null"} (returning Fail, not stub)");
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 avatar profile FAILED: IsError=True Message={response.Message ?? "null"} (returning Fail, not stub)");
             return invokeCallback ? FailAndCallback<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception) : Fail<StarAvatarProfile>(response.Message ?? "Request failed.", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var responsePreview = response.Result != null && response.Result.Length > 0
             ? (response.Result.Length <= 500 ? response.Result : response.Result.Substring(0, 500) + "...")
             : "(empty)";
-        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current response OK len={response.Result?.Length ?? 0} preview={responsePreview}");
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 avatar profile response OK len={response.Result?.Length ?? 0} preview={responsePreview}");
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
         {
-            StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current parse failed: {parseErrorMessage}");
+            StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 avatar profile parse failed: {parseErrorMessage}");
             return invokeCallback ? FailAndCallback<StarAvatarProfile>(parseErrorMessage, parseErrorCode) : Fail<StarAvatarProfile>(parseErrorMessage, parseErrorCode);
         }
 
         var avatar = ParseAvatarProfile(resultElement, response.Result);
         if (avatar is null || avatar.Id == Guid.Empty)
         {
-            StarApiExports.StarApiLogFileOnly("[Avatar] GET avatar/current parse failed: no avatar in response");
+            StarApiExports.StarApiLogFileOnly("[Avatar] GET WEB4 avatar profile parse failed: no avatar in response");
             return invokeCallback ? FailAndCallback<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError) : Fail<StarAvatarProfile>("Could not parse current avatar profile.", StarApiResultCode.ApiError);
         }
 
@@ -662,7 +686,7 @@ public sealed class StarApiClient : IDisposable
             else
             {
                 _questTrackerSavedSinceLastGet = false;
-                try { StarApiExports.StarApiLogFileOnly($"[Quest] GET avatar/current: ignoring quest/objective in response (user saved since GET started; keeping cache)"); } catch { /* ignore */ }
+                try { StarApiExports.StarApiLogFileOnly($"[Quest] GET WEB4 avatar profile: ignoring quest/objective in response (user saved since GET started; keeping cache)"); } catch { /* ignore */ }
             }
         }
 
@@ -670,7 +694,7 @@ public sealed class StarApiClient : IDisposable
         Guid? loadQuestId;
         Guid? loadObjectiveId;
         lock (_stateLock) { loadQuestId = _cachedActiveQuestId; loadObjectiveId = _cachedActiveObjectiveId; }
-        StarApiExports.StarApiLogFileOnly($"[Avatar] GET avatar/current OK: XP={avatar.XP} ActiveQuestId={loadQuestId} ActiveObjectiveId={loadObjectiveId} (cache updated)");
+        StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 avatar profile OK: XP={avatar.XP} ActiveQuestId={loadQuestId} ActiveObjectiveId={loadObjectiveId} (cache updated)");
         var (loadQuestName, loadObjName) = TryGetQuestAndObjectiveNamesFromCache(loadQuestId, loadObjectiveId);
         try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD questId={loadQuestId} objectiveId={loadObjectiveId} questName={loadQuestName ?? "(not in cache)"} objectiveName={loadObjName ?? "(not in cache)"}"); } catch { /* ignore */ }
         if (StarApiExports.GetStarDebug())
@@ -928,7 +952,10 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
+            if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+                return FailAndCallback<List<StarItem>>(missingWeb4, StarApiResultCode.InvalidParam);
+
+            var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{web4Base}/api/avatar/inventory", null, CancellationToken.None).ConfigureAwait(false);
             if (response.IsError)
             {
                 return FailAndCallback<List<StarItem>>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
@@ -1620,7 +1647,10 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(avatarId))
             return FailAndCallback<int>("Avatar ID not set. Beam in first.", StarApiResultCode.NotInitialized);
 
-        var url = $"{_baseApiUrl}/api/avatar/add-xp";
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return FailAndCallback<int>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var url = $"{web4Base}/api/avatar/add-xp";
         try
         {
             var payload = BuildJson(writer =>
@@ -1729,7 +1759,10 @@ public sealed class StarApiClient : IDisposable
             try { StarApiExports.StarApiLog("[Quest] SetActiveQuestAndObjectiveAsync failed: client not initialized"); } catch { /* ignore */ }
             return FailAndCallback<bool>("Client is not initialized.", StarApiResultCode.NotInitialized);
         }
-        var url = $"{_baseApiUrl}/api/avatar/set-active-quest";
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return FailAndCallback<bool>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var url = $"{web4Base}/api/avatar/set-active-quest";
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
@@ -1753,7 +1786,7 @@ public sealed class StarApiClient : IDisposable
         {
             _cachedActiveQuestId = questId;
             _cachedActiveObjectiveId = objectiveId;
-            _questTrackerSavedSinceLastGet = true;  /* Any in-flight GET avatar/current must not overwrite this save */
+            _questTrackerSavedSinceLastGet = true;  /* Any in-flight GET WEB4 avatar profile must not overwrite this save */
         }
         var (questName, objectiveName) = TryGetQuestAndObjectiveNamesFromCache(questId, objectiveId);
         try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId} (cache updated)"); } catch { /* ignore */ }
@@ -1928,7 +1961,10 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<StarItem>("Item name, description, and game source are required.", StarApiResultCode.InvalidParam);
         }
 
-        var url = $"{_baseApiUrl}/api/avatar/inventory";
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return FailAndCallback<StarItem>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var url = $"{web4Base}/api/avatar/inventory";
         StarApiExports.StarApiLog($"AddItemCoreAsync: sending POST to {url} name='{itemName}' avatarId={avatarId}");
 
         try
@@ -2133,7 +2169,10 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteEndObject();
             });
 
-            var url = $"{_baseApiUrl}/api/avatar/inventory/{item.Id}";
+            if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+                return FailAndCallback<bool>(missingWeb4, StarApiResultCode.InvalidParam);
+
+            var url = $"{web4Base}/api/avatar/inventory/{item.Id}";
             if (useQty > 0)
                 url += $"?quantity={useQty}";
 
@@ -2268,12 +2307,14 @@ public sealed class StarApiClient : IDisposable
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
+            writer.WriteString("questId", questId);
+            writer.WriteString("objectiveId", objectiveId);
             writer.WriteString("gameSource", gs);
             writer.WriteString("completionNotes", $"Completed objective {objectiveId} at {DateTime.UtcNow:O}");
             writer.WriteEndObject();
         });
 
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/{questId}/objectives/{objectiveId}/complete", payload, cancellationToken).ConfigureAwait(false);
+        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/quests/objectives/complete", payload, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             StarApiExports.StarApiLogFileOnly($"[Quest] Complete objective failed: questId={questId} objectiveId={objectiveId} error={response.Message}");
@@ -3109,7 +3150,10 @@ public sealed class StarApiClient : IDisposable
         /* Use 8s timeout so "avatar not found" returns quickly instead of waiting for full default timeout. */
         using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         sendCts.CancelAfter(TimeSpan.FromSeconds(8));
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-avatar", payload, sendCts.Token).ConfigureAwait(false);
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return FailAndCallback<bool>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{web4Base}/api/avatar/inventory/send-to-avatar", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
         {
             if (response.Exception is OperationCanceledException)
@@ -3154,7 +3198,10 @@ public sealed class StarApiClient : IDisposable
         /* Use 8s timeout so "clan not found" returns quickly instead of waiting for full default timeout. */
         using var sendCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         sendCts.CancelAfter(TimeSpan.FromSeconds(8));
-        var response = await SendRawAsync(HttpMethod.Post, $"{_baseApiUrl}/api/avatar/inventory/send-to-clan", payload, sendCts.Token).ConfigureAwait(false);
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return FailAndCallback<bool>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var response = await SendRawAsync(HttpMethod.Post, $"{web4Base}/api/avatar/inventory/send-to-clan", payload, sendCts.Token).ConfigureAwait(false);
         if (response.IsError)
         {
             if (response.Exception is OperationCanceledException)
@@ -3469,7 +3516,10 @@ public sealed class StarApiClient : IDisposable
                 return Success(_avatarId!, StarApiResultCode.Success, "Avatar ID already available.");
         }
 
-        var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{_baseApiUrl}/api/avatar/current", null, cancellationToken).ConfigureAwait(false);
+        if (!TryGetWeb4BaseTrimmed(out var web4Base, out var missingWeb4))
+            return Fail<string>(missingWeb4, StarApiResultCode.InvalidParam);
+
+        var response = await SendRawWithRetryAsync(HttpMethod.Get, $"{web4Base}{Web4GetLoggedInAvatarWithXpPath}", null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
             return new OASISResult<string>
@@ -6689,10 +6739,12 @@ public static unsafe class StarApiExports
         var gs = PtrToString(gameSource) ?? string.Empty;
         try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective called: questId={qId} objectiveId={oId} gameSource={gs}"); } catch { /* ignore */ }
 
-        var result = client.CompleteQuestObjectiveAsync(qId, oId, gs).GetAwaiter().GetResult();
-        var code = (int)FinalizeResult(result, StarApiOpCompleteQuestObjective);
-        try { StarApiLogFileOnly($"[Quest] star_api_complete_quest_objective result: {(result.IsError ? "FAIL" : "OK")} {(result.IsError ? result.Message ?? "" : "")}"); } catch { /* ignore */ }
-        return code;
+        /* Queue like start-quest: avoid blocking the game thread on HTTP (reduces deadlock / hard-freeze risk in native engines). */
+        _ = client.QueueCompleteQuestObjectiveAsync(qId, oId, string.IsNullOrWhiteSpace(gs) ? null : gs);
+        SetError(string.Empty);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpCompleteQuestObjective);
+        try { StarApiLogFileOnly("[Quest] star_api_complete_quest_objective: queued (async completion)"); } catch { /* ignore */ }
+        return (int)StarApiResultCode.Success;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest", CallConvs = [typeof(CallConvCdecl)])]
@@ -6928,7 +6980,7 @@ public static unsafe class StarApiExports
         if (client is null)
             return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpGetAvatarId);
 
-        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET /api/avatar/current when the game then calls star_api_refresh_avatar_profile().
+        // Use cached avatar ID when available (set by AuthenticateAsync or init with api_key+avatar_id) to avoid a second GET WEB4 get-logged-in-avatar-with-xp when the game then calls star_api_refresh_avatar_profile().
         string? avatarId = client.GetCachedAvatarId();
         if (string.IsNullOrWhiteSpace(avatarId))
         {

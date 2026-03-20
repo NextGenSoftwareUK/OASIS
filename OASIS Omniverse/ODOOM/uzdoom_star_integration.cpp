@@ -1506,6 +1506,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		/* C# client flushes queued add_item jobs in background; overlay will refresh from get_inventory when opened. */
 		Printf(PRINT_NONOTIFY, "Beam-in successful. Cross-game features enabled.\n");
 	} else {
+		g_star_init_failed_this_session = true;  /* Stop per-tic star_sync_auth_start from PlayerHasKey / doors until explicit "star beamin". */
 		const char* err = error_buf[0] ? error_buf : star_api_get_last_error();
 		const char* msg = err && err[0] ? err : "(unknown)";
 		odoom_star_username = "";  /* Clear "Beaming in..." so status bar shows "Beamed In: None". */
@@ -1785,6 +1786,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		g_star_async_auth_pending_frames++;
 		if (g_star_async_auth_pending_frames > 35 * 30) {  /* 30 s at 35 fps */
 			g_star_async_auth_pending = false;
+			g_star_init_failed_this_session = true;  /* Same as auth callback failure: no silent retry storm. */
 			odoom_star_username = "";
 			if (!g_star_beamin_timeout_was_shown) {
 				g_star_beamin_timeout_was_shown = true;
@@ -2757,8 +2759,9 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	if (!logVerbose && g_star_user_beamed_out) {
 		return false;
 	}
-	/* Avoid retrying init every touch/door when host is unreachable - only retry when user explicitly runs beamin. */
-	if (!logVerbose && g_star_init_failed_this_session && !g_star_client_ready) {
+	/* Avoid retrying init/auth on every tic (e.g. UZDoom_STAR_PlayerHasKey) when unreachable or beam-in failed.
+	 * g_star_client_ready can be true while SSO still fails (STAR API up, WEB4 down); only explicit "star beamin" (verbose) clears the flag. */
+	if (!logVerbose && g_star_init_failed_this_session) {
 		return false;
 	}
 	if (logVerbose)
@@ -2890,6 +2893,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 			}
 		}
 		if (logVerbose) StarLogError("Saved session invalid: %s", star_api_get_last_error());
+		g_star_init_failed_this_session = true;  /* Prevent per-frame restore/auth attempts from HUD/touch paths. */
 	}
 
 	if (logVerbose && !g_star_logged_missing_auth_config) {
