@@ -73,8 +73,11 @@ chmod 755 "$PKG_ROOT/usr/local/bin/star"
 
 # Uninstall script: remove STAR CLI (new layout and legacy /usr/local/bin layout)
 UNINSTALL_SH='#!/bin/sh
-# Uninstall OASIS STAR CLI from this system (run with sudo or as root)
+# Uninstall OASIS STAR CLI from this system (re-execs with sudo if needed)
 set -e
+if [ "$(id -u)" -ne 0 ]; then
+  exec sudo "$0" "$@"
+fi
 # Pause before exit so the window does not vanish (run from terminal or file manager)
 _pause() {
   echo ""
