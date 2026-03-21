@@ -231,7 +231,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/by-status/InProgress")
+            if (method == "GET" && (path == "/api/quests/by-status/InProgress" || path == "/api/quests/by-status/InProgress/game"))
             {
                 await WriteJsonAsync(response, 200, new
                 {

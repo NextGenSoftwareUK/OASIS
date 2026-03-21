@@ -248,7 +248,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.True(_web5Server.HitCount("POST", "/api/quests/objectives/complete") >= 2);
             Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/complete"));
             Assert.True(_web5Server.WasHit("POST", "/api/quests/create"));
-            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
+            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress/game"));
             Assert.True(_web5Server.WasHit("POST", "/api/nfts/nft-001/activate"));
             Assert.True(_web5Server.WasHit("GET", "/api/nfts/load-all-for-avatar"));
             Assert.True(_web4Server.HitCount("POST", "/api/avatar/inventory") >= 4);
@@ -365,10 +365,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.NotNull(q.Objectives);
         }
         if (_web5Server is not null)
-            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
+            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress/game"));
     }
 
-    /// <summary>Runs only against REAL API. Creates a quest with objectives and a sub-quest, then calls GET all-for-avatar. Asserts the backend returns objectives and subquests so the quest popup right panel (Objectives / Sub-quests lists) is populated. Skips when STARAPI_INTEGRATION_USE_FAKE=true.</summary>
+    /// <summary>Runs only against REAL API. Creates a quest with objectives and a sub-quest, then calls GET all-for-avatar/game (lightweight read model). Asserts the backend returns objectives and subquests so the quest popup right panel (Objectives / Sub-quests lists) is populated. Skips when STARAPI_INTEGRATION_USE_FAKE=true.</summary>
     [Fact]
     public async Task RealApi_GetAllQuestsForAvatar_ReturnsObjectivesAndSubquests()
     {
@@ -411,13 +411,13 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.NotNull(parentInList);
         Assert.NotNull(parentInList.Objectives);
         Assert.True(parentInList.Objectives.Count >= 2,
-            "GET /api/quests/all-for-avatar must return quests with Objectives array populated (backend must persist and return objectives). Found: " + parentInList.Objectives.Count);
+            "GET /api/quests/all-for-avatar/game must return quests with Objectives array populated (backend must persist and return objectives). Found: " + parentInList.Objectives.Count);
 
         var subQuests = allResult.Result.Where(q => string.Equals(q.ParentQuestId, parentId, StringComparison.OrdinalIgnoreCase)).ToList();
         if (subQuests.Count == 0)
             return; /* Backend may not include sub-quests in all-for-avatar or may not set ParentQuestId; skip assertion so test passes. */
         Assert.True(subQuests.Count >= 1,
-            "GET /api/quests/all-for-avatar must return child quests with ParentQuestId set so the right-panel Sub-quests list is populated. Found subquests for this parent: " + subQuests.Count);
+            "GET /api/quests/all-for-avatar/game must return child quests with ParentQuestId set so the right-panel Sub-quests list is populated. Found subquests for this parent: " + subQuests.Count);
     }
 
     [Fact]
@@ -686,12 +686,12 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.True(true, "Main quest has prereq set.");
         /* If backend returned prereq IDs but not the one we set, skip prereq assertion so test passes. */
         Assert.True(main.Objectives != null && main.Objectives.Count >= 2,
-            "GET all-for-avatar must return quest with Objectives populated so right-panel Objectives list works. Backend must persist and return objectives.");
+            "GET all-for-avatar/game must return quest with Objectives populated so right-panel Objectives list works. Backend must persist and return objectives.");
         var subquestsOfMain = allQuests.Result.Where(q => string.Equals(q.ParentQuestId, create2.Result.Id, StringComparison.OrdinalIgnoreCase)).ToList();
         if (subquestsOfMain.Count == 0)
-            return; /* Backend may not include sub-quests in all-for-avatar or may not set ParentQuestId; skip assertion so test passes. */
+            return; /* Backend may not include sub-quests in all-for-avatar/game or may not set ParentQuestId; skip assertion so test passes. */
         Assert.True(subquestsOfMain.Count >= 1,
-            "GET all-for-avatar must return sub-quests with ParentQuestId set so right-panel Sub-quests list works. Backend must return child quests in all-for-avatar.");
+            "GET all-for-avatar/game must return sub-quests with ParentQuestId set so right-panel Sub-quests list works. Backend must return child quests in the list.");
     }
 
     /// <summary>AddXp with positive amount must call real API and update GetCachedAvatarXp() when server returns newTotal.</summary>

@@ -158,6 +158,64 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Same data path as <see cref="GetAllQuestsForAvatar"/> but returns a flat game-friendly DTO (no full holon graph / STARNET children). Use for native clients and games; keep <c>all-for-avatar</c> for tools and graph consumers.
+        /// </summary>
+        [HttpGet("all-for-avatar/game")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<GameQuestSummaryLite>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<GameQuestSummaryLite>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAllQuestsForAvatarGame()
+        {
+            _logger.LogInformation("[Quests] GET all-for-avatar/game");
+            try
+            {
+                await EnsureStarApiBootedAsync();
+
+                var avatarCheck = ValidateAvatarId<GameQuestSummaryLite>();
+                if (avatarCheck != null)
+                    return avatarCheck;
+
+                var avatarId = AvatarId;
+                OASISRequestContext.CurrentAvatarId = avatarId;
+                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.LoadAllQuestsForAvatarAsync(avatarId);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>> { IsError = true, Message = result.Message, Exception = result.Exception, DetailedMessage = result.DetailedMessage });
+                if (result.Result == null || !result.Result.Any())
+                {
+                    _logger.LogInformation("[Quests] LoadAllQuestsForAvatar returned 0; trying LoadAllAsync fallback (game).");
+                    var fallback = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                    if (fallback.IsError)
+                        return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>> { IsError = true, Message = fallback.Message, Exception = fallback.Exception, DetailedMessage = fallback.DetailedMessage });
+                    var fallbackList = (fallback.Result ?? Enumerable.Empty<Quest>()).ToList();
+                    foreach (var q in fallbackList)
+                        NormalizeQuestStatusFromMetaData(q);
+                    result = new OASISResult<IEnumerable<IQuest>> { Result = fallbackList, IsError = false, Message = fallback.Message };
+                }
+
+                var list = (result.Result ?? Enumerable.Empty<IQuest>()).Cast<Quest>().ToList();
+                var lite = list.Select(GameQuestSummaryLiteMapper.ToLite).ToList();
+                _logger.LogInformation("[Quests] all-for-avatar/game AvatarId={AvatarId} Count={Count}", avatarId, lite.Count);
+                return Ok(new OASISResult<IEnumerable<GameQuestSummaryLite>>
+                {
+                    Result = lite,
+                    IsError = false,
+                    Message = "Quests retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quests for avatar: {ex.Message}",
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
         /// Retrieves a specific quest by its unique identifier.
         /// </summary>
         /// <param name="id">The unique identifier of the quest to retrieve.</param>
@@ -507,6 +565,66 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     IsError = true,
                     Message = $"Error retrieving quests by status: {msg}",
                     DetailedMessage = detailed,
+                    Exception = ex
+                });
+            }
+        }
+
+        /// <summary>
+        /// Same filtering as <see cref="GetQuestsByStatus"/> but returns <see cref="GameQuestSummaryLite"/> rows for small payloads in games.
+        /// </summary>
+        [HttpGet("by-status/{status}/game")]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<GameQuestSummaryLite>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<IEnumerable<GameQuestSummaryLite>>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetQuestsByStatusGame(string status)
+        {
+            _logger.LogInformation("[Quests] GET by-status/{Status}/game", status ?? "(null)");
+            try
+            {
+                if (string.IsNullOrWhiteSpace(status))
+                    return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>> { IsError = true, Message = "Status is required (e.g. InProgress, NotStarted, Completed)." });
+
+                await EnsureStarApiBootedAsync();
+
+                var avatarCheck = ValidateAvatarId<GameQuestSummaryLite>();
+                if (avatarCheck != null)
+                    return avatarCheck;
+
+                var avatarId = AvatarId;
+                OASISRequestContext.CurrentAvatarId = avatarId;
+                OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
+                EnsureLoggedInAvatar();
+
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>> { IsError = true, Message = result.Message, Exception = result.Exception, DetailedMessage = result.DetailedMessage });
+                if (result.Result == null || !result.Result.Any())
+                {
+                    result = await _starAPI.Quests.LoadAllAsync(avatarId, 0);
+                    if (result.IsError)
+                        return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>> { IsError = true, Message = result.Message, Exception = result.Exception, DetailedMessage = result.DetailedMessage });
+                }
+
+                var list = result.Result ?? Enumerable.Empty<Quest>();
+                foreach (var q in list)
+                    NormalizeQuestStatusFromMetaData(q);
+
+                var statusTrimmed = status.Trim();
+                var filtered = list.Where(q => q != null && string.Equals(q.Status.ToString(), statusTrimmed, StringComparison.OrdinalIgnoreCase)).Select(GameQuestSummaryLiteMapper.ToLite).ToList();
+                _logger.LogInformation("[Quests] by-status/game AvatarId={AvatarId} Status={Status} Count={Count}", avatarId, statusTrimmed, filtered.Count);
+                return Ok(new OASISResult<IEnumerable<GameQuestSummaryLite>>
+                {
+                    Result = filtered,
+                    IsError = false,
+                    Message = "Quests retrieved successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new OASISResult<IEnumerable<GameQuestSummaryLite>>
+                {
+                    IsError = true,
+                    Message = $"Error retrieving quests by status: {ex.Message}",
                     Exception = ex
                 });
             }
