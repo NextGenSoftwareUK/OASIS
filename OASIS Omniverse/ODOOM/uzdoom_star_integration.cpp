@@ -1501,10 +1501,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 					}
 				}
 			}
-			/* Start loading quest list so tracker title/objective show without opening popup (ODOOM_RefreshQuestCVars will use cache when ready). */
-#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
-			star_api_refresh_quest_cache_in_background();
-#endif
+			/* Quest list fetch: avoid duplicate GET — AuthenticateAsync already Invalidate+Request; JWT restore uses profile-loaded path below. */
 			ODOOM_RefreshQuestCVars();  /* push once immediately in case cache already has data */
 		}
 		/* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
@@ -2214,9 +2211,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 							oidVar->SetGenericRep(u, CVAR_String);
 						}
 					}
-#ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
-					star_api_refresh_quest_cache_in_background();
-#endif
+					/* Do not call star_api_refresh_quest_cache_in_background here: that forces RequestQuestCacheRefreshInBackground
+					 * (full GET all-for-avatar) every time this block runs. If the tracker CVar stayed empty/placeholder for
+					 * multiple frames (ordering, ZScript), that spammed quest reload during play. Cold cache is filled via
+					 * EnsureQuestsCacheInBackground when get_top_level_quests_string misses (ODOOM_RefreshQuestCVars). */
 					ODOOM_RefreshQuestCVars();
 				}
 			} else {
@@ -3288,6 +3286,20 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 					g_star_pending_item_amount = 1;
 					return;
 				}
+				/*
+				 * Armor pickups: PostTouch can run before BasicArmor.Amount updates in the same tic (health often bumps first).
+				 * If we fall through, debounce or add_item may never run — no quest delta. Treat armor like consumed when
+				 * always_add_items=0: report quest progress and skip STAR row (engine applied armor in-world).
+				 */
+				if (isArmorItem && !odoom_star_always_add_items_to_inventory && !consumedArmor) {
+					ODOOM_QueueQuestProgressForConsumedPickup(name, itemType);
+					g_star_has_pending_item = false;
+					g_star_pending_item_name.clear();
+					g_star_pending_item_desc.clear();
+					g_star_pending_item_type.clear();
+					g_star_pending_item_amount = 1;
+					return;
+				}
 			}
 		} else {
 			Printf(PRINT_NONOTIFY, "[STAR] PostTouch health/armor: skip (no player mo) name=%s type=%s\n", name ? name : "", itemType ? itemType : "");
@@ -3297,14 +3309,19 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 			g_star_pre_touch_health, name ? name : "", itemType ? itemType : "");
 	}
 
-	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
+	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s.
+	 * Health/armor are excluded — otherwise a clip then armor (or two armor types) within the window drops the second pickup entirely. */
 	if (keynum == STAR_PICKUP_GENERIC_ITEM || keynum == STAR_PICKUP_WEAPON) {
 		std::string key = std::string(name) + "|" + (itemType ? itemType : "Item");
 		int now = I_GetTime();
-		if (key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
+		const bool debounceExempt = itemType && (strstr(itemType, "Health") || strstr(itemType, "health") ||
+			strstr(itemType, "Armor") || strstr(itemType, "armor"));
+		if (!debounceExempt && key == g_star_last_generic_key && (now - g_star_last_generic_tic) < g_star_generic_debounce_ticks)
 			return;
-		g_star_last_generic_key = key;
-		g_star_last_generic_tic = now;
+		if (!debounceExempt) {
+			g_star_last_generic_key = key;
+			g_star_last_generic_tic = now;
+		}
 	}
 
 	/* C# client does all heavy lifting: queue pickup (mint if enabled, then add_item) or queue add_item only. */
