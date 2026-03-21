@@ -94,6 +94,9 @@ void star_api_queue_add_item(const char* item_name, const char* description, con
 /** Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item. */
 #define STAR_API_HAS_QUEUE_PICKUP_WITH_MINT 1
 void star_api_queue_pickup_with_mint(const char* item_name, const char* description, const char* game_source, const char* item_type, int do_mint, const char* provider, const char* send_to_address_after_minting, int quantity);
+/** Queue quest progress only (no inventory add). Use when the engine consumed health/armor on pickup so add_item is skipped but objectives must still advance. */
+#define STAR_API_HAS_QUEUE_QUEST_PROGRESS_FROM_PICKUP 1
+void star_api_queue_quest_progress_from_pickup(const char* game_source, const char* item_type, const char* item_name);
 star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
