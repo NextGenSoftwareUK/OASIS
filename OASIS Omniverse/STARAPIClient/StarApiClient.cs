@@ -1021,11 +1021,14 @@ public sealed class StarApiClient : IDisposable
     }
 
     /// <summary>Start a background refresh of the quest cache without clearing it. When the fetch completes, the cache is updated. Use when opening the quest popup so the UI shows the previous list immediately and updates when the callback returns.</summary>
-    public void RequestQuestCacheRefreshInBackground()
+    /// <param name="forceRefetch">When false, skips scheduling a network fetch if both structured and string caches are already populated (avoids GET all-for-avatar/game after every profile refresh while playing). Popup / <c>star_api_refresh_quest_cache_in_background</c> should pass true. After <see cref="InvalidateQuestCache"/>, caches are null so a fetch still runs.</param>
+    public void RequestQuestCacheRefreshInBackground(bool forceRefetch = true)
     {
         lock (_questsCacheLock)
         {
             if (_questsRefreshInProgress)
+                return;
+            if (!forceRefetch && _cachedQuestList != null && _questsCacheString != null)
                 return;
             _questsRefreshInProgress = true;
         }
@@ -1838,7 +1841,8 @@ public sealed class StarApiClient : IDisposable
                 var qid = result.Result.ActiveQuestId;
                 var oid = result.Result.ActiveObjectiveId;
                 StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done SUCCESS: XP={xp} ActiveQuestId={qid} ActiveObjectiveId={oid} (invoking callback Success)");
-                RequestQuestCacheRefreshInBackground(); /* beam-in: load quests once; avoid refetch on every /progress */
+                /* Quest list: warm once via auth Invalidate+Request or first Ensure; do not GET all-for-avatar on every profile poll. Popup / star_api_refresh_quest_cache_in_background forces refetch. */
+                RequestQuestCacheRefreshInBackground(forceRefetch: false);
                 StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
             }
             else
@@ -6458,7 +6462,7 @@ public static unsafe class StarApiExports
         try
         {
             var client = GetClient();
-            client?.RequestQuestCacheRefreshInBackground();
+            client?.RequestQuestCacheRefreshInBackground(forceRefetch: true);
         }
         catch
         {
