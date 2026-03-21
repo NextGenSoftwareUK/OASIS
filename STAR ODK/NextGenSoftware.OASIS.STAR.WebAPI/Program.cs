@@ -31,7 +31,8 @@ builder.Services.AddControllers(options =>
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.MaxDepth = 128;
+        // Quest/holon graphs (starnetdna, original, nested metaData) exceed 128; serializer aborts mid-stream → truncated JSON and client JsonReaderException at EOF.
+        options.JsonSerializerOptions.MaxDepth = 1024;
         options.JsonSerializerOptions.WriteIndented = false;
         options.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
         options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());

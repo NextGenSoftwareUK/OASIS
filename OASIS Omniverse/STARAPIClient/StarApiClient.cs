@@ -215,6 +215,9 @@ public sealed class StarApiClient : IDisposable
     /// <summary>Backoff delays in ms for retries (200, 400, 800).</summary>
     private static readonly int[] HttpRetryDelayMs = { 200, 400, 800 };
 
+    /// <summary>Default JsonDocument max depth is 64; STAR quest/holon JSON (starnetdna, metaData, etc.) exceeds that and throws, which broke Linux 406 success detection and envelope parsing.</summary>
+    private static readonly JsonDocumentOptions DeepJsonDocumentOptions = new() { MaxDepth = 1024 };
+
     public int AddItemBatchSize { get; set; } = 32;
     public TimeSpan AddItemBatchWindow { get; set; } = TimeSpan.FromMilliseconds(75);
     public int UseItemBatchSize { get; set; } = 32;
@@ -255,6 +258,8 @@ public sealed class StarApiClient : IDisposable
             };
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            // Linux Kestrel can return 406 if Accept is only application/json; */* satisfies negotiation (JSON still preferred).
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*", 0.01));
 
             _baseApiUrl = normalizedBaseUrl;
             _oasisBaseUrl = oasisBaseUrl;
@@ -729,6 +734,11 @@ public sealed class StarApiClient : IDisposable
             _refreshToken = null;
             _avatarId = null;
             _lastError = string.Empty;
+            _loggedInUsername = null;
+            _cachedActiveQuestId = null;
+            _cachedActiveObjectiveId = null;
+            _questTrackerSavedSinceLastGet = false;
+            Volatile.Write(ref _cachedAvatarXp, 0);
         }
 
         return Success(true, StarApiResultCode.Success, "WEB5 STAR API client cleaned up.");
@@ -1025,7 +1035,8 @@ public sealed class StarApiClient : IDisposable
                 var result = await GetAllQuestsForAvatarAsync(ct).ConfigureAwait(false);
                 if (result.IsError)
                 {
-                    StarApiExports.StarApiLog($"[Quests] Refresh failed: {result.Message}");
+                    StarApiExports.StarApiLog("[Quests] Refresh failed (all-for-avatar).");
+                    StarApiExports.StarApiLogFileOnly($"[Quests] Refresh failed: {result.Message ?? "unknown"}");
                     lock (_questsCacheLock) { _questsRefreshInProgress = false; }
                     return FailAndCallback<bool>("Quest refresh failed.", StarApiResultCode.Network);
                 }
@@ -1152,7 +1163,8 @@ public sealed class StarApiClient : IDisposable
                 if (result.IsError)
                 {
                     serialized = "Error: Error loading quests. Check console or star_api.log for details.";
-                    StarApiExports.StarApiLog($"[Quests] Load failed: {result.Message}");
+                    StarApiExports.StarApiLog("[Quests] Load failed (all-for-avatar). See [HTTP] line above or star_api.log.");
+                    StarApiExports.StarApiLogFileOnly($"[Quests] Load failed detail: {result.Message ?? "unknown"}");
                 }
                 else if (result.Result is null || result.Result.Count == 0)
                 {
@@ -2670,32 +2682,33 @@ public sealed class StarApiClient : IDisposable
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
             return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
 
-        var url = $"{_baseApiUrl}/api/quests/all-for-avatar";
+        var url = $"{_baseApiUrl}/api/quests/all-for-avatar/game";
         if (string.IsNullOrEmpty(_baseApiUrl))
             return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
 
-        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar (AvatarId={GetCachedAvatarId() ?? "(none)"}) (BaseApiUrl)");
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar/game (AvatarId={GetCachedAvatarId() ?? "(none)"}) (BaseApiUrl)");
 
         var response = await SendRawWithRetryAsync(HttpMethod.Get, url, null, cancellationToken).ConfigureAwait(false);
         if (response.IsError)
         {
-            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar failed: {response.Message ?? "Request failed"}");
+            StarApiExports.StarApiLog("[Quests] GET all-for-avatar/game failed (error).");
+            StarApiExports.StarApiLogFileOnly($"[Quests] GET all-for-avatar/game failed: {response.Message ?? "Request failed"}");
             return FailAndCallback<List<StarQuestInfo>>(response.Message ?? "Request failed", ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
         }
 
         var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
         if (!parseResult)
         {
-            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar parse failed: {parseErrorMessage ?? "Parse error"}");
+            StarApiExports.StarApiLog($"[Quests] GET all-for-avatar/game parse failed: {parseErrorMessage ?? "Parse error"}");
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
         }
 
         var quests = ParseQuestInfos(resultElement) ?? new List<StarQuestInfo>();
         int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
-        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar success: {quests.Count} quests, {totalObjectives} objectives");
+        StarApiExports.StarApiLog($"[Quests] GET all-for-avatar/game success: {quests.Count} quests, {totalObjectives} objectives");
         var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar parsed: {quests.Count} quests, {totalObjectives} objectives");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar/game Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar/game parsed: {quests.Count} quests, {totalObjectives} objectives");
         // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
         UpdateQuestsCache(quests);
         InvokeCallback(StarApiResultCode.Success);
@@ -2770,7 +2783,7 @@ public sealed class StarApiClient : IDisposable
         if (avatarIdResult.IsError || string.IsNullOrWhiteSpace(avatarIdResult.Result))
             return FailAndCallback<List<StarQuestInfo>>(avatarIdResult.Message ?? "Could not resolve avatar ID.", ParseCode(avatarIdResult.ErrorCode, StarApiResultCode.ApiError), avatarIdResult.Exception);
 
-        var url = $"{_baseApiUrl}/api/quests/by-status/{status.Trim()}";
+        var url = $"{_baseApiUrl}/api/quests/by-status/{Uri.EscapeDataString(status.Trim())}/game";
         if (string.IsNullOrEmpty(_baseApiUrl))
             return FailAndCallback<List<StarQuestInfo>>("STAR API base URL not set.", StarApiResultCode.NotInitialized);
 
@@ -3464,6 +3477,26 @@ public sealed class StarApiClient : IDisposable
         return last;
     }
 
+    /// <summary>WEB5 on Linux may return HTTP 406 with a valid OASIS envelope (isError false, result array/object). Root-level check avoids relying on full envelope unroll for multi-MB bodies.</summary>
+    private static bool Is406ResponseWithOasisSuccessResult(string? body)
+    {
+        if (string.IsNullOrWhiteSpace(body)) return false;
+        try
+        {
+            using var doc = JsonDocument.Parse(body, DeepJsonDocumentOptions);
+            var root = doc.RootElement;
+            if (root.ValueKind != JsonValueKind.Object) return false;
+            if (GetBoolProperty(root, "IsError")) return false;
+            if (!TryGetProperty(root, "Result", out var res)) return false;
+            return res.ValueKind == JsonValueKind.Array || res.ValueKind == JsonValueKind.Object;
+        }
+        catch (Exception ex)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[HTTP] 406 success-check: parse failed {ex.GetType().Name}: {ex.Message}"); } catch { /* ignore */ }
+            return false;
+        }
+    }
+
     private async Task<OASISResult<string>> SendRawAsyncCore(HttpMethod method, string url, string? bodyJson, CancellationToken cancellationToken)
     {
         if (_httpClient is null)
@@ -3491,6 +3524,13 @@ public sealed class StarApiClient : IDisposable
 
         if (!response.IsSuccessStatusCode)
         {
+            // WEB5 on Linux sometimes returns 406 with a full success JSON body. Never attach response bodies to errors or StarApiLog — multi-MB strings crash native logging.
+            if ((int)response.StatusCode == 406 && Is406ResponseWithOasisSuccessResult(responseBody))
+            {
+                StarApiExports.StarApiLogFileOnly($"[HTTP] 406 {method.Method} treated as success (OASIS success JSON): {url}");
+                return Success(responseBody ?? string.Empty, StarApiResultCode.Success, "Request completed (HTTP 406 with success JSON).");
+            }
+
             var path = url;
             try
             {
@@ -3499,9 +3539,8 @@ public sealed class StarApiClient : IDisposable
             }
             catch { /* use full url if parse fails */ }
             StarApiExports.StarApiLog($"[HTTP] {(int)response.StatusCode} {method.Method} {path}");
+            StarApiExports.StarApiLogFileOnly($"[HTTP] {(int)response.StatusCode} {method.Method} {path} url={url} bodyLen={responseBody.Length}");
             var failureMessage = $"HTTP {(int)response.StatusCode} ({response.StatusCode}) calling {url}.";
-            if (!string.IsNullOrWhiteSpace(responseBody))
-                failureMessage += $" Body: {responseBody}";
             return Fail<string>(failureMessage, StarApiResultCode.ApiError);
         }
 
@@ -3572,7 +3611,7 @@ public sealed class StarApiClient : IDisposable
 
         try
         {
-            using var doc = JsonDocument.Parse(body);
+            using var doc = JsonDocument.Parse(body, DeepJsonDocumentOptions);
             var current = doc.RootElement.Clone();
             var depth = 0;
 
@@ -6543,7 +6582,7 @@ public static unsafe class StarApiExports
             if (!_loggedNoCachedQuestId)
             {
                 _loggedNoCachedQuestId = true;
-                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_quest_id: no cached value (WEB4 profile had no activeQuestId after GET, or tracker not set this session)"); } catch { }
                 if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_quest_id: no cached quest (API may not return AvatarDetail.ActiveQuestId)"); } catch { }
             }
             buf[0] = 0; return 0;
@@ -6571,8 +6610,8 @@ public static unsafe class StarApiExports
             if (!_loggedNoCachedObjectiveId)
             {
                 _loggedNoCachedObjectiveId = true;
-                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached value (not logged in or profile not loaded yet)"); } catch { }
-                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (API may not return AvatarDetail.ActiveObjectiveId)"); } catch { }
+                try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_get_active_objective_id: no cached objective id (WEB4 profile had no activeObjectiveId or profile GET failed — see [Avatar] GET WEB4 lines above)"); } catch { }
+                if (StarApiExports.GetStarDebug()) try { StarApiExports.StarApiLog("[Quest] get_active_objective_id: no cached objective (check get-logged-in-avatar-with-xp and AvatarDetail persistence)"); } catch { }
             }
             buf[0] = 0; return 0;
         }

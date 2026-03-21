@@ -1768,10 +1768,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (avatar == null)
                 return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
             var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatar.Id);
+            if (detailResult.IsError || detailResult.Result == null)
+            {
+                _logger.LogWarning(
+                    "[Quest] GetLoggedInAvatarWithXp: LoadAvatarDetailAsync failed for avatar {AvatarId}: {Message}. Returning error (do not return HTTP 200 with xp=0 — that makes clients think profile refresh succeeded with empty XP/quest).",
+                    avatar.Id,
+                    detailResult.Message ?? "(no message)");
+                return HttpResponseHelper.FormatResponse(
+                    new OASISResult<LoggedInAvatarResponse>
+                    {
+                        IsError = true,
+                        Message = detailResult.Message ?? "Failed to load avatar detail (XP and active quest are stored on AvatarDetail).",
+                        DetailedMessage = detailResult.DetailedMessage
+                    },
+                    HttpStatusCode.BadRequest);
+            }
+
             var detail = detailResult.Result;
-            var xp = (detail != null && !detailResult.IsError) ? detail.XP : 0;
-            var activeQuestId = detail?.ActiveQuestId;
-            var activeObjectiveId = detail?.ActiveObjectiveId;
+            var xp = detail.XP;
+            var activeQuestId = detail.ActiveQuestId;
+            var activeObjectiveId = detail.ActiveObjectiveId;
             _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp loaded detail for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId} (from storage)", avatar.Id, xp, activeQuestId, activeObjectiveId);
             _logger.LogInformation("[Quest] GetLoggedInAvatarWithXp returning for avatar {AvatarId}: XP={Xp}, ActiveQuestId={QuestId}, ActiveObjectiveId={ObjectiveId}", avatar.Id, xp, activeQuestId, activeObjectiveId);
             StarLog($"GetLoggedInAvatarWithXp returning: ActiveQuestId={activeQuestId}, ActiveObjectiveId={activeObjectiveId}");

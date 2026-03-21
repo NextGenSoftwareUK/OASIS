@@ -329,7 +329,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/all-for-avatar")
+            if (method == "GET" && (path == "/api/quests/all-for-avatar" || path == "/api/quests/all-for-avatar/game"))
             {
                 /* Return quests with objectives and a sub-quest (flat list with parentQuestId) so client objectives/subquests parsing can be tested. */
                 object[] objectivesParent = new object[]
@@ -346,7 +346,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/by-status/InProgress")
+            if (method == "GET" && (path == "/api/quests/by-status/InProgress" || path == "/api/quests/by-status/InProgress/game"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
