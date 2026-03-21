@@ -444,6 +444,7 @@ public sealed class StarApiClient : IDisposable
 
             /* Game (Doom/Quake) calls star_api_refresh_avatar_profile() in its auth-done handler. Do NOT invoke callback here so Quake only runs "profile loaded" when that refresh completes (cache has XP/quest). */
             InvalidateQuestCache(); /* so next quest popup open will GET /api/quests with auth */
+            RequestQuestCacheRefreshInBackground(); /* warm quest list once after login (no per-progress refetch) */
 
             var result = Success(true, StarApiResultCode.Success, "Authentication successful.");
             return result;
@@ -1837,6 +1838,7 @@ public sealed class StarApiClient : IDisposable
                 var qid = result.Result.ActiveQuestId;
                 var oid = result.Result.ActiveObjectiveId;
                 StarApiExports.StarApiLogFileOnly($"[Avatar] RefreshAvatarProfileInBackground done SUCCESS: XP={xp} ActiveQuestId={qid} ActiveObjectiveId={oid} (invoking callback Success)");
+                RequestQuestCacheRefreshInBackground(); /* beam-in: load quests once; avoid refetch on every /progress */
                 StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
             }
             else
@@ -2200,6 +2202,11 @@ public sealed class StarApiClient : IDisposable
 
             StarApiExports.StarApiLog($"UseItem: success name='{itemName}' quantity={useQty} (removed from cache)");
             RemoveFromInventoryCache(itemName, useQty);
+            /* Same as pickups: notify active-quest progress API with item identity; server matches objectives (oasisstar.json does not skip this). */
+            var gsUse = string.IsNullOrWhiteSpace(item.GameSource) ? "ODOOM" : item.GameSource.Trim();
+            if (gsUse.Equals("Quake", StringComparison.OrdinalIgnoreCase)) gsUse = "OQUAKE";
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] use_item -> EnqueueQuestProgressFromGame gs={gsUse} name={item.Name} type={item.ItemType}"); } catch { /* ignore */ }
+            EnqueueQuestProgressFromGame(gsUse, 0, 0, item.Name, 0, 1, null, item.ItemType);
             InvokeCallback(StarApiResultCode.Success);
             return Success(true, StarApiResultCode.Success, "Item used successfully.");
         }
@@ -2364,11 +2371,18 @@ public sealed class StarApiClient : IDisposable
         if (!IsInitialized() || string.IsNullOrWhiteSpace(_baseApiUrl)) return;
         Guid? qid;
         lock (_stateLock) { qid = _cachedActiveQuestId; }
-        if (!qid.HasValue || qid.Value == Guid.Empty) return;
+        if (!qid.HasValue || qid.Value == Guid.Empty)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] Progress SKIP: no cached active quest id (beam-in / start a quest so avatar profile loads ActiveQuestId). itemName={itemCollectedName ?? ""}"); } catch { /* ignore */ }
+            return;
+        }
         var gs = string.IsNullOrWhiteSpace(gameSource) ? "ODOOM" : gameSource.Trim();
         var hasDeltas = monstersKilledDelta != 0 || xpEarnedDelta != 0 || keysCollectedDelta != 0 || armorDelta != 0 || healthDelta != 0 || weaponsDelta != 0 || powerupsDelta != 0 || ammoDelta != 0 || genericItemPickup != 0 || (levelTimeSeconds.HasValue && levelTimeSeconds.Value > 0);
         if (!hasDeltas)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] Progress SKIP: all deltas zero (itemName={itemCollectedName ?? ""}, genericItem={genericItemPickup}, armor={armorDelta}, health={healthDelta})"); } catch { /* ignore */ }
             return; /* Do not send progress when nothing changed (avoids 0-delta calls and reduces 404s if backend route is missing). */
+        }
         StarApiExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds}");
         var payload = BuildJson(writer =>
         {
@@ -2393,11 +2407,7 @@ public sealed class StarApiClient : IDisposable
         {
             var response = await SendRawAsync(HttpMethod.Post, url, payload, cancellationToken).ConfigureAwait(false);
             StarApiExports.StarApiLogFileOnly($"[Quest] Progress result: {(response.IsError ? "FAIL" : "OK")} {(response.IsError ? response.Message ?? "" : "")}");
-            if (!response.IsError)
-            {
-                InvalidateQuestCache();
-                RequestQuestCacheRefreshInBackground();
-            }
+            /* Do not refetch the full quest list on every progress tick — that spams GET all-for-avatar/game. Cache is warmed on beam-in / auth and when the quest UI explicitly refreshes (InvalidateQuestCache + RequestQuestCacheRefreshInBackground or popup). */
         }
         catch (Exception ex)
         {
@@ -2405,10 +2415,18 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Queue realtime quest progress (non-blocking). Uses active quest from avatar profile. Pass itemType (e.g. Armor, Health, Weapon, Powerup, Ammo, KeyItem) to set the matching Collected delta for objective dictionaries.</summary>
+    /// <summary>
+    /// Queue realtime quest progress (non-blocking) for the avatar's cached active quest id (from profile after beam-in / start quest).
+    /// Objectives are not evaluated in the client from oasisstar.json — this sends deltas to the STAR API, which updates objective state server-side.
+    /// Called for native <c>queue_add_item</c>, <c>queue_pickup_with_mint</c>, <c>queue_quest_progress_from_pickup</c>, and after successful <c>use_item</c>.
+    /// </summary>
     public void EnqueueQuestProgressFromGame(string gameSource, int monstersKilledDelta, int xpEarnedDelta, string? itemCollectedName, int keysCollectedDelta, int genericItemPickup, int? levelTimeSeconds = null, string? itemType = null)
     {
-        if (!IsInitialized()) return;
+        if (!IsInitialized())
+        {
+            try { StarApiExports.StarApiLogFileOnly("[Quest] EnqueueQuestProgressFromGame SKIP: client not initialized"); } catch { /* ignore */ }
+            return;
+        }
         int armor = 0, health = 0, weapons = 0, powerups = 0, ammo = 0;
         if (!string.IsNullOrWhiteSpace(itemType))
         {
@@ -2418,6 +2436,18 @@ public sealed class StarApiClient : IDisposable
             else if (it.IndexOf("Weapon", StringComparison.OrdinalIgnoreCase) >= 0) weapons = 1;
             else if (it.IndexOf("Powerup", StringComparison.OrdinalIgnoreCase) >= 0 || it.IndexOf("Artifact", StringComparison.OrdinalIgnoreCase) >= 0) powerups = 1;
             else if (it.IndexOf("Ammo", StringComparison.OrdinalIgnoreCase) >= 0) ammo = 1;
+        }
+        /* itemType may be generic "Item"; infer health/armor from display name (e.g. Stimpack, GreenArmor). */
+        if (armor == 0 && health == 0 && !string.IsNullOrWhiteSpace(itemCollectedName))
+        {
+            var n = itemCollectedName;
+            if (n.IndexOf("Armor", StringComparison.OrdinalIgnoreCase) >= 0) armor = 1;
+            else if (n.IndexOf("Stimpack", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Medikit", StringComparison.OrdinalIgnoreCase) >= 0
+                     || n.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0) health = 1;
+        }
+        if (genericItemPickup != 0 && armor == 0 && health == 0 && weapons == 0 && powerups == 0 && ammo == 0 && monstersKilledDelta == 0 && xpEarnedDelta == 0 && keysCollectedDelta == 0)
+        {
+            try { StarApiExports.StarApiLogFileOnly($"[Quest] EnqueueQuestProgressFromGame: genericItem=1 but typed deltas zero — check itemType/itemName. type={itemType ?? ""} name={itemCollectedName ?? ""}"); } catch { /* ignore */ }
         }
         _ = RunOnWorkerAsync(DedicatedWorker.Quests, async ct =>
         {
@@ -6489,6 +6519,23 @@ public static unsafe class StarApiExports
             string.IsNullOrWhiteSpace(nftIdStr) ? null : nftIdStr,
             qty,
             doStack);
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_api_queue_quest_progress_from_pickup", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarApiQueueQuestProgressFromPickup(sbyte* gameSource, sbyte* itemType, sbyte* itemName)
+    {
+        var client = GetClient();
+        if (client is null)
+        {
+            try { StarApiExports.StarApiLogFileOnly("[Quest] star_api_queue_quest_progress_from_pickup: no client"); } catch { /* ignore */ }
+            return;
+        }
+        var gs = PtrToString(gameSource);
+        if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
+        var it = PtrToString(itemType);
+        var name = PtrToString(itemName);
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] star_api_queue_quest_progress_from_pickup: gs={gs} itemType={it ?? ""} itemName={name ?? ""}"); } catch { /* ignore */ }
+        client.EnqueueQuestProgressFromGame(gs, 0, 0, name, 0, 1, null, it);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_xp", CallConvs = [typeof(CallConvCdecl)])]
