@@ -90,10 +90,15 @@ if (Test-Path $sharedSbarCpp) {
 		double yVersion = twod->GetHeight() - 18;
 		double xVersion = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
 		DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		FBaseCVar *showBeamedHudVar = FindCVar("odoom_hud_show_beamed", nullptr);
+		int showBeamedHud = (showBeamedHudVar && showBeamedHudVar->GetRealType() == CVAR_Int) ? showBeamedHudVar->GetGenericRep(CVAR_Int).Int : 1;
+		if (showBeamedHud)
+		{
 		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
 		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		}
 	}
 #endif
 
@@ -104,10 +109,15 @@ if (Test-Path $sharedSbarCpp) {
     }
     if ($content -match 'OASIS_STAR_API' -and $content -match 'verText' -and $content -notmatch 'Beamed In') {
         $content = $content -replace '(\t\tDrawText\(twod, SmallFont, CR_TAN, x, y, verText\.GetChars\(\), DTA_CleanNoMove, true, TAG_DONE\);\r?\n)(\t\})', @"
-`$1		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
+`$1		FBaseCVar *showBeamedHudVar = FindCVar("odoom_hud_show_beamed", nullptr);
+		int showBeamedHud = (showBeamedHudVar && showBeamedHudVar->GetRealType() == CVAR_Int) ? showBeamedHudVar->GetGenericRep(CVAR_Int).Int : 1;
+		if (showBeamedHud)
+		{
+		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
 		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		}
 `$2
 "@
         $sbarChanged = $true

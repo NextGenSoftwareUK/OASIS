@@ -245,6 +245,26 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyNDown = (keyN != 0);
 		wasKeyMDown = (keyM != 0);
 
+		/* B/X/Z: outside quest popup B toggles Beamed HUD; inside quest popup B is Not Started filter (handled below). */
+		if (!popupOpen && !questPopupOpen && sendPopupMode == 0)
+		{
+			if (keyBPressed)
+			{
+				CVar hb = CVar.FindCVar("odoom_hud_show_beamed");
+				if (hb != null) hb.SetInt(hb.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyXPressed)
+			{
+				CVar hx = CVar.FindCVar("odoom_hud_show_xp");
+				if (hx != null) hx.SetInt(hx.GetInt() != 0 ? 0 : 1);
+			}
+			if (keyZPressed)
+			{
+				CVar ht = CVar.FindCVar("odoom_hud_show_timer");
+				if (ht != null) ht.SetInt(ht.GetInt() != 0 ? 0 : 1);
+			}
+		}
+
 		if ((user1Down && !wasUser1Down) || keyIPressed)
 		{
 			popupOpen = !popupOpen;
@@ -305,6 +325,15 @@ class OASISInventoryOverlayHandler : EventHandler
 		}
 		if (questPopupOpen)
 		{
+			if (keyBackspacePressed && !questDetailPopupOpen)
+			{
+				questPopupOpen = false;
+				questStatusMessage = "";
+				questStatusFrames = 0;
+				if (questPopupCv != null) questPopupCv.SetInt(0);
+				CVar detailIdCv2 = CVar.FindCVar("odoom_quest_detail_quest_id");
+				if (detailIdCv2 != null) detailIdCv2.SetString("");
+			}
 			CVar scrollCvSync = CVar.FindCVar("odoom_quest_scroll_offset");
 			if (scrollCvSync != null) questScrollOffset = scrollCvSync.GetInt();
 			CVar listCv = CVar.FindCVar("odoom_quest_list");
@@ -350,7 +379,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (show) filteredIndices.Push(b);
 			}
 			int qCount = filteredIndices.Size();
-			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match maxQuestRows (one fewer for 2-line hint)
+			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match maxQuestRows (room for 2-line hint)
 			if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
 			// So C++ can react to K without relying on one-frame CVar handoff: set selected quest id every frame.
 			CVar selectedIdCv = CVar.FindCVar("odoom_quest_selected_id");
@@ -471,9 +500,9 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (parts.Size() >= 2 && parts[1].Compare(questGotoId) == 0)
 					{
 						questSelectedIndex = b;
-						int maxQuestRowsKey = (200 - 80) / 12 - 4;
-						if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
-						int so = questSelectedIndex - maxQuestRowsKey + 1;
+						int maxQuestRowsKey2 = (200 - 80) / 12 - 4;
+						if (maxQuestRowsKey2 < 5) maxQuestRowsKey2 = 5;
+						int so = questSelectedIndex - maxQuestRowsKey2 + 1;
 						if (so < 0) so = 0;
 						CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 						if (scrollCv != null) scrollCv.SetInt(so);
@@ -603,8 +632,11 @@ class OASISInventoryOverlayHandler : EventHandler
 					else if (questDetailFocus == 1) { questDetailPrereqSelected += maxRowsSingle; if (questDetailPrereqSelected >= nPrereq) questDetailPrereqSelected = nPrereq - 1; questDetailPrereqScroll = questDetailPrereqSelected - maxRowsSingle + 1; if (questDetailPrereqScroll < 0) questDetailPrereqScroll = 0; }
 					else { questDetailSubSelected += maxRowsSingle; if (questDetailSubSelected >= nSub) questDetailSubSelected = nSub - 1; questDetailSubScroll = questDetailSubSelected - maxRowsSingle + 1; if (questDetailSubScroll < 0) questDetailSubScroll = 0; }
 				}
-				// Backspace = close detail (Escape is used by engine for menu)
-				if (keyBackspacePressed) { questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
+				// Backspace: Prereqs/Subquests -> Objectives first; then back to main quest list (Escape is engine menu)
+				if (keyBackspacePressed) {
+					if (questDetailMode != 0) { questDetailMode = 0; questDetailFocus = 0; }
+					else { questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
+				}
 				// Enter on objective (focus 0) = set as active, highlight green. Enter on prereq (focus 1) or subquest (focus 2) = drill down.
 				// Ignore first Enter after opening detail so the key that opened the popup doesn't persist the (wrong) selected row.
 				if (questDetailIgnoreNextEnter) { if (keyEnterPressed) questDetailIgnoreNextEnter = false; }
@@ -1220,31 +1252,37 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
+		CVar showTimerCv = CVar.FindCVar("odoom_hud_show_timer");
+		int showTimerHud = (showTimerCv != null) ? showTimerCv.GetInt() : 1;
 		// Level timer: right side, just above the status bar; fixed-width digits so it doesn't shift as numbers change. MapTime is in tics (35/sec).
-		int timeY = 161;  // down 5 from 156
-		int tics = level.MapTime;
-		int secs = tics / 35;
-		int mins = secs / 60;
-		secs = secs % 60;
-		int digitW = f.StringWidth("0");
-		int colonW = f.StringWidth(":");
-		int totalW = 2 * digitW + colonW + 2 * digitW;  // MM:SS fixed width
-		// Virtual width 320; timer right edge at 280 (40px from right). Left edge = 280 - totalW. (+30 from previous 250)
-		int baseX = (320 - 40) - totalW;
-		String m1 = (mins >= 10) ? String.Format("%d", mins / 10) : " ";
-		String m2 = String.Format("%d", mins % 10);
-		String s1 = String.Format("%d", secs / 10);
-		String s2 = String.Format("%d", secs % 10);
-		screen.DrawText(f, Font.CR_WHITE, baseX, timeY, m1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, Font.CR_WHITE, baseX + digitW, timeY, m2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW, timeY, ":", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW + colonW, timeY, s1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		screen.DrawText(f, Font.CR_WHITE, baseX + 3 * digitW + colonW, timeY, s2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		if (showTimerHud != 0)
+		{
+			int timeY = 161;  // down 5 from 156
+			int tics = level.MapTime;
+			int secs = tics / 35;
+			int mins = secs / 60;
+			secs = secs % 60;
+			int digitW = f.StringWidth("0");
+			int colonW = f.StringWidth(":");
+			int totalW = 2 * digitW + colonW + 2 * digitW;  // MM:SS fixed width
+			int baseX = (320 - 40) - totalW;
+			String m1 = (mins >= 10) ? String.Format("%d", mins / 10) : " ";
+			String m2 = String.Format("%d", mins % 10);
+			String s1 = String.Format("%d", secs / 10);
+			String s2 = String.Format("%d", secs % 10);
+			screen.DrawText(f, Font.CR_WHITE, baseX, timeY, m1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_WHITE, baseX + digitW, timeY, m2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW, timeY, ":", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW + colonW, timeY, s1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_WHITE, baseX + 3 * digitW + colonW, timeY, s2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+		}
 
 		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
 		CVar xpVar = CVar.FindCVar("odoom_star_avatar_xp");
-		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null)
+		CVar showXpCv = CVar.FindCVar("odoom_hud_show_xp");
+		int showXpHud = (showXpCv != null) ? showXpCv.GetInt() : 1;
+		if (beamedVar != null && beamedVar.GetInt() != 0 && xpVar != null && showXpHud != 0)
 		{
 			int xp = xpVar.GetInt();
 			String xpText = String.Format("XP: %d", xp);
@@ -1501,8 +1539,35 @@ class OASISInventoryOverlayHandler : EventHandler
 				else if (reqLines.Size() == 0)
 					screen.DrawText(f, Font.CR_GRAY, rightX, reqY, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				else
-					for (int i = 0; i < maxRowsReq && i < reqLines.Size(); i++)
-						screen.DrawText(f, Font.CR_WHITE, rightX, reqY + i * rowH, reqLines[i], DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				{
+					int rowsUsed = 0;
+					int maxReqPx = rightW - 4;
+					for (int ri = 0; ri < reqLines.Size() && rowsUsed < maxRowsReq; ri++)
+					{
+						String raw = reqLines[ri];
+						if (raw.Length() == 0) continue;
+						array<String> rw;
+						raw.Split(rw, " ", false);
+						String cur = "";
+						for (int wi = 0; wi < rw.Size() && rowsUsed < maxRowsReq; wi++)
+						{
+							String nxt = cur.Length() > 0 ? String.Format("%s %s", cur, rw[wi]) : rw[wi];
+							if (f.StringWidth(nxt) > maxReqPx && cur.Length() > 0)
+							{
+								screen.DrawText(f, Font.CR_WHITE, rightX, reqY + rowsUsed * rowH, cur, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+								rowsUsed++;
+								cur = rw[wi];
+							}
+							else
+								cur = nxt;
+						}
+						if (cur.Length() > 0 && rowsUsed < maxRowsReq)
+						{
+							screen.DrawText(f, Font.CR_WHITE, rightX, reqY + rowsUsed * rowH, cur, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+							rowsUsed++;
+						}
+					}
+				}
 			}
 			else if (questDetailMode == 1)
 			{
@@ -1540,7 +1605,8 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 3, popupY + popupH - 49, "P/O/S=View  Arrows=Move  Enter=Go to  K=Start/Set  Backspace=Back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 61, "P/O/S=view  Arrows=move  Enter=go to", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 49, "K=start/set  Backspace=back (list or Obj tab)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)
@@ -1584,7 +1650,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int nameColW = 32 * 8 + 20 + 5;  // name column: 32 chars + 20px + 5px wider
 			int col2X = popupX + 8 + nameColW;
 			int col3X = col2X + 6 * 8;  // % then Status
-			int maxQuestRows = (popupH - 80) / rowH - 4; // one fewer row to make room for 2-line hint
+			int maxQuestRows = (popupH - 80) / rowH - 4; // room for 2-line hint
 			if (maxQuestRows < 5) maxQuestRows = 5;
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 14, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
@@ -1643,13 +1709,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			else
 				screen.DrawText(f, Font.CR_GRAY, popupX + 8, popupY + 48, "No Quests Found", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			String hint1 = "B/N/M=Filter  PgUp/PgDn=Page  Home/End=Top/Bottom";
-			String hint2 = "Arrows=Select  Enter=Details  K=Start/Set  Q=Close";
-			int hint1W = f.StringWidth(hint1);
-			int hint2W = f.StringWidth(hint2);
-			int hintRight = popupX + popupW - 8 + 90;  // right-align: main list 2 hint lines moved right 20
-			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 15 - hint1W, popupY + popupH - 58, hint1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, hintRight - 15 - hint2W, popupY + popupH - 43, hint2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 58, "B/N/M=filter  PgUp/PgDn  Home/End  Arrows  Enter  K", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 43, "Backspace=back/close  Q=close list", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				// Same position as toast: top centre of screen

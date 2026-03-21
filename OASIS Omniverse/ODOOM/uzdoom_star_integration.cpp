@@ -101,11 +101,8 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #endif
 #define ODOOM_K_HOME      GK_HOME
 #define ODOOM_K_END       GK_END
-#if defined(GK_BACKSPACE)
-#define ODOOM_K_BACKSPACE GK_BACKSPACE
-#else
-#define ODOOM_K_BACKSPACE 0
-#endif
+/* Always use d_gui.h ASCII control value 8 for backspace on POSIX. GK_BACKSPACE can differ from 8 on some engine builds, which broke SDL mapping in ODOOM_GetRawKeyDown. */
+#define ODOOM_K_BACKSPACE 8
 #endif
 
 /* Forward declaration so code before the definition (e.g. ODOOM_SaveJsonConfig) can call StarLogInfo. */
@@ -415,6 +412,12 @@ CVAR(Float, odoom_oq_monster_scale_knight, 0.60f, CVAR_ARCHIVE | CVAR_GLOBALCONF
 CVAR(Float, odoom_oq_monster_scale_scrag, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_shub, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_username, "", 0)
+/** 1 = show status-bar / HUD "Beamed In" line (engine patch reads this). B toggles in ZScript when quest popup closed. */
+CVAR(Int, odoom_hud_show_beamed, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** 1 = show XP text (top right) in ZScript overlay. */
+CVAR(Int, odoom_hud_show_xp, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** 1 = show level timer (bottom area). */
+CVAR(Int, odoom_hud_show_timer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(String, odoom_oasis_api_url, "https://api.oasisplatform.world", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 /* Stack (1) = each pickup adds quantity; Unlock (0) = one per type. Ammo always stacks. Shared with OQuake; sigils are OQuake-only. */
 CVAR(Int, odoom_star_stack_armor, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -927,6 +930,9 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 	else if (vk_or_ascii == 10) scancode = SDL_SCANCODE_DOWN;
 	else if (vk_or_ascii == 11) scancode = SDL_SCANCODE_UP;
 	else if (vk_or_ascii == 13) scancode = SDL_SCANCODE_RETURN;
+#if defined(GK_BACKSPACE)
+	else if (vk_or_ascii == GK_BACKSPACE) scancode = SDL_SCANCODE_BACKSPACE;
+#endif
 	return (scancode >= 0 && scancode < SDL_NUM_SCANCODES && state[scancode]) ? 1 : 0;
 #endif
 }
@@ -1986,6 +1992,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind home \"\"");
 		C_DoCommand("bind end \"\"");
 		C_DoCommand("bind K \"\"");  /* K = Start quest / Set tracker in quest popup; prevent engine from using it */
+		C_DoCommand("bind backspace \"\"");
 		C_DoCommand("bind \"1\" \"\"");
 		C_DoCommand("bind \"2\" \"\"");
 		C_DoCommand("bind \"3\" \"\"");
@@ -2015,6 +2022,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind \"KP-Enter\" \"+use\"");
 		C_DoCommand("bind Q \"odoom_quest_toggle\"");  /* Q opens quest popup (fallback if raw key not available) */
 		C_DoCommand("bind K \"\"");  /* leave K unbound so user can bind for quest Start/Set if desired */
+		C_DoCommand("bind backspace \"\"");  /* engine default is often unbound; user may bind menu_main etc. in cfg */
 		C_DoCommand("bind pgup \"\"");
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
@@ -2052,10 +2060,32 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int keyN  = ODOOM_GetRawKeyDown('N');
 		int keyM  = ODOOM_GetRawKeyDown('M');
 		int keyK  = ODOOM_GetRawKeyDown('K');
+		int keyV  = ODOOM_GetRawKeyDown('V');
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
+		/* B/X/Z HUD toggles from raw keys here so they work even if ZScript tick/CVar ordering fails; ZScript duplicate removed. */
+		{
+			FBaseCVar* sendOpenVar2 = FindCVar("odoom_send_popup_open", nullptr);
+			const bool sendPopupOpen2 = (sendOpenVar2 && sendOpenVar2->GetRealType() == CVAR_Int && sendOpenVar2->GetGenericRep(CVAR_Int).Int != 0);
+			static int s_odoom_hud_prev_b = 0, s_odoom_hud_prev_x = 0, s_odoom_hud_prev_z = 0;
+			auto flipHudInt = [](const char* cvarName) {
+				FBaseCVar* hv = FindCVar(cvarName, nullptr);
+				if (!hv || hv->GetRealType() != CVAR_Int) return;
+				UCVarValue u = hv->GetGenericRep(CVAR_Int);
+				u.Int = (u.Int != 0) ? 0 : 1;
+				hv->SetGenericRep(u, CVAR_Int);
+			};
+			if (!anyPopupOpen && !sendPopupOpen2) {
+				if (keyB && !s_odoom_hud_prev_b) flipHudInt("odoom_hud_show_beamed");
+				if (x && !s_odoom_hud_prev_x) flipHudInt("odoom_hud_show_xp");
+				if (z && !s_odoom_hud_prev_z) flipHudInt("odoom_hud_show_timer");
+			}
+			s_odoom_hud_prev_b = keyB ? 1 : 0;
+			s_odoom_hud_prev_x = x ? 1 : 0;
+			s_odoom_hud_prev_z = z ? 1 : 0;
+		}
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2455,7 +2485,22 @@ void ODOOM_PostTic(void)
 }
 
 /** Called from engine input code when building ticcmd: set key state CVars for ZScript. */
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int backspace)
+static void ODOOM_QueueQuestProgressForConsumedPickup(const char* item_name, const char* item_type)
+{
+	if (!item_name || !item_type) {
+		Printf(PRINT_NONOTIFY, "[STAR] quest progress pickup: skip (null name/type)\n");
+		return;
+	}
+	if (!g_star_initialized) {
+		Printf(PRINT_NONOTIFY, "[STAR] quest progress pickup: skip (STAR not initialized) name=%s type=%s\n", item_name, item_type);
+		return;
+	}
+	Printf(PRINT_NONOTIFY, "[STAR] quest progress pickup: queue name=%s type=%s\n", item_name, item_type);
+	star_api_queue_quest_progress_from_pickup("ODOOM", item_type, item_name);
+	g_odoom_quest_tracker_needs_refresh = true;
+}
+
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -2471,6 +2516,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_b", keyB);
 	SET_KEY_CVAR("odoom_key_n", keyN);
 	SET_KEY_CVAR("odoom_key_m", keyM);
+	SET_KEY_CVAR("odoom_key_v", keyV);
 	SET_KEY_CVAR("odoom_key_use", use);
 	SET_KEY_CVAR("odoom_key_a", a);
 	SET_KEY_CVAR("odoom_key_c", c);
@@ -3179,8 +3225,14 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 	}
 	if (!name || !desc) return;
 
-	/* When always_add_items_to_inventory=1, always add. Otherwise only add when engine didn't use it; at max only add if always_allow_pickup_if_max=1. */
-	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0 && !odoom_star_always_add_items_to_inventory) {
+	/*
+	 * Quest progress for pickups: routed through star_api_queue_add_item / queue_pickup_with_mint / queue_quest_progress_from_pickup,
+	 * which all enqueue EnqueueQuestProgressFromGame in STARAPIClient (active quest on server). oasisstar.json / odoom_star_* CVars affect
+	 * inventory/mint and whether PostTouch returns early (e.g. at max health with allow_if_max=0); they do not load objectives locally.
+	 * When the engine never applies a pickup, we do not send health/armor collected deltas (would mis-state progress).
+	 */
+	/* Health/armor: compare PreTouch snapshot to PostTouch stats. If engine consumed the pickup and always_add_items=0, report quest progress and return (no duplicate STAR row). If always_add=1, add_item below sends progress once — do not return early when consumed. At max with always_add=0, optionally skip add_item. */
+	if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health >= 0) {
 		FLevelLocals* level = primaryLevel;
 		player_t* pl = level ? level->GetConsolePlayer() : nullptr;
 		if (pl && pl->mo) {
@@ -3199,43 +3251,50 @@ void UZDoom_STAR_PostTouchSpecial(int keynum) {
 			int cur_health = pl->mo->health;
 			AActor* arm = pl->mo->FindInventory(FName("BasicArmor"), true);
 			int cur_armor = arm ? arm->IntVar(FName("Amount")) : 0;
-			if (strstr(itemType, "Health") || strstr(itemType, "health")) {
-				if (cur_health > g_star_pre_touch_health) {
+			const bool isHealthItem = (strstr(itemType, "Health") != nullptr || strstr(itemType, "health") != nullptr);
+			const bool isArmorItem = (strstr(itemType, "Armor") != nullptr || strstr(itemType, "armor") != nullptr);
+			const bool consumedHealth = isHealthItem && cur_health > g_star_pre_touch_health;
+			const bool consumedArmor = isArmorItem && cur_armor > g_star_pre_touch_armor;
+			Printf(PRINT_NONOTIFY,
+				"[STAR] PostTouch health/armor: name=%s type=%s preH=%d curH=%d preA=%d curA=%d always_add=%d consumedH=%d consumedA=%d\n",
+				name, itemType, g_star_pre_touch_health, cur_health, g_star_pre_touch_armor, cur_armor,
+				odoom_star_always_add_items_to_inventory ? 1 : 0, consumedHealth ? 1 : 0, consumedArmor ? 1 : 0);
+			if ((consumedHealth || consumedArmor) && !odoom_star_always_add_items_to_inventory) {
+				ODOOM_QueueQuestProgressForConsumedPickup(name, itemType);
+				g_star_has_pending_item = false;
+				g_star_pending_item_name.clear();
+				g_star_pending_item_desc.clear();
+				g_star_pending_item_type.clear();
+				g_star_pending_item_amount = 1;
+				return;
+			}
+			if (!odoom_star_always_add_items_to_inventory) {
+				/* At max with allow_if_max=0 we skip STAR inventory, but the engine still consumed the world pickup — report quest progress. */
+				if (isHealthItem && g_star_pre_touch_health >= config_max_health && !allow_if_max) {
+					ODOOM_QueueQuestProgressForConsumedPickup(name, itemType);
 					g_star_has_pending_item = false;
 					g_star_pending_item_name.clear();
 					g_star_pending_item_desc.clear();
 					g_star_pending_item_type.clear();
 					g_star_pending_item_amount = 1;
-					return; /* Engine used it on player; don't add to STAR. */
+					return;
 				}
-				if (g_star_pre_touch_health >= config_max_health && !allow_if_max) {
+				if (isArmorItem && g_star_pre_touch_armor >= config_max_armor && !allow_if_max) {
+					ODOOM_QueueQuestProgressForConsumedPickup(name, itemType);
 					g_star_has_pending_item = false;
 					g_star_pending_item_name.clear();
 					g_star_pending_item_desc.clear();
 					g_star_pending_item_type.clear();
 					g_star_pending_item_amount = 1;
-					return; /* At config max and ifmax=0: don't add to STAR. */
+					return;
 				}
 			}
-			if (strstr(itemType, "Armor") || strstr(itemType, "armor")) {
-				if (cur_armor > g_star_pre_touch_armor) {
-					g_star_has_pending_item = false;
-					g_star_pending_item_name.clear();
-					g_star_pending_item_desc.clear();
-					g_star_pending_item_type.clear();
-					g_star_pending_item_amount = 1;
-					return; /* Engine used it on player; don't add to STAR. */
-				}
-				if (g_star_pre_touch_armor >= config_max_armor && !allow_if_max) {
-					g_star_has_pending_item = false;
-					g_star_pending_item_name.clear();
-					g_star_pending_item_desc.clear();
-					g_star_pending_item_type.clear();
-					g_star_pending_item_amount = 1;
-					return; /* At config max and ifmax=0: don't add to STAR. */
-				}
-			}
+		} else {
+			Printf(PRINT_NONOTIFY, "[STAR] PostTouch health/armor: skip (no player mo) name=%s type=%s\n", name ? name : "", itemType ? itemType : "");
 		}
+	} else if (keynum == STAR_PICKUP_GENERIC_ITEM && itemType && g_star_pre_touch_health < 0) {
+		Printf(PRINT_NONOTIFY, "[STAR] PostTouch health/armor: no pre-touch snapshot (preH=%d) name=%s type=%s — using add_item path only\n",
+			g_star_pre_touch_health, name ? name : "", itemType ? itemType : "");
 	}
 
 	/* Debounce generic/weapon pickups so standing on a stimpack (etc.) doesn't spam: only queue same item once per 0.5s. */
