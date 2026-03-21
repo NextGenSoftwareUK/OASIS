@@ -581,12 +581,39 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var underlyingGuid = Nullable.GetUnderlyingType(propInfo.PropertyType);
                         var isNullableGuid = underlyingGuid == typeof(Guid);
                         if (propInfo.PropertyType == typeof(Guid))
-                            propInfo.SetValue(holon, new Guid(holon.MetaData[key].ToString()));
+                        {
+                            var gRaw = holon.MetaData[key];
+                            if (gRaw is JsonElement jeG && jeG.ValueKind == JsonValueKind.String && Guid.TryParse(jeG.GetString(), out var gj))
+                                propInfo.SetValue(holon, gj);
+                            else if (gRaw is Guid gDirect)
+                                propInfo.SetValue(holon, gDirect);
+                            else if (gRaw != null && Guid.TryParse(gRaw.ToString(), out var gp))
+                                propInfo.SetValue(holon, gp);
+                        }
                         else if (isNullableGuid)
                         {
-                            if (holon.MetaData[key] == null || string.IsNullOrWhiteSpace(holon.MetaData[key].ToString()))
+                            /* MetaData values are often JsonElement (STJ) or BSON-deserialized types; ToString() alone breaks Guid.TryParse for JsonElement. */
+                            var raw = holon.MetaData[key];
+                            if (raw == null)
                                 propInfo.SetValue(holon, null);
-                            else if (Guid.TryParse(holon.MetaData[key].ToString(), out var guidVal))
+                            else if (raw is JsonElement je)
+                            {
+                                if (je.ValueKind == JsonValueKind.Null || je.ValueKind == JsonValueKind.Undefined)
+                                    propInfo.SetValue(holon, null);
+                                else if (je.ValueKind == JsonValueKind.String)
+                                {
+                                    var js = je.GetString();
+                                    if (string.IsNullOrWhiteSpace(js))
+                                        propInfo.SetValue(holon, null);
+                                    else if (Guid.TryParse(js, out var guidFromJe))
+                                        propInfo.SetValue(holon, guidFromJe);
+                                }
+                            }
+                            else if (raw is Guid gBox)
+                                propInfo.SetValue(holon, gBox == Guid.Empty ? null : gBox);
+                            else if (string.IsNullOrWhiteSpace(raw.ToString()))
+                                propInfo.SetValue(holon, null);
+                            else if (Guid.TryParse(raw.ToString(), out var guidVal))
                                 propInfo.SetValue(holon, guidVal);
                         }
                         else if (holon.MetaData[key] != null)

@@ -110,6 +110,9 @@ int star_api_get_tracker_quest_name(char* buf, size_t buf_size);
 int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
 /** Write serialized objectives from the quest's Objectives collection for parent_quest_id to buf for right panel. Same format as star_api_get_quests_string. parent_quest_id must be non-NULL. */
 int star_api_get_quest_objectives_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Incremented when on-demand objective fetch merges into cache; games may re-fetch objectives when this changes. */
+#define STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION 1
+int star_api_get_quest_objectives_cache_version(void);
 /** Write serialized prerequisite quests (id, name, desc) for the given quest_id to buf for right panel. Same format as star_api_get_quests_string. quest_id must be non-NULL. */
 int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Write requirement/progress lines for quest (and optional objective_id) to buf. One line per requirement e.g. "Killed 3/10 monsters in ODOOM". objective_id may be NULL for quest-level only. */
