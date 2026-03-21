@@ -245,25 +245,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyNDown = (keyN != 0);
 		wasKeyMDown = (keyM != 0);
 
-		/* B/X/Z: outside quest popup B toggles Beamed HUD; inside quest popup B is Not Started filter (handled below). */
-		if (!popupOpen && !questPopupOpen && sendPopupMode == 0)
-		{
-			if (keyBPressed)
-			{
-				CVar hb = CVar.FindCVar("odoom_hud_show_beamed");
-				if (hb != null) hb.SetInt(hb.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyXPressed)
-			{
-				CVar hx = CVar.FindCVar("odoom_hud_show_xp");
-				if (hx != null) hx.SetInt(hx.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyZPressed)
-			{
-				CVar ht = CVar.FindCVar("odoom_hud_show_timer");
-				if (ht != null) ht.SetInt(ht.GetInt() != 0 ? 0 : 1);
-			}
-		}
+		/* B/X/Z HUD toggles (Beamed / XP / timer) are handled in C++ (ODOOM_InventoryInputCaptureFrame) so they work reliably with raw SDL keys. */
 
 		if ((user1Down && !wasUser1Down) || keyIPressed)
 		{
@@ -1057,6 +1039,9 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
+	}
+
+		// Keep button-edge state in sync every tic (was only updated inside inventory block before, which broke edge detection when popup closed).
 		wasUser1Down = user1Down;
 		wasUser2Down = user2Down;
 		wasUser3Down = user3Down;
@@ -1069,8 +1054,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasReloadDown = reloadDown;
 		wasJumpDown = jumpDown;
 		wasCrouchDown = crouchDown;
-	}
-
 	} // end WorldTick
 
 	private ui int GetClampedOffset(int listCount)
@@ -1233,6 +1216,49 @@ class OASISInventoryOverlayHandler : EventHandler
 		String tag = item.GetTag("");
 		if (tag.Length() > 0) return tag;
 		return item.GetClassName();
+	}
+
+	// Word-wrap with hard breaks for tokens wider than maxW (plain space-split leaves long URLs as one line).
+	private void DrawWrappedWords(Screen s, Font font, int cr, int x0, int y0, int maxW, int rowH, int maxLines, array<String> words)
+	{
+		String line = "";
+		int ly = y0;
+		int nlines = 0;
+		for (int wi = 0; wi < words.Size() && nlines < maxLines; wi++)
+		{
+			String w = words[wi];
+			while (w.Length() > 0 && nlines < maxLines)
+			{
+				String candidate = line.Length() > 0 ? String.Format("%s %s", line, w) : w;
+				if (font.StringWidth(candidate) <= maxW)
+				{
+					line = candidate;
+					break;
+				}
+				if (line.Length() > 0)
+				{
+					s.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					ly += rowH;
+					nlines++;
+					line = "";
+					continue;
+				}
+				int lo = 1, hi = w.Length(), best = 1;
+				while (lo <= hi)
+				{
+					int mid = (lo + hi) / 2;
+					if (font.StringWidth(w.Left(mid)) <= maxW) { best = mid; lo = mid + 1; }
+					else hi = mid - 1;
+				}
+				if (best < 1) best = 1;
+				s.DrawText(font, cr, x0, ly, w.Left(best), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				ly += rowH;
+				nlines++;
+				w = w.Mid(best);
+			}
+		}
+		if (line.Length() > 0 && nlines < maxLines)
+			s.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 	}
 
 	private ui String ItemDisplayName(Inventory item)
@@ -1429,29 +1455,21 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 			// Left pane: top half = quest desc, bottom half = selected objective/prereq/subquest desc (50/50)
-			int leftContentH = popupH - 49 - 24;
+			int detailFooterReserve = 66;  // room for 3-line key hint at bottom
+			int leftContentH = popupH - detailFooterReserve - 24;
 			int leftTopH = leftContentH / 2;
 			int descMaxW = leftW - 8;
 			int maxLinesTop = leftTopH / rowH;
 			if (maxLinesTop < 1) maxLinesTop = 1;
 			int objSectionY = sect1Y - 2;  // label for bottom-half left (aligned with right pane bottom half)
-			int maxLinesBottom = (popupY + popupH - 49 - (sect1Y + 10)) / rowH;
+			int maxLinesBottom = (popupY + popupH - detailFooterReserve - (sect1Y + 10)) / rowH;
 			if (maxLinesBottom < 1) maxLinesBottom = 1;
 			// Top left: quest description only (word wrap, clip to half height)
 			String questDesc = questDetailQuestDesc;
 			if (questDesc.Length() > 200) questDesc = String.Format("%s..", questDesc.Left(198));
 			array<String> questWords;
 			questDesc.Split(questWords, " ", false);
-			String questLine = "";
-			int ly = popupY + 24;
-			int lineCount = 0;
-			for (int w = 0; w < questWords.Size() && lineCount < maxLinesTop; w++)
-			{
-				String nextLine = questLine.Length() > 0 ? String.Format("%s %s", questLine, questWords[w]) : questWords[w];
-				if (f.StringWidth(nextLine) > descMaxW && questLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, questLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; lineCount++; questLine = questWords[w]; }
-				else questLine = nextLine;
-			}
-			if (questLine.Length() > 0 && lineCount < maxLinesTop) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, questLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); lineCount++; }
+			DrawWrappedWords(screen, f, Font.CR_WHITE, popupX + 8, popupY + 24, descMaxW, rowH, maxLinesTop, questWords);
 			// Bottom left: heading by mode; description from selected item
 			String objDesc = "";
 			String objLabel = "Objective";
@@ -1490,16 +1508,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			if (objDesc.Length() > 200) objDesc = String.Format("%s..", objDesc.Left(198));
 			array<String> objWords;
 			objDesc.Split(objWords, " ", false);
-			String objLine = "";
-			ly = objDescY;
-			lineCount = 0;
-			for (int w = 0; w < objWords.Size() && lineCount < maxLinesBottom; w++)
-			{
-				String nextLine = objLine.Length() > 0 ? String.Format("%s %s", objLine, objWords[w]) : objWords[w];
-				if (f.StringWidth(nextLine) > descMaxW && objLine.Length() > 0) { screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, objLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43); ly = ly + rowH; lineCount++; objLine = objWords[w]; }
-				else objLine = nextLine;
-			}
-			if (objLine.Length() > 0 && lineCount < maxLinesBottom) screen.DrawText(f, Font.CR_WHITE, popupX + 8, ly, objLine, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			DrawWrappedWords(screen, f, Font.CR_WHITE, popupX + 8, objDescY, descMaxW, rowH, maxLinesBottom, objWords);
 			// Right pane: one view per mode. Mode 0 = Objectives + Requirements; Mode 1 = Prereqs only; Mode 2 = Subquests only.
 			if (questDetailMode == 0)
 			{
@@ -1531,7 +1540,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				String reqStr = (reqCv != null) ? reqCv.GetString() : "";
 				array<String> reqLines;
 				if (reqStr.Length() > 0 && reqStr.IndexOf("Loading") != 0) reqStr.Split(reqLines, "\n", false);
-				int maxRowsReq = (popupY + popupH - 49 - (sect1Y + 10)) / rowH;
+				int maxRowsReq = (popupY + popupH - detailFooterReserve - (sect1Y + 10)) / rowH;
 				if (maxRowsReq < 1) maxRowsReq = 1;
 				int reqY = sect1Y + 10;
 				if (reqStr.Length() > 0 && reqStr.IndexOf("Loading") == 0)
@@ -1605,8 +1614,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 61, "P/O/S=view  Arrows=move  Enter=go to", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 49, "K=start/set  Backspace=back (list or Obj tab)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 72, "P / O / S: Prereq / Objectives / Subquests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 58, "Arrows: move   Enter: open / go to", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 44, "K: start quest or set tracker   Backsp: back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)
