@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -297,9 +298,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("refresh-token")]
-        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken()
+        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken([FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshTokenRequest? body = null)
         {
             var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrWhiteSpace(refreshToken))
+                refreshToken = body?.RefreshToken;
             var response = AvatarManager.RefreshToken(refreshToken, ipAddress());
 
             if (!response.IsError && response.Result != null)
@@ -317,10 +320,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="setGlobally"></param>
         /// <returns></returns>
         [HttpPost("refresh-token/{providerType}/{setGlobally}")]
-        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken(ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISHttpResponseMessage<IAvatar>> RefreshToken(ProviderType providerType, bool setGlobally = false, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] RefreshTokenRequest? body = null)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
-            return await RefreshToken();
+            return await RefreshToken(body);
         }
 
         /// <summary>
@@ -1754,7 +1757,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-logged-in-avatar")]
         public async Task<OASISHttpResponseMessage<IAvatar>> GetLoggedInAvatar()
         {
-            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = AvatarManager.LoggedInAvatar });
+            /* JwtMiddleware sets HttpContext.Items["Avatar"] from the JWT "id" claim. AvatarManager.LoggedInAvatar is process-global and can be another user (last full login) — never use it alone for JWT-authenticated requests. */
+            var avatar = Avatar ?? AvatarManager.LoggedInAvatar;
+            if (avatar == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { Result = avatar });
         }
 
          /// <summary>
@@ -1764,7 +1771,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-logged-in-avatar-with-xp")]
         public async Task<OASISHttpResponseMessage<LoggedInAvatarResponse>> GetLoggedInAvatarWithXp()
         {
-            var avatar = AvatarManager.LoggedInAvatar;
+            var avatar = Avatar ?? AvatarManager.LoggedInAvatar;
             if (avatar == null)
                 return HttpResponseHelper.FormatResponse(new OASISResult<LoggedInAvatarResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
             var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(avatar.Id);

@@ -959,9 +959,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /// <summary>Incomplete objectives in apply order: <paramref name="activeObjectiveId"/> first if present on the quest, then by <see cref="Objective.Order"/> and Id. Same ordering intent as STAR client <c>MergeQuestProgressIntoLocalCache</c>.</summary>
+        private static IEnumerable<Objective> OrderIncompleteObjectivesForProgress(IList<Objective>? objectives, Guid? activeObjectiveId)
+        {
+            if (objectives == null || objectives.Count == 0) yield break;
+            var incomplete = objectives.Where(o => !o.IsCompleted).ToList();
+            Objective? activeFirst = null;
+            if (activeObjectiveId.HasValue && activeObjectiveId.Value != Guid.Empty)
+                activeFirst = incomplete.FirstOrDefault(o => o.Id == activeObjectiveId.Value);
+            if (activeFirst != null)
+            {
+                yield return activeFirst;
+                incomplete.Remove(activeFirst);
+            }
+            foreach (var o in incomplete.OrderBy(x => x.Order).ThenBy(x => x.Id))
+                yield return o;
+        }
+
         /// <summary>
         /// Applies in-game progress (kills, pickups, XP, level time) to the quest's incomplete objectives.
         /// Updates progress dictionaries; completes objectives when thresholds are met; completes the quest when all objectives are done.
+        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set; otherwise by Order then Id.
         /// </summary>
         public async Task<OASISResult<QuestProgressApplyResult>> ApplyQuestProgressAsync(Guid avatarId, Guid questId, string gameSource, QuestProgressDelta delta)
         {
@@ -997,10 +1015,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.Objectives == null)
                     quest.Objectives = new List<Objective>();
                 int completedThisRound = 0;
-                foreach (var objective in quest.Objectives)
+                foreach (var objective in OrderIncompleteObjectivesForProgress(quest.Objectives, delta.ActiveObjectiveId))
                 {
-                    if (objective.IsCompleted)
-                        continue;
                     ApplyDeltaToObjective(objective, gs, delta);
                     objective.InvalidateObjectiveString();
                     if (IsObjectiveRequirementsMet(objective, gs))
@@ -1095,34 +1111,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return scores.Sum() / scores.Count;
         }
 
+        /// <summary>Resolve which game key in a need dict matches the incoming <paramref name="gs"/> (ODOOM vs Doom, OQUAKE vs Quake).</summary>
+        private static string? ResolveDictGameKey(IDictionary<string, IList<string>>? need, string gs)
+        {
+            if (need == null || need.Count == 0) return null;
+            if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
+            if (need.ContainsKey(gs)) return gs;
+            foreach (var k in need.Keys)
+            {
+                if (GameKeysAliasForProgress(k, gs)) return k;
+            }
+            return null;
+        }
+
+        private static bool GameKeysAliasForProgress(string a, string b)
+        {
+            if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) return true;
+            static string Norm(string s) =>
+                (s ?? "").Replace(" ", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+            var na = Norm(a);
+            var nb = Norm(b);
+            if (na.Equals(nb, StringComparison.OrdinalIgnoreCase)) return true;
+            var aDoom = na.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || na.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+            var bDoom = nb.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || nb.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+            if (aDoom && bDoom) return true;
+            var aQ = na.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || na.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+            var bQ = nb.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || nb.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+            return aQ && bQ;
+        }
+
         private static void ApplyDeltaToObjective(Objective o, string gs, QuestProgressDelta d)
         {
-            if (d.MonstersKilledDelta != 0 && o.NeedToKillMonsters != null && o.NeedToKillMonsters.ContainsKey(gs))
-                AddDictInt(o.MonstersKilled, gs, d.MonstersKilledDelta);
-            if (d.XpEarnedDelta != 0 && o.NeedToEarnXP != null && o.NeedToEarnXP.ContainsKey(gs))
-                AddDictInt(o.XPEarnt, gs, d.XpEarnedDelta);
-            if (d.KeysCollectedDelta != 0 && o.NeedToCollectKeys != null && o.NeedToCollectKeys.ContainsKey(gs))
-                AddDictInt(o.KeysCollected, gs, d.KeysCollectedDelta);
-            if (d.ArmorCollectedDelta != 0 && o.NeedToCollectArmor != null && o.NeedToCollectArmor.ContainsKey(gs))
-                AddDictInt(o.ArmorCollected, gs, d.ArmorCollectedDelta);
-            if (d.HealthCollectedDelta != 0 && o.NeedToCollectHealth != null && o.NeedToCollectHealth.ContainsKey(gs))
-                AddDictInt(o.HealthCollected, gs, d.HealthCollectedDelta);
-            if (d.WeaponsCollectedDelta != 0 && o.NeedToCollectWeapons != null && o.NeedToCollectWeapons.ContainsKey(gs))
-                AddDictInt(o.WeaponsCollected, gs, d.WeaponsCollectedDelta);
-            if (d.PowerupsCollectedDelta != 0 && o.NeedToCollectPowerups != null && o.NeedToCollectPowerups.ContainsKey(gs))
-                AddDictInt(o.PowerupsCollected, gs, d.PowerupsCollectedDelta);
-            if (d.AmmoCollectedDelta != 0 && o.NeedToCollectAmmo != null && o.NeedToCollectAmmo.ContainsKey(gs))
-                AddDictInt(o.AmmoCollected, gs, d.AmmoCollectedDelta);
-            if (!string.IsNullOrWhiteSpace(d.ItemCollectedName) && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
+            var mk = ResolveDictGameKey(o.NeedToKillMonsters, gs);
+            if (d.MonstersKilledDelta != 0 && mk != null)
+                AddDictInt(o.MonstersKilled, mk, d.MonstersKilledDelta);
+            var xpk = ResolveDictGameKey(o.NeedToEarnXP, gs);
+            if (d.XpEarnedDelta != 0 && xpk != null)
+                AddDictInt(o.XPEarnt, xpk, d.XpEarnedDelta);
+            var kk = ResolveDictGameKey(o.NeedToCollectKeys, gs);
+            if (d.KeysCollectedDelta != 0 && kk != null)
+                AddDictInt(o.KeysCollected, kk, d.KeysCollectedDelta);
+            var ak = ResolveDictGameKey(o.NeedToCollectArmor, gs);
+            if (d.ArmorCollectedDelta != 0 && ak != null)
+                AddDictInt(o.ArmorCollected, ak, d.ArmorCollectedDelta);
+            var hk = ResolveDictGameKey(o.NeedToCollectHealth, gs);
+            if (d.HealthCollectedDelta != 0 && hk != null)
+                AddDictInt(o.HealthCollected, hk, d.HealthCollectedDelta);
+            var wk = ResolveDictGameKey(o.NeedToCollectWeapons, gs);
+            if (d.WeaponsCollectedDelta != 0 && wk != null)
+                AddDictInt(o.WeaponsCollected, wk, d.WeaponsCollectedDelta);
+            var pk = ResolveDictGameKey(o.NeedToCollectPowerups, gs);
+            if (d.PowerupsCollectedDelta != 0 && pk != null)
+                AddDictInt(o.PowerupsCollected, pk, d.PowerupsCollectedDelta);
+            var amk = ResolveDictGameKey(o.NeedToCollectAmmo, gs);
+            if (d.AmmoCollectedDelta != 0 && amk != null)
+                AddDictInt(o.AmmoCollected, amk, d.AmmoCollectedDelta);
+            var itk = ResolveDictGameKey(o.NeedToCollectItems, gs);
+            if (!string.IsNullOrWhiteSpace(d.ItemCollectedName) && itk != null)
             {
                 var name = d.ItemCollectedName.Trim();
-                var reqs = o.NeedToCollectItems[gs];
+                var reqs = o.NeedToCollectItems![itk];
                 var matched = reqs.Any(r => string.Equals(r, name, StringComparison.OrdinalIgnoreCase));
                 if (matched || (reqs.Count > 0 && int.TryParse(reqs[0], out _)))
-                    AddDictInt(o.ItemsCollected, gs, 1);
+                    AddDictInt(o.ItemsCollected, itk, 1);
             }
-            else if (d.GenericItemPickup != 0 && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
-                AddDictInt(o.ItemsCollected, gs, d.GenericItemPickup);
+            else if (d.GenericItemPickup != 0 && itk != null)
+                AddDictInt(o.ItemsCollected, itk, d.GenericItemPickup);
             if (d.LevelTimeSeconds.HasValue)
             {
                 SetDictInt(o.TimeTaken, gs, d.LevelTimeSeconds.Value);
@@ -1136,17 +1190,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             bool OkNeed(IDictionary<string, IList<string>> need, IDictionary<string, IList<string>> prog)
             {
                 if (need == null || need.Count == 0) return true;
-                if (!need.TryGetValue(gs, out var nlist) || nlist == null || nlist.Count == 0) return true;
+                var key = ResolveDictGameKey(need, gs);
+                if (key == null) return true;
+                if (!need.TryGetValue(key, out var nlist) || nlist == null || nlist.Count == 0) return true;
                 if (!int.TryParse(nlist[0], out var needN) || needN <= 0) return true;
-                return GetDictInt(prog, gs) >= needN;
+                return GetDictInt(prog, key) >= needN;
             }
             bool OkItems()
             {
-                if (o.NeedToCollectItems == null || !o.NeedToCollectItems.TryGetValue(gs, out var items) || items == null || items.Count == 0)
+                if (o.NeedToCollectItems == null) return true;
+                var key = ResolveDictGameKey(o.NeedToCollectItems, gs);
+                if (key == null) return true;
+                if (!o.NeedToCollectItems.TryGetValue(key, out var items) || items == null || items.Count == 0)
                     return true;
                 if (int.TryParse(items[0], out var needCount) && needCount > 0)
-                    return GetDictInt(o.ItemsCollected, gs) >= needCount;
-                return GetDictInt(o.ItemsCollected, gs) >= items.Count;
+                    return GetDictInt(o.ItemsCollected, key) >= needCount;
+                return GetDictInt(o.ItemsCollected, key) >= items.Count;
             }
             if (!OkNeed(o.NeedToKillMonsters, o.MonstersKilled)) return false;
             if (!OkNeed(o.NeedToEarnXP, o.XPEarnt)) return false;
@@ -1768,6 +1827,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     /// <summary>In-game progress delta for ApplyQuestProgressAsync (kills, XP, pickups by type, level time). Matches Objective progress dictionaries: ArmorCollected, HealthCollected, WeaponsCollected, PowerupsCollected, AmmoCollected, ItemsCollected, KeysCollected.</summary>
     public class QuestProgressDelta
     {
+        /// <summary>Optional profile active objective; when set, that incomplete objective is updated before others (then Order, Id). Omit for legacy clients.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
         public int MonstersKilledDelta { get; set; }
         public int XpEarnedDelta { get; set; }
         public int KeysCollectedDelta { get; set; }

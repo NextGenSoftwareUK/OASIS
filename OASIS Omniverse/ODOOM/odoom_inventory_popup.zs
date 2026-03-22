@@ -12,8 +12,6 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasLookUpDown;
 	private bool wasLookDownDown;
 	private bool wasUseDown;
-	private bool wasUser4Down;
-	private bool wasReloadDown;
 	private bool wasJumpDown;
 	private bool wasCrouchDown;
 	private bool wasKeyUpDown;
@@ -160,8 +158,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool lookUpDown = (buttons & BT_LOOKUP) != 0;
 		bool lookDownDown = (buttons & BT_LOOKDOWN) != 0;
 		bool useDown = (buttons & BT_USE) != 0;
-		bool user4Down = (buttons & BT_USER4) != 0;
-		bool reloadDown = (buttons & BT_RELOAD) != 0;
 		bool jumpDown = (buttons & BT_JUMP) != 0;
 		bool crouchDown = (buttons & BT_CROUCH) != 0;
 
@@ -245,8 +241,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyNDown = (keyN != 0);
 		wasKeyMDown = (keyM != 0);
 
-		/* B/X/Z HUD toggles (Beamed / XP / timer) are handled in C++ (ODOOM_InventoryInputCaptureFrame) so they work reliably with raw SDL keys. */
-
 		if ((user1Down && !wasUser1Down) || keyIPressed)
 		{
 			popupOpen = !popupOpen;
@@ -305,6 +299,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else showCv.SetInt(1);
 			}
 		}
+		/* B/X/Z HUD: engine bind -> odoom_hud_toggle_* (C++ CCMD), same pattern as Q -> odoom_quest_toggle. Raw odoom_key_b is still used below for quest filters when this bind is cleared. */
 		if (questPopupOpen)
 		{
 			if (keyBackspacePressed && !questDetailPopupOpen)
@@ -1050,8 +1045,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasLookUpDown = lookUpDown;
 		wasLookDownDown = lookDownDown;
 		wasUseDown = useDown;
-		wasUser4Down = user4Down;
-		wasReloadDown = reloadDown;
 		wasJumpDown = jumpDown;
 		wasCrouchDown = crouchDown;
 	} // end WorldTick
@@ -1455,7 +1448,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 			// Left pane: top half = quest desc, bottom half = selected objective/prereq/subquest desc (50/50)
-			int detailFooterReserve = 66;  // room for 3-line key hint at bottom
+			int detailFooterReserve = 72;  // room for 3 short hint lines at bottom
 			int leftContentH = popupH - detailFooterReserve - 24;
 			int leftTopH = leftContentH / 2;
 			int descMaxW = leftW - 8;
@@ -1614,9 +1607,10 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 72, "P / O / S: Prereq / Objectives / Subquests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 58, "Arrows: move   Enter: open / go to", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, popupY + popupH - 44, "K: start quest or set tracker   Backsp: back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int hintBase = popupY + popupH - 56;
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase, "P O S = column tab", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase + 12, "Arrows move  Enter open  K", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase + 24, "Backspace = back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)

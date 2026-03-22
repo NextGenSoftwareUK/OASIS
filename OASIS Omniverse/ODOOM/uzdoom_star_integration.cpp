@@ -324,12 +324,15 @@ void star_api_request_inventory_in_background(void) { star_api_request_inventory
 #endif
 
 static star_api_config_t g_star_config;
+/** 0 = merge quest progress into local STAR client cache (no GET). 1 = full GET all quests after each progress. From oasisstar.json quest_progress_refresh. */
+static int g_odoom_quest_progress_cache_refresh = 0;
 static bool g_star_initialized = false;
 static bool g_star_client_ready = false;
 /** When true, user explicitly beamed out; do not auto re-auth on door/touch until they run "star beamin" again. */
 static bool g_star_user_beamed_out = false;
 /** Obsolete: was used to avoid calling star_api_refresh_avatar_xp() twice; now we only call star_api_refresh_avatar_profile() once on beam-in. */
 static bool g_star_refresh_xp_called_this_session = false;
+/* Verbose quest list chunk lines go to console only when true; star_api.log still gets full diagnostics from C#. Default on so tracker/quest issues are diagnosable without editing json. */
 static bool g_star_debug_logging = true;
 static bool g_star_logged_runtime_auth_failure = false;
 static bool g_star_logged_missing_auth_config = false;
@@ -341,6 +344,8 @@ static bool g_odoom_profile_loaded_pending = false;
 static bool g_odoom_inventory_refresh_pending = false;
 /** Set true when an objective was just completed (keycard/console); frame pump refreshes tracker on next frame. */
 static bool g_odoom_quest_tracker_needs_refresh = false;
+/** Set when C# finishes a quest cache GET after progress/refresh; frame pump re-pushes tracker + detail CVars. */
+static bool g_odoom_quests_cache_refresh_pending = false;
 static bool g_star_cli_loaded = false;
 static std::string g_star_override_username;
 static std::string g_star_override_password;
@@ -672,6 +677,13 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_star_use_powerup_on_pickup = (atoi(value) != 0) ? 1 : 0;
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "quest_progress_refresh", value, (int)sizeof(value)) && value[0]) {
+		if (!strcasecmp(value, "server") || !strcasecmp(value, "full") || atoi(value) == 1)
+			g_odoom_quest_progress_cache_refresh = 1;
+		else
+			g_odoom_quest_progress_cache_refresh = 0;
+		loaded = true;
+	}
 	/* Per-monster mint: mint_monster_odoom_zombieman, mint_monster_oquake_ogre, etc. Default 1 if key missing. */
 	for (int i = 0; ODOOM_MONSTERS[i].engineName; i++) {
 		char key[128];
@@ -731,6 +743,8 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		u.Int = odoom_star_use_armor_on_pickup ? 1 : 0; v = FindCVar("odoom_star_use_armor_on_pickup", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 		u.Int = odoom_star_use_powerup_on_pickup ? 1 : 0; v = FindCVar("odoom_star_use_powerup_on_pickup", nullptr); if (v && v->GetRealType() == CVAR_Int) v->SetGenericRep(u, CVAR_Int);
 	}
+	if (g_star_client_ready)
+		star_api_set_quest_progress_cache_refresh(g_odoom_quest_progress_cache_refresh);
 	return loaded;
 }
 
@@ -744,6 +758,7 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
 	fprintf(f, "  \"beam_face\": %d,\n", oasis_star_beam_face ? 1 : 0);
 	fprintf(f, "  \"star_debug\": %d,\n", g_star_debug_logging ? 1 : 0);
+	fprintf(f, "  \"quest_progress_refresh\": \"%s\",\n", g_odoom_quest_progress_cache_refresh ? "server" : "client");
 	fprintf(f, "  \"stack_armor\": %d,\n", odoom_star_stack_armor ? 1 : 0);
 	fprintf(f, "  \"stack_weapons\": %d,\n", odoom_star_stack_weapons ? 1 : 0);
 	fprintf(f, "  \"stack_powerups\": %d,\n", odoom_star_stack_powerups ? 1 : 0);
@@ -1136,6 +1151,7 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 }
 
 static void StarLogInfo(const char* fmt, ...);
+static void StarLogQuestListPayloadChunks(const char* buf, int len);
 
 /** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Uses top-level quests only (like Quake) so main list shows parents; sub-quests appear in detail panel. Tracker shows quest only when odoom_quest_tracker_quest_id is set. */
 static void ODOOM_RefreshQuestCVars(void) {
@@ -1187,16 +1203,21 @@ static void ODOOM_RefreshQuestCVars(void) {
 		} }
 		if (n != s_last_n || questCountForLog != s_last_quest_count) {
 			s_last_n = n; s_last_quest_count = questCountForLog;
-			std::string preview;
-			for (int i = 0; i < n && i < 280; i++) {
-				char c = questBuf[i];
-				if (c == '\n') preview += "\\n";
-				else if (c == '\r') preview += "\\r";
-				else if (c == '\t') preview += "|";
-				else if (c >= 32 && c < 127) preview += c;
-				else preview += ".";
+			if (g_star_debug_logging) {
+				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d (STAR debug: full payload in chunk lines)", n, (size_t)assignLen, questCountForLog);
+				StarLogQuestListPayloadChunks(questBuf, n);
+			} else {
+				std::string preview;
+				for (int i = 0; i < n && i < 240; i++) {
+					char c = questBuf[i];
+					if (c == '\n') preview += "\\n";
+					else if (c == '\r') preview += "\\r";
+					else if (c == '\t') preview += "|";
+					else if (c >= 32 && c < 127) preview += c;
+					else preview += ".";
+				}
+				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d preview=%.220s", n, (size_t)assignLen, questCountForLog, preview.c_str());
 			}
-			StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d preview=%.260s", n, assignLen, questCountForLog, preview.c_str());
 		}
 	}
 
@@ -1436,6 +1457,8 @@ static void ODOOM_StarApiOperationCallback(star_api_result_t result, int operati
 		star_sync_inventory_deliver_result(list, result, result != STAR_API_SUCCESS ? star_api_get_last_error() : nullptr);
 		g_odoom_inventory_refresh_pending = true;
 	}
+	if (operation_type == STAR_API_OP_QUESTS_CACHE_REFRESHED && result == STAR_API_SUCCESS)
+		g_odoom_quests_cache_refresh_pending = true;
 }
 
 /** Called from main thread by star_sync_pump() when auth completes. */
@@ -1808,12 +1831,15 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
-	/* Once STAR is initialized, bind Q to quest popup so it opens the popup instead of e.g. quit. */
+	/* Once STAR is initialized, force overlay/HUD keys (same as defaultbind path; overrides stale cfg e.g. B +user4). */
 	if (g_star_initialized) {
-		static bool s_odoom_q_bound_once = false;
-		if (!s_odoom_q_bound_once) {
+		static bool s_odoom_star_overlay_keys_bound_once = false;
+		if (!s_odoom_star_overlay_keys_bound_once) {
 			C_DoCommand("bind Q \"odoom_quest_toggle\"");
-			s_odoom_q_bound_once = true;
+			C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
+			C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
+			C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
+			s_odoom_star_overlay_keys_bound_once = true;
 		}
 	}
 
@@ -1977,6 +2003,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind F \"\"");
 		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind X \"\"");
+		C_DoCommand("bind B \"\"");
 		C_DoCommand("bind Q \"\"");  /* Q = quest popup; prevent engine from using it (e.g. quit) */
 		/* I, O, P cleared so they only affect popup; ZScript will read odoom_key_i/o/p from raw state */
 		C_DoCommand("bind I \"\"");
@@ -2010,8 +2037,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind A \"+moveleft\"");
 		C_DoCommand("bind C \"odoom_use_health\"");
 		C_DoCommand("bind F \"odoom_use_armor\"");
-		C_DoCommand("bind Z \"+user4\"");
-		C_DoCommand("bind X \"+reload\"");
+		/* B/X/Z: same idea as Q -> odoom_quest_toggle — impulse CCMD per key; ODOOM_FlipHudIntCVar respects popups (see odoom_hud_toggle_*). */
+		C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
+		C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
+		C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
 		C_DoCommand("bind I \"+user1\"");
 		C_DoCommand("bind O \"+user2\"");
 		C_DoCommand("bind P \"+user3\"");
@@ -2062,27 +2091,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
-		/* B/X/Z HUD toggles from raw keys here so they work even if ZScript tick/CVar ordering fails; ZScript duplicate removed. */
-		{
-			FBaseCVar* sendOpenVar2 = FindCVar("odoom_send_popup_open", nullptr);
-			const bool sendPopupOpen2 = (sendOpenVar2 && sendOpenVar2->GetRealType() == CVAR_Int && sendOpenVar2->GetGenericRep(CVAR_Int).Int != 0);
-			static int s_odoom_hud_prev_b = 0, s_odoom_hud_prev_x = 0, s_odoom_hud_prev_z = 0;
-			auto flipHudInt = [](const char* cvarName) {
-				FBaseCVar* hv = FindCVar(cvarName, nullptr);
-				if (!hv || hv->GetRealType() != CVAR_Int) return;
-				UCVarValue u = hv->GetGenericRep(CVAR_Int);
-				u.Int = (u.Int != 0) ? 0 : 1;
-				hv->SetGenericRep(u, CVAR_Int);
-			};
-			if (!anyPopupOpen && !sendPopupOpen2) {
-				if (keyB && !s_odoom_hud_prev_b) flipHudInt("odoom_hud_show_beamed");
-				if (x && !s_odoom_hud_prev_x) flipHudInt("odoom_hud_show_xp");
-				if (z && !s_odoom_hud_prev_z) flipHudInt("odoom_hud_show_timer");
-			}
-			s_odoom_hud_prev_b = keyB ? 1 : 0;
-			s_odoom_hud_prev_x = x ? 1 : 0;
-			s_odoom_hud_prev_z = z ? 1 : 0;
-		}
+		/* B/X/Z: engine bind -> odoom_hud_toggle_* (same pattern as Q); do not also flip from ZScript or the CVar toggles twice in one frame. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2113,6 +2122,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 
 	/* Quest: invalidate when popup opens and refresh once to trigger single API request; then refresh every 60 frames only while popup is open so API is hit once. */
 	if (g_star_initialized) {
+		if (g_odoom_quests_cache_refresh_pending) {
+			g_odoom_quests_cache_refresh_pending = false;
+			ODOOM_RefreshQuestCVars();
+			ODOOM_RefreshQuestDetailCVars();
+		}
 		FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 		int questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int) ? questPopupVar->GetGenericRep(CVAR_Int).Int : 0;
 		static int s_quest_popup_was_open = 0;
@@ -2495,7 +2509,6 @@ static void ODOOM_QueueQuestProgressForConsumedPickup(const char* item_name, con
 	}
 	Printf(PRINT_NONOTIFY, "[STAR] quest progress pickup: queue name=%s type=%s\n", item_name, item_type);
 	star_api_queue_quest_progress_from_pickup("ODOOM", item_type, item_name);
-	g_odoom_quest_tracker_needs_refresh = true;
 }
 
 void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
@@ -2746,6 +2759,31 @@ static void StarLogInfo(const char* fmt, ...) {
 	}
 }
 
+/** Log large quest list strings in multiple lines (StarLogInfo buffer is 1024; each chunk stays under that). */
+static void StarLogQuestListPayloadChunks(const char* buf, int len) {
+	if (!buf || len <= 0) return;
+	const int maxRawChunk = 700;
+	int part = 0;
+	for (int pos = 0; pos < len; ) {
+		int take = len - pos;
+		if (take > maxRawChunk) take = maxRawChunk;
+		char chunk[768];
+		int w = 0;
+		for (int i = 0; i < take && w < (int)sizeof(chunk) - 4; i++) {
+			unsigned char c = (unsigned char)buf[pos + i];
+			if (c == '\n') { chunk[w++] = '\\'; chunk[w++] = 'n'; }
+			else if (c == '\r') { chunk[w++] = '\\'; chunk[w++] = 'r'; }
+			else if (c == '\t') { chunk[w++] = '|'; }
+			else if (c >= 32 && c < 127) chunk[w++] = (char)c;
+			else { chunk[w++] = '.'; }
+		}
+		chunk[w] = '\0';
+		part++;
+		StarLogInfo("[Quests] ODOOM: list_payload part=%d off=%d len=%d: %s", part, pos, take, chunk);
+		pos += take;
+	}
+}
+
 static void StarLogError(const char* fmt, ...) {
 	char msg[1024];
 	va_list args;
@@ -2863,6 +2901,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 		g_star_init_failed_this_session = false;
 		if (logVerbose) StarLogInfo("star_api_init succeeded (interop DLL/API ready).");
 		star_api_set_operation_callback(ODOOM_StarApiOperationCallback, nullptr);
+		star_api_set_quest_progress_cache_refresh(g_odoom_quest_progress_cache_refresh);
 	}
 	/* Always (re)apply WEB4 OASIS URL when set so auth/refresh use the correct host. Required for token refresh on restore (expired JWT). */
 	{
@@ -2883,6 +2922,11 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	const char* username = g_star_effective_username.empty() ? nullptr : g_star_effective_username.c_str();
 	const char* password = g_star_effective_password.empty() ? nullptr : g_star_effective_password.c_str();
 	if (HasValue(username) && HasValue(password)) {
+		/* Prevents duplicate AuthenticateAsync when the worker thread finished but star_sync_pump has not run ODOOM_OnAuthDone yet (touch/init paths used to start a second SSO). */
+		if (g_star_async_auth_pending) {
+			if (logVerbose) StarLogInfo("SSO auth already in progress (awaiting main-thread completion).");
+			return false;
+		}
 		if (star_sync_auth_in_progress()) {
 			if (logVerbose) StarLogInfo("SSO auth already in progress.");
 			return false;
@@ -3076,6 +3120,10 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
+	/* HUD toggles: same idea as Q (defaultbind is impulse command, not +user4/+reload/+zoom). */
+	C_DoCommand("defaultbind B \"odoom_hud_toggle_beamed\"");
+	C_DoCommand("defaultbind X \"odoom_hud_toggle_xp\"");
+	C_DoCommand("defaultbind Z \"odoom_hud_toggle_timer\"");
 
 	StarLogInfo("\n********** GAME LOAD **********");
 	StarLogInfo("STAR bootstrap: Beaming in...");
@@ -3553,6 +3601,35 @@ static void ODOOM_SetToastMessage(const char* msg) {
 	}
 }
 
+static bool ODOOM_AnyStarPopupOpenForHudToggle(void)
+{
+	FBaseCVar* inv = FindCVar("odoom_inventory_open", nullptr);
+	if (inv && inv->GetRealType() == CVAR_Int && inv->GetGenericRep(CVAR_Int).Int != 0)
+		return true;
+	FBaseCVar* q = FindCVar("odoom_quest_popup_open", nullptr);
+	if (q && q->GetRealType() == CVAR_Int && q->GetGenericRep(CVAR_Int).Int != 0)
+		return true;
+	FBaseCVar* s = FindCVar("odoom_send_popup_open", nullptr);
+	if (s && s->GetRealType() == CVAR_Int && s->GetGenericRep(CVAR_Int).Int != 0)
+		return true;
+	return false;
+}
+
+static void ODOOM_FlipHudIntCVar(const char* cvarName)
+{
+	if (ODOOM_AnyStarPopupOpenForHudToggle())
+		return;
+	FBaseCVar* hv = FindCVar(cvarName, nullptr);
+	if (!hv || hv->GetRealType() != CVAR_Int) return;
+	UCVarValue u = hv->GetGenericRep(CVAR_Int);
+	u.Int = (u.Int != 0) ? 0 : 1;
+	hv->SetGenericRep(u, CVAR_Int);
+}
+
+CCMD(odoom_hud_toggle_beamed) { ODOOM_FlipHudIntCVar("odoom_hud_show_beamed"); }
+CCMD(odoom_hud_toggle_xp) { ODOOM_FlipHudIntCVar("odoom_hud_show_xp"); }
+CCMD(odoom_hud_toggle_timer) { ODOOM_FlipHudIntCVar("odoom_hud_show_timer"); }
+
 CCMD(odoom_use_health)
 {
 	if (!g_star_initialized || star_sync_use_item_in_progress()) return;
@@ -3616,6 +3693,7 @@ CCMD(star)
 		Printf("\n");
 		Printf("  star version        - Show integration and API status\n");
 		Printf("  star status         - Show init state and last error\n");
+		Printf("  HUD: B / X / Z      - Toggle beamed-in line, XP, timer (not while inventory/quest/send UI open)\n");
 		Printf("  star inventory      - List items in STAR inventory\n");
 		Printf("  star lastpickup     - Show most recent synced pickup\n");
 		Printf("  star has <item>     - Check if you have an item (e.g. Red Keycard)\n");
@@ -4069,6 +4147,8 @@ CCMD(star)
 		Printf("  use_health_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_health_on_pickup ? "1" : "0");
 		Printf("  use_armor_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_armor_on_pickup ? "1" : "0");
 		Printf("  use_powerup_on_pickup: %s  (0=below max -> inventory only; 1=standard)\n", odoom_star_use_powerup_on_pickup ? "1" : "0");
+		Printf("  quest_progress_refresh: %s  (client=merge into local cache after /progress OK; server=full quest GET each time)\n",
+			g_odoom_quest_progress_cache_refresh ? "server" : "client");
 		Printf("\n");
 		Printf("To set: star seturl <url>   star setoasisurl <url>\n");
 		Printf("        star pickup ifmax <0|1>   star pickup all <0|1>\n");

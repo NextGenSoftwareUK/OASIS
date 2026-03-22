@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Contracts;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STARAPI.Client;
@@ -7,6 +8,7 @@ namespace DemoQuestSeed;
 
 /// <summary>
 /// Seeds the STAR API with demo quests and objectives for testing ODOOM and OQuake quest UIs.
+/// Quest names use a " v2" suffix and descriptions note explicit objective dictionaries (vs legacy inferred-only rows).
 /// Objectives are created as the Quest.Objectives collection (CreateCrossGameQuestAsync name, description, objectivesList).
 /// Sub-quests are added separately via AddSubQuestAsync. Uses same env vars as TestHarness.
 /// </summary>
@@ -26,7 +28,7 @@ internal static class Program
         var password = GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password);
 
         Console.WriteLine("==============================================");
-        Console.WriteLine(" OASIS STAR API – Demo Quest Seed");
+        Console.WriteLine(" OASIS STAR API – Demo Quest Seed (quests named … v2)");
         Console.WriteLine("==============================================");
         Console.WriteLine($"WEB5 (STAR): {web5BaseUrl}");
         Console.WriteLine($"WEB4 (OASIS): {web4BaseUrl}");
@@ -111,29 +113,50 @@ internal static class Program
         var questsToCreate = new[]
         {
             new DemoQuest(
-                "Demo: Doom & Quake",
-                "Complete objectives in both Doom and Quake to earn rewards.",
+                "Demo: Doom & Quake v2",
+                "Complete objectives in both Doom and Quake to earn rewards. (v2 = explicit objective dictionaries)",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Kill 5 monsters in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                    new StarQuestObjective { Description = "Collect a key in Doom", GameSource = "ODOOM", Order = 1, IsCompleted = false },
-                    new StarQuestObjective { Description = "Pick up health in Quake", GameSource = "OQUAKE", Order = 2, IsCompleted = false }
+                    Obj("Kill 5 monsters in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToKillMonsters = NeedN("ODOOM", "5")
+                    }),
+                    Obj("Collect a key in Doom", "ODOOM", 1, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToCollectKeys = Need1("ODOOM")
+                    }),
+                    Obj("Pick up health in Quake", "OQUAKE", 2, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToCollectHealth = Need1("OQUAKE")
+                    })
                 }),
             new DemoQuest(
-                "Demo: Quake Explorer",
-                "Explore Quake and complete these objectives.",
+                "Demo: Quake Explorer v2",
+                "Explore Quake and complete these objectives. (v2 = explicit objective dictionaries)",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Find a Mega Health in Quake", GameSource = "OQUAKE", Order = 0, IsCompleted = false },
-                    new StarQuestObjective { Description = "Kill an enemy in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                    Obj("Find a Mega Health in Quake", "OQUAKE", 0, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToCollectHealth = Need1("OQUAKE")
+                    }),
+                    Obj("Kill an enemy in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToKillMonsters = Need1("OQUAKE")
+                    })
                 }),
             new DemoQuest(
-                "Demo: Doom Runner",
-                "Quick Doom objectives for testing the quest UI.",
+                "Demo: Doom Runner v2",
+                "Quick Doom objectives for testing the quest UI. (v2 = explicit objective dictionaries)",
                 new[]
                 {
-                    new StarQuestObjective { Description = "Collect armor in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                    new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", Order = 1, IsCompleted = false }
+                    Obj("Collect armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToCollectArmor = Need1("ODOOM")
+                    }),
+                    Obj("Use a Stimpack in Doom", "ODOOM", 1, new StarQuestObjectiveDictionaries
+                    {
+                        NeedToCollectHealth = Need1("ODOOM")
+                    })
                 })
         };
 
@@ -168,12 +191,18 @@ internal static class Program
 
         /* Create a quest that has BOTH objectives (Option B) AND sub-quests for testing the 3-list UI (Prereqs, Objectives, Sub-quests). */
         var parentWithSub = new DemoQuest(
-            "Demo: Parent with Objectives + Sub-quests",
-            "This quest has embedded objectives and child sub-quests for testing all three right-panel lists.",
+            "Demo: Parent with Objectives + Sub-quests v2",
+            "This quest has embedded objectives and child sub-quests for testing all three right-panel lists. (v2 = explicit objective dictionaries)",
             new[]
             {
-                new StarQuestObjective { Description = "Collect Red key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Earn 100 XP in OQUAKE", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                Obj("Collect Red key in ODOOM", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectKeys = Need1("ODOOM")
+                }),
+                Obj("Earn 100 XP in OQUAKE", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                {
+                    NeedToEarnXP = NeedN("OQUAKE", "100")
+                })
             });
         var parentCreate = await client.CreateCrossGameQuestAsync(parentWithSub.Name, parentWithSub.Description, parentWithSub.Objectives.ToList());
         if (!parentCreate.IsError && parentCreate.Result != null && !string.IsNullOrEmpty(parentCreate.Result.Id))
@@ -183,12 +212,12 @@ internal static class Program
             var startParent = await client.StartQuestAsync(parentId);
             if (!startParent.IsError) Console.WriteLine("  Started.");
 
-            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level", name: "Doom Level Clear", gameSource: "ODOOM", itemRequired: "Complete level", order: 0);
-            if (!sub1.IsError && sub1.Result != null) Console.WriteLine($"  Added sub-quest: Doom Level Clear (Id: {sub1.Result.Id})");
+            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level v2", name: "Doom Level Clear v2", gameSource: "ODOOM", itemRequired: "Complete level", order: 0);
+            if (!sub1.IsError && sub1.Result != null) Console.WriteLine($"  Added sub-quest: Doom Level Clear v2 (Id: {sub1.Result.Id})");
             else if (sub1.IsError) Console.WriteLine($"  Add sub-quest failed: {sub1.Message}");
 
-            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune", name: "Quake Rune", gameSource: "OQUAKE", itemRequired: "Rune", order: 1);
-            if (!sub2.IsError && sub2.Result != null) Console.WriteLine($"  Added sub-quest: Quake Rune (Id: {sub2.Result.Id})");
+            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune v2", name: "Quake Rune v2", gameSource: "OQUAKE", itemRequired: "Rune", order: 1);
+            if (!sub2.IsError && sub2.Result != null) Console.WriteLine($"  Added sub-quest: Quake Rune v2 (Id: {sub2.Result.Id})");
             else if (sub2.IsError) Console.WriteLine($"  Add sub-quest failed: {sub2.Message}");
             Console.WriteLine();
         }
@@ -197,28 +226,46 @@ internal static class Program
 
         // Create quests with prerequisites and multiple objectives for testing the right-panel lists (Prerequisites, Sub-quests/Objectives).
         var step1 = new DemoQuest(
-            "Step 1: First Quest",
-            "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup.",
+            "Step 1: First Quest v2",
+            "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup. (v2 = explicit objective dictionaries)",
             new[]
             {
-                new StarQuestObjective { Description = "Get a key in any game", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Pick up health once", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                Obj("Get a key in any game", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectKeys = Need1("ODOOM")
+                }),
+                Obj("Pick up health once", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectHealth = Need1("OQUAKE")
+                })
             });
         var step2 = new DemoQuest(
-            "Step 2: Unlock Second",
-            "Requires Step 1 completed. Tests prerequisites list and objectives in the UI.",
+            "Step 2: Unlock Second v2",
+            "Requires Step 1 v2 completed. Tests prerequisites list and objectives in the UI. (v2 = explicit objective dictionaries)",
             new[]
             {
-                new StarQuestObjective { Description = "Find armor in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Kill one enemy in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                Obj("Find armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectArmor = Need1("ODOOM")
+                }),
+                Obj("Kill one enemy in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                {
+                    NeedToKillMonsters = Need1("OQUAKE")
+                })
             });
         var step3 = new DemoQuest(
-            "Step 3: Final Step",
-            "Requires Step 2 completed. Full chain: Step 1 -> Step 2 -> Step 3.",
+            "Step 3: Final Step v2",
+            "Requires Step 2 v2 completed. Full chain: Step 1 v2 -> Step 2 v2 -> Step 3 v2. (v2 = explicit objective dictionaries)",
             new[]
             {
-                new StarQuestObjective { Description = "Use a Stimpack in Doom", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Find Mega Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                Obj("Use a Stimpack in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectHealth = Need1("ODOOM")
+                }),
+                Obj("Find Mega Health in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                {
+                    NeedToCollectHealth = Need1("OQUAKE")
+                })
             });
 
         string? step1Id = null;
@@ -258,7 +305,7 @@ internal static class Program
                     if (setPrereq.IsError)
                         Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
                     else
-                        Console.WriteLine($"  Prerequisite set: Step 1.");
+                        Console.WriteLine($"  Prerequisite set: Step 1 v2.");
                 }
             }
             else
@@ -269,7 +316,7 @@ internal static class Program
                     if (setPrereq.IsError)
                         Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
                     else
-                        Console.WriteLine($"  Prerequisite set: Step 2.");
+                        Console.WriteLine($"  Prerequisite set: Step 2 v2.");
                 }
             }
             Console.WriteLine();
@@ -288,4 +335,20 @@ internal static class Program
     }
 
     private record DemoQuest(string Name, string Description, IReadOnlyList<StarQuestObjective> Objectives);
+
+    private static Dictionary<string, List<string>> Need1(string game) =>
+        new(StringComparer.OrdinalIgnoreCase) { [game] = new List<string> { "1" } };
+
+    private static Dictionary<string, List<string>> NeedN(string game, string n) =>
+        new(StringComparer.OrdinalIgnoreCase) { [game] = new List<string> { n } };
+
+    private static StarQuestObjective Obj(string description, string gameSource, int order, StarQuestObjectiveDictionaries dictionaries) =>
+        new()
+        {
+            Description = description,
+            GameSource = gameSource,
+            Order = order,
+            IsCompleted = false,
+            Dictionaries = dictionaries
+        };
 }

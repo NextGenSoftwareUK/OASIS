@@ -62,6 +62,7 @@ star_api_set_callback
 star_api_set_debug
 star_api_set_oasis_base_url
 star_api_set_operation_callback
+star_api_set_quest_progress_cache_refresh
 star_api_set_refresh_token
 star_api_set_saved_session
 star_api_start_quest
