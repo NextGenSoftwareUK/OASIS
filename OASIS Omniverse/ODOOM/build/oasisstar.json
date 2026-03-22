@@ -3,6 +3,7 @@
   "oasis_api_url": "http://localhost:7777",
   "beam_face": 1,
   "star_debug": 1,
+  "quest_progress_refresh": "client",
   "stack_armor": 1,
   "stack_weapons": 1,
   "stack_powerups": 1,
@@ -51,7 +52,7 @@
   "mint_monster_oquake_scrag": 1,
   "mint_monster_oquake_shub": 1,
   "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDA3ODE0OSwiZXhwIjoxNzc0MDc5MDQ5LCJpYXQiOjE3NzQwNzgxNDl9.XyLhcDcIX8s6g36BRHKVbXsC_vhtQRea1WH2v3HJHfU",
-  "refresh_token": "6838871478557E80BBBF961CBE13044FD14B05FEFE2BB233A04792861C7068FC28969662EAC272DA"
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDE2MTgwOSwiZXhwIjoxNzc0MTYyNzA5LCJpYXQiOjE3NzQxNjE4MDl9.jwu8y9gkuYJ2YUDk9HrxU4tjurGC8hxnNHQuzKl3Vi0",
+  "refresh_token": "947CAC59D91BA65C92BC8FF5383DEAF9D34B09A7CE51279A2FA8E8D2E959872D78E71E7B61AB12F5"
 
 }

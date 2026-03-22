@@ -52,9 +52,11 @@ typedef void (*star_api_callback_t)(star_api_result_t result, void* user_data);
 /** Operation type for star_api_set_operation_callback. Game can run "profile loaded" only when type is STAR_API_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see StarApiClient.cs StarApiOp* constants. */
 #define STAR_API_OP_PROFILE_LOADED 0
 #define STAR_API_OP_GET_INVENTORY 3
+#define STAR_API_OP_QUESTS_CACHE_REFRESHED 28
 typedef void (*star_api_operation_callback_t)(star_api_result_t result, int operation_type, void* user_data);
 
 star_api_result_t star_api_init(const star_api_config_t* config);
+void star_api_set_quest_progress_cache_refresh(int mode);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
 /** Same as star_api_authenticate but on success writes JWT to jwt_buf (for oasisstar.json). jwt_buf can be NULL. */
 star_api_result_t star_api_authenticate_with_jwt_out(const char* username, const char* password, char* jwt_buf, size_t jwt_size);
