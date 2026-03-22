@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core;
@@ -772,7 +773,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Description = request.Description,
                     GameSource = request.GameSource,
                     ItemRequired = request.ItemRequired,
-                    Order = request.Order
+                    Order = request.Order,
+                    Dictionaries = request.Dictionaries
                 }, quest.Objectives.Count);
 
                 quest.Objectives.Add((Objective)objective);
@@ -1322,7 +1324,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/start")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> StartQuest(Guid id, [FromBody] string startNotes = null)
+        public async Task<IActionResult> StartQuest(Guid id, [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] string? startNotes = null)
         {
             _logger.LogInformation("[Quests] StartQuest: id={QuestId} AvatarId={AvatarId}", id, AvatarId);
             try
@@ -1361,6 +1363,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     return BadRequest(new OASISResult<QuestProgressApplyResult> { IsError = true, Message = "Body required." });
                 var delta = new QuestProgressDelta
                 {
+                    ActiveObjectiveId = request.ActiveObjectiveId,
                     MonstersKilledDelta = request.MonstersKilledDelta,
                     XpEarnedDelta = request.XpEarnedDelta,
                     KeysCollectedDelta = request.KeysCollectedDelta,
@@ -1787,7 +1790,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             return false;
         }
 
-        /// <summary>Creates an Objective (Option B) from a create/add objective request. Uses Dictionaries when present; otherwise populates from ItemRequired/Description to match backend Objective.</summary>
+        /// <summary>Creates an Objective (Option B) from a create/add objective request. Uses Dictionaries when present; otherwise infers NeedTo* dicts from Description/ItemRequired (keyword heuristics, count-first lists) via <see cref="QuestObjectiveDescriptionInference"/>.</summary>
         private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
         {
             var gameSource = string.IsNullOrWhiteSpace(request.GameSource) ? "Default" : request.GameSource.Trim();
@@ -1807,8 +1810,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             else
             {
-                var itemOrDesc = string.IsNullOrWhiteSpace(request.ItemRequired) ? (request.Description?.Trim() ?? request.Name?.Trim() ?? "Complete") : request.ItemRequired.Trim();
-                objective.NeedToCollectItems[gameSource] = new List<string> { itemOrDesc };
+                QuestObjectiveDescriptionInference.ApplyInferredNeeds(objective, request.Description, request.ItemRequired, gameSource);
             }
             return objective;
         }
@@ -1956,6 +1958,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     /// <summary>Realtime quest progress from game (Doom/Quake): kills, XP, pickups by type, level time. Objective dictionaries (NeedToCollectArmor etc.) are keyed by game source (ODOOM, Quake, OQUAKE).</summary>
     public class QuestProgressRequest
     {
+        /// <summary>Optional avatar profile active objective id; server applies deltas to incomplete objectives in this order: this id first, then by objective Order.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
         public string GameSource { get; set; } = "ODOOM";
         public int MonstersKilledDelta { get; set; }
         public int XpEarnedDelta { get; set; }
