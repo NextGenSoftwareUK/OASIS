@@ -25,6 +25,7 @@
 #else
 #include <sys/stat.h>
 #include <dlfcn.h>
+#include <unistd.h>
 #endif
 
 #if defined(_MSC_VER) || !defined(__GLIBC__)
@@ -2069,6 +2070,116 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     return 1;
 }
 
+/* Optional Holochain / STAR DNA path file; create empty default next to oasisstar.json (parity with ODOOM). */
+static void OQ_EnsureDefaultOasisstarDna(const char *oasisstar_json_path) {
+    char dna_path[512];
+    if (!oasisstar_json_path || !oasisstar_json_path[0])
+        return;
+    q_strlcpy(dna_path, oasisstar_json_path, sizeof(dna_path));
+    {
+        char *slash = strrchr(dna_path, '\\');
+        if (!slash) slash = strrchr(dna_path, '/');
+        if (slash) {
+            slash[1] = 0;
+            q_strlcat(dna_path, "oasisstar.dna", sizeof(dna_path));
+        } else {
+            q_strlcpy(dna_path, "oasisstar.dna", sizeof(dna_path));
+        }
+    }
+    {
+        FILE *t = fopen(dna_path, "r");
+        if (t) {
+            fclose(t);
+            return;
+        }
+    }
+    {
+        FILE *w = fopen(dna_path, "w");
+        if (!w)
+            return;
+        fprintf(w, "{\n  \"starnet_dna_path\": \"\"\n}\n");
+        fclose(w);
+        Con_Printf("OQuake: Created default oasisstar.dna: %s\n", dna_path);
+    }
+}
+
+/* Create oasisstar.json when no file exists (even if config.cfg alone satisfied config_loaded). */
+static void OQ_EnsureOasisstarJsonOnDisk(void) {
+    char path[512];
+    if (g_json_config_path[0]) {
+        FILE *t = fopen(g_json_config_path, "r");
+        if (t) {
+            fclose(t);
+            return;
+        }
+    }
+    if (OQ_FindConfigFile("oasisstar.json", path, sizeof(path))) {
+        FILE *t = fopen(path, "r");
+        if (t) {
+            fclose(t);
+            q_strlcpy(g_json_config_path, path, sizeof(g_json_config_path));
+            (void)OQ_LoadJsonConfig(path);
+            return;
+        }
+    }
+#ifdef _WIN32
+    {
+        char exe_path[MAX_PATH] = {0};
+        char exe_dir[MAX_PATH] = {0};
+        if (GetModuleFileNameA(NULL, exe_path, sizeof(exe_path))) {
+            char *last_slash = strrchr(exe_path, '\\');
+            if (last_slash) {
+                int dir_len = (int)(last_slash - exe_path);
+                if (dir_len > 0 && dir_len < (int)sizeof(exe_dir)) {
+                    memcpy(exe_dir, exe_path, (size_t)dir_len);
+                    exe_dir[dir_len] = 0;
+                    q_snprintf(path, sizeof(path), "%s\\oasisstar.json", exe_dir);
+                    if (OQ_SaveJsonConfig(path)) {
+                        q_strlcpy(g_json_config_path, path, sizeof(g_json_config_path));
+                        (void)OQ_LoadJsonConfig(path);
+                        Con_Printf("OQuake: Created default oasisstar.json: %s\n", path);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+#elif defined(__linux__)
+    {
+        char self[512];
+        ssize_t n = readlink("/proc/self/exe", self, sizeof(self) - 1);
+        if (n > 0) {
+            self[n] = 0;
+            {
+                char *slash = strrchr(self, '/');
+                if (slash) {
+                    *slash = 0;
+                    q_snprintf(path, sizeof(path), "%s/oasisstar.json", self);
+                    if (OQ_SaveJsonConfig(path)) {
+                        q_strlcpy(g_json_config_path, path, sizeof(g_json_config_path));
+                        (void)OQ_LoadJsonConfig(path);
+                        Con_Printf("OQuake: Created default oasisstar.json: %s\n", path);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+#endif
+    {
+        static const char *fallbacks[] = { "build/oasisstar.json", "oasisstar.json", NULL };
+        int i;
+        for (i = 0; fallbacks[i]; i++) {
+            if (OQ_SaveJsonConfig(fallbacks[i])) {
+                q_strlcpy(g_json_config_path, fallbacks[i], sizeof(g_json_config_path));
+                (void)OQ_LoadJsonConfig(fallbacks[i]);
+                Con_Printf("OQuake: Created default oasisstar.json: %s\n", fallbacks[i]);
+                return;
+            }
+        }
+    }
+}
+
 /* Get file modification time (Windows) */
 #ifdef _WIN32
 static time_t OQ_GetFileTime(const char *path) {
@@ -2828,6 +2939,11 @@ void OQuake_STAR_Init(void) {
         if (use_json && g_json_config_path[0]) {
             extern void Cbuf_AddText(const char *text);
             Cbuf_AddText("wait 0.5; oasis_reload_config\n");
+        }
+        OQ_EnsureOasisstarJsonOnDisk();
+        {
+            const char *dna_base = g_json_config_path[0] ? g_json_config_path : (found_json_path[0] ? found_json_path : "oasisstar.json");
+            OQ_EnsureDefaultOasisstarDna(dna_base);
         }
     }
 
