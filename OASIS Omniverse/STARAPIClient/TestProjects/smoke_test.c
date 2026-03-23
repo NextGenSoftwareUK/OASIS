@@ -16,6 +16,7 @@ int main(void)
     config.api_key = "SMOKE_TEST_KEY";
     config.avatar_id = "00000000-0000-0000-0000-000000000000";
     config.timeout_seconds = 2;
+    config.client_game_source = NULL;
     /* Optional WEB4 OASIS API URI for avatar auth + NFT mint routes. */
     (void)star_api_set_oasis_base_url("http://127.0.0.1:65535");
 

@@ -47,6 +47,8 @@ public sealed class StarApiConfig
     public int TimeoutSeconds { get; init; } = 60;
     /// <summary>After successful progress POST: merge into local cache (default) or refetch all quests. Native: star_api_set_quest_progress_cache_refresh; ODOOM: oasisstar.json quest_progress_refresh.</summary>
     public QuestProgressCacheRefreshMode QuestProgressCacheRefresh { get; init; } = QuestProgressCacheRefreshMode.ClientCacheMerge;
+    /// <summary>Which executable is running (e.g. ODOOM vs OQUAKE). Used with quest/objective <c>GameSource</c> to pick the correct requirement row for the tracker. Set from native <c>client_game_source</c>; do not hardcode in shared client logic.</summary>
+    public string? ClientGameSource { get; init; }
 }
 
 public sealed class StarItem
@@ -165,6 +167,10 @@ public sealed class StarApiClient : IDisposable
     private string? _loggedInUsername;
     private Guid? _cachedActiveQuestId;
     private Guid? _cachedActiveObjectiveId;
+    /// <summary>Last <c>gameSource</c> on a successful quest progress POST (tie-breaker after client + objective + quest metadata).</summary>
+    private string? _questLastProgressGameSource;
+    /// <summary>Runtime client id from <see cref="StarApiConfig.ClientGameSource"/> (e.g. ODOOM, OQUAKE) — which game binary is running.</summary>
+    private string? _questClientGameSource;
     /// <summary>When true, a save happened after the current GET avatar/current was started; do not let the GET response overwrite quest/objective cache.</summary>
     private bool _questTrackerSavedSinceLastGet;
     /// <summary>Set true when we clear session due to 401 (expired JWT and refresh failed). Prevents hammering the API with auth-required requests until user re-logs in.</summary>
@@ -301,6 +307,7 @@ public sealed class StarApiClient : IDisposable
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", config.ApiKey);
 
             _questProgressCacheRefresh = config.QuestProgressCacheRefresh;
+            _questClientGameSource = string.IsNullOrWhiteSpace(config.ClientGameSource) ? null : config.ClientGameSource.Trim();
         }
 
         StartWorkers();
@@ -1458,7 +1465,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Format requirement/progress dictionaries into display lines e.g. "Killed 3/10 monsters in ODOOM". Pairs Need* dicts with progress dicts; one line per game key.</summary>
+    /// <summary>Format requirement/progress dictionaries into display lines e.g. "3/10 monsters killed in ODOOM". Pairs Need* dicts with progress dicts; one line per game key.</summary>
     private static void FormatRequirementProgressLines(StarQuestObjectiveDictionaries? dicts, List<string> outLines)
     {
         if (dicts == null) return;
@@ -1480,7 +1487,18 @@ public sealed class StarApiClient : IDisposable
                 lines.Add($"{verb} {current}/{required} {noun} in {game}");
             }
         }
-        AddLine(dicts.NeedToKillMonsters, dicts.MonstersKilled, "Killed", "monsters", outLines);
+        if (dicts.NeedToKillMonsters != null && dicts.NeedToKillMonsters.Count > 0)
+        {
+            foreach (var kv in dicts.NeedToKillMonsters)
+            {
+                var game = kv.Key;
+                var reqList = kv.Value;
+                int required = (reqList != null && reqList.Count > 0 && int.TryParse(reqList[0], out var r)) ? r : 0;
+                int current = ParseFirstInt(dicts.MonstersKilled, game);
+                if (required <= 0) continue;
+                outLines.Add($"{current}/{required} monsters killed in {game}");
+            }
+        }
         AddLine(dicts.NeedToCollectArmor, dicts.ArmorCollected, "Collected", "armor", outLines);
         AddLine(dicts.NeedToCollectAmmo, dicts.AmmoCollected, "Collected", "ammo", outLines);
         AddLine(dicts.NeedToCollectHealth, dicts.HealthCollected, "Collected", "health", outLines);
@@ -1538,31 +1556,59 @@ public sealed class StarApiClient : IDisposable
         linesResult = string.Empty;
         activeObjectiveIndex = 0;
         if (string.IsNullOrWhiteSpace(questId)) return true;
+        string? clientGs = null;
+        string? lastProgressGs = null;
+        Guid? cachedObjId = null;
+        lock (_stateLock)
+        {
+            clientGs = _questClientGameSource;
+            lastProgressGs = _questLastProgressGameSource;
+            cachedObjId = _cachedActiveObjectiveId;
+        }
         lock (_questsCacheLock)
         {
             if (_cachedQuestList == null || _questsCacheString == null) { EnsureQuestsCacheInBackground(); return false; }
             var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, questId!.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (quest?.Objectives == null || quest.Objectives.Count == 0) return true;
+            if (quest == null || quest.Objectives == null || quest.Objectives.Count == 0) return true;
+            var questGame = string.IsNullOrWhiteSpace(quest.GameSource) ? null : quest.GameSource.Trim();
             var sb = new StringBuilder();
             for (var i = 0; i < quest.Objectives.Count; i++)
             {
                 var o = quest.Objectives[i];
-                var desc = "";
+                var objGame = string.IsNullOrWhiteSpace(o.GameSource) ? null : o.GameSource.Trim();
+                var objLines = new List<string>();
                 if (o.Dictionaries != null)
-                {
-                    var objLines = new List<string>();
                     FormatRequirementProgressLines(o.Dictionaries, objLines);
-                    desc = objLines.Count > 0 ? objLines[0] : (o.Description ?? o.SummaryText ?? "");
+                if (objLines.Count == 0 && quest.Dictionaries != null)
+                    FormatRequirementProgressLines(quest.Dictionaries, objLines);
+                var desc = objLines.Count > 0
+                    ? PickQuestTrackerObjectiveDisplayLine(objLines, clientGs, objGame, questGame, lastProgressGs)
+                    : (o.Description ?? o.SummaryText ?? "");
+                if (IsGenericCollectItemsLabelForTracker(desc))
+                {
+                    var fb = new List<string>();
+                    if (o.Dictionaries != null)
+                        FormatRequirementProgressLines(o.Dictionaries, fb);
+                    if (fb.Count == 0 && quest.Dictionaries != null)
+                        FormatRequirementProgressLines(quest.Dictionaries, fb);
+                    if (fb.Count > 0)
+                        desc = PickQuestTrackerObjectiveDisplayLine(fb, clientGs, objGame, questGame, lastProgressGs);
                 }
-                else
-                    desc = o.Description ?? o.SummaryText ?? "";
+                if (IsGenericCollectItemsLabelForTracker(desc))
+                    desc = string.Empty;
+                var inferredComplete = o.Dictionaries != null
+                    && ObjectiveHasFormattedRequirementLines(o.Dictionaries)
+                    && ObjectiveMeetsAllFormattedRequirements(o.Dictionaries);
+                if (o.IsCompleted || inferredComplete)
+                {
+                    var baseDesc = desc.Trim();
+                    desc = baseDesc.Length > 0 ? $"{baseDesc} [Completed]" : "[Completed]";
+                }
                 sb.Append(EscapeForQuestLine(desc)).Append("\n");
             }
             linesResult = sb.ToString().TrimEnd();
             activeObjectiveIndex = 0;
             /* Prefer persisted active objective (user choice) when we have it; else use first incomplete (quest progress). */
-            Guid? cachedObjId;
-            lock (_stateLock) { cachedObjId = _cachedActiveObjectiveId; }
             if (cachedObjId.HasValue && quest.Objectives != null)
             {
                 var idStr = cachedObjId.Value.ToString("D");
@@ -2487,6 +2533,14 @@ public sealed class StarApiClient : IDisposable
         return Success(true, StarApiResultCode.Success, "Quest completed successfully.");
     }
 
+    private static Dictionary<string, List<string>> CloneStringListDict(Dictionary<string, List<string>> src)
+    {
+        var d = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var kv in src)
+            d[kv.Key] = kv.Value != null ? new List<string>(kv.Value) : new List<string>();
+        return d;
+    }
+
     /// <summary>Increment progress counter for one game key in a requirement dictionary (first list element = tally).</summary>
     private static void AddProgressToGameKeyedDict(Dictionary<string, List<string>> dict, string game, int delta)
     {
@@ -2555,6 +2609,93 @@ public sealed class StarApiClient : IDisposable
             if (aQ && bQ) return k;
         }
         return null;
+    }
+
+    private static string NormGameKeyTokenForUi(string s) =>
+        s.Replace(" ", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+
+    private static bool QuestUiGameTokensMatch(string a, string b)
+    {
+        if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b)) return false;
+        var na = NormGameKeyTokenForUi(a);
+        var nb = NormGameKeyTokenForUi(b);
+        if (na.Equals(nb, StringComparison.OrdinalIgnoreCase)) return true;
+        var aDoom = na.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || na.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+        var bDoom = nb.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || nb.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+        if (aDoom && bDoom) return true;
+        var aQ = na.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || na.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+        var bQ = nb.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || nb.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+        return aQ && bQ;
+    }
+
+    /// <summary>Matches lines from <see cref="FormatRequirementProgressLines"/> e.g. "Collected 1/1 health in ODOOM".</summary>
+    private static bool QuestProgressLineMatchesPreferredGame(string line, string? preferredGame)
+    {
+        if (string.IsNullOrWhiteSpace(line) || string.IsNullOrWhiteSpace(preferredGame)) return false;
+        var idx = line.LastIndexOf(" in ", StringComparison.OrdinalIgnoreCase);
+        if (idx < 0 || idx + 4 >= line.Length) return false;
+        var suffix = line[(idx + 4)..].Trim();
+        return QuestUiGameTokensMatch(suffix, preferredGame);
+    }
+
+    /// <summary>Pick one requirement row for the tracker. Order: runtime client (which game is running) → objective <c>GameSource</c> → quest <c>GameSource</c> → last progress POST → first line with X/Y counts → first line.</summary>
+    private static string PickQuestTrackerObjectiveDisplayLine(List<string> lines, string? clientRuntimeGameSource, string? objectiveGameSource, string? questGameSource, string? lastProgressGameSource)
+    {
+        if (lines == null || lines.Count == 0) return string.Empty;
+        foreach (var pref in new[] { clientRuntimeGameSource, objectiveGameSource, questGameSource, lastProgressGameSource })
+        {
+            if (string.IsNullOrWhiteSpace(pref)) continue;
+            foreach (var line in lines)
+            {
+                if (QuestProgressLineMatchesPreferredGame(line, pref) && QuestProgressLineLooksLikeNumericProgress(line))
+                    return line;
+            }
+        }
+        foreach (var pref in new[] { clientRuntimeGameSource, objectiveGameSource, questGameSource, lastProgressGameSource })
+        {
+            if (string.IsNullOrWhiteSpace(pref)) continue;
+            foreach (var line in lines)
+            {
+                if (QuestProgressLineMatchesPreferredGame(line, pref))
+                    return line;
+            }
+        }
+        foreach (var line in lines)
+        {
+            if (QuestProgressLineLooksLikeNumericProgress(line))
+                return line;
+        }
+        return lines[0];
+    }
+
+    /// <summary>True if line contains a <c>current/required</c> style fragment (e.g. 3/10), so we prefer it when game-key suffix does not match.</summary>
+    private static bool QuestProgressLineLooksLikeNumericProgress(string line)
+    {
+        if (string.IsNullOrEmpty(line)) return false;
+        for (var i = 0; i < line.Length - 1; i++)
+        {
+            if (!char.IsDigit(line[i])) continue;
+            var j = i;
+            while (j < line.Length && char.IsDigit(line[j])) j++;
+            if (j >= line.Length || line[j] != '/') continue;
+            var k = j + 1;
+            if (k < line.Length && char.IsDigit(line[k])) return true;
+        }
+        return false;
+    }
+
+    /// <summary>Generic API/objective description headers with no counts — hide in tracker when we can substitute real progress lines.</summary>
+    private static bool IsGenericCollectItemsLabelForTracker(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return false;
+        var t = s.Trim();
+        if (t.IndexOf('/') >= 0) return false;
+        if (t.Length > 52) return false;
+        if (string.Equals(t, "Collect Items:", StringComparison.OrdinalIgnoreCase)) return true;
+        if (t.StartsWith("Collect Items", StringComparison.OrdinalIgnoreCase)) return true;
+        if (t.StartsWith("Collection Items", StringComparison.OrdinalIgnoreCase)) return true;
+        if (t.StartsWith("Collection Item", StringComparison.OrdinalIgnoreCase)) return true;
+        return t.StartsWith("Collect Item", StringComparison.OrdinalIgnoreCase) && t.Length <= 40;
     }
 
     private static void AddProgressForNeedPair(Dictionary<string, List<string>>? need, Dictionary<string, List<string>> progress, string preferredGame, int delta)
@@ -2661,8 +2802,8 @@ public sealed class StarApiClient : IDisposable
             yield return o;
     }
 
-    /// <summary>Mirror successful progress POST into cached quest objective dictionaries so UI updates without GET all-for-avatar. Only the <strong>active quest</strong> (<paramref name="questId"/> = cached ActiveQuestId), not every InProgress quest. Each delta is applied to every incomplete objective on that quest whose need dict matches <paramref name="gameSource"/> (same as server ApplyQuestProgressAsync). Processing order: active objective first, then by Order.</summary>
-    private void MergeQuestProgressIntoLocalCache(Guid questId, string gameSource, int monstersKilledDelta, int xpEarnedDelta, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup)
+    /// <summary>Mirror successful progress POST into cached quest objective dictionaries so UI updates without GET all-for-avatar. Only the <strong>active quest</strong> (<paramref name="questId"/> = cached ActiveQuestId), not every InProgress quest. Each delta is applied to every incomplete objective on that quest whose need dict matches <paramref name="gameSource"/> (same as server ApplyQuestProgressAsync). Processing order: active objective first, then by Order. Returns false if cache could not be updated (caller should refetch).</summary>
+    private bool MergeQuestProgressIntoLocalCache(Guid questId, string gameSource, int monstersKilledDelta, int xpEarnedDelta, int keysCollectedDelta, int armorDelta, int healthDelta, int weaponsDelta, int powerupsDelta, int ammoDelta, int genericItemPickup)
     {
         var gs = string.IsNullOrWhiteSpace(gameSource) ? "ODOOM" : gameSource.Trim();
         var qid = questId.ToString("D");
@@ -2674,23 +2815,25 @@ public sealed class StarApiClient : IDisposable
             if (_cachedQuestList is null || _cachedQuestList.Count == 0)
             {
                 try { StarApiExports.StarApiLog("[Quest] Merge cache SKIP: _cachedQuestList empty"); } catch { /* ignore */ }
-                return;
+                return false;
             }
             var idx = _cachedQuestList.FindIndex(q => string.Equals(q.Id, qid, StringComparison.OrdinalIgnoreCase));
             if (idx < 0)
             {
                 try { StarApiExports.StarApiLog($"[Quest] Merge cache SKIP: quest {qid} not in cache"); } catch { /* ignore */ }
-                return;
+                return false;
             }
             var quest = _cachedQuestList[idx];
             if (quest.Objectives is null || quest.Objectives.Count == 0)
             {
                 try { StarApiExports.StarApiLog($"[Quest] Merge cache SKIP: quest {qid} has no objectives"); } catch { /* ignore */ }
-                return;
+                return false;
             }
 
             var objIds = string.Join(",", quest.Objectives.Select(o => o.Id));
             var touched = new List<string>();
+            var killMergedToObjective = false;
+            var xpMergedToObjective = false;
             foreach (var target in OrderIncompleteObjectivesForProgressMerge(quest, activeObjId))
             {
                 target.Dictionaries ??= new StarQuestObjectiveDictionaries();
@@ -2703,6 +2846,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     AddProgressToGameKeyedDict(d.MonstersKilled, k, monstersKilledDelta);
                     hadAny = true;
+                    killMergedToObjective = true;
                 }
 
                 k = ResolveMergeGameKey(d.NeedToEarnXP, gs);
@@ -2710,6 +2854,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     AddProgressToGameKeyedDict(d.XPEarnt, k, xpEarnedDelta);
                     hadAny = true;
+                    xpMergedToObjective = true;
                 }
 
                 k = ResolveMergeGameKey(d.NeedToCollectKeys, gs);
@@ -2771,6 +2916,70 @@ public sealed class StarApiClient : IDisposable
                 }
             }
 
+            /* Quest-level dictionaries: some payloads put NeedToKillMonsters / NeedToEarnXP only on the quest. Mirror onto first incomplete objective when no objective row matched that delta. */
+            var qRoot = quest.Dictionaries;
+            if (qRoot != null && monstersKilledDelta != 0 && !killMergedToObjective && qRoot.NeedToKillMonsters is { Count: > 0 })
+            {
+                var qk = ResolveMergeGameKey(qRoot.NeedToKillMonsters, gs);
+                if (qk != null)
+                {
+                    foreach (var target in OrderIncompleteObjectivesForProgressMerge(quest, activeObjId))
+                    {
+                        target.Dictionaries ??= new StarQuestObjectiveDictionaries();
+                        var d = target.Dictionaries;
+                        var ok = ResolveMergeGameKey(d.NeedToKillMonsters, gs);
+                        if (ok == null && (d.NeedToKillMonsters == null || d.NeedToKillMonsters.Count == 0))
+                        {
+                            d.NeedToKillMonsters = CloneStringListDict(qRoot.NeedToKillMonsters);
+                            d.MonstersKilled = qRoot.MonstersKilled != null
+                                ? CloneStringListDict(qRoot.MonstersKilled)
+                                : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                        }
+                        ok = ResolveMergeGameKey(d.NeedToKillMonsters, gs);
+                        if (ok == null) continue;
+                        AddProgressToGameKeyedDict(d.MonstersKilled, ok, monstersKilledDelta);
+                        qRoot.MonstersKilled ??= new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                        AddProgressToGameKeyedDict(qRoot.MonstersKilled, qk, monstersKilledDelta);
+                        touched.Add(target.Id);
+                        if (ObjectiveHasFormattedRequirementLines(d) && ObjectiveMeetsAllFormattedRequirements(d))
+                            target.IsCompleted = true;
+                        break;
+                    }
+                }
+            }
+            if (qRoot != null && xpEarnedDelta != 0 && !xpMergedToObjective && qRoot.NeedToEarnXP is { Count: > 0 })
+            {
+                var qkXp = ResolveMergeGameKey(qRoot.NeedToEarnXP, gs);
+                if (qkXp != null)
+                {
+                    foreach (var target in OrderIncompleteObjectivesForProgressMerge(quest, activeObjId))
+                    {
+                        target.Dictionaries ??= new StarQuestObjectiveDictionaries();
+                        var d = target.Dictionaries;
+                        var okXp = ResolveMergeGameKey(d.NeedToEarnXP, gs);
+                        if (okXp == null && (d.NeedToEarnXP == null || d.NeedToEarnXP.Count == 0))
+                        {
+                            d.NeedToEarnXP = CloneStringListDict(qRoot.NeedToEarnXP);
+                            d.XPEarnt = qRoot.XPEarnt != null
+                                ? CloneStringListDict(qRoot.XPEarnt)
+                                : new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                        }
+                        okXp = ResolveMergeGameKey(d.NeedToEarnXP, gs);
+                        if (okXp == null) continue;
+                        AddProgressToGameKeyedDict(d.XPEarnt, okXp, xpEarnedDelta);
+                        qRoot.XPEarnt ??= new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+                        AddProgressToGameKeyedDict(qRoot.XPEarnt, qkXp, xpEarnedDelta);
+                        touched.Add(target.Id);
+                        if (ObjectiveHasFormattedRequirementLines(d) && ObjectiveMeetsAllFormattedRequirements(d))
+                            target.IsCompleted = true;
+                        break;
+                    }
+                }
+            }
+
+            if (quest.Objectives is { Count: > 0 } && quest.Objectives.TrueForAll(o => o.IsCompleted))
+                quest.Status = "Completed";
+
             try
             {
                 StarApiExports.StarApiLog($"[Quest] Merge cache: quest={qid} gs={gs} profileActiveObjective={activeObjId?.ToString("D") ?? ""} objectiveIds=[{objIds}] touchedObjectiveIds=[{string.Join(",", touched)}] (per-type routing: armor→NeedToCollectArmor, ammo→NeedToCollectAmmo, …)");
@@ -2801,9 +3010,8 @@ public sealed class StarApiClient : IDisposable
             _questsFilterLastLogObjectives = ("", -1);
             _questsFilterLastLogSubQuests = ("", -1);
             _questsFilterLastLogPrereqs = ("", -1);
+            return true;
         }
-
-        StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpQuestsCacheRefreshed);
     }
 
     /// <summary>POST /api/quests/{activeQuestId}/progress — realtime objective progress (kills, XP, pickups by type, level time). No-op if no active quest or all deltas are zero. Backend must expose this route (e.g. STAR ODK QuestsController); 404 means the URL (e.g. ONODE) may not have the progress endpoint.</summary>
@@ -2857,6 +3065,7 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.StarApiLogFileOnly($"[Quest] Progress result: {(response.IsError ? "FAIL" : "OK")} {(response.IsError ? response.Message ?? "" : "")}");
             if (!response.IsError)
             {
+                lock (_stateLock) { _questLastProgressGameSource = gs; }
                 QuestProgressCacheRefreshMode mode;
                 lock (_stateLock) { mode = _questProgressCacheRefresh; }
                 try
@@ -2867,7 +3076,14 @@ public sealed class StarApiClient : IDisposable
                 if (mode == QuestProgressCacheRefreshMode.FullServerRefresh)
                     RequestQuestCacheRefreshInBackground(forceRefetch: true);
                 else
-                    MergeQuestProgressIntoLocalCache(qid.Value, gs, monstersKilledDelta, xpEarnedDelta, keysCollectedDelta, armorDelta, healthDelta, weaponsDelta, powerupsDelta, ammoDelta, genericItemPickup);
+                {
+                    var mergedOk = MergeQuestProgressIntoLocalCache(qid.Value, gs, monstersKilledDelta, xpEarnedDelta, keysCollectedDelta, armorDelta, healthDelta, weaponsDelta, powerupsDelta, ammoDelta, genericItemPickup);
+                    /* Always notify game to repush CVars when merge succeeds. If merge skipped (empty cache / quest missing), refetch so server-updated progress appears without reload. */
+                    if (mergedOk)
+                        StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpQuestsCacheRefreshed);
+                    else
+                        RequestQuestCacheRefreshInBackground(forceRefetch: true);
+                }
             }
         }
         catch (Exception ex)
@@ -6306,6 +6522,8 @@ public unsafe struct star_api_config_t
     public sbyte* api_key;
     public sbyte* avatar_id;
     public int timeout_seconds;
+    /// <summary>Optional: runtime client id for cross-game quest UI (e.g. ODOOM, OQUAKE). Null = infer from objective/quest/last progress only.</summary>
+    public sbyte* client_game_source;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -6428,7 +6646,8 @@ public static unsafe class StarApiExports
             Web5StarApiBaseUrl = baseUrl,
             ApiKey = PtrToString(config->api_key),
             AvatarId = PtrToString(config->avatar_id),
-            TimeoutSeconds = config->timeout_seconds
+            TimeoutSeconds = config->timeout_seconds,
+            ClientGameSource = config->client_game_source != null ? PtrToString(config->client_game_source) : null
         };
 
         lock (Sync)
