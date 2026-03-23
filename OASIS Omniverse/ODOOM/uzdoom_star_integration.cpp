@@ -7,6 +7,9 @@
  *
  * Minimal hooks: pickups call star_api_queue_add_item; overlay calls star_api_get_inventory.
  * All sync, local delta, and background flush are in the C# StarApiClient.
+ *
+ * BUILD SYNC: BUILD_ODOOM.sh / BUILD ODOOM.bat copies this file to $UZDOOM_SRC/src/ before compiling.
+ * Building UZDoom against an old copy here gives wrong STAR/HUD behaviour (toggles, quests) vs what you edited in OASIS.
  */
 
 #include "uzdoom_star_integration.h"
