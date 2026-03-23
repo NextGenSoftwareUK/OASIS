@@ -303,7 +303,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else showCv.SetInt(1);
 			}
 		}
-		/* B/X/Z HUD: C++ edge-trigger from raw keys (odoom_key_b/x/z) — keys unbound; odoom_hud_toggle_* CCMDs exist for console only. Raw odoom_key_b still used for quest filters in popup. */
+		/* B/X/Z HUD: engine binds -> odoom_hud_toggle_* (popups clear binds; raw odoom_key_* still drives inventory/quest/send). Quest list: B/N/M filter edges when quest popup open. */
 		if (questPopupOpen)
 		{
 			if (keyBackspacePressed && !questDetailPopupOpen)
