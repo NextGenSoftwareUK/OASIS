@@ -1071,6 +1071,21 @@ static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
 static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 16384;
 /** Max bytes to assign to odoom_quest_list CVar. Engine string CVars have a fixed buffer; exceeding it causes "Attempted to write past end of stream". */
 static const size_t ODOOM_QUEST_CVAR_MAX_BYTES = 4096;
+/** Max UTF-8 bytes for odoom_quest_tracker_objectives (newline-separated). Too small truncates lines and drops "[Completed]" / Killed X/Y text so the HUD never greys completed rows. */
+static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = 2048;
+
+/** Truncate UTF-8 so len <= maxBytes without splitting a multibyte character (ZScript string CVars). */
+static void ODOOM_TruncateUtf8ForZScriptCVar(std::string& s, size_t maxBytes) {
+	if (s.size() <= maxBytes) return;
+	size_t n = maxBytes;
+	while (n > 0 && (static_cast<unsigned char>(s[n - 1]) & 0xC0) == 0x80)
+		n--;
+	if (n == 0) {
+		s.clear();
+		return;
+	}
+	s.resize(n);
+}
 /** Max items in one window so we stay under the byte limit; ZScript scrolls by requesting different scroll_offset. */
 static const size_t ODOOM_INVENTORY_WINDOW_ITEMS = 24;
 
@@ -1266,6 +1281,32 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 static void StarLogInfo(const char* fmt, ...);
 static void StarLogQuestListPayloadChunks(const char* buf, int len);
 
+/** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
+static void ODOOM_PushTrackerProgressCvars(const char* wantIdCStr) {
+	if (!wantIdCStr || !wantIdCStr[0] || std::strcmp(wantIdCStr, "...") == 0) return;
+	FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
+	FBaseCVar* trackerActiveVar = FindCVar("odoom_quest_tracker_active_index", nullptr);
+	static char trackerObjBuf[4096];
+	int nObj = star_api_get_quest_tracker_objectives_string(wantIdCStr, trackerObjBuf, sizeof(trackerObjBuf));
+	if (nObj < 0) nObj = 0;
+	if (nObj >= (int)sizeof(trackerObjBuf)) nObj = (int)sizeof(trackerObjBuf) - 1;
+	trackerObjBuf[nObj] = '\0';
+	static std::string s_tracker_objectives;
+	s_tracker_objectives.assign(trackerObjBuf, (size_t)nObj);
+	ODOOM_TruncateUtf8ForZScriptCVar(s_tracker_objectives, ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX);
+	if (trackerObjLinesVar && trackerObjLinesVar->GetRealType() == CVAR_String) {
+		UCVarValue vo; vo.String = (char*)s_tracker_objectives.c_str();
+		trackerObjLinesVar->SetGenericRep(vo, CVAR_String);
+	}
+	if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
+		int activeIdx = star_api_get_quest_tracker_active_objective_index(wantIdCStr);
+		if (activeIdx >= 0) {
+			UCVarValue va; va.Int = activeIdx;
+			trackerActiveVar->SetGenericRep(va, CVAR_Int);
+		}
+	}
+}
+
 /** Fetch quests from API and push to CVars. Sets odoom_quest_list, odoom_quest_count. Uses top-level quests only (like Quake) so main list shows parents; sub-quests appear in detail panel. Tracker shows quest only when odoom_quest_tracker_quest_id is set. */
 static void ODOOM_RefreshQuestCVars(void) {
 	FBaseCVar* listVar = FindCVar("odoom_quest_list", nullptr);
@@ -1364,18 +1405,31 @@ static void ODOOM_RefreshQuestCVars(void) {
 			questCount++;
 			currentId.clear();
 			currentTitle.clear();
-			/* Q, id, name, desc, status, pct - field 0=id, 1=name */
+			/* Q, id, name, desc, status, pct */
 			const char* f = p + 2;
-			const char* t0 = (const char*)memchr(f, '\t', (size_t)((p + lineLen) - f));
+			const char* lineEndQ = p + lineLen;
+			const char* t0 = (const char*)memchr(f, '\t', (size_t)(lineEndQ - f));
+			const char* t1 = nullptr;
 			if (t0 && t0 - f > 0) currentId.assign(f, (size_t)(t0 - f));
-			if (t0 && t0 < p + lineLen) {
-				const char* t1 = (const char*)memchr(t0 + 1, '\t', (size_t)((p + lineLen) - (t0 + 1)));
+			if (t0 && t0 + 1 < lineEndQ) {
+				t1 = (const char*)memchr(t0 + 1, '\t', (size_t)(lineEndQ - (t0 + 1)));
 				if (t1 && t1 - (t0 + 1) > 0) currentTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 			}
 			if (currentTitle.size() > 120) currentTitle.resize(120);
+			std::string qStatusField;
+			if (t1 && t1 + 1 < lineEndQ) {
+				const char* t2 = (const char*)memchr(t1 + 1, '\t', (size_t)(lineEndQ - (t1 + 1)));
+				if (t2 && t2 + 1 < lineEndQ) {
+					const char* t3 = (const char*)memchr(t2 + 1, '\t', (size_t)(lineEndQ - (t2 + 1)));
+					if (t3 && t3 > t2 + 1)
+						qStatusField.assign(t2 + 1, (size_t)(t3 - (t2 + 1)));
+				}
+			}
 			inTargetBlock = !wantId.empty() && (currentId == wantId);
 			if (inTargetBlock) {
 				trackerTitle = currentTitle;
+				if (qStatusField == "Completed" || qStatusField == "2")
+					trackerTitle += " [Completed]";
 				trackerObjective.clear();
 			}
 			p = lineEnd ? lineEnd + 1 : p + lineLen;
@@ -1427,36 +1481,10 @@ static void ODOOM_RefreshQuestCVars(void) {
 		UCVarValue o; o.String = (char*)(trackerObjective.empty() ? "" : trackerObjective.c_str());
 		trackerObjVar->SetGenericRep(o, CVAR_String);
 	}
-	/* Tracker objectives (progress lines) and active index for HUD cycle (O key). Skip when placeholder "..." (loading). */
+	/* Tracker objectives (Need/Progress dict lines) and active index for HUD cycle (O key). Skip when placeholder "..." (loading). */
 	if (!wantId.empty() && wantId != "...") {
-		FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
-		FBaseCVar* trackerActiveVar = FindCVar("odoom_quest_tracker_active_index", nullptr);
 		FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
-		static char trackerObjBuf[512];
-		int nObj = star_api_get_quest_tracker_objectives_string(wantId.c_str(), trackerObjBuf, sizeof(trackerObjBuf));
-		if (nObj < 0) nObj = 0;
-		if (nObj >= (int)sizeof(trackerObjBuf)) nObj = (int)sizeof(trackerObjBuf) - 1;
-		trackerObjBuf[nObj] = '\0';
-		static std::string s_tracker_objectives;
-		s_tracker_objectives.assign(trackerObjBuf, (size_t)nObj);
-		if (trackerObjLinesVar && trackerObjLinesVar->GetRealType() == CVAR_String) {
-			UCVarValue vo; vo.String = (char*)s_tracker_objectives.c_str();
-			trackerObjLinesVar->SetGenericRep(vo, CVAR_String);
-		}
-		/* Set active_index so the quest detail popup opens with the correct objective selected (not the last). */
-		bool userHasActiveObjective = false;
-		if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String) {
-			const char* aid = trackerActiveIdVar->GetGenericRep(CVAR_String).String;
-			userHasActiveObjective = (aid && aid[0] != '\0');
-		}
-		if (trackerActiveVar && trackerActiveVar->GetRealType() == CVAR_Int) {
-			/* Active index from API (resolves from persisted active objective id or first incomplete). Tracker lines are display names only. */
-			int activeIdx = star_api_get_quest_tracker_active_objective_index(wantId.c_str());
-			if (activeIdx >= 0) {
-				UCVarValue va; va.Int = activeIdx;
-				trackerActiveVar->SetGenericRep(va, CVAR_Int);
-			}
-		}
+		ODOOM_PushTrackerProgressCvars(wantId.c_str());
 		/* Persist tracker state to API only when ZScript sets odoom_quest_persist_active_now=1 (user pressed Enter on objective or K to set tracker). Avoids persisting wrong value from UI sync or CVar restore. */
 		{
 			FBaseCVar* persistNowVar = FindCVar("odoom_quest_persist_active_now", nullptr);
@@ -1481,6 +1509,8 @@ static void ODOOM_RefreshQuestCVars(void) {
 
 /** Max bytes for each quest detail list CVar (prereqs, objectives, subquests). */
 static const size_t ODOOM_QUEST_DETAIL_CVAR_MAX = 1024;
+/** Requirements/progress can be many Need rows; keep under typical engine string CVar limits. */
+static const size_t ODOOM_QUEST_DETAIL_REQUIREMENTS_CVAR_MAX = 4096;
 
 /** When odoom_quest_detail_quest_id is set, fill prereqs/objectives/subquests CVars from STAR API for the 2nd (detail) popup. */
 static void ODOOM_RefreshQuestDetailCVars(void) {
@@ -1532,14 +1562,15 @@ static void ODOOM_RefreshQuestDetailCVars(void) {
 
 	const char* selObj = selObjVar->GetRealType() == CVAR_String ? selObjVar->GetGenericRep(CVAR_String).String : nullptr;
 	if (!selObj) selObj = "";
-	int nreq = star_api_get_quest_objective_requirements_string(id, selObj, buf, sizeof(buf));
+	static char reqBuf[4096];
+	int nreq = star_api_get_quest_objective_requirements_string(id, selObj, reqBuf, sizeof(reqBuf));
 	if (nreq < 0) nreq = 0;
-	if (nreq >= (int)sizeof(buf)) nreq = (int)sizeof(buf) - 1;
-	buf[nreq] = '\0';
+	if (nreq >= (int)sizeof(reqBuf)) nreq = (int)sizeof(reqBuf) - 1;
+	reqBuf[nreq] = '\0';
 	len = (size_t)nreq;
-	if (len > ODOOM_QUEST_DETAIL_CVAR_MAX) len = ODOOM_QUEST_DETAIL_CVAR_MAX;
+	if (len > ODOOM_QUEST_DETAIL_REQUIREMENTS_CVAR_MAX) len = ODOOM_QUEST_DETAIL_REQUIREMENTS_CVAR_MAX;
 	static std::string s_req;
-	s_req.assign(buf, len);
+	s_req.assign(reqBuf, len);
 	UCVarValue vr; vr.String = (char*)s_req.c_str();
 	reqVar->SetGenericRep(vr, CVAR_String);
 }
@@ -2345,8 +2376,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					ODOOM_RefreshQuestCVars();
 				}
 			} else {
-				/* Tracker id already set: refresh CVars periodically so tracker shows correct name/objective without opening popup (like Quake). */
-				/* When an objective was just completed, refresh on next frame so tracker updates immediately. */
+				/* Tracker id already set: full quest list refresh periodically for title sync; progress lines every frame from cache (real-time kill counts after client merge). */
 				if (g_odoom_quest_tracker_needs_refresh) {
 					g_odoom_quest_tracker_needs_refresh = false;
 					ODOOM_RefreshQuestCVars();
@@ -2356,6 +2386,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					s_tracker_refresh_frames = 0;
 					ODOOM_RefreshQuestCVars();
 				}
+				ODOOM_PushTrackerProgressCvars(trackerId);
 			}
 		}
 	}
@@ -3001,6 +3032,8 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	g_star_config.api_key = g_star_effective_api_key.empty() ? nullptr : g_star_effective_api_key.c_str();
 	g_star_config.avatar_id = g_star_effective_avatar_id.empty() ? nullptr : g_star_effective_avatar_id.c_str();
 	g_star_config.timeout_seconds = 30;
+	/* STAR client uses this for quest tracker rows (PickQuestTrackerObjectiveDisplayLine vs multi-game keys). */
+	g_star_config.client_game_source = "ODOOM";
 	if (logVerbose) {
 		StarLogInfo(
 			"Init/auth start (base_url=%s, has_api_key=%s, has_avatar_id=%s, has_username=%s, has_password=%s)",
@@ -3702,6 +3735,8 @@ void UZDoom_STAR_OnMonsterKilled(const char* monster_name) {
 	if (!prov || !prov[0]) prov = "SolanaOASIS";
 	/* All work (XP, mint, add item) runs on C# background thread; never blocks the game. */
 	star_api_queue_monster_kill(e->engineName, e->displayName, e->xp, e->isBoss ? 1 : 0, do_mint, prov, "ODOOM");
+	/* Next frame: repush tracker CVars after C# merges kill into quest cache (or after optimistic merge). */
+	g_odoom_quest_tracker_needs_refresh = true;
 }
 
 //-----------------------------------------------------------------------------
