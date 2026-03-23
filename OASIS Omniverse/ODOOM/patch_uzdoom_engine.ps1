@@ -803,6 +803,10 @@ if (Test-Path $zscriptTxt) {
     if (-not ($content -match 'zscript/ui/statusbar/odoom_inventory_popup\.zs')) {
         $content = $content -replace '(#include "zscript/ui/statusbar/doom_sbar\.zs")', "`$1`r`n#include `"zscript/ui/statusbar/odoom_inventory_popup.zs`""
     }
+    # Duplicate #include of odoom_inventory_popup.zs causes redefinition / weird double registration in some merge scenarios.
+    while ($content -match '#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*\r?\n\s*#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"') {
+        $content = $content -replace '(#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*\r?\n)\s*#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*(\r?\n)', '$1$2'
+    }
     Set-Content -Path $zscriptTxt -Value $content -NoNewline
 }
 
@@ -811,6 +815,10 @@ if (Test-Path $commonMapinfo) {
     $content = Get-Content $commonMapinfo -Raw
     if (-not ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"')) {
         $content = $content -replace '(Gameinfo\s*\{[\s\S]*?)(\r?\n\})', "`$1`r`n`tAddEventHandlers = `"OASISInventoryOverlayHandler`"`$2"
+    }
+    # Two AddEventHandlers lines for the same class = two handler instances = duplicate HUD (e.g. two level timers). Collapse repeats.
+    while ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*\r?\n[^\S\r\n]*AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"') {
+        $content = $content -replace '(AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*\r?\n)[^\S\r\n]*AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*(\r?\n)', '$1$2'
     }
     Set-Content -Path $commonMapinfo -Value $content -NoNewline
 }

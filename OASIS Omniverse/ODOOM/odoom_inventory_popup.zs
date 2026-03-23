@@ -1430,7 +1430,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 			// Left pane: top half = quest desc, bottom half = selected objective/prereq/subquest desc (50/50)
-			int detailFooterReserve = 72;  // room for 3 short hint lines at bottom
+			int detailFooterReserve = 70;  // room for 2 hint lines at bottom (see footer band below)
 			int leftContentH = popupH - detailFooterReserve - 24;
 			int leftTopH = leftContentH / 2;
 			int descMaxW = leftW - 8;
@@ -1589,10 +1589,15 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			int hintBase = popupY + popupH - 56;
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase, "P O S = column tab", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase + 12, "Arrows move  Enter open  K", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase + 24, "Backspace = back", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			// Objectives / prereqs / subquests detail — two hint lines vertically centred in bottom footer band
+			int footerBandTop = popupY + popupH - 66;
+			int footerBandH = 56;
+			int fhHint = f.GetHeight();
+			int hintGap = 4;
+			int hintBlockH = fhHint + hintGap + fhHint;
+			int hintBase = footerBandTop + (footerBandH - hintBlockH) / 2;
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase, "P O S: switch panel   Arrows  Enter  K", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, popupX + 8, hintBase + fhHint + hintGap, "Backspace: close   B X Z: HUD (no popups)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
 		}
 		if (questPopupOpen)
