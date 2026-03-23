@@ -108,6 +108,47 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
+        /// Optional hook registered by ONODE / integrated host: loads quest aggregates from quest holons via <c>QuestManager.GetQuestStatsAsync</c>.
+        /// When null, <see cref="GetQuestStatsAsync"/> returns an error (no fabricated totals).
+        /// </summary>
+        public static Func<Guid, Task<OASISResult<Dictionary<string, object>>>>? ResolveQuestStatsAsync { get; set; }
+
+        /// <summary>
+        /// Merges dashboard keys not produced by <c>QuestManager.GetQuestStatsAsync</c> (completion rate from counts; empty collections for unused metrics).
+        /// </summary>
+        private static void MergeExtendedQuestDashboardKeys(Dictionary<string, object> stats)
+        {
+            static int ToInt(object? o)
+            {
+                if (o == null) return 0;
+                return o switch
+                {
+                    int i => i,
+                    long l => (int)Math.Min(int.MaxValue, l),
+                    double d => (int)d,
+                    _ => int.TryParse(o.ToString(), out var n) ? n : 0
+                };
+            }
+
+            var total = ToInt(stats.GetValueOrDefault("totalQuests"));
+            var completed = ToInt(stats.GetValueOrDefault("completedQuests"));
+            if (!stats.ContainsKey("questCompletionRate"))
+                stats["questCompletionRate"] = total > 0 ? (completed * 100.0 / total) : 0.0;
+            if (!stats.ContainsKey("averageQuestTime"))
+                stats["averageQuestTime"] = 0;
+            if (!stats.ContainsKey("questTypes"))
+                stats["questTypes"] = new Dictionary<string, int>();
+            if (!stats.ContainsKey("recentQuests"))
+                stats["recentQuests"] = new List<object>();
+            if (!stats.ContainsKey("questStreak"))
+                stats["questStreak"] = 0;
+            if (!stats.ContainsKey("longestQuestStreak"))
+                stats["longestQuestStreak"] = 0;
+            if (!stats.ContainsKey("totalQuestRewards"))
+                stats["totalQuestRewards"] = 0;
+        }
+
+        /// <summary>
         /// Get comprehensive stats for an avatar
         /// </summary>
         /// <param name="avatarId">Avatar ID</param>
@@ -137,6 +178,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 var achievementStats = GetAchievementStats(avatar);
                 var questStats = await GetQuestStatsAsync(avatarId);
                 var leaderboardStats = await GetLeaderboardStatsAsync(avatarId);
+
+                object questStatsPayload = !questStats.IsError && questStats.Result != null
+                    ? questStats.Result
+                    : new Dictionary<string, object>
+                    {
+                        ["error"] = questStats.Message ?? "Quest statistics could not be loaded.",
+                        ["hint"] = ResolveQuestStatsAsync == null
+                            ? "Host must call QuestStatsStatsManagerIntegration.RegisterWithStatsManager() after OASIS boot (ONODE / Native Integrated EndPoint)."
+                            : "Check QuestManager load path and storage provider."
+                    };
 
                 var stats = new Dictionary<string, object>
                 {
@@ -171,7 +222,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     ["chatStats"] = chatStats.Result,
                     ["keyStats"] = keyStats.Result,
                     ["achievementStats"] = achievementStats.Result,
-                    ["questStats"] = questStats.Result,
+                    ["questStats"] = questStatsPayload,
                     ["leaderboardStats"] = leaderboardStats.Result,
                     
                     // System Info
@@ -496,7 +547,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Get quest statistics for an avatar
+        /// Get quest statistics for an avatar from quest holons via <see cref="ResolveQuestStatsAsync"/> (register ONODE <c>QuestStatsStatsManagerIntegration.RegisterWithStatsManager</c>).
         /// </summary>
         /// <param name="avatarId">Avatar ID</param>
         /// <returns>Quest statistics</returns>
@@ -505,7 +556,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<Dictionary<string, object>>();
             try
             {
-                // cache check
                 if (TryGetFromCache(avatarId, "quests", out var cachedQuests))
                 {
                     result.Result = cachedQuests;
@@ -513,39 +563,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Load quest statistics using the new settings system (storage-first)
-                var questStatsResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "quests");
-                if (!questStatsResult.IsError && questStatsResult.Result != null && questStatsResult.Result.Count > 0)
+                if (ResolveQuestStatsAsync == null)
                 {
-                    result.Result = questStatsResult.Result;
-                    result.Message = "Quest statistics retrieved from settings system.";
-                    SetCache(avatarId, "quests", result.Result);
+                    OASISErrorHandling.HandleError(ref result,
+                        "Quest statistics are not configured: StatsManager.ResolveQuestStatsAsync is null. After OASIS boot, call QuestStatsStatsManagerIntegration.RegisterWithStatsManager() (ONODE / Native Integrated EndPoint).");
+                    return result;
                 }
-                else
+
+                var fromQuests = await ResolveQuestStatsAsync(avatarId).ConfigureAwait(false);
+                if (fromQuests.IsError || fromQuests.Result == null)
                 {
-                    // Fallback not available here to avoid cross-project dependency on QuestManager.
-                    // Return safe defaults.
-                    result.Result = new Dictionary<string, object>
-                    {
-                        ["totalQuests"] = 0,
-                        ["completedQuests"] = 0,
-                        ["activeQuests"] = 0,
-                        ["questCompletionRate"] = 0.0,
-                        ["averageQuestTime"] = 0,
-                        ["questTypes"] = new Dictionary<string, int>(),
-                        ["recentQuests"] = new List<object>(),
-                        ["questStreak"] = 0,
-                        ["longestQuestStreak"] = 0,
-                        ["totalQuestRewards"] = 0
-                    };
+                    OASISErrorHandling.HandleError(ref result, fromQuests.Message ?? "QuestManager failed to load quest statistics.");
+                    return result;
                 }
-                
-                result.Message = "Quest statistics retrieved successfully.";
+
+                var merged = new Dictionary<string, object>(fromQuests.Result);
+                MergeExtendedQuestDashboardKeys(merged);
+                result.Result = merged;
+                result.Message = fromQuests.Message ?? "Quest statistics retrieved from quest holons (QuestManager).";
+                SetCache(avatarId, "quests", result.Result);
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error retrieving quest statistics: {ex.Message}", ex);
             }
+
             return result;
         }
 
