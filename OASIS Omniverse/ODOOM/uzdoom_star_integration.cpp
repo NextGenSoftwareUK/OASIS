@@ -1836,9 +1836,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		static bool s_odoom_star_overlay_keys_bound_once = false;
 		if (!s_odoom_star_overlay_keys_bound_once) {
 			C_DoCommand("bind Q \"odoom_quest_toggle\"");
-			C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
-			C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
-			C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
+			/* B/X/Z: unbound — HUD toggles use raw keys in ODOOM_InventorySetKeyState (edge trigger); binding CCMDs would double-fire. */
 			s_odoom_star_overlay_keys_bound_once = true;
 		}
 	}
@@ -2034,13 +2032,12 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind A \"+moveleft\"");
 		C_DoCommand("bind D \"+moveright\"");
 		C_DoCommand("bind E \"+use\"");
-		C_DoCommand("bind A \"+moveleft\"");
 		C_DoCommand("bind C \"odoom_use_health\"");
 		C_DoCommand("bind F \"odoom_use_armor\"");
-		/* B/X/Z: same idea as Q -> odoom_quest_toggle — impulse CCMD per key; ODOOM_FlipHudIntCVar respects popups (see odoom_hud_toggle_*). */
-		C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
-		C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
-		C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
+		/* B/X/Z stay unbound: toggles run from raw key edge in ODOOM_InventorySetKeyState (same as backup). */
+		C_DoCommand("bind B \"\"");
+		C_DoCommand("bind X \"\"");
+		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind I \"+user1\"");
 		C_DoCommand("bind O \"+user2\"");
 		C_DoCommand("bind P \"+user3\"");
@@ -2091,7 +2088,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
-		/* B/X/Z: engine bind -> odoom_hud_toggle_* (same pattern as Q); do not also flip from ZScript or the CVar toggles twice in one frame. */
+		/* B/X/Z: edge-triggered in ODOOM_InventorySetKeyState (keys unbound); do not also bind odoom_hud_toggle_* or toggles double-fire. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2511,6 +2508,17 @@ static void ODOOM_QueueQuestProgressForConsumedPickup(const char* item_name, con
 	star_api_queue_quest_progress_from_pickup("ODOOM", item_type, item_name);
 }
 
+static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
+
+static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
+{
+	FBaseCVar* hv = FindCVar(cvarName, nullptr);
+	if (!hv || hv->GetRealType() != CVAR_Int) return;
+	UCVarValue u = hv->GetGenericRep(CVAR_Int);
+	u.Int = (u.Int != 0) ? 0 : 1;
+	hv->SetGenericRep(u, CVAR_Int);
+}
+
 void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
 {
 	UCVarValue val;
@@ -2543,6 +2551,19 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
+	/* Edge-trigger B/X/Z from raw keys so HUD toggles work while keys stay unbound (quest filter still uses odoom_key_b in ZScript). */
+	static int s_prevHudB = 0, s_prevHudX = 0, s_prevHudZ = 0;
+	const int bDown = keyB != 0 ? 1 : 0;
+	const int xDown = x != 0 ? 1 : 0;
+	const int zDown = z != 0 ? 1 : 0;
+	if (g_star_initialized && !ODOOM_AnyStarPopupOpenForHudToggle()) {
+		if (bDown && !s_prevHudB) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_beamed");
+		if (xDown && !s_prevHudX) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_xp");
+		if (zDown && !s_prevHudZ) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_timer");
+	}
+	s_prevHudB = bDown;
+	s_prevHudX = xDown;
+	s_prevHudZ = zDown;
 }
 
 int UZDoom_STAR_GetShowAnorakFace(void)
@@ -3120,10 +3141,10 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
-	/* HUD toggles: same idea as Q (defaultbind is impulse command, not +user4/+reload/+zoom). */
-	C_DoCommand("defaultbind B \"odoom_hud_toggle_beamed\"");
-	C_DoCommand("defaultbind X \"odoom_hud_toggle_xp\"");
-	C_DoCommand("defaultbind Z \"odoom_hud_toggle_timer\"");
+	/* HUD toggles: raw B/X/Z in ODOOM_InventorySetKeyState; keep unbound so cfg does not steal them or stack with edge trigger. */
+	C_DoCommand("defaultbind B \"\"");
+	C_DoCommand("defaultbind X \"\"");
+	C_DoCommand("defaultbind Z \"\"");
 
 	StarLogInfo("\n********** GAME LOAD **********");
 	StarLogInfo("STAR bootstrap: Beaming in...");
@@ -3619,11 +3640,7 @@ static void ODOOM_FlipHudIntCVar(const char* cvarName)
 {
 	if (ODOOM_AnyStarPopupOpenForHudToggle())
 		return;
-	FBaseCVar* hv = FindCVar(cvarName, nullptr);
-	if (!hv || hv->GetRealType() != CVAR_Int) return;
-	UCVarValue u = hv->GetGenericRep(CVAR_Int);
-	u.Int = (u.Int != 0) ? 0 : 1;
-	hv->SetGenericRep(u, CVAR_Int);
+	ODOOM_FlipHudIntCVarImpl(cvarName);
 }
 
 CCMD(odoom_hud_toggle_beamed) { ODOOM_FlipHudIntCVar("odoom_hud_show_beamed"); }
@@ -3693,7 +3710,7 @@ CCMD(star)
 		Printf("\n");
 		Printf("  star version        - Show integration and API status\n");
 		Printf("  star status         - Show init state and last error\n");
-		Printf("  HUD: B / X / Z      - Toggle beamed-in line, XP, timer (not while inventory/quest/send UI open)\n");
+		Printf("  HUD: B / X / Z      - Toggle beamed-in line, XP, timer (raw keys; not while inventory/quest/send open). Console: odoom_hud_toggle_beamed|xp|timer\n");
 		Printf("  star inventory      - List items in STAR inventory\n");
 		Printf("  star lastpickup     - Show most recent synced pickup\n");
 		Printf("  star has <item>     - Check if you have an item (e.g. Red Keycard)\n");

@@ -8,6 +8,7 @@ Resume from **files in git**, not from chat history. Read:
 |--------|-------------------|
 | STAR CLI shell / `--non-interactive` / `--json` | `Docs/Devs/STAR_CLI_NonInteractive.md` |
 | **Session handoff** (what’s done, what’s next, file map) | `Docs/Devs/STAR_CLI_SessionHandoff.md` |
+| **ODOOM quest list + STAR** (CVars, scroll, do-not-break invariants) | `Docs/Devs/ODOOM_Quest_List_STAR.md` |
 
 For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`”.
 

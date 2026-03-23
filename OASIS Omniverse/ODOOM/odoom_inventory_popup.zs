@@ -299,7 +299,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else showCv.SetInt(1);
 			}
 		}
-		/* B/X/Z HUD: engine bind -> odoom_hud_toggle_* (C++ CCMD), same pattern as Q -> odoom_quest_toggle. Raw odoom_key_b is still used below for quest filters when this bind is cleared. */
+		/* B/X/Z HUD: C++ edge-trigger from raw keys (odoom_key_b/x/z) — keys unbound; odoom_hud_toggle_* CCMDs exist for console only. Raw odoom_key_b still used for quest filters in popup. */
 		if (questPopupOpen)
 		{
 			if (keyBackspacePressed && !questDetailPopupOpen)
@@ -1271,30 +1271,7 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
-		CVar showTimerCv = CVar.FindCVar("odoom_hud_show_timer");
-		int showTimerHud = (showTimerCv != null) ? showTimerCv.GetInt() : 1;
-		// Level timer: right side, just above the status bar; fixed-width digits so it doesn't shift as numbers change. MapTime is in tics (35/sec).
-		if (showTimerHud != 0)
-		{
-			int timeY = 161;  // down 5 from 156
-			int tics = level.MapTime;
-			int secs = tics / 35;
-			int mins = secs / 60;
-			secs = secs % 60;
-			int digitW = f.StringWidth("0");
-			int colonW = f.StringWidth(":");
-			int totalW = 2 * digitW + colonW + 2 * digitW;  // MM:SS fixed width
-			int baseX = (320 - 40) - totalW;
-			String m1 = (mins >= 10) ? String.Format("%d", mins / 10) : " ";
-			String m2 = String.Format("%d", mins % 10);
-			String s1 = String.Format("%d", secs / 10);
-			String s2 = String.Format("%d", secs % 10);
-			screen.DrawText(f, Font.CR_WHITE, baseX, timeY, m1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_WHITE, baseX + digitW, timeY, m2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW, timeY, ":", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_WHITE, baseX + 2 * digitW + colonW, timeY, s1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_WHITE, baseX + 3 * digitW + colonW, timeY, s2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-		}
+		// Level timer: only shared_sbar (native) left clock; Z toggles odoom_hud_show_timer there — no duplicate MM:SS in this overlay.
 
 		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
