@@ -1216,7 +1216,8 @@ class OASISInventoryOverlayHandler : EventHandler
 	}
 
 	// Word-wrap with hard breaks for tokens wider than maxW (plain space-split leaves long URLs as one line).
-	private void DrawWrappedWords(Screen s, Font font, int cr, int x0, int y0, int maxW, int rowH, int maxLines, array<String> words)
+	// ui: RenderOverlay only — uses global `screen` (no Screen type in ui context).
+	private ui void DrawWrappedWords(Font font, int cr, int x0, int y0, int maxW, int rowH, int maxLines, array<String> words)
 	{
 		String line = "";
 		int ly = y0;
@@ -1234,7 +1235,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (line.Length() > 0)
 				{
-					s.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+					screen.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 					ly += rowH;
 					nlines++;
 					line = "";
@@ -1248,14 +1249,14 @@ class OASISInventoryOverlayHandler : EventHandler
 					else hi = mid - 1;
 				}
 				if (best < 1) best = 1;
-				s.DrawText(font, cr, x0, ly, w.Left(best), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(font, cr, x0, ly, w.Left(best), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				ly += rowH;
 				nlines++;
 				w = w.Mid(best);
 			}
 		}
 		if (line.Length() > 0 && nlines < maxLines)
-			s.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(font, cr, x0, ly, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 	}
 
 	private ui String ItemDisplayName(Inventory item)
@@ -1443,7 +1444,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			if (questDesc.Length() > 200) questDesc = String.Format("%s..", questDesc.Left(198));
 			array<String> questWords;
 			questDesc.Split(questWords, " ", false);
-			DrawWrappedWords(screen, f, Font.CR_WHITE, popupX + 8, popupY + 24, descMaxW, rowH, maxLinesTop, questWords);
+			DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, popupY + 24, descMaxW, rowH, maxLinesTop, questWords);
 			// Bottom left: heading by mode; description from selected item
 			String objDesc = "";
 			String objLabel = "Objective";
@@ -1482,7 +1483,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			if (objDesc.Length() > 200) objDesc = String.Format("%s..", objDesc.Left(198));
 			array<String> objWords;
 			objDesc.Split(objWords, " ", false);
-			DrawWrappedWords(screen, f, Font.CR_WHITE, popupX + 8, objDescY, descMaxW, rowH, maxLinesBottom, objWords);
+			DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, objDescY, descMaxW, rowH, maxLinesBottom, objWords);
 			// Right pane: one view per mode. Mode 0 = Objectives + Requirements; Mode 1 = Prereqs only; Mode 2 = Subquests only.
 			if (questDetailMode == 0)
 			{
