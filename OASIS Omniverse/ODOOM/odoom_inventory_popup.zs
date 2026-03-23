@@ -1612,7 +1612,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			// Objectives / prereqs / subquests detail — two hint lines vertically centred in bottom footer band
-			int footerBandTop = popupY + popupH - 66;
+			int footerBandTop = popupY + popupH - 76;  // hints 10px higher than previous placement
 			int footerBandH = 56;
 			int fhHint = f.GetHeight();
 			int hintGap = 4;

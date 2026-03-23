@@ -675,20 +675,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
-            {
-                // Update quest statistics in settings system whenever quests change
-                try
-                {
-                    await UpdateQuestStatisticsAsync(avatarId);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but don't fail the main operation
-                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
-                }
-
                 result.Result = questResult.Result;
-            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
@@ -823,7 +810,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
                 result.Message = $"Quest started and saved (QuestId={questId}). If status does not update in the client, ensure the storage provider persists (e.g. MongoDB).";
             }
@@ -888,7 +874,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             await UpdateAsync(avatarId, quest);
                         }
 
-                        await UpdateQuestStatisticsAsync(avatarId);
                         result.Result = true;
                         result.Message = allComplete ? "Quest objective completed and quest is now complete." : "Quest objective completed successfully";
                         return result;
@@ -945,7 +930,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
                 result.Message = quest.Status == QuestStatus.Completed
                     ? "Quest objective completed and quest is now complete."
@@ -1057,7 +1041,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 result.Result.ObjectivesCompleted = completedThisRound;
                 result.Result.PercentComplete = pct;
                 result.Result.Message = allDone ? "Quest completed." : $"Progress updated ({pct}% complete).";
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.IsError = false;
             }
             catch (Exception ex)
@@ -1285,17 +1268,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // Update quest statistics in settings system whenever quests change
-                try
-                {
-                    await UpdateQuestStatisticsAsync(avatarId);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but don't fail the main operation
-                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
-                }
-
                 result.Result = true;
                 result.Message = "Quest completed successfully";
             }
@@ -1305,39 +1277,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Updates quest statistics in the settings system whenever quests change
-        /// </summary>
-        /// <param name="avatarId">The avatar ID</param>
-        private async Task UpdateQuestStatisticsAsync(Guid avatarId)
-        {
-            try
-            {
-                // Load all quests for the avatar
-                var questsResult = await LoadAllForAvatarAsync(avatarId);
-                if (questsResult.IsError || questsResult.Result == null)
-                    return;
-
-                var quests = questsResult.Result;
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalQuests"] = quests.Count(),
-                    ["completedQuests"] = quests.Count(q => q.Status == QuestStatus.Completed),
-                    ["activeQuests"] = quests.Count(q => q.Status == QuestStatus.InProgress),
-                    ["pendingQuests"] = quests.Count(q => q.Status == QuestStatus.NotStarted),
-                    ["totalKarmaEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardKarma),
-                    ["totalXPEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardXP),
-                };
-
-                // Save all statistics to the settings system in one operation
-                await HolonManager.Instance.SaveSettingsAsync(avatarId, "quests", stats);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating quest statistics: {ex.Message}");
-            }
         }
 
         /// <summary>

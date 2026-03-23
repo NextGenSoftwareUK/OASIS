@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.Json.Serialization;
 using NextGenSoftware.OASIS.API.Core.CustomAttrbiutes;
@@ -123,22 +124,64 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             Id = Guid.NewGuid();
         }
 
-        /// <summary>Builds the human-readable Objective string from the requirement dictionaries.</summary>
+        /// <summary>Builds the human-readable Objective string from Need* + progress dictionaries (same pattern as game HUD: Killed 0/5 monsters in ODOOM, Collected 0/1 keys in ODOOM, …).</summary>
         public string BuildObjectiveString()
         {
             var phrases = new List<string>();
 
-            void AddPhrases(string label, IDictionary<string, IList<string>> dict)
+            static int ParseFirst(IList<string>? list)
             {
-                if (dict == null) return;
-                foreach (var kv in dict.Where(x => x.Value != null && x.Value.Count > 0))
+                if (list == null || list.Count == 0) return 0;
+                return int.TryParse(list[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : 0;
+            }
+
+            void AddMonsterLines()
+            {
+                if (NeedToKillMonsters == null) return;
+                foreach (var kv in NeedToKillMonsters)
                 {
-                    var items = string.Join(", ", kv.Value);
-                    phrases.Add($"{label} {items} in {kv.Key}");
+                    var reqList = kv.Value;
+                    if (reqList == null || reqList.Count == 0) continue;
+                    if (!int.TryParse(reqList[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var required) || required <= 0) continue;
+                    var current = 0;
+                    if (MonstersKilled != null && MonstersKilled.TryGetValue(kv.Key, out var pl) && pl != null && pl.Count > 0)
+                        int.TryParse(pl[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out current);
+                    phrases.Add($"Killed {current}/{required} monsters in {kv.Key}");
                 }
             }
 
-            void AddPhrasesSingle(string label, IDictionary<string, IList<string>> dict, string suffix = "")
+            void AddKeyed(string verb, string nounPlural, IDictionary<string, IList<string>>? need, IDictionary<string, IList<string>>? progress)
+            {
+                if (need == null) return;
+                foreach (var kv in need)
+                {
+                    var game = kv.Key;
+                    var reqList = kv.Value;
+                    if (reqList == null || reqList.Count == 0) continue;
+                    if (!int.TryParse(reqList[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var required) || required <= 0) continue;
+                    var current = 0;
+                    if (progress != null && progress.TryGetValue(game, out var pl) && pl != null && pl.Count > 0)
+                        int.TryParse(pl[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out current);
+                    phrases.Add($"{verb} {current}/{required} {nounPlural} in {game}");
+                }
+            }
+
+            AddMonsterLines();
+            AddKeyed("Collected", "armor", NeedToCollectArmor, ArmorCollected);
+            AddKeyed("Collected", "ammo", NeedToCollectAmmo, AmmoCollected);
+            AddKeyed("Collected", "health", NeedToCollectHealth, HealthCollected);
+            AddKeyed("Collected", "weapons", NeedToCollectWeapons, WeaponsCollected);
+            AddKeyed("Collected", "powerups", NeedToCollectPowerups, PowerupsCollected);
+            AddKeyed("Collected", "items", NeedToCollectItems, ItemsCollected);
+            AddKeyed("Collected", "keys", NeedToCollectKeys, KeysCollected);
+            AddKeyed("Completed", "levels", NeedToCompleteLevel, LevelsCompleted);
+            AddKeyed("Earned", "karma", NeedToEarnKarma, KarmaEarnt);
+            AddKeyed("Earned", "XP", NeedToEarnXP, XPEarnt);
+            AddKeyed("Visited", "hot spots", NeedToGoToGeoHotSpots, GeoHotSpotsArrived);
+            AddKeyed("Used", "weapons", NeedToUseWeapons, WeaponsCollected);
+            AddKeyed("Used", "powerups", NeedToUsePowerups, PowerupsCollected);
+
+            void AddPhrasesSingle(string label, IDictionary<string, IList<string>>? dict, string suffix = "")
             {
                 if (dict == null) return;
                 foreach (var kv in dict.Where(x => x.Value != null && x.Value.Count > 0))
@@ -148,22 +191,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                 }
             }
 
-            AddPhrases("Kill", NeedToKillMonsters);
-            AddPhrases("Collect armor:", NeedToCollectArmor);
-            AddPhrases("Collect ammo:", NeedToCollectAmmo);
-            AddPhrases("Collect health:", NeedToCollectHealth);
-            AddPhrases("Collect weapons:", NeedToCollectWeapons);
-            AddPhrases("Collect powerups:", NeedToCollectPowerups);
-            AddPhrases("Collect items:", NeedToCollectItems);
-            AddPhrases("Collect keys:", NeedToCollectKeys);
+            void AddMultiValueLabel(string label, IDictionary<string, IList<string>>? dict)
+            {
+                if (dict == null) return;
+                foreach (var kv in dict.Where(x => x.Value != null && x.Value.Count > 0))
+                {
+                    var items = string.Join(", ", kv.Value);
+                    phrases.Add($"{label} {items} in {kv.Key}");
+                }
+            }
+
             AddPhrasesSingle("Complete within", NeedToCompleteInMins, " mins");
-            AddPhrasesSingle("Earn", NeedToEarnKarma, " Karma");
-            AddPhrasesSingle("Earn", NeedToEarnXP, " XP");
-            AddPhrases("Visit geo hotspots:", NeedToGoToGeoHotSpots);
-            AddPhrases("Complete level:", NeedToCompleteLevel);
-            AddPhrases("Use weapons:", NeedToUseWeapons);
-            AddPhrases("Use powerups:", NeedToUsePowerups);
-            AddPhrases("Visit locations:", NeedToVisitLocations);
+            AddMultiValueLabel("Visit locations:", NeedToVisitLocations);
             AddPhrasesSingle("Survive", NeedToSurviveMins, " mins");
 
             if (phrases.Count == 0)
