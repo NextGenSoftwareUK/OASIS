@@ -67,6 +67,12 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 
 #ifndef _WIN32
 #include <SDL2/SDL.h>
+#if defined(__linux__)
+#include <unistd.h>
+#elif defined(__APPLE__)
+#include <mach-o/dyld.h>
+#include <cstdint>
+#endif
 #endif
 
 #ifdef _WIN32
@@ -908,6 +914,110 @@ static void ODOOM_SaveStarConfigToFiles(void) {
 	}
 	if (!path.empty() && ODOOM_SaveJsonConfig(path.c_str()))
 		g_odoom_json_config_path = path;
+}
+
+/** Prefer exe directory so config stays next to ODOOM after clean builds (parity with OQuake default path on Windows). */
+static std::string ODOOM_DefaultOasisstarJsonPathForCreate(void) {
+#ifdef _WIN32
+	char exe_path[MAX_PATH] = {0};
+	if (GetModuleFileNameA(nullptr, exe_path, sizeof(exe_path))) {
+		std::string ed(exe_path);
+		size_t last = ed.find_last_of("\\/");
+		if (last != std::string::npos) {
+			ed.resize(last + 1);
+			return ed + "oasisstar.json";
+		}
+	}
+#elif defined(__linux__)
+	char self[512];
+	const ssize_t n = readlink("/proc/self/exe", self, sizeof(self) - 1);
+	if (n > 0) {
+		self[n] = '\0';
+		char* slash = strrchr(self, '/');
+		if (slash) {
+			*slash = '\0';
+			return std::string(self) + "/oasisstar.json";
+		}
+	}
+#elif defined(__APPLE__)
+	char buf[1024];
+	uint32_t sz = sizeof(buf);
+	if (_NSGetExecutablePath(buf, &sz) == 0) {
+		char* slash = strrchr(buf, '/');
+		if (slash) {
+			*slash = '\0';
+			return std::string(buf) + "/oasisstar.json";
+		}
+	}
+#endif
+	return std::string("oasisstar.json");
+}
+
+/** Holochain / STAR DNA bundle path file (optional). Create empty default if missing — same idea as OQuake creating oasisstar.json. */
+static void ODOOM_EnsureDefaultOasisstarDna(const std::string& oasisstar_json_path) {
+	if (oasisstar_json_path.empty()) return;
+	std::string dnaPath = oasisstar_json_path;
+	const size_t last = dnaPath.find_last_of("/\\");
+	if (last != std::string::npos)
+		dnaPath = dnaPath.substr(0, last + 1) + "oasisstar.dna";
+	else
+		dnaPath = "oasisstar.dna";
+	FILE* t = fopen(dnaPath.c_str(), "r");
+	if (t) {
+		fclose(t);
+		return;
+	}
+	FILE* w = fopen(dnaPath.c_str(), "w");
+	if (!w) return;
+	fprintf(w, "{\n  \"starnet_dna_path\": \"\"\n}\n");
+	fclose(w);
+	StarLogInfo("Created default oasisstar.dna: %s", dnaPath.c_str());
+}
+
+static bool ODOOM_TryCreateDefaultOasisstarJson(std::string& outPath) {
+	const std::string p1 = ODOOM_DefaultOasisstarJsonPathForCreate();
+	if (ODOOM_SaveJsonConfig(p1.c_str())) {
+		outPath = p1;
+		return true;
+	}
+	static const char* extras[] = { "build/oasisstar.json", "oasisstar.json" };
+	for (const char* e : extras) {
+		if (p1 == e) continue;
+		if (ODOOM_SaveJsonConfig(e)) {
+			outPath = e;
+			return true;
+		}
+	}
+	return false;
+}
+
+/** If oasisstar.json is missing on disk, create it (covers load failure + empty g_odoom_json_config_path). */
+static void ODOOM_EnsureOasisstarJsonOnDisk(void) {
+	if (!g_odoom_json_config_path.empty()) {
+		FILE* t = fopen(g_odoom_json_config_path.c_str(), "r");
+		if (t) {
+			fclose(t);
+			return;
+		}
+	}
+	std::string found;
+	if (ODOOM_FindConfigFile("oasisstar.json", found)) {
+		FILE* t = fopen(found.c_str(), "r");
+		if (t) {
+			fclose(t);
+			g_odoom_json_config_path = found;
+			(void)ODOOM_LoadJsonConfig(found.c_str());
+			return;
+		}
+	}
+	std::string created;
+	if (ODOOM_TryCreateDefaultOasisstarJson(created)) {
+		g_odoom_json_config_path = created;
+		(void)ODOOM_LoadJsonConfig(created.c_str());
+		StarLogInfo("Created default oasisstar.json: %s", created.c_str());
+	} else {
+		StarLogInfo("STAR: oasisstar.json missing and could not be created (write permissions?).");
+	}
 }
 
 /** Return 1 if key is currently down, 0 otherwise.
@@ -1839,7 +1949,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		static bool s_odoom_star_overlay_keys_bound_once = false;
 		if (!s_odoom_star_overlay_keys_bound_once) {
 			C_DoCommand("bind Q \"odoom_quest_toggle\"");
-			/* B/X/Z: unbound — HUD toggles use raw keys in ODOOM_InventorySetKeyState (edge trigger); binding CCMDs would double-fire. */
+			/* B/X/Z: engine binds to HUD toggles (layout-correct); popups clear these binds while open. */
+			C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
+			C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
+			C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
 			s_odoom_star_overlay_keys_bound_once = true;
 		}
 	}
@@ -2037,10 +2150,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind E \"+use\"");
 		C_DoCommand("bind C \"odoom_use_health\"");
 		C_DoCommand("bind F \"odoom_use_armor\"");
-		/* B/X/Z stay unbound: toggles run from raw key edge in ODOOM_InventorySetKeyState (same as backup). */
-		C_DoCommand("bind B \"\"");
-		C_DoCommand("bind X \"\"");
-		C_DoCommand("bind Z \"\"");
+		/* B/X/Z: restore HUD toggles when popups close (CCMDs no-op while STAR popup CVars say open). */
+		C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
+		C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
+		C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
 		C_DoCommand("bind I \"+user1\"");
 		C_DoCommand("bind O \"+user2\"");
 		C_DoCommand("bind P \"+user3\"");
@@ -2091,7 +2204,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
-		/* B/X/Z: edge-triggered in ODOOM_InventorySetKeyState (keys unbound); do not also bind odoom_hud_toggle_* or toggles double-fire. */
+		/* B/X/Z: bound to odoom_hud_toggle_* when no popup; cleared while inventory/quest open so ZScript raw keys drive UI. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2511,8 +2624,6 @@ static void ODOOM_QueueQuestProgressForConsumedPickup(const char* item_name, con
 	star_api_queue_quest_progress_from_pickup("ODOOM", item_type, item_name);
 }
 
-static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
-
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
 {
 	FBaseCVar* hv = FindCVar(cvarName, nullptr);
@@ -2554,19 +2665,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
-	/* Edge-trigger B/X/Z from raw keys so HUD toggles work while keys stay unbound (quest filter still uses odoom_key_b in ZScript). */
-	static int s_prevHudB = 0, s_prevHudX = 0, s_prevHudZ = 0;
-	const int bDown = keyB != 0 ? 1 : 0;
-	const int xDown = x != 0 ? 1 : 0;
-	const int zDown = z != 0 ? 1 : 0;
-	if (g_star_initialized && !ODOOM_AnyStarPopupOpenForHudToggle()) {
-		if (bDown && !s_prevHudB) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_beamed");
-		if (xDown && !s_prevHudX) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_xp");
-		if (zDown && !s_prevHudZ) ODOOM_FlipHudIntCVarImpl("odoom_hud_show_timer");
-	}
-	s_prevHudB = bDown;
-	s_prevHudX = xDown;
-	s_prevHudZ = zDown;
+	/* B/X/Z HUD: engine key bindings -> odoom_hud_toggle_* (ODOOM_FlipHudIntCVar); raw odoom_key_* still used for inventory/quest/send UI. */
 }
 
 int UZDoom_STAR_GetShowAnorakFace(void)
@@ -3125,14 +3224,16 @@ static const char* GetKeycardDescription(int keynum) {
 
 void UZDoom_STAR_Init(void) {
 	star_sync_init();
-	/* Load STAR options from oasisstar.json if present (parity with OQuake). */
+	/* Load STAR options from oasisstar.json; always ensure file exists on disk (same policy as OQuake). */
 	{
 		std::string path;
 		if (ODOOM_FindConfigFile("oasisstar.json", path) && ODOOM_LoadJsonConfig(path.c_str())) {
 			g_odoom_json_config_path = path;
-			g_odoom_reapply_json_frames = 70;  /* Re-apply after ~2s so mint etc. override ini */
 			StarLogInfo("Loaded STAR config from: %s", path.c_str());
 		}
+		g_odoom_reapply_json_frames = 70;
+		ODOOM_EnsureOasisstarJsonOnDisk();
+		ODOOM_EnsureDefaultOasisstarDna(g_odoom_json_config_path.empty() ? std::string("oasisstar.json") : g_odoom_json_config_path);
 	}
 	/* Always start with default Doom face until explicit beam-in. */
 	g_star_show_anorak_face = false;
@@ -3144,10 +3245,10 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
-	/* HUD toggles: raw B/X/Z in ODOOM_InventorySetKeyState; keep unbound so cfg does not steal them or stack with edge trigger. */
-	C_DoCommand("defaultbind B \"\"");
-	C_DoCommand("defaultbind X \"\"");
-	C_DoCommand("defaultbind Z \"\"");
+	/* HUD toggles: engine binds (layout-correct); popups temporarily clear B/X/Z binds. */
+	C_DoCommand("defaultbind B \"odoom_hud_toggle_beamed\"");
+	C_DoCommand("defaultbind X \"odoom_hud_toggle_xp\"");
+	C_DoCommand("defaultbind Z \"odoom_hud_toggle_timer\"");
 
 	StarLogInfo("\n********** GAME LOAD **********");
 	StarLogInfo("STAR bootstrap: Beaming in...");
