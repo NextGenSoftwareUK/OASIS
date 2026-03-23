@@ -20,6 +20,8 @@ typedef struct {
     const char* api_key;
     const char* avatar_id;
     int timeout_seconds;
+    /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
+    const char* client_game_source;
 } star_api_config_t;
 
 typedef struct {
