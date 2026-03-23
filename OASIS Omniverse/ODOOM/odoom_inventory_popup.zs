@@ -1,3 +1,7 @@
+// CANONICAL ZScript for ODOOM: BUILD_ODOOM.sh / BUILD ODOOM.bat copies THIS file to
+// $UZDOOM_SRC/wadsrc/static/zscript/ui/statusbar/odoom_inventory_popup.zs before UZDoom compiles zscript.
+// Editing only the OASIS Omniverse/ODOOM copy then building UZDoom without that copy step = stale HUD (e.g. old right timer).
+
 class OASISInventoryOverlayHandler : EventHandler
 {
 	private bool popupOpen;

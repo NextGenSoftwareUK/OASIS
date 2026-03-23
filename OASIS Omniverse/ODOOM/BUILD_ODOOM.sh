@@ -188,6 +188,7 @@ echo ""
 echo "[ODOOM][STEP] Installing integration files..."
 cp -f "$ODOOM_INTEGRATION/uzdoom_star_integration.cpp" "$UZDOOM_SRC/src/"
 cp -f "$ODOOM_INTEGRATION/uzdoom_star_integration.h" "$UZDOOM_SRC/src/"
+cp -f "$STARAPICLIENT/star_api.h" "$UZDOOM_SRC/src/"
 [[ -f "$ODOOM_INTEGRATION/star_sync.c" ]] && cp -f "$ODOOM_INTEGRATION/star_sync.c" "$UZDOOM_SRC/src/"
 [[ -f "$ODOOM_INTEGRATION/star_sync.h" ]] && cp -f "$ODOOM_INTEGRATION/star_sync.h" "$UZDOOM_SRC/src/"
 cp -f "$ODOOM_INTEGRATION/odoom_branding.h" "$UZDOOM_SRC/src/"
@@ -415,6 +416,28 @@ if [[ -z "$ODOOM_BIN" || ! -f "$ODOOM_BIN" ]]; then
 fi
 
 mkdir -p "$ODOOM_INTEGRATION/build"
+# Windows BUILD ODOOM.bat xcopy's the full UZDoom Release folder (uzdoom.pk3, etc.). Linux must copy the same
+# or the built-in launcher / game IWAD UI fails immediately after a clean build/ wipe.
+echo "[ODOOM][STEP] Copying engine PK3s and optional resources from UZDoom build..."
+if [[ -d "$UZDOOM_SRC/build" ]]; then
+  _pk3_copied=0
+  while IFS= read -r -d '' f; do
+    cp -f "$f" "$ODOOM_INTEGRATION/build/" && { echo "[ODOOM][COPY] $(basename "$f")"; _pk3_copied=1; }
+  done < <(find "$UZDOOM_SRC/build" -maxdepth 2 -type f -name '*.pk3' -print0 2>/dev/null)
+  for sub in soundfonts fm_banks; do
+    if [[ -d "$UZDOOM_SRC/build/$sub" ]]; then
+      rm -rf "$ODOOM_INTEGRATION/build/$sub"
+      cp -a "$UZDOOM_SRC/build/$sub" "$ODOOM_INTEGRATION/build/"
+      echo "[ODOOM][COPY] $sub/"
+      _pk3_copied=1
+    fi
+  done
+  if [[ $_pk3_copied -eq 0 ]]; then
+    echo "[ODOOM][WARN] No .pk3 files found under $UZDOOM_SRC/build (maxdepth 2). Launcher may not start — check CMake output directory."
+  fi
+else
+  echo "[ODOOM][WARN] UZDoom build dir missing: $UZDOOM_SRC/build"
+fi
 cp -f "$ODOOM_BIN" "$ODOOM_INTEGRATION/build/ODOOM"
 chmod +x "$ODOOM_INTEGRATION/build/ODOOM"
 # Deploy STAR API shared lib next to executable; binary is linked against libstar_api.so / libstar_api.dylib
