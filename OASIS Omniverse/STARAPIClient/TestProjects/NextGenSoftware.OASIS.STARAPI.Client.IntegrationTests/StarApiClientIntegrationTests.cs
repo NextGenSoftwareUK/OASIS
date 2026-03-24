@@ -132,7 +132,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             var createQuestFirst = await client.CreateCrossGameQuestAsync(
                 "Cross Quest",
                 "Integration quest",
-                [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+                [new StarQuestObjective { Title = "Key", Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
             questBlockSucceeded = !createQuestFirst.IsError;
             createdQuest = createQuestFirst.Result;
         }
@@ -193,7 +193,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
                 var createQuest = await client.CreateCrossGameQuestAsync(
                     "Cross Quest",
                     "Integration quest",
-                    [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+                    [new StarQuestObjective { Title = "Key", Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
                 Assert.False(createQuest.IsError);
             }
         }
@@ -561,8 +561,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var unique = Guid.NewGuid().ToString("N")[..8];
         var objectives = new List<StarQuestObjective>
         {
-            new() { Description = "Collect key in Doom", GameSource = "Doom", Order = 0, IsCompleted = false },
-            new() { Description = "Defeat boss", GameSource = "Doom", Order = 1, IsCompleted = false }
+            new() { Title = "Get key", Description = "Collect key in Doom", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } },
+            new() { Title = "Beat boss", Description = "Defeat boss", GameSource = "Doom", Order = 1, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToKillMonsters = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }
         };
 
         var create = await client.CreateCrossGameQuestAsync($"ObjTestQuest-{unique}", "Quest objectives test", objectives);
@@ -594,7 +594,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create2 = await client.CreateCrossGameQuestAsync($"ObjTestQuest2-{questId2}", "Add/remove test", [objectives[0]]);
         if (create2.IsError || create2.Result == null)
             return;
-        var addResult = await client.AddQuestObjectiveAsync(create2.Result.Id, "Added objective", gameSource: "Doom", itemRequired: "Medkit");
+        var addResult = await client.AddQuestObjectiveAsync(create2.Result.Id, "Added objective", "Collect medkit in Doom", gameSource: "Doom", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectHealth = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         if (addResult.IsError)
             return; /* Backend may not support add objective or may return error; skip add/remove so test passes. */
         if (addResult.Result != null && !string.IsNullOrEmpty(addResult.Result.Id))
@@ -620,14 +620,14 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create = await client.CreateCrossGameQuestAsync(
             "Fake Quest",
             "Fake quest with objectives",
-            [new StarQuestObjective { Description = "Obj 1", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+            [new StarQuestObjective { Title = "Obj 1", Description = "Obj 1", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
         Assert.False(create.IsError);
         Assert.NotNull(create.Result);
         Assert.False(string.IsNullOrEmpty(create.Result.Id));
         Assert.NotEmpty(create.Result.Objectives);
         Assert.False(string.IsNullOrEmpty(create.Result.Objectives[0].Id));
 
-        var addResult = await client.AddQuestObjectiveAsync(create.Result.Id, "Added via API", gameSource: "Doom");
+        var addResult = await client.AddQuestObjectiveAsync(create.Result.Id, "Added via API", "Added via API", gameSource: "Doom", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         Assert.False(addResult.IsError);
         Assert.NotNull(addResult.Result);
         Assert.False(string.IsNullOrEmpty(addResult.Result.Id));
@@ -655,7 +655,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create1 = await client.CreateCrossGameQuestAsync(
             $"PrereqQuest-{unique}",
             "First quest (will be prerequisite)",
-            [new StarQuestObjective { Description = "Get key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false }]);
+            [new StarQuestObjective { Title = "Get key", Description = "Get key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } } }]);
         if (create1.IsError || create1.Result == null)
             return;
 
@@ -663,8 +663,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             $"MainQuest-{unique}",
             "Quest with objectives and sub-quest",
             [
-                new StarQuestObjective { Description = "Collect armor", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                new StarQuestObjective { Title = "Armor", Description = "Collect armor", GameSource = "ODOOM", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectArmor = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } } },
+                new StarQuestObjective { Title = "Health", Description = "Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectHealth = new Dictionary<string, List<string>> { ["OQUAKE"] = new List<string> { "1" } } } }
             ]);
         Assert.False(create2.IsError, create2.Message ?? "Create main quest failed");
         Assert.NotNull(create2.Result);

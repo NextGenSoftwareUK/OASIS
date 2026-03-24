@@ -10,8 +10,10 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
     {
         Guid Id { get; set; }
         int Order { get; set; }
-        /// <summary>Human-readable description built from the requirement dictionaries (e.g. "Kill 5 Zombie in ODOOM and collect Red key within 15 mins."). Serialized as "Objective" in JSON.</summary>
-        string ObjectiveText { get; }
+        string Title { get; set; }
+        string Description { get; set; }
+        /// <summary>Computed progress summary built from requirement/progress dictionaries (e.g. "Killed 1/10 monsters in ODOOM (10%)").</summary>
+        string ProgressSummary { get; }
         bool IsCompleted { get; set; }
         DateTime? CompletedAt { get; set; }
         Guid? CompletedBy { get; set; }

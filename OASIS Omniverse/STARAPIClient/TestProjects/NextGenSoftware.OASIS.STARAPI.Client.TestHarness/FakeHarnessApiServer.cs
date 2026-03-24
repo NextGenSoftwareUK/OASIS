@@ -244,7 +244,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                             Name = "Harness Quest",
                             Description = "Quest from harness mock",
                             Status = "InProgress",
-                            Objectives = new[] { new { Description = "Obj", GameSource = "Harness", ItemRequired = "Key", IsCompleted = false } }
+                            Objectives = new[] { new { Title = "Obj", Description = "Obj", GameSource = "Harness", IsCompleted = false } }
                         }
                     }
                 }).ConfigureAwait(false);

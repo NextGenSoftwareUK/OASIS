@@ -143,8 +143,22 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
                 HolonSubType = HolonType.Quest,
                 Objectives = new List<QuestObjectiveRequest>
                 {
-                    new QuestObjectiveRequest { Name = "Obj1", Description = "First objective", GameSource = "ODOOM", ItemRequired = "Key", Order = 0 },
-                    new QuestObjectiveRequest { Name = "Obj2", Description = "Second objective", GameSource = "OQUAKE", ItemRequired = "Health", Order = 1 }
+                    new QuestObjectiveRequest
+                    {
+                        Title = "Obj1",
+                        Description = "First objective",
+                        GameSource = "ODOOM",
+                        Order = 0,
+                        Dictionaries = new QuestObjectiveDictionariesRequest { NeedToCollectKeys = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } }
+                    },
+                    new QuestObjectiveRequest
+                    {
+                        Title = "Obj2",
+                        Description = "Second objective",
+                        GameSource = "OQUAKE",
+                        Order = 1,
+                        Dictionaries = new QuestObjectiveDictionariesRequest { NeedToCollectHealth = new Dictionary<string, List<string>> { ["OQUAKE"] = new List<string> { "1" } } }
+                    }
                 }
             };
 
@@ -158,7 +172,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task AddQuestObjective_WithValidRequest_ShouldReturnOASISResult()
         {
             var questId = Guid.NewGuid();
-            var request = new AddQuestObjectiveRequest { Name = "New Obj", Description = "Objective desc", GameSource = "ODOOM", ItemRequired = "Key", Order = 0 };
+            var request = new AddQuestObjectiveRequest
+            {
+                Title = "New Obj",
+                Description = "Objective desc",
+                GameSource = "ODOOM",
+                Order = 0,
+                Dictionaries = new QuestObjectiveDictionariesRequest { NeedToCollectKeys = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } }
+            };
 
             var result = await _controller.AddQuestObjective(questId, request);
 
@@ -182,7 +203,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public async Task AddSubQuest_WithValidRequest_ShouldReturnOASISResult()
         {
             var questId = Guid.NewGuid();
-            var request = new AddSubQuestRequest { Name = "Sub", Description = "Sub-quest desc", GameSource = "ODOOM", ItemRequired = "Level", Order = 0 };
+            var request = new AddSubQuestRequest { Name = "Sub", Description = "Sub-quest desc", GameSource = "ODOOM", Order = 0 };
 
             var result = await _controller.AddSubQuest(questId, request);
 
