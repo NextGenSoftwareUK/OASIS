@@ -15,7 +15,7 @@ This describes the **current, working** integration between the STAR native clie
 
 - One line per record, newline-terminated.
 - **Main list rows** (what the left column shows) are lines starting with **`Q\t`**. Fields include id, name, description, status, percent (ZScript expects at least 5–6 tab-separated fields; see popup code).
-- Objectives use **`O\t`** lines; blocks may be separated with **`---`**.
+- Embedded objectives use **`O\t`** lines with **exactly six tab-separated fields after `O`:** `id`, `Title`, `Description`, `ProgressSummary`, `done` (`0` / `1`). Blocks may be separated with **`---`**. (STAR `SerializeQuestsForGame` is the reference.)
 - The game uses **`star_api_get_top_level_quests_string`** so the **left list is parent quests only**; sub-quests are loaded for the detail panel via other `star_api_get_quest_*` calls from C++ (`ODOOM_RefreshQuestDetailCVars`).
 
 ## C++: `ODOOM_RefreshQuestCVars` (critical behavior)
