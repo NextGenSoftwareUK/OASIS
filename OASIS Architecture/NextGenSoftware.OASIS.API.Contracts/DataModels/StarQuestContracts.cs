@@ -44,10 +44,12 @@ namespace NextGenSoftware.OASIS.API.Contracts
     }
 
     /// <summary>
-    /// Objective DTO: Title + Description authored by content, ProgressSummary computed from requirement/progress dictionaries.
+    /// Objective DTO: Title + Description authored by content. <see cref="ProgressSummary"/> is the HUD progress line: set from JSON when the API embeds it (e.g. game lite read model), otherwise computed from <see cref="Dictionaries"/>.
     /// </summary>
     public sealed class StarQuestObjective
     {
+        private string _progressSummary = string.Empty;
+
         public string Id { get; set; } = string.Empty;
         /// <summary>Required UI title. Always used as the objective header in game UI.</summary>
         public string Title { get; set; } = string.Empty;
@@ -61,10 +63,17 @@ namespace NextGenSoftware.OASIS.API.Contracts
         /// <summary>Requirement and progress dictionaries keyed by game id (e.g. ODOOM, OQUAKE). Matches backend Objective.</summary>
         public StarQuestObjectiveDictionaries Dictionaries { get; set; }
 
-        /// <summary>Computed summary from requirement/progress dictionaries, e.g. "Killed 1/10 monsters in ODOOM (10%)".</summary>
-        public string ProgressSummary => GetProgressSummary();
+        /// <summary>Progress line for HUD. When set (non-whitespace) from API/JSON, that value is used; otherwise computed from requirement/progress dictionaries (same rules as backend Objective).</summary>
+        public string ProgressSummary
+        {
+            get =>
+                !string.IsNullOrWhiteSpace(_progressSummary)
+                    ? _progressSummary.Trim()
+                    : GetProgressSummaryFromDictionaries();
+            set => _progressSummary = string.IsNullOrWhiteSpace(value) ? string.Empty : value.Trim();
+        }
 
-        private string GetProgressSummary()
+        private string GetProgressSummaryFromDictionaries()
         {
             if (Dictionaries == null)
                 return string.Empty;

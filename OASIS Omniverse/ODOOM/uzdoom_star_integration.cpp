@@ -45,6 +45,7 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #include <algorithm>
 #include <cctype>
 #include <map>
+#include <vector>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -1292,6 +1293,33 @@ static bool ODOOM_QuestIdEqInsensitive(const std::string& a, const std::string& 
 }
 
 /** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
+/** Parse one O-line: "O\\tid\\tTitle\\tDescription\\tProgressSummary\\tdone" (done 0/1). When done==0, sets out_progress to ProgressSummary (field 4). */
+static void ODOOM_ParseOlineTrackerProgress(const char* lineStart, size_t lineLen, std::string& out_progress)
+{
+	out_progress.clear();
+	if (lineLen < 4 || lineStart[0] != 'O' || lineStart[1] != '\t')
+		return;
+	std::vector<std::string> f;
+	{
+		size_t i = 0;
+		while (i < lineLen) {
+			size_t j = i;
+			while (j < lineLen && lineStart[j] != '\t' && lineStart[j] != '\n' && lineStart[j] != '\r')
+				j++;
+			f.emplace_back(lineStart + i, lineStart + j);
+			if (j < lineLen && lineStart[j] == '\t')
+				j++;
+			i = j;
+		}
+	}
+	if (f.size() < 6 || f[0] != "O")
+		return;
+	const std::string& last = f.back();
+	if (last.empty() || last[0] != '0')
+		return;
+	out_progress = f[4];
+}
+
 static void ODOOM_PushTrackerProgressCvars(const char* wantIdCStr) {
 	if (!wantIdCStr || !wantIdCStr[0] || std::strcmp(wantIdCStr, "...") == 0) return;
 	FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
@@ -1435,20 +1463,8 @@ static void ODOOM_RefreshQuestCVars(void) {
 			continue;
 		}
 		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && inTargetBlock && trackerObjective.empty()) {
-			/* O, id, desc, done - first incomplete objective (done=0); desc is 2nd field after id */
-			const char* f0 = p + 2;
-			size_t rest0 = (size_t)((p + lineLen) - f0);
-			const char* f1 = (const char*)memchr(f0, '\t', rest0);
-			if (f1 && f1 < p + lineLen) {
-				f1++;
-				size_t rest1 = (size_t)((p + lineLen) - f1);
-				const char* f2 = (const char*)memchr(f1, '\t', rest1);
-				if (f2 && f2 < p + lineLen) {
-					const char* doneStart = f2 + 1;
-					if (doneStart < p + lineLen && *doneStart == '0')
-						trackerObjective.assign(f1, (size_t)(f2 - f1));
-				}
-			}
+			/* O-line: Title, Description, ProgressSummary (STAR client); odoom_quest_tracker_objective binds ProgressSummary only. */
+			ODOOM_ParseOlineTrackerProgress(p, lineLen, trackerObjective);
 		}
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
 	}
@@ -1976,6 +1992,7 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 
 static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
+static void ODOOM_FlipHudIntCVar(const char* cvarName);
 
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
@@ -2287,7 +2304,24 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
-		/* B/X/Z HUD toggles: ZScript flips odoom_hud_show_* on odoom_key_* rising edge (inventory/quest/send closed). Avoid C++ flip here — double-toggle if both ran. */
+		/* HUD X/B/Z: flip only here (same path as odoom_hud_toggle_* CCMDs). ZScript WorldTick cannot set these CVars — "outside menu code" abort in current GZDoom. */
+		{
+			static int s_odoom_hud_x_raw_was_down = 0;
+			static int s_odoom_hud_b_raw_was_down = 0;
+			static int s_odoom_hud_z_raw_was_down = 0;
+			if (g_star_initialized)
+			{
+				if (x && !s_odoom_hud_x_raw_was_down)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_xp");
+				if (keyB && !s_odoom_hud_b_raw_was_down)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_beamed");
+				if (z && !s_odoom_hud_z_raw_was_down)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_timer");
+			}
+			s_odoom_hud_x_raw_was_down = x ? 1 : 0;
+			s_odoom_hud_b_raw_was_down = keyB ? 1 : 0;
+			s_odoom_hud_z_raw_was_down = z ? 1 : 0;
+		}
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2760,7 +2794,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
-	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; ZScript toggles odoom_hud_show_* when no STAR popup. */
+	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; native tick flips odoom_hud_show_* (ZScript cannot). */
 }
 
 int UZDoom_STAR_GetShowAnorakFace(void)
@@ -3194,7 +3228,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 					g_star_effective_username = g_odoom_saved_username;
 				odoom_star_username = g_star_effective_username.empty() ? "Avatar" : g_star_effective_username.c_str();
 				StarApplyBeamFacePreference();
-				star_api_refresh_avatar_profile();
+				/* RestoreSessionAsync already GETs avatar/current, warms quest cache, and fires ProfileLoaded — do not call star_api_refresh_avatar_profile() here (duplicate GET + double callback). */
 				g_odoom_pending_loading_tracker = true;  /* Frame pump will set "Loading..." when CVars are ready */
 				if (logVerbose) StarLogInfo("Restoring saved session for %s.", g_odoom_saved_username[0] ? g_odoom_saved_username : "(avatar)");
 				return true;
@@ -3342,7 +3376,7 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
-	/* HUD B/X/Z toggled from C++ raw-key edge; leave unbound so +zoom etc. never steal Z. Console: odoom_hud_toggle_* */
+	/* HUD: X/B/Z flipped in native tick (ZScript cannot set odoom_hud_show_*). Keys unbound so +zoom etc. never steal Z. Console: odoom_hud_toggle_* */
 	C_DoCommand("defaultbind B \"\"");
 	C_DoCommand("defaultbind X \"\"");
 	C_DoCommand("defaultbind Z \"\"");

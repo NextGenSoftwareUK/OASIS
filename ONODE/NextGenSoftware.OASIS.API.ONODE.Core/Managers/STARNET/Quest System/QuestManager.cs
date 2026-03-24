@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -192,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         /// <summary>Promote MetaData to strongly-typed Quest properties so API returns quests with Objectives (and Status) populated on first load.
         /// Status: prefer "Status" (HolonManager.MapMetaData), fallback "QuestStatus".
-        /// Objectives: (1) promote from MetaData so all-for-avatar response includes them; (2) if still empty, populate from Children so "objectives" in JSON matches what the client sees in "children".</summary>
+        /// Objectives: deserialize <c>MetaData["Objectives"]</c> JSON when the quest has no objectives yet; if still empty, synthesize from child <see cref="Quest"/> holons.</summary>
         private static void PromoteQuestMetaDataToProperties(Quest q)
         {
             if (q == null) return;
@@ -216,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         var raw = q.MetaData[objectivesKey];
                         if (raw is string jsonStr)
                         {
-                            var list = System.Text.Json.JsonSerializer.Deserialize<List<Objective>>(jsonStr);
+                            var list = DeserializeObjectivesFromMetaDataJsonString(jsonStr);
                             if (list != null && list.Count > 0)
                                 q.Objectives = list;
                         }
@@ -243,6 +244,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         });
                     }
                 }
+            }
+        }
+
+        private static readonly JsonSerializerOptions ObjectiveMetaDataJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        /// <summary>Deserialize persisted <c>Objectives</c> array from MetaData; JSON matches <see cref="Objective"/> (Title, Description, ProgressSummary, dictionaries).</summary>
+        private static List<Objective>? DeserializeObjectivesFromMetaDataJsonString(string jsonStr)
+        {
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<Objective>>(jsonStr, ObjectiveMetaDataJsonOptions);
+                return list != null && list.Count > 0 ? list : null;
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -881,7 +901,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                 }
 
-                // Fallback: legacy objectives as child Quests
+                // Fallback: objectives stored as child Quest holons
                 if (quest.Quests == null || quest.Quests.Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest has no objectives to complete.");
@@ -1821,7 +1841,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     /// <summary>In-game progress delta for ApplyQuestProgressAsync (kills, XP, pickups by type, level time). Matches Objective progress dictionaries: ArmorCollected, HealthCollected, WeaponsCollected, PowerupsCollected, AmmoCollected, ItemsCollected, KeysCollected.</summary>
     public class QuestProgressDelta
     {
-        /// <summary>Optional profile active objective; when set, that incomplete objective is updated before others (then Order, Id). Omit for legacy clients.</summary>
+        /// <summary>Optional profile active objective; when set, that incomplete objective is updated before others (then Order, Id). Omit when the caller does not specify one.</summary>
         public Guid? ActiveObjectiveId { get; set; }
         public int MonstersKilledDelta { get; set; }
         public int XpEarnedDelta { get; set; }

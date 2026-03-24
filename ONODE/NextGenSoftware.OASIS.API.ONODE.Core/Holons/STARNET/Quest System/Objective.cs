@@ -32,11 +32,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public int ProgressPercent { get; set; }
 
         [CustomOASISProperty()]
+        [JsonPropertyName("title")]
         public string Title { get; set; } = string.Empty;
         [CustomOASISProperty()]
+        [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
 
-        /// <summary>Computed progress text from Need* + progress dictionaries. Serialized as ProgressSummary.</summary>
+        /// <summary>Computed progress text from Need* + progress dictionaries.</summary>
         [JsonPropertyName("ProgressSummary")]
         public string ProgressSummary
         {

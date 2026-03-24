@@ -25,8 +25,6 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyUseDown;
 	private bool wasKeyADown;
 	private bool wasKeyCDown;
-	private bool wasKeyZDown;
-	private bool wasKeyXDown;
 	private bool wasKeyIDown;
 	private bool wasKeyODown;
 	private bool wasKeyPDown;
@@ -40,7 +38,6 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyPgDownDown;
 	private bool wasKeyHomeDown;
 	private bool wasKeyEndDown;
-	private bool wasKeyBDown;
 	private bool wasKeyVDown;
 	private bool wasKeyNDown;
 	private bool wasKeyMDown;
@@ -167,8 +164,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool crouchDown = (buttons & BT_CROUCH) != 0;
 
 		// Keys captured by C++ when inventory open (odoom_key_* CVars). Read every frame so wasKey* stay in sync when closed.
-		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyK = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyS = 0, keyT = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
-		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0, keyB = 0, keyV = 0, keyN = 0, keyM = 0;
+		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyK = 0, keyA = 0, keyC = 0, keyI = 0, keyO = 0, keyP = 0, keyS = 0, keyT = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
+		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0, keyV = 0, keyN = 0, keyM = 0;
 		CVar v;
 		v = CVar.FindCVar("odoom_key_up"); if (v != null) keyUp = v.GetInt();
 		v = CVar.FindCVar("odoom_key_down"); if (v != null) keyDown = v.GetInt();
@@ -178,15 +175,12 @@ class OASISInventoryOverlayHandler : EventHandler
 		v = CVar.FindCVar("odoom_key_pgdown"); if (v != null) keyPgDown = v.GetInt();
 		v = CVar.FindCVar("odoom_key_home"); if (v != null) keyHome = v.GetInt();
 		v = CVar.FindCVar("odoom_key_end"); if (v != null) keyEnd = v.GetInt();
-		v = CVar.FindCVar("odoom_key_b"); if (v != null) keyB = v.GetInt();
 		v = CVar.FindCVar("odoom_key_v"); if (v != null) keyV = v.GetInt();
 		v = CVar.FindCVar("odoom_key_n"); if (v != null) keyN = v.GetInt();
 		v = CVar.FindCVar("odoom_key_m"); if (v != null) keyM = v.GetInt();
 		v = CVar.FindCVar("odoom_key_use"); if (v != null) keyUse = v.GetInt();
 		v = CVar.FindCVar("odoom_key_a"); if (v != null) keyA = v.GetInt();
 		v = CVar.FindCVar("odoom_key_c"); if (v != null) keyC = v.GetInt();
-		v = CVar.FindCVar("odoom_key_z"); if (v != null) keyZ = v.GetInt();
-		v = CVar.FindCVar("odoom_key_x"); if (v != null) keyX = v.GetInt();
 		v = CVar.FindCVar("odoom_key_i"); if (v != null) keyI = v.GetInt();
 		v = CVar.FindCVar("odoom_key_o"); if (v != null) keyO = v.GetInt();
 		v = CVar.FindCVar("odoom_key_p"); if (v != null) keyP = v.GetInt();
@@ -201,7 +195,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyPgDownPressed = (keyPgDown != 0) && !wasKeyPgDownDown;
 		bool keyHomePressed = (keyHome != 0) && !wasKeyHomeDown;
 		bool keyEndPressed = (keyEnd != 0) && !wasKeyEndDown;
-		bool keyBPressed = (keyB != 0) && !wasKeyBDown;
 		bool keyVPressed = (keyV != 0) && !wasKeyVDown;
 		bool keyNPressed = (keyN != 0) && !wasKeyNDown;
 		bool keyMPressed = (keyM != 0) && !wasKeyMDown;
@@ -211,8 +204,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyUsePressed = (keyUse != 0) && !wasKeyUseDown;
 		bool keyAPressed = (keyA != 0) && !wasKeyADown;
 		bool keyCPressed = (keyC != 0) && !wasKeyCDown;
-		bool keyZPressed = (keyZ != 0) && !wasKeyZDown;
-		bool keyXPressed = (keyX != 0) && !wasKeyXDown;
 		bool keyIPressed = (keyI != 0) && !wasKeyIDown;
 		bool keyOPressed = (keyO != 0) && !wasKeyODown;
 		bool keyPPressed = (keyP != 0) && !wasKeyPDown;
@@ -229,8 +220,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyUseDown = (keyUse != 0);
 		wasKeyADown = (keyA != 0);
 		wasKeyCDown = (keyC != 0);
-		wasKeyZDown = (keyZ != 0);
-		wasKeyXDown = (keyX != 0);
 		wasKeyIDown = (keyI != 0);
 		wasKeyODown = (keyO != 0);
 		wasKeyPDown = (keyP != 0);
@@ -244,7 +233,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyPgDownDown = (keyPgDown != 0);
 		wasKeyHomeDown = (keyHome != 0);
 		wasKeyEndDown = (keyEnd != 0);
-		wasKeyBDown = (keyB != 0);
 		wasKeyVDown = (keyV != 0);
 		wasKeyNDown = (keyN != 0);
 		wasKeyMDown = (keyM != 0);
@@ -307,25 +295,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else showCv.SetInt(1);
 			}
 		}
-		// B/X/Z HUD: flip CVars from same raw-key state C++ writes (odoom_key_*). Only when no inventory, quest, or send popup (matches native guard).
-		if (!popupOpen && !questPopupOpen && sendPopupMode == 0)
-		{
-			if (keyBPressed)
-			{
-				CVar hb = CVar.FindCVar("odoom_hud_show_beamed");
-				if (hb != null) hb.SetInt(hb.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyXPressed)
-			{
-				CVar hx = CVar.FindCVar("odoom_hud_show_xp");
-				if (hx != null) hx.SetInt(hx.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyZPressed)
-			{
-				CVar hz = CVar.FindCVar("odoom_hud_show_timer");
-				if (hz != null) hz.SetInt(hz.GetInt() != 0 ? 0 : 1);
-			}
-		}
+		// B/X/Z HUD toggles: native C++ rising edge on raw keys + ODOOM_FlipHudIntCVar (same popup guard as console). ZScript must not SetInt odoom_hud_show_* from WorldTick.
 		if (questPopupOpen)
 		{
 			if (keyBackspacePressed && !questDetailPopupOpen)
@@ -358,7 +328,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
 			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
 			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
-			/* Filter toggles: V=Not Started, N=In Progress, M=Completed (B/Z/X unused here — HUD only when Q closed) */
+			/* Filter toggles: V=Not Started, N=In Progress, M=Completed (B/Z unused here — HUD when Q closed; X toggled in C++) */
 			if (keyVPressed && !questDetailPopupOpen) {
 				CVar cv = CVar.FindCVar("odoom_quest_filter_not_started");
 				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
@@ -375,14 +345,15 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int b = 0; b < questLines.Size(); b++)
 			{
 				array<String> parts;
-				questLines[b].Split(parts, "\t", false);
+				questLines[b].Split(parts, "\t", TOK_KEEPEMPTY);
 				if (parts.Size() < 5) continue;
 				String st = parts[4];
 				bool show = ((st.Compare("NotStarted") == 0 || st.Compare("Not Started") == 0) && fn != 0) || ((st.Compare("InProgress") == 0 || st.Compare("In Progress") == 0) && fi != 0) || (st.Compare("Completed") == 0 && fc != 0);
 				if (show) filteredIndices.Push(b);
 			}
 			int qCount = filteredIndices.Size();
-			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match maxQuestRows (room for 2-line hint)
+			// Must match main quest list Draw: first data row y = 48+rowH, footer hints at popupH-50
+			int maxQuestRowsKey = (200 - 50 - (48 + 12) - 2) / 12;
 			if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
 			// So C++ can react to K without relying on one-frame CVar handoff: set selected quest id every frame.
 			CVar selectedIdCv = CVar.FindCVar("odoom_quest_selected_id");
@@ -396,7 +367,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (qCount > 0 && questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
 				{
 					array<String> parts;
-					questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", false);
+					questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() >= 2) selId = parts[1];
 				}
 				if (selectedIdCv != null) selectedIdCv.SetString(selId);
@@ -437,7 +408,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
 					{
 						array<String> parts;
-						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", false);
+						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 5)
 						{
 							questDetailQuestId = parts[1];
@@ -467,7 +438,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (questSelectedIndex >= 0 && questSelectedIndex < filteredIndices.Size() && filteredIndices[questSelectedIndex] >= 0 && filteredIndices[questSelectedIndex] < questLines.Size())
 					{
 						array<String> parts;
-						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", false);
+						questLines[filteredIndices[questSelectedIndex]].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 5)
 						{
 							String qid = parts[1];
@@ -499,13 +470,11 @@ class OASISInventoryOverlayHandler : EventHandler
 				{
 					if (filteredIndices[b] < 0 || filteredIndices[b] >= questLines.Size()) continue;
 					array<String> parts;
-					questLines[filteredIndices[b]].Split(parts, "\t", false);
+					questLines[filteredIndices[b]].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() >= 2 && parts[1].Compare(questGotoId) == 0)
 					{
 						questSelectedIndex = b;
-						int maxQuestRowsKey2 = (200 - 80) / 12 - 4;
-						if (maxQuestRowsKey2 < 5) maxQuestRowsKey2 = 5;
-						int so = questSelectedIndex - maxQuestRowsKey2 + 1;
+						int so = questSelectedIndex - maxQuestRowsKey + 1;
 						if (so < 0) so = 0;
 						CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 						if (scrollCv != null) scrollCv.SetInt(so);
@@ -532,7 +501,14 @@ class OASISInventoryOverlayHandler : EventHandler
 				for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 				for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 				int nPrereq = prereqQ.Size(); int nObj = objQ.Size(); int nSub = subQ.Size();
-				int maxRowsObj = 8;     // objectives list rows in mode 0 (above Requirements section)
+				// Must match RenderOverlay quest detail: topSectionH and rowH=10
+				int detailPopupHKey = 200;
+				int detailRightPaneHKey = detailPopupHKey - 56;
+				int detailTopSectionHKey = 48;
+				if (detailTopSectionHKey > detailRightPaneHKey - 64) detailTopSectionHKey = detailRightPaneHKey - 64;
+				if (detailTopSectionHKey < 34) detailTopSectionHKey = 34;
+				int maxRowsObj = (detailTopSectionHKey - 12) / 10;
+				if (maxRowsObj < 1) maxRowsObj = 1;
 				int maxRowsSingle = 13; // full-height list rows in mode 1 (Prereqs) or mode 2 (Subquests)
 				// When detail opens: sync objective selection to tracker by active objective id (never by index clamp so we never jump to last)
 				if (questDetailSyncSelectionOnce && nObj > 0)
@@ -553,7 +529,7 @@ class OASISInventoryOverlayHandler : EventHandler
 								int lineIdx = objQ[i];
 								if (lineIdx < 0 || lineIdx >= objLines.Size()) continue;
 								array<String> parts;
-								objLines[lineIdx].Split(parts, "\t", false);
+								objLines[lineIdx].Split(parts, "\t", TOK_KEEPEMPTY);
 								if (parts.Size() >= 2 && parts[1].Compare(activeId) == 0) { idx = i; break; }
 							}
 						}
@@ -595,7 +571,7 @@ class OASISInventoryOverlayHandler : EventHandler
 						if (idx >= 0 && idx < objLines.Size())
 						{
 							array<String> parts;
-							objLines[idx].Split(parts, "\t", false);
+							objLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 							if (parts.Size() >= 2) selObjCv.SetString(parts[1]); else selObjCv.SetString("");
 						}
 						else selObjCv.SetString("");
@@ -655,7 +631,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							if (idx >= 0 && idx < objLines.Size())
 							{
 								array<String> parts;
-								objLines[idx].Split(parts, "\t", false);
+								objLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 								if (parts.Size() >= 2)
 								{
 									CVar activeObjCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
@@ -673,13 +649,13 @@ class OASISInventoryOverlayHandler : EventHandler
 					else if (questDetailFocus == 1 && nPrereq > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
 					{
 						array<String> parts;
-						prereqLines[prereqQ[questDetailPrereqSelected]].Split(parts, "\t", false);
+						prereqLines[prereqQ[questDetailPrereqSelected]].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 					}
 					else if (questDetailFocus == 2 && nSub > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
 					{
 						array<String> parts;
-						subLines[subQ[questDetailSubSelected]].Split(parts, "\t", false);
+						subLines[subQ[questDetailSubSelected]].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 					}
 				}
@@ -1112,7 +1088,7 @@ class OASISInventoryOverlayHandler : EventHandler
 	}
 
 	// STAR item matches tab (same data as "star inventory" command, from odoom_star_inventory_list).
-	// Tracker lines are ProgressSummary strings. Completed is inferred from 100%.
+	// Tracker HUD lines come from ProgressSummary (C#). Completed rows: treat lines containing "(100%)" as done (display only).
 	private ui bool OdoomTrackerLineIsCompleted(String line)
 	{
 		if (line.Length() == 0) return false;
@@ -1120,36 +1096,27 @@ class OASISInventoryOverlayHandler : EventHandler
 		return false;
 	}
 
-	/** Detail popup objective lines from star_api_get_quest_objectives_string: Q\\tid\\tTitle\\tDescription\\tstatus\\tpct\\n (see StarApiClient.SerializeObjectivesAsQuestLines). If a 5-field legacy row omits the empty Description column, parts[3] is status — do not show that as the body text. */
-	private ui bool OdoomQuestLinePartLooksLikeObjectiveStatus(String s)
+	/** Objectives from star_api: Q\\tid\\tTitle\\tDescription\\tstatus\\tpct (detail fetch). Embedded objectives in main list use O\\tid\\tTitle\\tDescription\\tProgressSummary\\tdone — ODOOM binds Title (parts[2]), Description (parts[3]), ProgressSummary (tracker / requirements CVar only; not shown as body text). TOK_KEEPEMPTY preserves empty columns. */
+	private ui String OdoomQuestObjectiveTitleFromDetailLine(String line)
 	{
-		if (s.Length() == 0) return false;
-		return s.Compare("InProgress") == 0 || s.Compare("In Progress") == 0
-			|| s.Compare("Completed") == 0
-			|| s.Compare("NotStarted") == 0 || s.Compare("Not Started") == 0;
+		array<String> parts;
+		line.Split(parts, "\t", TOK_KEEPEMPTY);
+		if (parts.Size() < 2) return "";
+		if (parts[0].Compare("O") == 0 && parts.Size() >= 6) return parts[2];
+		if (parts[0].Compare("Q") != 0) return "";
+		if (parts.Size() >= 6) return parts[2];
+		return "";
 	}
 
 	private ui String OdoomQuestObjectiveBodyFromDetailLine(String line)
 	{
 		array<String> parts;
-		line.Split(parts, "\t", false);
+		line.Split(parts, "\t", TOK_KEEPEMPTY);
 		if (parts.Size() < 2) return "";
-		if (parts[0].Compare("Q") != 0)
-		{
-			if (parts[0].Compare("O") == 0 && parts.Size() >= 3) return parts[2];
-			return "";
-		}
-		if (parts.Size() >= 6)
-		{
-			if (parts[3].Length() > 0) return parts[3];
-			return parts[2];
-		}
-		if (parts.Size() == 5 && OdoomQuestLinePartLooksLikeObjectiveStatus(parts[3]))
-			return parts[2];
-		if (parts.Size() >= 4 && parts[3].Length() > 0)
-			return parts[3];
-		if (parts.Size() >= 3)
-			return parts[2];
+		if (parts[0].Compare("O") == 0 && parts.Size() >= 6) return parts[3];
+		if (parts[0].Compare("O") == 0) return "";
+		if (parts[0].Compare("Q") != 0) return "";
+		if (parts.Size() >= 6) return parts[3];
 		return "";
 	}
 
@@ -1245,7 +1212,7 @@ class OASISInventoryOverlayHandler : EventHandler
 		for (int i = 0; i < maxLines; i++)
 		{
 			array<String> parts;
-			lines[i].Split(parts, "\t", false);
+			lines[i].Split(parts, "\t", TOK_KEEPEMPTY);
 			if (parts.Size() < 4) continue;
 			String name = parts[0];
 			String desc = parts[1];
@@ -1339,7 +1306,7 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
-		// Level timer: only shared_sbar (native) left clock; Z toggles odoom_hud_show_timer there — no duplicate MM:SS in this overlay.
+		// Level timer: shared_sbar (native) left clock; odoom_hud_show_timer flipped in C++ — no duplicate MM:SS in this overlay.
 
 		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
@@ -1466,11 +1433,13 @@ class OASISInventoryOverlayHandler : EventHandler
 			int rightW = (320 - 8) - rightX;  // full width to screen edge
 			int rowH = 10;
 			int rightPaneH = popupH - 56;
-			// 50/50 split: top half = quest desc (left) + list (right); bottom half = objective/prereq/sub desc (left) + requirements or nothing (right)
-			int halfH = rightPaneH / 2;
-			int sect0Y = popupY + 26;   // start of right-pane content (list in top half)
-			int sect1Y = sect0Y + halfH; // start of bottom half (Requirements in mode 0)
-			int listAreaH = halfH;
+			// Fixed-height top band (quest + objective list) so bottom-left objective description has room to wrap (50/50 left almost no lines above footer hints).
+			int topSectionH = 48;
+			if (topSectionH > rightPaneH - 64) topSectionH = rightPaneH - 64;
+			if (topSectionH < 34) topSectionH = 34;
+			int sect0Y = popupY + 26;   // start of right-pane content (objectives list)
+			int sect1Y = sect0Y + topSectionH; // start of bottom half (requirements / desc)
+			int listAreaH = topSectionH;
 			int maxRowsObj = (listAreaH - 12) / rowH;
 			if (maxRowsObj < 1) maxRowsObj = 1;
 			int maxRowsSingle = (rightPaneH - 12) / rowH;  // full-height list in mode 1 or 2
@@ -1507,19 +1476,19 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < prereqLines.Size(); i++) if (prereqLines[i].Length() >= 2 && prereqLines[i].IndexOf("Q\t") == 0) prereqQ.Push(i);
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
-			// Left pane: top half = quest desc, bottom half = selected objective/prereq/subquest desc (50/50)
-			int detailFooterReserve = 80;  // match main quest list (popupH - 80) hint reserve
-			int leftContentH = popupH - detailFooterReserve - 24;
-			int leftTopH = leftContentH / 2;
+			// Left pane: quest desc in upper band; full objective/prereq/sub body below with word wrap to just above footer hints.
+			int detailTextBottomY = popupY + popupH - 56;
+			int leftTopH = sect1Y - (popupY + 22);
+			if (leftTopH < rowH * 2) leftTopH = rowH * 2;
 			int descMaxW = leftW - 8;
 			int maxLinesTop = leftTopH / rowH;
 			if (maxLinesTop < 1) maxLinesTop = 1;
-			int objSectionY = sect1Y - 2;  // label for bottom-half left (aligned with right pane bottom half)
-			int maxLinesBottom = (popupY + popupH - detailFooterReserve - (sect1Y + 10)) / rowH;
-			if (maxLinesBottom < 1) maxLinesBottom = 1;
-			// Top left: quest description only (word wrap, clip to half height)
+			int objSectionY = sect1Y - 2;
+			int objDescY = sect1Y + 6;
+			int maxLinesBottom = (detailTextBottomY - objDescY) / rowH;
+			if (maxLinesBottom < 2) maxLinesBottom = 2;
+			// Top left: quest description (word wrap)
 			String questDesc = questDetailQuestDesc;
-			if (questDesc.Length() > 200) questDesc = String.Format("%s..", questDesc.Left(198));
 			array<String> questWords;
 			questDesc.Split(questWords, " ", false);
 			DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, popupY + 24, descMaxW, rowH, maxLinesTop, questWords);
@@ -1540,7 +1509,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				int idx = prereqQ[questDetailPrereqSelected];
 				if (idx < prereqLines.Size()) {
 					array<String> parts;
-					prereqLines[idx].Split(parts, "\t", false);
+					prereqLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() >= 2 && parts[0].Compare("Q") == 0) {
 						if (parts.Size() >= 4 && parts[3].Length() > 0) objDesc = parts[3];
 						else if (parts.Size() >= 3) objDesc = parts[2];
@@ -1552,7 +1521,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				int idx = subQ[questDetailSubSelected];
 				if (idx < subLines.Size()) {
 					array<String> parts;
-					subLines[idx].Split(parts, "\t", false);
+					subLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() >= 2 && parts[0].Compare("Q") == 0) {
 						if (parts.Size() >= 4 && parts[3].Length() > 0) objDesc = parts[3];
 						else if (parts.Size() >= 3) objDesc = parts[2];
@@ -1560,8 +1529,6 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 			}
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, objSectionY, objLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			int objDescY = sect1Y + 10;  // line up with first row of Prereqs/Subquests
-			if (objDesc.Length() > 200) objDesc = String.Format("%s..", objDesc.Left(198));
 			array<String> objWords;
 			objDesc.Split(objWords, " ", false);
 			DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, objDescY, descMaxW, rowH, maxLinesBottom, objWords);
@@ -1577,9 +1544,9 @@ class OASISInventoryOverlayHandler : EventHandler
 				{
 					int idx = objQ[questDetailObjScroll + i];
 					if (idx >= objLines.Size()) break;
+					String rowName = OdoomQuestObjectiveTitleFromDetailLine(objLines[idx]);
 					array<String> parts;
-					objLines[idx].Split(parts, "\t", false);
-					String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
+					objLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					String objId = parts.Size() >= 2 ? parts[1] : "";
 					String origName = rowName;
 					while (rowName.Length() > 0 && f.StringWidth(rowName) > rightW) rowName = rowName.Left(rowName.Length() - 1);
@@ -1596,7 +1563,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				String reqStr = (reqCv != null) ? reqCv.GetString() : "";
 				array<String> reqLines;
 				if (reqStr.Length() > 0 && reqStr.IndexOf("Loading") != 0) reqStr.Split(reqLines, "\n", false);
-				int maxRowsReq = (popupY + popupH - detailFooterReserve - (sect1Y + 10)) / rowH;
+				int maxRowsReq = (detailTextBottomY - (sect1Y + 10)) / rowH;
 				if (maxRowsReq < 1) maxRowsReq = 1;
 				int reqY = sect1Y + 10;
 				if (reqStr.Length() > 0 && reqStr.IndexOf("Loading") == 0)
@@ -1642,7 +1609,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					int idx = prereqQ[questDetailPrereqScroll + i];
 					if (idx >= prereqLines.Size()) break;
 					array<String> parts;
-					prereqLines[idx].Split(parts, "\t", false);
+					prereqLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
 					while (rowName.Length() > 0 && f.StringWidth(rowName) > rightW) rowName = rowName.Left(rowName.Length() - 1);
 					if (rowName.Length() > 20) rowName = String.Format("%s..", rowName.Left(18));
@@ -1660,7 +1627,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					int idx = subQ[questDetailSubScroll + i];
 					if (idx >= subLines.Size()) break;
 					array<String> parts;
-					subLines[idx].Split(parts, "\t", false);
+					subLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					String rowName = parts.Size() >= 3 ? parts[2] : (parts.Size() >= 2 ? parts[1] : "");
 					while (rowName.Length() > 0 && f.StringWidth(rowName) > rightW) rowName = rowName.Left(rowName.Length() - 1);
 					if (rowName.Length() > 20) rowName = String.Format("%s..", rowName.Left(18));
@@ -1707,7 +1674,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int b = 0; b < drawQuestLines.Size(); b++)
 			{
 				array<String> parts;
-				drawQuestLines[b].Split(parts, "\t", false);
+				drawQuestLines[b].Split(parts, "\t", TOK_KEEPEMPTY);
 				if (parts.Size() < 5) continue;
 				String st = parts[4];
 				bool show = ((st.Compare("NotStarted") == 0 || st.Compare("Not Started") == 0) && fn != 0) || ((st.Compare("InProgress") == 0 || st.Compare("In Progress") == 0) && fi != 0) || (st.Compare("Completed") == 0 && fc != 0);
@@ -1720,10 +1687,15 @@ class OASISInventoryOverlayHandler : EventHandler
 			int popupY = 0;
 			int rowH = 12;
 			int col1X = popupX + 8;
-			int nameColW = 32 * 8 + 20 + 5;  // name column: 32 chars + 20px + 5px wider
+			int nameColW = 32 * 8 + 20 + 5;  // reserves space before % / Status columns
 			int col2X = popupX + 8 + nameColW;
 			int col3X = col2X + 6 * 8;  // % then Status
-			int maxQuestRows = (popupH - 80) / rowH - 4; // room for 2-line hint
+			int maxQuestNamePx = col2X - col1X - 4;
+			if (maxQuestNamePx < 40) maxQuestNamePx = 40;
+			// Rows that fit between first data line and footer hints (hints drawn at popupH-50 / popupH-35)
+			int questListFirstDataY = popupY + 48 + rowH;
+			int questFooterTopY = popupY + popupH - 50;
+			int maxQuestRows = (questFooterTopY - questListFirstDataY - 2) / rowH;
 			if (maxQuestRows < 5) maxQuestRows = 5;
 			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 14, "QUESTS", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			String cb1 = (fn != 0) ? "[X] Not Started" : "[ ] Not Started";
@@ -1763,13 +1735,21 @@ class OASISInventoryOverlayHandler : EventHandler
 					int idx = drawFilteredIndices[drawOffset + i];
 					if (idx < 0 || idx >= drawQuestLines.Size()) continue;
 					array<String> parts;
-					drawQuestLines[idx].Split(parts, "\t", false);
+					drawQuestLines[idx].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() < 6) continue;
 					String qName = parts[2];
 					String status = parts[4];
 					String pctStr = parts.Size() > 5 ? parts[5] : "0";
 					String statusDisplay = status.Compare("Completed") == 0 ? "Completed" : (status.Compare("InProgress") == 0 || status.Compare("In Progress") == 0 ? "In Progress" : (status.Compare("NotStarted") == 0 || status.Compare("Not Started") == 0 ? "Not Started" : status));
-					if (qName.Length() > 32) qName = String.Format("%s..", qName.Left(30));
+					String qNameOrig = qName;
+					while (qName.Length() > 0 && f.StringWidth(qName) > maxQuestNamePx)
+						qName = qName.Left(qName.Length() - 1);
+					if (qName.Length() < qNameOrig.Length())
+					{
+						qName = String.Format("%s..", qName);
+						while (qName.Length() > 2 && f.StringWidth(qName) > maxQuestNamePx)
+							qName = String.Format("%s..", qName.Left(qName.Length() - 3));
+					}
 					bool selected = (drawOffset + i == questSelectedIndex);
 					bool isTracker = (trackerQuestId.Length() > 0 && parts[1].Compare(trackerQuestId) == 0);
 					// Completed: never green (avoids confusion with tracked in-progress quest). Selected completed = gold; else grey.
@@ -1798,8 +1778,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 			// Main quest list help: fixed footer rows (popupY=0 for this popup); centred horizontally in virtual 320
 			int mainFooterBaseY = 0;
-			int mainHint1Y = mainFooterBaseY + popupH - 58;
-			int mainHint2Y = mainFooterBaseY + popupH - 43;
+			int mainHint1Y = mainFooterBaseY + popupH - 50;
+			int mainHint2Y = mainFooterBaseY + popupH - 35;
 			String mh1 = "V/N/M=filter  PgUp/PgDn  Home/End  Arrows  Enter  K";
 			String mh2 = "Backspace=back/close  Q=close list";
 			int mh1x = 160 - f.StringWidth(mh1) / 2; if (mh1x < 2) mh1x = 2;
