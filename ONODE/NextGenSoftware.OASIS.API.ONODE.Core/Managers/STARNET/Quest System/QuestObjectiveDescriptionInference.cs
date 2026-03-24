@@ -6,8 +6,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
     /// <summary>
-    /// When clients create objectives with only Description/ItemRequired (no explicit dictionaries), infer Option-B need dicts
-    /// so progress APIs and STAR client formatting (count-first lists) work.
+    /// Legacy helper: infer Need* dictionaries from free-text when no explicit objective dictionaries are supplied (unused by current STAR create path, which requires Dictionaries).
     /// </summary>
     public static class QuestObjectiveDescriptionInference
     {

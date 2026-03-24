@@ -75,7 +75,7 @@ internal static class Program
                 {
                     Console.WriteLine($"  [{quest.Id}] {quest.Name}: {quest.Objectives.Count} objective(s)");
                     foreach (var obj in quest.Objectives)
-                        Console.WriteLine($"      - {obj.Description} (GameSource: {obj.GameSource}, Done: {obj.IsCompleted})");
+                        Console.WriteLine($"      - Title: {obj.Title} | Description: {obj.Description} | Progress: {obj.ProgressSummary} (GameSource: {obj.GameSource}, Done: {obj.IsCompleted})");
                 }
             }
 
@@ -117,15 +117,15 @@ internal static class Program
                 "Complete objectives in both Doom and Quake to earn rewards. (v3 = explicit objective dictionaries)",
                 new[]
                 {
-                    Obj("Kill 5 monsters in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                    Obj("Kill 5 monsters in Doom", "We need you to reduce the demonic threat in ODOOM by eliminating five monsters.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                     {
                         NeedToKillMonsters = NeedN("ODOOM", "5")
                     }),
-                    Obj("Collect a key in Doom", "ODOOM", 1, new StarQuestObjectiveDictionaries
+                    Obj("Collect a key in Doom", "Locate and secure one key in ODOOM so the team can continue deeper into the map.", "ODOOM", 1, new StarQuestObjectiveDictionaries
                     {
                         NeedToCollectKeys = Need1("ODOOM")
                     }),
-                    Obj("Pick up health in Quake", "OQUAKE", 2, new StarQuestObjectiveDictionaries
+                    Obj("Pick up health in Quake", "Find and pick up a health item in OQUAKE to stabilize your run.", "OQUAKE", 2, new StarQuestObjectiveDictionaries
                     {
                         NeedToCollectHealth = Need1("OQUAKE")
                     })
@@ -135,11 +135,11 @@ internal static class Program
                 "Explore Quake and complete these objectives. (v3 = explicit objective dictionaries)",
                 new[]
                 {
-                    Obj("Find a Mega Health in Quake", "OQUAKE", 0, new StarQuestObjectiveDictionaries
+                    Obj("Find a Mega Health in Quake", "Track down a Mega Health in OQUAKE to prove map knowledge and survivability.", "OQUAKE", 0, new StarQuestObjectiveDictionaries
                     {
                         NeedToCollectHealth = Need1("OQUAKE")
                     }),
-                    Obj("Kill an enemy in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                    Obj("Kill an enemy in Quake", "Defeat one enemy in OQUAKE to establish combat readiness.", "OQUAKE", 1, new StarQuestObjectiveDictionaries
                     {
                         NeedToKillMonsters = Need1("OQUAKE")
                     })
@@ -149,11 +149,11 @@ internal static class Program
                 "Quick Doom objectives for testing the quest UI. (v3 = explicit objective dictionaries)",
                 new[]
                 {
-                    Obj("Collect armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                    Obj("Collect armor in Doom", "Acquire armor in ODOOM so you can withstand early encounters.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                     {
                         NeedToCollectArmor = Need1("ODOOM")
                     }),
-                    Obj("Use a Stimpack in Doom", "ODOOM", 1, new StarQuestObjectiveDictionaries
+                    Obj("Use a Stimpack in Doom", "Use a Stimpack in ODOOM to demonstrate basic health recovery flow.", "ODOOM", 1, new StarQuestObjectiveDictionaries
                     {
                         NeedToCollectHealth = Need1("ODOOM")
                     })
@@ -195,11 +195,11 @@ internal static class Program
             "This quest has embedded objectives and child sub-quests for testing all three right-panel lists. (v3 = explicit objective dictionaries)",
             new[]
             {
-                Obj("Collect Red key in ODOOM", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                Obj("Collect Red key in ODOOM", "Retrieve the Red key in ODOOM to unlock the next area of the mission.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectKeys = Need1("ODOOM")
                 }),
-                Obj("Earn 100 XP in OQUAKE", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                Obj("Earn 100 XP in OQUAKE", "Build momentum in OQUAKE by earning one hundred XP from gameplay actions.", "OQUAKE", 1, new StarQuestObjectiveDictionaries
                 {
                     NeedToEarnXP = NeedN("OQUAKE", "100")
                 })
@@ -212,11 +212,11 @@ internal static class Program
             var startParent = await client.StartQuestAsync(parentId);
             if (!startParent.IsError) Console.WriteLine("  Started.");
 
-            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level v3", name: "Doom Level Clear v3", gameSource: "ODOOM", itemRequired: "Complete level", order: 0);
+            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level v3", name: "Doom Level Clear v3", gameSource: "ODOOM", order: 0);
             if (!sub1.IsError && sub1.Result != null) Console.WriteLine($"  Added sub-quest: Doom Level Clear v3 (Id: {sub1.Result.Id})");
             else if (sub1.IsError) Console.WriteLine($"  Add sub-quest failed: {sub1.Message}");
 
-            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune v3", name: "Quake Rune v3", gameSource: "OQUAKE", itemRequired: "Rune", order: 1);
+            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune v3", name: "Quake Rune v3", gameSource: "OQUAKE", order: 1);
             if (!sub2.IsError && sub2.Result != null) Console.WriteLine($"  Added sub-quest: Quake Rune v3 (Id: {sub2.Result.Id})");
             else if (sub2.IsError) Console.WriteLine($"  Add sub-quest failed: {sub2.Message}");
             Console.WriteLine();
@@ -230,11 +230,11 @@ internal static class Program
             "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup. (v3 = explicit objective dictionaries)",
             new[]
             {
-                Obj("Get a key in any game", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                Obj("Get a key in any game", "Secure a key item to prove objective pickup flow is functioning correctly.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectKeys = Need1("ODOOM")
                 }),
-                Obj("Pick up health once", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                Obj("Pick up health once", "Collect one health pickup to validate survival progress tracking.", "OQUAKE", 1, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectHealth = Need1("OQUAKE")
                 })
@@ -244,11 +244,11 @@ internal static class Program
             "Requires Step 1 v3 completed. Tests prerequisites list and objectives in the UI. (v3 = explicit objective dictionaries)",
             new[]
             {
-                Obj("Find armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                Obj("Find armor in Doom", "Locate armor in ODOOM and prepare for heavier combat.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectArmor = Need1("ODOOM")
                 }),
-                Obj("Kill one enemy in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                Obj("Kill one enemy in Quake", "Take down one enemy in OQUAKE to confirm kill tracking for prerequisites.", "OQUAKE", 1, new StarQuestObjectiveDictionaries
                 {
                     NeedToKillMonsters = Need1("OQUAKE")
                 })
@@ -258,11 +258,11 @@ internal static class Program
             "Requires Step 2 v3 completed. Full chain: Step 1 v3 -> Step 2 v3 -> Step 3 v3. (v3 = explicit objective dictionaries)",
             new[]
             {
-                Obj("Use a Stimpack in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
+                Obj("Use a Stimpack in Doom", "Use a Stimpack in ODOOM and keep your run alive under pressure.", "ODOOM", 0, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectHealth = Need1("ODOOM")
                 }),
-                Obj("Find Mega Health in Quake", "OQUAKE", 1, new StarQuestObjectiveDictionaries
+                Obj("Find Mega Health in Quake", "Recover a Mega Health in OQUAKE to complete the final validation step.", "OQUAKE", 1, new StarQuestObjectiveDictionaries
                 {
                     NeedToCollectHealth = Need1("OQUAKE")
                 })
@@ -342,9 +342,10 @@ internal static class Program
     private static Dictionary<string, List<string>> NeedN(string game, string n) =>
         new(StringComparer.OrdinalIgnoreCase) { [game] = new List<string> { n } };
 
-    private static StarQuestObjective Obj(string description, string gameSource, int order, StarQuestObjectiveDictionaries dictionaries) =>
+    private static StarQuestObjective Obj(string title, string description, string gameSource, int order, StarQuestObjectiveDictionaries dictionaries) =>
         new()
         {
+            Title = title,
             Description = description,
             GameSource = gameSource,
             Order = order,

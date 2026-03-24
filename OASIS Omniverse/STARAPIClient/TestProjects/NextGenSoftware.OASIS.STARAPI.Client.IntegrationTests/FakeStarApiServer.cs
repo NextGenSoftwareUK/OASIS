@@ -297,8 +297,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                         Status = "NotStarted",
                         Objectives = new[]
                         {
-                            new { Id = "obj-fake-1", Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
-                            new { Id = "obj-fake-2", Description = "Objective 2", GameSource = "Doom", ItemRequired = "BossKill", IsCompleted = false }
+                            new { Id = "obj-fake-1", Title = "Objective 1", Description = "Objective 1", GameSource = "Doom", IsCompleted = false },
+                            new { Id = "obj-fake-2", Title = "Objective 2", Description = "Objective 2", GameSource = "Doom", IsCompleted = false }
                         }
                     }
                 }).ConfigureAwait(false);
@@ -361,7 +361,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                             Status = "InProgress",
                             Objectives = new[]
                             {
-                                new { Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false }
+                                new { Title = "Objective 1", Description = "Objective 1", GameSource = "Doom", IsCompleted = false }
                             }
                         }
                     }

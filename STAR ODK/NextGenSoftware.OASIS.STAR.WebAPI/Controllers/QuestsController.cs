@@ -56,6 +56,34 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Filters out soft-deleted and non-loadable quest rows (stale child references / ghost ids).
+        /// </summary>
+        private async Task<List<Quest>> FilterToLoadableActiveQuestsAsync(Guid avatarId, IEnumerable<IQuest> source)
+        {
+            var filtered = new List<Quest>();
+            if (source == null)
+                return filtered;
+
+            foreach (var item in source)
+            {
+                if (item is not Quest quest)
+                    continue;
+                if (quest.Id == Guid.Empty)
+                    continue;
+                if (quest.DeletedDate != DateTime.MinValue || quest.IsDeleted)
+                    continue;
+
+                var verify = await _starAPI.Quests.LoadAsync(avatarId, quest.Id, 0);
+                if (!verify.IsError && verify.Result != null && verify.Result.DeletedDate == DateTime.MinValue)
+                    filtered.Add(quest);
+                else
+                    _logger.LogWarning("[Quests] Filtering ghost/non-loadable quest row Id={QuestId} Name={Name}", quest.Id, quest.Name ?? "(null)");
+            }
+
+            return filtered;
+        }
+
+        /// <summary>
         /// Retrieves all quests in the system.
         /// </summary>
         /// <returns>List of all quests available in the STAR system.</returns>
@@ -134,7 +162,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     result = new OASISResult<IEnumerable<IQuest>> { Result = fallbackList, IsError = false, Message = fallback.Message };
                 }
 
-                var list = (result.Result ?? Enumerable.Empty<IQuest>()).Cast<Quest>().ToList();
+                var list = await FilterToLoadableActiveQuestsAsync(avatarId, result.Result ?? Enumerable.Empty<IQuest>());
                 var count = list.Count;
                 _logger.LogInformation("[Quests] all-for-avatar AvatarId={AvatarId} Count={Count}", avatarId, count);
                 var enumerated = list.Take(24).ToList();
@@ -195,7 +223,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     result = new OASISResult<IEnumerable<IQuest>> { Result = fallbackList, IsError = false, Message = fallback.Message };
                 }
 
-                var list = (result.Result ?? Enumerable.Empty<IQuest>()).Cast<Quest>().ToList();
+                var list = await FilterToLoadableActiveQuestsAsync(avatarId, result.Result ?? Enumerable.Empty<IQuest>());
                 var lite = list.Select(GameQuestSummaryLiteMapper.ToLite).ToList();
                 _logger.LogInformation("[Quests] all-for-avatar/game AvatarId={AvatarId} Count={Count}", avatarId, lite.Count);
                 return Ok(new OASISResult<IEnumerable<GameQuestSummaryLite>>
@@ -393,8 +421,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.Quests.LoadAllForAvatarAsync(AvatarId);
-                return Ok(result);
+                var result = await _starAPI.Quests.LoadAllForAvatarAsync(avatarId);
+                if (result.IsError)
+                    return BadRequest(result);
+
+                var list = await FilterToLoadableActiveQuestsAsync(avatarId, (result.Result ?? Enumerable.Empty<Quest>()).Cast<IQuest>());
+                return Ok(new OASISResult<IEnumerable<Quest>>
+                {
+                    Result = list,
+                    IsError = false,
+                    Message = "Avatar quests retrieved successfully"
+                });
             }
             catch (Exception ex)
             {
@@ -741,7 +778,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// Adds an objective (sub-quest) to an existing quest.
         /// </summary>
         /// <param name="id">The parent quest ID.</param>
-        /// <param name="request">Objective description and optional game source / item required.</param>
+        /// <param name="request">Objective Title, Description, GameSource, Order, and Dictionaries (at least one Need* entry).</param>
         /// <returns>The created sub-quest (objective) with its ID.</returns>
         [HttpPost("{id}/objectives")]
         [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
@@ -769,10 +806,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
                 var objective = CreateObjectiveFromRequest(new QuestObjectiveRequest
                 {
-                    Name = request.Name,
+                    Title = request.Title,
                     Description = request.Description,
                     GameSource = request.GameSource,
-                    ItemRequired = request.ItemRequired,
                     Order = request.Order,
                     Dictionaries = request.Dictionaries
                 }, quest.Objectives.Count);
@@ -841,7 +877,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         /// Adds a sub-quest (full child quest) to an existing quest. Use for nested quests that can have their own objectives; use POST objectives for checklist items.
         /// </summary>
         /// <param name="id">The parent quest ID.</param>
-        /// <param name="request">Sub-quest name, description, and optional game source / item required.</param>
+        /// <param name="request">Sub-quest Name, Description, and optional GameSource (child quest row, not Quest.Objectives checklist).</param>
         /// <returns>The created sub-quest with its ID.</returns>
         [HttpPost("{id}/subquests")]
         [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
@@ -1732,12 +1768,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             if (SlugMatchesObjectiveDictionaries(ob.NeedToCollectItems, token, gameSource))
                 return true;
 
-            if (!string.IsNullOrEmpty(ob.ObjectiveText))
+            if (!string.IsNullOrEmpty(ob.ProgressSummary))
             {
-                if (ob.ObjectiveText.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (ob.ProgressSummary.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
                 var spaced = token.Replace('_', ' ');
-                if (ob.ObjectiveText.IndexOf(spaced, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (ob.ProgressSummary.IndexOf(spaced, StringComparison.OrdinalIgnoreCase) >= 0)
                     return true;
             }
 
@@ -1811,30 +1847,50 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             return false;
         }
 
-        /// <summary>Creates an Objective (Option B) from a create/add objective request. Uses Dictionaries when present; otherwise infers NeedTo* dicts from Description/ItemRequired (keyword heuristics, count-first lists) via <see cref="QuestObjectiveDescriptionInference"/>.</summary>
+        /// <summary>Creates an Objective (Option B) from a create/add objective request: Title, Description, and explicit Need*/progress dictionaries only.</summary>
         private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
         {
-            var gameSource = string.IsNullOrWhiteSpace(request.GameSource) ? "Default" : request.GameSource.Trim();
+            var title = request.Title?.Trim() ?? string.Empty;
+            var description = request.Description?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(title))
+                throw new ArgumentException("Objective title is required.");
+            if (string.IsNullOrWhiteSpace(description))
+                throw new ArgumentException("Objective description is required.");
+            if (request.Dictionaries == null || !HasAtLeastOneNeedDefinition(request.Dictionaries))
+                throw new ArgumentException("At least one Need* dictionary definition is required.");
+
             var objective = new Objective
             {
                 Id = Guid.NewGuid(),
                 Order = request.Order >= 0 ? request.Order : order,
+                Title = title,
+                Description = description,
                 IsCompleted = request.IsCompleted,
                 CompletedAt = request.CompletedAt,
                 CompletedBy = request.CompletedBy
             };
-            if (!string.IsNullOrWhiteSpace(request.Description))
-                objective.ObjectiveText = request.Description.Trim();
-            if (request.Dictionaries != null)
-            {
-                CopyDictionariesToObjective(request.Dictionaries, objective);
-            }
-            else
-            {
-                QuestObjectiveDescriptionInference.ApplyInferredNeeds(objective, request.Description, request.ItemRequired, gameSource);
-            }
+            CopyDictionariesToObjective(request.Dictionaries, objective);
             return objective;
         }
+
+        private static bool HasAtLeastOneNeedDefinition(QuestObjectiveDictionariesRequest dictionaries) =>
+            dictionaries.NeedToCollectArmor?.Count > 0 ||
+            dictionaries.NeedToCollectAmmo?.Count > 0 ||
+            dictionaries.NeedToCollectHealth?.Count > 0 ||
+            dictionaries.NeedToCollectWeapons?.Count > 0 ||
+            dictionaries.NeedToCollectPowerups?.Count > 0 ||
+            dictionaries.NeedToCollectItems?.Count > 0 ||
+            dictionaries.NeedToCollectKeys?.Count > 0 ||
+            dictionaries.NeedToKillMonsters?.Count > 0 ||
+            dictionaries.NeedToCompleteInMins?.Count > 0 ||
+            dictionaries.NeedToEarnKarma?.Count > 0 ||
+            dictionaries.NeedToEarnXP?.Count > 0 ||
+            dictionaries.NeedToGoToGeoHotSpots?.Count > 0 ||
+            dictionaries.NeedToCompleteLevel?.Count > 0 ||
+            dictionaries.NeedToUseWeapons?.Count > 0 ||
+            dictionaries.NeedToUsePowerups?.Count > 0 ||
+            dictionaries.NeedToVisitLocations?.Count > 0 ||
+            dictionaries.NeedToSurviveMins?.Count > 0;
 
         private static void CopyDictionariesToObjective(QuestObjectiveDictionariesRequest from, Objective to)
         {
@@ -1924,10 +1980,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     /// <summary>Objective (sub-quest) payload for create or add objective. Matches backend Objective; optional Dictionaries for full requirement/progress.</summary>
     public class QuestObjectiveRequest
     {
-        public string Name { get; set; } = "";
+        public string Title { get; set; } = "";
         public string Description { get; set; } = "";
         public string GameSource { get; set; } = "";
-        public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
         public bool IsCompleted { get; set; }
         public DateTime? CompletedAt { get; set; }
@@ -1937,10 +1992,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 
     public class AddQuestObjectiveRequest
     {
-        public string Name { get; set; } = "";
+        public string Title { get; set; } = "";
         public string Description { get; set; } = "";
         public string GameSource { get; set; } = "";
-        public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
@@ -1951,7 +2005,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
         public string GameSource { get; set; } = "";
-        public string ItemRequired { get; set; } = "";
         public int Order { get; set; } = -1;
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }

@@ -1281,6 +1281,16 @@ static void ODOOM_RefreshOverlayFromClient(void) {
 static void StarLogInfo(const char* fmt, ...);
 static void StarLogQuestListPayloadChunks(const char* buf, int len);
 
+/** GUID / id compare (API may return mixed case; CVars may differ). */
+static bool ODOOM_QuestIdEqInsensitive(const std::string& a, const std::string& b) {
+	if (a.size() != b.size()) return false;
+	for (size_t i = 0; i < a.size(); ++i) {
+		unsigned char ca = (unsigned char)a[i], cb = (unsigned char)b[i];
+		if (ca != cb && tolower(ca) != tolower(cb)) return false;
+	}
+	return true;
+}
+
 /** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
 static void ODOOM_PushTrackerProgressCvars(const char* wantIdCStr) {
 	if (!wantIdCStr || !wantIdCStr[0] || std::strcmp(wantIdCStr, "...") == 0) return;
@@ -1416,20 +1426,9 @@ static void ODOOM_RefreshQuestCVars(void) {
 				if (t1 && t1 - (t0 + 1) > 0) currentTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 			}
 			if (currentTitle.size() > 120) currentTitle.resize(120);
-			std::string qStatusField;
-			if (t1 && t1 + 1 < lineEndQ) {
-				const char* t2 = (const char*)memchr(t1 + 1, '\t', (size_t)(lineEndQ - (t1 + 1)));
-				if (t2 && t2 + 1 < lineEndQ) {
-					const char* t3 = (const char*)memchr(t2 + 1, '\t', (size_t)(lineEndQ - (t2 + 1)));
-					if (t3 && t3 > t2 + 1)
-						qStatusField.assign(t2 + 1, (size_t)(t3 - (t2 + 1)));
-				}
-			}
-			inTargetBlock = !wantId.empty() && (currentId == wantId);
+			inTargetBlock = !wantId.empty() && wantId != "..." && ODOOM_QuestIdEqInsensitive(currentId, wantId);
 			if (inTargetBlock) {
 				trackerTitle = currentTitle;
-				if (qStatusField == "Completed" || qStatusField == "2")
-					trackerTitle += " [Completed]";
 				trackerObjective.clear();
 			}
 			p = lineEnd ? lineEnd + 1 : p + lineLen;
@@ -1454,6 +1453,40 @@ static void ODOOM_RefreshQuestCVars(void) {
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
 	}
 
+	/* Profile ActiveQuestId may be stale (deleted quest), a sub-quest id not in top-level lines, or differ only by case — then trackerTitle stays empty and HUD stuck on "Loading...". Fall back to first top-level quest for display + progress. */
+	if (!wantId.empty() && wantId != "..." && trackerTitle.empty() && questCount > 0) {
+		const char* fp = questBuf;
+		const char* fend = questBuf + n;
+		std::string firstId, firstTitle;
+		while (fp < fend && *fp) {
+			const char* lineEnd = (const char*)memchr(fp, '\n', (size_t)(fend - fp));
+			size_t lineLen = lineEnd ? (size_t)(lineEnd - fp) : (size_t)(fend - fp);
+			if (lineLen >= 2 && fp[0] == 'Q' && fp[1] == '\t') {
+				const char* f = fp + 2;
+				const char* lineEndQ = fp + lineLen;
+				const char* t0 = (const char*)memchr(f, '\t', (size_t)(lineEndQ - f));
+				if (t0 && t0 - f > 0) firstId.assign(f, (size_t)(t0 - f));
+				if (t0 && t0 + 1 < lineEndQ) {
+					const char* t1 = (const char*)memchr(t0 + 1, '\t', (size_t)(lineEndQ - (t0 + 1)));
+					if (t1 && t1 - (t0 + 1) > 0) firstTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
+				}
+				if (firstTitle.size() > 120) firstTitle.resize(120);
+				break;
+			}
+			fp = lineEnd ? lineEnd + 1 : fp + lineLen;
+		}
+		if (!firstTitle.empty()) {
+			trackerTitle = std::move(firstTitle);
+			wantId = firstId;
+			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
+				static std::string s_tracker_id_fallback;
+				s_tracker_id_fallback = firstId;
+				UCVarValue q; q.String = (char*)s_tracker_id_fallback.c_str();
+				trackerIdVar->SetGenericRep(q, CVAR_String);
+			}
+		}
+	}
+
 	/* When list was truncated for CVar, report only the number of quests in the truncated list so ZScript scroll/count match. */
 	if (assignLen < (size_t)n) {
 		int listCount = 0;
@@ -1476,6 +1509,23 @@ static void ODOOM_RefreshQuestCVars(void) {
 			{ UCVarValue t; t.String = (char*)trackerTitle.c_str(); trackerTitleVar->SetGenericRep(t, CVAR_String); }
 		else if (wantId.empty())
 			{ UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
+		else if (questCount == 0)
+		{
+			/* No quests in cache/list for this avatar: do not leave stale "Loading..." title visible. */
+			UCVarValue t; t.String = (char*)"No Active Quest Found";
+			trackerTitleVar->SetGenericRep(t, CVAR_String);
+			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
+			{
+				UCVarValue q; q.String = (char*)"";
+				trackerIdVar->SetGenericRep(q, CVAR_String);
+			}
+			FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
+			{
+				UCVarValue o; o.String = (char*)"";
+				trackerActiveIdVar->SetGenericRep(o, CVAR_String);
+			}
+		}
 	}
 	if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) {
 		UCVarValue o; o.String = (char*)(trackerObjective.empty() ? "" : trackerObjective.c_str());
@@ -2376,6 +2426,18 @@ void ODOOM_InventoryInputCaptureFrame(void)
 					 * multiple frames (ordering, ZScript), that spammed quest reload during play. Cold cache is filled via
 					 * EnsureQuestsCacheInBackground when get_top_level_quests_string misses (ODOOM_RefreshQuestCVars). */
 					ODOOM_RefreshQuestCVars();
+				} else {
+					/* No active quest: don't leave tracker stuck on "Loading...". */
+					FBaseCVar* titleVar = FindCVar("odoom_quest_tracker_title", nullptr);
+					if (titleVar && titleVar->GetRealType() == CVAR_String) {
+						UCVarValue t; t.String = (char*)"No Active Quest Found";
+						titleVar->SetGenericRep(t, CVAR_String);
+					}
+					FBaseCVar* objLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
+					if (objLinesVar && objLinesVar->GetRealType() == CVAR_String) {
+						UCVarValue o; o.String = (char*)"";
+						objLinesVar->SetGenericRep(o, CVAR_String);
+					}
 				}
 			} else {
 				/* Tracker id already set: full quest list refresh periodically for title sync; progress lines every frame from cache (real-time kill counts after client merge). */

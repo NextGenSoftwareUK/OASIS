@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     /// <summary>
     /// An objective belonging to a Quest. Requirement and progress are keyed by game id (e.g. ODOOM, OQUAKE).
-    /// The Objective (string) property is computed from the requirement dictionaries.
+    /// Title/Description are authored text. ProgressSummary is always computed from requirement + progress dictionaries.
     /// </summary>
     public class Objective : IObjective
     {
@@ -31,15 +31,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public int ProgressPercent { get; set; }
 
-        /// <summary>Human-readable description built from the requirement dictionaries (or set explicitly when building from Children). Serialized as "Objective" in JSON.</summary>
-        [JsonPropertyName("Objective")]
-        public string ObjectiveText
+        [CustomOASISProperty()]
+        public string Title { get; set; } = string.Empty;
+        [CustomOASISProperty()]
+        public string Description { get; set; } = string.Empty;
+
+        /// <summary>Computed progress text from Need* + progress dictionaries. Serialized as ProgressSummary.</summary>
+        [JsonPropertyName("ProgressSummary")]
+        public string ProgressSummary
         {
             get
             {
                 if (_objectiveStringDirty)
                 {
-                    _cachedObjectiveString = BuildObjectiveString();
+                    _cachedObjectiveString = BuildProgressSummaryString();
                     _objectiveStringDirty = false;
                 }
                 return _cachedObjectiveString ?? string.Empty;
@@ -124,8 +129,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             Id = Guid.NewGuid();
         }
 
-        /// <summary>Builds the human-readable Objective string from Need* + progress dictionaries (same pattern as game HUD: Killed 0/5 monsters in ODOOM, Collected 0/1 keys in ODOOM, …).</summary>
-        public string BuildObjectiveString()
+        /// <summary>Builds the human-readable progress summary from Need* + progress dictionaries (e.g. Killed 1/10 monsters in ODOOM (10%)).</summary>
+        public string BuildProgressSummaryString()
         {
             var phrases = new List<string>();
 
@@ -146,7 +151,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                     var current = 0;
                     if (MonstersKilled != null && MonstersKilled.TryGetValue(kv.Key, out var pl) && pl != null && pl.Count > 0)
                         int.TryParse(pl[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out current);
-                    phrases.Add($"Killed {current}/{required} monsters in {kv.Key}");
+                    var pct = Math.Min(100, (int)Math.Floor((double)current * 100 / required));
+                    phrases.Add($"Killed {current}/{required} monsters in {kv.Key} ({pct}%)");
                 }
             }
 
@@ -162,7 +168,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
                     var current = 0;
                     if (progress != null && progress.TryGetValue(game, out var pl) && pl != null && pl.Count > 0)
                         int.TryParse(pl[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out current);
-                    phrases.Add($"{verb} {current}/{required} {nounPlural} in {game}");
+                    var pct = Math.Min(100, (int)Math.Floor((double)current * 100 / required));
+                    phrases.Add($"{verb} {current}/{required} {nounPlural} in {game} ({pct}%)");
                 }
             }
 
@@ -210,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             return string.Join(" and ", phrases);
         }
 
-        /// <summary>Call after modifying any requirement dictionary so the Objective string is recomputed.</summary>
+        /// <summary>Call after modifying any requirement dictionary so ProgressSummary is recomputed.</summary>
         public void InvalidateObjectiveString()
         {
             _objectiveStringDirty = true;

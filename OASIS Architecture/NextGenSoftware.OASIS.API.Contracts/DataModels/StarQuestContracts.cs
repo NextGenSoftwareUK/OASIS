@@ -44,14 +44,14 @@ namespace NextGenSoftware.OASIS.API.Contracts
     }
 
     /// <summary>
-    /// Objective DTO matching backend Objective: Id, Order, ObjectiveText/Description, IsCompleted, CompletedAt, CompletedBy, and requirement/progress dictionaries.
+    /// Objective DTO: Title + Description authored by content, ProgressSummary computed from requirement/progress dictionaries.
     /// </summary>
     public sealed class StarQuestObjective
     {
         public string Id { get; set; } = string.Empty;
-        /// <summary>Optional short label from API (Name, Label). Used for quest UI title when present.</summary>
-        public string DisplayName { get; set; } = string.Empty;
-        /// <summary>Human-readable description. Maps to backend ObjectiveText when set; otherwise backend may compute from requirement dicts.</summary>
+        /// <summary>Required UI title. Always used as the objective header in game UI.</summary>
+        public string Title { get; set; } = string.Empty;
+        /// <summary>Required UI description. Always used in the objective detail body.</summary>
         public string Description { get; set; } = string.Empty;
         public string GameSource { get; set; } = string.Empty;
         public int Order { get; set; }
@@ -61,16 +61,55 @@ namespace NextGenSoftware.OASIS.API.Contracts
         /// <summary>Requirement and progress dictionaries keyed by game id (e.g. ODOOM, OQUAKE). Matches backend Objective.</summary>
         public StarQuestObjectiveDictionaries Dictionaries { get; set; }
 
-        /// <summary>Convenience: first value from NeedToCollectItems[GameSource] or Description. For display when Dictionaries not used.</summary>
-        public string SummaryText => GetSummaryText();
+        /// <summary>Computed summary from requirement/progress dictionaries, e.g. "Killed 1/10 monsters in ODOOM (10%)".</summary>
+        public string ProgressSummary => GetProgressSummary();
 
-        private string GetSummaryText()
+        private string GetProgressSummary()
         {
-            if (Dictionaries?.NeedToCollectItems != null && Dictionaries.NeedToCollectItems.TryGetValue(GameSource, out var list) && list?.Count > 0)
-                return string.Join(", ", list);
-            if (Dictionaries?.NeedToCollectKeys != null && Dictionaries.NeedToCollectKeys.TryGetValue(GameSource, out var keys) && keys?.Count > 0)
-                return "Keys: " + string.Join(", ", keys);
-            if (!string.IsNullOrWhiteSpace(Description)) return Description;
+            if (Dictionaries == null)
+                return string.Empty;
+
+            var lines = new List<string>();
+
+            static int ParseFirst(List<string> values)
+            {
+                if (values == null || values.Count == 0) return 0;
+                return int.TryParse(values[0], out var parsed) ? parsed : 0;
+            }
+
+            static string WithPercent(string phrase, int current, int required)
+            {
+                var pct = required > 0 ? Math.Min(100, (int)Math.Floor((double)current * 100 / required)) : 0;
+                return $"{phrase} ({pct}%)";
+            }
+
+            void AddKeyed(string verb, string nounPlural, Dictionary<string, List<string>> need, Dictionary<string, List<string>> progress)
+            {
+                if (need == null) return;
+                foreach (var kv in need)
+                {
+                    var required = ParseFirst(kv.Value);
+                    if (required <= 0) continue;
+                    var current = progress != null && progress.TryGetValue(kv.Key, out var p) ? ParseFirst(p) : 0;
+                    lines.Add(WithPercent($"{verb} {current}/{required} {nounPlural} in {kv.Key}", current, required));
+                }
+            }
+
+            AddKeyed("Killed", "monsters", Dictionaries.NeedToKillMonsters, Dictionaries.MonstersKilled);
+            AddKeyed("Collected", "keys", Dictionaries.NeedToCollectKeys, Dictionaries.KeysCollected);
+            AddKeyed("Collected", "items", Dictionaries.NeedToCollectItems, Dictionaries.ItemsCollected);
+            AddKeyed("Collected", "armor", Dictionaries.NeedToCollectArmor, Dictionaries.ArmorCollected);
+            AddKeyed("Collected", "ammo", Dictionaries.NeedToCollectAmmo, Dictionaries.AmmoCollected);
+            AddKeyed("Collected", "health", Dictionaries.NeedToCollectHealth, Dictionaries.HealthCollected);
+            AddKeyed("Collected", "weapons", Dictionaries.NeedToCollectWeapons, Dictionaries.WeaponsCollected);
+            AddKeyed("Collected", "powerups", Dictionaries.NeedToCollectPowerups, Dictionaries.PowerupsCollected);
+            AddKeyed("Earned", "XP", Dictionaries.NeedToEarnXP, Dictionaries.XPEarnt);
+            AddKeyed("Earned", "karma", Dictionaries.NeedToEarnKarma, Dictionaries.KarmaEarnt);
+            AddKeyed("Completed", "levels", Dictionaries.NeedToCompleteLevel, Dictionaries.LevelsCompleted);
+
+            if (lines.Count > 0)
+                return string.Join(" and ", lines);
+
             return string.Empty;
         }
     }
