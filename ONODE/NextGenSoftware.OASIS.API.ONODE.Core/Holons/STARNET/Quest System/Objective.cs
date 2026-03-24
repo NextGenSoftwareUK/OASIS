@@ -215,5 +215,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         {
             _objectiveStringDirty = true;
         }
+
+        /// <summary>Clears all progress dictionaries (Collected, Killed, Earnt, time/level progress, etc.) and completion fields.
+        /// Does not modify any Need* requirement dictionaries.</summary>
+        public void ResetProgressDictionariesOnly()
+        {
+            QuestObjectiveProgressDictionaryHelper.ClearProgressOnly(this);
+            IsCompleted = false;
+            CompletedAt = null;
+            CompletedBy = null;
+            ProgressPercent = 0;
+            InvalidateObjectiveString();
+        }
+    }
+
+    /// <summary>Clears only <see cref="IQuestObjectiveDictionaries"/> progress properties; leaves Need* unchanged.</summary>
+    internal static class QuestObjectiveProgressDictionaryHelper
+    {
+        internal static void ClearProgressOnly(IQuestObjectiveDictionaries d)
+        {
+            if (d == null) return;
+            d.ArmorCollected = new Dictionary<string, IList<string>>();
+            d.AmmoCollected = new Dictionary<string, IList<string>>();
+            d.HealthCollected = new Dictionary<string, IList<string>>();
+            d.WeaponsCollected = new Dictionary<string, IList<string>>();
+            d.PowerupsCollected = new Dictionary<string, IList<string>>();
+            d.ItemsCollected = new Dictionary<string, IList<string>>();
+            d.KeysCollected = new Dictionary<string, IList<string>>();
+            d.MonstersKilled = new Dictionary<string, IList<string>>();
+            d.TimeStarted = new Dictionary<string, IList<string>>();
+            d.TimeEnded = new Dictionary<string, IList<string>>();
+            d.TimeTaken = new Dictionary<string, IList<string>>();
+            d.KarmaEarnt = new Dictionary<string, IList<string>>();
+            d.XPEarnt = new Dictionary<string, IList<string>>();
+            d.GeoHotSpotsArrived = new Dictionary<string, IList<string>>();
+            d.LevelsCompleted = new Dictionary<string, IList<string>>();
+        }
     }
 }

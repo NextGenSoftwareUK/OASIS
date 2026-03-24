@@ -49,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.Contracts
     public sealed class StarQuestObjective
     {
         public string Id { get; set; } = string.Empty;
+        /// <summary>Optional short label from API (Name, Label). Used for quest UI title when present.</summary>
+        public string DisplayName { get; set; } = string.Empty;
         /// <summary>Human-readable description. Maps to backend ObjectiveText when set; otherwise backend may compute from requirement dicts.</summary>
         public string Description { get; set; } = string.Empty;
         public string GameSource { get; set; } = string.Empty;

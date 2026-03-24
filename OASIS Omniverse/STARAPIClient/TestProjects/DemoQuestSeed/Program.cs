@@ -8,7 +8,7 @@ namespace DemoQuestSeed;
 
 /// <summary>
 /// Seeds the STAR API with demo quests and objectives for testing ODOOM and OQuake quest UIs.
-/// Quest names use a " v2" suffix and descriptions note explicit objective dictionaries (vs legacy inferred-only rows).
+/// Quest names use a " v3" suffix and descriptions note explicit objective dictionaries (vs legacy inferred-only rows).
 /// Objectives are created as the Quest.Objectives collection (CreateCrossGameQuestAsync name, description, objectivesList).
 /// Sub-quests are added separately via AddSubQuestAsync. Uses same env vars as TestHarness.
 /// </summary>
@@ -28,7 +28,7 @@ internal static class Program
         var password = GetEnv("STARAPI_PASSWORD", StarApiTestDefaults.Password);
 
         Console.WriteLine("==============================================");
-        Console.WriteLine(" OASIS STAR API – Demo Quest Seed (quests named … v2)");
+        Console.WriteLine(" OASIS STAR API – Demo Quest Seed (quests named … v3)");
         Console.WriteLine("==============================================");
         Console.WriteLine($"WEB5 (STAR): {web5BaseUrl}");
         Console.WriteLine($"WEB4 (OASIS): {web4BaseUrl}");
@@ -113,8 +113,8 @@ internal static class Program
         var questsToCreate = new[]
         {
             new DemoQuest(
-                "Demo: Doom & Quake v2",
-                "Complete objectives in both Doom and Quake to earn rewards. (v2 = explicit objective dictionaries)",
+                "Demo: Doom & Quake v3",
+                "Complete objectives in both Doom and Quake to earn rewards. (v3 = explicit objective dictionaries)",
                 new[]
                 {
                     Obj("Kill 5 monsters in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -131,8 +131,8 @@ internal static class Program
                     })
                 }),
             new DemoQuest(
-                "Demo: Quake Explorer v2",
-                "Explore Quake and complete these objectives. (v2 = explicit objective dictionaries)",
+                "Demo: Quake Explorer v3",
+                "Explore Quake and complete these objectives. (v3 = explicit objective dictionaries)",
                 new[]
                 {
                     Obj("Find a Mega Health in Quake", "OQUAKE", 0, new StarQuestObjectiveDictionaries
@@ -145,8 +145,8 @@ internal static class Program
                     })
                 }),
             new DemoQuest(
-                "Demo: Doom Runner v2",
-                "Quick Doom objectives for testing the quest UI. (v2 = explicit objective dictionaries)",
+                "Demo: Doom Runner v3",
+                "Quick Doom objectives for testing the quest UI. (v3 = explicit objective dictionaries)",
                 new[]
                 {
                     Obj("Collect armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -191,8 +191,8 @@ internal static class Program
 
         /* Create a quest that has BOTH objectives (Option B) AND sub-quests for testing the 3-list UI (Prereqs, Objectives, Sub-quests). */
         var parentWithSub = new DemoQuest(
-            "Demo: Parent with Objectives + Sub-quests v2",
-            "This quest has embedded objectives and child sub-quests for testing all three right-panel lists. (v2 = explicit objective dictionaries)",
+            "Demo: Parent with Objectives + Sub-quests v3",
+            "This quest has embedded objectives and child sub-quests for testing all three right-panel lists. (v3 = explicit objective dictionaries)",
             new[]
             {
                 Obj("Collect Red key in ODOOM", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -212,12 +212,12 @@ internal static class Program
             var startParent = await client.StartQuestAsync(parentId);
             if (!startParent.IsError) Console.WriteLine("  Started.");
 
-            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level v2", name: "Doom Level Clear v2", gameSource: "ODOOM", itemRequired: "Complete level", order: 0);
-            if (!sub1.IsError && sub1.Result != null) Console.WriteLine($"  Added sub-quest: Doom Level Clear v2 (Id: {sub1.Result.Id})");
+            var sub1 = await client.AddSubQuestAsync(parentId, "Nested: Clear Doom level v3", name: "Doom Level Clear v3", gameSource: "ODOOM", itemRequired: "Complete level", order: 0);
+            if (!sub1.IsError && sub1.Result != null) Console.WriteLine($"  Added sub-quest: Doom Level Clear v3 (Id: {sub1.Result.Id})");
             else if (sub1.IsError) Console.WriteLine($"  Add sub-quest failed: {sub1.Message}");
 
-            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune v2", name: "Quake Rune v2", gameSource: "OQUAKE", itemRequired: "Rune", order: 1);
-            if (!sub2.IsError && sub2.Result != null) Console.WriteLine($"  Added sub-quest: Quake Rune v2 (Id: {sub2.Result.Id})");
+            var sub2 = await client.AddSubQuestAsync(parentId, "Nested: Find Quake rune v3", name: "Quake Rune v3", gameSource: "OQUAKE", itemRequired: "Rune", order: 1);
+            if (!sub2.IsError && sub2.Result != null) Console.WriteLine($"  Added sub-quest: Quake Rune v3 (Id: {sub2.Result.Id})");
             else if (sub2.IsError) Console.WriteLine($"  Add sub-quest failed: {sub2.Message}");
             Console.WriteLine();
         }
@@ -226,8 +226,8 @@ internal static class Program
 
         // Create quests with prerequisites and multiple objectives for testing the right-panel lists (Prerequisites, Sub-quests/Objectives).
         var step1 = new DemoQuest(
-            "Step 1: First Quest v2",
-            "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup. (v2 = explicit objective dictionaries)",
+            "Step 1: First Quest v3",
+            "Complete this first to unlock Step 2. Used to test prerequisite chain in the quest popup. (v3 = explicit objective dictionaries)",
             new[]
             {
                 Obj("Get a key in any game", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -240,8 +240,8 @@ internal static class Program
                 })
             });
         var step2 = new DemoQuest(
-            "Step 2: Unlock Second v2",
-            "Requires Step 1 v2 completed. Tests prerequisites list and objectives in the UI. (v2 = explicit objective dictionaries)",
+            "Step 2: Unlock Second v3",
+            "Requires Step 1 v3 completed. Tests prerequisites list and objectives in the UI. (v3 = explicit objective dictionaries)",
             new[]
             {
                 Obj("Find armor in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -254,8 +254,8 @@ internal static class Program
                 })
             });
         var step3 = new DemoQuest(
-            "Step 3: Final Step v2",
-            "Requires Step 2 v2 completed. Full chain: Step 1 v2 -> Step 2 v2 -> Step 3 v2. (v2 = explicit objective dictionaries)",
+            "Step 3: Final Step v3",
+            "Requires Step 2 v3 completed. Full chain: Step 1 v3 -> Step 2 v3 -> Step 3 v3. (v3 = explicit objective dictionaries)",
             new[]
             {
                 Obj("Use a Stimpack in Doom", "ODOOM", 0, new StarQuestObjectiveDictionaries
@@ -305,7 +305,7 @@ internal static class Program
                     if (setPrereq.IsError)
                         Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
                     else
-                        Console.WriteLine($"  Prerequisite set: Step 1 v2.");
+                        Console.WriteLine($"  Prerequisite set: Step 1 v3.");
                 }
             }
             else
@@ -316,7 +316,7 @@ internal static class Program
                     if (setPrereq.IsError)
                         Console.WriteLine($"  Set prerequisites failed: {setPrereq.Message}");
                     else
-                        Console.WriteLine($"  Prerequisite set: Step 2 v2.");
+                        Console.WriteLine($"  Prerequisite set: Step 2 v3.");
                 }
             }
             Console.WriteLine();

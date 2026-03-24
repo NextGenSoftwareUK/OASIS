@@ -426,12 +426,12 @@ CVAR(Float, odoom_oq_monster_scale_knight, 0.60f, CVAR_ARCHIVE | CVAR_GLOBALCONF
 CVAR(Float, odoom_oq_monster_scale_scrag, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Float, odoom_oq_monster_scale_shub, 1.00f, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(String, odoom_star_username, "", 0)
-/** 1 = show status-bar / HUD "Beamed In" line (engine patch reads this). B toggles in ZScript when quest popup closed. */
-CVAR(Int, odoom_hud_show_beamed, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+/** 1 = show status-bar / HUD "Beamed In" line (engine patch reads this). Toggled from C++ / CCMD in play — not CVAR_GLOBALCONFIG (that blocks writes outside menu in some builds). */
+CVAR(Int, odoom_hud_show_beamed, 1, CVAR_ARCHIVE)
 /** 1 = show XP text (top right) in ZScript overlay. */
-CVAR(Int, odoom_hud_show_xp, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_hud_show_xp, 1, CVAR_ARCHIVE)
 /** 1 = show level timer (bottom area). */
-CVAR(Int, odoom_hud_show_timer, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(Int, odoom_hud_show_timer, 1, CVAR_ARCHIVE)
 CVAR(String, odoom_oasis_api_url, "https://api.oasisplatform.world", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 /* Stack (1) = each pickup adds quantity; Unlock (0) = one per type. Ammo always stacks. Shared with OQuake; sigils are OQuake-only. */
 CVAR(Int, odoom_star_stack_armor, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -1071,8 +1071,8 @@ static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
 static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 16384;
 /** Max bytes to assign to odoom_quest_list CVar. Engine string CVars have a fixed buffer; exceeding it causes "Attempted to write past end of stream". */
 static const size_t ODOOM_QUEST_CVAR_MAX_BYTES = 4096;
-/** Max UTF-8 bytes for odoom_quest_tracker_objectives (newline-separated). Too small truncates lines and drops "[Completed]" / Killed X/Y text so the HUD never greys completed rows. */
-static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = 2048;
+/** Max UTF-8 bytes for odoom_quest_tracker_objectives (newline-separated). Too small truncates lines and drops trailing " [Completed]" so completed rows never grey. */
+static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = 4096;
 
 /** Truncate UTF-8 so len <= maxBytes without splitting a multibyte character (ZScript string CVars). */
 static void ODOOM_TruncateUtf8ForZScriptCVar(std::string& s, size_t maxBytes) {
@@ -1924,6 +1924,9 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 		StarLogError("star_api_use_item failed: %s", err_buf);
 }
 
+static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
+static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
+
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
 {
@@ -1980,10 +1983,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		static bool s_odoom_star_overlay_keys_bound_once = false;
 		if (!s_odoom_star_overlay_keys_bound_once) {
 			C_DoCommand("bind Q \"odoom_quest_toggle\"");
-			/* B/X/Z: engine binds to HUD toggles (layout-correct); popups clear these binds while open. */
-			C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
-			C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
-			C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
+			/* B/X/Z: leave unbound — HUD toggles run in C++ on raw-key rising edge (binds often fail for B/Z vs X on GZDoom/UZDoom; ZScript cannot SetInt GLOBALCONFIG). */
+			C_DoCommand("bind B \"\"");
+			C_DoCommand("bind X \"\"");
+			C_DoCommand("bind Z \"\"");
 			s_odoom_star_overlay_keys_bound_once = true;
 		}
 	}
@@ -2146,9 +2149,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind E \"\"");
 		C_DoCommand("bind C \"\"");
 		C_DoCommand("bind F \"\"");
-		C_DoCommand("bind Z \"\"");
-		C_DoCommand("bind X \"\"");
 		C_DoCommand("bind B \"\"");
+		C_DoCommand("bind X \"\"");
+		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind Q \"\"");  /* Q = quest popup; prevent engine from using it (e.g. quit) */
 		/* I, O, P cleared so they only affect popup; ZScript will read odoom_key_i/o/p from raw state */
 		C_DoCommand("bind I \"\"");
@@ -2181,10 +2184,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind E \"+use\"");
 		C_DoCommand("bind C \"odoom_use_health\"");
 		C_DoCommand("bind F \"odoom_use_armor\"");
-		/* B/X/Z: restore HUD toggles when popups close (CCMDs no-op while STAR popup CVars say open). */
-		C_DoCommand("bind B \"odoom_hud_toggle_beamed\"");
-		C_DoCommand("bind X \"odoom_hud_toggle_xp\"");
-		C_DoCommand("bind Z \"odoom_hud_toggle_timer\"");
+		C_DoCommand("bind B \"\"");
+		C_DoCommand("bind X \"\"");
+		C_DoCommand("bind Z \"\"");
 		C_DoCommand("bind I \"+user1\"");
 		C_DoCommand("bind O \"+user2\"");
 		C_DoCommand("bind P \"+user3\"");
@@ -2235,7 +2237,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
-		/* B/X/Z: bound to odoom_hud_toggle_* when no popup; cleared while inventory/quest open so ZScript raw keys drive UI. */
+		/* B/X/Z HUD toggles: ZScript flips odoom_hud_show_* on odoom_key_* rising edge (inventory/quest/send closed). Avoid C++ flip here — double-toggle if both ran. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2696,7 +2698,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
-	/* B/X/Z HUD: engine key bindings -> odoom_hud_toggle_* (ODOOM_FlipHudIntCVar); raw odoom_key_* still used for inventory/quest/send UI. */
+	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; ZScript toggles odoom_hud_show_* when no STAR popup. */
 }
 
 int UZDoom_STAR_GetShowAnorakFace(void)
@@ -3278,10 +3280,10 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
-	/* HUD toggles: engine binds (layout-correct); popups temporarily clear B/X/Z binds. */
-	C_DoCommand("defaultbind B \"odoom_hud_toggle_beamed\"");
-	C_DoCommand("defaultbind X \"odoom_hud_toggle_xp\"");
-	C_DoCommand("defaultbind Z \"odoom_hud_toggle_timer\"");
+	/* HUD B/X/Z toggled from C++ raw-key edge; leave unbound so +zoom etc. never steal Z. Console: odoom_hud_toggle_* */
+	C_DoCommand("defaultbind B \"\"");
+	C_DoCommand("defaultbind X \"\"");
+	C_DoCommand("defaultbind Z \"\"");
 
 	StarLogInfo("\n********** GAME LOAD **********");
 	StarLogInfo("STAR bootstrap: Beaming in...");
@@ -3849,7 +3851,7 @@ CCMD(star)
 		Printf("\n");
 		Printf("  star version        - Show integration and API status\n");
 		Printf("  star status         - Show init state and last error\n");
-		Printf("  HUD: B / X / Z      - Toggle beamed-in line, XP, timer (raw keys; not while inventory/quest/send open). Console: odoom_hud_toggle_beamed|xp|timer\n");
+		Printf("  HUD: B / X / Z      - Toggle beamed-in line, XP, timer (native keys; off while inventory/quest/send open). O = tracker. Console: odoom_hud_toggle_* \n");
 		Printf("  star inventory      - List items in STAR inventory\n");
 		Printf("  star lastpickup     - Show most recent synced pickup\n");
 		Printf("  star has <item>     - Check if you have an item (e.g. Red Keycard)\n");
