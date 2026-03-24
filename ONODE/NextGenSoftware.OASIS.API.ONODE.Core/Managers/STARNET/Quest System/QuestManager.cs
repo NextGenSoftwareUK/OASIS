@@ -238,7 +238,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             Id = cq.Id,
                             Order = i,
                             IsCompleted = cq.CompletedOn != default,
-                            ObjectiveText = cq.Description ?? cq.Name ?? string.Empty
+                            Title = cq.Name ?? string.Empty,
+                            Description = cq.Description ?? string.Empty
                         });
                     }
                 }

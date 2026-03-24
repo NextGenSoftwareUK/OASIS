@@ -158,8 +158,8 @@ internal static class Program
 
             if (!string.IsNullOrEmpty(questIdStr))
             {
-                Check("AddSubQuestAsync", await client.AddSubQuestAsync(questIdStr, "Harness sub-quest for 3-list UI test", name: "Harness SubQuest", gameSource: "Harness", itemRequired: "Level", order: 0));
-                Check("AddQuestObjectiveAsync", await client.AddQuestObjectiveAsync(questIdStr, "Harness extra objective", name: "Extra Obj", gameSource: "Harness", order: 2));
+                Check("AddSubQuestAsync", await client.AddSubQuestAsync(questIdStr, "Harness sub-quest for 3-list UI test", name: "Harness SubQuest", gameSource: "Harness", order: 0));
+                Check("AddQuestObjectiveAsync", await client.AddQuestObjectiveAsync(questIdStr, "Extra Obj", "Harness extra objective", gameSource: "Harness", order: 2, dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Harness"] = new List<string> { "1" } } }));
                 Check("StartQuestAsync", await client.StartQuestAsync(questIdStr));
                 if (!string.IsNullOrEmpty(obj1Str) && obj1Str != questIdStr)
                 {

@@ -31,7 +31,7 @@
   <Target Name="BuildApiContractsForAot" BeforeTargets="ResolveAssemblyReferences" Condition="'$(PublishAot)' != 'false'">
     <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj"
                Targets="Build"
-               Properties="Configuration=$(Configuration);RuntimeIdentifier=;RuntimeIdentifiers=" />
+               Properties="Configuration=$(Configuration);PublishAot=false;RuntimeIdentifier=;RuntimeIdentifiers=" />
   </Target>
 
   <!-- RAR picks TestProjects\DemoQuestSeed\bin\...\NextGenSoftware.OASIS.API.Contracts.dll (net9 copy-local) over netstandard2.1 HintPath when both exist — stale → CS1061 on new DTO members. Force the built Contracts output. -->
