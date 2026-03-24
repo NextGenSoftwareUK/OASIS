@@ -3634,31 +3634,20 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Generate Ethereum key pair using Nethereum
+                // Key generation is pure secp256k1 cryptography — no blockchain connectivity required.
+                // Removed provider activation gate so this works without a live RPC endpoint.
                 var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
                 var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-                var publicKey = ecKey.GetPublicAddress();
+                var publicKey = ecKey.GetPublicAddress(); // EIP-55 checksum address (0x...)
 
-                // Use KeyHelper to generate key pair structure
-                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                if (keyPair != null)
+                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.KeyPairAndWallet()
                 {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = publicKey; // publicKey from GetPublicAddress() is already the Ethereum address
-                }
+                    PrivateKey = privateKey,
+                    PublicKey = publicKey,
+                    WalletAddress = publicKey,
+                    WalletAddressLegacy = publicKey
+                };
 
-                result.Result = keyPair;
                 result.IsError = false;
                 result.Message = "Key pair generated successfully.";
             }
