@@ -251,6 +251,22 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<WorkflowProofGenerator>();
             services.AddSingleton<IWorkflowEngine, WorkflowEngine>();
 
+            // GitHub OAuth (link GitHub account to OASIS avatar)
+            services.AddMemoryCache();
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security.GitHubOAuthOptions>(Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security.GitHubOAuthOptions.SectionName));
+            services.AddHttpClient("GitHubOAuth");
+            services.AddScoped<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.IGitHubOAuthService, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.GitHubOAuthService>();
+
+            // ── Chat bridge: Discord ↔ Telegram ──────────────────────────────
+            services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.ChatBridge.ChatBridgeOptions>(Configuration.GetSection(NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.ChatBridge.ChatBridgeOptions.SectionName));
+            services.AddHttpClient("TelegramBridge");
+            services.AddHttpClient("DiscordWebhook");
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces.IChatBridgeAvatarLinkStore, NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ChatBridgeAvatarLinkStore>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.TelegramBridgeSender>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.DiscordWebhookSender>();
+            services.AddSingleton<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.ChatBridgeRouter>();
+            services.AddHostedService<NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.DiscordBridgeService>();
+
             // Telegram NFT mint / SAINTS bot (webhook, ordain, baptise)
             services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Telegram.TelegramNftMintOptions>(Configuration.GetSection("TelegramNftMint"));
             services.Configure<NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Saints.HallVerificationNftOptions>(Configuration.GetSection("HallVerificationNft"));
