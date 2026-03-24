@@ -19,12 +19,34 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
-    <!-- When not publishing AOT, use ProjectReference. When PublishAot=true, use Reference to avoid NETSDK1207 (netstandard2.1 in graph). -->
-    <ProjectReference Condition="'$(PublishAot)' != 'true'" Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
-    <Reference Condition="'$(PublishAot)' == 'true'" Include="NextGenSoftware.OASIS.API.Contracts">
-      <HintPath>..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\bin\Release\netstandard2.1\NextGenSoftware.OASIS.API.Contracts.dll</HintPath>
+    <!-- NativeAOT: cannot project-reference netstandard2.1 Contracts (NETSDK1207). Use pre-built DLL; BuildApiContractsForAot keeps it in sync with source.
+         MSBuild $(PublishAot) is often "True" (capital T); string tests == 'true' break and wrongly add ProjectReference while skipping HintPath. -->
+    <ProjectReference Condition="'$(PublishAot)' == 'false'" Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <Reference Condition="'$(PublishAot)' != 'false'" Include="NextGenSoftware.OASIS.API.Contracts">
+      <HintPath>..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\bin\$(Configuration)\netstandard2.1\NextGenSoftware.OASIS.API.Contracts.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <!-- Without this, AOT HintPath points at a stale Contracts.dll → CS1061 after DTO changes. $(PublishAot) may be True/true. -->
+  <Target Name="BuildApiContractsForAot" BeforeTargets="ResolveAssemblyReferences" Condition="'$(PublishAot)' != 'false'">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj"
+               Targets="Build"
+               Properties="Configuration=$(Configuration);RuntimeIdentifier=;RuntimeIdentifiers=" />
+  </Target>
+
+  <!-- RAR picks TestProjects\DemoQuestSeed\bin\...\NextGenSoftware.OASIS.API.Contracts.dll (net9 copy-local) over netstandard2.1 HintPath when both exist — stale → CS1061 on new DTO members. Force the built Contracts output. -->
+  <Target Name="FixApiContractsReferencePath" AfterTargets="ResolveAssemblyReferences" BeforeTargets="CoreCompile" Condition="'$(PublishAot)' != 'false'">
+    <PropertyGroup>
+      <_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/$(Configuration)/netstandard2.1/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>
+    </PropertyGroup>
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(Filename)' == 'NextGenSoftware.OASIS.API.Contracts'" />
+      <ReferencePath Include="$(_ContractsDll)" />
+      <!-- Same stale copy-local DLL was fed to ILC → missing DisplayName at native compile. -->
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'NextGenSoftware.OASIS.API.Contracts'" />
+      <ReferenceCopyLocalPaths Include="$(_ContractsDll)" />
+    </ItemGroup>
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="System.Collections" Version="4.3.0" />

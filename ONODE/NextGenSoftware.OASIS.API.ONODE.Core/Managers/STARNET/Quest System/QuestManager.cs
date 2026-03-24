@@ -1050,6 +1050,60 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /// <summary>Clears every embedded objective’s progress dictionaries and quest-level progress; does not change Need* requirements.
+        /// Resets completion flags and 0% approx; if the quest was Completed, sets status back to InProgress.</summary>
+        public async Task<OASISResult<Quest>> ResetObjectiveProgressAsync(Guid avatarId, Guid questId)
+        {
+            OASISResult<Quest> result = new OASISResult<Quest>();
+            const string errorMessage = "Error occurred in QuestManager.ResetObjectiveProgressAsync. Reason:";
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found. Reason: {questResult.Message}");
+                    return result;
+                }
+                var quest = questResult.Result;
+                if (quest.Objectives != null)
+                {
+                    foreach (var o in quest.Objectives)
+                        o.ResetProgressDictionariesOnly();
+                }
+                quest.ResetQuestLevelProgressDictionariesOnly();
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    quest.Status = QuestStatus.InProgress;
+                    quest.CompletedOn = DateTime.MinValue;
+                    quest.CompletedBy = Guid.Empty;
+                }
+                if (quest.MetaData == null)
+                    quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+                var pct = ComputeQuestPercent(quest);
+                quest.ProgressPercent = pct;
+                quest.MetaData["ProgressPercent"] = pct.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (quest.Objectives != null)
+                {
+                    foreach (var obj in quest.Objectives)
+                        obj.ProgressPercent = obj.IsCompleted ? 100 : ObjectiveApproximatePercent(obj);
+                }
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save. Reason: {updateResult.Message}");
+                    return result;
+                }
+                result.Result = quest;
+                result.Message = "Objective progress reset to 0%; requirement (Need*) dictionaries unchanged.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+            return result;
+        }
+
         private static int ComputeQuestPercent(Quest quest)
         {
             if (quest.Objectives == null || quest.Objectives.Count == 0)
