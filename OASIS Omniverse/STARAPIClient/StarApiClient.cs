@@ -1203,11 +1203,13 @@ public sealed class StarApiClient : IDisposable
             for (var i = 0; i < parent.Objectives.Count; i++)
             {
                 var o = parent.Objectives[i];
+                var objTitle = GetObjectiveRawTitle(o, parent);
+                var objBody = GetObjectiveRawDescription(o, objTitle);
                 list.Add(new StarQuestInfo
                 {
                     Id = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id,
-                    Name = o.Description ?? o.SummaryText ?? "",
-                    Description = o.Description ?? o.SummaryText ?? "",
+                    Name = objTitle,
+                    Description = objBody,
                     Status = o.IsCompleted ? "Completed" : "InProgress",
                     Order = o.Order,
                     GameSource = o.GameSource ?? string.Empty,
@@ -1627,6 +1629,122 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
+    /// <summary>True when text looks like a live tally line (Killed 3/10 …) rather than a static goal ("Kill 10 monsters …"). API sometimes stores tally in Objective/Description.</summary>
+    private static bool LooksLikeObjectiveProgressSummary(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return false;
+        var t = s.Trim();
+        return Regex.IsMatch(t, @"^\s*(Killed|Collected|Earned|Used|Completed|Visited)\s+\d+\s*/\s*\d+\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    }
+
+    /// <summary>ONODE <see cref="Objective.BuildObjectiveString"/> joins multiple tally phrases with " and ". Treat as progress-only when every segment matches the tally pattern.</summary>
+    private static bool EntireDescriptionIsProgressOnlyPhrases(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return false;
+        var t = s.Trim();
+        if (t.IndexOf('/') < 0) return false;
+        var parts = Regex.Split(t, @"\s+and\s+", RegexOptions.IgnoreCase);
+        if (parts.Length == 0) return false;
+        foreach (var part in parts)
+        {
+            var seg = part.Trim();
+            if (seg.Length == 0) return false;
+            if (!Regex.IsMatch(seg, @"^(?:Killed|Collected|Earned|Used|Completed|Visited)\s+\d+\s*/\s*\d+\b", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>Imperative goal text from Need* dictionaries only (no current progress). Used when API Description/SummaryText are empty so quest popups show "Kill 5 monsters in ODOOM" not "Killed 3/5...".</summary>
+    private static string? TryFormatObjectiveGoalPhraseFromDictionaries(StarQuestObjectiveDictionaries? objDicts, StarQuestObjectiveDictionaries? questDicts)
+    {
+        static string? MonsterGoal(StarQuestObjectiveDictionaries? d)
+        {
+            if (d?.NeedToKillMonsters == null || d.NeedToKillMonsters.Count == 0) return null;
+            foreach (var kv in d.NeedToKillMonsters)
+            {
+                var req = GetFirstPositiveIntFromStringList(kv.Value);
+                if (req > 0)
+                    return $"Kill {req} monsters in {kv.Key}";
+            }
+            return null;
+        }
+
+        static string? KeysGoal(StarQuestObjectiveDictionaries? d)
+        {
+            if (d?.NeedToCollectKeys == null || d.NeedToCollectKeys.Count == 0) return null;
+            foreach (var kv in d.NeedToCollectKeys)
+            {
+                var req = GetFirstPositiveIntFromStringList(kv.Value);
+                if (req > 0)
+                    return $"Collect {req} keys in {kv.Key}";
+            }
+            return null;
+        }
+
+        static string? XpGoal(StarQuestObjectiveDictionaries? d)
+        {
+            if (d?.NeedToEarnXP == null || d.NeedToEarnXP.Count == 0) return null;
+            foreach (var kv in d.NeedToEarnXP)
+            {
+                var req = GetFirstPositiveIntFromStringList(kv.Value);
+                if (req > 0)
+                    return $"Earn {req} XP in {kv.Key}";
+            }
+            return null;
+        }
+
+        foreach (var d in new[] { objDicts, questDicts })
+        {
+            var g = MonsterGoal(d) ?? KeysGoal(d) ?? XpGoal(d);
+            if (g != null) return g;
+        }
+
+        return null;
+    }
+
+    /// <summary>Human objective title for quest lists and detail popup. Skips Description/SummaryText when they are progress tallies; uses dictionary goal phrase as fallback.</summary>
+    private static string GetObjectiveRawTitle(StarQuestObjective o, StarQuestInfo? quest)
+    {
+        if (!string.IsNullOrWhiteSpace(o.DisplayName))
+            return o.DisplayName.Trim();
+
+        var desc = (o.Description ?? "").Trim();
+        if (EntireDescriptionIsProgressOnlyPhrases(desc) || LooksLikeObjectiveProgressSummary(desc))
+        {
+            var fromDict = TryFormatObjectiveGoalPhraseFromDictionaries(o.Dictionaries, quest?.Dictionaries);
+            if (!string.IsNullOrEmpty(fromDict))
+                return fromDict;
+        }
+
+        foreach (var cand in new[] { o.Description, o.SummaryText })
+        {
+            var t = (cand ?? "").Trim();
+            if (t.Length == 0) continue;
+            if (EntireDescriptionIsProgressOnlyPhrases(t) || LooksLikeObjectiveProgressSummary(t))
+                continue;
+            return t;
+        }
+
+        return TryFormatObjectiveGoalPhraseFromDictionaries(o.Dictionaries, quest?.Dictionaries) ?? "Objective";
+    }
+
+    /// <summary>Longer body text for detail popup left pane; skips progress-shaped strings; falls back to title when API only has tally text.</summary>
+    private static string GetObjectiveRawDescription(StarQuestObjective o, string titleFallback)
+    {
+        foreach (var cand in new[] { o.Description, o.SummaryText })
+        {
+            var t = (cand ?? "").Trim();
+            if (t.Length == 0) continue;
+            if (EntireDescriptionIsProgressOnlyPhrases(t) || LooksLikeObjectiveProgressSummary(t))
+                continue;
+            return t;
+        }
+
+        return titleFallback;
+    }
+
     /// <summary>Format Need* + progress dicts into HUD lines (current/required). When <paramref name="restrictToGameKey"/> is set, only the row matching that game key (aliases e.g. DOOM/ODOOM) is emitted and the trailing " in Game" suffix is omitted.</summary>
     private static void FormatRequirementProgressLines(StarQuestObjectiveDictionaries? dicts, List<string> outLines, string? restrictToGameKey = null)
     {
@@ -1705,22 +1823,9 @@ public sealed class StarApiClient : IDisposable
         AddKeyedProgressLine(dicts.NeedToUsePowerups, dicts.PowerupsCollected, "Used", "powerups");
     }
 
-    /// <summary>Objective row text for game Q/O lines: Need/Progress dict lines (e.g. Killed 0/5 monsters in ODOOM) when present, else API Objective/Description (legacy payloads).</summary>
-    private static string FormatObjectiveLineForGameList(StarQuestObjective o, StarQuestInfo? quest)
-    {
-        var lines = new List<string>();
-        if (o.Dictionaries != null)
-            FormatRequirementProgressLines(o.Dictionaries, lines, null);
-        if (lines.Count == 0 && quest?.Dictionaries != null)
-            FormatRequirementProgressLines(quest.Dictionaries, lines, null);
-        if (lines.Count == 0)
-            AppendLegacyObjectiveDescriptionProgressLines(o.Description, lines);
-        if (lines.Count == 0)
-            AppendLegacyObjectiveDescriptionProgressLines(o.SummaryText, lines);
-        if (lines.Count == 0)
-            return EscapeForQuestLine(o.Description ?? o.SummaryText ?? "");
-        return EscapeForQuestLine(string.Join(" · ", lines));
-    }
+    /// <summary>Objective label for embedded O-lines in <see cref="SerializeQuestsForGame"/>: API goal text only. Progress (Killed X/Y) lives in tracker + requirements CVar, not in the name column.</summary>
+    private static string FormatObjectiveLineForGameList(StarQuestObjective o, StarQuestInfo? quest) =>
+        EscapeForQuestLine(GetObjectiveRawTitle(o, quest));
 
     /// <summary>Requirement/progress for the objectives popup lower pane: only dictionary counts (no objective title/description).</summary>
     internal bool TryGetQuestObjectiveRequirementsForGame(string? questId, string? objectiveId, out string result)
@@ -1849,7 +1954,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI.</summary>
+    /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI. Name/desc are API goal text; progress is not duplicated here (tracker + odoom_quest_detail_requirements).</summary>
     private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
     {
         if (quest.Objectives == null || quest.Objectives.Count == 0) return string.Empty;
@@ -1858,8 +1963,10 @@ public sealed class StarApiClient : IDisposable
         {
             var o = quest.Objectives[i];
             var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
-            var name = FormatObjectiveLineForGameList(o, quest);
-            var desc = name;
+            var titleRaw = GetObjectiveRawTitle(o, quest);
+            var descRaw = GetObjectiveRawDescription(o, titleRaw);
+            var name = EscapeForQuestLine(titleRaw);
+            var desc = EscapeForQuestLine(descRaw);
             var status = o.IsCompleted ? "Completed" : "InProgress";
             var pct = o.IsCompleted ? 100 : 0;
             sb.Append("Q\t").Append(oid).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
@@ -3973,6 +4080,16 @@ public sealed class StarApiClient : IDisposable
             var objCount = q.Objectives?.Count ?? 0;
             var completed = q.Objectives?.Count(o => o.IsCompleted) ?? 0;
             var pct = objCount > 0 ? (completed * 100 / objCount) : 0;
+            /* Never show Completed in the list unless every embedded objective is completed (API MetaData/Status can be wrong after partial progress). */
+            if (objCount > 0 && q.Objectives != null)
+            {
+                var allObjDone = q.Objectives.All(o => o.IsCompleted);
+                if (allObjDone)
+                    status = "Completed";
+                else if (string.Equals(status, "Completed", StringComparison.OrdinalIgnoreCase))
+                    status = "InProgress";
+            }
+
             sb.Append("Q\t").Append(q.Id).Append("\t").Append(name).Append("\t").Append(desc).Append("\t").Append(status).Append("\t").Append(pct).Append("\n");
             if (q.Objectives != null)
             {
@@ -5467,6 +5584,36 @@ public sealed class StarApiClient : IDisposable
         WriteDict("LevelsCompleted", dicts.LevelsCompleted);
     }
 
+    /// <summary>Read display name and body text from objective JSON. Prefer explicit <c>Description</c> over ONODE computed <c>Objective</c> (live tally) so game UI can show goals in title/body fields.</summary>
+    private static void ParseObjectiveStringsFromJsonObject(JsonElement objective, out string displayName, out string description)
+    {
+        displayName = (GetStringProperty(objective, "Name") ?? GetStringProperty(objective, "name")
+            ?? GetStringProperty(objective, "Label") ?? GetStringProperty(objective, "label") ?? "").Trim();
+
+        var humanDesc = GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? "";
+        var textFb = GetStringProperty(objective, "Text") ?? GetStringProperty(objective, "text") ?? "";
+        var titleFb = GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? "";
+        var objectiveStr = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "objective") ?? "";
+
+        string desc;
+        if (!string.IsNullOrWhiteSpace(humanDesc))
+            desc = humanDesc.Trim();
+        else if (!string.IsNullOrWhiteSpace(textFb))
+            desc = textFb.Trim();
+        else if (!string.IsNullOrWhiteSpace(titleFb))
+            desc = titleFb.Trim();
+        else if (!string.IsNullOrWhiteSpace(objectiveStr))
+            desc = objectiveStr.Trim();
+        else
+            desc = string.Empty;
+
+        var itemRequiredLegacy = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(itemRequiredLegacy) && string.IsNullOrWhiteSpace(desc))
+            desc = itemRequiredLegacy.Trim();
+
+        description = desc;
+    }
+
     /// <summary>Parse objectives from a JsonElement that may be an array or a JSON string containing an array (e.g. from MetaData).</summary>
     private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element)
     {
@@ -5479,10 +5626,7 @@ public sealed class StarApiClient : IDisposable
                 if (objective.ValueKind != JsonValueKind.Object) continue;
                 var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
                 try { LogQuestParseChunkedFileOnly($"[Quest][Parse][Raw] objectiveFromArray idx={index} id={id} json", objective.GetRawText()); } catch { /* ignore */ }
-                var desc = GetStringProperty(objective, "Objective") ?? GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? GetStringProperty(objective, "objective")
-                    ?? GetStringProperty(objective, "Text") ?? GetStringProperty(objective, "text") ?? GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? string.Empty;
-                var itemRequiredLegacy = GetStringProperty(objective, "ItemRequired") ?? GetStringProperty(objective, "itemRequired") ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(itemRequiredLegacy)) desc = itemRequiredLegacy;
+                ParseObjectiveStringsFromJsonObject(objective, out var displayName, out var desc);
                 var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
                 var order = GetIntProperty(objective, "Order") ?? GetIntProperty(objective, "order") ?? index;
                 var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
@@ -5492,6 +5636,7 @@ public sealed class StarApiClient : IDisposable
                 objectives.Add(new StarQuestObjective
                 {
                     Id = id,
+                    DisplayName = displayName,
                     Description = desc ?? string.Empty,
                     GameSource = gameSource,
                     Order = order,
@@ -6524,12 +6669,11 @@ public sealed class StarApiClient : IDisposable
                     foreach (var sub in qArr.EnumerateArray())
                     {
                         if (sub.ValueKind != JsonValueKind.Object) continue;
-                        var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "objective") ?? string.Empty;
-                        var ir = GetStringProperty(sub, "ItemRequired") ?? GetStringProperty(sub, "itemRequired") ?? string.Empty;
-                        if (string.IsNullOrWhiteSpace(desc) && !string.IsNullOrWhiteSpace(ir)) desc = ir;
+                        ParseObjectiveStringsFromJsonObject(sub, out var displayName, out var desc);
                         objectives.Add(new StarQuestObjective
                         {
                             Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                            DisplayName = displayName,
                             Description = desc,
                             GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                             Order = GetIntProperty(sub, "Order") ?? idx,
@@ -6667,11 +6811,12 @@ public sealed class StarApiClient : IDisposable
             foreach (var sub in questsElement.EnumerateArray())
             {
                 if (sub.ValueKind != JsonValueKind.Object) continue;
-                var desc = GetStringProperty(sub, "Description") ?? GetStringProperty(sub, "Objective") ?? GetStringProperty(sub, "description") ?? GetStringProperty(sub, "objective");
+                ParseObjectiveStringsFromJsonObject(sub, out var displayName, out var desc);
                 if (string.IsNullOrEmpty(desc)) continue; /* Skip items that look like full quests (no Description/Objective). */
                 objectives.Add(new StarQuestObjective
                 {
                     Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
+                    DisplayName = displayName,
                     Description = desc,
                     GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                     Order = GetIntProperty(sub, "Order") ?? GetIntProperty(sub, "order") ?? 0,

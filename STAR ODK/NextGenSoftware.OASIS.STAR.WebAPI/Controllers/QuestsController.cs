@@ -1387,6 +1387,27 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
         }
 
+        /// <summary>Clears all progress dictionaries on the quest and its embedded objectives (kills, collected counts, XP, etc.) to 0; leaves Need* requirements unchanged. If the quest was Completed, status becomes InProgress.</summary>
+        [HttpPost("{id}/progress/reset")]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<Quest>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ResetObjectiveProgress(Guid id)
+        {
+            try
+            {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
+                var result = await _starAPI.Quests.ResetObjectiveProgressAsync(AvatarId, id);
+                if (result.IsError)
+                    return BadRequest(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException<Quest>(ex, "resetting objective progress");
+            }
+        }
+
         /// <summary>Complete a quest objective using string identifiers in the JSON body (GUIDs or client slugs such as cross_dimensional_keycard_hunt / doom_red_keycard). Native games use this path; route parameters remain Guid-only.</summary>
         [HttpPost("objectives/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
