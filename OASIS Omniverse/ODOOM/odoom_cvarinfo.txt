@@ -19,6 +19,7 @@ server int odoom_key_m = 0;
 server int odoom_key_use = 0;
 server int odoom_key_a = 0;
 server int odoom_key_c = 0;
+server int odoom_key_d = 0;
 server int odoom_key_z = 0;
 server int odoom_key_x = 0;
 server int odoom_key_i = 0;

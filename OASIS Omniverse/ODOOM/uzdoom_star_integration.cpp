@@ -2284,6 +2284,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int use  = ODOOM_GetRawKeyDown('E');
 		int a    = ODOOM_GetRawKeyDown('A');
 		int c    = ODOOM_GetRawKeyDown('C');
+		int keyD = ODOOM_GetRawKeyDown('D');
 		int z    = ODOOM_GetRawKeyDown('Z');
 		int x    = ODOOM_GetRawKeyDown('X');
 		int i    = ODOOM_GetRawKeyDown('I');
@@ -2306,7 +2307,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, keyD, backspace);
 		/* HUD X/B/Z: flip only here (same path as odoom_hud_toggle_* CCMDs). ZScript WorldTick cannot set these CVars — "outside menu code" abort in current GZDoom. */
 		{
 			static int s_odoom_hud_x_raw_was_down = 0;
@@ -2767,7 +2768,7 @@ static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
 	hv->SetGenericRep(u, CVAR_Int);
 }
 
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int keyD, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -2787,6 +2788,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_use", use);
 	SET_KEY_CVAR("odoom_key_a", a);
 	SET_KEY_CVAR("odoom_key_c", c);
+	SET_KEY_CVAR("odoom_key_d", keyD);
 	SET_KEY_CVAR("odoom_key_z", z);
 	SET_KEY_CVAR("odoom_key_x", x);
 	SET_KEY_CVAR("odoom_key_i", i);
