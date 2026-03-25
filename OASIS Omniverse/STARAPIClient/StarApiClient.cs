@@ -1532,9 +1532,18 @@ public sealed class StarApiClient : IDisposable
         return (o.Description ?? string.Empty).Trim();
     }
 
-    /// <summary>HUD quest tracker lines: <see cref="StarQuestObjective.ProgressSummary"/> only (not Title).</summary>
-    private static string GetObjectiveTrackerLine(StarQuestObjective o) =>
-        (o.ProgressSummary ?? string.Empty).Trim();
+    /// <summary>HUD quest tracker lines: <see cref="StarQuestObjective.ProgressSummary"/>; if empty (stale clone / old payload), derive from Need* dictionaries (same wording rules as backend objective progress).</summary>
+    private static string GetObjectiveTrackerLine(StarQuestObjective o)
+    {
+        var line = (o.ProgressSummary ?? string.Empty).Trim();
+        if (line.Length > 0)
+            return line;
+        if (o.Dictionaries == null)
+            return string.Empty;
+        var lines = new List<string>();
+        FormatRequirementProgressLines(o.Dictionaries, lines);
+        return lines.Count == 0 ? string.Empty : string.Join(" and ", lines);
+    }
 
     /// <summary>Objective title only (for debug audit lines).</summary>
     private static string FormatObjectiveLineForGameList(StarQuestObjective o, StarQuestInfo? quest) =>
