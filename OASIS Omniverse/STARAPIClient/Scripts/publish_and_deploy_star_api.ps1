@@ -45,10 +45,26 @@ if (!$needBuild -and (Test-Path $dllPath)) {
     $sources = @(Get-ChildItem -Path $projectDir -Filter "*.cs" -Recurse -File -ErrorAction SilentlyContinue) +
                @(Get-ChildItem -Path $projectDir -Filter "*.csproj" -Recurse -File -ErrorAction SilentlyContinue)
     if (Test-Path $headerPath) { $sources += Get-Item $headerPath }
+    $defPathPs = Join-Path $projectDir "star_api.def"
+    if (Test-Path $defPathPs) { $sources += Get-Item $defPathPs }
     foreach ($f in $sources) {
         if ($f.LastWriteTimeUtc -gt $dllTime) {
             $needBuild = $true
             break
+        }
+    }
+    # File mtimes lie (git, skew). If dumpbin is available, require game-linked exports to exist in the DLL or force publish.
+    if (-not $needBuild) {
+        $dumpbinEarly = (Get-Command dumpbin.exe -ErrorAction SilentlyContinue).Source
+        if ($dumpbinEarly) {
+            $exportText = & $dumpbinEarly /exports $dllPath 2>&1 | Out-String
+            foreach ($reqSym in @("star_api_start_quest_then_set_active_objective")) {
+                if ($exportText -notlike "*${reqSym}*") {
+                    Write-Host "[STARAPI] star_api.dll missing export $reqSym; forcing rebuild (sync with build-and-deploy-star-api-unix.sh REQUIRED_STAR_EXPORTS)."
+                    $needBuild = $true
+                    break
+                }
+            }
         }
     }
 }
