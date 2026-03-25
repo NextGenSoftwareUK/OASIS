@@ -98,16 +98,20 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #define ODOOM_K_LEFT      GK_LEFT
 #define ODOOM_K_RIGHT     GK_RIGHT
 #define ODOOM_K_RETURN    GK_RETURN
-#if defined(GK_PAGEUP)
+#if defined(GK_PAGEUP) && defined(GK_PAGEDOWN)
 #define ODOOM_K_PAGEUP    GK_PAGEUP
 #define ODOOM_K_PAGEDOWN  GK_PAGEDOWN
-#elif defined(GK_PRIOR)
+#elif defined(GK_PGUP) && defined(GK_PGDN)
+/* ZDoom-style menu keys (see zdefs.acs: GK_PGUP=2, GK_PGDN=1). */
+#define ODOOM_K_PAGEUP    GK_PGUP
+#define ODOOM_K_PAGEDOWN  GK_PGDN
+#elif defined(GK_PRIOR) && defined(GK_NEXT)
 #define ODOOM_K_PAGEUP    GK_PRIOR
 #define ODOOM_K_PAGEDOWN  GK_NEXT
 #else
-/* Fallback if engine uses other names; define to a harmless value so build succeeds. */
-#define ODOOM_K_PAGEUP    0
-#define ODOOM_K_PAGEDOWN  0
+/* Match d_gui.h legacy numeric codes used by ODOOM_GetRawKeyDown SDL mapping (PGUP=2, PGDN=1). Never use 0 — GetRawKeyDown(0) does not map to any key. */
+#define ODOOM_K_PAGEUP    2
+#define ODOOM_K_PAGEDOWN  1
 #endif
 #define ODOOM_K_HOME      GK_HOME
 #define ODOOM_K_END       GK_END
@@ -1061,6 +1065,31 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 	else if (vk_or_ascii == 13) scancode = SDL_SCANCODE_RETURN;
 #if defined(GK_BACKSPACE)
 	else if (vk_or_ascii == GK_BACKSPACE) scancode = SDL_SCANCODE_BACKSPACE;
+#endif
+	/* Engine may use GK_PAGEUP/GK_PRIOR etc. with values other than 1–4; map explicitly for SDL. */
+#if defined(GK_PAGEUP)
+	else if (vk_or_ascii == GK_PAGEUP) scancode = SDL_SCANCODE_PAGEUP;
+#endif
+#if defined(GK_PAGEDOWN)
+	else if (vk_or_ascii == GK_PAGEDOWN) scancode = SDL_SCANCODE_PAGEDOWN;
+#endif
+#if defined(GK_PGUP)
+	else if (vk_or_ascii == GK_PGUP) scancode = SDL_SCANCODE_PAGEUP;
+#endif
+#if defined(GK_PGDN)
+	else if (vk_or_ascii == GK_PGDN) scancode = SDL_SCANCODE_PAGEDOWN;
+#endif
+#if defined(GK_PRIOR)
+	else if (vk_or_ascii == GK_PRIOR) scancode = SDL_SCANCODE_PAGEUP;
+#endif
+#if defined(GK_NEXT)
+	else if (vk_or_ascii == GK_NEXT) scancode = SDL_SCANCODE_PAGEDOWN;
+#endif
+#if defined(GK_HOME)
+	else if (vk_or_ascii == GK_HOME) scancode = SDL_SCANCODE_HOME;
+#endif
+#if defined(GK_END)
+	else if (vk_or_ascii == GK_END) scancode = SDL_SCANCODE_END;
 #endif
 	return (scancode >= 0 && scancode < SDL_NUM_SCANCODES && state[scancode]) ? 1 : 0;
 #endif
