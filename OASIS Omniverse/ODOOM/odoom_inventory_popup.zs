@@ -47,14 +47,14 @@ class OASISInventoryOverlayHandler : EventHandler
 	private int questScrollOffset;
 	private String questStatusMessage;
 	private int questStatusFrames;
-	// Quest detail (2nd) popup: P=Prereqs, O=Objectives, S=Subquests, D=Quest description (separate views). Enter on prereq/subquest = close and select in main list.
+	// Quest detail (2nd) popup: tab order Overview, Objectives, Prereqs, Subquests. D=Overview, O/P/S jump. Enter on prereq/subquest = close and select in main list.
 	private bool questDetailPopupOpen;
-	private int questDetailMode;   // 0=Objectives (O), 1=Prereqs (P), 2=Subquests (S), 3=Quest description (D)
+	private int questDetailMode;   // 0=Overview (D), 1=Objectives (O), 2=Prereqs (P), 3=Subquests (S)
 	private String questDetailQuestId;
 	private String questDetailQuestName;
 	private String questDetailQuestDesc;
 	private String questDetailQuestStatus;  // for Start/Set tracker in detail
-	private int questDetailFocus;  // 0=objectives, 1=prereqs, 2=subquests (which list has focus in current mode)
+	private int questDetailFocus;  // 0=obj list, 1=prereq, 2=sub; kept in sync when mode is 1..3 (focus = mode - 1)
 	private int questDetailPrereqSelected;
 	private int questDetailObjSelected;
 	private int questDetailSubSelected;
@@ -420,7 +420,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							questDetailQuestDesc = parts.Size() > 3 ? parts[3] : "";
 							questDetailQuestStatus = parts[4];
 							questDetailPopupOpen = true;
-							questDetailMode = 0;  // default: Objectives (O)
+							questDetailMode = 0;  // default: Overview (quest intro)
 							questDetailFocus = 0;
 							questDetailPrereqSelected = 0;
 							questDetailObjSelected = 0;
@@ -508,7 +508,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				// Must match RenderOverlay quest detail: topSectionH and rowH=10
 				int detailPopupHKey = 200;
 				int detailRightPaneHKey = detailPopupHKey - 56;
-				int detailTopSectionHKey = 56;
+				int detailTopSectionHKey = 52;
 				if (detailTopSectionHKey > detailRightPaneHKey - 64) detailTopSectionHKey = detailRightPaneHKey - 64;
 				if (detailTopSectionHKey < 34) detailTopSectionHKey = 34;
 				int maxRowsObj = (detailTopSectionHKey - 12) / 10;
@@ -569,7 +569,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				bool detailIsTracked = (questDetailQuestId.Compare(trackerId) == 0);
 				if (selObjCv != null)
 				{
-					if (questDetailMode == 0 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
+					if (questDetailMode == 1 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
 					{
 						int idx = objQ[questDetailObjSelected];
 						if (idx >= 0 && idx < objLines.Size())
@@ -582,17 +582,17 @@ class OASISInventoryOverlayHandler : EventHandler
 					}
 					else selObjCv.SetString("");
 				}
-				// Focus 0=Objectives, 1=Prereqs, 2=Subquests (only one list visible per mode). Mode 3 = quest description only (no list nav).
-				if (questDetailMode != 3) {
+				// Up/Down/PgUp/PgDn = list on Objectives/Prereqs/Subquests (modes 1–3). Left/Right = cycle tabs. D/O/P/S = jump to Overview/Objectives/Prereqs/Subquests.
+				if (questDetailMode != 0) {
 					if (keyUpPressed) {
-						if (questDetailFocus == 0 && questDetailObjSelected > 0) questDetailObjSelected--;
-						else if (questDetailFocus == 1 && questDetailPrereqSelected > 0) questDetailPrereqSelected--;
-						else if (questDetailFocus == 2 && questDetailSubSelected > 0) questDetailSubSelected--;
+						if (questDetailMode == 1 && questDetailObjSelected > 0) questDetailObjSelected--;
+						else if (questDetailMode == 2 && questDetailPrereqSelected > 0) questDetailPrereqSelected--;
+						else if (questDetailMode == 3 && questDetailSubSelected > 0) questDetailSubSelected--;
 					}
 					if (keyDownPressed) {
-						if (questDetailFocus == 0 && questDetailObjSelected < nObj - 1) questDetailObjSelected++;
-						else if (questDetailFocus == 1 && questDetailPrereqSelected < nPrereq - 1) questDetailPrereqSelected++;
-						else if (questDetailFocus == 2 && questDetailSubSelected < nSub - 1) questDetailSubSelected++;
+						if (questDetailMode == 1 && questDetailObjSelected < nObj - 1) questDetailObjSelected++;
+						else if (questDetailMode == 2 && questDetailPrereqSelected < nPrereq - 1) questDetailPrereqSelected++;
+						else if (questDetailMode == 3 && questDetailSubSelected < nSub - 1) questDetailSubSelected++;
 					}
 					if (questDetailObjSelected < questDetailObjScroll) questDetailObjScroll = questDetailObjSelected;
 					if (questDetailObjSelected >= questDetailObjScroll + maxRowsObj && nObj > maxRowsObj) questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1;
@@ -600,35 +600,34 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (questDetailPrereqSelected >= questDetailPrereqScroll + maxRowsSingle && nPrereq > maxRowsSingle) questDetailPrereqScroll = questDetailPrereqSelected - maxRowsSingle + 1;
 					if (questDetailSubSelected < questDetailSubScroll) questDetailSubScroll = questDetailSubSelected;
 					if (questDetailSubSelected >= questDetailSubScroll + maxRowsSingle && nSub > maxRowsSingle) questDetailSubScroll = questDetailSubSelected - maxRowsSingle + 1;
-					if (keyLeftPressed) { questDetailFocus--; if (questDetailFocus < 0) questDetailFocus = 2; }
-					if (keyRightPressed) { questDetailFocus++; if (questDetailFocus > 2) questDetailFocus = 0; }
 					if (keyPgUpPressed) {
-						if (questDetailFocus == 0) { questDetailObjSelected -= maxRowsObj; if (questDetailObjSelected < 0) questDetailObjSelected = 0; questDetailObjScroll = questDetailObjSelected; }
-						else if (questDetailFocus == 1) { questDetailPrereqSelected -= maxRowsSingle; if (questDetailPrereqSelected < 0) questDetailPrereqSelected = 0; questDetailPrereqScroll = questDetailPrereqSelected; }
-						else { questDetailSubSelected -= maxRowsSingle; if (questDetailSubSelected < 0) questDetailSubSelected = 0; questDetailSubScroll = questDetailSubSelected; }
+						if (questDetailMode == 1) { questDetailObjSelected -= maxRowsObj; if (questDetailObjSelected < 0) questDetailObjSelected = 0; questDetailObjScroll = questDetailObjSelected; }
+						else if (questDetailMode == 2) { questDetailPrereqSelected -= maxRowsSingle; if (questDetailPrereqSelected < 0) questDetailPrereqSelected = 0; questDetailPrereqScroll = questDetailPrereqSelected; }
+						else if (questDetailMode == 3) { questDetailSubSelected -= maxRowsSingle; if (questDetailSubSelected < 0) questDetailSubSelected = 0; questDetailSubScroll = questDetailSubSelected; }
 					}
 					if (keyPgDownPressed) {
-						if (questDetailFocus == 0) { questDetailObjSelected += maxRowsObj; if (questDetailObjSelected >= nObj) questDetailObjSelected = nObj - 1; questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1; if (questDetailObjScroll < 0) questDetailObjScroll = 0; }
-						else if (questDetailFocus == 1) { questDetailPrereqSelected += maxRowsSingle; if (questDetailPrereqSelected >= nPrereq) questDetailPrereqSelected = nPrereq - 1; questDetailPrereqScroll = questDetailPrereqSelected - maxRowsSingle + 1; if (questDetailPrereqScroll < 0) questDetailPrereqScroll = 0; }
-						else { questDetailSubSelected += maxRowsSingle; if (questDetailSubSelected >= nSub) questDetailSubSelected = nSub - 1; questDetailSubScroll = questDetailSubSelected - maxRowsSingle + 1; if (questDetailSubScroll < 0) questDetailSubScroll = 0; }
+						if (questDetailMode == 1) { questDetailObjSelected += maxRowsObj; if (questDetailObjSelected >= nObj) questDetailObjSelected = nObj - 1; questDetailObjScroll = questDetailObjSelected - maxRowsObj + 1; if (questDetailObjScroll < 0) questDetailObjScroll = 0; }
+						else if (questDetailMode == 2) { questDetailPrereqSelected += maxRowsSingle; if (questDetailPrereqSelected >= nPrereq) questDetailPrereqSelected = nPrereq - 1; questDetailPrereqScroll = questDetailPrereqSelected - maxRowsSingle + 1; if (questDetailPrereqScroll < 0) questDetailPrereqScroll = 0; }
+						else if (questDetailMode == 3) { questDetailSubSelected += maxRowsSingle; if (questDetailSubSelected >= nSub) questDetailSubSelected = nSub - 1; questDetailSubScroll = questDetailSubSelected - maxRowsSingle + 1; if (questDetailSubScroll < 0) questDetailSubScroll = 0; }
 					}
 				}
-				// P=Prereqs, O=Objectives, S=Subquests, D=Quest description: switch detail view
-				if (keyPPressed) { questDetailMode = 1; questDetailFocus = 1; }
-				if (keyOPressed) { questDetailMode = 0; questDetailFocus = 0; }
-				if (keySPressed) { questDetailMode = 2; questDetailFocus = 2; }
-				if (keyDPressed) { questDetailMode = 3; }
-				// Backspace: Prereqs/Subquests/Description -> Objectives first; then back to main quest list (Escape is engine menu)
+				if (keyLeftPressed) { questDetailMode = (questDetailMode + 3) % 4; if (questDetailMode >= 1 && questDetailMode <= 3) questDetailFocus = questDetailMode - 1; }
+				if (keyRightPressed) { questDetailMode = (questDetailMode + 1) % 4; if (questDetailMode >= 1 && questDetailMode <= 3) questDetailFocus = questDetailMode - 1; }
+				if (keyDPressed) { questDetailMode = 0; }
+				if (keyOPressed) { questDetailMode = 1; questDetailFocus = 0; }
+				if (keyPPressed) { questDetailMode = 2; questDetailFocus = 1; }
+				if (keySPressed) { questDetailMode = 3; questDetailFocus = 2; }
+				// Backspace: any tab except Objectives -> Objectives first; then back to main quest list (Escape is engine menu)
 				if (keyBackspacePressed) {
-					if (questDetailMode != 0) { questDetailMode = 0; questDetailFocus = 0; }
+					if (questDetailMode != 1) { questDetailMode = 1; questDetailFocus = 0; }
 					else { questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 				}
-				// Enter on objective (focus 0) = set as active, highlight green. Enter on prereq (focus 1) or subquest (focus 2) = drill down.
+				// Enter on Objectives = set active objective; on Prereqs or Subquests = drill down to that quest in the main list.
 				// Ignore first Enter after opening detail so the key that opened the popup doesn't persist the (wrong) selected row.
 				if (questDetailIgnoreNextEnter) { if (keyEnterPressed) questDetailIgnoreNextEnter = false; }
-				else if (keyEnterPressed && questDetailMode != 3)
+				else if (keyEnterPressed && questDetailMode != 0)
 				{
-					if (questDetailFocus == 0 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
+					if (questDetailMode == 1 && nObj > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
 					{
 						CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
 						String trackerId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
@@ -653,13 +652,13 @@ class OASISInventoryOverlayHandler : EventHandler
 							}
 						}
 					}
-					else if (questDetailFocus == 1 && nPrereq > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
+					else if (questDetailMode == 2 && nPrereq > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
 					{
 						array<String> parts;
 						prereqLines[prereqQ[questDetailPrereqSelected]].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 2) { questGotoId = parts[1]; questDetailPopupOpen = false; CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id"); if (detailIdCv != null) detailIdCv.SetString(""); }
 					}
-					else if (questDetailFocus == 2 && nSub > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
+					else if (questDetailMode == 3 && nSub > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
 					{
 						array<String> parts;
 						subLines[subQ[questDetailSubSelected]].Split(parts, "\t", TOK_KEEPEMPTY);
@@ -696,6 +695,9 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		if (popupOpen)
 		{
+			// Do not steal Left/Right/O/P from quest detail (those cycle / jump tabs there).
+			if (!(questPopupOpen && questDetailPopupOpen))
+			{
 			if ((user2Down && !wasUser2Down) || keyLeftPressed || keyOPressed)
 			{
 				activeTab--;
@@ -709,6 +711,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (activeTab >= TAB_COUNT) activeTab = 0;
 				scrollOffset = 0;
 				selectedAbsolute = 0;
+			}
 			}
 
 			int starCount = 0;
@@ -1428,51 +1431,48 @@ class OASISInventoryOverlayHandler : EventHandler
 			}
 		}
 
-		// Quest popup (Q key): 1st = list only; 2nd = detail. P/O/S/D switch Prereqs / Objectives / Subquests / Quest description.
+		// Quest popup (Q key): 1st = list only; 2nd = detail. Tabs: Overview, Objectives, Prereqs, Subquests — green = active; Left/Right cycle; D/O/P/S jump.
 		if (questPopupOpen && questDetailPopupOpen)
 		{
 			int popupW = 320;
 			int popupH = 200;
 			int popupX = -55;
-			int popupY = 6;  // align "Quest: ..." heading with "QUESTS" on main popup (main uses popupY+14)
+			int popupY = 6;
 			int leftW = 120;
 			int rightX = popupX + leftW + 8;
 			int rightW = (320 - 8) - rightX;  // full width to screen edge
 			int rowH = 10;
 			int rightPaneH = popupH - 56;
-			// Top band on right = objective (etc.) list; taller now that quest description moved to [D] view.
-			int topSectionH = 56;
+			// Must match WorldTick: detailTopSectionHKey (list band height on right)
+			int topSectionH = 52;
 			if (topSectionH > rightPaneH - 64) topSectionH = rightPaneH - 64;
 			if (topSectionH < 34) topSectionH = 34;
-			int sect0Y = popupY + 26;   // start of right-pane content (objectives list)
-			int sect1Y = sect0Y + topSectionH; // start of bottom half (requirements / desc)
+			// Title row, then tab row (inventory-style), then two-column content — avoids overlap with quest name
+			int detailTitleY = popupY + 6;
+			int detailTabY = popupY + 20;
+			int sect0Y = popupY + 39;   // start of content below tab row (~5px gap under tabs)
+			int sect1Y = sect0Y + topSectionH;
 			int listAreaH = topSectionH;
 			int maxRowsObj = (listAreaH - 12) / rowH;
 			if (maxRowsObj < 1) maxRowsObj = 1;
-			int maxRowsSingle = (rightPaneH - 12) / rowH;  // full-height list in mode 1 or 2
+			int maxRowsSingle = (rightPaneH - 12) / rowH;
 			if (maxRowsSingle < 1) maxRowsSingle = 1;
 			String questTitle = questDetailQuestName;
 			if (questTitle.Length() > 28) questTitle = String.Format("%s..", questTitle.Left(26));
-			screen.DrawText(f, Font.CR_GOLD, popupX + 8, popupY + 8, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			// Mode tabs: [P] [O] [S] [D] right-aligned with 10 between them
-			int tabY = popupY + 6;
-			int crP = (questDetailMode == 1) ? Font.CR_GOLD : Font.CR_GRAY;
-			int crO = (questDetailMode == 0) ? Font.CR_GOLD : Font.CR_GRAY;
-			int crS = (questDetailMode == 2) ? Font.CR_GOLD : Font.CR_GRAY;
-			int crDtab = (questDetailMode == 3) ? Font.CR_GOLD : Font.CR_GRAY;
-			int wDtab = f.StringWidth("[D] Desc");
-			int wS = f.StringWidth("[S] Sub");
-			int wO = f.StringWidth("[O] Obj");
-			int wP = f.StringWidth("[P] Prereq");
-			int tabRightEdge = rightX + rightW - 10 + 60;
-			int tabX_D = tabRightEdge - wDtab;
-			int tabX_S = tabX_D - 10 - wS;
-			int tabX_O = tabX_S - 10 - wO;
-			int tabX_P = tabX_O - 10 - wP;
-			screen.DrawText(f, crP, tabX_P, tabY, "[P] Prereq", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, crO, tabX_O, tabY, "[O] Obj", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, crS, tabX_S, tabY, "[S] Sub", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, crDtab, tabX_D, tabY, "[D] Desc", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_GOLD, popupX + 8, detailTitleY, String.Format("Quest: %s", questTitle), DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			int tabGap = 8;
+			String tab0 = "Overview";
+			String tab1 = "Objectives";
+			String tab2 = "Prereqs";
+			String tab3 = "Subquests";
+			int tab0X = popupX + 8;
+			int tab1X = tab0X + f.StringWidth(tab0) + tabGap;
+			int tab2X = tab1X + f.StringWidth(tab1) + tabGap;
+			int tab3X = tab2X + f.StringWidth(tab2) + tabGap;
+			screen.DrawText(f, questDetailMode == 0 ? Font.CR_GREEN : Font.CR_GRAY, tab0X, detailTabY, tab0, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, questDetailMode == 1 ? Font.CR_GREEN : Font.CR_GRAY, tab1X, detailTabY, tab1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, questDetailMode == 2 ? Font.CR_GREEN : Font.CR_GRAY, tab2X, detailTabY, tab2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, questDetailMode == 3 ? Font.CR_GREEN : Font.CR_GRAY, tab3X, detailTabY, tab3, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			CVar prereqCv = CVar.FindCVar("odoom_quest_detail_prereqs");
 			CVar objCv = CVar.FindCVar("odoom_quest_detail_objectives");
 			CVar subCv = CVar.FindCVar("odoom_quest_detail_subquests");
@@ -1488,38 +1488,35 @@ class OASISInventoryOverlayHandler : EventHandler
 			for (int i = 0; i < objLines.Size(); i++) if (objLines[i].Length() >= 2 && (objLines[i].IndexOf("Q\t") == 0 || objLines[i].IndexOf("O\t") == 0)) objQ.Push(i);
 			for (int i = 0; i < subLines.Size(); i++) if (subLines[i].Length() >= 2 && subLines[i].IndexOf("Q\t") == 0) subQ.Push(i);
 			int detailTextBottomY = popupY + popupH - 56;
-			if (questDetailMode == 3)
+			if (questDetailMode == 0)
 			{
-				int qHeadY = popupY + 24;
-				int qdescY0 = popupY + 36;
+				int qHeadY = sect0Y - 2;
+				int qdescY0 = sect0Y + 10;
 				int fullDescMaxW = popupW - 24;
 				array<String> questWords;
 				questDetailQuestDesc.Split(questWords, " ", false);
 				int maxQLines = (detailTextBottomY - qdescY0) / rowH;
 				if (maxQLines < 6) maxQLines = 6;
-				screen.DrawText(f, Font.CR_GOLD, popupX + 8, qHeadY, "Quest description", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				screen.DrawText(f, Font.CR_GOLD, popupX + 8, qHeadY, "Overview", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, qdescY0, fullDescMaxW, rowH, maxQLines, questWords);
 			}
 			else
 			{
-			// Left pane: selected objective/prereq/sub description from top; full height to footer (quest description is [D]).
+			// Left pane: aligned with sect0Y (same as right column)
 			int descMaxW = leftW - 8;
-			int objSectionY = popupY + 22;
-			int objDescY = popupY + 34;
+			int objSectionY = sect0Y - 2;
+			int objDescY = sect0Y + 10;
 			int maxLinesBottom = (detailTextBottomY - objDescY) / rowH;
 			if (maxLinesBottom < 2) maxLinesBottom = 2;
 			String objDesc = "";
-			String objLabel = "Objective";
-			if (questDetailMode == 0) objLabel = "Objective";
-			else if (questDetailMode == 1) objLabel = "Prerequisite Quest";
-			else if (questDetailMode == 2) objLabel = "SubQuest";
-			if (questDetailMode == 0 && objQ.Size() > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
+			String objLabel = "Description";
+			if (questDetailMode == 1 && objQ.Size() > 0 && questDetailObjSelected >= 0 && questDetailObjSelected < objQ.Size())
 			{
 				int idx = objQ[questDetailObjSelected];
 				if (idx < objLines.Size())
 					objDesc = OdoomQuestObjectiveBodyFromDetailLine(objLines[idx]);
 			}
-			else if (questDetailMode == 1 && prereqQ.Size() > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
+			else if (questDetailMode == 2 && prereqQ.Size() > 0 && questDetailPrereqSelected >= 0 && questDetailPrereqSelected < prereqQ.Size())
 			{
 				int idx = prereqQ[questDetailPrereqSelected];
 				if (idx < prereqLines.Size()) {
@@ -1531,7 +1528,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					} else if (parts.Size() >= 3) objDesc = parts[2];
 				}
 			}
-			else if (questDetailMode == 2 && subQ.Size() > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
+			else if (questDetailMode == 3 && subQ.Size() > 0 && questDetailSubSelected >= 0 && questDetailSubSelected < subQ.Size())
 			{
 				int idx = subQ[questDetailSubSelected];
 				if (idx < subLines.Size()) {
@@ -1547,8 +1544,8 @@ class OASISInventoryOverlayHandler : EventHandler
 			array<String> objWords;
 			objDesc.Split(objWords, " ", false);
 			DrawWrappedWords(f, Font.CR_WHITE, popupX + 8, objDescY, descMaxW, rowH, maxLinesBottom, objWords);
-			// Right pane: one view per mode. Mode 0 = Objectives + Requirements; Mode 1 = Prereqs only; Mode 2 = Subquests only.
-			if (questDetailMode == 0)
+			// Right pane: mode 1 = Objectives + Requirements; 2 = Prereqs; 3 = Subquests
+			if (questDetailMode == 1)
 			{
 				CVar trackerIdCv = CVar.FindCVar("odoom_quest_tracker_quest_id");
 				CVar activeObjIdCv = CVar.FindCVar("odoom_quest_tracker_active_objective_id");
@@ -1616,7 +1613,7 @@ class OASISInventoryOverlayHandler : EventHandler
 					}
 				}
 			}
-			else if (questDetailMode == 1)
+			else if (questDetailMode == 2)
 			{
 				screen.DrawText(f, Font.CR_GOLD, rightX, sect0Y - 2, "Prerequisites", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				for (int i = 0; i < maxRowsSingle && questDetailPrereqScroll + i < prereqQ.Size(); i++)
@@ -1634,7 +1631,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 				if (prereqQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			else
+			else if (questDetailMode == 3)
 			{
 				screen.DrawText(f, Font.CR_GOLD, rightX, sect0Y - 2, "Sub-quests", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				for (int i = 0; i < maxRowsSingle && questDetailSubScroll + i < subQ.Size(); i++)
@@ -1657,7 +1654,7 @@ class OASISInventoryOverlayHandler : EventHandler
 			int footerHintBaseY = 0;
 			int listHint1Y = footerHintBaseY + popupH - 58;
 			int listHint2Y = footerHintBaseY + popupH - 43;
-			String dh1 = "P O S D: switch   Arrows  Enter  K";
+			String dh1 = "Left/Right=tab  Up/Down=list  Enter  K  D/O/P/S=jump";
 			String dh2 = "Backspace: close   B X Z: HUD (Q closed)";
 			int dh1x = 160 - f.StringWidth(dh1) / 2; if (dh1x < 2) dh1x = 2;
 			int dh2x = 160 - f.StringWidth(dh2) / 2; if (dh2x < 2) dh2x = 2;
