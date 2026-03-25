@@ -2315,9 +2315,12 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			static int s_odoom_hud_z_raw_was_down = 0;
 			if (g_star_initialized)
 			{
+				FBaseCVar* questPopupHudVar = FindCVar("odoom_quest_popup_open", nullptr);
+				int questHudPopupOpen = (questPopupHudVar && questPopupHudVar->GetRealType() == CVAR_Int && questPopupHudVar->GetGenericRep(CVAR_Int).Int != 0);
 				if (x && !s_odoom_hud_x_raw_was_down)
 					ODOOM_FlipHudIntCVar("odoom_hud_show_xp");
-				if (keyB && !s_odoom_hud_b_raw_was_down)
+				/* B toggles Not Started filter while quest list is open (ZScript); do not flip beamed HUD there. */
+				if (keyB && !s_odoom_hud_b_raw_was_down && !questHudPopupOpen)
 					ODOOM_FlipHudIntCVar("odoom_hud_show_beamed");
 				if (z && !s_odoom_hud_z_raw_was_down)
 					ODOOM_FlipHudIntCVar("odoom_hud_show_timer");
@@ -2335,14 +2338,25 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				int qOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int && questPopupVar->GetGenericRep(CVAR_Int).Int != 0);
 				if (!s_key_k_was_down && qOpen)
 				{
-					FBaseCVar* selIdVar = FindCVar("odoom_quest_selected_id", nullptr);
-					if (selIdVar && selIdVar->GetRealType() == CVAR_String)
+					/* K=Start Quest on main list only; quest detail uses Enter to activate quest + objective (ZScript). */
+					bool detailPopupOpen = false;
+					FBaseCVar* detailIdVar = FindCVar("odoom_quest_detail_quest_id", nullptr);
+					if (detailIdVar && detailIdVar->GetRealType() == CVAR_String)
 					{
-						const char* id = selIdVar->GetGenericRep(CVAR_String).String;
-						if (id && id[0])
+						const char* did = detailIdVar->GetGenericRep(CVAR_String).String;
+						detailPopupOpen = (did && did[0]);
+					}
+					if (!detailPopupOpen)
+					{
+						FBaseCVar* selIdVar = FindCVar("odoom_quest_selected_id", nullptr);
+						if (selIdVar && selIdVar->GetRealType() == CVAR_String)
 						{
-							star_api_start_quest(id);
-							ODOOM_RefreshQuestCVars();
+							const char* id = selIdVar->GetGenericRep(CVAR_String).String;
+							if (id && id[0])
+							{
+								star_api_start_quest(id);
+								ODOOM_RefreshQuestCVars();
+							}
 						}
 					}
 				}
