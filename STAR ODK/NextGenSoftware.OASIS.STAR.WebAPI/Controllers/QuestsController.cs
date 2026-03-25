@@ -56,13 +56,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Filters out soft-deleted and non-loadable quest rows (stale child references / ghost ids).
+        /// Filters out soft-deleted quest rows. <paramref name="avatarId"/> is reserved for optional per-row reload verify.
         /// </summary>
-        private async Task<List<Quest>> FilterToLoadableActiveQuestsAsync(Guid avatarId, IEnumerable<IQuest> source)
+        private Task<List<Quest>> FilterToLoadableActiveQuestsAsync(Guid avatarId, IEnumerable<IQuest> source)
         {
+            _ = avatarId;
             var filtered = new List<Quest>();
             if (source == null)
-                return filtered;
+                return Task.FromResult(filtered);
 
             foreach (var item in source)
             {
@@ -73,14 +74,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (quest.DeletedDate != DateTime.MinValue || quest.IsDeleted)
                     continue;
 
-                var verify = await _starAPI.Quests.LoadAsync(avatarId, quest.Id, 0);
-                if (!verify.IsError && verify.Result != null && verify.Result.DeletedDate == DateTime.MinValue)
-                    filtered.Add(quest);
-                else
-                    _logger.LogWarning("[Quests] Filtering ghost/non-loadable quest row Id={QuestId} Name={Name}", quest.Id, quest.Name ?? "(null)");
+                filtered.Add(quest);
             }
 
-            return filtered;
+            return Task.FromResult(filtered);
         }
 
         /// <summary>

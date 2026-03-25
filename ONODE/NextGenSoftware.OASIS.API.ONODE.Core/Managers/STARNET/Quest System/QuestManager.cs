@@ -245,6 +245,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
                 }
             }
+
+            if (q.Objectives != null)
+            {
+                foreach (var o in q.Objectives)
+                    o?.EnsureAuthoredStringsFromComputedProgress();
+            }
         }
 
         private static readonly JsonSerializerOptions ObjectiveMetaDataJsonOptions = new JsonSerializerOptions
