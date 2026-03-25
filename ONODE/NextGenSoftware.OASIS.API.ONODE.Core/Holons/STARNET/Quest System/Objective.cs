@@ -219,6 +219,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
             return string.Join(" and ", phrases);
         }
 
+        /// <summary>
+        /// Backfill only: when persisted data still has no authored strings (e.g. rows created before MetaData deserialize used case-insensitive binding).
+        /// Prefer fixing load path so <see cref="Title"/> and <see cref="Description"/> hydrate from storage.
+        /// </summary>
+        public void EnsureAuthoredStringsFromComputedProgress()
+        {
+            var summary = BuildProgressSummaryString();
+            if (string.IsNullOrWhiteSpace(summary))
+                return;
+            if (string.IsNullOrWhiteSpace(Title))
+            {
+                var headline = summary;
+                var idx = summary.IndexOf(" and ", StringComparison.Ordinal);
+                if (idx > 0)
+                    headline = summary.Substring(0, idx);
+                Title = headline;
+            }
+            if (string.IsNullOrWhiteSpace(Description))
+                Description = summary;
+        }
+
         /// <summary>Call after modifying any requirement dictionary so ProgressSummary is recomputed.</summary>
         public void InvalidateObjectiveString()
         {

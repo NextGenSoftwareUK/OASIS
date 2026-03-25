@@ -1527,19 +1527,22 @@ static void ODOOM_RefreshQuestCVars(void) {
 			{ UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
 		else if (questCount == 0)
 		{
-			/* No quests in cache/list for this avatar: do not leave stale "Loading..." title visible. */
-			UCVarValue t; t.String = (char*)"No Active Quest Found";
+			/* List empty (still loading or API returned none). If profile already set a tracker quest id, keep id + stable title —
+			 * clearing the id made the frame pump re-fill from profile next tick and fight this branch → "No Active Quest" flashing. */
+			UCVarValue t; t.String = (char*)(wantId.empty() ? "No Active Quest Found" : "Loading quests...");
 			trackerTitleVar->SetGenericRep(t, CVAR_String);
-			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
-			{
-				UCVarValue q; q.String = (char*)"";
-				trackerIdVar->SetGenericRep(q, CVAR_String);
-			}
-			FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
-			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
-			{
-				UCVarValue o; o.String = (char*)"";
-				trackerActiveIdVar->SetGenericRep(o, CVAR_String);
+			if (wantId.empty()) {
+				if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
+				{
+					UCVarValue q; q.String = (char*)"";
+					trackerIdVar->SetGenericRep(q, CVAR_String);
+				}
+				FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+				if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
+				{
+					UCVarValue o; o.String = (char*)"";
+					trackerActiveIdVar->SetGenericRep(o, CVAR_String);
+				}
 			}
 		}
 	}
@@ -2417,7 +2420,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 							oidVar->SetGenericRep(u, CVAR_String);
 						}
 					}
-					star_api_refresh_quest_cache_in_background();
+					/* Do not call star_api_refresh_quest_cache_in_background here: boot already ran EnsureQuestsCacheInBackground
+					 * (GET all-for-avatar/game). A forced refresh duplicates that GET seconds later. Cold list still fills via Ensure
+					 * when get_top_level_quests_string runs; use quest popup or explicit refresh when a hard refetch is needed. */
 					star_api_request_inventory_in_background();  /* non-blocking: cache ready for overlay/door checks */
 					ODOOM_RefreshQuestCVars();
 				}
