@@ -61,6 +61,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         SOLIDOASIS,
         ActivityPubOASIS,
         ScuttlebuttOASIS,
-        LocalFileOASIS
+        LocalFileOASIS,
+        GitHubOASIS // GitHub account; ProviderKey = username (for Planning-Sprint sync, link via OAuth/PAT)
     }
 }

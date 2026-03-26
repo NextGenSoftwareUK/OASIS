@@ -295,6 +295,7 @@ NextGenSoftware.OASIS.API.ONODE.WebUI.HTML/react-app/yarn.lock
 
 # Local/dev config with secrets (do not commit)
 appsettings.Development.json
+Genie Avatar/GeniesCredentials.local
 
 # Test harness DNA files
 /NextGenSoftware.OASIS.API.ONODE.Core.TestHarness/OASIS_DNA.json

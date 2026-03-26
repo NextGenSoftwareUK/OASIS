@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serializers;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton
@@ -10,6 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
     {
         private bool _isRegisterGuidBsonSerializer = false;
         private bool _isRegisterMetaDataSerializer = false;
+        private bool _isRegisterEnumValueBsonSerializers = false;
         private static SerializerRegister _register;
 
         public static SerializerRegister GetInstance()
@@ -21,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
         {
             _isRegisterGuidBsonSerializer = false;
             _isRegisterMetaDataSerializer = false;
+            _isRegisterEnumValueBsonSerializers = false;
         }
         
         public void RegisterGuidBsonSerializer()
@@ -38,6 +41,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Single
             BsonSerializer.RegisterSerializer(typeof(Dictionary<string, object>), new MetaDataDictionarySerializer());
             
             _isRegisterMetaDataSerializer = true;
+        }
+
+        /// <summary>
+        /// Registers EnumValue{T} BSON serializers so documents with both "Value" and "Name"
+        /// (e.g. CreatedProviderType: { Value: 1, Name: "MongoDBOASIS" }) deserialize correctly.
+        /// Without this, the driver throws "Element 'Name' does not match any field or property".
+        /// </summary>
+        public void RegisterEnumValueBsonSerializers()
+        {
+            if (_isRegisterEnumValueBsonSerializers) return;
+            BsonSerializer.RegisterSerializer(typeof(NextGenSoftware.Utilities.EnumValue<ProviderType>), new EnumValueBsonSerializer<ProviderType>());
+            BsonSerializer.RegisterSerializer(typeof(NextGenSoftware.Utilities.EnumValue<OASISType>), new EnumValueBsonSerializer<OASISType>());
+            BsonSerializer.RegisterSerializer(typeof(NextGenSoftware.Utilities.EnumValue<AvatarType>), new EnumValueBsonSerializer<AvatarType>());
+            _isRegisterEnumValueBsonSerializers = true;
         }
     }
 }

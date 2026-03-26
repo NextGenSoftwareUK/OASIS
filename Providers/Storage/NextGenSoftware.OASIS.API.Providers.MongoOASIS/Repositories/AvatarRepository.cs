@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
@@ -23,6 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
             SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+            SerializerRegister.GetInstance().RegisterEnumValueBsonSerializers();
             _dbContext = dbContext;
         }
 
@@ -319,7 +320,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                // Preserve existing document _id so MongoDB ReplaceOne does not try to alter immutable _id (avoids serialisation/migration mismatch).
+                Avatar existing = (await _dbContext.Avatar.FindAsync(g => g.HolonId == avatar.HolonId)).FirstOrDefault();
+                if (existing != null && !string.IsNullOrEmpty(existing.Id))
+                    avatar.Id = existing.Id;
+                if (avatar.ProviderUniqueStorageKey == null)
+                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
+                // Filter by Id so we replace the same document (same _id); filtering by HolonId can match a different document and trigger "immutable _id altered".
+                var filter = !string.IsNullOrEmpty(avatar.Id)
+                    ? Builders<Avatar>.Filter.Eq(g => g.Id, avatar.Id)
+                    : Builders<Avatar>.Filter.Eq(g => g.HolonId, avatar.HolonId);
+                await _dbContext.Avatar.ReplaceOneAsync(filter, avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -336,6 +349,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                // Preserve existing document _id so MongoDB ReplaceOne does not try to alter immutable _id.
+                AvatarDetail existing = (await _dbContext.AvatarDetail.FindAsync(g => g.HolonId == avatar.HolonId)).FirstOrDefault();
+                if (existing != null && !string.IsNullOrEmpty(existing.Id))
+                    avatar.Id = existing.Id;
+                if (avatar.ProviderUniqueStorageKey != null && avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                    avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
                 await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 result.Result = avatar;
             }
@@ -491,7 +511,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                // Preserve existing document _id so MongoDB ReplaceOne does not try to alter immutable _id (avoids serialisation/migration mismatch).
+                Avatar existing = _dbContext.Avatar.Find(g => g.HolonId == avatar.HolonId).FirstOrDefault();
+                if (existing != null && !string.IsNullOrEmpty(existing.Id))
+                    avatar.Id = existing.Id;
+                if (avatar.ProviderUniqueStorageKey == null)
+                    avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
+                // Filter by Id so we replace the same document (same _id); filtering by HolonId can match a different document and trigger "immutable _id altered".
+                var filter = !string.IsNullOrEmpty(avatar.Id)
+                    ? Builders<Avatar>.Filter.Eq(g => g.Id, avatar.Id)
+                    : Builders<Avatar>.Filter.Eq(g => g.HolonId, avatar.HolonId);
+                _dbContext.Avatar.ReplaceOne(filter, avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -508,6 +540,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                // Preserve existing document _id so MongoDB ReplaceOne does not try to alter immutable _id.
+                AvatarDetail existing = _dbContext.AvatarDetail.Find(g => g.HolonId == avatar.HolonId).FirstOrDefault();
+                if (existing != null && !string.IsNullOrEmpty(existing.Id))
+                    avatar.Id = existing.Id;
+                if (avatar.ProviderUniqueStorageKey != null && avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.MongoDBOASIS))
+                    avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
+
                 _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
                 result.Result = avatar;
             }

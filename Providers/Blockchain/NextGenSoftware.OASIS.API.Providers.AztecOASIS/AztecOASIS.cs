@@ -39,6 +39,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         private readonly string _apiKey;
         private readonly string _network;
 
+        /// <summary>
+        /// Exposes the underlying sidecar HTTP client so ONODE controllers can make
+        /// direct sidecar calls (e.g. for token deployment) without going through
+        /// the full provider interface.
+        /// </summary>
+        public AztecAPIClient ApiClient => _apiClient;
+
         private IAztecService _aztecService;
         private IAztecBridgeService _bridgeService;
         private IAztecRepository _aztecRepository;
@@ -1411,40 +1418,55 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                     return result;
                 }
 
-                // Get mint to address from avatar ID or use default
-                var mintToAddress = _apiBaseUrl ?? "aztec_mint_address";
-                var mintAmount = request.MetaData?.ContainsKey("Amount") == true && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amount)
-                    ? amount 
-                    : 1m;
-
-                // Use MintStablecoinAsync if available, otherwise create a private note
-                try
+                // Resolve the recipient address — read from MetaData["ToWalletAddress"]
+                var recipientAddress = request.MetaData?.ContainsKey("ToWalletAddress") == true
+                    ? request.MetaData["ToWalletAddress"] : null;
+                if (string.IsNullOrWhiteSpace(recipientAddress))
                 {
-                    var mintResult = await _aztecService.MintStablecoinAsync(mintToAddress, mintAmount, null, null);
-                    if (mintResult != null && !mintResult.IsError && !string.IsNullOrEmpty(mintResult.Result))
-                    {
-                        result.Result.TransactionResult = mintResult.Result;
-                        result.IsError = false;
-                        result.Message = "Token minted successfully on Aztec.";
-                        return result;
-                    }
-                }
-                catch
-                {
-                    // Fall back to creating a private note
-                }
-
-                // Fallback: Create a private note for minting
-                var privateNote = await _aztecService.CreatePrivateNoteAsync(mintAmount, mintToAddress, "minted");
-                if (privateNote == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to mint token");
+                    OASISErrorHandling.HandleError(ref result,
+                        "MetaData[\"ToWalletAddress\"] is required for Aztec minting");
                     return result;
                 }
 
-                result.Result.TransactionResult = privateNote.NoteId ?? string.Empty;
+                // Resolve the contract address for the share-class token — read from MetaData["TokenContractAddress"]
+                var contractAddress = request.MetaData?.ContainsKey("TokenContractAddress") == true
+                    ? request.MetaData["TokenContractAddress"] : null;
+                if (string.IsNullOrWhiteSpace(contractAddress))
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        "TokenContractAddress is required for Aztec minting. " +
+                        "Deploy a token contract first via POST /api/nft/create-aztec-token.");
+                    return result;
+                }
+
+                var mintAmount = request.MetaData?.ContainsKey("Amount") == true
+                    && long.TryParse(request.MetaData["Amount"]?.ToString(), out var parsedAmt)
+                    ? parsedAmt : 1L;
+
+                // Call sidecar POST /notes — handles private mint + transfer to recipient
+                var mintPayload = new
+                {
+                    contractAddress,
+                    recipientAddress,
+                    amount = mintAmount.ToString()
+                };
+
+                var sidecarResult = await _apiClient.PostAsync<Models.MintNoteSidecarResponse>(
+                    "/notes", mintPayload);
+
+                if (sidecarResult.IsError || sidecarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Aztec sidecar failed to mint tokens: {sidecarResult.Message}");
+                    return result;
+                }
+
+                result.Result.TransactionResult = sidecarResult.Result.TransactionHash
+                    ?? sidecarResult.Result.NoteId
+                    ?? string.Empty;
                 result.IsError = false;
-                result.Message = "Token minted successfully on Aztec.";
+                result.Message = $"Minted {mintAmount} tokens privately on Aztec. " +
+                    $"TxHash: {result.Result.TransactionResult}";
             }
             catch (Exception ex)
             {
@@ -1771,31 +1793,77 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
                 await EnsureActivatedAsync(result);
                 if (result.IsError) return result;
 
-                // Generate Aztec-specific key pair using Nethereum SDK (production-ready)
-                // Aztec uses secp256k1 elliptic curve (same as Ethereum), so we can use Nethereum
-                var ecKey = EthECKey.GenerateKey();
-                var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-                var publicKey = ecKey.GetPublicAddress();
-                
-                // Aztec addresses are derived from public keys (similar to Ethereum)
-                var aztecAddress = publicKey;
-                
-                // Create key pair structure
+                // Call the TypeScript sidecar which uses @aztec/aztec.js to create a real Aztec account.
+                // This ensures the account is properly registered with the PXE and uses Aztec-native
+                // key derivation (Grumpkin curve / Schnorr signatures) rather than Ethereum secp256k1.
+                var sidecarResult = await _apiClient.PostAsync<Models.CreateWalletSidecarResponse>(
+                    "/wallets/create", null);
+
+                if (sidecarResult.IsError || sidecarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Aztec sidecar failed to create wallet: {sidecarResult.Message}");
+                    return result;
+                }
+
+                var sidecar = sidecarResult.Result;
+
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)
                 {
-                    keyPair.PrivateKey = privateKey;
-                    keyPair.PublicKey = publicKey;
-                    keyPair.WalletAddressLegacy = aztecAddress;
+                    keyPair.PrivateKey = sidecar.PrivateKey;
+                    keyPair.PublicKey = sidecar.PublicKey;
+                    keyPair.WalletAddressLegacy = sidecar.Address;
                 }
 
                 result.Result = keyPair;
                 result.IsError = false;
-                result.Message = "Aztec key pair generated successfully using Nethereum SDK (secp256k1).";
+                result.Message = $"Aztec key pair generated via sidecar. Address: {sidecar.Address}";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error generating Aztec key pair: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the incoming and outgoing viewing keys for an Aztec address.
+        /// Used by auditors and compliance tools to decrypt private notes without
+        /// requiring spending authority.
+        /// </summary>
+        public async Task<OASISResult<Models.ViewingKeySidecarResponse>> GetViewingKeyAsync(string address)
+        {
+            var result = new OASISResult<Models.ViewingKeySidecarResponse>();
+            try
+            {
+                await EnsureActivatedAsync(result);
+                if (result.IsError) return result;
+
+                if (string.IsNullOrWhiteSpace(address))
+                {
+                    OASISErrorHandling.HandleError(ref result, "address is required");
+                    return result;
+                }
+
+                var sidecarResult = await _apiClient.GetAsync<Models.ViewingKeySidecarResponse>(
+                    "/viewing-key",
+                    new Dictionary<string, string> { { "address", address } });
+
+                if (sidecarResult.IsError || sidecarResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result,
+                        $"Aztec sidecar failed to retrieve viewing key: {sidecarResult.Message}");
+                    return result;
+                }
+
+                result.Result = sidecarResult.Result;
+                result.IsError = false;
+                result.Message = $"Viewing key retrieved for {address}.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error retrieving viewing key: {ex.Message}", ex);
             }
             return result;
         }
