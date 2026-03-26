@@ -117,10 +117,9 @@ if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
   exit 1
 fi
 
-# star_sync (shared with Doom): always copy from STARAPIClient so Quake uses the same star_sync as Doom and the client
-if [[ -f "$STARAPICLIENT/star_sync.c" ]]; then
+# star_sync API comes from star_api client exports; only header is needed for declarations.
+if [[ -f "$STARAPICLIENT/star_sync.h" ]]; then
   mkdir -p "$OQUAKE_CODE"
-  cp -f "$STARAPICLIENT/star_sync.c" "$OQUAKE_CODE/"
   cp -f "$STARAPICLIENT/star_sync.h" "$OQUAKE_CODE/"
 fi
 
@@ -141,7 +140,6 @@ if [[ -d "$QUAKE_SRC" ]]; then
   [[ -f "$HERE/Docs/WINDOWS_INTEGRATION.md" ]] && cp -f "$HERE/Docs/WINDOWS_INTEGRATION.md" "$QUAKE_SRC/"
   [[ -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" ]] && cp -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" "$QUAKE_SRC/"
   cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_SRC/"
-  [[ -f "$OQUAKE_CODE/star_sync.c" ]] && cp -f "$OQUAKE_CODE/star_sync.c" "$QUAKE_SRC/"
   [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_SRC/"
   cp -f "$STAR_SO" "$QUAKE_SRC/"
   echo "  $QUAKE_SRC"
@@ -161,7 +159,6 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
     QUAKE_DIR="$VKQUAKE_SRC/Quake"
     [[ -f "$OQUAKE_CODE/oquake_star_integration.c" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_DIR/"
     [[ -f "$OQUAKE_CODE/oquake_star_integration.h" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_DIR/"
-    [[ -f "$OQUAKE_CODE/star_sync.c" ]] && cp -f "$OQUAKE_CODE/star_sync.c" "$QUAKE_DIR/"
     [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_DIR/"
     cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_DIR/"
   fi

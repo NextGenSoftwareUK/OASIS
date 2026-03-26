@@ -3758,15 +3758,14 @@ void OQuake_STAR_PollItems(void) {
     /* Show STAR log messages in console when star debug is on (quests, XP refresh, monster kill, etc.). */
     {
         char log_buf[1024] = {0};
-        if (g_star_debug_logging) {
-            int i;
-            for (i = 0; i < 25; i++) {
-                if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
-                    break;
+        int i;
+        /* Never spin-drain unbounded logs in one frame; large bursts can stall the game loop. */
+        const int max_logs_per_frame = g_star_debug_logging ? 25 : 64;
+        for (i = 0; i < max_logs_per_frame; i++) {
+            if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
+                break;
+            if (g_star_debug_logging)
                 Con_Printf("[STAR] %s\n", log_buf);
-            }
-        } else {
-            while (star_api_consume_console_log(log_buf, sizeof(log_buf))) {}
         }
     }
 
@@ -4749,7 +4748,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     /* Quest popup (Q key): filter by status (B/N/M), list nav (Home/End/PgUp/PgDn), selection (Up/Down), Enter = Start or Set tracker. */
     if (g_quest_popup_open) {
-        static char quest_buf[16384];
+        static char quest_buf[65536];
         static char q_id[OQ_QUEST_MAX][64];
         static char q_name[OQ_QUEST_MAX][128];
         static char q_desc[OQ_QUEST_MAX][256];
@@ -4900,8 +4899,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         /* Drill mode: when g_quest_drill_parent_id is set, left list shows that quest's children (objectives + sub-quests). */
-        static char drill_obj_buf[4096];
-        static char drill_sub_buf[4096];
+        static char drill_obj_buf[16384];
+        static char drill_sub_buf[16384];
         static char drill_q_id[OQ_QUEST_MAX][64];
         static char drill_q_name[OQ_QUEST_MAX][128];
         static char drill_q_desc[OQ_QUEST_MAX][256];
@@ -5083,9 +5082,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         /* Right panel: prereqs and objectives+sub-quests from API for selected quest. Objectives and sub-quests merged into one list; sub-quests get "(SubQuest)" suffix. */
-        static char prereq_buf[4096];
-        static char objectives_buf[4096];
-        static char subquest_buf[4096];
+        static char prereq_buf[16384];
+        static char objectives_buf[16384];
+        static char subquest_buf[16384];
         static char pr_id[OQ_LINKS_MAX][64];
         static char pr_name[OQ_LINKS_MAX][128];
         static char pr_desc[OQ_LINKS_MAX][256];
@@ -5819,108 +5818,137 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
             g_quest_tracker_name[nr] = '\0';
         else
             g_quest_tracker_name[0] = '\0';
-        /* Fallback: parse from top-level quest list string if API did not return name yet. */
-        if (g_quest_tracker_name[0] == '\0') {
-            static char qlist_buf[4096];
-            int nq = star_api_get_top_level_quests_string(qlist_buf, sizeof(qlist_buf));
-            if (nq > 0 && nq < (int)sizeof(qlist_buf)) qlist_buf[nq] = '\0';
-            else qlist_buf[0] = '\0';
-            if (qlist_buf[0] && strstr(qlist_buf, "Loading...") == NULL) {
-                const char* line = qlist_buf;
-                while (line[0]) {
-                    const char* eol = strchr(line, '\n');
-                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                    if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
-                        const char* col0 = line + 2;
-                        const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
-                        if (col1 && (int)(col1 - col0) < 63) {
-                            char id[64];
-                            int len = (int)(col1 - col0);
-                            if (len >= 63) len = 62;
-                            memcpy(id, col0, (size_t)len);
-                            id[len] = '\0';
-                            if (q_strcasecmp(id, g_quest_tracker_id) == 0 && col1 + 1 < line + line_len) {
-                                const char* name_start = col1 + 1;
-                                const char* name_end = (const char*)memchr(name_start, '\t', (size_t)((line + line_len) - name_start));
-                                if (!name_end) name_end = line + line_len;
-                                len = (int)(name_end - name_start);
-                                if (len > 0 && len < (int)sizeof(g_quest_tracker_name)) {
-                                    memcpy(g_quest_tracker_name, name_start, (size_t)len);
-                                    g_quest_tracker_name[len] = '\0';
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    line = eol ? eol + 1 : line + line_len;
-                }
-            }
-        }
     }
 
     if (strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) != 0)
         g_quest_tracker_last_n_obj = 0;
 
     static char tr_buf[1024];
-    int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
-    if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
-    else tr_buf[0] = '\0';
-
+    static char tr_cached[1024];
+    static char tr_cached_id[64];
+    static int tr_cached_n_obj = 0;
+    static int tr_cached_active_idx = 0;
+    static double tr_next_fetch_time = 0.0;
     int n_obj = 0;
-    if (tr_buf[0]) {
-        const char* p = tr_buf;
-        while (*p) { if (*p == '\n') n_obj++; p++; }
-        if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
-    }
+    int active_idx = 0;
+    qboolean should_refetch = false;
+    if (strcmp(g_quest_tracker_id, tr_cached_id) != 0)
+        should_refetch = true;
+    if (realtime >= tr_next_fetch_time)
+        should_refetch = true;
+    if (g_quest_tracker_needs_refresh)
+        should_refetch = true;
+    if (should_refetch) {
+        int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
+        if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
+        else tr_buf[0] = '\0';
 
-    /* Fallback: if tracker API returned no lines (e.g. stub or cache not ready), use quest objectives string and show objective names */
-    if (n_obj == 0) {
-        static char obj_buf[1024];
-        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
-        if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
-        else obj_buf[0] = '\0';
-        if (obj_buf[0]) {
-            char* out = tr_buf;
-            size_t out_left = sizeof(tr_buf);
-            const char* line = obj_buf;
-            n_obj = 0;
-            while (line[0] && out_left > 1) {
-                const char* eol = strchr(line, '\n');
-                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                /* Format: Q\tid\tname\tdesc\tstatus\tpct - take column 2 (name) or 3 (desc) for display */
-                if (line_len >= 3 && (line[0] == 'Q' || line[0] == 'O') && line[1] == '\t') {
-                    const char* col0 = line + 2;
-                    const char* col1 = (const char*)memchr(col0, '\t', line_len - (col0 - line));
-                    const char* col2 = col1 && col1 + 1 < line + line_len ? col1 + 1 : col0;
-                    const char* col2_end = col2;
-                    if (col2_end < line + line_len) {
-                        col2_end = (const char*)memchr(col2, '\t', (size_t)((line + line_len) - col2));
-                        if (!col2_end) col2_end = line + line_len;
-                    }
-                    const char* col3 = (col2_end && col2_end < line + line_len) ? col2_end + 1 : col2;
-                    const char* col3_end = col3;
-                    if (col3 < line + line_len) {
-                        col3_end = (const char*)memchr(col3, '\t', (size_t)((line + line_len) - col3));
-                        if (!col3_end) col3_end = line + line_len;
-                    }
-                    size_t name_len = (size_t)(col2_end - col2);
-                    size_t desc_len = (size_t)(col3_end - col3);
-                    const char* use = col2;
-                    size_t use_len = name_len;
-                    if (use_len == 0 && desc_len > 0) { use = col3; use_len = desc_len; }
-                    if (use_len > 0 && use_len < out_left - 1) {
-                        if (n_obj > 0) { *out++ = '\n'; out_left--; }
-                        if (use_len >= out_left) use_len = out_left - 1;
-                        memcpy(out, use, use_len);
-                        out += use_len;
-                        out_left -= use_len;
-                        n_obj++;
-                    }
-                }
-                line = eol ? eol + 1 : line + line_len;
-            }
-            if (out_left > 0) *out = '\0';
+        if (tr_buf[0]) {
+            const char* p = tr_buf;
+            while (*p) { if (*p == '\n') n_obj++; p++; }
+            if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
         }
+
+        /* Fallback: if tracker API returned no lines, use quest objectives string and show objective names. */
+        if (n_obj == 0) {
+            static char obj_buf[1024];
+            int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
+            if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
+            else obj_buf[0] = '\0';
+            if (obj_buf[0]) {
+                char* out = tr_buf;
+                size_t out_left = sizeof(tr_buf);
+                const char* line = obj_buf;
+                n_obj = 0;
+                while (line[0] && out_left > 1) {
+                    const char* eol = strchr(line, '\n');
+                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                    if (line_len >= 3 && (line[0] == 'Q' || line[0] == 'O') && line[1] == '\t') {
+                        const char* col0 = line + 2;
+                        const char* col1 = (const char*)memchr(col0, '\t', line_len - (col0 - line));
+                        const char* col2 = col1 && col1 + 1 < line + line_len ? col1 + 1 : col0;
+                        const char* col2_end = col2;
+                        if (col2_end < line + line_len) {
+                            col2_end = (const char*)memchr(col2, '\t', (size_t)((line + line_len) - col2));
+                            if (!col2_end) col2_end = line + line_len;
+                        }
+                        const char* col3 = (col2_end && col2_end < line + line_len) ? col2_end + 1 : col2;
+                        const char* col3_end = col3;
+                        if (col3 < line + line_len) {
+                            col3_end = (const char*)memchr(col3, '\t', (size_t)((line + line_len) - col3));
+                            if (!col3_end) col3_end = line + line_len;
+                        }
+                        size_t name_len = (size_t)(col2_end - col2);
+                        size_t desc_len = (size_t)(col3_end - col3);
+                        const char* use = col2;
+                        size_t use_len = name_len;
+                        if (use_len == 0 && desc_len > 0) { use = col3; use_len = desc_len; }
+                        if (use_len > 0 && use_len < out_left - 1) {
+                            if (n_obj > 0) { *out++ = '\n'; out_left--; }
+                            if (use_len >= out_left) use_len = out_left - 1;
+                            memcpy(out, use, use_len);
+                            out += use_len;
+                            out_left -= use_len;
+                            n_obj++;
+                        }
+                    }
+                    line = eol ? eol + 1 : line + line_len;
+                }
+                if (out_left > 0) *out = '\0';
+            }
+        }
+
+        if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_id[0] &&
+            (g_quest_tracker_active_display_index < 0 || (n_obj > 0 && g_quest_tracker_active_display_index >= n_obj))) {
+            static char obuf[1024];
+            int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obuf, sizeof(obuf));
+            if (no > 0 && no < (int)sizeof(obuf)) obuf[no] = '\0';
+            else obuf[0] = '\0';
+            if (obuf[0]) {
+                const char* line = obuf;
+                int idx = 0;
+                while (line[0]) {
+                    const char* eol = strchr(line, '\n');
+                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                    if (line_len >= 3 && (line[0] == 'O' || line[0] == 'Q') && line[1] == '\t') {
+                        const char* col0 = line + 2;
+                        const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
+                        if (col1 && (int)(col1 - col0) < 63) {
+                            char oid[64];
+                            int len = (int)(col1 - col0);
+                            if (len >= 63) len = 62;
+                            memcpy(oid, col0, (size_t)len);
+                            oid[len] = '\0';
+                            if (strcmp(oid, g_quest_tracker_active_objective_id) == 0) {
+                                g_quest_tracker_active_display_index = idx;
+                                g_quest_tracker_objective_index = idx;
+                                break;
+                            }
+                        }
+                        idx++;
+                    }
+                    line = eol ? eol + 1 : line + line_len;
+                }
+            }
+        }
+
+        if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
+            active_idx = g_quest_tracker_active_display_index;
+        else {
+            active_idx = star_api_get_quest_tracker_active_objective_index(g_quest_tracker_id);
+            if (active_idx < 0) active_idx = 0;
+            if (active_idx >= n_obj && n_obj > 0) active_idx = n_obj - 1;
+        }
+
+        q_strlcpy(tr_cached, tr_buf, sizeof(tr_cached));
+        q_strlcpy(tr_cached_id, g_quest_tracker_id, sizeof(tr_cached_id));
+        tr_cached_n_obj = n_obj;
+        tr_cached_active_idx = active_idx;
+        tr_next_fetch_time = realtime + 0.20;
+    } else {
+        q_strlcpy(tr_buf, tr_cached, sizeof(tr_buf));
+        n_obj = tr_cached_n_obj;
+        active_idx = tr_cached_active_idx;
     }
 
     if (n_obj > 0) {
@@ -5928,53 +5956,9 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
         q_strlcpy(g_quest_tracker_last_n_obj_id, g_quest_tracker_id, sizeof(g_quest_tracker_last_n_obj_id));
     }
 
-    /* When tracker was restored from profile (active objective id set, display index not), resolve index from objectives list */
-    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_id[0] &&
-        (g_quest_tracker_active_display_index < 0 || (n_obj > 0 && g_quest_tracker_active_display_index >= n_obj))) {
-        static char obuf[1024];
-        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obuf, sizeof(obuf));
-        if (no > 0 && no < (int)sizeof(obuf)) obuf[no] = '\0';
-        else obuf[0] = '\0';
-        if (obuf[0]) {
-            const char* line = obuf;
-            int idx = 0;
-            while (line[0]) {
-                const char* eol = strchr(line, '\n');
-                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                if (line_len >= 3 && (line[0] == 'O' || line[0] == 'Q') && line[1] == '\t') {
-                    const char* col0 = line + 2;
-                    const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
-                    if (col1 && (int)(col1 - col0) < 63) {
-                        char oid[64];
-                        int len = (int)(col1 - col0);
-                        if (len >= 63) len = 62;
-                        memcpy(oid, col0, (size_t)len);
-                        oid[len] = '\0';
-                        if (strcmp(oid, g_quest_tracker_active_objective_id) == 0) {
-                            g_quest_tracker_active_display_index = idx;
-                            g_quest_tracker_objective_index = idx;
-                            break;
-                        }
-                    }
-                    idx++;
-                }
-                line = eol ? eol + 1 : line + line_len;
-            }
-        }
-    }
-
     int disp_idx = g_quest_tracker_objective_index;
     if (disp_idx > n_obj + 1) disp_idx = n_obj + 1;
     if (disp_idx == n_obj + 1) return;  /* Hide */
-
-    int active_idx;
-    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
-        active_idx = g_quest_tracker_active_display_index;
-    else {
-        active_idx = star_api_get_quest_tracker_active_objective_index(g_quest_tracker_id);
-        if (active_idx < 0) active_idx = 0;
-        if (active_idx >= n_obj && n_obj > 0) active_idx = n_obj - 1;
-    }
 
     int y = 8;
     if (disp_idx >= n_obj) {

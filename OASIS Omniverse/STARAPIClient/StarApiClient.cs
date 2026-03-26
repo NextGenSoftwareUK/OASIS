@@ -1100,7 +1100,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>End of a quest-worker fetch: clear in-flight flag, notify native (tracker/popup) when cache had a successful load, run a coalesced refresh if one was requested while busy.</summary>
+    /// <summary>End of a quest-worker fetch: clear in-flight flag, run a coalesced refresh if one was requested while busy.</summary>
     private void ReleaseQuestRefreshInProgressSlot(bool invokeQuestsCacheRefreshedCallback)
     {
         bool pending;
@@ -1111,7 +1111,7 @@ public sealed class StarApiClient : IDisposable
             _questsRefreshPending = false;
         }
         if (invokeQuestsCacheRefreshedCallback)
-            StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpQuestsCacheRefreshed);
+            StarApiExports.StarApiLogFileOnly("[Quests] Cache refresh complete (native callback suppressed; UI reads cache by polling).");
         if (pending)
             RequestQuestCacheRefreshInBackground(forceRefetch: true);
     }
@@ -2169,9 +2169,13 @@ public sealed class StarApiClient : IDisposable
         try { StarApiExports.StarApiLog($"[Quest] ActiveSnapshot reason={reason} — full detail in star_api.log ([Quest][ActiveSnapshot])"); } catch { /* ignore */ }
     }
 
+    private static readonly bool VerboseQuestParseLogsEnabled =
+        string.Equals(Environment.GetEnvironmentVariable("STAR_VERBOSE_QUEST_PARSE"), "1", StringComparison.OrdinalIgnoreCase);
+
     /// <summary>File-only: logs large strings in fixed-size chunks (search <c>[Quest][Parse]</c> in star_api.log).</summary>
     private static void LogQuestParseChunkedFileOnly(string linePrefix, string? text)
     {
+        if (!VerboseQuestParseLogsEnabled) return;
         try
         {
             if (string.IsNullOrEmpty(text))
@@ -2202,6 +2206,7 @@ public sealed class StarApiClient : IDisposable
 
     private static void LogQuestJsonShapeFileOnly(string prefix, JsonElement el)
     {
+        if (!VerboseQuestParseLogsEnabled) return;
         try
         {
             switch (el.ValueKind)
@@ -2287,6 +2292,7 @@ public sealed class StarApiClient : IDisposable
 
     private static void LogParsedQuestListModelAudit(string parseSource, List<StarQuestInfo> quests)
     {
+        if (!VerboseQuestParseLogsEnabled) return;
         try
         {
             var sb = new StringBuilder(Math.Max(4096, quests.Count * 256));
@@ -3417,7 +3423,7 @@ public sealed class StarApiClient : IDisposable
         {
             mergedOptimistically = MergeQuestProgressIntoLocalCache(qid.Value, gs, monstersKilledDelta, xpEarnedDelta, keysCollectedDelta, armorDelta, healthDelta, weaponsDelta, powerupsDelta, ammoDelta, genericItemPickup);
             if (mergedOptimistically)
-                StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpQuestsCacheRefreshed);
+                StarApiExports.StarApiLogFileOnly("[Quest] Progress merge applied (native quests-cache-refreshed callback suppressed).");
         }
         var url = $"{_baseApiUrl}/api/quests/{qid.Value:D}/progress";
         try
@@ -3438,7 +3444,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     var mergedOk = MergeQuestProgressIntoLocalCache(qid.Value, gs, monstersKilledDelta, xpEarnedDelta, keysCollectedDelta, armorDelta, healthDelta, weaponsDelta, powerupsDelta, ammoDelta, genericItemPickup);
                     if (mergedOk)
-                        StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpQuestsCacheRefreshed);
+                        StarApiExports.StarApiLogFileOnly("[Quest] Progress merge applied after POST (native quests-cache-refreshed callback suppressed).");
                     else
                         RequestQuestCacheRefreshInBackground(forceRefetch: true);
                 }
@@ -8402,8 +8408,17 @@ public static unsafe class StarApiExports
     /// <summary>Fired after a successful background quest list fetch updated the in-memory quest cache (progress POST, popup refresh, or cold Ensure). Native should re-read tracker/popup CVars.</summary>
     public const int StarApiOpQuestsCacheRefreshed = 28;
 
-    /// <summary>Invoke the operation callback if set (result, operation_type), else invoke the legacy callback (result only).</summary>
+    /// <summary>Invoke operation callback on the game-thread pump when available; fallback to direct invoke.</summary>
     internal static void InvokeOperationCallback(StarApiResultCode code, int operationType)
+    {
+        if (StarSyncExports.TryEnqueueOperationCallback(code, operationType))
+            return;
+
+        InvokeOperationCallbackOnCurrentThread(code, operationType);
+    }
+
+    /// <summary>Invoke callback immediately on the current thread (used by star_sync_pump dispatch).</summary>
+    internal static void InvokeOperationCallbackOnCurrentThread(StarApiResultCode code, int operationType)
     {
         delegate* unmanaged[Cdecl]<int, int, void*, void> opCb;
         void* opUserData;
@@ -8586,6 +8601,9 @@ public static unsafe class StarApiExports
     {
         var raw = message ?? string.Empty;
         AppendStarApiDiagnosticsFileLine(raw, prefixWithStarTag: false);
+        // Quake console is sensitive to high-volume quest lines; keep them file-only.
+        if (raw.StartsWith("[Quest]", StringComparison.Ordinal) || raw.StartsWith("[Quests]", StringComparison.Ordinal))
+            return;
         if (Encoding.UTF8.GetByteCount(raw) <= MaxConsoleLogUtf8Bytes)
             EnqueueConsoleLog(raw);
         else
