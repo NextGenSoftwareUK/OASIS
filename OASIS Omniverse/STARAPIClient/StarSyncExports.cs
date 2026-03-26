@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client;
 
-internal enum PumpActionKind { Auth, Inventory, SendItem, UseItem, AddItemLog }
+internal enum PumpActionKind { Auth, Inventory, SendItem, UseItem, AddItemLog, OperationCallback }
 
 [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
 internal delegate void StarSyncDoneCallback(IntPtr userData);
@@ -31,6 +31,8 @@ internal sealed class PumpAction
     public IntPtr LocalItemsPtr;
     public int LocalCount;
     public int[]? SyncedOut;
+    public int OpResultCode;
+    public int OpType;
 }
 
 public static unsafe class StarSyncExports
@@ -151,10 +153,27 @@ public static unsafe class StarSyncExports
                             }
                         }
                         break;
+                    case PumpActionKind.OperationCallback:
+                        StarApiExports.InvokeOperationCallbackOnCurrentThread((StarApiResultCode)action.OpResultCode, action.OpType);
+                        break;
                 }
             }
             catch { /* avoid crashing native caller */ }
         }
+    }
+
+    internal static bool TryEnqueueOperationCallback(StarApiResultCode code, int operationType)
+    {
+        if (!_initialized)
+            return false;
+
+        PumpQueue.Enqueue(new PumpAction
+        {
+            Kind = PumpActionKind.OperationCallback,
+            OpResultCode = (int)code,
+            OpType = operationType
+        });
+        return true;
     }
 
     private static void WriteBackSynced(IntPtr localItemsPtr, int count, int[] syncedOut)
@@ -266,6 +285,23 @@ public static unsafe class StarSyncExports
     public static int StarSyncAuthInProgress()
     {
         lock (AuthLock) return _authInProgress;
+    }
+
+    [UnmanagedCallersOnly(EntryPoint = "star_sync_auth_force_reset", CallConvs = [typeof(CallConvCdecl)])]
+    public static void StarSyncAuthForceReset()
+    {
+        lock (AuthLock)
+        {
+            _authInProgress = 0;
+            _authHasResult = 0;
+            _authSuccess = 0;
+            _authUsernameOut = string.Empty;
+            _authAvatarIdOut = string.Empty;
+            _authErrorMsg = string.Empty;
+            _authJwtOut = string.Empty;
+            _authOnDone = IntPtr.Zero;
+            _authOnDoneUser = IntPtr.Zero;
+        }
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_sync_inventory_start", CallConvs = [typeof(CallConvCdecl)])]
