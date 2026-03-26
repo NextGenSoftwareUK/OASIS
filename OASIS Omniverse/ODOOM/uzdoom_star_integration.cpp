@@ -98,16 +98,20 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #define ODOOM_K_LEFT      GK_LEFT
 #define ODOOM_K_RIGHT     GK_RIGHT
 #define ODOOM_K_RETURN    GK_RETURN
-#if defined(GK_PAGEUP)
+#if defined(GK_PAGEUP) && defined(GK_PAGEDOWN)
 #define ODOOM_K_PAGEUP    GK_PAGEUP
 #define ODOOM_K_PAGEDOWN  GK_PAGEDOWN
-#elif defined(GK_PRIOR)
+#elif defined(GK_PGUP) && defined(GK_PGDN)
+/* ZDoom-style menu keys (see zdefs.acs: GK_PGUP=2, GK_PGDN=1). */
+#define ODOOM_K_PAGEUP    GK_PGUP
+#define ODOOM_K_PAGEDOWN  GK_PGDN
+#elif defined(GK_PRIOR) && defined(GK_NEXT)
 #define ODOOM_K_PAGEUP    GK_PRIOR
 #define ODOOM_K_PAGEDOWN  GK_NEXT
 #else
-/* Fallback if engine uses other names; define to a harmless value so build succeeds. */
-#define ODOOM_K_PAGEUP    0
-#define ODOOM_K_PAGEDOWN  0
+/* Match d_gui.h legacy numeric codes used by ODOOM_GetRawKeyDown SDL mapping (PGUP=2, PGDN=1). Never use 0 — GetRawKeyDown(0) does not map to any key. */
+#define ODOOM_K_PAGEUP    2
+#define ODOOM_K_PAGEDOWN  1
 #endif
 #define ODOOM_K_HOME      GK_HOME
 #define ODOOM_K_END       GK_END
@@ -2269,6 +2273,7 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 
 static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
+static void ODOOM_FlipHudIntCVar(const char* cvarName);
 
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
@@ -2601,7 +2606,27 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
 		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, keyD, backspace);
-		/* B/X/Z HUD toggles: ZScript flips odoom_hud_show_* on odoom_key_* rising edge (inventory/quest/send closed). Avoid C++ flip here — double-toggle if both ran. */
+		/* HUD X/B/Z: flip only here (same path as odoom_hud_toggle_* CCMDs). ZScript WorldTick cannot set odoom_hud_show_* — "outside menu code" abort in GZDoom. */
+		{
+			static int s_odoom_hud_x_raw_was_down = 0;
+			static int s_odoom_hud_b_raw_was_down = 0;
+			static int s_odoom_hud_z_raw_was_down = 0;
+			if (g_star_initialized)
+			{
+				FBaseCVar* questPopupHudVar = FindCVar("odoom_quest_popup_open", nullptr);
+				int questHudPopupOpen = (questPopupHudVar && questPopupHudVar->GetRealType() == CVAR_Int && questPopupHudVar->GetGenericRep(CVAR_Int).Int != 0);
+				if (x && !s_odoom_hud_x_raw_was_down)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_xp");
+				/* B toggles Not Started filter while quest list is open (ZScript); do not flip beamed HUD there. */
+				if (keyB && !s_odoom_hud_b_raw_was_down && !questHudPopupOpen)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_beamed");
+				if (z && !s_odoom_hud_z_raw_was_down)
+					ODOOM_FlipHudIntCVar("odoom_hud_show_timer");
+			}
+			s_odoom_hud_x_raw_was_down = x ? 1 : 0;
+			s_odoom_hud_b_raw_was_down = keyB ? 1 : 0;
+			s_odoom_hud_z_raw_was_down = z ? 1 : 0;
+		}
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;

@@ -25,8 +25,6 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyUseDown;
 	private bool wasKeyADown;
 	private bool wasKeyCDown;
-	private bool wasKeyZDown;
-	private bool wasKeyXDown;
 	private bool wasKeyIDown;
 	private bool wasKeyODown;
 	private bool wasKeyPDown;
@@ -41,7 +39,6 @@ class OASISInventoryOverlayHandler : EventHandler
 	private bool wasKeyHomeDown;
 	private bool wasKeyEndDown;
 	private bool wasKeyBDown;
-	private bool wasKeyVDown;
 	private bool wasKeyDDown;
 	private bool wasKeyNDown;
 	private bool wasKeyMDown;
@@ -171,8 +168,8 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool crouchDown = (buttons & BT_CROUCH) != 0;
 
 		// Keys captured by C++ when inventory open (odoom_key_* CVars). Read every frame so wasKey* stay in sync when closed.
-		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyK = 0, keyA = 0, keyC = 0, keyZ = 0, keyX = 0, keyI = 0, keyO = 0, keyP = 0, keyS = 0, keyT = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
-		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0, keyB = 0, keyV = 0, keyD = 0, keyN = 0, keyM = 0;
+		int keyUp = 0, keyDown = 0, keyLeft = 0, keyRight = 0, keyUse = 0, keyK = 0, keyA = 0, keyC = 0, keyI = 0, keyO = 0, keyP = 0, keyS = 0, keyT = 0, keyQ = 0, keyEnter = 0, keyBackspace = 0;
+		int keyPgUp = 0, keyPgDown = 0, keyHome = 0, keyEnd = 0, keyB = 0, keyD = 0, keyN = 0, keyM = 0;
 		CVar v;
 		v = CVar.FindCVar("odoom_key_up"); if (v != null) keyUp = v.GetInt();
 		v = CVar.FindCVar("odoom_key_down"); if (v != null) keyDown = v.GetInt();
@@ -183,15 +180,12 @@ class OASISInventoryOverlayHandler : EventHandler
 		v = CVar.FindCVar("odoom_key_home"); if (v != null) keyHome = v.GetInt();
 		v = CVar.FindCVar("odoom_key_end"); if (v != null) keyEnd = v.GetInt();
 		v = CVar.FindCVar("odoom_key_b"); if (v != null) keyB = v.GetInt();
-		v = CVar.FindCVar("odoom_key_v"); if (v != null) keyV = v.GetInt();
 		v = CVar.FindCVar("odoom_key_d"); if (v != null) keyD = v.GetInt();
 		v = CVar.FindCVar("odoom_key_n"); if (v != null) keyN = v.GetInt();
 		v = CVar.FindCVar("odoom_key_m"); if (v != null) keyM = v.GetInt();
 		v = CVar.FindCVar("odoom_key_use"); if (v != null) keyUse = v.GetInt();
 		v = CVar.FindCVar("odoom_key_a"); if (v != null) keyA = v.GetInt();
 		v = CVar.FindCVar("odoom_key_c"); if (v != null) keyC = v.GetInt();
-		v = CVar.FindCVar("odoom_key_z"); if (v != null) keyZ = v.GetInt();
-		v = CVar.FindCVar("odoom_key_x"); if (v != null) keyX = v.GetInt();
 		v = CVar.FindCVar("odoom_key_i"); if (v != null) keyI = v.GetInt();
 		v = CVar.FindCVar("odoom_key_o"); if (v != null) keyO = v.GetInt();
 		v = CVar.FindCVar("odoom_key_p"); if (v != null) keyP = v.GetInt();
@@ -207,7 +201,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyHomePressed = (keyHome != 0) && !wasKeyHomeDown;
 		bool keyEndPressed = (keyEnd != 0) && !wasKeyEndDown;
 		bool keyBPressed = (keyB != 0) && !wasKeyBDown;
-		bool keyVPressed = (keyV != 0) && !wasKeyVDown;
 		bool keyDPressed = (keyD != 0) && !wasKeyDDown;
 		bool keyNPressed = (keyN != 0) && !wasKeyNDown;
 		bool keyMPressed = (keyM != 0) && !wasKeyMDown;
@@ -217,8 +210,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		bool keyUsePressed = (keyUse != 0) && !wasKeyUseDown;
 		bool keyAPressed = (keyA != 0) && !wasKeyADown;
 		bool keyCPressed = (keyC != 0) && !wasKeyCDown;
-		bool keyZPressed = (keyZ != 0) && !wasKeyZDown;
-		bool keyXPressed = (keyX != 0) && !wasKeyXDown;
 		bool keyIPressed = (keyI != 0) && !wasKeyIDown;
 		bool keyOPressed = (keyO != 0) && !wasKeyODown;
 		bool keyPPressed = (keyP != 0) && !wasKeyPDown;
@@ -235,8 +226,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyUseDown = (keyUse != 0);
 		wasKeyADown = (keyA != 0);
 		wasKeyCDown = (keyC != 0);
-		wasKeyZDown = (keyZ != 0);
-		wasKeyXDown = (keyX != 0);
 		wasKeyIDown = (keyI != 0);
 		wasKeyODown = (keyO != 0);
 		wasKeyPDown = (keyP != 0);
@@ -251,7 +240,6 @@ class OASISInventoryOverlayHandler : EventHandler
 		wasKeyHomeDown = (keyHome != 0);
 		wasKeyEndDown = (keyEnd != 0);
 		wasKeyBDown = (keyB != 0);
-		wasKeyVDown = (keyV != 0);
 		wasKeyDDown = (keyD != 0);
 		wasKeyNDown = (keyN != 0);
 		wasKeyMDown = (keyM != 0);
@@ -314,25 +302,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				else showCv.SetInt(1);
 			}
 		}
-		// B/X/Z HUD: flip CVars from same raw-key state C++ writes (odoom_key_*). Only when no inventory, quest, or send popup (matches native guard).
-		if (!popupOpen && !questPopupOpen && sendPopupMode == 0)
-		{
-			if (keyBPressed)
-			{
-				CVar hb = CVar.FindCVar("odoom_hud_show_beamed");
-				if (hb != null) hb.SetInt(hb.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyXPressed)
-			{
-				CVar hx = CVar.FindCVar("odoom_hud_show_xp");
-				if (hx != null) hx.SetInt(hx.GetInt() != 0 ? 0 : 1);
-			}
-			if (keyZPressed)
-			{
-				CVar hz = CVar.FindCVar("odoom_hud_show_timer");
-				if (hz != null) hz.SetInt(hz.GetInt() != 0 ? 0 : 1);
-			}
-		}
+		/* Beamed / XP / timer toggles: native C++ only (ODOOM_FlipHudIntCVar). ZScript must not SetInt odoom_hud_show_* — VM "outside menu code" abort in GZDoom. */
 		if (questPopupOpen)
 		{
 			if (keyBackspacePressed && !questDetailPopupOpen)
@@ -354,13 +324,6 @@ class OASISInventoryOverlayHandler : EventHandler
 					pendSelCv.SetInt(-1);
 				}
 			}
-			int questListTotalFiltered = 0;
-			CVar questCountCv = CVar.FindCVar("odoom_quest_count");
-			if (questCountCv != null) questListTotalFiltered = questCountCv.GetInt();
-			if (questListTotalFiltered < 0) questListTotalFiltered = 0;
-			if (questListTotalFiltered > 0 && questSelectedIndex >= questListTotalFiltered)
-				questSelectedIndex = questListTotalFiltered - 1;
-			if (questSelectedIndex < 0) questSelectedIndex = 0;
 			CVar scrollCvSync = CVar.FindCVar("odoom_quest_scroll_offset");
 			if (scrollCvSync != null) questScrollOffset = scrollCvSync.GetInt();
 			CVar listCv = CVar.FindCVar("odoom_quest_list");
@@ -376,8 +339,14 @@ class OASISInventoryOverlayHandler : EventHandler
 						questLines.Push(allLines[L]);
 				}
 			}
-			/* Filter toggles: V=Not Started, N=In Progress, M=Completed (C++ applies same filters to odoom_quest_count / list window) */
-			if (keyVPressed && !questDetailPopupOpen) {
+			CVar fnCv = CVar.FindCVar("odoom_quest_filter_not_started");
+			CVar fiCv = CVar.FindCVar("odoom_quest_filter_in_progress");
+			CVar fcCv = CVar.FindCVar("odoom_quest_filter_completed");
+			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
+			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
+			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
+			/* Filter toggles: B=Not Started, N=In Progress, M=Completed. Beamed HUD B-toggle is native when quest list is closed only. */
+			if (keyBPressed && !questDetailPopupOpen) {
 				CVar cv = CVar.FindCVar("odoom_quest_filter_not_started");
 				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
 			}
@@ -389,11 +358,15 @@ class OASISInventoryOverlayHandler : EventHandler
 				CVar cv = CVar.FindCVar("odoom_quest_filter_completed");
 				if (cv != null) cv.SetInt(cv.GetInt() != 0 ? 0 : 1);
 			}
-			/* odoom_quest_count = total filtered rows; odoom_quest_list = scroll window only (C++ matches these filters). */
-			int qCount = questListTotalFiltered;
-			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match maxQuestRows (room for 2-line hint)
+			int qCount = 0;
+			CVar questCountCv = CVar.FindCVar("odoom_quest_count");
+			if (questCountCv != null) qCount = questCountCv.GetInt();
+			if (qCount < 0) qCount = 0;
+			if (qCount > 0 && questSelectedIndex >= qCount)
+				questSelectedIndex = qCount - 1;
+			if (questSelectedIndex < 0) questSelectedIndex = 0;
+			int maxQuestRowsKey = (200 - 80) / 12 - 4; // match RenderOverlay maxQuestRows (room for 2-line hint)
 			if (maxQuestRowsKey < 5) maxQuestRowsKey = 5;
-			// So C++ can react to K without relying on one-frame CVar handoff: set selected quest id every frame.
 			CVar selectedIdCv = CVar.FindCVar("odoom_quest_selected_id");
 			if (questDetailPopupOpen && questDetailQuestId.Length() > 0)
 			{
@@ -406,7 +379,7 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (qCount > 0 && winSel >= 0 && winSel < questLines.Size())
 				{
 					array<String> parts;
-					questLines[winSel].Split(parts, "\t", false);
+					questLines[winSel].Split(parts, "\t", TOK_KEEPEMPTY);
 					if (parts.Size() >= 2) selId = parts[1];
 				}
 				if (selectedIdCv != null) selectedIdCv.SetString(selId);
@@ -437,14 +410,13 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (so < 0) so = 0;
 					questScrollOffset = so;
 				}
-				// Enter = open detail (2nd) popup with desc + prereqs/objectives/subquests
 				if (keyEnterPressed)
 				{
 					int winIdx = questSelectedIndex - questScrollOffset;
 					if (winIdx >= 0 && winIdx < questLines.Size())
 					{
 						array<String> parts;
-						questLines[winIdx].Split(parts, "\t", false);
+						questLines[winIdx].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 5)
 						{
 							questDetailQuestId = parts[1];
@@ -452,7 +424,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							questDetailQuestDesc = parts.Size() > 3 ? parts[3] : "";
 							questDetailQuestStatus = parts[4];
 							questDetailPopupOpen = true;
-							questDetailMode = 0;  // default: Overview (quest intro)
+							questDetailMode = 0;
 							questDetailFocus = 0;
 							questDetailPrereqSelected = 0;
 							questDetailObjSelected = 0;
@@ -462,20 +434,19 @@ class OASISInventoryOverlayHandler : EventHandler
 							questDetailSubScroll = 0;
 							questDetailSyncSelectionOnce = true;
 							questDetailSyncSelectionRetry = 0;
-							questDetailIgnoreNextEnter = true;  // same Enter must not be treated as "set active objective"
+							questDetailIgnoreNextEnter = true;
 							CVar detailIdCv = CVar.FindCVar("odoom_quest_detail_quest_id");
 							if (detailIdCv != null) detailIdCv.SetString(questDetailQuestId);
 						}
 					}
 				}
-				// K = Start (Not Started) or Set tracker (In Progress) on selected quest (Space is jump)
 				if (keyKPressed && !questDetailPopupOpen)
 				{
 					int winIdxK = questSelectedIndex - questScrollOffset;
 					if (winIdxK >= 0 && winIdxK < questLines.Size())
 					{
 						array<String> parts;
-						questLines[winIdxK].Split(parts, "\t", false);
+						questLines[winIdxK].Split(parts, "\t", TOK_KEEPEMPTY);
 						if (parts.Size() >= 5)
 						{
 							String qid = parts[1];
@@ -501,18 +472,18 @@ class OASISInventoryOverlayHandler : EventHandler
 				}
 			}
 			int winRows = questLines.Size();
-			if (questListTotalFiltered > 0 && winRows > 0)
+			if (qCount > 0 && winRows > 0)
 			{
 				if (questSelectedIndex < questScrollOffset)
 					questScrollOffset = questSelectedIndex;
 				if (questSelectedIndex >= questScrollOffset + winRows)
 					questScrollOffset = questSelectedIndex - winRows + 1;
-				int maxSc = questListTotalFiltered - winRows;
+				int maxSc = qCount - winRows;
 				if (maxSc < 0) maxSc = 0;
 				if (questScrollOffset > maxSc) questScrollOffset = maxSc;
 				if (questScrollOffset < 0) questScrollOffset = 0;
 			}
-			else if (questListTotalFiltered <= 0)
+			else if (qCount <= 0)
 				questScrollOffset = 0;
 			CVar scrollCvPush = CVar.FindCVar("odoom_quest_scroll_offset");
 			if (scrollCvPush != null) scrollCvPush.SetInt(questScrollOffset);
@@ -1341,11 +1312,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		return item.GetClassName();
 	}
 
+	// Centre help strings in virtual 320-wide HUD (same for main quest list and quest detail).
 	private ui int QuestHelpLineCenterX(Font font, String line)
 	{
-		int x = 160 - font.StringWidth(line) / 2;
-		if (x < 2) x = 2;
-		return x;
+		return 160 - font.StringWidth(line) / 2;
 	}
 
 	private ui String QuestDetailTitleLineFit(Font font, String questName, int titleX, int virtualW, int rightPad)
@@ -1427,7 +1397,7 @@ class OASISInventoryOverlayHandler : EventHandler
 
 		Font f = "SmallFont";
 
-		// Level timer: only shared_sbar (native) left clock; Z toggles odoom_hud_show_timer there — no duplicate MM:SS in this overlay.
+		// Level timer: shared_sbar (native) left clock; odoom_hud_show_timer flipped in C++ (raw Z) — no duplicate MM:SS in this overlay.
 
 		// XP at far right of screen when beamed in (always visible during play)
 		CVar beamedVar = CVar.FindCVar("odoom_star_beamed_in");
@@ -1791,11 +1761,10 @@ class OASISInventoryOverlayHandler : EventHandler
 			int fn = (fnCv != null) ? fnCv.GetInt() : 1;
 			int fi = (fiCv != null) ? fiCv.GetInt() : 1;
 			int fc = (fcCv != null) ? fcCv.GetInt() : 1;
-			int qCountDraw = 0;
+			int qCount = 0;
 			CVar questCountDrawCv = CVar.FindCVar("odoom_quest_count");
-			if (questCountDrawCv != null) qCountDraw = questCountDrawCv.GetInt();
-			if (qCountDraw < 0) qCountDraw = 0;
-			int qCount = qCountDraw;
+			if (questCountDrawCv != null) qCount = questCountDrawCv.GetInt();
+			if (qCount < 0) qCount = 0;
 			int popupW = 320;  // full width of screen (virtual 320), left-aligned
 			int popupH = 200;
 			int popupX = -55;  // 55px left so popup is left-aligned to screen edge
@@ -1858,7 +1827,6 @@ class OASISInventoryOverlayHandler : EventHandler
 					if (qName.Length() > 32) qName = String.Format("%s..", qName.Left(30));
 					bool selected = (drawOffset + i == questSelectedIndex);
 					bool isTracker = (trackerQuestId.Length() > 0 && parts[1].Compare(trackerQuestId) == 0);
-					// Completed: never green (avoids confusion with tracked in-progress quest). Selected completed = gold; else grey.
 					int cr;
 					if (status.Compare("Completed") == 0)
 						cr = selected ? Font.CR_GOLD : Font.CR_GRAY;
@@ -1883,15 +1851,14 @@ class OASISInventoryOverlayHandler : EventHandler
 				screen.DrawText(f, Font.CR_GRAY, noQuestX, popupY + 48, noQuestMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			// Main quest list help: same Y as quest detail hints; centred in virtual 320
-			int mainHint1Y = popupH - QUEST_HELP_LINE1_FROM_BOTTOM;
-			int mainHint2Y = popupH - QUEST_HELP_LINE2_FROM_BOTTOM;
-			String mh1 = "V/N/M=filter  PgUp/PgDn  Home/End  Arrows  Enter  K";
-			String mh2 = "Backspace=back/close  Q=close list";
+			int mainHint1Y = popupY + popupH - QUEST_HELP_LINE1_FROM_BOTTOM;
+			int mainHint2Y = popupY + popupH - QUEST_HELP_LINE2_FROM_BOTTOM;
+			String mh1 = "B/N/M=filter  PgUp/PgDn/Home/End  Arrows  Enter=View Details";
+			String mh2 = "Backspace=back/close  Q=close list  K=Start Quest";
 			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, mh1), mainHint1Y, mh1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, mh2), mainHint2Y, mh2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
-				// Same position as toast: top centre of screen
 				double statusScale = 0.5;
 				int msgW = int(f.StringWidth(questStatusMessage) * statusScale);
 				int statusX = 160 - (msgW / 2);
