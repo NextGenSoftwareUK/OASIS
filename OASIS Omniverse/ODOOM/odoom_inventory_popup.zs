@@ -1150,12 +1150,25 @@ class OASISInventoryOverlayHandler : EventHandler
 	}
 
 	// STAR item matches tab (same data as "star inventory" command, from odoom_star_inventory_list).
-	// Tracker lines are ProgressSummary strings. Completed is inferred from 100%.
+	// Tracker lines: C# appends "(N%)" per requirement; same as ProgressSummary. Grey when every " and "-joined clause ends with "(100%)" (not merely if any clause hit 100%).
 	private ui bool OdoomTrackerLineIsCompleted(String line)
 	{
 		if (line.Length() == 0) return false;
-		if (line.IndexOf("(100%)") >= 0) return true;
-		return false;
+		if (line.IndexOf("(100%)") < 0) return false;
+		array<String> segs;
+		line.Split(segs, " and ", false);
+		if (segs.Size() <= 1)
+			return true;
+		for (int i = 0; i < segs.Size(); i++)
+		{
+			String s = segs[i];
+			while (s.Length() > 0 && s.Left(1) == " ") s = s.Mid(1);
+			while (s.Length() > 0 && s.Mid(s.Length() - 1, 1) == " ") s = s.Left(s.Length() - 1);
+			if (s.Length() == 0) continue;
+			if (s.Length() < 6 || s.Mid(s.Length() - 6, 6).Compare("(100%)") != 0)
+				return false;
+		}
+		return true;
 	}
 
 	/** Detail popup objective lines from star_api_get_quest_objectives_string: Q\\tid\\tTitle\\tDescription\\tstatus\\tpct\\n (see StarApiClient.SerializeObjectivesAsQuestLines). If a 5-field legacy row omits the empty Description column, parts[3] is status — do not show that as the body text. */
@@ -1479,9 +1492,10 @@ class OASISInventoryOverlayHandler : EventHandler
 				String titleLabel = (qTitle == "Loading..." || qTitle == "No Active Quest Found" || qTitle == "No Quests Found")
 					? qTitle : String.Format("Quest: %s", qTitle);
 				double titleScale = 0.6;
+				// Tracker title includes " (N%)" from Q-line pct (C++); grey at 100% like completed objective rows.
 				int titleCr = Font.CR_GOLD;
 				if (OdoomTrackerLineIsCompleted(qTitle))
-					titleCr = Font.CR_GRAY;
+					titleCr = Font.CR_DARKGRAY;
 				screen.DrawText(f, titleCr, trackX, trackY, titleLabel, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, titleScale, DTA_ScaleY, titleScale);
 				String objStr = (trackerObjLinesCv != null) ? trackerObjLinesCv.GetString() : "";
 				array<String> objLines;
@@ -1507,7 +1521,7 @@ class OASISInventoryOverlayHandler : EventHandler
 							bool done = OdoomTrackerLineIsCompleted(line);
 							int cr;
 							if (done)
-								cr = Font.CR_GRAY;
+								cr = Font.CR_DARKGRAY;
 							else if (i == activeIdx)
 								cr = Font.CR_GREEN;
 							else
@@ -1521,7 +1535,7 @@ class OASISInventoryOverlayHandler : EventHandler
 						// Single objective (progress text)
 						String line = objLines[dispIdx];
 						bool done = OdoomTrackerLineIsCompleted(line);
-						int cr = done ? Font.CR_GRAY : Font.CR_WHITE;
+						int cr = done ? Font.CR_DARKGRAY : Font.CR_WHITE;
 						if (line.Length() > 0)
 							screen.DrawText(f, cr, trackX, trackY + 10, line, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, trackScale, DTA_ScaleY, trackScale);
 					}
@@ -1747,11 +1761,11 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (subQ.Size() == 0) screen.DrawText(f, Font.CR_GRAY, rightX, sect0Y + 10, "(none)", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
 			}
-			// Detail popup help: same Y as main quest list hints (virtual 200 panel; do not add detail popupY)
+			// Detail popup help: same Y as main quest list hints (virtual 200 panel; do not add detail popupY).
 			int listHint1Y = popupH - QUEST_HELP_LINE1_FROM_BOTTOM;
 			int listHint2Y = popupH - QUEST_HELP_LINE2_FROM_BOTTOM;
-			String dh1 = "Left/Right=tab  Up/Down=list  Enter=objective / drill-down";
-			String dh2 = "D/O/P/S=jump tab  Backspace=back/close";
+			String dh1 = "Left/Right=tab  Up/Down=list  Enter=Select Active Objective";
+			String dh2 = "Backspace=back/close";
 			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, dh1), listHint1Y, dh1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, dh2), listHint2Y, dh2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			return;
@@ -1868,16 +1882,13 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (noQuestX < popupX + 2) noQuestX = popupX + 2;
 				screen.DrawText(f, Font.CR_GRAY, noQuestX, popupY + 48, noQuestMsg, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			}
-			// Main quest list help: fixed footer rows (popupY=0 for this popup); centred horizontally in virtual 320
-			int mainFooterBaseY = 0;
-			int mainHint1Y = mainFooterBaseY + popupH - 58;
-			int mainHint2Y = mainFooterBaseY + popupH - 43;
+			// Main quest list help: same Y as quest detail hints; centred in virtual 320
+			int mainHint1Y = popupH - QUEST_HELP_LINE1_FROM_BOTTOM;
+			int mainHint2Y = popupH - QUEST_HELP_LINE2_FROM_BOTTOM;
 			String mh1 = "V/N/M=filter  PgUp/PgDn  Home/End  Arrows  Enter  K";
 			String mh2 = "Backspace=back/close  Q=close list";
-			int mh1x = 160 - f.StringWidth(mh1) / 2; if (mh1x < 2) mh1x = 2;
-			int mh2x = 160 - f.StringWidth(mh2) / 2; if (mh2x < 2) mh2x = 2;
-			screen.DrawText(f, Font.CR_DARKGRAY, mh1x, mainHint1Y, mh1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
-			screen.DrawText(f, Font.CR_DARKGRAY, mh2x, mainHint2Y, mh2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, mh1), mainHint1Y, mh1, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+			screen.DrawText(f, Font.CR_DARKGRAY, QuestHelpLineCenterX(f, mh2), mainHint2Y, mh2, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 			if (questStatusFrames > 0 && questStatusMessage.Length() > 0)
 			{
 				// Same position as toast: top centre of screen
