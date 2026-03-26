@@ -1,0 +1,159 @@
+# OASIS_CLEAN project rules
+
+## Git commits
+- **Never** add "Co-authored-by: Cursor" or any Cursor/agent co-author line to git commit messages. The user does not permit this.
+
+## OASIS agent messaging (Cursor ↔ friend’s agent)
+- When the user asks to **discover**, **message**, or **find “Hesling’s agent”** (or “Hesling” in OASIS), use OASIS MCP with **service name `"hesling"`** for discovery (`oasis_get_agents_by_service` or `oasis_discover_agents_via_serv` with `serviceName: "hesling"`). Cache the returned `agent_id` in the conversation for follow-up sends.
+- **Send message:** `oasis_send_a2a_jsonrpc_request` with `method: "service_request"`, `params: { to_agent_id: "<hesling-agent-id>", content: "<user's message>" }`, and an `id`. Discover first if we don’t have the agent_id.
+- **Check replies:** `oasis_get_pending_a2a_messages` when the user asks to check messages from OASIS or from Hesling.
+- Sender must be authenticated as an **Agent** avatar (not User). See `MCP/AGENT_TO_AGENT_TEST.md` for full flow and frictionless setup.
+
+## STARNET — OASIS OAPP registry
+
+STARNET is the discovery and publishing layer for **OAPPs** (Omniverse Applications). Every OAPP registered here gets a UUID, appears in the Celestial Cyberspace galaxy, and is clonable by any agent or developer.
+
+### Where STARNET lives in this repo
+
+| Layer | Path |
+|-------|------|
+| C# engine (core managers + DNA) | `ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/` |
+| REST API (running at localhost:5001) | `STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/` |
+| MCP tools (AI-callable) | `MCP/src/tools/starTools.ts` |
+| Store UI | `oportal-repo/starnet-store.html` + `starnet-store.js` |
+| Galaxy auto-discovery | `celestial-cyberspace/index.html` |
+| Machine-readable manifest | `starnet-manifest.json` (repo root) |
+
+### MCP — always beam in first
+
+```
+star_beam_in(username, password)
+```
+
+Then: `star_create_oapp` → `star_create_zome` → `star_create_holon` → `star_publish_oapp` → `star_activate_oapp`
+
+Full guide: `Docs/HOLONISING_YOUR_APP_WITH_STAR_MCP.md` · Full MCP ref: `MCP/src/tools/starTools.ts`
+
+### OAPP type enum
+
+0=Default · 1=Console · 2=WebAPI · 3=Blazor · 4=MAUI · **5=OAPPTemplate** · 6=GeneratedCodeOnly
+
+### Known OAPPs (24 published — full registry in `starnet-manifest.json`)
+
+| OAPP | ID |
+|------|----|
+| PanGalacticTimebank | `da9c06d7-d69d-4814-8cfa-7fbc463857e1` |
+| PanGalacticMonitor | `10c02eb4-8f65-497c-8526-855bca0fba9a` |
+| ForumTemplate | `2374eb0c-6607-404b-97bf-fffe7deae26a` |
+| DAOTemplate | `fa181560-486a-40fe-9538-fc9f285487b5` |
+| MarketplaceTemplate | `a52192d1-5207-4b88-aad6-ef87aa76fb9f` |
+| GameTemplate | `23a6df3a-7773-4215-9cc8-a55fcc18ed17` |
+| CredentialingTemplate | `7ff4bfbf-299b-4032-aafe-0ad174a140ad` |
+| AgentServiceMarketplaceTemplate | `04210da6-fb32-4009-929f-d3dc445ea878` |
+| QuestBuilderTemplate | `5e2e3c0d-1311-462b-b53a-0848770dab47` |
+| EscrowTimebankTemplate | `54a6ccb3-bfe6-4c0d-bf87-4a294870306e` |
+| GeoNFTHuntTemplate | `b0a26e0b-552a-48d1-ac2c-c36638d774fd` |
+| ClanGuildTemplate | `a534d406-fae1-4caa-9090-746316c68e4a` |
+| SovereignDataVaultTemplate | `9e006af2-f744-4104-a0bf-570b0c8f6287` |
+| PortOSTemplate | `d4cd6e87-7b16-4066-9b8a-1a0949d291d0` |
+| RWAPropertyTemplate | `97b83c2b-7930-4a0b-a9c3-a8b2655e18e7` |
+| BusinessEntityTemplate | `3b0d2c9a-f558-49ea-86fc-f62550336676` |
+| SocialGraphTemplate | `05495506-4679-4519-b421-d3edfba56daf` |
+| SubscriptionMembershipTemplate | `dc2562b4-95af-4063-85ec-0d4ee797b717` |
+| CompetitionTournamentTemplate | `a64f5fda-1f71-4ef2-88fc-6d490f562633` |
+| AgriTraceabilityTemplate | `112e14c9-b245-4cd3-9961-e2bd15a6f5b3` |
+| ConservationImpactTemplate | `e1f554dc-60b3-4e3b-9182-77ff636f9055` |
+| CreatorEconomyTemplate | `9af2738f-f616-4537-b382-38e18f58c8db` |
+| HospitalityEventsTemplate | `d80ca1c5-1da8-45b2-9eb2-631aa8cb5d56` |
+| SovereignHealthRecordTemplate | `a35226fa-3e3d-46c6-9d68-041785e5d4dd` |
+
+---
+
+## OASIS Holons — Agent Orientation
+
+### What is a Holon?
+
+A **holon** is OASIS's core data unit — a self-describing record with a canonical `Id` (the same across every storage provider), typed fields, and a `ParentHolonId` that places it in the COSMIC hierarchy. Holons are grouped into **zomes** (domain modules) inside a **CelestialBody** (your OAPP's planet). The blueprint is a **DNA JSON file**.
+
+Full docs: `STAR_Templates/docs/HOLONS_OVERVIEW.md`
+
+### Where to Find Existing Holons
+
+| Need | Where |
+|---|---|
+| All published templates + IDs | `starnet-manifest.json` (repo root) |
+| DNA schema for a template | `STAR_Templates/star_dna/<TemplateName>.json` |
+| Human-readable holon reference | `STAR_Templates/docs/` — 6 reference docs |
+| Live STARNET store | `GET http://localhost:5001/api/OAPPs` |
+
+### How to Create a New Holon Template
+
+**Step 1 — Write the DNA JSON** (`STAR_Templates/star_dna/MyTemplate.json`):
+```json
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "<new-uuid>",
+  "OAPPName": "MyTemplate",
+  "OAPPType_enum": 5,
+  "CelestialBodyDNA": {
+    "Name": "MyPlanet",
+    "CelestialBodies": [{
+      "CelestialBodyType": "Planet",
+      "Zomes": [{
+        "Name": "MyZome",
+        "Holons": [{
+          "Name": "MyHolon",
+          "Fields": [
+            { "Name": "MyId",   "Type": "Guid",   "Required": true },
+            { "Name": "Name",   "Type": "string", "Required": true },
+            { "Name": "Status", "Type": "string", "Required": false,
+              "Enum": ["active", "inactive"] }
+          ]
+        }]
+      }]
+    }]
+  }
+}
+```
+
+Field types: `Guid` · `string` · `string[]` · `int` · `double` · `bool` · `DateTime`
+
+**Step 2 — Register + publish via the STAR WebAPI:**
+```python
+import requests, datetime
+STAR = 'http://localhost:5001'
+AVATAR_ID = '3a7dab79-cfe0-4dda-899a-d1128cf5208b'
+now = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
+
+# 1. Auth
+auth = requests.post(f'{STAR}/api/Avatar/authenticate',
+    json={'username':'OASIS_ADMIN','password':'Uppermall1!'}).json()
+token = <extract JWT from auth response>
+
+headers = {'Authorization': f'Bearer {token}'}
+
+# 2. Create — API ignores any id in the body and assigns its own
+r = requests.post(f'{STAR}/api/OAPPs/create', headers=headers, json={
+    'name': 'MyTemplate', 'createdByAvatarId': AVATAR_ID,
+    'sourcePublicOnSTARNET': True, 'sourcePublishedOnSTARNET': True,
+    'starnetdna': {'name': 'MyTemplate', 'description': '...', 'version': '1.0.0',
+        'oappType': 5, 'publishedOn': now, 'publishedOnSTARNET': True}
+}).json()
+actual_id = r['result']['id']  # ← always use this, not the id you provided
+
+# 3. Publish — PUT with public flags + publishedOn
+full = requests.get(f'{STAR}/api/OAPPs/{actual_id}', headers=headers).json()['result']
+full.update({'sourcePublishedOnSTARNET': True, 'sourcePublicOnSTARNET': True,
+             'isActive': True, 'createdByAvatarId': AVATAR_ID})
+full.setdefault('starnetdna', {})['publishedOn'] = now
+requests.put(f'{STAR}/api/OAPPs/{actual_id}', headers=headers, json=full)
+```
+
+**Step 3 — Update `starnet-manifest.json`** with `actual_id`, name, tags, summary, zomes, apis, dna path.
+
+### Holon Conventions
+- First field is always `<EntityName>Id` (Guid, Required) — the primary key
+- Child holons FK back to parent: `TerminalHolon` has `PortId` → `PortHolon`
+- Use `Status` enum + `IsActive` / `IsDeleted` for lifecycle — never hard-delete
+- Sensitive data: set `IsEncrypted: true`, store file hash in `IpfsCid`, optional `OnChainTxHash`
+- Sum of `RoyaltyRecipientHolon.SharePct` in a split must equal 100
