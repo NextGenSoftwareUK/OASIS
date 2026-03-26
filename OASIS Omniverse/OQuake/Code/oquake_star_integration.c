@@ -43,6 +43,9 @@ static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle
 #define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
 #endif
 
+/* Async `star beamin` guard: wall-clock seconds (frame-based timeout broke at high FPS). Keep near HttpClient timeout. */
+#define OQ_BEAMIN_ASYNC_TIMEOUT_SEC 30.0
+
 #ifndef STAR_API_HAS_SEND_ITEM
 /* Forward declare send-item API when using an older star_api.h. Link with updated star_api.lib. */
 star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
@@ -344,7 +347,8 @@ static int g_star_refresh_xp_called_this_session = 0;
 static volatile int g_star_profile_loaded_pending = 0;
 /** True when async SSO auth was started (star beamin); cleared when OQ_OnAuthDone runs or timeout. Used to show timeout error if callback never fires. */
 static int g_star_async_auth_pending = 0;
-static int g_star_async_auth_pending_frames = 0;
+/* Wall-clock start for async beamin; do not use frame counts (high FPS caused ~7s false timeouts). */
+static double g_star_async_auth_start_realtime = 0;
 /** Set when we showed timeout; ignore the next OQ_OnAuthDone (late callback from the timed-out attempt) and allow retry. */
 static int g_star_auth_timed_out = 0;
 static int g_star_console_registered = 0;
@@ -1301,6 +1305,7 @@ static void OQ_OnAuthDone(void* user_data) {
     star_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
     g_star_async_auth_pending = 0;
     if (success) {
+        star_api_log_to_file("[OQuake] Beamin: auth OK (async callback); loading profile");
         /* Persist JWT from auth result so oasisstar.json has jwt_token for autobeamin (avoids relying on get_current_jwt export). */
         if (jwt_buf[0])
             q_strlcpy(g_oq_saved_jwt, jwt_buf, sizeof(g_oq_saved_jwt));
@@ -1341,6 +1346,11 @@ static void OQ_OnAuthDone(void* user_data) {
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
     } else {
         const char* msg = error_msg[0] ? error_msg : "Unknown error";
+        {
+            char logb[384];
+            q_snprintf(logb, sizeof(logb), "[OQuake] Beamin: auth failed (async): %s", msg);
+            star_api_log_to_file(logb);
+        }
         Con_Printf("Beam-in failed: %s\n", msg);
         {
             char toast_buf[256];
@@ -1792,11 +1802,28 @@ static int OQ_LoadJsonConfig(const char *json_path) {
     if (!f) {
         return 0;
     }
-    
-    char json[4096] = {0};
-    size_t len = fread(json, 1, sizeof(json) - 1, f);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return 0;
+    }
+    long fsz = ftell(f);
+    if (fsz < 0 || fsz > (long)(512 * 1024)) {
+        fclose(f);
+        return 0;
+    }
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return 0;
+    }
+    char *json = (char *)malloc((size_t)fsz + 1);
+    if (!json) {
+        fclose(f);
+        return 0;
+    }
+    size_t len = fread(json, 1, (size_t)fsz, f);
     fclose(f);
     if (len == 0) {
+        free(json);
         return 0;
     }
     json[len] = 0;
@@ -1897,19 +1924,19 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_send_to_address_after_minting", value);
         loaded = 1;
     }
-    /* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility. */
-    if ((OQ_ExtractJsonValue(json, "beamedin_avatar", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_username", value, sizeof(value))) && value[0]) {
-        q_strlcpy(g_oq_saved_username, value, sizeof(g_oq_saved_username));
+    /* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility.
+     * jwt_token / refresh_token must not use value[256]: real JWTs are often 800+ bytes — truncation caused Unauthorized on every STAR call. */
+    if ((OQ_ExtractJsonValue(json, "beamedin_avatar", g_oq_saved_username, sizeof(g_oq_saved_username)) || OQ_ExtractJsonValue(json, "saved_username", g_oq_saved_username, sizeof(g_oq_saved_username))) && g_oq_saved_username[0]) {
         loaded = 1;
     }
-    if ((OQ_ExtractJsonValue(json, "jwt_token", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_jwt", value, sizeof(value))) && value[0]) {
-        q_strlcpy(g_oq_saved_jwt, value, sizeof(g_oq_saved_jwt));
+    g_oq_saved_jwt[0] = '\0';
+    if (!OQ_ExtractJsonValue(json, "jwt_token", g_oq_saved_jwt, sizeof(g_oq_saved_jwt)))
+        OQ_ExtractJsonValue(json, "saved_jwt", g_oq_saved_jwt, sizeof(g_oq_saved_jwt));
+    if (g_oq_saved_jwt[0])
         loaded = 1;
-    }
-    if (OQ_ExtractJsonValue(json, "refresh_token", value, sizeof(value)) && value[0]) {
-        q_strlcpy(g_oq_saved_refresh_token, value, sizeof(g_oq_saved_refresh_token));
+    g_oq_saved_refresh_token[0] = '\0';
+    if (OQ_ExtractJsonValue(json, "refresh_token", g_oq_saved_refresh_token, sizeof(g_oq_saved_refresh_token)) && g_oq_saved_refresh_token[0])
         loaded = 1;
-    }
     /* Per-monster mint: mint_monster_oquake_dog, etc. Default 1 if key missing. */
     {
         int i, j;
@@ -1925,6 +1952,7 @@ static int OQ_LoadJsonConfig(const char *json_path) {
             loaded = 1;
         }
     }
+    free(json);
     return loaded;
 }
 
@@ -2068,39 +2096,6 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     
     fclose(f);
     return 1;
-}
-
-/* Optional Holochain / STAR DNA path file; create empty default next to oasisstar.json (parity with ODOOM). */
-static void OQ_EnsureDefaultOasisstarDna(const char *oasisstar_json_path) {
-    char dna_path[512];
-    if (!oasisstar_json_path || !oasisstar_json_path[0])
-        return;
-    q_strlcpy(dna_path, oasisstar_json_path, sizeof(dna_path));
-    {
-        char *slash = strrchr(dna_path, '\\');
-        if (!slash) slash = strrchr(dna_path, '/');
-        if (slash) {
-            slash[1] = 0;
-            q_strlcat(dna_path, "oasisstar.dna", sizeof(dna_path));
-        } else {
-            q_strlcpy(dna_path, "oasisstar.dna", sizeof(dna_path));
-        }
-    }
-    {
-        FILE *t = fopen(dna_path, "r");
-        if (t) {
-            fclose(t);
-            return;
-        }
-    }
-    {
-        FILE *w = fopen(dna_path, "w");
-        if (!w)
-            return;
-        fprintf(w, "{\n  \"starnet_dna_path\": \"\"\n}\n");
-        fclose(w);
-        Con_Printf("OQuake: Created default oasisstar.dna: %s\n", dna_path);
-    }
 }
 
 /* Create oasisstar.json when no file exists (even if config.cfg alone satisfied config_loaded). */
@@ -2941,10 +2936,6 @@ void OQuake_STAR_Init(void) {
             Cbuf_AddText("wait 0.5; oasis_reload_config\n");
         }
         OQ_EnsureOasisstarJsonOnDisk();
-        {
-            const char *dna_base = g_json_config_path[0] ? g_json_config_path : (found_json_path[0] ? found_json_path : "oasisstar.json");
-            OQ_EnsureDefaultOasisstarDna(dna_base);
-        }
     }
 
     /* Load config: CVAR first, then env var, then default */
@@ -2987,11 +2978,16 @@ void OQuake_STAR_Init(void) {
             const char *star_url = oquake_star_api_url.string;
             if (oasis_url && oasis_url[0]) {
                 star_api_set_oasis_base_url(oasis_url);
-            } else if (g_oq_saved_jwt[0]) {
-                static int s_logged_oasis_missing;
-                if (!s_logged_oasis_missing) {
-                    s_logged_oasis_missing = 1;
-                    printf("OQuake STAR API: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"http://localhost:5555\" to oasisstar.json for auto-renew.\n");
+            } else {
+                const char *oe = getenv("OASIS_WEB4_API_BASE_URL");
+                if (oe && oe[0])
+                    star_api_set_oasis_base_url(oe);
+                else if (g_oq_saved_jwt[0]) {
+                    static int s_logged_oasis_missing;
+                    if (!s_logged_oasis_missing) {
+                        s_logged_oasis_missing = 1;
+                        printf("OQuake STAR API: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\" to oasisstar.json or OASIS_WEB4_API_BASE_URL.\n");
+                    }
                 }
             }
             /* Local dev: if STAR API is localhost but OASIS is still production default, use local OASIS so refresh works. */
@@ -3687,13 +3683,21 @@ void OQuake_STAR_PollItems(void) {
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
 
-    /* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
+    /* If async auth was started but callback never fired (hang, or star_sync_pump never runs e.g. missing host.c patch), wall-clock timeout. */
     if (g_star_async_auth_pending) {
-        g_star_async_auth_pending_frames++;
-        if (g_star_async_auth_pending_frames > 35 * 30) {
+        extern double realtime;
+        double elapsed = realtime - g_star_async_auth_start_realtime;
+        if (elapsed > OQ_BEAMIN_ASYNC_TIMEOUT_SEC) {
             g_star_async_auth_pending = 0;
             g_star_auth_timed_out = 1;  /* Ignore late callback from this attempt so retry can proceed */
             star_sync_auth_force_reset();  /* Clear star_sync state so "star beamin" again is allowed */
+            {
+                char logb[512];
+                q_snprintf(logb, sizeof(logb),
+                    "[OQuake] Beamin: TIMEOUT after %.1fs — no main-thread auth callback (star_sync_pump never ran). Fix: OQuake_STAR_PollItems() must run every frame in vkQuake host.c after CL_ReadFromServer (BUILD_OQUAKE.sh unix patch or apply_oquake_to_vkquake.ps1). URIs can be correct; this is not a WEB4/WEB5 port issue.",
+                    elapsed);
+                star_api_log_to_file(logb);
+            }
             Con_Printf("Beam-in failed: timeout (no response from server).\n");
             OQ_SetToastMessage("Beam-in failed: timeout (no response from server).");
         }
@@ -4210,9 +4214,17 @@ void OQuake_STAR_Console_f(void) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());
             return;
         }
-        /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
-        if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
-            star_api_set_oasis_base_url(oquake_oasis_api_url.string);
+        /* SSO POST /api/avatar/authenticate goes to WEB4 (_oasisBaseUrl), not star_api_url (WEB5). Apply from game config when set. */
+        {
+            const char *oasis_apply = NULL;
+            if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0])
+                oasis_apply = oquake_oasis_api_url.string;
+            else
+                oasis_apply = getenv("OASIS_WEB4_API_BASE_URL");
+            if (oasis_apply && oasis_apply[0])
+                star_api_set_oasis_base_url(oasis_apply);
+            else
+                star_api_log_to_file("[OQuake] Beamin: no oasis_api_url in cvars/json and no OASIS_WEB4_API_BASE_URL; STAR Init may still set WEB4 (e.g. localhost STAR :7777 -> OASIS :8888).");
         }
         /* Load username: runtime -> CVAR -> env */
         const char* username = runtime_user;
@@ -4238,9 +4250,20 @@ void OQuake_STAR_Console_f(void) {
                 return;
             }
             g_star_auth_timed_out = 0;
+            {
+                extern double realtime;
+                g_star_async_auth_start_realtime = realtime;
+            }
             star_sync_auth_start(username, password, OQ_OnAuthDone, NULL);
             g_star_async_auth_pending = 1;
-            g_star_async_auth_pending_frames = 0;
+            {
+                char logb[640];
+                const char *ou = (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) ? oquake_oasis_api_url.string : "(not set)";
+                q_snprintf(logb, sizeof(logb),
+                    "[OQuake] Beamin: async SSO user=%s star_api_url=%s oasis_api_url=%s (wall timeout %.0fs; HttpClient %ds). WEB4 POST /api/avatar/authenticate uses oasis, not star_api_url.",
+                    username, api_url, ou, OQ_BEAMIN_ASYNC_TIMEOUT_SEC, g_star_config.timeout_seconds > 0 ? g_star_config.timeout_seconds : 30);
+                star_api_log_to_file(logb);
+            }
             Con_Printf("Authenticating... Please wait...\n");
             if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
             if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
