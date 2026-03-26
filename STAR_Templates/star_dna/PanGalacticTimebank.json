@@ -1,0 +1,94 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "da9c06d7-d69d-4814-8cfa-7fbc463857e1",
+  "OAPPName": "PanGalacticTimebank",
+  "OAPPDesc": "Pan Galactic Timebank OAPP — a global, digital-work-oriented time bank. Members in circles earn and spend time credits via a double-entry ledger. Supports clearing with STAR Holon attestation, invoicing, borrowing, pledges, and OASIS Avatar identity.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "CelestialBodyDNA": {
+    "Name": "PanGalacticTimebankPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "PanGalacticTimebankPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "IdentityZome",
+            "Description": "Member profiles linked to OASIS Avatars",
+            "Holons": [
+              {
+                "Name": "MemberHolon",
+                "Description": "A timebank member linked to an OASIS Avatar",
+                "Fields": [
+                  { "Name": "MemberId",     "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",     "Type": "Guid",     "Required": false },
+                  { "Name": "DisplayName",  "Type": "string",   "Required": true },
+                  { "Name": "CircleId",     "Type": "Guid",     "Required": false },
+                  { "Name": "Balance",      "Type": "decimal",  "Required": false },
+                  { "Name": "JoinedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",  "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "LedgerZome",
+            "Description": "Double-entry time credit ledger",
+            "Holons": [
+              {
+                "Name": "TransactionHolon",
+                "Description": "A time credit exchange between two members",
+                "Fields": [
+                  { "Name": "TransactionId",  "Type": "Guid",     "Required": true },
+                  { "Name": "FromMemberId",   "Type": "Guid",     "Required": true },
+                  { "Name": "ToMemberId",     "Type": "Guid",     "Required": true },
+                  { "Name": "Hours",          "Type": "decimal",  "Required": true },
+                  { "Name": "Description",    "Type": "string",   "Required": true },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "InvoiceHolon",
+                "Description": "A time credit invoice",
+                "Fields": [
+                  { "Name": "InvoiceId",      "Type": "Guid",     "Required": true },
+                  { "Name": "IssuerId",       "Type": "Guid",     "Required": true },
+                  { "Name": "RecipientId",    "Type": "Guid",     "Required": true },
+                  { "Name": "Hours",          "Type": "decimal",  "Required": true },
+                  { "Name": "Description",    "Type": "string",   "Required": true },
+                  { "Name": "DueAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "PaidAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": true,
+                    "Enum": ["pending", "paid", "cancelled"] }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CircleZome",
+            "Description": "Timebank circles (local groups)",
+            "Holons": [
+              {
+                "Name": "CircleHolon",
+                "Description": "A timebank circle — local community group",
+                "Fields": [
+                  { "Name": "CircleId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Name",           "Type": "string",   "Required": true },
+                  { "Name": "Description",    "Type": "string",   "Required": false },
+                  { "Name": "AdminAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "MemberCount",    "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

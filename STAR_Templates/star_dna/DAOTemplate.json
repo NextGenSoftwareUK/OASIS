@@ -1,0 +1,101 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "fa181560-486a-40fe-9538-fc9f285487b5",
+  "OAPPName": "DAOTemplate",
+  "OAPPDesc": "Holonic DAO governance template. Members make and vote on proposals; treasury is tracked as Holons; all governance actions earn karma on the OASIS reputation layer.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "CelestialBodyDNA": {
+    "Name": "DAOTemplatePlanet",
+    "CelestialBodies": [
+      {
+        "Name": "DAOTemplatePlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "MemberZome",
+            "Description": "DAO member profiles with voting power",
+            "Holons": [
+              {
+                "Name": "DAOMemberHolon",
+                "Description": "A DAO member linked to an OASIS Avatar",
+                "Fields": [
+                  { "Name": "MemberId",     "Type": "Guid",   "Required": true },
+                  { "Name": "AvatarId",     "Type": "Guid",   "Required": false },
+                  { "Name": "DisplayName",  "Type": "string", "Required": true },
+                  { "Name": "Role",         "Type": "string", "Required": false },
+                  { "Name": "VotingPower",  "Type": "double", "Required": false },
+                  { "Name": "JoinedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",  "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "GovernanceZome",
+            "Description": "Proposals and votes",
+            "Holons": [
+              {
+                "Name": "ProposalHolon",
+                "Description": "A governance proposal submitted for a vote — earns karma on submission",
+                "Fields": [
+                  { "Name": "ProposalId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ProposerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "ProposerName",     "Type": "string",   "Required": true },
+                  { "Name": "Title",            "Type": "string",   "Required": true },
+                  { "Name": "Description",      "Type": "string",   "Required": false },
+                  { "Name": "Status",           "Type": "string",   "Required": false,
+                    "Enum": ["draft", "open", "passed", "rejected", "executed"] },
+                  { "Name": "VotesFor",         "Type": "int",      "Required": false },
+                  { "Name": "VotesAgainst",     "Type": "int",      "Required": false },
+                  { "Name": "QuorumRequired",   "Type": "int",      "Required": false },
+                  { "Name": "CreatedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "ClosesAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",      "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "VoteHolon",
+                "Description": "A member vote on a proposal",
+                "Fields": [
+                  { "Name": "VoteId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ProposalId",   "Type": "Guid",     "Required": true },
+                  { "Name": "VoterAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "VoterName",    "Type": "string",   "Required": true },
+                  { "Name": "Direction",    "Type": "string",   "Required": true,
+                    "Enum": ["for", "against", "abstain"] },
+                  { "Name": "Weight",       "Type": "double",   "Required": false },
+                  { "Name": "CastAt",       "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "TreasuryZome",
+            "Description": "Treasury transactions approved by governance",
+            "Holons": [
+              {
+                "Name": "TreasuryHolon",
+                "Description": "A treasury allocation or payment linked to a proposal",
+                "Fields": [
+                  { "Name": "TxId",               "Type": "Guid",     "Required": true },
+                  { "Name": "ProposalId",         "Type": "Guid",     "Required": false },
+                  { "Name": "ApprovedByAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "Recipient",          "Type": "string",   "Required": true },
+                  { "Name": "Amount",             "Type": "double",   "Required": true },
+                  { "Name": "Currency",           "Type": "string",   "Required": false },
+                  { "Name": "Purpose",            "Type": "string",   "Required": false },
+                  { "Name": "ExecutedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "a52192d1-5207-4b88-aad6-ef87aa76fb9f",
+  "OAPPName": "MarketplaceTemplate",
+  "OAPPDesc": "Holonic marketplace template. Sellers list products; buyers place orders; reviews are attested on OASIS. All entities are Holons; users are OASIS Avatars with karma for trades.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "CelestialBodyDNA": {
+    "Name": "MarketplaceTemplatePlanet",
+    "CelestialBodies": [
+      {
+        "Name": "MarketplaceTemplatePlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ListingZome",
+            "Description": "Product and service listings owned by seller Avatars",
+            "Holons": [
+              {
+                "Name": "ProductHolon",
+                "Description": "A product or service listing owned by a seller Avatar",
+                "Fields": [
+                  { "Name": "ProductId",      "Type": "Guid",     "Required": true },
+                  { "Name": "SellerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "SellerName",     "Type": "string",   "Required": true },
+                  { "Name": "Title",          "Type": "string",   "Required": true },
+                  { "Name": "Description",    "Type": "string",   "Required": false },
+                  { "Name": "Price",          "Type": "double",   "Required": true },
+                  { "Name": "Currency",       "Type": "string",   "Required": false },
+                  { "Name": "Category",       "Type": "string",   "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["active", "sold", "paused", "deleted"] },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "OrderZome",
+            "Description": "Purchase orders — completion triggers karma sync for both parties",
+            "Holons": [
+              {
+                "Name": "OrderHolon",
+                "Description": "A purchase order between buyer and seller",
+                "Fields": [
+                  { "Name": "OrderId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ProductId",     "Type": "Guid",     "Required": true },
+                  { "Name": "BuyerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "SellerAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "BuyerName",     "Type": "string",   "Required": true },
+                  { "Name": "SellerName",    "Type": "string",   "Required": true },
+                  { "Name": "Amount",        "Type": "double",   "Required": true },
+                  { "Name": "Currency",      "Type": "string",   "Required": false },
+                  { "Name": "Status",        "Type": "string",   "Required": false,
+                    "Enum": ["pending", "paid", "shipped", "complete", "disputed", "refunded"] },
+                  { "Name": "CreatedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedAt",   "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",   "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ReviewZome",
+            "Description": "Buyer reviews attested on OASIS — earns karma for the reviewer",
+            "Holons": [
+              {
+                "Name": "ReviewHolon",
+                "Description": "A buyer review of a product or seller",
+                "Fields": [
+                  { "Name": "ReviewId",        "Type": "Guid",     "Required": true },
+                  { "Name": "OrderId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ReviewerAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "TargetId",        "Type": "Guid",     "Required": true },
+                  { "Name": "TargetType",      "Type": "string",   "Required": true,
+                    "Enum": ["product", "seller"] },
+                  { "Name": "Rating",          "Type": "int",      "Required": true },
+                  { "Name": "Body",            "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",     "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

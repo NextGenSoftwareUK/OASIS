@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pan Galactic Monitor</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600&family=Syne:wght@600;700&display=swap" rel="stylesheet" />
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
   <script src="https://unpkg.com/globe.gl@2.33.0"></script>
   <style>
     :root {
@@ -622,23 +621,35 @@
       }
 
       if (pt === "equity") {
-        inner += `
-          <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
-            <span style="color:var(--muted)">Model</span> &nbsp;
-            <span style="color:var(--orange)">${esc(s.equityModel ?? "—")}</span>
-          </p>
-          <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted)">
-            ${s.totalHoursRecorded ?? 0}h recorded · ${s.builderCount ?? 0} contributors · ${s.tithePercent ?? 0}% tithe
-          </p>
-        `;
-        if (s.topContributors?.length) {
-          inner += `<div style="margin-top:8px">` + s.topContributors.map((c) =>
-            `<div class="contributor-row">
-              <span class="contrib-name">${esc(c.name)}</span>
-              <span class="contrib-hours">${c.hours}h</span>
-              <span class="contrib-equity">${esc(c.equity)}</span>
-            </div>`
-          ).join("") + `</div>`;
+        if (s.source === "pangea") {
+          inner += `
+            <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+              <span style="color:var(--muted)">Entity</span> &nbsp;
+              <span style="color:var(--orange)">${esc((s.entityType ?? "Cap table").replace(/_/g, " "))}</span>
+            </p>
+            <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted)">
+              ${s.stakeholderCount ?? 0} stakeholders · ${s.securitiesCount ?? 0} securities${s.tokenized ? " · <span style=\"color:#7ecfb0\">on-chain</span>" : ""}
+            </p>
+          `;
+        } else {
+          inner += `
+            <p style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem">
+              <span style="color:var(--muted)">Model</span> &nbsp;
+              <span style="color:var(--orange)">${esc(s.equityModel ?? "—")}</span>
+            </p>
+            <p style="margin-top:4px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted)">
+              ${s.totalHoursRecorded ?? 0}h recorded · ${s.builderCount ?? 0} contributors · ${s.tithePercent ?? 0}% tithe
+            </p>
+          `;
+          if (s.topContributors?.length) {
+            inner += `<div style="margin-top:8px">` + s.topContributors.map((c) =>
+              `<div class="contributor-row">
+                <span class="contrib-name">${esc(c.name)}</span>
+                <span class="contrib-hours">${c.hours}h</span>
+                <span class="contrib-equity">${esc(c.equity)}</span>
+              </div>`
+            ).join("") + `</div>`;
+          }
         }
       }
 
@@ -754,33 +765,58 @@
       }
 
       if (pt === "equity") {
-        body += `
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
-            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
-              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--orange)">${s.totalHoursRecorded ?? 0}</p>
-              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours recorded</p>
+        if (s.source === "pangea") {
+          body += `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--orange)">${s.stakeholderCount ?? 0}</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">stakeholders</p>
+              </div>
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--text)">${s.securitiesCount ?? 0}</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">securities</p>
+              </div>
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:${s.tokenized ? "#7ecfb0" : "var(--muted)"}">${s.tokenized ? "✓" : "—"}</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">on-chain</p>
+              </div>
             </div>
-            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
-              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--text)">${s.builderCount ?? 0}</p>
-              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">contributors</p>
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--orange);margin-bottom:10px">${esc((s.entityType ?? "Cap table").replace(/_/g, " "))} · ${esc(s.equityModel?.split("·")[1]?.trim() ?? "")}</p>
+          `;
+          if (s.escrowWalletAddress) {
+            body += `<details class="modal-nest"><summary>Escrow wallet</summary><div class="inner">
+              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;word-break:break-all;color:#7ecfb0">${esc(s.escrowWalletAddress)}</p>
+            </div></details>`;
+          }
+        } else {
+          body += `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0">
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--orange)">${s.totalHoursRecorded ?? 0}</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">hours recorded</p>
+              </div>
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--text)">${s.builderCount ?? 0}</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">contributors</p>
+              </div>
+              <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
+                <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent)">${s.tithePercent ?? 0}%</p>
+                <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">tithe</p>
+              </div>
             </div>
-            <div style="padding:8px;border:1px solid var(--border);border-radius:6px;text-align:center">
-              <p style="font-family:'Syne',sans-serif;font-size:1rem;color:var(--accent)">${s.tithePercent ?? 0}%</p>
-              <p style="font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--muted)">tithe</p>
-            </div>
-          </div>
-          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--orange);margin-bottom:10px">${esc(s.equityModel ?? "—")}</p>
-        `;
-        if (s.topContributors?.length) {
-          body += `<details class="modal-nest" open><summary>Equity table</summary><div class="inner">` +
-            s.topContributors.map((c) =>
-              `<div class="contributor-row">
-                <div class="avatar">${esc((c.name ?? "?").split(" ").map((w) => w[0]).join("").slice(0,2))}</div>
-                <span class="contrib-name">${esc(c.name)}</span>
-                <span class="contrib-hours">${c.hours}h</span>
-                <span class="contrib-equity">${esc(c.equity)}</span>
-              </div>`
-            ).join("") + `</div></details>`;
+            <p style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--orange);margin-bottom:10px">${esc(s.equityModel ?? "—")}</p>
+          `;
+          if (s.topContributors?.length) {
+            body += `<details class="modal-nest" open><summary>Equity table</summary><div class="inner">` +
+              s.topContributors.map((c) =>
+                `<div class="contributor-row">
+                  <div class="avatar">${esc((c.name ?? "?").split(" ").map((w) => w[0]).join("").slice(0,2))}</div>
+                  <span class="contrib-name">${esc(c.name)}</span>
+                  <span class="contrib-hours">${c.hours}h</span>
+                  <span class="contrib-equity">${esc(c.equity)}</span>
+                </div>`
+              ).join("") + `</div></details>`;
+          }
         }
       }
 
@@ -1009,11 +1045,77 @@
       }));
     }
 
+    // ── Hitchhiker thumb HTML element factory ────────────────────────────────
+    // Uses globe.gl's htmlElementsData layer — no Three.js conflict.
+    function createThumbEl(d) {
+      const sz  = Math.max(0.2, Math.min(1.0, d.size || 0.4));
+      const col = d.color || '#c4a882';
+      const w   = Math.round(10 + sz * 12);   // 12 – 22 px wide
+      const h   = Math.round(20 + sz * 24);   // 24 – 44 px tall
+      const r   = Math.round(w / 2);
+      const glow = Math.round(sz * 10) + 4;
+
+      const el = document.createElement('div');
+      el.title = d.name;
+      el.style.cssText = [
+        `width:${w}px`,
+        `height:${h}px`,
+        `background:${col}`,
+        // rounded at top (fingertip), slightly squared at base
+        `border-radius:${r}px ${r}px ${Math.round(w*0.35)}px ${Math.round(w*0.35)}px`,
+        `transform:rotate(-18deg)`,
+        `cursor:pointer`,
+        `box-shadow:0 0 ${glow}px ${col}99, 0 2px 5px rgba(0,0,0,0.55)`,
+        `border:1px solid ${col}`,
+        `opacity:0.92`,
+        `position:relative`,
+        `transition:transform 0.15s, box-shadow 0.15s`,
+        `flex-shrink:0`,
+      ].join(';');
+
+      // Thumbnail highlight
+      const nail = document.createElement('div');
+      nail.style.cssText = [
+        `position:absolute`,
+        `top:${Math.round(h*0.07)}px`,
+        `left:50%`,
+        `transform:translateX(-50%)`,
+        `width:${Math.round(w*0.52)}px`,
+        `height:${Math.round(h*0.2)}px`,
+        `background:rgba(255,255,255,0.24)`,
+        `border-radius:50%`,
+        `pointer-events:none`,
+      ].join(';');
+      el.appendChild(nail);
+
+      el.addEventListener('mouseenter', () => {
+        el.style.transform = 'rotate(-18deg) scale(1.2)';
+        el.style.boxShadow = `0 0 ${glow + 6}px ${col}cc, 0 3px 8px rgba(0,0,0,0.65)`;
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = 'rotate(-18deg)';
+        el.style.boxShadow = `0 0 ${glow}px ${col}99, 0 2px 5px rgba(0,0,0,0.55)`;
+      });
+      el.addEventListener('click', () => {
+        const s = D.sites.find(x => x.id === d.siteId);
+        if (s) {
+          selectedId = s.id;
+          showDetail(s);
+          globe.pointOfView({ lat: d.lat, lng: d.lng, altitude: 1.2 }, 900);
+        }
+      });
+
+      return el;
+    }
+
+    let _lastGlobeW = 0, _lastGlobeH = 0;
     function sizeGlobe() {
       const wrap = document.getElementById("mapWrap");
       if (!wrap || !globe) return;
       const w = Math.max(320, wrap.clientWidth || wrap.offsetWidth);
       const h = Math.max(420, wrap.clientHeight || wrap.offsetHeight);
+      if (Math.abs(w - _lastGlobeW) < 4 && Math.abs(h - _lastGlobeH) < 4) return;
+      _lastGlobeW = w; _lastGlobeH = h;
       globe.width(w).height(h);
     }
 
@@ -1030,31 +1132,18 @@
         .atmosphereColor("#d4a574")
         .atmosphereAltitude(0.14)
         .showGraticules(true)
-        .pointsData(globePoints(D.sites))
-        .pointAltitude((d) => d.altitude)
-        .pointRadius((d) => d.size)
-        .pointColor((d) => d.color)
-        .pointLabel((d) => {
-          const typeLabels = { pledge:"pledge", exchange:"exchange", guide:"guide", equity:"equity", site:"venue" };
-          return `<span style="color:${d.color};font-family:'IBM Plex Mono',monospace;font-size:0.75rem">
-            <strong>${esc(d.name)}</strong><br>
-            <span style="color:#8f867a">${typeLabels[d.pinType]??d.pinType}</span>
-          </span>`;
-        });
+        .htmlElementsData(globePoints(D.sites))
+        .htmlLat((d) => d.lat)
+        .htmlLng((d) => d.lng)
+        .htmlAltitude(0)
+        .htmlElement((d) => createThumbEl(d));
 
       globe.pointOfView({ lat: 20, lng: 0, altitude: 1.75 }, 0);
       globe.controls().autoRotate = true;
       globe.controls().autoRotateSpeed = 0.18;
       globe.controls().enableDamping = true;
 
-      globe.onPointClick((pt) => {
-        const s = D.sites.find((x) => x.id === pt.siteId);
-        if (s) {
-          selectedId = s.id;
-          showDetail(s);
-          globe.pointOfView({ lat: pt.lat, lng: pt.lng, altitude: 1.2 }, 900);
-        }
-      });
+      // Clicks handled directly on each thumb element in createThumbEl
 
       window.addEventListener("resize", () => requestAnimationFrame(sizeGlobe));
       if (typeof ResizeObserver !== "undefined") {
@@ -1063,7 +1152,7 @@
     }
 
     function refreshGlobe() {
-      if (globe && D.sites) { globe.pointsData(globePoints(D.sites)); sizeGlobe(); }
+      if (globe && D.sites) { globe.htmlElementsData(globePoints(D.sites)); }
       if (selectedId) {
         const s = D.sites.find((x) => x.id === selectedId);
         if (s) showDetail(s);
@@ -1276,6 +1365,59 @@
         `Sweep ${(m.sweepId || "").slice(0, 8)} · ${new Date(m.generatedAt).toLocaleString()}`;
     }
 
+    /* ── Inject a new builder pin from URL ?builder=<base64> param ──────── */
+    function injectBuilderFromUrl() {
+      try {
+        const param = new URLSearchParams(window.location.search).get("builder");
+        if (!param) return;
+        const pin = JSON.parse(decodeURIComponent(escape(atob(param))));
+        if (!pin || !pin.id || !pin.pinType) return;
+
+        // Enrich with minimal telemetry so the Monitor renders it correctly
+        pin.telemetry = {
+          hoursPledged7d: 0,
+          hoursPledged30d: 0,
+          activeMembers: 1,
+          pgtConnected: false,
+          note: `NEW: ${pin.name} just joined the Builders Programme!`,
+        };
+
+        // Remove any existing pin with same id, then add
+        if (D.sites) {
+          D.sites = D.sites.filter(s => s.id !== pin.id);
+          D.sites.push(pin);
+        }
+        refreshGlobe();
+
+        // Fly to the new builder and open their detail panel
+        const lat = pin.lat || 0, lng = pin.lng || 0;
+        setTimeout(() => {
+          if (globe && lat !== 0) globe.pointOfView({ lat, lng, altitude: 1.05 }, 1400);
+          setTimeout(() => showDetail(pin), 1500);
+        }, 600);
+
+        // Briefly flash a "new builder" toast
+        const toast = document.createElement("div");
+        toast.style.cssText = `
+          position:fixed; bottom:2rem; left:50%; transform:translateX(-50%);
+          background:rgba(196,144,106,0.95); color:#04040a;
+          font-family:var(--mono,monospace); font-size:0.75rem; font-weight:700;
+          padding:0.6rem 1.2rem; border-radius:2px; z-index:999;
+          letter-spacing:0.08em; box-shadow:0 4px 20px rgba(0,0,0,0.5);
+          animation: fadeOut 0.5s ease 3s forwards;
+        `;
+        toast.textContent = `⬡ NEW BUILDER: ${pin.name} joined from ${pin.city || "the cosmos"}`;
+        document.head.insertAdjacentHTML("beforeend",
+          `<style>@keyframes fadeOut{to{opacity:0;pointer-events:none}}</style>`);
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      } catch (e) {
+        console.warn("[builder inject]", e);
+      }
+    }
+
+    let _firstLoad = true;
+
     async function load() {
       const r = await fetch("/api/data");
       if (!r.ok) return;
@@ -1293,6 +1435,12 @@
           setTimeout(sizeGlobe, 400);
         }));
       } else refreshGlobe();
+
+      if (_firstLoad) {
+        _firstLoad = false;
+        // Small delay so globe has time to init before we fly to the new pin
+        setTimeout(injectBuilderFromUrl, 1200);
+      }
     }
 
     document.getElementById("btnSweep").addEventListener("click", async () => {
@@ -1308,11 +1456,8 @@
       if (e.key === "Escape") closeModal();
     });
 
-    const es = new EventSource("/events");
-    es.addEventListener("sweep", () => load());
-    es.onerror = () => { es.close(); setTimeout(() => location.reload(), 12000); };
-
     load();
+    setInterval(load, 90_000);
   </script>
 </body>
 </html>

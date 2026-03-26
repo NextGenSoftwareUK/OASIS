@@ -1,0 +1,110 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "2374eb0c-6607-404b-97bf-fffe7deae26a",
+  "OAPPName": "ForumTemplate",
+  "OAPPDesc": "Holonic community forum. Users post, comment, and react. All content is backed by OASIS Holons; users are OASIS Avatars; content actions earn karma on the OASIS reputation layer.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "CelestialBodyDNA": {
+    "Name": "ForumTemplatePlanet",
+    "CelestialBodies": [
+      {
+        "Name": "ForumTemplatePlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "IdentityZome",
+            "Description": "Forum user profiles linked to OASIS Avatars",
+            "Holons": [
+              {
+                "Name": "UserHolon",
+                "Description": "A registered forum user linked to an OASIS Avatar",
+                "Fields": [
+                  { "Name": "UserId",       "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",     "Type": "Guid",     "Required": false },
+                  { "Name": "DisplayName",  "Type": "string",   "Required": true },
+                  { "Name": "Bio",          "Type": "string",   "Required": false },
+                  { "Name": "JoinedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "PostCount",    "Type": "int",      "Required": false },
+                  { "Name": "KarmaSynced",  "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ContentZome",
+            "Description": "Posts, comments, and reactions",
+            "Holons": [
+              {
+                "Name": "PostHolon",
+                "Description": "A user-created post — karma-earning content unit",
+                "Fields": [
+                  { "Name": "PostId",         "Type": "Guid",     "Required": true },
+                  { "Name": "AuthorAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "AuthorName",     "Type": "string",   "Required": true },
+                  { "Name": "Title",          "Type": "string",   "Required": true },
+                  { "Name": "Body",           "Type": "string",   "Required": true },
+                  { "Name": "Tags",           "Type": "string[]", "Required": false },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "UpdatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "CommentHolon",
+                "Description": "A reply to a post",
+                "Fields": [
+                  { "Name": "CommentId",      "Type": "Guid",     "Required": true },
+                  { "Name": "PostId",         "Type": "Guid",     "Required": true },
+                  { "Name": "AuthorAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "AuthorName",     "Type": "string",   "Required": true },
+                  { "Name": "Body",           "Type": "string",   "Required": true },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "ReactionHolon",
+                "Description": "An upvote, downvote, or emoji reaction",
+                "Fields": [
+                  { "Name": "ReactionId",     "Type": "Guid",     "Required": true },
+                  { "Name": "TargetId",       "Type": "Guid",     "Required": true },
+                  { "Name": "TargetType",     "Type": "string",   "Required": true,
+                    "Enum": ["post", "comment"] },
+                  { "Name": "ReactorAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "ReactionType",   "Type": "string",   "Required": true },
+                  { "Name": "CreatedAt",      "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ModerationZome",
+            "Description": "Reports, hides, and bans — moderation actions attested on OASIS",
+            "Holons": [
+              {
+                "Name": "ModerationHolon",
+                "Description": "A moderation action on a user or content",
+                "Fields": [
+                  { "Name": "ModerationId",      "Type": "Guid",     "Required": true },
+                  { "Name": "ModeratorAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "TargetId",          "Type": "Guid",     "Required": true },
+                  { "Name": "TargetType",        "Type": "string",   "Required": true },
+                  { "Name": "Action",            "Type": "string",   "Required": true,
+                    "Enum": ["report", "hide", "ban", "warn"] },
+                  { "Name": "Reason",            "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiresAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
