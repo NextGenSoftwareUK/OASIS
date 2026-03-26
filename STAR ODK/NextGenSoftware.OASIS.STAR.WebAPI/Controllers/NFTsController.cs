@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using System.Threading;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
@@ -572,7 +573,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Web5NFT;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<STARNFT, STARNETDNA> CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<STARNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
     public class EditNFTRequest

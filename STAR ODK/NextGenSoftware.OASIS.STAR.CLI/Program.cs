@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         {
             try
             {
+                Environment.CurrentDirectory = AppContext.BaseDirectory;
                 //ConsoleHelper.SetCurrentFont("Consolas", 8);
                 _args = args;
                 ShowHeader();

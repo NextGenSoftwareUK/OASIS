@@ -1500,7 +1500,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Game;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<Game, STARNETDNA> CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<Game, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
     public class EditGameRequest

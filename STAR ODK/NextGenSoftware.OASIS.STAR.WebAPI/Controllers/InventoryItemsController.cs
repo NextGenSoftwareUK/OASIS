@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
@@ -625,7 +626,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.InventoryItem;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<InventoryItem, STARNETDNA>? CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<InventoryItem, STARNETDNA>? CreateOptions { get; set; } = null;
     }
 
     public class EditInventoryItemRequest

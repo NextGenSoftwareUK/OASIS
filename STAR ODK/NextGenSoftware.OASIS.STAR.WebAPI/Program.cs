@@ -158,12 +158,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
     }
 });
 
-// Add CORS
+// Add CORS — SetIsOriginAllowed covers file:// (null origin) as well as any HTTP origin
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -189,6 +189,8 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 // Global exception handler - catch all exceptions, log them, and return real error details
 app.Use(async (context, next) =>
