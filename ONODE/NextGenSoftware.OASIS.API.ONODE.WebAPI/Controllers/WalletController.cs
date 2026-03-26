@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
@@ -541,23 +543,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetPortfolioValueAsync(Guid avatarId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            var totalResult = await WalletManager.GetTotalBalanceForAllProviderWalletsForAvatarByIdAsync(avatarId);
+            if (totalResult.IsError)
+                return new OASISResult<object> { IsError = true, Message = totalResult.Message };
+
+            var walletsResult = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(avatarId, false, false, false, ProviderType.All);
+
+            var breakdown = new Dictionary<string, object>();
+            if (!walletsResult.IsError && walletsResult.Result != null)
+            {
+                foreach (var kvp in walletsResult.Result)
+                {
+                    double chainBalance = kvp.Value?.Sum(w => w.Balance) ?? 0;
+                    int count = kvp.Value?.Count ?? 0;
+                    if (count > 0)
+                        breakdown[kvp.Key.ToString()] = new { value = chainBalance, count };
+                }
+            }
+
             return new OASISResult<object>
             {
                 Result = new
                 {
-                    totalValue = 15420.50,
-                    totalValueUSD = 15420.50,
+                    totalValue = totalResult.Result,
                     currency = "USD",
                     lastUpdated = DateTime.UtcNow.ToString("O"),
-                    breakdown = new
-                    {
-                        ethereum = new { value = 8500.25, usdValue = 8500.25, count = 3 },
-                        bitcoin = new { value = 3200.15, usdValue = 3200.15, count = 1 },
-                        solana = new { value = 2100.10, usdValue = 2100.10, count = 2 },
-                        polygon = new { value = 1620.00, usdValue = 1620.00, count = 1 }
-                    }
+                    walletCount = walletsResult.Result?.Values.Sum(v => v?.Count ?? 0) ?? 0,
+                    breakdown
                 },
                 IsLoaded = true,
                 Message = "Portfolio value retrieved successfully"
@@ -580,14 +592,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<IProviderWallet>>> GetWalletsByChainAsync(Guid avatarId, string chain)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
-            return new OASISResult<List<IProviderWallet>>
-            {
-                Result = new List<IProviderWallet>(),
-                IsLoaded = true,
-                Message = $"{chain} wallets retrieved successfully"
-            };
+            if (!Enum.TryParse<ProviderType>(chain, true, out var providerType) || providerType == ProviderType.None || providerType == ProviderType.Default)
+                return new OASISResult<List<IProviderWallet>>
+                {
+                    IsError = true,
+                    Message = $"Unknown chain '{chain}'. Use a valid OASIS ProviderType name (e.g. EthereumOASIS, SolanaOASIS, ArbitrumOASIS)."
+                };
+
+            return await WalletManager.LoadProviderWalletsForProviderByAvatarIdAsync(avatarId, providerType);
         }
 
         /// <summary>
@@ -600,26 +612,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpPost("transfer")]
-        [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
-        public async Task<OASISResult<object>> TransferBetweenWalletsAsync([FromBody] object request)
+        public async Task<OASISResult<ISendWeb4TokenResponse>> TransferBetweenWalletsAsync([FromBody] SendWeb4TokenRequest request)
         {
             if (request == null)
-                return new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with transfer details (e.g. fromWalletId, toWalletId, amount)." };
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
-            return new OASISResult<object>
-            {
-                Result = new
+                return new OASISResult<ISendWeb4TokenResponse>
                 {
-                    transactionId = Guid.NewGuid().ToString(),
-                    status = "pending",
-                    timestamp = DateTime.UtcNow.ToString("O")
-                },
-                IsSaved = true,
-                Message = "Transfer initiated successfully"
-            };
+                    IsError = true,
+                    Message = "The request body is required. Provide: Web3TokenId (guid), Amount (decimal), ToWalletAddress or (ToAvatarId / ToAvatarUsername / ToAvatarEmail), and optionally FromProvider / ToProvider (ProviderType name)."
+                };
+
+            return await WalletManager.SendTokenAsync(AvatarId, request);
         }
 
         /// <summary>
@@ -638,30 +643,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> GetWalletAnalyticsAsync(Guid avatarId, Guid walletId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            var walletResult = await WalletManager.LoadProviderWalletForAvatarByIdAsync(avatarId, walletId);
+            if (walletResult.IsError)
+                return new OASISResult<object> { IsError = true, Message = walletResult.Message };
+
+            var wallet = walletResult.Result;
+            if (wallet == null)
+                return new OASISResult<object> { IsError = true, Message = "Wallet not found." };
+
+            var txns = wallet.Transactions ?? new List<IWalletTransaction>();
+            int totalTransactions = txns.Count;
+            double totalVolume = txns.Sum(t => t.Amount);
+            double avgTransaction = totalTransactions > 0 ? totalVolume / totalTransactions : 0;
+            DateTime? lastActivity = txns.Count > 0 ? txns.Max(t => t.CreatedDate) : (DateTime?)null;
+
+            var monthlyActivity = txns
+                .GroupBy(t => new { t.CreatedDate.Year, t.CreatedDate.Month })
+                .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                .Select(g => (object)new
+                {
+                    month = new DateTime(g.Key.Year, g.Key.Month, 1).ToString("MMM yyyy"),
+                    transactions = g.Count(),
+                    volume = g.Sum(t => t.Amount)
+                })
+                .ToList();
+
             return new OASISResult<object>
             {
                 Result = new
                 {
-                    walletId = walletId,
-                    totalTransactions = 45,
-                    totalVolume = 12500.75,
-                    averageTransaction = 277.79,
-                    lastActivity = DateTime.UtcNow.ToString("O"),
-                    topTokens = new[]
-                    {
-                        new { symbol = "ETH", amount = "2.5", value = 5000 },
-                        new { symbol = "USDC", amount = "1000", value = 1000 },
-                        new { symbol = "BTC", amount = "0.1", value = 3200 }
-                    },
-                    monthlyActivity = new[]
-                    {
-                        new { month = "Jan", transactions = 12, volume = 3200 },
-                        new { month = "Feb", transactions = 8, volume = 2100 },
-                        new { month = "Mar", transactions = 15, volume = 4500 },
-                        new { month = "Apr", transactions = 10, volume = 2700 }
-                    }
+                    walletId,
+                    walletAddress = wallet.WalletAddress,
+                    providerType = wallet.ProviderType.ToString(),
+                    balance = wallet.Balance,
+                    totalTransactions,
+                    totalVolume,
+                    averageTransaction = Math.Round(avgTransaction, 4),
+                    lastActivity = lastActivity?.ToString("O"),
+                    monthlyActivity
                 },
                 IsLoaded = true,
                 Message = "Wallet analytics retrieved successfully"
@@ -681,25 +700,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<List<object>> GetSupportedChains()
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            // Derive the list from the real ProviderType enum, filtering to blockchain providers only.
+            // Non-blockchain entries (storage, cloud, IPFS, maps, etc.) are excluded.
+            var nonBlockchain = new HashSet<ProviderType>
+            {
+                ProviderType.None, ProviderType.All, ProviderType.Default,
+                ProviderType.MoralisOASIS,
+                ProviderType.IPFSOASIS, ProviderType.PinataOASIS,
+                ProviderType.HoloOASIS,
+                ProviderType.MongoDBOASIS, ProviderType.Neo4jOASIS,
+                ProviderType.SQLLiteDBOASIS, ProviderType.SQLServerDBOASIS, ProviderType.OracleDBOASIS,
+                ProviderType.GoogleCloudOASIS, ProviderType.AzureStorageOASIS,
+                ProviderType.AzureCosmosDBOASIS, ProviderType.AWSOASIS,
+                ProviderType.UrbitOASIS, ProviderType.ThreeFoldOASIS, ProviderType.PLANOASIS,
+                ProviderType.HoloWebOASIS, ProviderType.SOLIDOASIS,
+                ProviderType.ActivityPubOASIS, ProviderType.ScuttlebuttOASIS,
+                ProviderType.LocalFileOASIS, ProviderType.GitHubOASIS
+            };
+
+            var chains = Enum.GetValues<ProviderType>()
+                .Where(p => !nonBlockchain.Contains(p))
+                .Select(p => (object)new
+                {
+                    id = p.ToString(),
+                    name = p.ToString().Replace("OASIS", "").Replace("BlockChain", ""),
+                    providerType = p.ToString(),
+                    isActive = true
+                })
+                .ToList();
+
             return new OASISResult<List<object>>
             {
-                Result = new List<object>
-                {
-                    new { id = "ethereum", name = "Ethereum", symbol = "ETH", icon = "ethereum.png", isActive = true },
-                    new { id = "bitcoin", name = "Bitcoin", symbol = "BTC", icon = "bitcoin.png", isActive = true },
-                    new { id = "solana", name = "Solana", symbol = "SOL", icon = "solana.png", isActive = true },
-                    new { id = "polygon", name = "Polygon", symbol = "MATIC", icon = "polygon.png", isActive = true },
-                    new { id = "arbitrum", name = "Arbitrum", symbol = "ARB", icon = "arbitrum.png", isActive = true },
-                    new { id = "optimism", name = "Optimism", symbol = "OP", icon = "optimism.png", isActive = true },
-                    new { id = "base", name = "Base", symbol = "BASE", icon = "base.png", isActive = true },
-                    new { id = "avalanche", name = "Avalanche", symbol = "AVAX", icon = "avalanche.png", isActive = true },
-                    new { id = "bnb", name = "BNB Chain", symbol = "BNB", icon = "bnb.png", isActive = true },
-                    new { id = "fantom", name = "Fantom", symbol = "FTM", icon = "fantom.png", isActive = true }
-                },
+                Result = chains,
                 IsLoaded = true,
-                Message = "Supported chains retrieved successfully"
+                Message = $"{chains.Count} blockchain providers supported by OASIS"
             };
         }
 
@@ -719,16 +753,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<List<object>>> GetWalletTokensAsync(Guid avatarId, Guid walletId)
         {
-            // This would need to be implemented in WalletManager
-            // For now, return a demo response
+            var walletResult = await WalletManager.LoadProviderWalletForAvatarByIdAsync(avatarId, walletId);
+            if (walletResult.IsError)
+                return new OASISResult<List<object>> { IsError = true, Message = walletResult.Message };
+
+            var wallet = walletResult.Result;
+            if (wallet == null)
+                return new OASISResult<List<object>> { IsError = true, Message = "Wallet not found." };
+
+            // Native chain token derived from the provider type and wallet balance.
+            // Individual ERC-20 / SPL balances require a block-explorer integration (future work).
+            var nativeTicker = wallet.ProviderType.ToString().Replace("OASIS", "").Replace("BlockChain", "").ToUpper();
+            var tokens = new List<object>
+            {
+                new
+                {
+                    symbol = nativeTicker,
+                    name = nativeTicker + " (native)",
+                    amount = wallet.Balance.ToString("F6"),
+                    balance = wallet.Balance,
+                    chain = wallet.ProviderType.ToString(),
+                    walletAddress = wallet.WalletAddress,
+                    isNative = true
+                }
+            };
+
             return new OASISResult<List<object>>
             {
-                Result = new List<object>
-                {
-                    new { symbol = "ETH", name = "Ethereum", amount = "2.5", value = 5000, usdValue = 5000, chain = "ethereum" },
-                    new { symbol = "USDC", name = "USD Coin", amount = "1000", value = 1000, usdValue = 1000, chain = "ethereum" },
-                    new { symbol = "USDT", name = "Tether", amount = "500", value = 500, usdValue = 500, chain = "ethereum" }
-                },
+                Result = tokens,
                 IsLoaded = true,
                 Message = "Wallet tokens retrieved successfully"
             };

@@ -36,6 +36,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 await _next(context);
                 return;
             }
+            // GitHub OAuth callback is GET and has no JWT (state links to avatar)
+            if (path.Contains("/api/avatar/auth/github/callback", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(context.Request.Method, "GET", StringComparison.OrdinalIgnoreCase))
+            {
+                await _next(context);
+                return;
+            }
 
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)

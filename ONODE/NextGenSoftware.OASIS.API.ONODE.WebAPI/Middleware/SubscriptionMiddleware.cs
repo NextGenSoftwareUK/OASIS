@@ -171,6 +171,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 "/api/avatar/signup",
                 "/api/avatar/authenticate",
                 "/api/avatar/auth/google",
+                "/api/avatar/auth/github/callback",
                 "/api/subscription",
                 "/swagger",
                 "/favicon.ico"

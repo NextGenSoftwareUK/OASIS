@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Avatar;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Keys;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -639,15 +641,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        ///     Get's the avatar for a given public key.
+        ///     Get's the avatar for a given public key (e.g. wallet address or GitHub username). Pass providerType for non-default (e.g. GitHubOASIS).
         /// </summary>
-        /// <param name="providerKey"></param>
+        /// <param name="providerKey">The provider key (e.g. GitHub username).</param>
+        /// <param name="providerType">Optional. Provider type (e.g. GitHubOASIS). Defaults to Default.</param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("get_avatar_for_provider_public_key/{providerKey}")]
-        public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey)
+        public OASISResult<IAvatar> GetAvatarForProviderPublicKey(string providerKey, [FromQuery] ProviderType? providerType = null)
         {
-            return KeyManager.GetAvatarForProviderPublicKey(providerKey);
+            var pt = providerType ?? ProviderType.Default;
+            return KeyManager.GetAvatarForProviderPublicKey(providerKey, pt);
         }
 
         /*
@@ -1193,6 +1197,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddressForProvider(ProviderType providerType)
         {
             return KeyManager.GenerateKeyPairWithWalletAddress(providerType);
+        }
+
+        /// <summary>
+        /// Returns the Aztec viewing keys (incoming and outgoing) for a given Aztec wallet address.
+        /// Viewing keys allow auditors / compliance tools to decrypt private notes without
+        /// spending authority.  The address must be registered with the Aztec sidecar's PXE.
+        /// </summary>
+        /// <param name="address">The Aztec wallet address to retrieve viewing keys for.</param>
+        [Authorize]
+        [HttpGet("aztec-viewing-key")]
+        [ProducesResponseType(typeof(OASISResult<NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models.ViewingKeySidecarResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetAztecViewingKey([FromQuery] string address)
+        {
+            if (string.IsNullOrWhiteSpace(address))
+                return BadRequest(new OASISResult<string> { IsError = true, Message = "address query parameter is required." });
+
+            var provider = ProviderManager.Instance.GetProvider(ProviderType.AztecOASIS) as AztecOASIS;
+
+            if (provider == null)
+                return BadRequest(new OASISResult<string>
+                {
+                    IsError = true,
+                    Message = "AztecOASIS provider is not registered. Ensure it is configured in OASIS_DNA.json and the sidecar is running."
+                });
+
+            var result = await provider.GetViewingKeyAsync(address);
+
+            if (result.IsError)
+                return BadRequest(new OASISResult<string> { IsError = true, Message = result.Message });
+
+            return Ok(result);
         }
 
         private (bool, ProviderType, Guid, string) ValidateParams(ProviderKeyForAvatarParams linkProviderKeyToAvatarParams)
