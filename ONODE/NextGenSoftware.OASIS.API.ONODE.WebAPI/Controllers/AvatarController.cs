@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using System.IO;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -45,14 +47,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly ILogger<AvatarController> _logger;
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _env;
+        private readonly IMemoryCache _cache;
+        private readonly IGitHubOAuthService _githubOAuth;
 
         private static readonly object StarLogLock = new object();
+        private const string GitHubLinkCacheKeyPrefix = "github_link:";
+        private static readonly TimeSpan GitHubLinkStateTtl = TimeSpan.FromMinutes(5);
 
-        public AvatarController(ILogger<AvatarController> logger, IConfiguration configuration, IWebHostEnvironment env)
+        public AvatarController(ILogger<AvatarController> logger, IConfiguration configuration, IWebHostEnvironment env, IMemoryCache cache = null, IGitHubOAuthService githubOAuth = null)
         {
             _logger = logger;
             _configuration = configuration;
             _env = env;
+            _cache = cache;
+            _githubOAuth = githubOAuth;
         }
 
         /// <summary>When Star logging is enabled, write to both star_api.log and console (ILogger).</summary>
@@ -335,6 +343,153 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await RefreshToken();
+        }
+
+        /// <summary>
+        ///     Prepare linking GitHub account to the current avatar. Returns a state and the GitHub OAuth URL.
+        ///     Frontend should redirect the user to AuthorizeUrl; after GitHub authorizes, GitHub redirects to auth/github/callback with the same state.
+        /// </summary>
+        [Authorize]
+        [HttpPost("auth/github/prepare-link")]
+        [ProducesResponseType(typeof(GitHubPrepareLinkResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public IActionResult GitHubPrepareLink()
+        {
+            if (_cache == null || _githubOAuth == null || !_githubOAuth.IsConfigured)
+                return StatusCode(503, "GitHub OAuth is not configured. Add GitHubOAuth:ClientId and ClientSecret in appsettings.Development.json. Create an OAuth App at https://github.com/settings/developers with callback URL: http://localhost:5003/api/avatar/auth/github/callback");
+            if (AvatarId == Guid.Empty)
+                return Unauthorized();
+            var state = Guid.NewGuid().ToString("N");
+            _cache.Set(GitHubLinkCacheKeyPrefix + state, AvatarId, GitHubLinkStateTtl);
+            var authorizeUrl = _githubOAuth.BuildAuthorizeUrl(state);
+            return Ok(new GitHubPrepareLinkResponse { State = state, AuthorizeUrl = authorizeUrl });
+        }
+
+        /// <summary>
+        ///     GitHub OAuth callback. Called by GitHub after the user authorizes. Exchanges code for token, loads GitHub user, links to avatar, redirects to SuccessRedirectUri.
+        ///     Does not require JWT (state links the request to the avatar that called prepare-link).
+        /// </summary>
+        [HttpGet("auth/github/callback")]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
+        public async Task<IActionResult> GitHubCallback([FromQuery] string code, [FromQuery] string state)
+        {
+            if (_cache == null || _githubOAuth == null)
+                return RedirectToError("GitHub OAuth is not configured.");
+            if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+                return RedirectToError("Missing code or state.");
+            var cacheKey = GitHubLinkCacheKeyPrefix + state;
+            if (!_cache.TryGetValue(cacheKey, out Guid avatarId))
+                return RedirectToError("Invalid or expired state. Please try linking again.");
+            _cache.Remove(cacheKey);
+
+            var (success, login, htmlUrl, error) = await _githubOAuth.ExchangeCodeAndGetUserAsync(code);
+            if (!success)
+                return RedirectToError(error ?? "Failed to get GitHub user.");
+
+            try
+            {
+                var providerResult = await OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync();
+                if (providerResult.IsError || providerResult.Result == null)
+                    return RedirectToError("Storage provider unavailable.");
+                var keyManager = new KeyManager(providerResult.Result);
+                var linkResult = keyManager.LinkProviderPublicKeyToAvatarById(Guid.Empty, avatarId, ProviderType.GitHubOASIS, login, htmlUrl ?? $"https://github.com/{login}");
+                if (linkResult.IsError)
+                {
+                    _logger.LogWarning("GitHub link failed for avatar {AvatarId}: {Message}", avatarId, linkResult.Message);
+                    return RedirectToError(linkResult.Message ?? "Failed to link GitHub account.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GitHub link error for avatar {AvatarId}", avatarId);
+                return RedirectToError("An error occurred while linking.");
+            }
+
+            var successUrl = _configuration.GetSection(GitHubOAuthOptions.SectionName).Get<GitHubOAuthOptions>()?.SuccessRedirectUri;
+            if (string.IsNullOrEmpty(successUrl))
+                successUrl = "/";
+            return Redirect($"{successUrl}{(successUrl.Contains("?") ? "&" : "?")}github=linked");
+        }
+
+        /// <summary>
+        ///     Serves a minimal HTML page after GitHub OAuth redirect. Notifies opener (portal) via postMessage and closes the popup.
+        ///     Use this as SuccessRedirectUri and ErrorRedirectUri so the popup always lands on the API (no dependency on portal port).
+        /// </summary>
+        [HttpGet("auth/github/oauth-done")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GitHubOAuthDone([FromQuery] string github, [FromQuery] string error)
+        {
+            var success = github == "linked";
+            var errorMsg = string.IsNullOrEmpty(error) ? null : error;
+            var escapedError = errorMsg != null ? System.Net.WebUtility.HtmlEncode(errorMsg) : "";
+            var cardClass = success ? "oauth-card oauth-card--success" : "oauth-card oauth-card--error";
+            var icon = success
+                ? "<div class=\"oauth-icon oauth-icon--success\">✓</div>"
+                : "<div class=\"oauth-icon oauth-icon--error\">✕</div>";
+            var title = success ? "Success" : "Something went wrong";
+            var message = success
+                ? "GitHub account linked. You can close this window."
+                : (string.IsNullOrEmpty(errorMsg) ? "Linking failed. Please try again." : errorMsg);
+            var escapedMessage = System.Net.WebUtility.HtmlEncode(message);
+            var html = $@"<!DOCTYPE html>
+<html lang=""en"">
+<head>
+  <meta charset=""utf-8""/>
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1""/>
+  <title>GitHub link – {System.Net.WebUtility.HtmlEncode(title)}</title>
+  <link rel=""preconnect"" href=""https://fonts.googleapis.com""/>
+  <link rel=""preconnect"" href=""https://fonts.gstatic.com"" crossorigin/>
+  <link href=""https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,700;1,6..12,400&display=swap"" rel=""stylesheet""/>
+  <style>
+    * {{ box-sizing: border-box; }}
+    body {{ margin: 0; background: #EBF0F5; font-family: ""Nunito Sans"", ""Helvetica Neue"", sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }}
+    .oauth-card {{ background: #fff; padding: 48px 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,.08); text-align: center; max-width: 360px; }}
+    .oauth-card--success .oauth-icon {{ color: #88B04B; }}
+    .oauth-card--error .oauth-icon {{ color: #c0392b; }}
+    .oauth-icon {{ font-size: 64px; line-height: 1; font-weight: 700; margin-bottom: 16px; }}
+    .oauth-card h1 {{ margin: 0 0 8px; font-size: 24px; font-weight: 700; color: #2c3e50; }}
+    .oauth-card p {{ margin: 0; font-size: 15px; color: #5a6c7d; line-height: 1.5; }}
+    .oauth-card--error p {{ color: #6b2d2d; }}
+    .oauth-note {{ margin-top: 16px; font-size: 13px; color: #95a5a6; }}
+  </style>
+</head>
+<body>
+  <div class=""{cardClass}"">
+    {icon}
+    <h1>{System.Net.WebUtility.HtmlEncode(title)}</h1>
+    <p>{escapedMessage}</p>
+    <p class=""oauth-note"" id=""oauth-note"">Closing window…</p>
+  </div>
+  <script>
+(function() {{
+  var success = {success.ToString().ToLowerInvariant()};
+  var error = {System.Text.Json.JsonSerializer.Serialize(errorMsg)};
+  if (window.opener) {{
+    try {{ window.opener.postMessage({{ type: 'github-oauth-done', success: success, error: error }}, '*'); }} catch (e) {{}}
+    var note = document.getElementById('oauth-note');
+    if (note) note.textContent = 'Done. This window will close.';
+    window.close();
+  }} else {{
+    var note = document.getElementById('oauth-note');
+    if (note) note.textContent = 'You can close this tab.';
+  }}
+}})();
+  </script>
+</body>
+</html>";
+            return Content(html, "text/html; charset=utf-8");
+        }
+
+        private IActionResult RedirectToError(string message)
+        {
+            var options = _configuration.GetSection(GitHubOAuthOptions.SectionName).Get<GitHubOAuthOptions>();
+            var baseUrl = options?.ErrorRedirectUri ?? options?.SuccessRedirectUri;
+            var url = string.IsNullOrEmpty(baseUrl) ? "/" : baseUrl;
+            var separator = url.Contains("?") ? "&" : "?";
+            return Redirect($"{url}{separator}error={Uri.EscapeDataString(message)}");
         }
 
         /// <summary>
@@ -788,6 +943,80 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await GetAvatarDetail(id);
+        }
+
+        /// <summary>
+        /// Returns a minimal game profile for the authenticated avatar (identity, portrait, model/Genies ref, karma, level, XP).
+        /// Use this from Unity (e.g. Genies Avatar SDK) or other game clients. Requires JWT.
+        /// </summary>
+        [Authorize]
+        [HttpGet("game-profile")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<GameProfileResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<OASISHttpResponseMessage<GameProfileResponse>> GetGameProfile()
+        {
+            if (AvatarId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+            return await GetGameProfileById(AvatarId);
+        }
+
+        /// <summary>
+        /// Returns a minimal game profile for the given avatar id. Caller must be the avatar owner or a Wizard.
+        /// </summary>
+        [Authorize]
+        [HttpGet("game-profile/{id:guid}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<GameProfileResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<OASISHttpResponseMessage<GameProfileResponse>> GetGameProfile(Guid id)
+        {
+            if (id != AvatarId && (Avatar == null || Avatar.AvatarType.Value != AvatarType.Wizard))
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = "Unauthorized." }, HttpStatusCode.Forbidden);
+            return await GetGameProfileById(id);
+        }
+
+        private async Task<OASISHttpResponseMessage<GameProfileResponse>> GetGameProfileById(Guid id)
+        {
+            try
+            {
+                var avatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
+                if (avatarResult.IsError || avatarResult.Result == null)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = avatarResult.Message ?? "Avatar not found." }, HttpStatusCode.NotFound);
+
+                var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(id);
+                var avatar = avatarResult.Result;
+                var detail = detailResult?.Result;
+
+                var model3D = detail?.Model3D ?? string.Empty;
+                var geniesAvatarId = string.Empty;
+                if (model3D.StartsWith("genies://", StringComparison.OrdinalIgnoreCase))
+                    geniesAvatarId = model3D.Substring("genies://".Length).TrimStart('/');
+                else if (!string.IsNullOrEmpty(model3D))
+                    geniesAvatarId = model3D;
+
+                var displayName = !string.IsNullOrWhiteSpace(avatar.FullName) ? avatar.FullName.Trim() : avatar.Username ?? string.Empty;
+                if (string.IsNullOrEmpty(displayName))
+                    displayName = avatar.Username ?? string.Empty;
+
+                var profile = new GameProfileResponse
+                {
+                    AvatarId = id,
+                    Username = avatar.Username ?? string.Empty,
+                    DisplayName = displayName,
+                    PortraitUrl = detail?.Portrait ?? string.Empty,
+                    Model3DUrl = model3D,
+                    GeniesAvatarId = geniesAvatarId,
+                    Karma = detail?.Karma ?? 0,
+                    Level = detail?.Level ?? 0,
+                    XP = detail?.XP ?? 0
+                };
+
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { Result = profile });
+            }
+            catch (Exception ex)
+            {
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = ex.Message }, HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -1562,6 +1791,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateAvatarDetailByUsername(avatarDetail, username);
+        }
+
+        /// <summary>
+        /// Updates only the Genies avatar reference for the authenticated avatar (stored in AvatarDetail.Model3D as genies://{id}).
+        /// Use this from Unity after the user saves their avatar in the Genies Avatar Editor. Requires JWT.
+        /// </summary>
+        [Authorize]
+        [HttpPost("update-genies-avatar-id")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<GameProfileResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<OASISHttpResponseMessage<GameProfileResponse>> UpdateGeniesAvatarId([FromBody] UpdateGeniesAvatarIdRequest request)
+        {
+            if (AvatarId == Guid.Empty)
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = "Not authenticated." }, HttpStatusCode.Unauthorized);
+
+            var detailResult = await Program.AvatarManager.LoadAvatarDetailAsync(AvatarId);
+            if (detailResult.IsError || detailResult.Result == null)
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = detailResult.Message ?? "Avatar detail not found." }, HttpStatusCode.NotFound);
+
+            var detail = detailResult.Result;
+            detail.Model3D = string.IsNullOrWhiteSpace(request?.GeniesAvatarId)
+                ? string.Empty
+                : "genies://" + request.GeniesAvatarId.Trim();
+            var updateResult = await Program.AvatarManager.UpdateAvatarDetailAsync(AvatarId, detail);
+            if (updateResult.IsError)
+                return HttpResponseHelper.FormatResponse(new OASISResult<GameProfileResponse> { IsError = true, Message = updateResult.Message ?? "Update failed." }, HttpStatusCode.BadRequest);
+
+            return await GetGameProfileById(AvatarId);
         }
 
         /// <summary>

@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Data;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using Solnet.Metaplex;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -380,6 +381,58 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Load holons where metadata ModifiedByAvatarId equals the given avatar (e.g. repo-sync doc holons). For "Recent contributions" on Dashboard/Avatar. Sorted by ModifiedDate descending; limit caps the count.
+        /// </summary>
+        [Authorize]
+        [HttpGet("holons-modified-by-avatar/{avatarId:guid}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IEnumerable<HolonContributionItem>>), StatusCodes.Status200OK)]
+        public async Task<OASISHttpResponseMessage<IEnumerable<HolonContributionItem>>> GetHolonsModifiedByAvatar(Guid avatarId, [FromQuery] int limit = 20)
+        {
+            var response = new OASISHttpResponseMessage<IEnumerable<HolonContributionItem>>();
+            try
+            {
+                var result = await HolonManager.LoadHolonsByMetaDataAsync("ModifiedByAvatarId", avatarId.ToString(), HolonType.All, loadChildren: false, recursive: false, maxChildDepth: 0, continueOnError: true, loadChildrenFromProvider: false, 0, HolonType.All, 0, ProviderType.Default);
+                if (result.IsError || result.Result == null)
+                {
+                    response.Result.IsError = true;
+                    response.Result.Message = result.Message;
+                    response.Result.Result = Array.Empty<HolonContributionItem>();
+                    return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
+                }
+                var items = result.Result
+                    .OrderByDescending(h => h.ModifiedDate)
+                    .Take(limit > 0 ? limit : 100)
+                    .Select(h =>
+                    {
+                        string repoPath = null, repoUrl = null;
+                        if (h.MetaData != null)
+                        {
+                            if (h.MetaData.TryGetValue("RepoPath", out var rp) && rp != null) repoPath = rp.ToString();
+                            if (h.MetaData.TryGetValue("RepoUrl", out var ru) && ru != null) repoUrl = ru.ToString();
+                        }
+                        return new HolonContributionItem
+                        {
+                            Id = h.Id,
+                            Name = h.Name,
+                            ModifiedDate = h.ModifiedDate != DateTime.MinValue ? h.ModifiedDate : (DateTime?)null,
+                            RepoPath = repoPath,
+                            RepoUrl = repoUrl
+                        };
+                    })
+                    .ToList();
+                response.Result.Result = items;
+                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
+            }
+            catch (Exception ex)
+            {
+                response.Result.IsError = true;
+                response.Result.Message = ex.Message;
+                response.Result.Result = Array.Empty<HolonContributionItem>();
+                return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
+            }
+        }
+
+        /// <summary>
         /// Load's all holons for the given HolonType. Use 'All' to load all holons.
         /// Set the loadChildren flag to true to load all the holon's child holon's. This defaults to true.
         /// If loadChildren is set to true, you can set the Recursive flag to true to load all the child's holon's recursively, or false to only load the first level of child holon's. This defaults to true.
@@ -527,6 +580,39 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
       /// Set the showDetailedSettings flag to true to view detailed settings such as the list of providers in the auto-failover, auto-replication &amp; auto-load balance lists.
       /// </summary>
       /// <returns></returns>
+      /// <summary>Load holons by metadata key/value (e.g. PropertyOAPPType=RWAProperty or BusinessOAPPType=Business for RWA discover).</summary>
+      [Authorize]
+      [HttpGet("load-holons-by-metadata")]
+      [ProducesResponseType(typeof(OASISHttpResponseMessage<IEnumerable<Holon>>), StatusCodes.Status200OK)]
+      public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsByMetaData([FromQuery] string metaKey, [FromQuery] string metaValue, [FromQuery] string holonType = "All", [FromQuery] bool loadChildren = false, [FromQuery] bool recursive = false, [FromQuery] int maxChildDepth = 0, [FromQuery] bool continueOnError = true)
+      {
+          var response = new OASISHttpResponseMessage<IEnumerable<Holon>>();
+          if (string.IsNullOrEmpty(metaKey) || string.IsNullOrEmpty(metaValue))
+          {
+              response.Result.IsError = true;
+              response.Result.Message = "metaKey and metaValue are required.";
+              return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+          }
+          (response, HolonType parsedHolonType) = ValidateHolonType<IEnumerable<Holon>>(holonType);
+          if (response.Result.IsError)
+              return response;
+          try
+          {
+              var result = await HolonManager.LoadHolonsByMetaDataAsync(metaKey, metaValue, parsedHolonType, loadChildren, recursive, maxChildDepth, continueOnError, false, 0, HolonType.All, 0, ProviderType.Default);
+              OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
+              response.Result.Result = result.Result != null ? Mapper.Convert<IHolon, Holon>(result.Result).ToList() : new List<Holon>();
+              HolonMetadataSanitizer.SanitizeHolons(response.Result.Result);
+              return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, false);
+          }
+          catch (Exception ex)
+          {
+              response.Result.IsError = true;
+              response.Result.Message = ex.Message;
+              response.Result.Result = Array.Empty<Holon>();
+              return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+          }
+      }
+
       [Authorize]
       [HttpPost("load-holons-for-parent")]
       public async Task<OASISHttpResponseMessage<IEnumerable<Holon>>> LoadHolonsForParent(LoadHolonsForParentRequest request)
@@ -753,17 +839,158 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
          ResetOASISSettings(request, configResult);
 
          return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.OK, request.ShowDetailedSettings);
-
-         //OASISResult<Holon> response = new OASISResult<Holon>();
-         //OASISResult<IHolon> result = await HolonManager.SaveHolonAsync(request.Holon);
-
-         //OASISResultHelper<IHolon, Holon>.CopyResult(result, response);
-         //response.Result = (Holon)result.Result;
-
-         //return HttpResponseHelper.FormatResponse(response);
      }
 
-       
+     /// <summary>Create a Property OAPP (RWA) with minimal DNA. Holonic Businesses and Properties build plan.</summary>
+     [Authorize]
+     [HttpPost("create-property-oapp")]
+     [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
+     public async Task<OASISHttpResponseMessage<Holon>> CreatePropertyOAPP(CreatePropertyOAPPRequest request)
+     {
+         var response = new OASISHttpResponseMessage<Holon>();
+         if (request == null || string.IsNullOrWhiteSpace(request.Name))
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "Name is required.";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+         }
+         var metaData = new Dictionary<string, object>
+         {
+             ["PropertyOAPPType"] = "RWAProperty",
+             ["PropertyDNAVersion"] = "1.0"
+         };
+         if (!string.IsNullOrWhiteSpace(request.Address)) metaData["Address"] = request.Address;
+         if (request.Latitude.HasValue) metaData["Latitude"] = request.Latitude.Value;
+         if (request.Longitude.HasValue) metaData["Longitude"] = request.Longitude.Value;
+         if (!string.IsNullOrWhiteSpace(request.AssetClass)) metaData["AssetClass"] = request.AssetClass;
+         if (!string.IsNullOrWhiteSpace(request.PropertyType)) metaData["PropertyType"] = request.PropertyType;
+         if (!string.IsNullOrWhiteSpace(request.ExternalId)) metaData["ExternalId"] = request.ExternalId;
+         var holon = new Holon(HolonType.OAPP)
+         {
+             Id = Guid.NewGuid(),
+             Name = request.Name,
+             Description = request.Description ?? "",
+             HolonType = HolonType.OAPP,
+             MetaData = metaData,
+             CreatedByAvatarId = AvatarId,
+             ModifiedByAvatarId = AvatarId
+         };
+         var saveResult = await HolonManager.SaveHolonAsync(holon, AvatarId, false, false, 0, true);
+         OASISResultHelper<IHolon, Holon>.CopyResult(saveResult, response.Result);
+         response.Result.Result = saveResult.Result != null ? (Holon)saveResult.Result : null;
+         return HttpResponseHelper.FormatResponse(response, response.Result.IsError ? System.Net.HttpStatusCode.BadRequest : System.Net.HttpStatusCode.OK, false);
+     }
+
+     /// <summary>Create a Business OAPP with minimal DNA. Holonic Businesses and Properties build plan.</summary>
+     [Authorize]
+     [HttpPost("create-business-oapp")]
+     [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
+     public async Task<OASISHttpResponseMessage<Holon>> CreateBusinessOAPP(CreateBusinessOAPPRequest request)
+     {
+         var response = new OASISHttpResponseMessage<Holon>();
+         if (request == null || (string.IsNullOrWhiteSpace(request.Name) && string.IsNullOrWhiteSpace(request.LegalName) && string.IsNullOrWhiteSpace(request.DBA)))
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "At least one of Name, LegalName, or DBA is required.";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+         }
+         var metaData = new Dictionary<string, object>
+         {
+             ["BusinessOAPPType"] = "Business",
+             ["BusinessDNAVersion"] = "1.0"
+         };
+         if (!string.IsNullOrWhiteSpace(request.LegalName)) metaData["LegalName"] = request.LegalName;
+         if (!string.IsNullOrWhiteSpace(request.DBA)) metaData["DBA"] = request.DBA;
+         if (!string.IsNullOrWhiteSpace(request.Address)) metaData["Address"] = request.Address;
+         if (!string.IsNullOrWhiteSpace(request.BusinessType)) metaData["BusinessType"] = request.BusinessType;
+         if (!string.IsNullOrWhiteSpace(request.Industry)) metaData["Industry"] = request.Industry;
+         if (!string.IsNullOrWhiteSpace(request.ExternalId)) metaData["ExternalId"] = request.ExternalId;
+         var holon = new Holon(HolonType.OAPP)
+         {
+             Id = Guid.NewGuid(),
+             Name = !string.IsNullOrWhiteSpace(request.Name) ? request.Name : (request.LegalName ?? request.DBA),
+             Description = request.Description ?? "",
+             HolonType = HolonType.OAPP,
+             MetaData = metaData,
+             CreatedByAvatarId = AvatarId,
+             ModifiedByAvatarId = AvatarId
+         };
+         var saveResult = await HolonManager.SaveHolonAsync(holon, AvatarId, false, false, 0, true);
+         OASISResultHelper<IHolon, Holon>.CopyResult(saveResult, response.Result);
+         response.Result.Result = saveResult.Result != null ? (Holon)saveResult.Result : null;
+         return HttpResponseHelper.FormatResponse(response, response.Result.IsError ? System.Net.HttpStatusCode.BadRequest : System.Net.HttpStatusCode.OK, false);
+     }
+
+     /// <summary>Record a purchase (any chain or money) against a Property or Business OAPP. Appends to MetaData["PurchaseHistory"] and sets current owner. Phase 2 Holonic Businesses and Properties.</summary>
+     [Authorize]
+     [HttpPost("record-purchase")]
+     [ProducesResponseType(typeof(OASISHttpResponseMessage<Holon>), StatusCodes.Status200OK)]
+     public async Task<OASISHttpResponseMessage<Holon>> RecordPurchase(RecordPurchaseRequest request)
+     {
+         var response = new OASISHttpResponseMessage<Holon>();
+         if (request == null || request.OappId == Guid.Empty || string.IsNullOrWhiteSpace(request.Proof))
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "OappId and Proof are required.";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+         }
+         if (string.IsNullOrWhiteSpace(request.Date))
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "Date is required (e.g. ISO 8601).";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+         }
+         var loadResult = await HolonManager.LoadHolonAsync(request.OappId, false, false, 0, true, false, HolonType.All, 0);
+         if (loadResult.IsError || loadResult.Result == null)
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "OAPP not found.";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.NotFound, false);
+         }
+         var holon = loadResult.Result;
+         if (holon.HolonType != HolonType.OAPP)
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "Holon is not an OAPP.";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.BadRequest, false);
+         }
+         if (holon.MetaData == null)
+             holon.MetaData = new Dictionary<string, object>();
+         var historyJson = holon.MetaData.TryGetValue("PurchaseHistory", out var phObj) && phObj != null ? phObj.ToString() : "[]";
+         List<Dictionary<string, object>> history;
+         try
+         {
+             history = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(historyJson) ?? new List<Dictionary<string, object>>();
+         }
+         catch
+         {
+             history = new List<Dictionary<string, object>>();
+         }
+         if (history.Any(h => h.TryGetValue("proof", out var p) && string.Equals(p?.ToString(), request.Proof, StringComparison.OrdinalIgnoreCase)))
+         {
+             response.Result.IsError = true;
+             response.Result.Message = "A purchase with this Proof is already recorded (duplicate).";
+             return HttpResponseHelper.FormatResponse(response, System.Net.HttpStatusCode.Conflict, false);
+         }
+         var entry = new Dictionary<string, object>
+         {
+             ["buyerAvatarId"] = request.BuyerAvatarId.ToString(),
+             ["sellerAvatarId"] = request.SellerAvatarId.ToString(),
+             ["date"] = request.Date,
+             ["amount"] = request.Amount,
+             ["currencyOrChain"] = request.CurrencyOrChain ?? "",
+             ["proof"] = request.Proof
+         };
+         history.Add(entry);
+         holon.MetaData["PurchaseHistory"] = JsonConvert.SerializeObject(history);
+         holon.MetaData["OwnerAvatarIds"] = JsonConvert.SerializeObject(new[] { request.BuyerAvatarId.ToString() });
+         holon.ModifiedByAvatarId = AvatarId;
+         var saveResult = await HolonManager.SaveHolonAsync(holon, AvatarId, false, false, 0, true);
+         OASISResultHelper<IHolon, Holon>.CopyResult(saveResult, response.Result);
+         response.Result.Result = saveResult.Result != null ? (Holon)saveResult.Result : null;
+         return HttpResponseHelper.FormatResponse(response, response.Result.IsError ? System.Net.HttpStatusCode.BadRequest : System.Net.HttpStatusCode.OK, false);
+     }
+
    /// <summary>
    /// Save's a holon data object.
    /// </summary>

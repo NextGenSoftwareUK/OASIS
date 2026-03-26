@@ -19,6 +19,7 @@ using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Responses;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.AztecOASIS;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 
@@ -132,6 +133,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             if (result.Result == null)
                 OASISErrorHandling.HandleError(ref result, "The registered ArbitrumOASIS provider could not be cast to ArbitrumOASIS.");
+
+            return result;
+        }
+
+        private OASISResult<AztecOASIS> GetAztecProvider()
+        {
+            var result = new OASISResult<AztecOASIS>();
+            IOASISProvider provider = ProviderManager.Instance.GetProvider(ProviderType.AztecOASIS);
+
+            if (provider == null)
+            {
+                OASISErrorHandling.HandleError(ref result,
+                    "AztecOASIS provider is not registered. " +
+                    "Ensure AztecOASIS is configured in OASIS_DNA.json and the sidecar is running on port 3001.");
+                return result;
+            }
+
+            if (!provider.IsProviderActivated)
+            {
+                var activateResult = provider.ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate AztecOASIS provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            result.Result = provider as AztecOASIS;
+
+            if (result.Result == null)
+                OASISErrorHandling.HandleError(ref result, "The registered AztecOASIS provider could not be cast to AztecOASIS.");
 
             return result;
         }
@@ -1102,6 +1134,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 },
                 IsError = false,
                 Message = arbitrumCreateResult.Message
+            };
+        }
+
+        /// <summary>
+        /// Deploy a new private Aztec TokenContract for a share class.
+        /// Uses the AztecOASIS provider + sidecar to deploy via @aztec/aztec.js.
+        /// The returned contractAddress must be stored on the stock_class record (aztec_contract_address)
+        /// and passed as TokenContractAddress in subsequent mint-tokens calls with OnChainProvider=AztecOASIS.
+        /// </summary>
+        /// <param name="request">Name, Symbol, Decimals (default 6), optional AdminAztecAddress.</param>
+        /// <returns>contractAddress and transactionHash of the deployed private token contract.</returns>
+        [Authorize]
+        [HttpPost]
+        [Route("create-aztec-token")]
+        [ProducesResponseType(typeof(OASISResult<Models.NFT.CreateAztecTokenResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
+        public async Task<OASISResult<Models.NFT.CreateAztecTokenResponse>> CreateAztecTokenAsync(
+            [FromBody] Models.NFT.CreateAztecTokenRequest request)
+        {
+            if (request == null)
+                return new OASISResult<Models.NFT.CreateAztecTokenResponse>
+                    { IsError = true, Message = "Request body is required." };
+
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Symbol))
+                return new OASISResult<Models.NFT.CreateAztecTokenResponse>
+                    { IsError = true, Message = "Name and Symbol are required." };
+
+            var providerResult = GetAztecProvider();
+            if (providerResult.IsError)
+                return new OASISResult<Models.NFT.CreateAztecTokenResponse>
+                    { IsError = true, Message = providerResult.Message };
+
+            // Call sidecar via the AztecAPIClient embedded in the provider
+            var deployPayload = new
+            {
+                name = request.Name,
+                symbol = request.Symbol,
+                decimals = request.Decimals,
+                adminAddress = request.AdminAztecAddress
+            };
+
+            var sidecarResult = await providerResult.Result.ApiClient.PostAsync<
+                NextGenSoftware.OASIS.API.Providers.AztecOASIS.Models.DeployTokenSidecarResponse>(
+                "/tokens/deploy", deployPayload);
+
+            if (sidecarResult.IsError || sidecarResult.Result == null)
+                return new OASISResult<Models.NFT.CreateAztecTokenResponse>
+                    { IsError = true, Message = $"Aztec token deployment failed: {sidecarResult.Message}" };
+
+            return new OASISResult<Models.NFT.CreateAztecTokenResponse>
+            {
+                Result = new Models.NFT.CreateAztecTokenResponse
+                {
+                    ContractAddress = sidecarResult.Result.ContractAddress,
+                    TransactionHash = sidecarResult.Result.TransactionHash
+                },
+                IsError = false,
+                Message = $"Aztec private token deployed at {sidecarResult.Result.ContractAddress}."
             };
         }
 
