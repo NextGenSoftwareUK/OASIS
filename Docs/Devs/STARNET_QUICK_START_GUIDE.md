@@ -14,7 +14,7 @@ This quick start guide will have you up and running with the STARNET Web UI in j
 
 ### **1.1 Navigate to STARNET**
 1. Open your web browser
-2. Go to [starnet.oasisplatform.world](https://starnet.oasisplatform.world)
+2. Go to [starnet.oasisweb4.com](https://starnet.oasisweb4.com)
 3. Click "Get Started" or "Sign Up"
 
 ### **1.2 Create Your Account**
@@ -198,8 +198,8 @@ const gameComponents = {
 ### **Community Support**
 - **Discord**: [Join our Discord](https://discord.gg/oasis)
 - **GitHub**: [Contribute on GitHub](https://github.com/oasisplatform)
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
-- **Email**: support@oasisplatform.world
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
+- **Email**: support@oasisweb4.com
 
 ### **Video Resources**
 - **Getting Started Video**: [Watch Tutorial](https://youtube.com/oasis)

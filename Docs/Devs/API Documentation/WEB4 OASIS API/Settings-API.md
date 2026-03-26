@@ -42,7 +42,7 @@ Authorization: Bearer YOUR_TOKEN
         "maxRequestSize": "10MB",
         "cors": {
           "enabled": true,
-          "origins": ["https://oasisplatform.world", "https://app.oasisplatform.world"]
+          "origins": ["https://oasisweb4.com", "https://app.oasisweb4.com"]
         },
         "authentication": {
           "jwtExpiry": 3600,
@@ -134,7 +134,7 @@ Authorization: Bearer YOUR_TOKEN
         "maxRequestSize": "20MB",
         "cors": {
           "enabled": true,
-          "origins": ["https://oasisplatform.world", "https://app.oasisplatform.world"]
+          "origins": ["https://oasisweb4.com", "https://app.oasisweb4.com"]
         },
         "authentication": {
           "jwtExpiry": 3600,
@@ -620,8 +620,8 @@ Authorization: Bearer YOUR_TOKEN
         "maxNodes": 10000,
         "minNodes": 100,
         "bootstrapNodes": [
-          "node1.onet.oasisplatform.world:8080",
-          "node2.onet.oasisplatform.world:8080"
+          "node1.onet.oasisweb4.com:8080",
+          "node2.onet.oasisweb4.com:8080"
         ],
         "discovery": {
           "enabled": true,
@@ -707,8 +707,8 @@ Authorization: Bearer YOUR_TOKEN
         "maxNodes": 15000,
         "minNodes": 150,
         "bootstrapNodes": [
-          "node1.onet.oasisplatform.world:8080",
-          "node2.onet.oasisplatform.world:8080"
+          "node1.onet.oasisweb4.com:8080",
+          "node2.onet.oasisweb4.com:8080"
         ],
         "discovery": {
           "enabled": true,
@@ -768,8 +768,8 @@ Authorization: Bearer YOUR_TOKEN
         "maxNodes": 10000,
         "minNodes": 100,
         "bootstrapNodes": [
-          "node1.onet.oasisplatform.world:8080",
-          "node2.onet.oasisplatform.world:8080"
+          "node1.onet.oasisweb4.com:8080",
+          "node2.onet.oasisweb4.com:8080"
         ],
         "discovery": {
           "enabled": true,

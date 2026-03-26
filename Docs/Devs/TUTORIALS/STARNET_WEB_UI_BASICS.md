@@ -14,7 +14,7 @@ This tutorial will guide you through the basics of navigating and using the STAR
 
 ### **1.1 Accessing STARNET Web UI**
 1. Open your web browser
-2. Navigate to [starnet.oasisplatform.world](https://starnet.oasisplatform.world)
+2. Navigate to [starnet.oasisweb4.com](https://starnet.oasisweb4.com)
 3. Create an account or sign in
 4. Complete your profile setup
 
@@ -425,10 +425,10 @@ You've successfully learned the basics of STARNET Web UI:
 
 ## 📞 **Support & Resources**
 
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform](https://github.com/oasisplatform)
-- **Email**: support@oasisplatform.world
+- **Email**: support@oasisweb4.com
 
 ---
 

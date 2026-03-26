@@ -166,7 +166,7 @@ await oasis_update_avatar({
   updates: {
     metaData: {
       codebaseKnowledge: codebaseKnowledge,
-      knowledgeBaseUrl: "https://docs.oasisplatform.world"
+      knowledgeBaseUrl: "https://docs.oasisweb4.com"
     }
   }
 });

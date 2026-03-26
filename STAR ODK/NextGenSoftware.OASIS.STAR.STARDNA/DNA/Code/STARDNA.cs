@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Enums;
 
 namespace NextGenSoftware.OASIS.STAR.DNA
 {
@@ -6,7 +6,8 @@ namespace NextGenSoftware.OASIS.STAR.DNA
     {
         // Default values that are used to generate a new STARDNA.json file if it is not found.
         public string OASISDNAPath { get; set; } //Path to the OASIS DNA json file (if blank it will default to the built in SYSTEM OASIS DNA). Only change this if you want to work with custom providers, etc
-        public string BaseSTARPath { get; set; } = @"/home/dellams/Source/OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.CLI/bin/Debug/net8.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
+        public string BaseSTARPath { get; set; } = ""; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath. Set to empty so paths are resolved relative to AppContext.BaseDirectory at runtime.
+        //public string BaseSTARPath { get; set; } = @"/home/dellams/Source/OASIS/STAR ODK/NextGenSoftware.OASIS.STAR.CLI/bin/Debug/net8.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         //public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //If BaseSTARPath is blank then all other paths below are absolute otherwise they are relative to STARBasePath.
         public string MetaDataDNATemplateFolder { get; set; } = "DNATemplates\\MetaDataDNATemplates"; //MetaData DNA Templates that are used to generate the meta data for CelestialBodies, Zomes & Holons. Can be relative to STARBasePath or absolute.
         //public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (releative to STARBasePath above). //MOVED TO HOLOOASIS SECTION IN OASISDNA

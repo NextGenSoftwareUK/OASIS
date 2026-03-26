@@ -107,7 +107,7 @@ If you can't find what you're looking for in the Wiki:
 
 - **GitHub Issues**: [Report documentation issues](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/issues)
 - **Community Forum**: [Ask questions](https://t.me/ourworldthegamechat)
-- **Email Support**: [Contact us](mailto:support@oasisplatform.world)
+- **Email Support**: [Contact us](mailto:support@oasisweb4.com)
 
 ---
 

@@ -320,7 +320,7 @@ Authorization: Bearer YOUR_TOKEN
       },
       "tracking": {
         "trackingNumber": "TRK123456789",
-        "trackingUrl": "https://tracking.oasisplatform.world/TRK123456789"
+        "trackingUrl": "https://tracking.oasisweb4.com/TRK123456789"
       }
     },
     "message": "Gift sent successfully"
@@ -359,7 +359,7 @@ Authorization: Bearer YOUR_TOKEN
           "amount": 100.0,
           "currency": "USD"
         },
-        "downloadUrl": "https://gifts.oasisplatform.world/gift_123/download"
+        "downloadUrl": "https://gifts.oasisweb4.com/gift_123/download"
       }
     },
     "message": "Gift received successfully"
@@ -474,7 +474,7 @@ Authorization: Bearer YOUR_TOKEN
           "amount": 100.0,
           "currency": "USD"
         },
-        "downloadUrl": "https://gifts.oasisplatform.world/gift_123/download",
+        "downloadUrl": "https://gifts.oasisweb4.com/gift_123/download",
         "activationCode": "ACT123456789",
         "instructions": "Use the activation code to activate your premium subscription"
       }

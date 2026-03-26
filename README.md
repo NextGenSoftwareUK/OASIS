@@ -1312,8 +1312,8 @@ This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENS
 
 ### Enterprise Support
 For enterprise support and consulting services, please contact us at:
-- **Email**: enterprise@oasisplatform.world
-- **Website**: [https://oasisplatform.world](https://oasisplatform.world)
+- **Email**: enterprise@oasisweb4.com
+- **Website**: [https://oasisweb4.com](https://oasisweb4.com)
 
 ## 🌟 Key Benefits
 
@@ -1641,7 +1641,7 @@ If the answer is YES, then please [proceed to here](https://github.com/NextGenSo
 <a href="https://drive.google.com/file/d/1b_G08UTALUg4H3jPlBdElZAFvyRcVKj1/view">Dev Requirements To Join The Our World Tribe</a><br>
 <a href="https://drive.google.com/file/d/12pCk20iLw_uA1yIfojcP6WwvyOT4WRiO/view?usp=sharing">The Our World Mission (Summary)</a><br>
 http://www.ourworldthegame.com<br>
-http://oasisplatform.world/swagger<br>
+http://oasisweb4.com/swagger<br>
 https://github.com/NextGenSoftwareUK/OASIS<br>
 http://www.gofundme.com/ourworldthegame<br>
 
@@ -3279,7 +3279,7 @@ https://github.com/NextGenSoftwareUK/Our-World-Smartphone-Prototype-AR
 **Sites**
 
 http://www.ourworldthegame.com <br/>
-https://oasisplatform.world <br/>
+https://oasisweb4.com <br/>
 https://api.oasisweb4.com  <br/>
 https://opensea.io/collection/theoasisandourworld  <br/>
 http://www.nextgensoftware.co.uk <br/>
