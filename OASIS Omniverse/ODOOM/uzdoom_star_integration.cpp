@@ -1079,6 +1079,8 @@ static const size_t ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8 = 168;
 static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 256 * 1024;
 /** Max UTF-8 bytes for odoom_quest_tracker_objectives (must stay within ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8). */
 static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8;
+/** Tracker title CVar: quest name + optional " (pct%)" from Q-line; keep short for HUD. */
+static const size_t ODOOM_QUEST_TRACKER_TITLE_MAX_UTF8 = 160;
 
 /** Truncate UTF-8 so len <= maxBytes without splitting a multibyte character (ZScript string CVars). */
 static void ODOOM_TruncateUtf8ForZScriptCVar(std::string& s, size_t maxBytes) {
@@ -1429,6 +1431,73 @@ static void ODOOM_FormatCompactQuestQLineForCVarShrink(const char* line, size_t 
 	ODOOM_TruncateUtf8ForZScriptCVar(out, ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8);
 }
 
+/** Q line: Q, id, name, desc, status, pct — append " (pct%)" to tracker title from last tab field when present (matches list progress). */
+static void ODOOM_AppendQuestPctFromQLine(const char* line, size_t lineLen, std::string& trackerTitle) {
+	if (trackerTitle.empty() || lineLen < 4 || line[0] != 'Q' || line[1] != '\t')
+		return;
+	const char* end = line + lineLen;
+	const char* lastTab = nullptr;
+	for (const char* c = line + 2; c < end; ++c) {
+		if (*c == '\t')
+			lastTab = c;
+	}
+	if (!lastTab || lastTab + 1 >= end)
+		return;
+	const char* pctStart = lastTab + 1;
+	size_t pctLen = (size_t)(end - pctStart);
+	while (pctLen > 0 && (pctStart[pctLen - 1] == ' ' || pctStart[pctLen - 1] == '\r'))
+		pctLen--;
+	if (pctLen == 0)
+		return;
+	for (size_t i = 0; i < pctLen; ++i) {
+		if (!std::isdigit(static_cast<unsigned char>(pctStart[i])))
+			return;
+	}
+	trackerTitle += " (";
+	trackerTitle.append(pctStart, pctLen);
+	trackerTitle += "%)";
+}
+
+/**
+ * Parse O-line for odoom_quest_tracker_objective fallback from quest list payload.
+ * Extended rows (6+ tab-separated fields after O): id, name, desc, ProgressSummary, …, done — use ProgressSummary (field index 3) when last field is 0.
+ * Compact rows (current STARAPIClient): id, title, done — use title when done is 0.
+ */
+static void ODOOM_ParseOlineTrackerProgress(const char* line, size_t lineLen, std::string& outProgress) {
+	if (lineLen < 4 || line[0] != 'O' || line[1] != '\t')
+		return;
+	const char* p = line + 2;
+	const char* end = line + lineLen;
+	const char* seg[16];
+	int ns = 0;
+	seg[ns++] = p;
+	for (const char* c = p; c < end && ns < 16; ++c) {
+		if (*c == '\t')
+			seg[ns++] = c + 1;
+	}
+	if (ns < 3)
+		return;
+	auto fieldLen = [&](int i) -> size_t {
+		const char* s = seg[i];
+		const char* t = (i + 1 < ns) ? seg[i + 1] : end;
+		return (size_t)(t - s);
+	};
+	size_t lastLen = fieldLen(ns - 1);
+	const char* last = seg[ns - 1];
+	if (lastLen != 1 || *last != '0')
+		return;
+	if (ns >= 6) {
+		size_t L = fieldLen(3);
+		if (L > 0)
+			outProgress.assign(seg[3], L);
+	}
+	if (outProgress.empty()) {
+		size_t L = fieldLen(1);
+		if (L > 0)
+			outProgress.assign(seg[1], L);
+	}
+}
+
 /** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
 static void ODOOM_PushTrackerProgressCvars(const char* wantIdCStr) {
 	if (!wantIdCStr || !wantIdCStr[0] || std::strcmp(wantIdCStr, "...") == 0) return;
@@ -1626,7 +1695,6 @@ static void ODOOM_RefreshQuestCVars(void) {
 		if (sid && sid[0]) wantId.assign(sid);
 	}
 
-	int questCount = 0;
 	std::string trackerTitle, trackerObjective;
 	std::string currentId, currentTitle;
 	bool inTargetBlock = false;
@@ -1642,7 +1710,6 @@ static void ODOOM_RefreshQuestCVars(void) {
 			continue;
 		}
 		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
-			questCount++;
 			currentId.clear();
 			currentTitle.clear();
 			/* Q, id, name, desc, status, pct */
@@ -1655,31 +1722,18 @@ static void ODOOM_RefreshQuestCVars(void) {
 				t1 = (const char*)memchr(t0 + 1, '\t', (size_t)(lineEndQ - (t0 + 1)));
 				if (t1 && t1 - (t0 + 1) > 0) currentTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 			}
-			if (currentTitle.size() > 120) currentTitle.resize(120);
 			inTargetBlock = !wantId.empty() && wantId != "..." && ODOOM_QuestIdEqInsensitive(currentId, wantId);
 			if (inTargetBlock) {
 				trackerTitle = currentTitle;
+				ODOOM_AppendQuestPctFromQLine(p, lineLen, trackerTitle);
+				ODOOM_TruncateUtf8ForZScriptCVar(trackerTitle, ODOOM_QUEST_TRACKER_TITLE_MAX_UTF8);
 				trackerObjective.clear();
 			}
 			p = lineEnd ? lineEnd + 1 : p + lineLen;
 			continue;
 		}
-		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && inTargetBlock && trackerObjective.empty()) {
-			/* O, id, desc, done - first incomplete objective (done=0); desc is 2nd field after id */
-			const char* f0 = p + 2;
-			size_t rest0 = (size_t)((p + lineLen) - f0);
-			const char* f1 = (const char*)memchr(f0, '\t', rest0);
-			if (f1 && f1 < p + lineLen) {
-				f1++;
-				size_t rest1 = (size_t)((p + lineLen) - f1);
-				const char* f2 = (const char*)memchr(f1, '\t', rest1);
-				if (f2 && f2 < p + lineLen) {
-					const char* doneStart = f2 + 1;
-					if (doneStart < p + lineLen && *doneStart == '0')
-						trackerObjective.assign(f1, (size_t)(f2 - f1));
-				}
-			}
-		}
+		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && inTargetBlock && trackerObjective.empty())
+			ODOOM_ParseOlineTrackerProgress(p, lineLen, trackerObjective);
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
 	}
 
@@ -1700,13 +1754,26 @@ static void ODOOM_RefreshQuestCVars(void) {
 					const char* t1 = (const char*)memchr(t0 + 1, '\t', (size_t)(lineEndQ - (t0 + 1)));
 					if (t1 && t1 - (t0 + 1) > 0) firstTitle.assign(t0 + 1, (size_t)(t1 - (t0 + 1)));
 				}
-				if (firstTitle.size() > 120) firstTitle.resize(120);
 				break;
 			}
 			fp = lineEnd ? lineEnd + 1 : fp + lineLen;
 		}
 		if (!firstTitle.empty()) {
 			trackerTitle = std::move(firstTitle);
+			{
+				const char* fp2 = questBuf;
+				const char* fend2 = questBuf + n;
+				while (fp2 < fend2 && *fp2) {
+					const char* lineEnd = (const char*)memchr(fp2, '\n', (size_t)(fend2 - fp2));
+					size_t lineLen = lineEnd ? (size_t)(lineEnd - fp2) : (size_t)(fend2 - fp2);
+					if (lineLen >= 2 && fp2[0] == 'Q' && fp2[1] == '\t') {
+						ODOOM_AppendQuestPctFromQLine(fp2, lineLen, trackerTitle);
+						break;
+					}
+					fp2 = lineEnd ? lineEnd + 1 : fp2 + lineLen;
+				}
+			}
+			ODOOM_TruncateUtf8ForZScriptCVar(trackerTitle, ODOOM_QUEST_TRACKER_TITLE_MAX_UTF8);
 			wantId = firstId;
 			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String) {
 				static std::string s_tracker_id_fallback;
@@ -1720,28 +1787,37 @@ static void ODOOM_RefreshQuestCVars(void) {
 	UCVarValue c;
 	c.Int = totalFiltered;
 	countVar->SetGenericRep(c, CVAR_Int);
-	/* Only update tracker title when we have real data; if we have tracker_quest_id but list is still loading, keep "Loading..." (set by OnAuthDone/frame pump). */
+	/* Only update tracker title when we have real data; empty list + no wantId => "No Active Quest Found"; empty list + wantId => "Loading quests..." (keep ids until data arrives). */
 	if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) {
 		if (!trackerTitle.empty())
 			{ UCVarValue t; t.String = (char*)trackerTitle.c_str(); trackerTitleVar->SetGenericRep(t, CVAR_String); }
 		else if (wantId.empty())
-			{ UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
+		{
+			UCVarValue t;
+			if (totalTopLevelBlocks == 0)
+				t.String = (char*)"No Active Quest Found";
+			else
+				t.String = (char*)"";
+			trackerTitleVar->SetGenericRep(t, CVAR_String);
+			if (totalTopLevelBlocks == 0)
+			{
+				if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
+				{
+					UCVarValue q; q.String = (char*)"";
+					trackerIdVar->SetGenericRep(q, CVAR_String);
+				}
+				FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+				if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
+				{
+					UCVarValue o; o.String = (char*)"";
+					trackerActiveIdVar->SetGenericRep(o, CVAR_String);
+				}
+			}
+		}
 		else if (totalTopLevelBlocks == 0)
 		{
-			/* No quests in cache/list for this avatar: do not leave stale "Loading..." title visible. */
-			UCVarValue t; t.String = (char*)"No Active Quest Found";
+			UCVarValue t; t.String = (char*)"Loading quests...";
 			trackerTitleVar->SetGenericRep(t, CVAR_String);
-			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
-			{
-				UCVarValue q; q.String = (char*)"";
-				trackerIdVar->SetGenericRep(q, CVAR_String);
-			}
-			FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
-			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
-			{
-				UCVarValue o; o.String = (char*)"";
-				trackerActiveIdVar->SetGenericRep(o, CVAR_String);
-			}
 		}
 	}
 	if (trackerObjVar && trackerObjVar->GetRealType() == CVAR_String) {
