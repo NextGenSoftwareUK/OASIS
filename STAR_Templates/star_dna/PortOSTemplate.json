@@ -1,0 +1,524 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "2f8b4e1a-9c3d-4f7e-b5a2-8d6c0e3f1b97",
+  "OAPPName": "PortOSTemplate",
+  "OAPPDesc": "Door-to-berth port intelligence OAPP. Models the full cargo journey from inland origin through supply chain, gate, yard, vessel loading, and customs clearance. Feeds a Port OS dashboard (System 08 / ACI) with live KPIs across berth, gate, yard, customs, hinterland, pre-gate, ESG compliance, and revenue domains. Designed for LFG/PAA-style multi-site port deployments (Abidjan, San Pedro).",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["port", "supply-chain", "logistics", "geo", "customs", "lfg", "esg", "eudr", "dashboard"],
+  "CelestialBodyDNA": {
+    "Name": "PortOSPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "PortOSPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+
+          {
+            "Name": "PortInfrastructureZome",
+            "Description": "Fixed physical geography — port, terminals, berths, yard blocks. Root identity layer; all other holons link here.",
+            "Holons": [
+              {
+                "Name": "PortHolon",
+                "Description": "A port site (e.g. Abidjan PAA or San Pedro). Top-level root holon.",
+                "Fields": [
+                  { "Name": "PortId",          "Type": "Guid",   "Required": true },
+                  { "Name": "PortCode",         "Type": "string", "Required": true },
+                  { "Name": "Site",             "Type": "string", "Required": true,
+                    "Enum": ["abidjan", "sanpedro", "other"] },
+                  { "Name": "CountryCode",      "Type": "string", "Required": false },
+                  { "Name": "Timezone",         "Type": "string", "Required": false },
+                  { "Name": "OperatorAvatarId", "Type": "Guid",   "Required": false },
+                  { "Name": "IsActive",         "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "TerminalHolon",
+                "Description": "A terminal or operational zone within a port.",
+                "Fields": [
+                  { "Name": "TerminalId",    "Type": "Guid",   "Required": true },
+                  { "Name": "PortId",        "Type": "Guid",   "Required": true },
+                  { "Name": "Name",          "Type": "string", "Required": true },
+                  { "Name": "TerminalType",  "Type": "string", "Required": false,
+                    "Enum": ["container", "bulk", "ro-ro", "general", "liquid"] },
+                  { "Name": "OperatorName",  "Type": "string", "Required": false },
+                  { "Name": "IsActive",      "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "BerthHolon",
+                "Description": "An individual berth within a terminal.",
+                "Fields": [
+                  { "Name": "BerthId",       "Type": "Guid",   "Required": true },
+                  { "Name": "TerminalId",    "Type": "Guid",   "Required": true },
+                  { "Name": "BerthNumber",   "Type": "string", "Required": true },
+                  { "Name": "MaxDraftM",     "Type": "double", "Required": false },
+                  { "Name": "MaxLoaM",       "Type": "double", "Required": false },
+                  { "Name": "Status",        "Type": "string", "Required": false,
+                    "Enum": ["free", "occupied", "reserved", "maintenance"] }
+                ]
+              },
+              {
+                "Name": "YardBlockHolon",
+                "Description": "A named block or row in the terminal yard.",
+                "Fields": [
+                  { "Name": "BlockId",       "Type": "Guid",   "Required": true },
+                  { "Name": "TerminalId",    "Type": "Guid",   "Required": true },
+                  { "Name": "BlockName",     "Type": "string", "Required": true },
+                  { "Name": "Zone",          "Type": "string", "Required": false,
+                    "Enum": ["import", "export", "reefer", "hazmat", "empty", "transship"] },
+                  { "Name": "Capacity",      "Type": "int",    "Required": false },
+                  { "Name": "CurrentFill",   "Type": "int",    "Required": false },
+                  { "Name": "FillPct",       "Type": "double", "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "VesselZome",
+            "Description": "Maritime arrivals — vessel master data and individual port calls. Feeds berth and PCS dashboard tiles.",
+            "Holons": [
+              {
+                "Name": "VesselHolon",
+                "Description": "A ship — master record identified by IMO number.",
+                "Fields": [
+                  { "Name": "VesselId",      "Type": "Guid",   "Required": true },
+                  { "Name": "ImoNumber",     "Type": "string", "Required": true },
+                  { "Name": "VesselName",    "Type": "string", "Required": true },
+                  { "Name": "Flag",          "Type": "string", "Required": false },
+                  { "Name": "Operator",      "Type": "string", "Required": false },
+                  { "Name": "VesselType",    "Type": "string", "Required": false,
+                    "Enum": ["container", "bulk", "tanker", "ro-ro", "general"] },
+                  { "Name": "GrossTonnage",  "Type": "double", "Required": false },
+                  { "Name": "Teu",           "Type": "int",    "Required": false }
+                ]
+              },
+              {
+                "Name": "VesselCallHolon",
+                "Description": "A vessel's specific visit to the port — ETA to ATD. Core PCS entity.",
+                "Fields": [
+                  { "Name": "CallId",               "Type": "Guid",     "Required": true },
+                  { "Name": "VesselId",             "Type": "Guid",     "Required": true },
+                  { "Name": "BerthId",              "Type": "Guid",     "Required": false },
+                  { "Name": "PortId",               "Type": "Guid",     "Required": true },
+                  { "Name": "VoyageNumber",         "Type": "string",   "Required": false },
+                  { "Name": "Eta",                  "Type": "DateTime", "Required": false },
+                  { "Name": "Etd",                  "Type": "DateTime", "Required": false },
+                  { "Name": "Ata",                  "Type": "DateTime", "Required": false },
+                  { "Name": "Atd",                  "Type": "DateTime", "Required": false },
+                  { "Name": "Status",               "Type": "string",   "Required": false,
+                    "Enum": ["scheduled", "at-anchor", "berthed", "operations", "departed", "cancelled"] },
+                  { "Name": "AgentName",            "Type": "string",   "Required": false },
+                  { "Name": "ManifestReadinessPct", "Type": "double",   "Required": false },
+                  { "Name": "ImportTeu",            "Type": "int",      "Required": false },
+                  { "Name": "ExportTeu",            "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "ShipmentZome",
+            "Description": "The cargo identity chain — Bill of Lading → Consignment → Container. Cross-cutting thread every other holon references.",
+            "Holons": [
+              {
+                "Name": "ShipmentHolon",
+                "Description": "A shipment identified by its Bill of Lading number.",
+                "Fields": [
+                  { "Name": "ShipmentId",       "Type": "Guid",   "Required": true },
+                  { "Name": "BillOfLading",     "Type": "string", "Required": true },
+                  { "Name": "CallId",           "Type": "Guid",   "Required": false },
+                  { "Name": "ShipperName",      "Type": "string", "Required": false },
+                  { "Name": "ConsigneeName",    "Type": "string", "Required": false },
+                  { "Name": "OriginCountry",    "Type": "string", "Required": false },
+                  { "Name": "DestinationPort",  "Type": "string", "Required": false },
+                  { "Name": "Incoterms",        "Type": "string", "Required": false },
+                  { "Name": "Status",           "Type": "string", "Required": false,
+                    "Enum": ["pre-arrival", "arrived", "in-customs", "released", "delivered", "completed"] }
+                ]
+              },
+              {
+                "Name": "ConsignmentHolon",
+                "Description": "A group of containers under one BL — carries commodity and compliance metadata.",
+                "Fields": [
+                  { "Name": "ConsignmentId",          "Type": "Guid",   "Required": true },
+                  { "Name": "ShipmentId",             "Type": "Guid",   "Required": true },
+                  { "Name": "NumberOfContainers",     "Type": "int",    "Required": false },
+                  { "Name": "GrossWeightKg",          "Type": "double", "Required": false },
+                  { "Name": "HsCode",                 "Type": "string", "Required": false },
+                  { "Name": "CommodityDescription",   "Type": "string", "Required": false },
+                  { "Name": "TemperatureControlled",  "Type": "bool",   "Required": false },
+                  { "Name": "SetTempC",               "Type": "double", "Required": false },
+                  { "Name": "EudrRequired",           "Type": "bool",   "Required": false },
+                  { "Name": "HazmatClass",            "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "ContainerHolon",
+                "Description": "An individual ISO container — the atomic unit of port logistics.",
+                "Fields": [
+                  { "Name": "ContainerId",     "Type": "Guid",   "Required": true },
+                  { "Name": "IsoNumber",       "Type": "string", "Required": true },
+                  { "Name": "ConsignmentId",   "Type": "Guid",   "Required": true },
+                  { "Name": "ContainerType",   "Type": "string", "Required": false,
+                    "Enum": ["20GP", "40GP", "40HQ", "40RF", "20RF", "45HQ", "20OT"] },
+                  { "Name": "SealNumber",      "Type": "string", "Required": false },
+                  { "Name": "CurrentTempC",    "Type": "double", "Required": false },
+                  { "Name": "GrossWeightKg",   "Type": "double", "Required": false },
+                  { "Name": "Status",          "Type": "string", "Required": false,
+                    "Enum": ["inland", "pre-gate", "gate-in", "yard", "loading", "on-vessel", "gate-out", "delivered"] },
+                  { "Name": "IsEmpty",         "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "MovementZome",
+            "Description": "Every physical movement event — inland leg, vehicle, slot booking, gate transaction, port visit, yard position. Core operational feed.",
+            "Holons": [
+              {
+                "Name": "InlandLegHolon",
+                "Description": "A transport leg from origin/warehouse to the port gate. Source of hinterland ETAs.",
+                "Fields": [
+                  { "Name": "LegId",              "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",        "Type": "Guid",     "Required": true },
+                  { "Name": "CarrierId",          "Type": "Guid",     "Required": false },
+                  { "Name": "WarehouseId",        "Type": "Guid",     "Required": false },
+                  { "Name": "OriginAddress",      "Type": "string",   "Required": false },
+                  { "Name": "ModeOfTransport",    "Type": "string",   "Required": false,
+                    "Enum": ["truck", "rail", "barge", "multimodal"] },
+                  { "Name": "EtaDeparture",       "Type": "DateTime", "Required": false },
+                  { "Name": "EtaGate",            "Type": "DateTime", "Required": false },
+                  { "Name": "ActualDeparture",    "Type": "DateTime", "Required": false },
+                  { "Name": "ActualArrivalZone",  "Type": "DateTime", "Required": false },
+                  { "Name": "DelayRiskScore",     "Type": "double",   "Required": false },
+                  { "Name": "Status",             "Type": "string",   "Required": false,
+                    "Enum": ["planned", "in-transit", "arrived-zone", "gate-in", "cancelled"] }
+                ]
+              },
+              {
+                "Name": "VehicleHolon",
+                "Description": "A truck or vehicle used to transport containers to or from the port.",
+                "Fields": [
+                  { "Name": "VehicleId",      "Type": "Guid",   "Required": true },
+                  { "Name": "CarrierId",      "Type": "Guid",   "Required": false },
+                  { "Name": "PlateNumber",    "Type": "string", "Required": true },
+                  { "Name": "DriverName",     "Type": "string", "Required": false },
+                  { "Name": "DriverId",       "Type": "string", "Required": false },
+                  { "Name": "VehicleType",    "Type": "string", "Required": false,
+                    "Enum": ["trailer", "rigid", "rail-wagon", "barge"] },
+                  { "Name": "CurrentLegId",   "Type": "Guid",   "Required": false },
+                  { "Name": "IsActive",       "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "SlotBookingHolon",
+                "Description": "A pre-booked gate appointment — key to pre-gate domain and no-show tracking.",
+                "Fields": [
+                  { "Name": "SlotId",              "Type": "Guid",     "Required": true },
+                  { "Name": "VehicleId",           "Type": "Guid",     "Required": false },
+                  { "Name": "ContainerId",         "Type": "Guid",     "Required": false },
+                  { "Name": "TerminalId",          "Type": "Guid",     "Required": true },
+                  { "Name": "DeliveryOrderRef",    "Type": "string",   "Required": false },
+                  { "Name": "BookedAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "SlotWindowStart",     "Type": "DateTime", "Required": true },
+                  { "Name": "SlotWindowEnd",       "Type": "DateTime", "Required": true },
+                  { "Name": "Status",              "Type": "string",   "Required": false,
+                    "Enum": ["booked", "confirmed", "arrived", "no-show", "cancelled"] },
+                  { "Name": "DoConfirmed",         "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "GateEventHolon",
+                "Description": "A truck arrival or departure gate transaction — from Gate/OCR system (LFG System 01).",
+                "Fields": [
+                  { "Name": "EventId",                "Type": "Guid",     "Required": true },
+                  { "Name": "VehicleId",              "Type": "Guid",     "Required": false },
+                  { "Name": "ContainerId",            "Type": "Guid",     "Required": false },
+                  { "Name": "SlotId",                 "Type": "Guid",     "Required": false },
+                  { "Name": "TerminalId",             "Type": "Guid",     "Required": true },
+                  { "Name": "GateNumber",             "Type": "string",   "Required": false },
+                  { "Name": "Direction",              "Type": "string",   "Required": true,
+                    "Enum": ["in", "out"] },
+                  { "Name": "OcrReadPlate",           "Type": "string",   "Required": false },
+                  { "Name": "PlateMatchResult",       "Type": "string",   "Required": false,
+                    "Enum": ["match", "mismatch", "manual"] },
+                  { "Name": "SealCheck",              "Type": "string",   "Required": false,
+                    "Enum": ["pass", "fail", "manual", "not-checked"] },
+                  { "Name": "Timestamp",              "Type": "DateTime", "Required": true },
+                  { "Name": "ProcessingTimeSeconds",  "Type": "int",      "Required": false },
+                  { "Name": "ExceptionFlag",          "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "PortVisitHolon",
+                "Description": "A container's complete visit to the port — gate-in to gate-out. Carries dwell time SLA.",
+                "Fields": [
+                  { "Name": "VisitId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",       "Type": "Guid",     "Required": true },
+                  { "Name": "CallId",            "Type": "Guid",     "Required": false },
+                  { "Name": "TerminalId",        "Type": "Guid",     "Required": true },
+                  { "Name": "GateInTime",        "Type": "DateTime", "Required": false },
+                  { "Name": "YardArrivalTime",   "Type": "DateTime", "Required": false },
+                  { "Name": "LoadOrDischargeAt", "Type": "DateTime", "Required": false },
+                  { "Name": "GateOutTime",       "Type": "DateTime", "Required": false },
+                  { "Name": "DwellHours",        "Type": "double",   "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["in-gate", "in-yard", "loaded", "discharged", "gate-out", "completed"] }
+                ]
+              },
+              {
+                "Name": "YardPositionHolon",
+                "Description": "Current or historical position of a container in the yard — from TOS (LFG System 03).",
+                "Fields": [
+                  { "Name": "PositionId",   "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",  "Type": "Guid",     "Required": true },
+                  { "Name": "BlockId",      "Type": "Guid",     "Required": true },
+                  { "Name": "Row",          "Type": "string",   "Required": false },
+                  { "Name": "Bay",          "Type": "string",   "Required": false },
+                  { "Name": "Tier",         "Type": "int",      "Required": false },
+                  { "Name": "AssignedAt",   "Type": "DateTime", "Required": false },
+                  { "Name": "MovedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "Status",       "Type": "string",   "Required": false,
+                    "Enum": ["active", "relocated", "loaded", "gate-out"] }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "ComplianceZome",
+            "Description": "Customs triage, trade documents, and ESG/EUDR certificates. Feeds customs, cargo_readiness, provenance, and esg dashboard tiles.",
+            "Holons": [
+              {
+                "Name": "CustomsTriageHolon",
+                "Description": "An AI customs triage decision for a container — GREEN/YELLOW/RED (LFG System 04).",
+                "Fields": [
+                  { "Name": "TriageId",              "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ConsignmentId",         "Type": "Guid",     "Required": false },
+                  { "Name": "RiskLevel",             "Type": "string",   "Required": true,
+                    "Enum": ["GREEN", "YELLOW", "RED"] },
+                  { "Name": "ClearanceStatus",       "Type": "string",   "Required": false,
+                    "Enum": ["pending", "cleared", "hold", "inspection-required", "seized"] },
+                  { "Name": "QueuePosition",         "Type": "int",      "Required": false },
+                  { "Name": "AvgClearanceMinutes",   "Type": "double",   "Required": false },
+                  { "Name": "InspectionType",        "Type": "string",   "Required": false,
+                    "Enum": ["none", "document", "scanner", "physical"] },
+                  { "Name": "OfficerId",             "Type": "string",   "Required": false },
+                  { "Name": "DecidedAt",             "Type": "DateTime", "Required": false }
+                ]
+              },
+              {
+                "Name": "TradeDocumentHolon",
+                "Description": "A trade or compliance document linked to a shipment — BL, phytosanitary, permit, manifest.",
+                "Fields": [
+                  { "Name": "DocId",          "Type": "Guid",     "Required": true },
+                  { "Name": "ShipmentId",     "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",    "Type": "Guid",     "Required": false },
+                  { "Name": "DocType",        "Type": "string",   "Required": true,
+                    "Enum": ["BL", "phytosanitary", "EUDR", "permit", "manifest", "commercial-invoice", "packing-list", "certificate-of-origin"] },
+                  { "Name": "Issuer",         "Type": "string",   "Required": false },
+                  { "Name": "DocReference",   "Type": "string",   "Required": false },
+                  { "Name": "IssuedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiresAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["pending", "submitted", "approved", "rejected", "expired"] },
+                  { "Name": "FileHash",       "Type": "string",   "Required": false },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "ESGCertHolon",
+                "Description": "An ESG or EUDR sustainability certificate linked to a shipment — hash stored on-chain.",
+                "Fields": [
+                  { "Name": "CertId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ShipmentId",     "Type": "Guid",     "Required": true },
+                  { "Name": "CertType",       "Type": "string",   "Required": true,
+                    "Enum": ["EUDR", "organic", "fair-trade", "carbon-neutral", "rainforest-alliance", "other"] },
+                  { "Name": "IssuerOrg",      "Type": "string",   "Required": false },
+                  { "Name": "CertNumber",     "Type": "string",   "Required": false },
+                  { "Name": "CoveragePct",    "Type": "double",   "Required": false },
+                  { "Name": "ValidFrom",      "Type": "DateTime", "Required": false },
+                  { "Name": "ValidTo",        "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["valid", "expired", "revoked", "pending"] },
+                  { "Name": "OnChainTxHash",  "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "HinterlandZome",
+            "Description": "Pre-arrival supply chain intelligence — predicted ETAs, warehouses, carriers, inland exceptions. Feeds hinterland, pre_gate, and inland_exceptions dashboard tiles.",
+            "Holons": [
+              {
+                "Name": "HinterlandETAHolon",
+                "Description": "A predicted arrival at the port gate for a vehicle or leg — the pre-arrival horizon signal.",
+                "Fields": [
+                  { "Name": "EtaId",               "Type": "Guid",     "Required": true },
+                  { "Name": "LegId",               "Type": "Guid",     "Required": true },
+                  { "Name": "TerminalId",          "Type": "Guid",     "Required": true },
+                  { "Name": "EstimatedArrivalAt",  "Type": "DateTime", "Required": true },
+                  { "Name": "ConfidenceScore",     "Type": "double",   "Required": false },
+                  { "Name": "DelayMinutes",        "Type": "int",      "Required": false },
+                  { "Name": "DelayReason",         "Type": "string",   "Required": false,
+                    "Enum": ["traffic", "breakdown", "border", "weather", "admin", "unknown"] },
+                  { "Name": "Source",              "Type": "string",   "Required": false,
+                    "Enum": ["tms", "carrier-api", "barge-system", "rail-system", "manual"] },
+                  { "Name": "UpdatedAt",           "Type": "DateTime", "Required": false }
+                ]
+              },
+              {
+                "Name": "WarehouseHolon",
+                "Description": "A warehouse or inland depot in the supply chain.",
+                "Fields": [
+                  { "Name": "WarehouseId",         "Type": "Guid",   "Required": true },
+                  { "Name": "Name",                "Type": "string", "Required": true },
+                  { "Name": "Address",             "Type": "string", "Required": false },
+                  { "Name": "CountryCode",         "Type": "string", "Required": false },
+                  { "Name": "Latitude",            "Type": "double", "Required": false },
+                  { "Name": "Longitude",           "Type": "double", "Required": false },
+                  { "Name": "OperatorName",        "Type": "string", "Required": false },
+                  { "Name": "ContainerCapacity",   "Type": "int",    "Required": false },
+                  { "Name": "CurrentOccupancy",    "Type": "int",    "Required": false }
+                ]
+              },
+              {
+                "Name": "CarrierHolon",
+                "Description": "A logistics carrier operating inland legs to and from the port.",
+                "Fields": [
+                  { "Name": "CarrierId",        "Type": "Guid",   "Required": true },
+                  { "Name": "Name",             "Type": "string", "Required": true },
+                  { "Name": "Mode",             "Type": "string", "Required": false,
+                    "Enum": ["road", "rail", "sea", "multimodal"] },
+                  { "Name": "CountryCode",      "Type": "string", "Required": false },
+                  { "Name": "ContactEmail",     "Type": "string", "Required": false },
+                  { "Name": "FleetSize",        "Type": "int",    "Required": false },
+                  { "Name": "KpiOnTimeRatePct", "Type": "double", "Required": false },
+                  { "Name": "IsActive",         "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "InlandExceptionHolon",
+                "Description": "An anomaly detected on an inland leg before arrival — missed slot, temp break, seal mismatch, docs missing.",
+                "Fields": [
+                  { "Name": "ExceptionId",    "Type": "Guid",     "Required": true },
+                  { "Name": "LegId",          "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",    "Type": "Guid",     "Required": false },
+                  { "Name": "ExceptionType",  "Type": "string",   "Required": true,
+                    "Enum": ["missed-slot", "temp-break", "seal-mismatch", "doc-missing", "delay", "vehicle-breakdown", "border-hold"] },
+                  { "Name": "Severity",       "Type": "string",   "Required": true,
+                    "Enum": ["low", "medium", "high", "critical"] },
+                  { "Name": "Description",    "Type": "string",   "Required": false },
+                  { "Name": "DetectedAt",     "Type": "DateTime", "Required": true },
+                  { "Name": "ResolvedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "IsResolved",     "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "OperationsZome",
+            "Description": "Operational state, sweep snapshots, alerts, revenue, and handoff SLAs. Feeds intel, revenue, and security dashboard tiles. Write path for Port OS alerts.",
+            "Holons": [
+              {
+                "Name": "ShiftHolon",
+                "Description": "An operational shift at a terminal — time-bounded summary of throughput.",
+                "Fields": [
+                  { "Name": "ShiftId",               "Type": "Guid",     "Required": true },
+                  { "Name": "TerminalId",            "Type": "Guid",     "Required": true },
+                  { "Name": "StartTime",             "Type": "DateTime", "Required": true },
+                  { "Name": "EndTime",               "Type": "DateTime", "Required": false },
+                  { "Name": "SupervisorName",        "Type": "string",   "Required": false },
+                  { "Name": "TrucksThroughGate",     "Type": "int",      "Required": false },
+                  { "Name": "CraneProductivityMph",  "Type": "double",   "Required": false },
+                  { "Name": "AvgGateTimeSeconds",    "Type": "double",   "Required": false },
+                  { "Name": "IncidentCount",         "Type": "int",      "Required": false },
+                  { "Name": "Notes",                 "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "SweepSnapshotHolon",
+                "Description": "One dashboard sweep run — OASIS system-of-record for the Port OS (v1.5 of roadmap).",
+                "Fields": [
+                  { "Name": "SweepId",             "Type": "Guid",     "Required": true },
+                  { "Name": "PortId",              "Type": "Guid",     "Required": true },
+                  { "Name": "SweepStartedAt",      "Type": "DateTime", "Required": true },
+                  { "Name": "SweepCompletedMs",    "Type": "int",      "Required": false },
+                  { "Name": "SourceHealthJson",    "Type": "string",   "Required": false },
+                  { "Name": "CanonicalPayloadHash","Type": "string",   "Required": false },
+                  { "Name": "AlertCount",          "Type": "int",      "Required": false },
+                  { "Name": "DeltaVsPrevious",     "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "AlertHolon",
+                "Description": "A high-severity Port OS alert — ROUTINE / ADVISORY / FLASH. Linked to a sweep or an inline exception.",
+                "Fields": [
+                  { "Name": "AlertId",           "Type": "Guid",     "Required": true },
+                  { "Name": "PortId",            "Type": "Guid",     "Required": true },
+                  { "Name": "SweepId",           "Type": "Guid",     "Required": false },
+                  { "Name": "Domain",            "Type": "string",   "Required": true,
+                    "Enum": ["gate", "berth", "yard", "customs", "hinterland", "pre_gate", "revenue", "security", "intel"] },
+                  { "Name": "Severity",          "Type": "string",   "Required": true,
+                    "Enum": ["ROUTINE", "ADVISORY", "FLASH"] },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Body",              "Type": "string",   "Required": false },
+                  { "Name": "TriggeredAt",       "Type": "DateTime", "Required": true },
+                  { "Name": "AcknowledgedAt",    "Type": "DateTime", "Required": false },
+                  { "Name": "AcknowledgedBy",    "Type": "string",   "Required": false },
+                  { "Name": "IsResolved",        "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "RevenueItemHolon",
+                "Description": "A port charge or fee — collected vs outstanding. Feeds the revenue dashboard tile.",
+                "Fields": [
+                  { "Name": "ItemId",         "Type": "Guid",     "Required": true },
+                  { "Name": "PortId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ShipmentId",     "Type": "Guid",     "Required": false },
+                  { "Name": "ContainerId",    "Type": "Guid",     "Required": false },
+                  { "Name": "CallId",         "Type": "Guid",     "Required": false },
+                  { "Name": "ChargeType",     "Type": "string",   "Required": true,
+                    "Enum": ["port-dues", "storage", "reefer-plugin", "gate-fee", "customs-fee", "scanning-fee", "overtime"] },
+                  { "Name": "Amount",         "Type": "double",   "Required": true },
+                  { "Name": "Currency",       "Type": "string",   "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["outstanding", "collected", "disputed", "waived"] },
+                  { "Name": "DueAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "PaidAt",         "Type": "DateTime", "Required": false }
+                ]
+              },
+              {
+                "Name": "HandoffSLAHolon",
+                "Description": "Time from inland arrival zone to gate-processed — the supply chain SLA metric.",
+                "Fields": [
+                  { "Name": "SlaId",                   "Type": "Guid",     "Required": true },
+                  { "Name": "ContainerId",             "Type": "Guid",     "Required": true },
+                  { "Name": "LegId",                   "Type": "Guid",     "Required": false },
+                  { "Name": "TerminalId",              "Type": "Guid",     "Required": true },
+                  { "Name": "InlandArrivalZoneAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "GateProcessedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "SlaTargetMinutes",        "Type": "int",      "Required": false },
+                  { "Name": "ActualMinutes",           "Type": "int",      "Required": false },
+                  { "Name": "SlaBreached",             "Type": "bool",     "Required": false },
+                  { "Name": "BreachReasonCode",        "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          }
+
+        ]
+      }
+    ]
+  }
+}
