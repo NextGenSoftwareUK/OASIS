@@ -7,6 +7,9 @@
         "OASIS_API_URL": "http://localhost:5003",
         "OASIS_API_KEY": ""
       }
+    },
+    "unityMCP": {
+      "url": "http://localhost:8080/mcp"
     }
   }
 }

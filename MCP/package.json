@@ -21,7 +21,7 @@
   "license": "PROPRIETARY",
   "repository": {
     "type": "git",
-    "url": "https://github.com/NextGenSoftwareUK/OASIS"
+    "url": "https://github.com/NextGenSoftwareUK/MCP.git"
   },
   "scripts": {
     "build": "tsc",
