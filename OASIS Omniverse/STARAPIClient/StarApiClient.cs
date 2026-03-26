@@ -8108,6 +8108,93 @@ public static unsafe class StarApiExports
         return (int)StarApiResultCode.Success;
     }
 
+    /// <summary>Native export: start quest on worker; after start succeeds, persist active quest + objective (ordered, no race with one-shot persist CVars).</summary>
+    [UnmanagedCallersOnly(EntryPoint = "star_api_start_quest_then_set_active_objective", CallConvs = [typeof(CallConvCdecl)])]
+    public static int StarApiStartQuestThenSetActiveObjective(sbyte* questId, sbyte* objectiveId)
+    {
+        var client = GetClient();
+        if (client is null)
+            return (int)SetErrorAndReturn("Client is not initialized.", StarApiResultCode.NotInitialized, StarApiOpStartQuest);
+
+        var questIdStr = PtrToString(questId) ?? string.Empty;
+        var objIdStr = PtrToString(objectiveId) ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(questIdStr))
+            return (int)SetErrorAndReturn("Quest ID required.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
+        if (string.IsNullOrWhiteSpace(objIdStr))
+            return (int)SetErrorAndReturn("Objective ID required.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
+        if (!Guid.TryParse(questIdStr, out var qGuid))
+            return (int)SetErrorAndReturn("Quest ID must be a GUID.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
+        if (!Guid.TryParse(objIdStr, out var oGuid))
+            return (int)SetErrorAndReturn("Objective ID must be a GUID.", StarApiResultCode.InvalidParam, StarApiOpStartQuest);
+
+        Guid? q = qGuid;
+        Guid? o = oGuid;
+        try { StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: queue start questId={questIdStr} objectiveId={objIdStr}"); } catch { /* ignore */ }
+
+        _ = client.QueueStartQuestAsync(questIdStr).ContinueWith(
+            t =>
+            {
+                try
+                {
+                    if (t.IsCanceled)
+                    {
+                        StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: start CANCELED questId={questIdStr}");
+                        return;
+                    }
+                    if (t.IsFaulted)
+                    {
+                        var ex = t.Exception?.GetBaseException()?.Message ?? "faulted";
+                        StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: start FAULT questId={questIdStr} {ex}");
+                        return;
+                    }
+                    var r = t.Result;
+                    if (r.IsError || !r.Result)
+                    {
+                        StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: start failed questId={questIdStr} — {r.Message ?? "(no message)"}");
+                        return;
+                    }
+                    _ = client.SetActiveQuestAndObjectiveAsync(q, o, CancellationToken.None).ContinueWith(
+                        st =>
+                        {
+                            try
+                            {
+                                if (st.IsCanceled)
+                                    return;
+                                if (st.IsFaulted)
+                                {
+                                    var ex2 = st.Exception?.GetBaseException()?.Message ?? "faulted";
+                                    StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: set_active FAULT questId={questIdStr} {ex2}");
+                                    return;
+                                }
+                                var sr = st.Result;
+                                if (sr.IsError)
+                                    StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: set_active failed questId={questIdStr} — {sr.Message ?? "(no message)"}");
+                                else
+                                    StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: OK questId={questIdStr} objectiveId={objIdStr}");
+                            }
+                            catch (Exception ex3)
+                            {
+                                try { StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: set_active log err {ex3.Message}"); } catch { /* ignore */ }
+                            }
+                        },
+                        CancellationToken.None,
+                        TaskContinuationOptions.None,
+                        TaskScheduler.Default);
+                }
+                catch (Exception ex)
+                {
+                    try { StarApiExports.StarApiLogFileOnly($"[Quests] start_then_set_active: continuation err questId={questIdStr} {ex.Message}"); } catch { /* ignore */ }
+                }
+            },
+            CancellationToken.None,
+            TaskContinuationOptions.None,
+            TaskScheduler.Default);
+
+        SetError(string.Empty);
+        InvokeOperationCallback(StarApiResultCode.Success, StarApiOpStartQuest);
+        return (int)StarApiResultCode.Success;
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_complete_quest_objective", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiCompleteQuestObjective(sbyte* questId, sbyte* objectiveId, sbyte* gameSource)
     {

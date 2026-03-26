@@ -2305,6 +2305,22 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
+	/* Quest: start + set active objective (Not Started detail Enter). star_api_start_quest_then_set_active_objective — deploy fresh star_api.* with ODOOM (see Docs/Devs/ODOOM_UZDoom_Build_Sync.md). */
+	{
+		FBaseCVar* chainVar = FindCVar("odoom_quest_start_then_track_do_it", nullptr);
+		if (g_star_initialized && chainVar && chainVar->GetRealType() == CVAR_Int && chainVar->GetGenericRep(CVAR_Int).Int != 0) {
+			FBaseCVar* tidVar = FindCVar("odoom_quest_tracker_quest_id", nullptr);
+			FBaseCVar* oidVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+			const char* qid = (tidVar && tidVar->GetRealType() == CVAR_String) ? tidVar->GetGenericRep(CVAR_String).String : nullptr;
+			const char* oid = (oidVar && oidVar->GetRealType() == CVAR_String) ? oidVar->GetGenericRep(CVAR_String).String : nullptr;
+			if (qid && qid[0] && oid && oid[0])
+				star_api_start_quest_then_set_active_objective(qid, oid);
+			g_odoom_quest_tracker_needs_refresh = true;
+			UCVarValue z; z.Int = 0;
+			chainVar->SetGenericRep(z, CVAR_Int);
+		}
+	}
+
 	/* Quest: set active from popup first (ZScript set odoom_quest_set_active_id + odoom_quest_set_active_do_it=1 last frame). Process before key capture so we don't miss the one-frame edge. */
 	{
 		FBaseCVar* setActiveDoVar = FindCVar("odoom_quest_set_active_do_it", nullptr);
@@ -2504,10 +2520,11 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int keyM  = ODOOM_GetRawKeyDown('M');
 		int keyK  = ODOOM_GetRawKeyDown('K');
 		int keyV  = ODOOM_GetRawKeyDown('V');
+		int keyD  = ODOOM_GetRawKeyDown('D');
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, keyD, backspace);
 		/* B/X/Z HUD toggles: ZScript flips odoom_hud_show_* on odoom_key_* rising edge (inventory/quest/send closed). Avoid C++ flip here — double-toggle if both ran. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
@@ -2939,7 +2956,7 @@ static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
 	hv->SetGenericRep(u, CVAR_Int);
 }
 
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int keyD, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -2969,6 +2986,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_q", q);
 	SET_KEY_CVAR("odoom_key_enter", enter);
 	SET_KEY_CVAR("odoom_key_k", keyK);
+	SET_KEY_CVAR("odoom_key_d", keyD);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
 	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; ZScript toggles odoom_hud_show_* when no STAR popup. */
