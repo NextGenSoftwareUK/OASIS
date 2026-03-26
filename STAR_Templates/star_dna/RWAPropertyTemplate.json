@@ -1,0 +1,346 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "OAPPName": "RWAPropertyTemplate",
+  "OAPPDesc": "Real World Asset property OAPP. One canonical holon per property — acts as a moving identity across TMRW Browser, Launchboard, marketplaces, compliance systems, and financing platforms. Covers the full lifecycle: listing, sale, ownership, tokenisation, cap table, leasing, management, maintenance, insurance, valuations, and compliance. Multi-provider persistence (MongoDB + chain + IPFS) with a single OASIS API surface.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["rwa", "property", "real-estate", "tokenisation", "tmrw", "launchboard", "compliance", "web4", "nft"],
+  "CelestialBodyDNA": {
+    "Name": "RWAPropertyPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "RWAPropertyPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+
+          {
+            "Name": "PropertyZome",
+            "Description": "Core identity and physical attributes of the property. The root holon — every other zome links back here via PropertyId.",
+            "Holons": [
+              {
+                "Name": "PropertyHolon",
+                "Description": "The canonical property record — one per real-world asset. Same Id everywhere (TMRW, Launchboard, marketplaces).",
+                "Fields": [
+                  { "Name": "PropertyId",         "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyOAPPType",    "Type": "string", "Required": true,
+                    "Default": "RWAProperty" },
+                  { "Name": "PropertyDNAVersion",  "Type": "string", "Required": false,
+                    "Default": "1.0" },
+                  { "Name": "Name",                "Type": "string", "Required": true },
+                  { "Name": "Description",         "Type": "string", "Required": false },
+                  { "Name": "AssetClass",          "Type": "string", "Required": false,
+                    "Enum": ["Commercial", "Residential", "Industrial", "Land", "MixedUse"] },
+                  { "Name": "PropertyType",        "Type": "string", "Required": false,
+                    "Enum": ["Office", "Retail", "Multifamily", "SingleFamily", "Warehouse", "Hotel", "Development", "Other"] },
+                  { "Name": "ConstructionYear",    "Type": "int",    "Required": false },
+                  { "Name": "Units",               "Type": "int",    "Required": false },
+                  { "Name": "Visibility",          "Type": "string", "Required": false,
+                    "Enum": ["public", "restricted", "private"] },
+                  { "Name": "Status",              "Type": "string", "Required": false,
+                    "Enum": ["prospect", "underContract", "owned", "leased", "underManagement", "listed", "sold", "disposed"] },
+                  { "Name": "Tags",                "Type": "string[]", "Required": false },
+                  { "Name": "ImageUrls",           "Type": "string[]", "Required": false },
+                  { "Name": "CelestialScopeId",    "Type": "Guid",   "Required": false }
+                ]
+              },
+              {
+                "Name": "PropertyAddressHolon",
+                "Description": "Structured physical address and geolocation for the property — enables map UIs and GeoHotSpot linkage.",
+                "Fields": [
+                  { "Name": "AddressId",    "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",   "Type": "Guid",   "Required": true },
+                  { "Name": "Street1",      "Type": "string", "Required": false },
+                  { "Name": "Street2",      "Type": "string", "Required": false },
+                  { "Name": "City",         "Type": "string", "Required": false },
+                  { "Name": "Region",       "Type": "string", "Required": false },
+                  { "Name": "PostalCode",   "Type": "string", "Required": false },
+                  { "Name": "Country",      "Type": "string", "Required": false },
+                  { "Name": "Latitude",     "Type": "double", "Required": false },
+                  { "Name": "Longitude",    "Type": "double", "Required": false }
+                ]
+              },
+              {
+                "Name": "PropertyAreaHolon",
+                "Description": "Physical size attributes — built area, land area, floor count.",
+                "Fields": [
+                  { "Name": "AreaId",         "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",   "Required": true },
+                  { "Name": "BuiltArea",      "Type": "double", "Required": false },
+                  { "Name": "LandArea",       "Type": "double", "Required": false },
+                  { "Name": "AreaUnit",       "Type": "string", "Required": false,
+                    "Enum": ["sqm", "sqft"] },
+                  { "Name": "Floors",         "Type": "int",    "Required": false },
+                  { "Name": "ParkingSpaces",  "Type": "int",    "Required": false }
+                ]
+              },
+              {
+                "Name": "ExternalIdHolon",
+                "Description": "External system identifiers — enables reconciliation with land registries, MLS, tax systems.",
+                "Fields": [
+                  { "Name": "ExternalIdId",   "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",   "Required": true },
+                  { "Name": "CadastralId",    "Type": "string", "Required": false },
+                  { "Name": "MlsNumber",      "Type": "string", "Required": false },
+                  { "Name": "TaxParcelId",    "Type": "string", "Required": false },
+                  { "Name": "RegistryId",     "Type": "string", "Required": false },
+                  { "Name": "CustomKey",      "Type": "string", "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "ValuationZome",
+            "Description": "Financial metrics — valuations, yield, income, pricing. Feeds TMRW discovery filters (high yield, high value).",
+            "Holons": [
+              {
+                "Name": "ValuationHolon",
+                "Description": "A point-in-time valuation snapshot — forms a time series for audit.",
+                "Fields": [
+                  { "Name": "ValuationId",  "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",   "Type": "Guid",     "Required": true },
+                  { "Name": "Amount",       "Type": "double",   "Required": true },
+                  { "Name": "Currency",     "Type": "string",   "Required": true },
+                  { "Name": "AsOfDate",     "Type": "DateTime", "Required": true },
+                  { "Name": "Source",       "Type": "string",   "Required": false,
+                    "Enum": ["appraisal", "index", "lastSale", "revenueMultiple", "DCF", "automated"] },
+                  { "Name": "IsCurrent",    "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "YieldHolon",
+                "Description": "Income yield metrics — net yield, gross yield, cap rate. Current snapshot.",
+                "Fields": [
+                  { "Name": "YieldId",      "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",   "Type": "Guid",     "Required": true },
+                  { "Name": "NetYield",     "Type": "double",   "Required": false },
+                  { "Name": "GrossYield",   "Type": "double",   "Required": false },
+                  { "Name": "CapRate",      "Type": "double",   "Required": false },
+                  { "Name": "AnnualRent",   "Type": "double",   "Required": false },
+                  { "Name": "Currency",     "Type": "string",   "Required": false },
+                  { "Name": "VacancyRate",  "Type": "double",   "Required": false },
+                  { "Name": "AsOfDate",     "Type": "DateTime", "Required": false }
+                ]
+              },
+              {
+                "Name": "ListingHolon",
+                "Description": "An active or historical listing — price, status, platform.",
+                "Fields": [
+                  { "Name": "ListingId",      "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",     "Required": true },
+                  { "Name": "AskingPrice",    "Type": "double",   "Required": true },
+                  { "Name": "Currency",       "Type": "string",   "Required": true },
+                  { "Name": "ListingDate",    "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiryDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "Platform",       "Type": "string",   "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["active", "underContract", "sold", "withdrawn"] }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "OwnershipZome",
+            "Description": "Web4 tokenisation, cap table link, fractional ownership — the moving identity layer. One logical property, many chain addresses.",
+            "Holons": [
+              {
+                "Name": "OwnershipRecordHolon",
+                "Description": "Current beneficial ownership record — links to OASIS Avatar and Web4 Token.",
+                "Fields": [
+                  { "Name": "OwnershipId",         "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",          "Type": "Guid",   "Required": true },
+                  { "Name": "OwnerAvatarId",       "Type": "Guid",   "Required": true },
+                  { "Name": "ShareholdingPct",     "Type": "double", "Required": false },
+                  { "Name": "SharesHeld",          "Type": "int",    "Required": false },
+                  { "Name": "AcquiredDate",        "Type": "DateTime","Required": false },
+                  { "Name": "TransferredDate",     "Type": "DateTime","Required": false },
+                  { "Name": "IsCurrentOwner",      "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "TokenisationHolon",
+                "Description": "Web4 token and NFT bindings for this property — one identity, many chain legs.",
+                "Fields": [
+                  { "Name": "TokenisationId",      "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",          "Type": "Guid",   "Required": true },
+                  { "Name": "Web4TokenId",         "Type": "Guid",   "Required": false },
+                  { "Name": "Web4NftId",           "Type": "Guid",   "Required": false },
+                  { "Name": "TotalShares",         "Type": "int",    "Required": false },
+                  { "Name": "SharePrice",          "Type": "double", "Required": false },
+                  { "Name": "Currency",            "Type": "string", "Required": false },
+                  { "Name": "MinInvestment",       "Type": "double", "Required": false },
+                  { "Name": "TokenAddressByChain", "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "CapTableHolon",
+                "Description": "Summary cap table — share classes and outstanding units. Links to Launchboard dataroom.",
+                "Fields": [
+                  { "Name": "CapTableId",       "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",       "Type": "Guid",   "Required": true },
+                  { "Name": "ShareClassName",   "Type": "string", "Required": false },
+                  { "Name": "TotalShares",      "Type": "int",    "Required": false },
+                  { "Name": "Outstanding",      "Type": "int",    "Required": false },
+                  { "Name": "PricePerShare",    "Type": "double", "Required": false },
+                  { "Name": "Currency",         "Type": "string", "Required": false },
+                  { "Name": "DataroomHolonId",  "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "LeaseZome",
+            "Description": "Tenancy and lease management — active leases, renewals, rental income tracking.",
+            "Holons": [
+              {
+                "Name": "LeaseHolon",
+                "Description": "A lease agreement between a landlord and a tenant for this property.",
+                "Fields": [
+                  { "Name": "LeaseId",          "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",       "Type": "Guid",     "Required": true },
+                  { "Name": "TenantAvatarId",   "Type": "Guid",     "Required": false },
+                  { "Name": "TenantName",       "Type": "string",   "Required": false },
+                  { "Name": "StartDate",        "Type": "DateTime", "Required": true },
+                  { "Name": "EndDate",          "Type": "DateTime", "Required": false },
+                  { "Name": "MonthlyRent",      "Type": "double",   "Required": false },
+                  { "Name": "Currency",         "Type": "string",   "Required": false },
+                  { "Name": "LeaseType",        "Type": "string",   "Required": false,
+                    "Enum": ["fixed", "periodic", "commercial", "peppercorn"] },
+                  { "Name": "Status",           "Type": "string",   "Required": false,
+                    "Enum": ["active", "expired", "terminated", "underNegotiation"] },
+                  { "Name": "LeaseDocRef",      "Type": "string",   "Required": false },
+                  { "Name": "LeaseDocHolonId",  "Type": "Guid",     "Required": false }
+                ]
+              },
+              {
+                "Name": "MaintenanceHolon",
+                "Description": "A maintenance job or repair event on the property.",
+                "Fields": [
+                  { "Name": "MaintenanceId",    "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Type",             "Type": "string",   "Required": false,
+                    "Enum": ["routine", "repair", "emergency", "refurbishment", "inspection"] },
+                  { "Name": "Description",      "Type": "string",   "Required": false },
+                  { "Name": "ScheduledDate",    "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedDate",    "Type": "DateTime", "Required": false },
+                  { "Name": "Cost",             "Type": "double",   "Required": false },
+                  { "Name": "Currency",         "Type": "string",   "Required": false },
+                  { "Name": "ContractorRef",    "Type": "string",   "Required": false },
+                  { "Name": "Status",           "Type": "string",   "Required": false,
+                    "Enum": ["scheduled", "inProgress", "completed", "cancelled"] }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "FinanceZome",
+            "Description": "Financing, mortgages, and disposal records — supports Launchboard deal structuring.",
+            "Holons": [
+              {
+                "Name": "FinancingHolon",
+                "Description": "A financing arrangement — mortgage, line of credit, or mezzanine.",
+                "Fields": [
+                  { "Name": "FinancingId",    "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",     "Required": true },
+                  { "Name": "LenderRef",      "Type": "string",   "Required": false },
+                  { "Name": "LenderAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "FinancingType",  "Type": "string",   "Required": false,
+                    "Enum": ["mortgage", "bridgeLoan", "lineOfCredit", "mezzanine", "vendor"] },
+                  { "Name": "Amount",         "Type": "double",   "Required": true },
+                  { "Name": "Currency",       "Type": "string",   "Required": true },
+                  { "Name": "InterestRate",   "Type": "double",   "Required": false },
+                  { "Name": "MaturityDate",   "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["active", "repaid", "defaulted", "refinanced"] }
+                ]
+              },
+              {
+                "Name": "DispositionHolon",
+                "Description": "A sale or disposition event — closes the property lifecycle.",
+                "Fields": [
+                  { "Name": "DispositionId",       "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",          "Type": "Guid",     "Required": true },
+                  { "Name": "CounterpartyRef",     "Type": "string",   "Required": false },
+                  { "Name": "CounterpartyAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "SalePrice",           "Type": "double",   "Required": true },
+                  { "Name": "Currency",            "Type": "string",   "Required": true },
+                  { "Name": "DispositionDate",     "Type": "DateTime", "Required": true },
+                  { "Name": "DispositionType",     "Type": "string",   "Required": false,
+                    "Enum": ["openMarket", "auction", "offMarket", "foreclosure"] },
+                  { "Name": "DocRef",              "Type": "string",   "Required": false },
+                  { "Name": "DocHolonId",          "Type": "Guid",     "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "ComplianceZome",
+            "Description": "Documents, legal records, insurance, and jurisdiction compliance — multi-provider with IPFS hash for proof.",
+            "Holons": [
+              {
+                "Name": "LegalDocumentHolon",
+                "Description": "A legal document linked to this property — deed, title, planning consent, lease.",
+                "Fields": [
+                  { "Name": "DocId",          "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",     "Required": true },
+                  { "Name": "DocType",        "Type": "string",   "Required": true,
+                    "Enum": ["deed", "titleSearch", "planningConsent", "buildingWarrant", "leaseAgreement", "SAFE", "purchaseAgreement", "mortgage", "other"] },
+                  { "Name": "DocName",        "Type": "string",   "Required": false },
+                  { "Name": "Issuer",         "Type": "string",   "Required": false },
+                  { "Name": "SignedDate",      "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiryDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "Verified",       "Type": "bool",     "Required": false },
+                  { "Name": "FileUrl",        "Type": "string",   "Required": false },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",  "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "JurisdictionHolon",
+                "Description": "Jurisdiction and KYC compliance status for this property.",
+                "Fields": [
+                  { "Name": "JurisdictionId",           "Type": "Guid",   "Required": true },
+                  { "Name": "PropertyId",               "Type": "Guid",   "Required": true },
+                  { "Name": "JurisdictionCode",         "Type": "string", "Required": true },
+                  { "Name": "KycRequired",              "Type": "bool",   "Required": false },
+                  { "Name": "AccreditedOnly",           "Type": "bool",   "Required": false },
+                  { "Name": "SecExemption",             "Type": "string", "Required": false },
+                  { "Name": "JurisdictionRestrictions", "Type": "string[]","Required": false }
+                ]
+              },
+              {
+                "Name": "InsuranceHolon",
+                "Description": "Insurance policy linked to this property.",
+                "Fields": [
+                  { "Name": "InsuranceId",    "Type": "Guid",     "Required": true },
+                  { "Name": "PropertyId",     "Type": "Guid",     "Required": true },
+                  { "Name": "Carrier",        "Type": "string",   "Required": false },
+                  { "Name": "PolicyRef",      "Type": "string",   "Required": false },
+                  { "Name": "InsuranceType",  "Type": "string",   "Required": false,
+                    "Enum": ["buildings", "contents", "liability", "rentalIncome", "combined"] },
+                  { "Name": "CoverageAmount", "Type": "double",   "Required": false },
+                  { "Name": "Currency",       "Type": "string",   "Required": false },
+                  { "Name": "StartDate",      "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiryDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["current", "expired", "lapsed", "claimed"] },
+                  { "Name": "DocHolonId",     "Type": "Guid",     "Required": false }
+                ]
+              }
+            ]
+          }
+
+        ]
+      }
+    ]
+  }
+}

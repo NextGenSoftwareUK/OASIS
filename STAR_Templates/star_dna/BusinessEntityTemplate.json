@@ -1,0 +1,332 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "OAPPName": "BusinessEntityTemplate",
+  "OAPPDesc": "Business entity OAPP — company, startup, fund, SPV, or DAO as a single moving identity across TMRW Browser, Launchboard, cap-table tools, fundraising platforms, and compliance systems. One canonical holon per entity covers incorporation, equity rounds, cap table, KYC, licensing, team, and exit. Multi-provider persistence (MongoDB + chain) with Web4 token bindings for tokenised equity.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["business", "startup", "rwa", "equity", "cap-table", "launchboard", "tmrw", "tokenisation", "compliance", "web4"],
+  "CelestialBodyDNA": {
+    "Name": "BusinessEntityPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "BusinessEntityPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+
+          {
+            "Name": "EntityZome",
+            "Description": "Core identity — legal name, type, jurisdiction, registration, and contact. Root holon; all other zomes link here via BusinessId.",
+            "Holons": [
+              {
+                "Name": "BusinessHolon",
+                "Description": "The canonical business record. Same Id on TMRW, Launchboard, compliance engines, and investor portals.",
+                "Fields": [
+                  { "Name": "BusinessId",          "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessOAPPType",     "Type": "string", "Required": true,
+                    "Default": "Business" },
+                  { "Name": "BusinessDNAVersion",   "Type": "string", "Required": false,
+                    "Default": "1.0" },
+                  { "Name": "Name",                 "Type": "string", "Required": true },
+                  { "Name": "LegalName",            "Type": "string", "Required": false },
+                  { "Name": "DBA",                  "Type": "string", "Required": false },
+                  { "Name": "Description",          "Type": "string", "Required": false },
+                  { "Name": "BusinessType",         "Type": "string", "Required": false,
+                    "Enum": ["Startup", "SME", "Enterprise", "Fund", "SPV", "Trust", "DAO", "Cooperative", "NonProfit"] },
+                  { "Name": "Industry",             "Type": "string", "Required": false,
+                    "Enum": ["Technology", "Healthcare", "Finance", "RealEstate", "Energy", "Agriculture", "Media", "Logistics", "Other"] },
+                  { "Name": "Sector",               "Type": "string", "Required": false },
+                  { "Name": "Status",               "Type": "string", "Required": false,
+                    "Enum": ["idea", "preSeed", "seed", "operating", "growth", "scale", "acquired", "closed", "dormant"] },
+                  { "Name": "FoundedDate",          "Type": "DateTime","Required": false },
+                  { "Name": "TeamSize",             "Type": "int",    "Required": false },
+                  { "Name": "Visibility",           "Type": "string", "Required": false,
+                    "Enum": ["public", "restricted", "private"] },
+                  { "Name": "Tags",                 "Type": "string[]","Required": false },
+                  { "Name": "LogoUrl",              "Type": "string", "Required": false },
+                  { "Name": "ImageUrls",            "Type": "string[]","Required": false },
+                  { "Name": "CelestialScopeId",     "Type": "Guid",   "Required": false }
+                ]
+              },
+              {
+                "Name": "LegalRegistrationHolon",
+                "Description": "Legal form, jurisdiction of incorporation, registration details, and company numbers.",
+                "Fields": [
+                  { "Name": "RegistrationId",           "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",               "Type": "Guid",     "Required": true },
+                  { "Name": "LegalForm",                "Type": "string",   "Required": false,
+                    "Enum": ["LLC", "C-Corp", "S-Corp", "B-Corp", "LP", "LLP", "Trust", "GmbH", "Ltd", "PLC", "Other"] },
+                  { "Name": "JurisdictionOfIncorporation","Type": "string", "Required": false },
+                  { "Name": "FormationDate",            "Type": "DateTime", "Required": false },
+                  { "Name": "CompanyNumber",            "Type": "string",   "Required": false },
+                  { "Name": "TaxId",                    "Type": "string",   "Required": false },
+                  { "Name": "LEI",                      "Type": "string",   "Required": false },
+                  { "Name": "DUNS",                     "Type": "string",   "Required": false },
+                  { "Name": "RegisteredStreet",         "Type": "string",   "Required": false },
+                  { "Name": "RegisteredCity",           "Type": "string",   "Required": false },
+                  { "Name": "RegisteredCountry",        "Type": "string",   "Required": false },
+                  { "Name": "IncorporationDocHolonId",  "Type": "Guid",     "Required": false }
+                ]
+              },
+              {
+                "Name": "ContactHolon",
+                "Description": "Primary location, contact details, and social links.",
+                "Fields": [
+                  { "Name": "ContactId",      "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",     "Type": "Guid",   "Required": true },
+                  { "Name": "Street1",        "Type": "string", "Required": false },
+                  { "Name": "City",           "Type": "string", "Required": false },
+                  { "Name": "Region",         "Type": "string", "Required": false },
+                  { "Name": "PostalCode",     "Type": "string", "Required": false },
+                  { "Name": "Country",        "Type": "string", "Required": false },
+                  { "Name": "Latitude",       "Type": "double", "Required": false },
+                  { "Name": "Longitude",      "Type": "double", "Required": false },
+                  { "Name": "Website",        "Type": "string", "Required": false },
+                  { "Name": "ContactEmail",   "Type": "string", "Required": false },
+                  { "Name": "ContactPhone",   "Type": "string", "Required": false },
+                  { "Name": "LinkedIn",       "Type": "string", "Required": false },
+                  { "Name": "Twitter",        "Type": "string", "Required": false },
+                  { "Name": "Github",         "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "ExternalIdHolon",
+                "Description": "External system IDs — links to CRMs, registries, databases.",
+                "Fields": [
+                  { "Name": "ExternalIdId",     "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",       "Type": "Guid",   "Required": true },
+                  { "Name": "CrunchbaseId",     "Type": "string", "Required": false },
+                  { "Name": "LinkedInCompanyId","Type": "string", "Required": false },
+                  { "Name": "AngelListId",      "Type": "string", "Required": false },
+                  { "Name": "PitchbookId",      "Type": "string", "Required": false },
+                  { "Name": "CustomKey1",       "Type": "string", "Required": false },
+                  { "Name": "CustomKey2",       "Type": "string", "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "EquityZome",
+            "Description": "Ownership structure — share classes, cap table, Web4 token bindings. The tokenisation moving-identity layer.",
+            "Holons": [
+              {
+                "Name": "ShareClassHolon",
+                "Description": "A share class with total authorised, outstanding, and per-share price.",
+                "Fields": [
+                  { "Name": "ShareClassId",     "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",       "Type": "Guid",   "Required": true },
+                  { "Name": "ClassName",        "Type": "string", "Required": true },
+                  { "Name": "ClassType",        "Type": "string", "Required": false,
+                    "Enum": ["Common", "Preferred", "Convertible", "Warrant", "Option", "SAFENote"] },
+                  { "Name": "TotalAuthorised",  "Type": "int",    "Required": false },
+                  { "Name": "Outstanding",      "Type": "int",    "Required": false },
+                  { "Name": "PricePerShare",    "Type": "double", "Required": false },
+                  { "Name": "Currency",         "Type": "string", "Required": false },
+                  { "Name": "VotingRights",     "Type": "bool",   "Required": false },
+                  { "Name": "LiquidationPref",  "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "CapTableEntryHolon",
+                "Description": "One stakeholder row on the cap table — links Avatar to shares held.",
+                "Fields": [
+                  { "Name": "EntryId",            "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ShareClassId",       "Type": "Guid",     "Required": true },
+                  { "Name": "StakeholderAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "StakeholderName",    "Type": "string",   "Required": false },
+                  { "Name": "StakeholderType",    "Type": "string",   "Required": false,
+                    "Enum": ["founder", "investor", "employee", "advisor", "esop"] },
+                  { "Name": "SharesHeld",         "Type": "int",      "Required": true },
+                  { "Name": "IssuedDate",         "Type": "DateTime", "Required": false },
+                  { "Name": "VestingStart",       "Type": "DateTime", "Required": false },
+                  { "Name": "VestingEnd",         "Type": "DateTime", "Required": false }
+                ]
+              },
+              {
+                "Name": "TokenisationHolon",
+                "Description": "Web4 token and NFT bindings for tokenised equity — one identity, many chain addresses.",
+                "Fields": [
+                  { "Name": "TokenisationId",       "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",           "Type": "Guid",   "Required": true },
+                  { "Name": "Web4TokenId",          "Type": "Guid",   "Required": false },
+                  { "Name": "Web4NftId",            "Type": "Guid",   "Required": false },
+                  { "Name": "TotalSupply",          "Type": "int",    "Required": false },
+                  { "Name": "TokenPrice",           "Type": "double", "Required": false },
+                  { "Name": "Currency",             "Type": "string", "Required": false },
+                  { "Name": "MinInvestment",        "Type": "double", "Required": false },
+                  { "Name": "TokenAddressByChain",  "Type": "string", "Required": false },
+                  { "Name": "IsLive",               "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "FundingZome",
+            "Description": "Fundraising rounds, valuations, and financial metrics — Launchboard deal flow layer.",
+            "Holons": [
+              {
+                "Name": "FundingRoundHolon",
+                "Description": "A fundraising round — Seed, Series A, etc. Builds a time-series valuation history.",
+                "Fields": [
+                  { "Name": "RoundId",            "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",         "Type": "Guid",     "Required": true },
+                  { "Name": "RoundName",          "Type": "string",   "Required": true,
+                    "Enum": ["PreSeed", "Seed", "SeriesA", "SeriesB", "SeriesC", "GrowthEquity", "Bridge", "IPO", "SAFE", "Convertible"] },
+                  { "Name": "Amount",             "Type": "double",   "Required": true },
+                  { "Name": "Currency",           "Type": "string",   "Required": true },
+                  { "Name": "CloseDate",          "Type": "DateTime", "Required": false },
+                  { "Name": "Valuation",          "Type": "double",   "Required": false },
+                  { "Name": "ValuationType",      "Type": "string",   "Required": false,
+                    "Enum": ["preMoney", "postMoney"] },
+                  { "Name": "LeadInvestorRef",    "Type": "string",   "Required": false },
+                  { "Name": "LeadInvestorAvatarId","Type": "Guid",    "Required": false },
+                  { "Name": "Status",             "Type": "string",   "Required": false,
+                    "Enum": ["open", "closed", "oversubscribed", "cancelled"] }
+                ]
+              },
+              {
+                "Name": "FinancialSnapshotHolon",
+                "Description": "A point-in-time financial snapshot — revenue, EBITDA, runway.",
+                "Fields": [
+                  { "Name": "SnapshotId",     "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",     "Type": "Guid",     "Required": true },
+                  { "Name": "AsOfDate",       "Type": "DateTime", "Required": true },
+                  { "Name": "Revenue",        "Type": "double",   "Required": false },
+                  { "Name": "EBITDA",         "Type": "double",   "Required": false },
+                  { "Name": "GrossMarginPct", "Type": "double",   "Required": false },
+                  { "Name": "RunwayMonths",   "Type": "int",      "Required": false },
+                  { "Name": "BurnRateMonthly","Type": "double",   "Required": false },
+                  { "Name": "Currency",       "Type": "string",   "Required": false },
+                  { "Name": "Period",         "Type": "string",   "Required": false,
+                    "Enum": ["annual", "trailing12", "quarterly", "monthly"] }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "OperationsZome",
+            "Description": "Team, key people, and exit — the operational lifecycle layer.",
+            "Holons": [
+              {
+                "Name": "TeamMemberHolon",
+                "Description": "A person linked to this business — founder, employee, advisor, board member.",
+                "Fields": [
+                  { "Name": "MemberId",         "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",       "Type": "Guid",   "Required": true },
+                  { "Name": "AvatarId",         "Type": "Guid",   "Required": false },
+                  { "Name": "Name",             "Type": "string", "Required": false },
+                  { "Name": "Title",            "Type": "string", "Required": false },
+                  { "Name": "Role",             "Type": "string", "Required": false,
+                    "Enum": ["founder", "ceo", "cto", "cfo", "board", "advisor", "employee", "contractor"] },
+                  { "Name": "StartDate",        "Type": "DateTime","Required": false },
+                  { "Name": "EndDate",          "Type": "DateTime","Required": false },
+                  { "Name": "IsCurrentMember",  "Type": "bool",   "Required": false },
+                  { "Name": "LinkedInUrl",      "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "ExitHolon",
+                "Description": "An acquisition, IPO, or wind-down event — closes the business lifecycle.",
+                "Fields": [
+                  { "Name": "ExitId",               "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ExitType",             "Type": "string",   "Required": true,
+                    "Enum": ["acquisition", "merger", "IPO", "MBO", "windDown", "liquidation"] },
+                  { "Name": "AnnounceDate",         "Type": "DateTime", "Required": false },
+                  { "Name": "CloseDate",            "Type": "DateTime", "Required": false },
+                  { "Name": "Amount",               "Type": "double",   "Required": false },
+                  { "Name": "Currency",             "Type": "string",   "Required": false },
+                  { "Name": "CounterpartyRef",      "Type": "string",   "Required": false },
+                  { "Name": "CounterpartyAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "ReturnMultiple",       "Type": "double",   "Required": false },
+                  { "Name": "DocHolonId",           "Type": "Guid",     "Required": false }
+                ]
+              }
+            ]
+          },
+
+          {
+            "Name": "ComplianceZome",
+            "Description": "Legal documents, jurisdictions, KYC, licences, and dataroom. Links to Launchboard for due diligence.",
+            "Holons": [
+              {
+                "Name": "LegalDocumentHolon",
+                "Description": "A legal document for the business — bylaws, operating agreement, SAFE, stock plan.",
+                "Fields": [
+                  { "Name": "DocId",          "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",     "Type": "Guid",     "Required": true },
+                  { "Name": "DocType",        "Type": "string",   "Required": true,
+                    "Enum": ["bylaws", "operatingAgreement", "SAFE", "convertibleNote", "stockPlan", "shareholderAgreement", "NDA", "employmentAgreement", "other"] },
+                  { "Name": "DocName",        "Type": "string",   "Required": false },
+                  { "Name": "Issuer",         "Type": "string",   "Required": false },
+                  { "Name": "SignedDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiryDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "Verified",       "Type": "bool",     "Required": false },
+                  { "Name": "FileUrl",        "Type": "string",   "Required": false },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",  "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "JurisdictionHolon",
+                "Description": "Operating jurisdiction and compliance rules — KYC, accredited-only, exemptions.",
+                "Fields": [
+                  { "Name": "JurisdictionId",       "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",           "Type": "Guid",   "Required": true },
+                  { "Name": "JurisdictionCode",     "Type": "string", "Required": true },
+                  { "Name": "JurisdictionType",     "Type": "string", "Required": false,
+                    "Enum": ["incorporation", "operating", "regulated", "taxResident"] },
+                  { "Name": "KycRequired",          "Type": "bool",   "Required": false },
+                  { "Name": "AccreditedOnly",       "Type": "bool",   "Required": false },
+                  { "Name": "SecExemption",         "Type": "string", "Required": false },
+                  { "Name": "Restrictions",         "Type": "string[]","Required": false }
+                ]
+              },
+              {
+                "Name": "LicenceHolon",
+                "Description": "A regulatory licence or permit held by this business.",
+                "Fields": [
+                  { "Name": "LicenceId",      "Type": "Guid",     "Required": true },
+                  { "Name": "BusinessId",     "Type": "Guid",     "Required": true },
+                  { "Name": "LicenceType",    "Type": "string",   "Required": true,
+                    "Enum": ["financial", "data", "healthcare", "environmental", "export", "sector-specific", "other"] },
+                  { "Name": "Authority",      "Type": "string",   "Required": false },
+                  { "Name": "LicenceNumber",  "Type": "string",   "Required": false },
+                  { "Name": "IssuedDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiryDate",     "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["active", "expired", "suspended", "revoked"] },
+                  { "Name": "DocHolonId",     "Type": "Guid",     "Required": false }
+                ]
+              },
+              {
+                "Name": "DataroomHolon",
+                "Description": "A due diligence dataroom linked to this business — Launchboard integration point.",
+                "Fields": [
+                  { "Name": "DataroomId",       "Type": "Guid",   "Required": true },
+                  { "Name": "BusinessId",       "Type": "Guid",   "Required": true },
+                  { "Name": "DataroomName",     "Type": "string", "Required": false },
+                  { "Name": "AccessLevel",      "Type": "string", "Required": false,
+                    "Enum": ["public", "nda", "investor", "restricted"] },
+                  { "Name": "DocumentCount",    "Type": "int",    "Required": false },
+                  { "Name": "LastUpdated",      "Type": "DateTime","Required": false },
+                  { "Name": "ExternalUrl",      "Type": "string", "Required": false },
+                  { "Name": "DataroomHolonRef", "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          }
+
+        ]
+      }
+    ]
+  }
+}

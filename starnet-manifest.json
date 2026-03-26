@@ -177,6 +177,26 @@
       "zomes":   ["PortInfrastructureZome", "VesselZome", "ShipmentZome", "MovementZome", "ComplianceZome", "HinterlandZome", "OperationsZome"],
       "apis":    ["GeoHotSpotManager", "KarmaController", "QuestManager", "WalletController", "NftController", "VaultController", "FilesController"],
       "dna":     "STAR_Templates/star_dna/PortOSTemplate.json"
+    },
+    {
+      "name":    "RWAPropertyTemplate",
+      "id":      "97b83c2b-7930-4a0b-a9c3-a8b2655e18e7",
+      "type":    "OAPPTemplate",
+      "tags":    ["rwa", "property", "real-estate", "tokenisation", "tmrw", "launchboard", "compliance", "web4", "nft"],
+      "summary": "Real World Asset property OAPP. One canonical holon per property — moving identity across TMRW, Launchboard, marketplaces, and compliance systems. 6 zomes covering property identity (address, area, external IDs), valuations/yield/listings, Web4 tokenisation and cap table, lease and maintenance management, financing and disposition, and legal/insurance compliance with IPFS proof.",
+      "zomes":   ["PropertyZome", "ValuationZome", "OwnershipZome", "LeaseZome", "FinanceZome", "ComplianceZome"],
+      "apis":    ["DataController", "NftController", "TokenController", "WalletController", "FilesController", "VaultController"],
+      "dna":     "STAR_Templates/star_dna/RWAPropertyTemplate.json"
+    },
+    {
+      "name":    "BusinessEntityTemplate",
+      "id":      "3b0d2c9a-f558-49ea-86fc-f62550336676",
+      "type":    "OAPPTemplate",
+      "tags":    ["business", "startup", "rwa", "equity", "cap-table", "launchboard", "tmrw", "tokenisation", "compliance", "web4"],
+      "summary": "Business entity OAPP — startup, fund, SPV, or DAO as a single moving identity across TMRW, Launchboard, and investor platforms. 5 zomes covering entity/legal registration, equity/share classes/cap table, funding rounds/valuation, team/operations/exit, and compliance/licences/dataroom. Web4 token bindings for tokenised equity.",
+      "zomes":   ["EntityZome", "EquityZome", "FundingZome", "OperationsZome", "ComplianceZome"],
+      "apis":    ["DataController", "NftController", "TokenController", "WalletController", "FilesController", "VaultController"],
+      "dna":     "STAR_Templates/star_dna/BusinessEntityTemplate.json"
     }
   ],
 
