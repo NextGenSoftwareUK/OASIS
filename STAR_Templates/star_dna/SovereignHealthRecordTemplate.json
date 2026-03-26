@@ -1,0 +1,184 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "d0e1f2a3-b4c5-6789-defa-890123456789",
+  "OAPPName": "SovereignHealthRecordTemplate",
+  "OAPPDesc": "Sovereign personal health record OAPP. Patient-controlled medical history, provider credentials, prescriptions, test results, and granular consent grants — all encrypted and stored across MongoDB, IPFS, Holochain, and Solana. Extends the SovereignDataVault pattern for healthcare. Designed for PrivacyMage integration. Backed by VaultController, FilesController, HyperDriveController, NftController, and DataController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["health", "medical", "sovereign", "privacy", "consent", "ehr", "privacymage", "vault", "ipfs", "holochain"],
+  "CelestialBodyDNA": {
+    "Name": "HealthRecordPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "HealthRecordPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "PatientZome",
+            "Description": "Patient identity and demographic record — controlled entirely by the Avatar owner.",
+            "Holons": [
+              {
+                "Name": "PatientProfileHolon",
+                "Description": "The patient's sovereign health identity — demographics, blood type, allergies.",
+                "Fields": [
+                  { "Name": "PatientId",         "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": true },
+                  { "Name": "DateOfBirth",       "Type": "DateTime", "Required": false },
+                  { "Name": "BiologicalSex",     "Type": "string",   "Required": false,
+                    "Enum": ["male", "female", "intersex", "notDisclosed"] },
+                  { "Name": "BloodType",         "Type": "string",   "Required": false,
+                    "Enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "unknown"] },
+                  { "Name": "Allergies",         "Type": "string[]", "Required": false },
+                  { "Name": "ChronicConditions", "Type": "string[]", "Required": false },
+                  { "Name": "EmergencyContactName","Type": "string", "Required": false },
+                  { "Name": "EmergencyContactPhone","Type": "string","Required": false },
+                  { "Name": "IsEncrypted",       "Type": "bool",     "Required": false,
+                    "Default": true }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ProviderZome",
+            "Description": "Healthcare providers — GPs, specialists, hospitals — verified via CredentialingTemplate pattern.",
+            "Holons": [
+              {
+                "Name": "HealthProviderHolon",
+                "Description": "A healthcare provider — individual or institution — with credential verification.",
+                "Fields": [
+                  { "Name": "ProviderId",          "Type": "Guid",   "Required": true },
+                  { "Name": "ProviderAvatarId",    "Type": "Guid",   "Required": false },
+                  { "Name": "Name",                "Type": "string", "Required": true },
+                  { "Name": "ProviderType",        "Type": "string", "Required": true,
+                    "Enum": ["gp", "specialist", "hospital", "clinic", "pharmacy", "lab", "therapist", "dentist", "other"] },
+                  { "Name": "Specialisation",      "Type": "string", "Required": false },
+                  { "Name": "LicenceNumber",       "Type": "string", "Required": false },
+                  { "Name": "LicencingBody",       "Type": "string", "Required": false },
+                  { "Name": "CountryCode",         "Type": "string", "Required": false },
+                  { "Name": "IsVerified",          "Type": "bool",   "Required": false },
+                  { "Name": "CredentialNftId",     "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "RecordZome",
+            "Description": "Medical records — consultations, diagnoses, test results, imaging. Encrypted at rest.",
+            "Holons": [
+              {
+                "Name": "ConsultationHolon",
+                "Description": "A clinical encounter or consultation — diagnosis, notes, follow-up.",
+                "Fields": [
+                  { "Name": "ConsultationId",  "Type": "Guid",     "Required": true },
+                  { "Name": "PatientId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ProviderId",      "Type": "Guid",     "Required": false },
+                  { "Name": "ConsultType",     "Type": "string",   "Required": false,
+                    "Enum": ["inPerson", "telehealth", "emergency", "followUp", "specialist"] },
+                  { "Name": "OccurredAt",      "Type": "DateTime", "Required": true },
+                  { "Name": "ChiefComplaint",  "Type": "string",   "Required": false },
+                  { "Name": "DiagnosisCodes",  "Type": "string[]", "Required": false },
+                  { "Name": "Notes",           "Type": "string",   "Required": false },
+                  { "Name": "FollowUpDate",    "Type": "DateTime", "Required": false },
+                  { "Name": "IsEncrypted",     "Type": "bool",     "Required": false },
+                  { "Name": "IpfsCid",         "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "TestResultHolon",
+                "Description": "A diagnostic test result — blood work, imaging, pathology.",
+                "Fields": [
+                  { "Name": "ResultId",          "Type": "Guid",     "Required": true },
+                  { "Name": "PatientId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ProviderId",        "Type": "Guid",     "Required": false },
+                  { "Name": "TestType",          "Type": "string",   "Required": true,
+                    "Enum": ["bloodWork", "urinalysis", "imaging", "biopsy", "genetic", "ecg", "other"] },
+                  { "Name": "TestName",          "Type": "string",   "Required": false },
+                  { "Name": "LoincCode",         "Type": "string",   "Required": false },
+                  { "Name": "ResultValue",       "Type": "string",   "Required": false },
+                  { "Name": "ReferenceRange",    "Type": "string",   "Required": false },
+                  { "Name": "Interpretation",    "Type": "string",   "Required": false,
+                    "Enum": ["normal", "abnormal", "critical", "pending"] },
+                  { "Name": "TestedAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "IsEncrypted",       "Type": "bool",     "Required": false },
+                  { "Name": "FileHolonId",       "Type": "Guid",     "Required": false },
+                  { "Name": "IpfsCid",           "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "PrescriptionZome",
+            "Description": "Medication prescriptions and administration history — provider-issued, patient-controlled.",
+            "Holons": [
+              {
+                "Name": "PrescriptionHolon",
+                "Description": "A prescription issued by a provider for a patient.",
+                "Fields": [
+                  { "Name": "PrescriptionId",    "Type": "Guid",     "Required": true },
+                  { "Name": "PatientId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ProviderId",        "Type": "Guid",     "Required": true },
+                  { "Name": "MedicationName",    "Type": "string",   "Required": true },
+                  { "Name": "DosageStrength",    "Type": "string",   "Required": false },
+                  { "Name": "DosageForm",        "Type": "string",   "Required": false,
+                    "Enum": ["tablet", "capsule", "liquid", "injection", "inhaler", "patch", "topical", "other"] },
+                  { "Name": "Frequency",         "Type": "string",   "Required": false },
+                  { "Name": "Duration",          "Type": "string",   "Required": false },
+                  { "Name": "Instructions",      "Type": "string",   "Required": false },
+                  { "Name": "IssuedAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "ExpiresAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["active", "completed", "cancelled", "expired"] },
+                  { "Name": "IsEncrypted",       "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ConsentZome",
+            "Description": "Granular access consent — patient controls exactly who sees what record for how long.",
+            "Holons": [
+              {
+                "Name": "ConsentGrantHolon",
+                "Description": "A consent grant — patient grants a provider or third party access to specific record types.",
+                "Fields": [
+                  { "Name": "ConsentId",        "Type": "Guid",     "Required": true },
+                  { "Name": "PatientId",        "Type": "Guid",     "Required": true },
+                  { "Name": "GranteeAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "GranteeRef",       "Type": "string",   "Required": false },
+                  { "Name": "GranteeType",      "Type": "string",   "Required": false,
+                    "Enum": ["provider", "insurer", "researcher", "employer", "family", "emergency"] },
+                  { "Name": "RecordTypes",      "Type": "string[]", "Required": true },
+                  { "Name": "Purpose",          "Type": "string",   "Required": false },
+                  { "Name": "GrantedAt",        "Type": "DateTime", "Required": true },
+                  { "Name": "ExpiresAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "IsRevoked",        "Type": "bool",     "Required": false },
+                  { "Name": "RevokedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "OnChainTxHash",    "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "AccessLogHolon",
+                "Description": "An audit log entry — who accessed which records and when.",
+                "Fields": [
+                  { "Name": "LogId",            "Type": "Guid",     "Required": true },
+                  { "Name": "PatientId",        "Type": "Guid",     "Required": true },
+                  { "Name": "AccessorAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "ConsentId",        "Type": "Guid",     "Required": false },
+                  { "Name": "RecordTypeAccessed","Type": "string",  "Required": false },
+                  { "Name": "AccessedAt",       "Type": "DateTime", "Required": true },
+                  { "Name": "AccessMethod",     "Type": "string",   "Required": false,
+                    "Enum": ["api", "ui", "export", "emergency"] },
+                  { "Name": "WasAuthorised",    "Type": "bool",     "Required": true }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

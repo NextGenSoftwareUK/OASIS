@@ -1,0 +1,194 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+  "OAPPName": "SocialGraphTemplate",
+  "OAPPDesc": "Decentralised social layer OAPP. Avatar-native profiles, follows, posts, threads, DMs, reactions, and social feeds — without a centralised platform. Backed by SocialController, MessagingController, ChatController, and ShareController. Identity is the OASIS Avatar; content and graph relationships are holons portable across all OAPPs on STARNET.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["social", "graph", "messaging", "feed", "chat", "avatar", "decentralised", "community"],
+  "CelestialBodyDNA": {
+    "Name": "SocialGraphPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "SocialGraphPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ProfileZome",
+            "Description": "Extended social profile layered on top of the OASIS Avatar — bio, social links, visibility settings.",
+            "Holons": [
+              {
+                "Name": "SocialProfileHolon",
+                "Description": "Social profile for an Avatar — display name, bio, avatar image, cover image, links.",
+                "Fields": [
+                  { "Name": "ProfileId",      "Type": "Guid",    "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",    "Required": true },
+                  { "Name": "DisplayName",     "Type": "string",  "Required": false },
+                  { "Name": "Bio",             "Type": "string",  "Required": false },
+                  { "Name": "AvatarImageUrl",  "Type": "string",  "Required": false },
+                  { "Name": "CoverImageUrl",   "Type": "string",  "Required": false },
+                  { "Name": "Website",         "Type": "string",  "Required": false },
+                  { "Name": "Twitter",         "Type": "string",  "Required": false },
+                  { "Name": "LinkedIn",        "Type": "string",  "Required": false },
+                  { "Name": "Visibility",      "Type": "string",  "Required": false,
+                    "Enum": ["public", "followers", "private"] },
+                  { "Name": "FollowerCount",   "Type": "int",     "Required": false },
+                  { "Name": "FollowingCount",  "Type": "int",     "Required": false },
+                  { "Name": "KarmaScore",      "Type": "double",  "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ConnectionZome",
+            "Description": "Directed follow graph — who follows whom, with optional mutual-follow (friend) state.",
+            "Holons": [
+              {
+                "Name": "FollowHolon",
+                "Description": "A directed follow relationship between two Avatars.",
+                "Fields": [
+                  { "Name": "FollowId",        "Type": "Guid",     "Required": true },
+                  { "Name": "FollowerAvatarId","Type": "Guid",     "Required": true },
+                  { "Name": "FolloweeAvatarId","Type": "Guid",     "Required": true },
+                  { "Name": "FollowedAt",      "Type": "DateTime", "Required": true },
+                  { "Name": "IsMutual",        "Type": "bool",     "Required": false },
+                  { "Name": "NotifyOnPost",    "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "BlockHolon",
+                "Description": "A block relationship — hides content and prevents interactions.",
+                "Fields": [
+                  { "Name": "BlockId",         "Type": "Guid",     "Required": true },
+                  { "Name": "BlockerAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "BlockedAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "BlockedAt",       "Type": "DateTime", "Required": true },
+                  { "Name": "Reason",          "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "FeedZome",
+            "Description": "Posts, threads, reposts, and media items — the content layer of the social graph.",
+            "Holons": [
+              {
+                "Name": "PostHolon",
+                "Description": "A social post — text, media, or link — from an Avatar.",
+                "Fields": [
+                  { "Name": "PostId",           "Type": "Guid",     "Required": true },
+                  { "Name": "AuthorAvatarId",   "Type": "Guid",     "Required": true },
+                  { "Name": "Body",             "Type": "string",   "Required": false },
+                  { "Name": "MediaUrls",        "Type": "string[]", "Required": false },
+                  { "Name": "LinkUrl",          "Type": "string",   "Required": false },
+                  { "Name": "PostType",         "Type": "string",   "Required": false,
+                    "Enum": ["text", "image", "video", "link", "repost", "quote"] },
+                  { "Name": "ParentPostId",     "Type": "Guid",     "Required": false },
+                  { "Name": "OriginalPostId",   "Type": "Guid",     "Required": false },
+                  { "Name": "PublishedAt",      "Type": "DateTime", "Required": true },
+                  { "Name": "Visibility",       "Type": "string",   "Required": false,
+                    "Enum": ["public", "followers", "mentioned", "private"] },
+                  { "Name": "LikeCount",        "Type": "int",      "Required": false },
+                  { "Name": "RepostCount",      "Type": "int",      "Required": false },
+                  { "Name": "ReplyCount",       "Type": "int",      "Required": false },
+                  { "Name": "IsDeleted",        "Type": "bool",     "Required": false },
+                  { "Name": "Tags",             "Type": "string[]", "Required": false }
+                ]
+              },
+              {
+                "Name": "ReactionHolon",
+                "Description": "A like, reaction, or emoji response to a post.",
+                "Fields": [
+                  { "Name": "ReactionId",      "Type": "Guid",     "Required": true },
+                  { "Name": "PostId",          "Type": "Guid",     "Required": true },
+                  { "Name": "ReactorAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "ReactionType",    "Type": "string",   "Required": true,
+                    "Enum": ["like", "love", "laugh", "wow", "sad", "angry", "celebrate"] },
+                  { "Name": "ReactedAt",       "Type": "DateTime", "Required": true }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ChatZome",
+            "Description": "Direct messages and group chat threads — backed by MessagingController and ChatController.",
+            "Holons": [
+              {
+                "Name": "ConversationHolon",
+                "Description": "A DM thread or group chat container.",
+                "Fields": [
+                  { "Name": "ConversationId",   "Type": "Guid",     "Required": true },
+                  { "Name": "ConversationType", "Type": "string",   "Required": true,
+                    "Enum": ["direct", "group"] },
+                  { "Name": "Name",             "Type": "string",   "Required": false },
+                  { "Name": "ParticipantIds",   "Type": "string[]", "Required": true },
+                  { "Name": "CreatedByAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "CreatedAt",        "Type": "DateTime", "Required": true },
+                  { "Name": "LastMessageAt",    "Type": "DateTime", "Required": false },
+                  { "Name": "IsArchived",       "Type": "bool",     "Required": false }
+                ]
+              },
+              {
+                "Name": "MessageHolon",
+                "Description": "A single message within a conversation.",
+                "Fields": [
+                  { "Name": "MessageId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ConversationId",  "Type": "Guid",     "Required": true },
+                  { "Name": "SenderAvatarId",  "Type": "Guid",     "Required": true },
+                  { "Name": "Body",            "Type": "string",   "Required": false },
+                  { "Name": "MediaUrls",       "Type": "string[]", "Required": false },
+                  { "Name": "MessageType",     "Type": "string",   "Required": false,
+                    "Enum": ["text", "image", "file", "voice", "system"] },
+                  { "Name": "SentAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "ReadByIds",       "Type": "string[]", "Required": false },
+                  { "Name": "IsDeleted",       "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ShareZome",
+            "Description": "Content sharing and notifications — backed by ShareController.",
+            "Holons": [
+              {
+                "Name": "ShareHolon",
+                "Description": "A share or forward of a post or holon to another Avatar or feed.",
+                "Fields": [
+                  { "Name": "ShareId",          "Type": "Guid",     "Required": true },
+                  { "Name": "SharedByAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "TargetHolonId",    "Type": "Guid",     "Required": true },
+                  { "Name": "TargetHolonType",  "Type": "string",   "Required": false },
+                  { "Name": "SharedToAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "SharedToOAPPId",   "Type": "Guid",     "Required": false },
+                  { "Name": "Message",          "Type": "string",   "Required": false },
+                  { "Name": "SharedAt",         "Type": "DateTime", "Required": true },
+                  { "Name": "Platform",         "Type": "string",   "Required": false,
+                    "Enum": ["oasis", "twitter", "linkedin", "telegram", "email"] }
+                ]
+              },
+              {
+                "Name": "NotificationHolon",
+                "Description": "A social notification — new follower, mention, reaction, message.",
+                "Fields": [
+                  { "Name": "NotificationId",    "Type": "Guid",     "Required": true },
+                  { "Name": "RecipientAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "SenderAvatarId",    "Type": "Guid",     "Required": false },
+                  { "Name": "NotificationType",  "Type": "string",   "Required": true,
+                    "Enum": ["follow", "mention", "reaction", "reply", "repost", "message", "system"] },
+                  { "Name": "ReferenceHolonId",  "Type": "Guid",     "Required": false },
+                  { "Name": "Body",              "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": true },
+                  { "Name": "IsRead",            "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -197,6 +197,86 @@
       "zomes":   ["EntityZome", "EquityZome", "FundingZome", "OperationsZome", "ComplianceZome"],
       "apis":    ["DataController", "NftController", "TokenController", "WalletController", "FilesController", "VaultController"],
       "dna":     "STAR_Templates/star_dna/BusinessEntityTemplate.json"
+    },
+    {
+      "name":    "SocialGraphTemplate",
+      "id":      "05495506-4679-4519-b421-d3edfba56daf",
+      "type":    "OAPPTemplate",
+      "tags":    ["social", "graph", "messaging", "feed", "chat", "avatar", "decentralised", "community"],
+      "summary": "Decentralised social layer OAPP. Avatar-native profiles, follow graph, posts/threads/reposts, reactions, DMs, group chat, shares, and notifications — without a centralised platform. 5 zomes: ProfileZome, ConnectionZome, FeedZome, ChatZome, ShareZome. Backed by SocialController, MessagingController, ChatController, ShareController.",
+      "zomes":   ["ProfileZome", "ConnectionZome", "FeedZome", "ChatZome", "ShareZome"],
+      "apis":    ["SocialController", "MessagingController", "ChatController", "ShareController", "KarmaController"],
+      "dna":     "STAR_Templates/star_dna/SocialGraphTemplate.json"
+    },
+    {
+      "name":    "SubscriptionMembershipTemplate",
+      "id":      "dc2562b4-95af-4063-85ec-0d4ee797b717",
+      "type":    "OAPPTemplate",
+      "tags":    ["subscription", "membership", "access", "karma", "nft", "token-gating", "recurring", "community"],
+      "summary": "Tier-based membership and subscription OAPP. Access gated by Karma score, token balance, NFT ownership, or recurring payment. Membership NFTs, benefit grants, access rules, and payment records. 4 zomes: TierZome, MemberZome, BenefitZome, PaymentZome.",
+      "zomes":   ["TierZome", "MemberZome", "BenefitZome", "PaymentZome"],
+      "apis":    ["SubscriptionController", "KarmaController", "NftController", "WalletController", "TokenController"],
+      "dna":     "STAR_Templates/star_dna/SubscriptionMembershipTemplate.json"
+    },
+    {
+      "name":    "CompetitionTournamentTemplate",
+      "id":      "a64f5fda-1f71-4ef2-88fc-6d490f562633",
+      "type":    "OAPPTemplate",
+      "tags":    ["competition", "tournament", "bracket", "leaderboard", "nft", "prize", "karma", "esports", "gaming"],
+      "summary": "Structured competitions and tournaments OAPP. Single/double elimination, round robin, ladder formats. Bracket management, match results, live leaderboards, Egg challenges, NFT/token prize pools, and Karma rewards. 4 zomes: TournamentZome, BracketZome, LeaderboardZome, RewardZome.",
+      "zomes":   ["TournamentZome", "BracketZome", "LeaderboardZome", "RewardZome"],
+      "apis":    ["CompetitionController", "EggsController", "GiftsController", "KarmaController", "NftController"],
+      "dna":     "STAR_Templates/star_dna/CompetitionTournamentTemplate.json"
+    },
+    {
+      "name":    "AgriTraceabilityTemplate",
+      "id":      "112e14c9-b245-4cd3-9961-e2bd15a6f5b3",
+      "type":    "OAPPTemplate",
+      "tags":    ["agriculture", "traceability", "eudr", "supply-chain", "farm", "food", "sustainability", "provenance", "nft"],
+      "summary": "Farm-to-port-to-shelf agricultural traceability OAPP. Full chain-of-custody from geo-anchored plot through harvest batch, processing, inland transport, port handoff, and retail delivery. EUDR/organic/fair-trade certs stored with IPFS hash and on-chain proof NFT. Upstream layer for PortOSTemplate. 5 zomes: FarmZome, CropBatchZome, ChainOfCustodyZome, CertificateZome, RetailZome.",
+      "zomes":   ["FarmZome", "CropBatchZome", "ChainOfCustodyZome", "CertificateZome", "RetailZome"],
+      "apis":    ["DataController", "FilesController", "NftController", "VaultController", "GeoHotSpotManager"],
+      "dna":     "STAR_Templates/star_dna/AgriTraceabilityTemplate.json"
+    },
+    {
+      "name":    "ConservationImpactTemplate",
+      "id":      "e1f554dc-60b3-4e3b-9182-77ff636f9055",
+      "type":    "OAPPTemplate",
+      "tags":    ["conservation", "impact", "carbon", "climate", "pulmon-verde", "ixo", "geo", "sustainability", "nft", "web4"],
+      "summary": "Conservation and environmental impact OAPP for Pulmon Verde / IXO-style deployments. Geo-anchored projects, measurable impact metrics (time series), carbon credits (on-chain NFT, VCS/GoldStandard), field monitoring events, and transparent funder contributions. 5 zomes: ProjectZome, ImpactMetricZome, CarbonCreditZome, MonitoringZome, FunderZome.",
+      "zomes":   ["ProjectZome", "ImpactMetricZome", "CarbonCreditZome", "MonitoringZome", "FunderZome"],
+      "apis":    ["GeoHotSpotManager", "NftController", "DataController", "FilesController", "WalletController"],
+      "dna":     "STAR_Templates/star_dna/ConservationImpactTemplate.json"
+    },
+    {
+      "name":    "CreatorEconomyTemplate",
+      "id":      "9af2738f-f616-4537-b382-38e18f58c8db",
+      "type":    "OAPPTemplate",
+      "tags":    ["creator", "music", "nft", "royalties", "licensing", "web4", "ipfs", "content", "streaming"],
+      "summary": "Creator economy OAPP — music, video, art, writing, or any digital content. Content items and collections, on-chain royalty split rules (multi-recipient), licensing agreements, streaming/distribution records, and NFT drops. Backed by NftController, TokenController, FilesController, HyperDriveController. 4 zomes: ContentZome, RoyaltySplitZome, LicenseZome, StreamingZome.",
+      "zomes":   ["ContentZome", "RoyaltySplitZome", "LicenseZome", "StreamingZome"],
+      "apis":    ["NftController", "TokenController", "WalletController", "FilesController", "HyperDriveController"],
+      "dna":     "STAR_Templates/star_dna/CreatorEconomyTemplate.json"
+    },
+    {
+      "name":    "HospitalityEventsTemplate",
+      "id":      "d80ca1c5-1da8-45b2-9eb2-631aa8cb5d56",
+      "type":    "OAPPTemplate",
+      "tags":    ["hospitality", "events", "phygital", "nft-ticket", "venue", "loyalty", "alton-towers", "geo", "karma"],
+      "summary": "Phygital hospitality and events OAPP designed for Alton Towers and similar real-world integrations. Venues, attractions, events, ticket tiers, NFT-backed tickets, geo check-ins, and loyalty karma accumulation. 4 zomes: VenueZome, EventZome, TicketNFTZome, ExperienceZome. Check-in is GeoHotSpot proof; loyalty accumulates on Avatar.",
+      "zomes":   ["VenueZome", "EventZome", "TicketNFTZome", "ExperienceZome"],
+      "apis":    ["NftController", "GeoHotSpotManager", "KarmaController", "QuestManager", "WalletController"],
+      "dna":     "STAR_Templates/star_dna/HospitalityEventsTemplate.json"
+    },
+    {
+      "name":    "SovereignHealthRecordTemplate",
+      "id":      "a35226fa-3e3d-46c6-9d68-041785e5d4dd",
+      "type":    "OAPPTemplate",
+      "tags":    ["health", "medical", "sovereign", "privacy", "consent", "ehr", "privacymage", "vault", "ipfs", "holochain"],
+      "summary": "Sovereign personal health record OAPP. Patient-controlled medical history, provider credentials, prescriptions, test results, and granular per-record consent grants — all encrypted across MongoDB, IPFS, Holochain, and Solana. Extends SovereignDataVault for healthcare. PrivacyMage integration-ready. 5 zomes: PatientZome, ProviderZome, RecordZome, PrescriptionZome, ConsentZome.",
+      "zomes":   ["PatientZome", "ProviderZome", "RecordZome", "PrescriptionZome", "ConsentZome"],
+      "apis":    ["VaultController", "FilesController", "HyperDriveController", "NftController", "DataController"],
+      "dna":     "STAR_Templates/star_dna/SovereignHealthRecordTemplate.json"
     }
   ],
 

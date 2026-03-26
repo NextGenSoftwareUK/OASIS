@@ -1,0 +1,180 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+  "OAPPName": "CreatorEconomyTemplate",
+  "OAPPDesc": "Creator economy OAPP — music, video, art, writing, or any digital content. Content items, royalty split rules, licensing agreements, streaming/distribution records, and NFT collections — all Avatar-native and portable across STARNET OAPPs. Backed by NftController, TokenController, WalletController, FilesController, and HyperDriveController. Royalty splits enforced on-chain.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["creator", "music", "nft", "royalties", "licensing", "web4", "ipfs", "content", "streaming"],
+  "CelestialBodyDNA": {
+    "Name": "CreatorEconomyPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "CreatorEconomyPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ContentZome",
+            "Description": "Content items — tracks, videos, artwork, articles. Root identity for all creator holons.",
+            "Holons": [
+              {
+                "Name": "ContentItemHolon",
+                "Description": "A piece of digital content — track, video, artwork, article. One canonical Id.",
+                "Fields": [
+                  { "Name": "ContentId",       "Type": "Guid",   "Required": true },
+                  { "Name": "CreatorAvatarId", "Type": "Guid",   "Required": true },
+                  { "Name": "Title",           "Type": "string", "Required": true },
+                  { "Name": "Description",     "Type": "string", "Required": false },
+                  { "Name": "ContentType",     "Type": "string", "Required": true,
+                    "Enum": ["music", "video", "artwork", "photography", "writing", "podcast", "software", "other"] },
+                  { "Name": "Genre",           "Type": "string", "Required": false },
+                  { "Name": "Duration",        "Type": "int",    "Required": false },
+                  { "Name": "IpfsCid",         "Type": "string", "Required": false },
+                  { "Name": "ThumbnailUrl",    "Type": "string", "Required": false },
+                  { "Name": "PreviewUrl",      "Type": "string", "Required": false },
+                  { "Name": "IsrcCode",        "Type": "string", "Required": false },
+                  { "Name": "ReleaseDate",     "Type": "DateTime","Required": false },
+                  { "Name": "Tags",            "Type": "string[]","Required": false },
+                  { "Name": "Visibility",      "Type": "string", "Required": false,
+                    "Enum": ["public", "licensed", "private", "nft-gated"] }
+                ]
+              },
+              {
+                "Name": "CollectionHolon",
+                "Description": "A curated collection or album grouping content items.",
+                "Fields": [
+                  { "Name": "CollectionId",    "Type": "Guid",   "Required": true },
+                  { "Name": "CreatorAvatarId", "Type": "Guid",   "Required": true },
+                  { "Name": "Name",            "Type": "string", "Required": true },
+                  { "Name": "Description",     "Type": "string", "Required": false },
+                  { "Name": "CoverImageUrl",   "Type": "string", "Required": false },
+                  { "Name": "ContentIds",      "Type": "string[]","Required": false },
+                  { "Name": "CollectionType",  "Type": "string", "Required": false,
+                    "Enum": ["album", "series", "portfolio", "playlist", "bundle"] },
+                  { "Name": "ReleasedAt",      "Type": "DateTime","Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "RoyaltySplitZome",
+            "Description": "On-chain royalty split rules — defines who receives what percentage of every payment.",
+            "Holons": [
+              {
+                "Name": "RoyaltySplitHolon",
+                "Description": "A royalty split definition for a content item — multiple recipients with percentages.",
+                "Fields": [
+                  { "Name": "SplitId",       "Type": "Guid",   "Required": true },
+                  { "Name": "ContentId",     "Type": "Guid",   "Required": true },
+                  { "Name": "SplitVersion",  "Type": "int",    "Required": false },
+                  { "Name": "IsActive",      "Type": "bool",   "Required": false },
+                  { "Name": "CreatedAt",     "Type": "DateTime","Required": false },
+                  { "Name": "OnChainTxHash", "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "RoyaltyRecipientHolon",
+                "Description": "One recipient in a royalty split — Avatar, role, and percentage.",
+                "Fields": [
+                  { "Name": "RecipientId",      "Type": "Guid",   "Required": true },
+                  { "Name": "SplitId",          "Type": "Guid",   "Required": true },
+                  { "Name": "AvatarId",         "Type": "Guid",   "Required": false },
+                  { "Name": "Name",             "Type": "string", "Required": false },
+                  { "Name": "Role",             "Type": "string", "Required": false,
+                    "Enum": ["artist", "producer", "songwriter", "label", "publisher", "distributor", "collaborator"] },
+                  { "Name": "SharePct",         "Type": "double", "Required": true },
+                  { "Name": "WalletAddress",    "Type": "string", "Required": false },
+                  { "Name": "PreferredChain",   "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "RoyaltyPaymentHolon",
+                "Description": "A royalty payment executed — links to a split and shows per-recipient amounts.",
+                "Fields": [
+                  { "Name": "PaymentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "SplitId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ContentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "TotalAmount",     "Type": "double",   "Required": true },
+                  { "Name": "Currency",        "Type": "string",   "Required": true },
+                  { "Name": "TriggerType",     "Type": "string",   "Required": false,
+                    "Enum": ["sale", "stream", "license", "tip", "subscription"] },
+                  { "Name": "PaidAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "TxHash",          "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "LicenseZome",
+            "Description": "Content licensing agreements — who has what rights, for how long, on which platforms.",
+            "Holons": [
+              {
+                "Name": "LicenseHolon",
+                "Description": "A licensing agreement between a creator and a licensee.",
+                "Fields": [
+                  { "Name": "LicenseId",        "Type": "Guid",     "Required": true },
+                  { "Name": "ContentId",        "Type": "Guid",     "Required": true },
+                  { "Name": "LicensorAvatarId", "Type": "Guid",     "Required": true },
+                  { "Name": "LicenseeAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "LicenseeName",     "Type": "string",   "Required": false },
+                  { "Name": "LicenseType",      "Type": "string",   "Required": true,
+                    "Enum": ["exclusive", "nonExclusive", "sync", "broadcast", "commercial", "creative-commons", "custom"] },
+                  { "Name": "Territory",        "Type": "string",   "Required": false },
+                  { "Name": "Platforms",        "Type": "string[]", "Required": false },
+                  { "Name": "FeeAmount",        "Type": "double",   "Required": false },
+                  { "Name": "Currency",         "Type": "string",   "Required": false },
+                  { "Name": "StartDate",        "Type": "DateTime", "Required": false },
+                  { "Name": "EndDate",          "Type": "DateTime", "Required": false },
+                  { "Name": "Status",           "Type": "string",   "Required": false,
+                    "Enum": ["draft", "active", "expired", "terminated"] },
+                  { "Name": "DocHolonId",       "Type": "Guid",     "Required": false },
+                  { "Name": "IpfsCid",          "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "StreamingZome",
+            "Description": "Distribution and streaming records — plays, downloads, platform earnings.",
+            "Holons": [
+              {
+                "Name": "DistributionRecordHolon",
+                "Description": "A distribution of content to a platform — Spotify, Apple, IPFS, etc.",
+                "Fields": [
+                  { "Name": "DistributionId",   "Type": "Guid",     "Required": true },
+                  { "Name": "ContentId",        "Type": "Guid",     "Required": true },
+                  { "Name": "Platform",         "Type": "string",   "Required": true,
+                    "Enum": ["spotify", "appleMusic", "youtube", "soundcloud", "ipfs", "oasis", "other"] },
+                  { "Name": "PlatformContentId","Type": "string",   "Required": false },
+                  { "Name": "DistributedAt",    "Type": "DateTime", "Required": false },
+                  { "Name": "Status",           "Type": "string",   "Required": false,
+                    "Enum": ["pending", "live", "removed", "blocked"] }
+                ]
+              },
+              {
+                "Name": "StreamingReportHolon",
+                "Description": "A periodic earnings or plays report from a distribution platform.",
+                "Fields": [
+                  { "Name": "ReportId",        "Type": "Guid",     "Required": true },
+                  { "Name": "DistributionId",  "Type": "Guid",     "Required": true },
+                  { "Name": "ContentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "PeriodStart",     "Type": "DateTime", "Required": true },
+                  { "Name": "PeriodEnd",       "Type": "DateTime", "Required": true },
+                  { "Name": "Plays",           "Type": "int",      "Required": false },
+                  { "Name": "Downloads",       "Type": "int",      "Required": false },
+                  { "Name": "EarningsGross",   "Type": "double",   "Required": false },
+                  { "Name": "EarningsNet",     "Type": "double",   "Required": false },
+                  { "Name": "Currency",        "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
