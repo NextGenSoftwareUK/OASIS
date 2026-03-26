@@ -1,0 +1,120 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "d9e3a8f6-5c1f-4a4c-ad7b-8c4e1f2a6b39",
+  "OAPPName": "GeoNFTHuntTemplate",
+  "OAPPDesc": "AR/physical scavenger hunt template. Organisers place GPS checkpoints; players arrive at real-world locations to unlock clues and mint unique GeoNFTs as proof-of-presence. Leaderboard tracks fastest completions. Leverages OASIS STARGeoNFTManager, GeoHotSpotManager, and STARNFTManager.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["geo", "nft", "ar", "hunt", "location", "gaming", "phygital"],
+  "CelestialBodyDNA": {
+    "Name": "GeoNFTHuntPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "GeoNFTHuntPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "HuntZome",
+            "Description": "Hunt definitions — each hunt is a timed geo-challenge with a prize pool",
+            "Holons": [
+              {
+                "Name": "HuntHolon",
+                "Description": "A geo-NFT scavenger hunt event with checkpoints and a prize pool",
+                "Fields": [
+                  { "Name": "HuntId",            "Type": "Guid",     "Required": true },
+                  { "Name": "OrganizerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "OrganizerName",     "Type": "string",   "Required": true },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "CoverImageUrl",     "Type": "string",   "Required": false },
+                  { "Name": "HuntType",          "Type": "string",   "Required": false,
+                    "Enum": ["sequential", "free_roam", "timed_race", "team_relay"] },
+                  { "Name": "MaxParticipants",   "Type": "int",      "Required": false },
+                  { "Name": "EntryFee",          "Type": "double",   "Required": false },
+                  { "Name": "PrizeCurrency",     "Type": "string",   "Required": false },
+                  { "Name": "PrizePool",         "Type": "double",   "Required": false },
+                  { "Name": "StartsAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "EndsAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["draft", "registration", "active", "completed", "cancelled"] },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CheckpointZome",
+            "Description": "GPS checkpoints — each one mints a unique GeoNFT on first arrival",
+            "Holons": [
+              {
+                "Name": "CheckpointHolon",
+                "Description": "A physical location checkpoint — on arrival the player mints a GeoNFT",
+                "Fields": [
+                  { "Name": "CheckpointId",      "Type": "Guid",     "Required": true },
+                  { "Name": "HuntId",            "Type": "Guid",     "Required": true },
+                  { "Name": "Name",              "Type": "string",   "Required": true },
+                  { "Name": "Clue",              "Type": "string",   "Required": false },
+                  { "Name": "Latitude",          "Type": "double",   "Required": true },
+                  { "Name": "Longitude",         "Type": "double",   "Required": true },
+                  { "Name": "RadiusMetres",      "Type": "double",   "Required": false },
+                  { "Name": "OrderIndex",        "Type": "int",      "Required": false },
+                  { "Name": "PointsValue",       "Type": "int",      "Required": false },
+                  { "Name": "NftName",           "Type": "string",   "Required": false },
+                  { "Name": "NftImageUrl",       "Type": "string",   "Required": false },
+                  { "Name": "NftChain",          "Type": "string",   "Required": false,
+                    "Enum": ["Solana", "Ethereum", "Holochain", "IPFS"] },
+                  { "Name": "MaxMints",          "Type": "int",      "Required": false },
+                  { "Name": "TotalMinted",       "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ParticipantZome",
+            "Description": "Players and their location-verified proof-of-presence records",
+            "Holons": [
+              {
+                "Name": "HuntParticipantHolon",
+                "Description": "A player enrolled in the hunt with their checkpoint completion history",
+                "Fields": [
+                  { "Name": "ParticipantId",     "Type": "Guid",     "Required": true },
+                  { "Name": "HuntId",            "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": false },
+                  { "Name": "DisplayName",       "Type": "string",   "Required": true },
+                  { "Name": "TeamName",          "Type": "string",   "Required": false },
+                  { "Name": "CheckpointsHit",    "Type": "int",      "Required": false },
+                  { "Name": "TotalScore",        "Type": "int",      "Required": false },
+                  { "Name": "NftsMinted",        "Type": "int",      "Required": false },
+                  { "Name": "RankPosition",      "Type": "int",      "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["registered", "active", "completed", "disqualified"] },
+                  { "Name": "StartedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "FinishedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaAwarded",      "Type": "int",      "Required": false }
+                ]
+              },
+              {
+                "Name": "CheckinHolon",
+                "Description": "A verified arrival at a checkpoint — triggers GeoNFT mint",
+                "Fields": [
+                  { "Name": "CheckinId",         "Type": "Guid",     "Required": true },
+                  { "Name": "CheckpointId",      "Type": "Guid",     "Required": true },
+                  { "Name": "ParticipantId",     "Type": "Guid",     "Required": true },
+                  { "Name": "Latitude",          "Type": "double",   "Required": true },
+                  { "Name": "Longitude",         "Type": "double",   "Required": true },
+                  { "Name": "GeoNftTokenId",     "Type": "string",   "Required": false },
+                  { "Name": "GeoNftTxHash",      "Type": "string",   "Required": false },
+                  { "Name": "CheckedInAt",       "Type": "DateTime", "Required": true }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
