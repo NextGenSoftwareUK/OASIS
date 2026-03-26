@@ -167,6 +167,16 @@
       "zomes":   ["VaultZome", "FileZome", "AccessControlZome"],
       "apis":    ["VaultController", "DataController", "FilesController", "HyperDriveController"],
       "dna":     "STAR_Templates/star_dna/SovereignDataVaultTemplate.json"
+    },
+    {
+      "name":    "PortOSTemplate",
+      "id":      "d4cd6e87-7b16-4066-9b8a-1a0949d291d0",
+      "type":    "OAPPTemplate",
+      "tags":    ["port", "supply-chain", "logistics", "customs", "lfg", "esg", "eudr", "dashboard"],
+      "summary": "Door-to-berth port intelligence OAPP for LFG/PAA multi-site deployments (Abidjan, San Pedro). 24 holons across 7 zomes covering port infrastructure, vessel calls, container shipments, inland movements, customs triage, hinterland ETAs, and operations. Feeds a System 08 / ACI Port OS dashboard with live KPIs across berth, gate, yard, customs, pre-gate, ESG, and revenue tiles.",
+      "zomes":   ["PortInfrastructureZome", "VesselZome", "ShipmentZome", "MovementZome", "ComplianceZome", "HinterlandZome", "OperationsZome"],
+      "apis":    ["GeoHotSpotManager", "KarmaController", "QuestManager", "WalletController", "NftController", "VaultController", "FilesController"],
+      "dna":     "STAR_Templates/star_dna/PortOSTemplate.json"
     }
   ],
 
