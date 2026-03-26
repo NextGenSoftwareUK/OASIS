@@ -41,12 +41,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Reposito
                 holon.ProviderUniqueStorageKey = new System.Collections.Generic.Dictionary<Core.Enums.ProviderType, string>();
             }
 
-            // Mock provider key for now (would be Aztec commitment hash)
-            var providerKey = holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.AztecOASIS)
-                ? holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AztecOASIS]
-                : Guid.NewGuid().ToString("N");
-
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AztecOASIS] = providerKey;
+            // Preserve any existing real provider key (Aztec tx hash / note ID set by MintTokenAsync
+            // or GenerateKeyPairAsync).  Only fall back to a UUID placeholder if no key exists yet,
+            // which means SaveHolonAsync is being called before an on-chain operation — in that case
+            // the caller should update the key after the tx completes.
+            if (!holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.AztecOASIS)
+                || string.IsNullOrWhiteSpace(holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AztecOASIS]))
+            {
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AztecOASIS] =
+                    $"pending:{Guid.NewGuid():N}";
+            }
 
             return await Task.FromResult(holon);
         }

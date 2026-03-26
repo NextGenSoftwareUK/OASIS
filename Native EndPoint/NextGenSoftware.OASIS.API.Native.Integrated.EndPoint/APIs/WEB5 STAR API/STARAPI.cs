@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
         private ZomeMetaDataDNAManager _zomesDNA = null;
         private HolonMetaDataDNAManager _holonsDNA = null;
         private PluginManager _plugins = null;
+        private GameManager _game = null;
         //private COSMICManager _cosmic = null;
 
         public STARAPI(STARDNA STARDNA, OASISAPI OASISAPI = null) 
@@ -518,6 +519,26 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
                 }
 
                 return _plugins;
+            }
+        }
+
+        public GameManager Game
+        {
+            get
+            {
+                if (_game == null)
+                {
+                    if (!OASISAPI.IsOASISBooted)
+                        throw new OASISException("OASIS is not booted. Please boot the OASIS before accessing the Game property!");
+
+                    else if (AvatarManager.LoggedInAvatar == null || (AvatarManager.LoggedInAvatar != null && AvatarManager.LoggedInAvatar.Id.ToString() == OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.OASISSystemAccountId))
+                        throw new OASISException("No avatar is beamed in. Please beam in before accessing the Game property!");
+
+                    else
+                        _game = new GameManager(ProviderManager.Instance.CurrentStorageProvider, AvatarManager.LoggedInAvatar.AvatarId, STARDNA, OASISBootLoader.OASISBootLoader.OASISDNA);
+                }
+
+                return _game;
             }
         }
 
