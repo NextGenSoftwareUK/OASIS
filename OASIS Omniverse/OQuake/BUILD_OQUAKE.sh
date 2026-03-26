@@ -165,6 +165,21 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
     [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_DIR/"
     cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_DIR/"
   fi
+  # OQuake_STAR_PollItems must run every frame (including menu/console). If host.c already contains the call
+  # (e.g. vkQuake was patched on Windows with apply_oquake_to_vkquake.ps1), the unix script skips edits.
+  HOST_C="$VKQUAKE_SRC/Quake/host.c"
+  PATCH_PY="$HERE/vkquake_oquake/patch_host_oquake_star_unix.py"
+  if [[ -f "$HOST_C" && -f "$PATCH_PY" ]]; then
+    if command -v python3 &>/dev/null; then
+      python3 "$PATCH_PY" "$HOST_C" || {
+        echo "[OQuake][ERROR] host.c OQuake_STAR_PollItems patch failed. Async beamin needs python3 patch or apply_oquake_to_vkquake.ps1."
+        exit 1
+      }
+    else
+      echo "[OQuake][ERROR] python3 required to verify/patch host.c for OQuake_STAR_PollItems."
+      exit 1
+    fi
+  fi
   # Ensure STAR API shared lib is in vkQuake/Quake (.so on Linux, .dylib on macOS; Windows uses .dll)
   cp -f "$STAR_SO" "$VKQUAKE_SRC/Quake/"
 

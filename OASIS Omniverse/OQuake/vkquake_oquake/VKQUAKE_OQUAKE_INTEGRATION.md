@@ -101,12 +101,21 @@ link_args : ['-lstar_api']  # or the path to star_api.lib
 
 ## 4a. host.c – item/stats poll (recommended; apply script does this)
 
-So that pickups (armor, ammo, keys, etc.) are reported to STAR **every frame**, the apply script patches **host.c** to call **`OQuake_STAR_PollItems()`** right after `CL_ReadFromServer()`. That way items are tracked even if the status bar (sbar) is never drawn or your build doesn’t patch sbar.c.
+So that pickups (armor, ammo, keys, etc.) are reported to STAR **every frame**, the apply script patches **host.c** to call **`OQuake_STAR_PollItems()`** after the **`CL_ReadFromServer ();`** block and **before** the `// update video` comment in **`_Host_Frame`** (outside `if (cls.state == ca_connected)`, so the menu/console still pumps `star_sync_pump`).
 
-If you apply OQuake manually, add this in **`_Host_Frame`** (in host.c), right after `CL_ReadFromServer ();`:
+**Do not** place the call only *inside* the same block as `CL_ReadFromServer` only, and **do not** insert it immediately before `SCR_UpdateScreen (true);` next to `if (host_speeds.value)` — that layout can trigger **GCC `-Werror=misleading-indentation`** on Linux builds.
+
+If you patch by hand, in **`_Host_Frame`** (same indent as the `// update video` line):
 
 ```c
-OQuake_STAR_PollItems ();
+ if (cls.state == ca_connected)
+ CL_ReadFromServer ();
+
+ OQuake_STAR_PollItems ();
+
+ // update video
+ if (host_speeds.value)
+ time1 = Sys_DoubleTime ();
 ```
 
 Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
