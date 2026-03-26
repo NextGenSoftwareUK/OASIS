@@ -958,27 +958,6 @@ static std::string ODOOM_DefaultOasisstarJsonPathForCreate(void) {
 	return std::string("oasisstar.json");
 }
 
-/** Holochain / STAR DNA bundle path file (optional). Create empty default if missing — same idea as OQuake creating oasisstar.json. */
-static void ODOOM_EnsureDefaultOasisstarDna(const std::string& oasisstar_json_path) {
-	if (oasisstar_json_path.empty()) return;
-	std::string dnaPath = oasisstar_json_path;
-	const size_t last = dnaPath.find_last_of("/\\");
-	if (last != std::string::npos)
-		dnaPath = dnaPath.substr(0, last + 1) + "oasisstar.dna";
-	else
-		dnaPath = "oasisstar.dna";
-	FILE* t = fopen(dnaPath.c_str(), "r");
-	if (t) {
-		fclose(t);
-		return;
-	}
-	FILE* w = fopen(dnaPath.c_str(), "w");
-	if (!w) return;
-	fprintf(w, "{\n  \"starnet_dna_path\": \"\"\n}\n");
-	fclose(w);
-	StarLogInfo("Created default oasisstar.dna: %s", dnaPath.c_str());
-}
-
 static bool ODOOM_TryCreateDefaultOasisstarJson(std::string& outPath) {
 	const std::string p1 = ODOOM_DefaultOasisstarJsonPathForCreate();
 	if (ODOOM_SaveJsonConfig(p1.c_str())) {
@@ -3660,7 +3639,6 @@ void UZDoom_STAR_Init(void) {
 		}
 		g_odoom_reapply_json_frames = 70;
 		ODOOM_EnsureOasisstarJsonOnDisk();
-		ODOOM_EnsureDefaultOasisstarDna(g_odoom_json_config_path.empty() ? std::string("oasisstar.json") : g_odoom_json_config_path);
 	}
 	/* Always start with default Doom face until explicit beam-in. */
 	g_star_show_anorak_face = false;
