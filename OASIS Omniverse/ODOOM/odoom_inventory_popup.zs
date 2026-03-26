@@ -1787,7 +1787,6 @@ class OASISInventoryOverlayHandler : EventHandler
 			String trackerQuestId = (trackerIdCv != null) ? trackerIdCv.GetString() : "";
 			CVar scrollCv = CVar.FindCVar("odoom_quest_scroll_offset");
 			int scrollFromCvar = (scrollCv != null) ? scrollCv.GetInt() : questScrollOffset;
-			int newScrollOffset = scrollFromCvar;
 			if (listStr.IndexOf("Error:") == 0)
 			{
 				screen.DrawText(f, Font.CR_RED, popupX + 8, popupY + 48, "Error loading quests. Check console or star_api.log for details.", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
@@ -1803,14 +1802,10 @@ class OASISInventoryOverlayHandler : EventHandler
 				screen.DrawText(f, Font.CR_WHITE, col1X, popupY + 48, "Name", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				screen.DrawText(f, Font.CR_WHITE, col2X, popupY + 48, "%", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
 				screen.DrawText(f, Font.CR_WHITE, col3X, popupY + 48, "Status", DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43);
+				// Scroll is owned in WorldTick (matches C++ window start). drawOffset must stay == scrollFromCvar
+				// so winIdx matches odoom_quest_list (C++ packs rows from scrollIdx); do not clamp here or rows skip.
 				int drawOffset = scrollFromCvar;
 				if (drawOffset < 0) drawOffset = 0;
-				if (questSelectedIndex >= drawOffset + maxQuestRows) drawOffset = questSelectedIndex - maxQuestRows + 1;
-				if (questSelectedIndex < drawOffset) drawOffset = questSelectedIndex;
-				int maxDrawOff = qCount - maxQuestRows;
-				if (maxDrawOff < 0) maxDrawOff = 0;
-				if (drawOffset > maxDrawOff) drawOffset = maxDrawOff;
-				newScrollOffset = drawOffset;
 				int y = popupY + 48 + rowH;
 				for (int i = 0; i < maxQuestRows && drawOffset + i < qCount; i++)
 				{
@@ -1865,7 +1860,6 @@ class OASISInventoryOverlayHandler : EventHandler
 				if (statusX < 2) statusX = 2;
 				screen.DrawText(f, Font.CR_GREEN, statusX, 4, questStatusMessage, DTA_VirtualWidth, 320, DTA_VirtualHeight, 200, DTA_FullscreenScale, FSMode_ScaleToFit43, DTA_ScaleX, statusScale, DTA_ScaleY, statusScale);
 			}
-			if (scrollCv != null) scrollCv.SetInt(newScrollOffset);
 			return;
 		}
 
