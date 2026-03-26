@@ -1,0 +1,135 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "d4e5f6a7-b8c9-0123-defa-234567890123",
+  "OAPPName": "SubscriptionMembershipTemplate",
+  "OAPPDesc": "Gated membership and subscription OAPP. Tier-based access controlled by Karma score, token holdings, or recurring payment. Membership NFTs, benefit grants, payment schedules, and access rules — all keyed to the OASIS Avatar. Backed by SubscriptionController, KarmaController, WalletController, and NftController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["subscription", "membership", "access", "karma", "nft", "token-gating", "recurring", "community"],
+  "CelestialBodyDNA": {
+    "Name": "SubscriptionPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "SubscriptionPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "TierZome",
+            "Description": "Membership tier definitions — names, prices, Karma thresholds, token requirements.",
+            "Holons": [
+              {
+                "Name": "MembershipTierHolon",
+                "Description": "A named membership tier with access rules and pricing.",
+                "Fields": [
+                  { "Name": "TierId",               "Type": "Guid",   "Required": true },
+                  { "Name": "OAPPId",               "Type": "Guid",   "Required": true },
+                  { "Name": "TierName",             "Type": "string", "Required": true },
+                  { "Name": "TierLevel",            "Type": "int",    "Required": true },
+                  { "Name": "Description",          "Type": "string", "Required": false },
+                  { "Name": "MonthlyPrice",         "Type": "double", "Required": false },
+                  { "Name": "AnnualPrice",          "Type": "double", "Required": false },
+                  { "Name": "Currency",             "Type": "string", "Required": false },
+                  { "Name": "MinKarmaScore",        "Type": "double", "Required": false },
+                  { "Name": "RequiredTokenId",      "Type": "Guid",   "Required": false },
+                  { "Name": "RequiredTokenBalance", "Type": "double", "Required": false },
+                  { "Name": "RequiredNftCollectionId","Type": "Guid", "Required": false },
+                  { "Name": "MaxMembers",           "Type": "int",    "Required": false },
+                  { "Name": "IsActive",             "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "MemberZome",
+            "Description": "Active and historical memberships — one record per Avatar per tier.",
+            "Holons": [
+              {
+                "Name": "MembershipHolon",
+                "Description": "An Avatar's active membership in a specific tier.",
+                "Fields": [
+                  { "Name": "MembershipId",      "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": true },
+                  { "Name": "TierId",            "Type": "Guid",     "Required": true },
+                  { "Name": "Status",            "Type": "string",   "Required": true,
+                    "Enum": ["active", "paused", "cancelled", "expired", "pendingPayment"] },
+                  { "Name": "StartedAt",         "Type": "DateTime", "Required": true },
+                  { "Name": "ExpiresAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "BillingCycle",      "Type": "string",   "Required": false,
+                    "Enum": ["monthly", "annual", "lifetime", "token-gated", "karma-gated"] },
+                  { "Name": "MembershipNftId",   "Type": "Guid",     "Required": false },
+                  { "Name": "GrantedByAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "AutoRenew",         "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "BenefitZome",
+            "Description": "What each tier unlocks — content access, discounts, NFT drops, early access.",
+            "Holons": [
+              {
+                "Name": "BenefitHolon",
+                "Description": "A named benefit granted to members of a tier.",
+                "Fields": [
+                  { "Name": "BenefitId",        "Type": "Guid",   "Required": true },
+                  { "Name": "TierId",           "Type": "Guid",   "Required": true },
+                  { "Name": "BenefitName",      "Type": "string", "Required": true },
+                  { "Name": "BenefitType",      "Type": "string", "Required": true,
+                    "Enum": ["contentAccess", "discountPct", "nftDrop", "earlyAccess", "karmaBoost", "physicalPerk", "apiAccess", "other"] },
+                  { "Name": "Description",      "Type": "string", "Required": false },
+                  { "Name": "DiscountPct",      "Type": "double", "Required": false },
+                  { "Name": "NftCollectionId",  "Type": "Guid",   "Required": false },
+                  { "Name": "AccessScopeId",    "Type": "Guid",   "Required": false },
+                  { "Name": "IsActive",         "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "AccessGrantHolon",
+                "Description": "A specific access grant issued to a member — tracks what they can see/use.",
+                "Fields": [
+                  { "Name": "GrantId",         "Type": "Guid",     "Required": true },
+                  { "Name": "MembershipId",    "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",     "Required": true },
+                  { "Name": "BenefitId",       "Type": "Guid",     "Required": true },
+                  { "Name": "GrantedAt",       "Type": "DateTime", "Required": true },
+                  { "Name": "ExpiresAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "IsRevoked",       "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "PaymentZome",
+            "Description": "Subscription payment schedule, invoices, and receipts.",
+            "Holons": [
+              {
+                "Name": "SubscriptionPaymentHolon",
+                "Description": "A payment event for a membership — success, failure, or pending.",
+                "Fields": [
+                  { "Name": "PaymentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "MembershipId",    "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",     "Required": true },
+                  { "Name": "Amount",          "Type": "double",   "Required": true },
+                  { "Name": "Currency",        "Type": "string",   "Required": true },
+                  { "Name": "PaymentMethod",   "Type": "string",   "Required": false,
+                    "Enum": ["crypto", "fiat", "karma", "token", "nft"] },
+                  { "Name": "Chain",           "Type": "string",   "Required": false },
+                  { "Name": "TxHash",          "Type": "string",   "Required": false },
+                  { "Name": "PaidAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "PeriodStart",     "Type": "DateTime", "Required": false },
+                  { "Name": "PeriodEnd",       "Type": "DateTime", "Required": false },
+                  { "Name": "Status",          "Type": "string",   "Required": true,
+                    "Enum": ["pending", "success", "failed", "refunded", "waived"] }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

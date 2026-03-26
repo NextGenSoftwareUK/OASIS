@@ -1,0 +1,180 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+  "OAPPName": "ConservationImpactTemplate",
+  "OAPPDesc": "Conservation and environmental impact OAPP — designed for Pulmon Verde and IXO-style deployments. Projects, measurable impact metrics, carbon credits (on-chain), monitoring events, and funder contributions. Geo-anchored via GeoHotSpotManager; carbon certificates stored with IPFS hash. Built for transparent, verifiable impact reporting to donors, governments, and carbon markets.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["conservation", "impact", "carbon", "climate", "pulmon-verde", "ixo", "geo", "sustainability", "nft", "web4"],
+  "CelestialBodyDNA": {
+    "Name": "ConservationPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "ConservationPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ProjectZome",
+            "Description": "Conservation project identity — site, operator, SDG goals, geo polygon.",
+            "Holons": [
+              {
+                "Name": "ConservationProjectHolon",
+                "Description": "A conservation or impact project — the root identity holon.",
+                "Fields": [
+                  { "Name": "ProjectId",        "Type": "Guid",   "Required": true },
+                  { "Name": "OperatorAvatarId", "Type": "Guid",   "Required": false },
+                  { "Name": "Name",             "Type": "string", "Required": true },
+                  { "Name": "Description",      "Type": "string", "Required": false },
+                  { "Name": "ProjectType",      "Type": "string", "Required": true,
+                    "Enum": ["reforestation", "oceanProtection", "wildlifeHabitat", "soilRestoration", "wetlandConservation", "biodiversity", "cleanWater", "cleanEnergy", "other"] },
+                  { "Name": "CountryCode",      "Type": "string", "Required": false },
+                  { "Name": "Region",           "Type": "string", "Required": false },
+                  { "Name": "Latitude",         "Type": "double", "Required": false },
+                  { "Name": "Longitude",        "Type": "double", "Required": false },
+                  { "Name": "GeoPolygonJson",   "Type": "string", "Required": false },
+                  { "Name": "AreaHectares",     "Type": "double", "Required": false },
+                  { "Name": "SDGGoals",         "Type": "string[]","Required": false },
+                  { "Name": "StartDate",        "Type": "DateTime","Required": false },
+                  { "Name": "EndDate",          "Type": "DateTime","Required": false },
+                  { "Name": "Status",           "Type": "string", "Required": false,
+                    "Enum": ["planned", "active", "monitoring", "completed", "paused"] },
+                  { "Name": "GeoHotSpotId",     "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ImpactMetricZome",
+            "Description": "Measurable outcomes — trees planted, species recovered, CO2 sequestered, water cleaned.",
+            "Holons": [
+              {
+                "Name": "ImpactMetricHolon",
+                "Description": "A named impact indicator with target, current, and verified values.",
+                "Fields": [
+                  { "Name": "MetricId",           "Type": "Guid",   "Required": true },
+                  { "Name": "ProjectId",          "Type": "Guid",   "Required": true },
+                  { "Name": "MetricName",         "Type": "string", "Required": true },
+                  { "Name": "MetricType",         "Type": "string", "Required": true,
+                    "Enum": ["treesPlanted", "co2Sequestered", "speciesProtected", "hectaresRestored", "waterLitresCleaned", "communitiesBenefited", "other"] },
+                  { "Name": "Unit",               "Type": "string", "Required": true },
+                  { "Name": "TargetValue",        "Type": "double", "Required": false },
+                  { "Name": "CurrentValue",       "Type": "double", "Required": false },
+                  { "Name": "VerifiedValue",      "Type": "double", "Required": false },
+                  { "Name": "LastVerifiedAt",     "Type": "DateTime","Required": false }
+                ]
+              },
+              {
+                "Name": "ImpactReadingHolon",
+                "Description": "A point-in-time measurement of an impact metric — builds the time series.",
+                "Fields": [
+                  { "Name": "ReadingId",       "Type": "Guid",     "Required": true },
+                  { "Name": "MetricId",        "Type": "Guid",     "Required": true },
+                  { "Name": "ProjectId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Value",           "Type": "double",   "Required": true },
+                  { "Name": "MeasuredAt",      "Type": "DateTime", "Required": true },
+                  { "Name": "Source",          "Type": "string",   "Required": false,
+                    "Enum": ["fieldSurvey", "satellite", "sensor", "manual", "thirdParty"] },
+                  { "Name": "VerifiedBy",      "Type": "string",   "Required": false },
+                  { "Name": "EvidenceUrl",     "Type": "string",   "Required": false },
+                  { "Name": "IpfsCid",         "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CarbonCreditZome",
+            "Description": "Carbon credits generated, issued, and retired — on-chain proof via NftController.",
+            "Holons": [
+              {
+                "Name": "CarbonCreditBatchHolon",
+                "Description": "A batch of carbon credits generated by the project.",
+                "Fields": [
+                  { "Name": "CreditBatchId",       "Type": "Guid",     "Required": true },
+                  { "Name": "ProjectId",           "Type": "Guid",     "Required": true },
+                  { "Name": "QuantityTonnesCO2",   "Type": "double",   "Required": true },
+                  { "Name": "Vintage",             "Type": "int",      "Required": false },
+                  { "Name": "Standard",            "Type": "string",   "Required": false,
+                    "Enum": ["VCS", "GoldStandard", "CAR", "ACR", "Plan Vivo", "other"] },
+                  { "Name": "RegistryId",          "Type": "string",   "Required": false },
+                  { "Name": "IssuedAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "Status",              "Type": "string",   "Required": false,
+                    "Enum": ["pending", "issued", "sold", "retired", "cancelled"] },
+                  { "Name": "IpfsCid",             "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",       "Type": "string",   "Required": false },
+                  { "Name": "NftTokenId",          "Type": "Guid",     "Required": false }
+                ]
+              },
+              {
+                "Name": "CreditRetirementHolon",
+                "Description": "A retirement event — permanently removing credits from circulation on behalf of a buyer.",
+                "Fields": [
+                  { "Name": "RetirementId",      "Type": "Guid",     "Required": true },
+                  { "Name": "CreditBatchId",     "Type": "Guid",     "Required": true },
+                  { "Name": "BuyerAvatarId",     "Type": "Guid",     "Required": false },
+                  { "Name": "BuyerName",         "Type": "string",   "Required": false },
+                  { "Name": "QuantityTonnes",    "Type": "double",   "Required": true },
+                  { "Name": "RetiredAt",         "Type": "DateTime", "Required": true },
+                  { "Name": "Purpose",           "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",     "Type": "string",   "Required": false },
+                  { "Name": "CertificateUrl",    "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "MonitoringZome",
+            "Description": "Field monitoring events — site visits, sensor readings, satellite triggers.",
+            "Holons": [
+              {
+                "Name": "MonitoringEventHolon",
+                "Description": "A field or remote monitoring event — captures evidence at a point in time.",
+                "Fields": [
+                  { "Name": "EventId",        "Type": "Guid",     "Required": true },
+                  { "Name": "ProjectId",      "Type": "Guid",     "Required": true },
+                  { "Name": "EventType",      "Type": "string",   "Required": true,
+                    "Enum": ["fieldVisit", "dronesurvey", "satellite", "sensorReading", "communityReport", "audit"] },
+                  { "Name": "ObserverRef",    "Type": "string",   "Required": false },
+                  { "Name": "ObserverAvatarId","Type": "Guid",    "Required": false },
+                  { "Name": "Latitude",       "Type": "double",   "Required": false },
+                  { "Name": "Longitude",      "Type": "double",   "Required": false },
+                  { "Name": "OccurredAt",     "Type": "DateTime", "Required": true },
+                  { "Name": "Notes",          "Type": "string",   "Required": false },
+                  { "Name": "EvidenceUrls",   "Type": "string[]", "Required": false },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "FunderZome",
+            "Description": "Donor and funder contributions — transparent impact fund tracking.",
+            "Holons": [
+              {
+                "Name": "FundingContributionHolon",
+                "Description": "A donation or grant to a conservation project.",
+                "Fields": [
+                  { "Name": "ContributionId",    "Type": "Guid",     "Required": true },
+                  { "Name": "ProjectId",         "Type": "Guid",     "Required": true },
+                  { "Name": "FunderAvatarId",    "Type": "Guid",     "Required": false },
+                  { "Name": "FunderName",        "Type": "string",   "Required": false },
+                  { "Name": "Amount",            "Type": "double",   "Required": true },
+                  { "Name": "Currency",          "Type": "string",   "Required": true },
+                  { "Name": "ContributionType",  "Type": "string",   "Required": false,
+                    "Enum": ["donation", "grant", "carbonOffset", "sponsorship", "impact-investment"] },
+                  { "Name": "ContributedAt",     "Type": "DateTime", "Required": true },
+                  { "Name": "TxHash",            "Type": "string",   "Required": false },
+                  { "Name": "ImpactReportUrl",   "Type": "string",   "Required": false },
+                  { "Name": "IsPublic",          "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

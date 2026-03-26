@@ -1,0 +1,181 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "e5f6a7b8-c9d0-1234-efab-345678901234",
+  "OAPPName": "CompetitionTournamentTemplate",
+  "OAPPDesc": "Structured competitions and tournaments OAPP. Brackets, rounds, leaderboards, Egg challenges, NFT and token prize pools, and Karma rewards — all Avatar-native. Backed by CompetitionController, EggsController, GiftsController, KarmaController, and NftController. Works standalone or embedded inside a GameTemplate or ClanGuildTemplate OAPP.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["competition", "tournament", "bracket", "leaderboard", "nft", "prize", "karma", "esports", "gaming"],
+  "CelestialBodyDNA": {
+    "Name": "CompetitionPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "CompetitionPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "TournamentZome",
+            "Description": "Tournament and competition definitions — format, dates, eligibility, prize pool.",
+            "Holons": [
+              {
+                "Name": "TournamentHolon",
+                "Description": "A competition event — its format, dates, and entry rules.",
+                "Fields": [
+                  { "Name": "TournamentId",        "Type": "Guid",     "Required": true },
+                  { "Name": "OAPPId",              "Type": "Guid",     "Required": true },
+                  { "Name": "Name",                "Type": "string",   "Required": true },
+                  { "Name": "Description",         "Type": "string",   "Required": false },
+                  { "Name": "Format",              "Type": "string",   "Required": true,
+                    "Enum": ["singleElimination", "doubleElimination", "roundRobin", "swiss", "ladder", "openChallenge"] },
+                  { "Name": "GameOAPPId",          "Type": "Guid",     "Required": false },
+                  { "Name": "MaxParticipants",     "Type": "int",      "Required": false },
+                  { "Name": "MinKarmaToEnter",     "Type": "double",   "Required": false },
+                  { "Name": "EntryFee",            "Type": "double",   "Required": false },
+                  { "Name": "EntryFeeCurrency",    "Type": "string",   "Required": false },
+                  { "Name": "RegistrationOpens",   "Type": "DateTime", "Required": false },
+                  { "Name": "RegistrationCloses",  "Type": "DateTime", "Required": false },
+                  { "Name": "StartsAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "EndsAt",              "Type": "DateTime", "Required": false },
+                  { "Name": "Status",              "Type": "string",   "Required": false,
+                    "Enum": ["draft", "open", "inProgress", "completed", "cancelled"] }
+                ]
+              },
+              {
+                "Name": "ParticipantHolon",
+                "Description": "An Avatar's registration in a tournament.",
+                "Fields": [
+                  { "Name": "ParticipantId",      "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",           "Type": "Guid",     "Required": true },
+                  { "Name": "TeamName",           "Type": "string",   "Required": false },
+                  { "Name": "Seed",               "Type": "int",      "Required": false },
+                  { "Name": "RegisteredAt",       "Type": "DateTime", "Required": true },
+                  { "Name": "Status",             "Type": "string",   "Required": false,
+                    "Enum": ["registered", "active", "eliminated", "withdrawn", "winner"] }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "BracketZome",
+            "Description": "Rounds, matches, and results — the structural bracket of any tournament format.",
+            "Holons": [
+              {
+                "Name": "RoundHolon",
+                "Description": "A round within a tournament — groups matches played at the same stage.",
+                "Fields": [
+                  { "Name": "RoundId",         "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",    "Type": "Guid",     "Required": true },
+                  { "Name": "RoundNumber",     "Type": "int",      "Required": true },
+                  { "Name": "RoundName",       "Type": "string",   "Required": false },
+                  { "Name": "StartsAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "EndsAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "Status",          "Type": "string",   "Required": false,
+                    "Enum": ["pending", "active", "completed"] }
+                ]
+              },
+              {
+                "Name": "MatchHolon",
+                "Description": "A single match between two participants — result and score.",
+                "Fields": [
+                  { "Name": "MatchId",            "Type": "Guid",     "Required": true },
+                  { "Name": "RoundId",            "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Participant1Id",     "Type": "Guid",     "Required": true },
+                  { "Name": "Participant2Id",     "Type": "Guid",     "Required": false },
+                  { "Name": "Score1",             "Type": "double",   "Required": false },
+                  { "Name": "Score2",             "Type": "double",   "Required": false },
+                  { "Name": "WinnerParticipantId","Type": "Guid",     "Required": false },
+                  { "Name": "PlayedAt",           "Type": "DateTime", "Required": false },
+                  { "Name": "ProofHolonId",       "Type": "Guid",     "Required": false },
+                  { "Name": "Status",             "Type": "string",   "Required": false,
+                    "Enum": ["scheduled", "live", "completed", "disputed", "walkover"] }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "LeaderboardZome",
+            "Description": "Live and historical rankings across tournaments and challenges.",
+            "Holons": [
+              {
+                "Name": "LeaderboardEntryHolon",
+                "Description": "One Avatar's position on a tournament or global leaderboard.",
+                "Fields": [
+                  { "Name": "EntryId",       "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",  "Type": "Guid",     "Required": false },
+                  { "Name": "AvatarId",      "Type": "Guid",     "Required": true },
+                  { "Name": "Rank",          "Type": "int",      "Required": true },
+                  { "Name": "Score",         "Type": "double",   "Required": false },
+                  { "Name": "Wins",          "Type": "int",      "Required": false },
+                  { "Name": "Losses",        "Type": "int",      "Required": false },
+                  { "Name": "Draws",         "Type": "int",      "Required": false },
+                  { "Name": "XPEarned",      "Type": "int",      "Required": false },
+                  { "Name": "KarmaEarned",   "Type": "double",   "Required": false },
+                  { "Name": "AsOfDate",      "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "RewardZome",
+            "Description": "Prize pools, NFT drops, gift items, and Karma rewards linked to placement.",
+            "Holons": [
+              {
+                "Name": "PrizeHolon",
+                "Description": "A prize defined for a tournament placement.",
+                "Fields": [
+                  { "Name": "PrizeId",         "Type": "Guid",   "Required": true },
+                  { "Name": "TournamentId",    "Type": "Guid",   "Required": true },
+                  { "Name": "Placement",       "Type": "string", "Required": true,
+                    "Enum": ["1st", "2nd", "3rd", "top8", "top16", "participant"] },
+                  { "Name": "PrizeType",       "Type": "string", "Required": true,
+                    "Enum": ["tokenAmount", "nft", "karma", "gift", "badge", "physical"] },
+                  { "Name": "TokenAmount",     "Type": "double", "Required": false },
+                  { "Name": "Currency",        "Type": "string", "Required": false },
+                  { "Name": "NftCollectionId", "Type": "Guid",   "Required": false },
+                  { "Name": "KarmaAmount",     "Type": "double", "Required": false },
+                  { "Name": "Description",     "Type": "string", "Required": false }
+                ]
+              },
+              {
+                "Name": "RewardClaimHolon",
+                "Description": "A reward claimed by an Avatar after tournament placement.",
+                "Fields": [
+                  { "Name": "ClaimId",        "Type": "Guid",     "Required": true },
+                  { "Name": "PrizeId",        "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",       "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",   "Type": "Guid",     "Required": true },
+                  { "Name": "ClaimedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "TxHash",         "Type": "string",   "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["pending", "claimed", "delivered", "expired"] }
+                ]
+              },
+              {
+                "Name": "EggChallengeHolon",
+                "Description": "An Egg-style timed challenge embedded in a competition — from EggsController.",
+                "Fields": [
+                  { "Name": "EggId",           "Type": "Guid",     "Required": true },
+                  { "Name": "TournamentId",    "Type": "Guid",     "Required": false },
+                  { "Name": "Name",            "Type": "string",   "Required": true },
+                  { "Name": "Description",     "Type": "string",   "Required": false },
+                  { "Name": "ChallengeType",   "Type": "string",   "Required": false,
+                    "Enum": ["speedrun", "highScore", "survival", "puzzle", "creative"] },
+                  { "Name": "StartsAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "EndsAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "MaxAttempts",     "Type": "int",      "Required": false },
+                  { "Name": "RewardHolonId",   "Type": "Guid",     "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

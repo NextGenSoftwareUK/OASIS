@@ -1,0 +1,174 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+  "OAPPName": "HospitalityEventsTemplate",
+  "OAPPDesc": "Phygital hospitality and events OAPP. Venues, events, NFT ticket issuance, experience check-ins, and loyalty rewards — designed for Alton Towers Phygital and similar real-world integrations. Tickets are NFTs; check-in is a GeoHotSpot proof; loyalty karma accumulates on the Avatar. Backed by NftController, GeoHotSpotManager, KarmaController, QuestManager, and WalletController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["hospitality", "events", "phygital", "nft-ticket", "venue", "loyalty", "alton-towers", "geo", "karma"],
+  "CelestialBodyDNA": {
+    "Name": "HospitalityPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "HospitalityPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "VenueZome",
+            "Description": "Physical venues — parks, arenas, hotels, restaurants. Geo-anchored identity.",
+            "Holons": [
+              {
+                "Name": "VenueHolon",
+                "Description": "A physical venue — root identity for events and experiences hosted there.",
+                "Fields": [
+                  { "Name": "VenueId",           "Type": "Guid",   "Required": true },
+                  { "Name": "OperatorAvatarId",  "Type": "Guid",   "Required": false },
+                  { "Name": "Name",              "Type": "string", "Required": true },
+                  { "Name": "Description",       "Type": "string", "Required": false },
+                  { "Name": "VenueType",         "Type": "string", "Required": false,
+                    "Enum": ["themepark", "arena", "conference", "hotel", "restaurant", "festival", "gallery", "stadium", "other"] },
+                  { "Name": "Address",           "Type": "string", "Required": false },
+                  { "Name": "CountryCode",       "Type": "string", "Required": false },
+                  { "Name": "Latitude",          "Type": "double", "Required": false },
+                  { "Name": "Longitude",         "Type": "double", "Required": false },
+                  { "Name": "Capacity",          "Type": "int",    "Required": false },
+                  { "Name": "ImageUrl",          "Type": "string", "Required": false },
+                  { "Name": "GeoHotSpotId",      "Type": "Guid",   "Required": false },
+                  { "Name": "IsActive",          "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "AttractionHolon",
+                "Description": "A named attraction or zone within a venue — ride, stage, area.",
+                "Fields": [
+                  { "Name": "AttractionId",    "Type": "Guid",   "Required": true },
+                  { "Name": "VenueId",         "Type": "Guid",   "Required": true },
+                  { "Name": "Name",            "Type": "string", "Required": true },
+                  { "Name": "Description",     "Type": "string", "Required": false },
+                  { "Name": "AttractionType",  "Type": "string", "Required": false,
+                    "Enum": ["ride", "show", "stage", "zone", "restaurant", "shop", "experience"] },
+                  { "Name": "Latitude",        "Type": "double", "Required": false },
+                  { "Name": "Longitude",       "Type": "double", "Required": false },
+                  { "Name": "GeoHotSpotId",    "Type": "Guid",   "Required": false },
+                  { "Name": "IsActive",        "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "EventZome",
+            "Description": "Events at venues — concerts, festivals, conferences, park days. Date-bound, capacity-limited.",
+            "Holons": [
+              {
+                "Name": "EventHolon",
+                "Description": "A date-bound event at a venue — the parent for tickets and experiences.",
+                "Fields": [
+                  { "Name": "EventId",           "Type": "Guid",     "Required": true },
+                  { "Name": "VenueId",           "Type": "Guid",     "Required": true },
+                  { "Name": "OrganizerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "Name",              "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "EventType",         "Type": "string",   "Required": false,
+                    "Enum": ["concert", "festival", "conference", "parkDay", "privateEvent", "exhibition", "tournament", "other"] },
+                  { "Name": "StartsAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "EndsAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "Capacity",          "Type": "int",      "Required": false },
+                  { "Name": "TicketsSold",       "Type": "int",      "Required": false },
+                  { "Name": "CoverImageUrl",     "Type": "string",   "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["draft", "onSale", "soldOut", "live", "completed", "cancelled"] }
+                ]
+              },
+              {
+                "Name": "TicketTierHolon",
+                "Description": "A ticket tier for an event — GA, VIP, Early Bird, etc.",
+                "Fields": [
+                  { "Name": "TierId",          "Type": "Guid",   "Required": true },
+                  { "Name": "EventId",         "Type": "Guid",   "Required": true },
+                  { "Name": "TierName",        "Type": "string", "Required": true },
+                  { "Name": "Price",           "Type": "double", "Required": true },
+                  { "Name": "Currency",        "Type": "string", "Required": true },
+                  { "Name": "MaxQuantity",     "Type": "int",    "Required": false },
+                  { "Name": "Sold",            "Type": "int",    "Required": false },
+                  { "Name": "SaleStartsAt",    "Type": "DateTime","Required": false },
+                  { "Name": "SaleEndsAt",      "Type": "DateTime","Required": false },
+                  { "Name": "Benefits",        "Type": "string", "Required": false },
+                  { "Name": "IsNFTTicket",     "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "TicketNFTZome",
+            "Description": "NFT ticket issuance and validation — each ticket is a transferable Avatar-owned NFT.",
+            "Holons": [
+              {
+                "Name": "TicketHolon",
+                "Description": "A single issued ticket — NFT-backed, linked to an Avatar and event.",
+                "Fields": [
+                  { "Name": "TicketId",        "Type": "Guid",     "Required": true },
+                  { "Name": "EventId",         "Type": "Guid",     "Required": true },
+                  { "Name": "TierId",          "Type": "Guid",     "Required": true },
+                  { "Name": "OwnerAvatarId",   "Type": "Guid",     "Required": true },
+                  { "Name": "TicketNumber",    "Type": "string",   "Required": false },
+                  { "Name": "QrCode",          "Type": "string",   "Required": false },
+                  { "Name": "NftTokenId",      "Type": "Guid",     "Required": false },
+                  { "Name": "NftTxHash",       "Type": "string",   "Required": false },
+                  { "Name": "PurchasedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "PricePaid",       "Type": "double",   "Required": false },
+                  { "Name": "Currency",        "Type": "string",   "Required": false },
+                  { "Name": "Status",          "Type": "string",   "Required": false,
+                    "Enum": ["issued", "transferred", "redeemed", "cancelled", "refunded"] }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ExperienceZome",
+            "Description": "Phygital check-ins, experiences unlocked at geo locations, and loyalty accumulation.",
+            "Holons": [
+              {
+                "Name": "CheckInHolon",
+                "Description": "A geo-verified check-in at an attraction or venue — proof of presence.",
+                "Fields": [
+                  { "Name": "CheckInId",       "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",     "Required": true },
+                  { "Name": "VenueId",         "Type": "Guid",     "Required": false },
+                  { "Name": "AttractionId",    "Type": "Guid",     "Required": false },
+                  { "Name": "EventId",         "Type": "Guid",     "Required": false },
+                  { "Name": "GeoHotSpotId",    "Type": "Guid",     "Required": false },
+                  { "Name": "Latitude",        "Type": "double",   "Required": false },
+                  { "Name": "Longitude",       "Type": "double",   "Required": false },
+                  { "Name": "CheckedInAt",     "Type": "DateTime", "Required": true },
+                  { "Name": "KarmaAwarded",    "Type": "double",   "Required": false },
+                  { "Name": "BadgeNftId",      "Type": "Guid",     "Required": false },
+                  { "Name": "ProofHash",       "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "LoyaltyRecordHolon",
+                "Description": "Loyalty points and tier status accumulated by an Avatar across venue visits.",
+                "Fields": [
+                  { "Name": "LoyaltyId",       "Type": "Guid",   "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",   "Required": true },
+                  { "Name": "VenueId",         "Type": "Guid",   "Required": true },
+                  { "Name": "PointsBalance",   "Type": "double", "Required": false },
+                  { "Name": "TierName",        "Type": "string", "Required": false,
+                    "Enum": ["bronze", "silver", "gold", "platinum", "vip"] },
+                  { "Name": "TotalVisits",     "Type": "int",    "Required": false },
+                  { "Name": "TotalSpend",      "Type": "double", "Required": false },
+                  { "Name": "Currency",        "Type": "string", "Required": false },
+                  { "Name": "LastVisitAt",     "Type": "DateTime","Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,205 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+  "OAPPName": "AgriTraceabilityTemplate",
+  "OAPPDesc": "Farm-to-port-to-shelf agricultural traceability OAPP. Full chain-of-custody from farm plot through harvest batch, processing, inland transport, port handoff, and retail delivery. EUDR/organic/fair-trade certificates stored with IPFS hash and optional on-chain proof. Natural upstream layer for PortOSTemplate. Backed by DataController, FilesController, NftController, and VaultController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["agriculture", "traceability", "eudr", "supply-chain", "farm", "food", "sustainability", "provenance", "nft"],
+  "CelestialBodyDNA": {
+    "Name": "AgriTraceabilityPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "AgriTraceabilityPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "FarmZome",
+            "Description": "Farm and plot identity — the origin anchor for all traceability chains.",
+            "Holons": [
+              {
+                "Name": "FarmHolon",
+                "Description": "A farm entity — operator, location, certifications, size.",
+                "Fields": [
+                  { "Name": "FarmId",          "Type": "Guid",   "Required": true },
+                  { "Name": "OperatorAvatarId","Type": "Guid",   "Required": false },
+                  { "Name": "Name",            "Type": "string", "Required": true },
+                  { "Name": "CountryCode",     "Type": "string", "Required": true },
+                  { "Name": "Region",          "Type": "string", "Required": false },
+                  { "Name": "Latitude",        "Type": "double", "Required": false },
+                  { "Name": "Longitude",       "Type": "double", "Required": false },
+                  { "Name": "AreaHectares",    "Type": "double", "Required": false },
+                  { "Name": "Commodity",       "Type": "string", "Required": false,
+                    "Enum": ["cocoa", "coffee", "soy", "palm", "timber", "cattle", "rubber", "maize", "wheat", "other"] },
+                  { "Name": "IsActive",        "Type": "bool",   "Required": false }
+                ]
+              },
+              {
+                "Name": "PlotHolon",
+                "Description": "A named plot or parcel within a farm — used for EUDR geolocation polygon.",
+                "Fields": [
+                  { "Name": "PlotId",           "Type": "Guid",   "Required": true },
+                  { "Name": "FarmId",           "Type": "Guid",   "Required": true },
+                  { "Name": "PlotName",         "Type": "string", "Required": false },
+                  { "Name": "AreaHectares",     "Type": "double", "Required": false },
+                  { "Name": "GeoPolygonJson",   "Type": "string", "Required": false },
+                  { "Name": "Soil",             "Type": "string", "Required": false },
+                  { "Name": "Irrigation",       "Type": "string", "Required": false,
+                    "Enum": ["rainfed", "drip", "flood", "sprinkler", "none"] },
+                  { "Name": "DeforestationRisk","Type": "string", "Required": false,
+                    "Enum": ["low", "medium", "high", "unknown"] }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CropBatchZome",
+            "Description": "Harvest batches and processing steps — the atomic traceability unit from field to warehouse.",
+            "Holons": [
+              {
+                "Name": "HarvestBatchHolon",
+                "Description": "A harvest batch from one or more plots — date, yield, quality grade.",
+                "Fields": [
+                  { "Name": "BatchId",           "Type": "Guid",     "Required": true },
+                  { "Name": "FarmId",            "Type": "Guid",     "Required": true },
+                  { "Name": "PlotId",            "Type": "Guid",     "Required": false },
+                  { "Name": "CropSeason",        "Type": "string",   "Required": false },
+                  { "Name": "HarvestDate",       "Type": "DateTime", "Required": true },
+                  { "Name": "Commodity",         "Type": "string",   "Required": true },
+                  { "Name": "QuantityKg",        "Type": "double",   "Required": true },
+                  { "Name": "QualityGrade",      "Type": "string",   "Required": false },
+                  { "Name": "MoistureContentPct","Type": "double",   "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["harvested", "drying", "processing", "stored", "shipped", "delivered"] }
+                ]
+              },
+              {
+                "Name": "ProcessingEventHolon",
+                "Description": "A processing or transformation step applied to a batch.",
+                "Fields": [
+                  { "Name": "EventId",         "Type": "Guid",     "Required": true },
+                  { "Name": "BatchId",         "Type": "Guid",     "Required": true },
+                  { "Name": "ProcessType",     "Type": "string",   "Required": true,
+                    "Enum": ["fermentation", "drying", "milling", "roasting", "grading", "blending", "packaging", "other"] },
+                  { "Name": "FacilityName",    "Type": "string",   "Required": false },
+                  { "Name": "OperatorRef",     "Type": "string",   "Required": false },
+                  { "Name": "StartedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "InputWeightKg",   "Type": "double",   "Required": false },
+                  { "Name": "OutputWeightKg",  "Type": "double",   "Required": false },
+                  { "Name": "Notes",           "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ChainOfCustodyZome",
+            "Description": "Every handoff from farm gate to retail shelf — transport legs, custodian changes, warehouse storage.",
+            "Holons": [
+              {
+                "Name": "CustodyHandoffHolon",
+                "Description": "A change-of-custody event — batch passes from one party to the next.",
+                "Fields": [
+                  { "Name": "HandoffId",          "Type": "Guid",     "Required": true },
+                  { "Name": "BatchId",            "Type": "Guid",     "Required": true },
+                  { "Name": "FromPartyRef",       "Type": "string",   "Required": false },
+                  { "Name": "ToPartyRef",         "Type": "string",   "Required": false },
+                  { "Name": "FromPartyAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "ToPartyAvatarId",    "Type": "Guid",     "Required": false },
+                  { "Name": "HandoffType",        "Type": "string",   "Required": true,
+                    "Enum": ["farmGate", "cooperative", "exporter", "port", "shipping", "importer", "processor", "retailer"] },
+                  { "Name": "Location",           "Type": "string",   "Required": false },
+                  { "Name": "Latitude",           "Type": "double",   "Required": false },
+                  { "Name": "Longitude",          "Type": "double",   "Required": false },
+                  { "Name": "HandoffAt",          "Type": "DateTime", "Required": true },
+                  { "Name": "QuantityKg",         "Type": "double",   "Required": false },
+                  { "Name": "SealNumber",         "Type": "string",   "Required": false },
+                  { "Name": "DocHolonId",         "Type": "Guid",     "Required": false }
+                ]
+              },
+              {
+                "Name": "StorageEventHolon",
+                "Description": "A warehouse or cold-store dwell period for a batch.",
+                "Fields": [
+                  { "Name": "StorageId",       "Type": "Guid",     "Required": true },
+                  { "Name": "BatchId",         "Type": "Guid",     "Required": true },
+                  { "Name": "WarehouseName",   "Type": "string",   "Required": false },
+                  { "Name": "CountryCode",     "Type": "string",   "Required": false },
+                  { "Name": "InAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "OutAt",           "Type": "DateTime", "Required": false },
+                  { "Name": "TemperatureC",    "Type": "double",   "Required": false },
+                  { "Name": "HumidityPct",     "Type": "double",   "Required": false },
+                  { "Name": "DwellDays",       "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "CertificateZome",
+            "Description": "EUDR, organic, fair-trade, Rainforest Alliance — certificates with IPFS hash and optional on-chain proof.",
+            "Holons": [
+              {
+                "Name": "ProducerCertHolon",
+                "Description": "A certification issued to a farm or producer.",
+                "Fields": [
+                  { "Name": "CertId",         "Type": "Guid",     "Required": true },
+                  { "Name": "FarmId",         "Type": "Guid",     "Required": true },
+                  { "Name": "CertType",       "Type": "string",   "Required": true,
+                    "Enum": ["EUDR", "organic", "fairTrade", "rainforestAlliance", "UTZ", "GlobalGAP", "carbonNeutral", "other"] },
+                  { "Name": "IssuerOrg",      "Type": "string",   "Required": false },
+                  { "Name": "CertNumber",     "Type": "string",   "Required": false },
+                  { "Name": "ValidFrom",      "Type": "DateTime", "Required": false },
+                  { "Name": "ValidTo",        "Type": "DateTime", "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["valid", "expired", "suspended", "revoked"] },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",  "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "BatchCertHolon",
+                "Description": "A certificate attached to a specific harvest batch — traceability proof.",
+                "Fields": [
+                  { "Name": "BatchCertId",    "Type": "Guid",     "Required": true },
+                  { "Name": "BatchId",        "Type": "Guid",     "Required": true },
+                  { "Name": "CertId",         "Type": "Guid",     "Required": false },
+                  { "Name": "CertType",       "Type": "string",   "Required": true },
+                  { "Name": "CoveredKg",      "Type": "double",   "Required": false },
+                  { "Name": "IssuedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "IpfsCid",        "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",  "Type": "string",   "Required": false },
+                  { "Name": "NftTokenId",     "Type": "Guid",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "RetailZome",
+            "Description": "Consumer product and retail delivery — the final leg closing the provenance chain.",
+            "Holons": [
+              {
+                "Name": "ProductHolon",
+                "Description": "A retail product (SKU) assembled from one or more batches.",
+                "Fields": [
+                  { "Name": "ProductId",       "Type": "Guid",   "Required": true },
+                  { "Name": "ProductName",     "Type": "string", "Required": true },
+                  { "Name": "SKU",             "Type": "string", "Required": false },
+                  { "Name": "SourceBatchIds",  "Type": "string[]","Required": false },
+                  { "Name": "BrandName",       "Type": "string", "Required": false },
+                  { "Name": "RetailerRef",     "Type": "string", "Required": false },
+                  { "Name": "QrCodeUrl",       "Type": "string", "Required": false },
+                  { "Name": "ConsumerPageUrl", "Type": "string", "Required": false },
+                  { "Name": "ProvenanceNftId", "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
