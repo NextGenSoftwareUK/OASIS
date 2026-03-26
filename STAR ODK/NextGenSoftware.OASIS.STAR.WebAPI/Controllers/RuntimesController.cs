@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -727,7 +728,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = string.Empty;
         public HolonType HolonSubType { get; set; } = HolonType.Runtime;
         public string SourceFolderPath { get; set; } = string.Empty;
-        public ISTARNETCreateOptions<Runtime, STARNETDNA>? CreateOptions { get; set; }
+        public STARNETCreateOptions<Runtime, STARNETDNA>? CreateOptions { get; set; }
     }
 
     public class EditRuntimeRequest

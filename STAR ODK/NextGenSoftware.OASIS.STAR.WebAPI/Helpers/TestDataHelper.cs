@@ -299,8 +299,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
                 Id = Guid.NewGuid(),
                 Name = $"Test Game {i}",
                 Description = $"This is a test game number {i}",
-                Version = "1.0.0",
-                // Status property may not exist on Game class
+                Version = 1,
+                GameVersion = "1.0.0",
                 CreatedDate = DateTime.UtcNow.AddDays(-i),
                 ModifiedDate = DateTime.UtcNow.AddDays(-i),
                 CreatedByAvatarId = _testAvatarId
@@ -317,8 +317,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Helpers
                 Id = id ?? Guid.NewGuid(),
                 Name = "Test Game",
                 Description = "This is a test game",
-                Version = "1.0.0",
-                // Status property may not exist on Game class
+                Version = 1,
+                GameVersion = "1.0.0",
                 CreatedDate = DateTime.UtcNow,
                 ModifiedDate = DateTime.UtcNow,
                 CreatedByAvatarId = _testAvatarId

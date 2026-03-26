@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -1330,7 +1331,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Quest;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
         /// <summary>Optional list of objectives (sub-quests) to create with the quest. Each gets a distinct ID so CompleteQuestObjective can be used.</summary>
         public List<QuestObjectiveRequest>? Objectives { get; set; }
     }

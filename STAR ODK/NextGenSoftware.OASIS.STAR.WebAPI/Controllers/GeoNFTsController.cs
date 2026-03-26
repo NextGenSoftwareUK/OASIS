@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -643,7 +644,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Web5GeoNFT;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<STARGeoNFT, STARNETDNA> CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<STARGeoNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
     public class EditGeoNFTRequest

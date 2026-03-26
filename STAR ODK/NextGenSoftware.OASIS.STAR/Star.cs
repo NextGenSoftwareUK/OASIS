@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -37,8 +37,8 @@ namespace NextGenSoftware.OASIS.STAR
 {
     public static class STAR
     {
-        const string STAR_DNA_DEFAULT_PATH = "DNA\\STAR_DNA.json";
-        const string OASIS_DNA_DEFAULT_PATH = "DNA\\OASIS_DNA.json";
+        const string STAR_DNA_DEFAULT_PATH = "DNA/STAR_DNA.json";
+        const string OASIS_DNA_DEFAULT_PATH = "DNA/OASIS_DNA.json";
 
         private static StarStatus _status;
         private static Guid _starId = Guid.Empty;
@@ -1859,8 +1859,9 @@ namespace NextGenSoftware.OASIS.STAR
         {
             if (starDNA != null)
             {
-                ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
-                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder");
+                if (!string.IsNullOrEmpty(starDNA.BaseSTARPath))
+                    ValidateFolder("", starDNA.BaseSTARPath, "STARDNA.BaseSTARPath");
+                ValidateFolder(starDNA.BaseSTARPath, starDNA.OAPPMetaDataDNAFolder, "STARDNA.OAPPMetaDataDNAFolder", false, true);
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisFolder, "STARDNA.GenesisFolder", false, true);
                 //ValidateFolder(starDNA.BaseSTARPath, starDNA.GenesisRustFolder, "STARDNA.GenesisRustFolder", false, true);
                 ValidateFolder(starDNA.BaseSTARPath, starDNA.CSharpDNATemplateFolder, "STARDNA.CSharpDNATemplateFolder");
@@ -1976,9 +1977,14 @@ namespace NextGenSoftware.OASIS.STAR
             //ValidateFolder("", genesisRustFolder, "genesisRustFolder", false, true);
         }
 
+        private static string NormalizePath(string path) =>
+            path?.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+
         private static void ValidateFolder(string basePath, string folder, string folderParam, bool checkIfContainsFilesOrFolder = false, bool createIfDoesNotExist = false)
         {
-            string path = string.IsNullOrEmpty(basePath) ? folder : $"{basePath}\\{folder}";
+            basePath = NormalizePath(basePath);
+            folder = NormalizePath(folder);
+            string path = string.IsNullOrEmpty(basePath) ? folder : Path.Combine(basePath, folder);
 
             if (Path.IsPathRooted(folder))
                 path = folder; //If the folder is rooted, use it as is.
@@ -2000,12 +2006,15 @@ namespace NextGenSoftware.OASIS.STAR
 
         private static void ValidateFile(string basePath, string folder, string file, string fileParam)
         {
-            string path = $"{basePath}\\{folder}";
+            basePath = NormalizePath(basePath);
+            folder = NormalizePath(folder);
+            file = NormalizePath(file);
+            string path = Path.Combine(basePath, folder);
 
             if (string.IsNullOrEmpty(file))
                 throw new ArgumentNullException(fileParam, string.Concat("The ", fileParam, " param in the STARDNA is null, please double check and try again."));
 
-            if (!File.Exists(string.Concat(path, "\\", file)))
+            if (!File.Exists(Path.Combine(path, file)))
                 throw new FileNotFoundException(string.Concat("The ", fileParam, " file is not valid, the file does not exist, please double check and try again."), string.Concat(path, "\\", file));
         }
 

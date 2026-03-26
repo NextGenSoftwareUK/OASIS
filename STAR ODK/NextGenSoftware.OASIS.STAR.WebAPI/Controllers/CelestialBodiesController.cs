@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -690,7 +691,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.STARCelestialBody;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<STARCelestialBody, STARNETDNA> CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<STARCelestialBody, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
     public class EditCelestialBodyRequest

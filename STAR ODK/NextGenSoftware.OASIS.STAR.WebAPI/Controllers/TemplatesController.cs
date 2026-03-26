@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
@@ -688,7 +689,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = string.Empty;
         public HolonType HolonSubType { get; set; } = HolonType.OAPPTemplate;
         public string SourceFolderPath { get; set; } = string.Empty;
-        public ISTARNETCreateOptions<OAPPTemplate, STARNETDNA>? CreateOptions { get; set; }
+        public STARNETCreateOptions<OAPPTemplate, STARNETDNA>? CreateOptions { get; set; }
     }
 
     public class EditTemplateRequest

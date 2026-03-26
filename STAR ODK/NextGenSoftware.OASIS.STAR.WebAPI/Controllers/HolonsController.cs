@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
@@ -113,6 +114,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
                 return Ok(result);
             }
@@ -137,6 +139,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 holon.Id = id;
                 var result = await _starAPI.Holons.UpdateAsync(AvatarId, holon);
                 return Ok(result);
@@ -710,7 +713,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public HolonType HolonSubType { get; set; } = HolonType.Holon;
         public string SourceFolderPath { get; set; } = "";
-        public ISTARNETCreateOptions<STARHolon, STARNETDNA> CreateOptions { get; set; } = null;
+        public STARNETCreateOptions<STARHolon, STARNETDNA> CreateOptions { get; set; } = null;
     }
 
     public class EditHolonRequest

@@ -27,11 +27,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
-                await AttachAccountToContext(context, token);
+            {
+                bool tokenValid = await AttachAccountToContext(context, token);
+                if (!tokenValid)
+                    return; // 401 already written — do not continue into the pipeline
+            }
             await _next(context);
         }
 
-        private async Task AttachAccountToContext(HttpContext context, string token)
+        // Returns true if the token was valid (or no token was provided), false if a 401 was written
+        private async Task<bool> AttachAccountToContext(HttpContext context, string token)
         {
             try
             {
@@ -58,6 +63,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                     NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
                     NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
@@ -67,19 +74,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 };
 
                 OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
 
-                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                
-                try
+                if (!context.Response.HasStarted)
                 {
+                    context.Response.StatusCode = 401;
+                    context.Response.ContentType = "application/json";
+                    byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
                     await context.Response.Body.WriteAsync(body);
                 }
-                catch
-                {
-                    // If we can't write to the response body, just continue
-                }
+
+                return false;
             }
         }
     }

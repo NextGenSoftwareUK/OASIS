@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
@@ -39,6 +40,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.OAPPs.LoadAllAsync(AvatarId, null);
 
                 // Return test data if setting is enabled and result is null, has error, or is empty
@@ -77,6 +79,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.OAPPs.LoadAsync(AvatarId, id, 0);
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -113,6 +116,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.OAPPs.UpdateAsync(AvatarId, oapp);
                 return Ok(result);
             }
@@ -127,6 +131,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
+                await EnsureStarApiBootedAsync();
                 oapp.Id = id;
                 var result = await _starAPI.OAPPs.UpdateAsync(AvatarId, oapp);
                 return Ok(result);
@@ -184,6 +189,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
+                await EnsureStarApiBootedAsync();
                 var result = await _starAPI.OAPPs.PublishAsync(
                     AvatarId,
                     request.SourcePath,
@@ -583,7 +589,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = string.Empty;
         public OAPPType HolonSubType { get; set; }
         public string SourceFolderPath { get; set; } = string.Empty;
-        public ISTARNETCreateOptions<OAPP, STARNETDNA>? CreateOptions { get; set; }
+        public STARNETCreateOptions<OAPP, STARNETDNA>? CreateOptions { get; set; }
     }
 
     public class EditOAPPRequest

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
@@ -596,7 +597,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = string.Empty;
         public ZomeType HolonSubType { get; set; }
         public string SourceFolderPath { get; set; } = string.Empty;
-        public ISTARNETCreateOptions<ZomeMetaDataDNA, STARNETDNA>? CreateOptions { get; set; }
+        public STARNETCreateOptions<ZomeMetaDataDNA, STARNETDNA>? CreateOptions { get; set; }
     }
 
     public class EditZomeMetaDataRequest
