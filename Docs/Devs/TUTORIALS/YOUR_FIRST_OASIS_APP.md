@@ -398,10 +398,10 @@ You've successfully created your first OASIS application! Here's what you've acc
 
 ## 📞 **Support & Resources**
 
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform](https://github.com/oasisplatform)
-- **Email**: support@oasisplatform.world
+- **Email**: support@oasisweb4.com
 
 ---
 

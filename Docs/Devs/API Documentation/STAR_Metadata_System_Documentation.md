@@ -868,11 +868,11 @@ const oapp = await client.oappBuilder.create({
 
 ## 📞 **Support**
 
-- **Documentation**: [docs.oasisplatform.world/star/metadata](https://docs.oasisplatform.world/star/metadata)
+- **Documentation**: [docs.oasisweb4.com/star/metadata](https://docs.oasisweb4.com/star/metadata)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform/star](https://github.com/oasisplatform/star)
-- **Email**: star-support@oasisplatform.world
+- **Email**: star-support@oasisweb4.com
 
 ---
 
-*This documentation covers the complete STAR Metadata System. For the latest updates and examples, visit [docs.oasisplatform.world/star/metadata](https://docs.oasisplatform.world/star/metadata)*
+*This documentation covers the complete STAR Metadata System. For the latest updates and examples, visit [docs.oasisweb4.com/star/metadata](https://docs.oasisweb4.com/star/metadata)*

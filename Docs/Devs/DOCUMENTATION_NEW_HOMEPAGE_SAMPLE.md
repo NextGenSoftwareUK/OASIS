@@ -4,7 +4,7 @@
 
 <Info>
   Build faster with production-ready APIs, smart wallets, and infrastructure across 50+ chains. 
-  [Create your free OASIS account](https://oasisplatform.world/signup) and get started today.
+  [Create your free OASIS account](https://oasisweb4.com/signup) and get started today.
 </Info>
 
 ---

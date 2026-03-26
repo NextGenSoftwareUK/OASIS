@@ -2533,7 +2533,7 @@ console.log(`Performance: ${metrics.performance}%`);
 
 ## 🚀 **Getting Started**
 
-1. **Sign up** for an API key at [oasisplatform.world](https://oasisplatform.world)
+1. **Sign up** for an API key at [oasisweb4.com](https://oasisweb4.com)
 2. **Choose your SDK** from the available options
 3. **Read the examples** to understand the API structure
 4. **Start building** with the sandbox environment
@@ -2541,11 +2541,11 @@ console.log(`Performance: ${metrics.performance}%`);
 
 ## 📞 **Support**
 
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform](https://github.com/oasisplatform)
-- **Email**: support@oasisplatform.world
+- **Email**: support@oasisweb4.com
 
 ---
 
-*This documentation is updated regularly. For the latest version, visit [docs.oasisplatform.world](https://docs.oasisplatform.world)*
+*This documentation is updated regularly. For the latest version, visit [docs.oasisweb4.com](https://docs.oasisweb4.com)*

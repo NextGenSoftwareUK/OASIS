@@ -1,5 +1,11 @@
 # Getting Started with OASIS
 
+This guide uses the **hosted OASIS API** at [api.oasisweb4.one](https://api.oasisweb4.one). You don't need to clone the repo or run anything locally — just call the remote API from your app, script, or Swagger UI.
+
+For a concise remote-API-only walkthrough with curl examples, see [Using the remote API](using-the-remote-api.md). To run the API yourself, see the link at the bottom of that page.
+
+---
+
 ## 🚀 Quick Start
 
 Get up and running with the OASIS API in 5 minutes.
@@ -9,7 +15,7 @@ Get up and running with the OASIS API in 5 minutes.
 First, register a new avatar:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/register
+POST http://api.oasisweb4.one/api/avatar/register
 Content-Type: application/json
 
 {
@@ -42,7 +48,7 @@ Content-Type: application/json
 Check your email for a verification token, then verify your account:
 
 ```http
-GET http://api.oasisweb4.com/api/avatar/verify-email?token=YOUR_VERIFICATION_TOKEN
+GET http://api.oasisweb4.one/api/avatar/verify-email?token=YOUR_VERIFICATION_TOKEN
 ```
 
 **Response:**
@@ -59,7 +65,7 @@ GET http://api.oasisweb4.com/api/avatar/verify-email?token=YOUR_VERIFICATION_TOK
 Login to get your JWT token:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/authenticate
+POST http://api.oasisweb4.one/api/avatar/authenticate
 Content-Type: application/json
 
 {
@@ -88,7 +94,7 @@ Content-Type: application/json
 Use your JWT token to make authenticated requests:
 
 ```http
-GET http://api.oasisweb4.com/api/avatar/{avatarId}
+GET http://api.oasisweb4.one/api/avatar/{avatarId}
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -105,9 +111,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ## 🔗 Resources
 
-- **Swagger UI:** [http://api.oasisweb4.com/swagger/index.html](http://api.oasisweb4.com/swagger/index.html)
+- **Swagger UI:** [http://api.oasisweb4.one/swagger/index.html](http://api.oasisweb4.one/swagger/index.html)
 - **Postman Collection:** [Download Postman Collection](https://oasisweb4.one/postman/OASIS_API.postman_collection.json)
-- **Base URL:** `http://api.oasisweb4.com/api`
+- **Base URL:** `http://api.oasisweb4.one/api`
 
 ---
 

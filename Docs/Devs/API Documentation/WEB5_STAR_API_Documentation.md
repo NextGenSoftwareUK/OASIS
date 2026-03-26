@@ -1098,8 +1098,8 @@ API calls are rate-limited to prevent abuse.
 ## 📞 **Support**
 
 For technical support and questions:
-- **Documentation**: [STAR API Docs](https://docs.oasisplatform.world/star-api)
-- **Support**: [support@oasisplatform.world](mailto:support@oasisplatform.world)
+- **Documentation**: [STAR API Docs](https://docs.oasisweb4.com/star-api)
+- **Support**: [support@oasisweb4.com](mailto:support@oasisweb4.com)
 - **Community**: [OASIS Discord](https://discord.gg/oasis)
 
 ## 🔄 **Versioning**

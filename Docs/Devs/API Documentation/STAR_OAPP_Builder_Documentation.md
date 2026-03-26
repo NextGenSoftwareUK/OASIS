@@ -705,11 +705,11 @@ const published = await spaceGame.publish({
 
 ## 📞 **Support**
 
-- **Documentation**: [docs.oasisplatform.world/star/oapp-builder](https://docs.oasisplatform.world/star/oapp-builder)
+- **Documentation**: [docs.oasisweb4.com/star/oapp-builder](https://docs.oasisweb4.com/star/oapp-builder)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform/star](https://github.com/oasisplatform/star)
-- **Email**: star-support@oasisplatform.world
+- **Email**: star-support@oasisweb4.com
 
 ---
 
-*This documentation covers the complete STAR OAPP Builder system. For the latest updates and examples, visit [docs.oasisplatform.world/star/oapp-builder](https://docs.oasisplatform.world/star/oapp-builder)*
+*This documentation covers the complete STAR OAPP Builder system. For the latest updates and examples, visit [docs.oasisweb4.com/star/oapp-builder](https://docs.oasisweb4.com/star/oapp-builder)*

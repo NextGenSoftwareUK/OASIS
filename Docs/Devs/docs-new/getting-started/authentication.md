@@ -13,7 +13,7 @@ OASIS API uses JWT (JSON Web Token) Bearer token authentication. Most endpoints 
 Create a new avatar account:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/register
+POST http://api.oasisweb4.one/api/avatar/register
 Content-Type: application/json
 
 {
@@ -46,7 +46,7 @@ Content-Type: application/json
 Check your email for a verification token, then verify:
 
 ```http
-GET http://api.oasisweb4.com/api/avatar/verify-email?token=YOUR_VERIFICATION_TOKEN
+GET http://api.oasisweb4.one/api/avatar/verify-email?token=YOUR_VERIFICATION_TOKEN
 ```
 
 **Response:**
@@ -65,7 +65,7 @@ GET http://api.oasisweb4.com/api/avatar/verify-email?token=YOUR_VERIFICATION_TOK
 Login to get your JWT token:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/authenticate
+POST http://api.oasisweb4.one/api/avatar/authenticate
 Content-Type: application/json
 
 {
@@ -98,7 +98,7 @@ Content-Type: application/json
 Include the JWT token in the Authorization header:
 
 ```http
-GET http://api.oasisweb4.com/api/avatar/get-by-id/{avatarId}
+GET http://api.oasisweb4.one/api/avatar/get-by-id/{avatarId}
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
@@ -111,7 +111,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 Refresh your JWT token before it expires:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/refresh-token
+POST http://api.oasisweb4.one/api/avatar/refresh-token
 ```
 
 **Note:** Refresh token should be in cookie or Authorization header.
@@ -123,7 +123,7 @@ POST http://api.oasisweb4.com/api/avatar/refresh-token
 Logout by revoking your token:
 
 ```http
-POST http://api.oasisweb4.com/api/avatar/revoke-token
+POST http://api.oasisweb4.one/api/avatar/revoke-token
 Content-Type: application/json
 
 {
@@ -139,7 +139,7 @@ Content-Type: application/json
 
 ```typescript
 class OASISClient {
-  private baseUrl = 'http://api.oasisweb4.com/api';
+  private baseUrl = 'http://api.oasisweb4.one/api';
   private token: string | null = null;
 
   async authenticate(username: string, password: string) {
@@ -186,7 +186,7 @@ const avatar = await client.get('/avatar/get-by-id/123e4567-e89b-12d3-a456-42661
 import requests
 
 class OASISClient:
-    def __init__(self, base_url='http://api.oasisweb4.com/api'):
+    def __init__(self, base_url='http://api.oasisweb4.one/api'):
         self.base_url = base_url
         self.token = None
     
@@ -223,13 +223,13 @@ avatar = client.get('/avatar/get-by-id/123e4567-e89b-12d3-a456-426614174000')
 
 ```bash
 # 1. Authenticate
-TOKEN=$(curl -X POST "http://api.oasisweb4.com/api/avatar/authenticate" \
+TOKEN=$(curl -X POST "http://api.oasisweb4.one/api/avatar/authenticate" \
   -H "Content-Type: application/json" \
   -d '{"username":"myusername","password":"SecurePassword123!"}' \
   | jq -r '.result.token')
 
 # 2. Use token
-curl -X GET "http://api.oasisweb4.com/api/avatar/get-by-id/{avatarId}" \
+curl -X GET "http://api.oasisweb4.one/api/avatar/get-by-id/{avatarId}" \
   -H "Authorization: Bearer $TOKEN"
 ```
 

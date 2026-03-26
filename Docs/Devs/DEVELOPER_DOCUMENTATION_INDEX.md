@@ -335,4 +335,4 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ---
 
-*This documentation index is regularly updated. For the latest version, visit [docs.oasisplatform.world](https://docs.oasisplatform.world)*
+*This documentation index is regularly updated. For the latest version, visit [docs.oasisweb4.com](https://docs.oasisweb4.com)*

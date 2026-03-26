@@ -1709,9 +1709,9 @@ static void OQ_StarConfig_f(void) {
     const char* star_url = oquake_star_api_url.string;
     const char* oasis_url = oquake_oasis_api_url.string;
     int using_defaults = 0;
-    if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0)
+    if (star_url && star_url[0] && strcmp(star_url, "https://star-api.oasisweb4.com/api") == 0)
         using_defaults = 1;
-    if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisplatform.world") == 0)
+    if (oasis_url && oasis_url[0] && strcmp(oasis_url, "https://api.oasisweb4.com") == 0)
         using_defaults = 1;
     Con_Printf("\n");
     Con_Printf("OQuake STAR Configuration:\n");
@@ -2313,7 +2313,7 @@ void OQuake_STAR_Init(void) {
         if (env_url && env_url[0]) {
             config_url = env_url;
         } else {
-            config_url = "https://star-api.oasisplatform.world/api";
+            config_url = "https://star-api.oasisweb4.com/api";
         }
     }
     g_star_config.base_url = config_url;
@@ -3409,7 +3409,7 @@ void OQuake_STAR_Console_f(void) {
         if (!api_url || !api_url[0]) {
             api_url = getenv("STAR_API_URL");
             if (!api_url || !api_url[0]) {
-                api_url = "https://star-api.oasisplatform.world/api";
+                api_url = "https://star-api.oasisweb4.com/api";
             }
         }
         g_star_config.base_url = api_url;

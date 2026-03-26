@@ -159,7 +159,7 @@ Some endpoints may have different rate limits:
 
 To upgrade your rate limits:
 
-1. Visit [OASIS Platform](https://oasisplatform.world)
+1. Visit [OASIS Platform](https://oasisweb4.com)
 2. Navigate to Subscription settings
 3. Upgrade to Pro or Enterprise tier
 

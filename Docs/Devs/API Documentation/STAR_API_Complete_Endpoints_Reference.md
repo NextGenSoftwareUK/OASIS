@@ -835,10 +835,10 @@ pip install oasis-star-api-client
 
 ## 📞 **Support**
 
-- **Documentation**: [docs.oasisplatform.world/star](https://docs.oasisplatform.world/star)
+- **Documentation**: [docs.oasisweb4.com/star](https://docs.oasisweb4.com/star)
 - **Community**: [Discord](https://discord.gg/oasis)
 - **GitHub**: [github.com/oasisplatform/star](https://github.com/oasisplatform/star)
-- **Email**: star-support@oasisplatform.world
+- **Email**: star-support@oasisweb4.com
 
 ---
 

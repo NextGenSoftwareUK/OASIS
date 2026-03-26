@@ -92,7 +92,7 @@ Authorization: Bearer YOUR_TOKEN
           "status": "Active",
           "type": "Full",
           "role": "Validator",
-          "address": "node1.onet.oasisplatform.world:8080",
+          "address": "node1.onet.oasisweb4.com:8080",
           "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
           "location": {
             "country": "USA",
@@ -141,7 +141,7 @@ Authorization: Bearer YOUR_TOKEN
 ```json
 {
   "nodeId": "node_123",
-  "address": "node1.onet.oasisplatform.world:8080",
+  "address": "node1.onet.oasisweb4.com:8080",
   "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
   "type": "Full",
   "role": "Validator",
@@ -173,7 +173,7 @@ Authorization: Bearer YOUR_TOKEN
       "status": "Active",
       "type": "Full",
       "role": "Validator",
-      "address": "node1.onet.oasisplatform.world:8080",
+      "address": "node1.onet.oasisweb4.com:8080",
       "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
       "location": {
         "country": "USA",
@@ -363,7 +363,7 @@ Authorization: Bearer YOUR_TOKEN
             "status": "Active",
             "type": "Full",
             "role": "Validator",
-            "address": "node1.onet.oasisplatform.world:8080",
+            "address": "node1.onet.oasisweb4.com:8080",
             "location": {
               "country": "USA",
               "region": "US-East",
@@ -473,7 +473,7 @@ Authorization: Bearer YOUR_TOKEN
       "status": "Active",
       "type": "Full",
       "role": "Validator",
-      "address": "node1.onet.oasisplatform.world:8080",
+      "address": "node1.onet.oasisweb4.com:8080",
       "publicKey": "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
       "performance": {
         "latency": 120,

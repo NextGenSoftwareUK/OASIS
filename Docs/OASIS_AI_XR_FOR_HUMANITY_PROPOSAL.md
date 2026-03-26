@@ -100,16 +100,16 @@ The future of AI XR for Humanity is agents that help people connect with nature,
 
 ## Contact and Resources
 
-**OASIS Platform**: https://oasisplatform.world  
-**Documentation**: https://docs.oasisplatform.world  
+**OASIS Platform**: https://oasisweb4.com  
+**Documentation**: https://docs.oasisweb4.com  
 **Our World**: Available on iOS and Android  
-**Developer Resources**: https://developers.oasisplatform.world
+**Developer Resources**: https://developers.oasisweb4.com
 
 **For Partnership Inquiries**:  
-Email: partnerships@oasisplatform.world
+Email: partnerships@oasisweb4.com
 
 **For Technical Questions**:  
-Email: developers@oasisplatform.world
+Email: developers@oasisweb4.com
 
 ---
 

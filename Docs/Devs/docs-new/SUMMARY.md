@@ -5,6 +5,7 @@
 ## Getting Started
 
 * [Overview](getting-started/overview.md)
+* [Using the Remote API](getting-started/using-the-remote-api.md)
 * [Authentication](getting-started/authentication.md)
 
 ## Concepts

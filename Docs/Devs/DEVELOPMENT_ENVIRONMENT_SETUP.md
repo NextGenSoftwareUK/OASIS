@@ -332,7 +332,7 @@ export API_KEY="your-api-key"
 ### **Community**
 - **Discord**: [Join our Discord](https://discord.gg/oasis)
 - **GitHub**: [Contribute on GitHub](https://github.com/oasisplatform)
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 
 ## 🆘 **Troubleshooting**
 
@@ -360,7 +360,7 @@ export API_KEY="your-api-key"
 - **Documentation**: Check the docs first
 - **Community**: Ask on Discord
 - **Issues**: Report on GitHub
-- **Support**: Contact support@oasisplatform.world
+- **Support**: Contact support@oasisweb4.com
 
 ---
 

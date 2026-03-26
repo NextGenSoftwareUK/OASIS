@@ -38,7 +38,7 @@
       }
     },
     "Email": {
-      "EmailFrom": "anorak@theoasisplatform.world",
+      "EmailFrom": "anorak@theoasisweb4.com",
       "SmtpHost": "",
       // "SmtpPort": 587,
       "SmtpPort": 25,

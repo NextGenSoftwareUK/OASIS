@@ -150,7 +150,7 @@ var currentProvider = _oasisAPI.GetCurrentProvider();
 ## 🎯 **Step 5: Building with STARNET Web UI**
 
 ### **5.1 Access STARNET Web UI**
-1. Navigate to [starnet.oasisplatform.world](https://starnet.oasisplatform.world)
+1. Navigate to [starnet.oasisweb4.com](https://starnet.oasisweb4.com)
 2. Create your account
 3. Explore the dashboard
 
@@ -361,7 +361,7 @@ public class OASISApplication
 ### **10.3 Join Community**
 - **Discord**: [Join our Discord](https://discord.gg/oasis)
 - **GitHub**: [Contribute on GitHub](https://github.com/oasisplatform)
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 
 ## 📞 **Support & Resources**
 
@@ -373,8 +373,8 @@ public class OASISApplication
 ### **Community Support**
 - **Discord**: [Join our Discord](https://discord.gg/oasis)
 - **GitHub**: [Contribute on GitHub](https://github.com/oasisplatform)
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
-- **Email**: support@oasisplatform.world
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
+- **Email**: support@oasisweb4.com
 
 ## 🎉 **Congratulations!**
 

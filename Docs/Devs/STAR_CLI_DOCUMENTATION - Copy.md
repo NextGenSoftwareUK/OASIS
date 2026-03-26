@@ -415,7 +415,7 @@ star --trace publish oapp "My OAPP"
 ### **Community Support**
 - **Discord**: [Join our Discord](https://discord.gg/oasis)
 - **GitHub**: [Contribute on GitHub](https://github.com/oasisplatform)
-- **Documentation**: [docs.oasisplatform.world](https://docs.oasisplatform.world)
+- **Documentation**: [docs.oasisweb4.com](https://docs.oasisweb4.com)
 
 ---
 
