@@ -1,0 +1,158 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "10c02eb4-8f65-497c-8526-855bca0fba9a",
+  "OAPPName": "PanGalacticMonitor",
+  "OAPPDesc": "Global builder-intelligence dashboard. Maps sites, builders, pledges, time exchanges, hackathons, and equity deals across a distributed network. Each pin is an OASIS Holon; builders are identified by OASIS Avatar; exchanges and pledges sync karma to the OASIS reputation layer.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 1,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "CelestialBodyDNA": {
+    "Name": "PanGalacticMonitorPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "PanGalacticMonitorPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "SiteZome",
+            "Description": "Registered physical venues geo-pinned on the map",
+            "Holons": [
+              {
+                "Name": "SiteHolon",
+                "Description": "A registered physical venue or site linked to time-bank circles",
+                "Fields": [
+                  { "Name": "SiteId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Name",         "Type": "string",   "Required": true },
+                  { "Name": "Lat",          "Type": "double",   "Required": true },
+                  { "Name": "Lng",          "Type": "double",   "Required": true },
+                  { "Name": "VenueType",    "Type": "string",   "Required": false },
+                  { "Name": "Status",       "Type": "string",   "Required": false },
+                  { "Name": "City",         "Type": "string",   "Required": false },
+                  { "Name": "Country",      "Type": "string",   "Required": false },
+                  { "Name": "Summary",      "Type": "string",   "Required": false },
+                  { "Name": "CohortName",   "Type": "string",   "Required": false },
+                  { "Name": "DateStart",    "Type": "DateTime", "Required": false },
+                  { "Name": "DateEnd",      "Type": "DateTime", "Required": false },
+                  { "Name": "PgtCircleIds", "Type": "Guid[]",   "Required": false },
+                  { "Name": "OasisProviders","Type": "string[]","Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "BuilderZome",
+            "Description": "Individual builder profiles linked to OASIS Avatars",
+            "Holons": [
+              {
+                "Name": "BuilderHolon",
+                "Description": "An individual builder profile linked to an OASIS Avatar",
+                "Fields": [
+                  { "Name": "BuilderId",      "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",       "Type": "Guid",     "Required": false },
+                  { "Name": "PersonName",     "Type": "string",   "Required": true },
+                  { "Name": "PersonOrg",      "Type": "string",   "Required": false },
+                  { "Name": "PersonInitials", "Type": "string",   "Required": false },
+                  { "Name": "Skills",         "Type": "string[]", "Required": false },
+                  { "Name": "HoursLogged",    "Type": "double",   "Required": false },
+                  { "Name": "GuideOutput",    "Type": "string",   "Required": false },
+                  { "Name": "GuideStatus",    "Type": "string",   "Required": false },
+                  { "Name": "GitHubUsername", "Type": "string",   "Required": false },
+                  { "Name": "TokenTicker",    "Type": "string",   "Required": false },
+                  { "Name": "TokenStatus",    "Type": "string",   "Required": false },
+                  { "Name": "SiteId",         "Type": "Guid",     "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "LedgerZome",
+            "Description": "Time exchanges between builders — karma-synced",
+            "Holons": [
+              {
+                "Name": "ExchangeHolon",
+                "Description": "A completed time exchange — both giver and receiver earn karma",
+                "Fields": [
+                  { "Name": "ExchangeId",      "Type": "Guid",     "Required": true },
+                  { "Name": "GiverAvatarId",   "Type": "Guid",     "Required": false },
+                  { "Name": "ReceiverAvatarId","Type": "Guid",     "Required": false },
+                  { "Name": "Giver",           "Type": "string",   "Required": true },
+                  { "Name": "Receiver",        "Type": "string",   "Required": true },
+                  { "Name": "Task",            "Type": "string",   "Required": false },
+                  { "Name": "ExchangeHours",   "Type": "double",   "Required": true },
+                  { "Name": "Skills",          "Type": "string[]", "Required": false },
+                  { "Name": "ExchangedAt",     "Type": "DateTime", "Required": false },
+                  { "Name": "SiteId",          "Type": "Guid",     "Required": false },
+                  { "Name": "KarmaSynced",     "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "HackathonZome",
+            "Description": "Hackathon events and guide sessions",
+            "Holons": [
+              {
+                "Name": "HackathonHolon",
+                "Description": "A hackathon event at a site",
+                "Fields": [
+                  { "Name": "HackathonId",           "Type": "Guid",     "Required": true },
+                  { "Name": "SiteId",                "Type": "Guid",     "Required": false },
+                  { "Name": "BuildersCount",         "Type": "int",      "Required": false },
+                  { "Name": "CohortWeek",            "Type": "int",      "Required": false },
+                  { "Name": "CohortTotal",           "Type": "int",      "Required": false },
+                  { "Name": "BuildersGrantAmount",   "Type": "double",   "Required": false },
+                  { "Name": "BuildersGrantCurrency", "Type": "string",   "Required": false },
+                  { "Name": "BuildersGrantStatus",   "Type": "string",   "Required": false },
+                  { "Name": "GuidesProduced",        "Type": "string[]", "Required": false }
+                ]
+              },
+              {
+                "Name": "GuideHolon",
+                "Description": "A guide session output — earns karma for the guide author",
+                "Fields": [
+                  { "Name": "GuideId",               "Type": "Guid",   "Required": true },
+                  { "Name": "GuideName",             "Type": "string", "Required": true },
+                  { "Name": "GuideAvatarId",         "Type": "Guid",   "Required": false },
+                  { "Name": "HoursSpent",            "Type": "double", "Required": false },
+                  { "Name": "TotalHoursCrowdfunded", "Type": "double", "Required": false },
+                  { "Name": "BuilderCount",          "Type": "int",    "Required": false },
+                  { "Name": "GuideStatus",           "Type": "string", "Required": false },
+                  { "Name": "EquityModel",           "Type": "string", "Required": false },
+                  { "Name": "SiteId",                "Type": "Guid",   "Required": false },
+                  { "Name": "KarmaSynced",           "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "EquityZome",
+            "Description": "Equity deals and cap-table entries (Slicing the Pie / Pangea)",
+            "Holons": [
+              {
+                "Name": "EquityHolon",
+                "Description": "An equity deal or cap-table entry",
+                "Fields": [
+                  { "Name": "EquityId",          "Type": "Guid",   "Required": true },
+                  { "Name": "ProjectName",       "Type": "string", "Required": true },
+                  { "Name": "EquityModel",       "Type": "string", "Required": false,
+                    "Enum": ["SlicingThePie", "FixedEquity", "RevenueShare"] },
+                  { "Name": "TotalHoursRecorded","Type": "double", "Required": false },
+                  { "Name": "BuilderCount",      "Type": "int",    "Required": false },
+                  { "Name": "TithePercent",      "Type": "double", "Required": false },
+                  { "Name": "EquityStatus",      "Type": "string", "Required": false },
+                  { "Name": "Source",            "Type": "string", "Required": false },
+                  { "Name": "PangeaOrgId",       "Type": "string", "Required": false },
+                  { "Name": "Tokenized",         "Type": "bool",   "Required": false },
+                  { "Name": "SiteId",            "Type": "Guid",   "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

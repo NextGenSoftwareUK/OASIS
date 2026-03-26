@@ -7,8 +7,16 @@
  *   "exchange" — completed time exchange; telemetry derived from exchangeHours
  *   "guide"    — Hitchhiker Guide project; telemetry from guide-specific fields
  *   "equity"   — dynamic equity agreement; telemetry from equityHours fields
+ *
+ * OASIS integration (enable with OASIS_ENABLED=true):
+ *   - Avatar lookup by name for pledge, exchange, guide, builder pins
+ *   - Karma sync on pledge/exchange/guide enrichment
  */
 
+import { enrichPinWithAvatar, enrichReceiverWithAvatar } from "../../lib/oasis/avatar.mjs";
+import { syncPledgeKarma, syncExchangeKarma, syncGuideKarma } from "../../lib/oasis/karma.mjs";
+
+const OASIS_ENABLED = process.env.OASIS_ENABLED === "true";
 const PGT_BASE_URL = process.env.PGT_BASE_URL?.replace(/\/$/, "") ?? "";
 
 /** Per-site mock telemetry drift (key = site id) */
@@ -54,7 +62,7 @@ export async function enrichSite(site) {
   if (pinType === "pledge") {
     const base = site.pledgedHours ?? 42;
     const used = walk(id + ":used", hours7d, base * 0.05, base * 0.3, base * 0.03);
-    return {
+    let enriched = {
       ...site,
       telemetry: {
         hoursPledged: base,
@@ -64,12 +72,17 @@ export async function enrichSite(site) {
         note: "Pledge pin — static from registry",
       },
     };
+    if (OASIS_ENABLED) {
+      await enrichPinWithAvatar(enriched);
+      await syncPledgeKarma(enriched).catch(() => {});
+    }
+    return enriched;
   }
 
   // ── Exchange pin: telemetry from exchangeHours ────────────────────────────
   if (pinType === "exchange") {
     const hrs = site.exchangeHours ?? 0;
-    return {
+    let enriched = {
       ...site,
       telemetry: {
         hoursPledged7d: hrs,
@@ -80,11 +93,17 @@ export async function enrichSite(site) {
         note: "Exchange pin — completed time exchange",
       },
     };
+    if (OASIS_ENABLED) {
+      await enrichPinWithAvatar(enriched);        // giver avatar
+      await enrichReceiverWithAvatar(enriched);   // receiver avatar
+      await syncExchangeKarma(enriched).catch(() => {});
+    }
+    return enriched;
   }
 
   // ── Guide pin: telemetry from guide-specific fields ───────────────────────
   if (pinType === "guide") {
-    return {
+    let enriched = {
       ...site,
       telemetry: {
         hoursPledged7d: site.totalHoursCrowdfunded ?? 0,
@@ -95,6 +114,11 @@ export async function enrichSite(site) {
         note: `Guide: ${site.guideName ?? site.name}`,
       },
     };
+    if (OASIS_ENABLED) {
+      await enrichPinWithAvatar(enriched);
+      await syncGuideKarma(enriched).catch(() => {});
+    }
+    return enriched;
   }
 
   // ── Equity pin: telemetry from recorded hours ─────────────────────────────
@@ -130,7 +154,7 @@ export async function enrichSite(site) {
   // ── Builder pin: telemetry from logged hours and commits ──────────────────
   if (pinType === "builder") {
     const hours = site.hoursLogged ?? 0;
-    return {
+    let enriched = {
       ...site,
       telemetry: {
         hoursPledged7d: Math.round(walk(id + ":h7d", hours7d, hours * 0.03, hours * 0.15, hours * 0.02) * 10) / 10,
@@ -140,6 +164,10 @@ export async function enrichSite(site) {
         note: `Builder: ${site.guideOutput ?? site.name}`,
       },
     };
+    if (OASIS_ENABLED) {
+      await enrichPinWithAvatar(enriched);
+    }
+    return enriched;
   }
 
   // ── Site pin: try live PGT fetch, fall back to mock ───────────────────────

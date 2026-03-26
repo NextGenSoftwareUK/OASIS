@@ -1,0 +1,89 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "23a6df3a-7773-4215-9cc8-a55fcc18ed17",
+  "OAPPName": "GameTemplate",
+  "OAPPDesc": "Holonic multiplayer game template. Players own items and complete quests; all state is backed by OASIS Holons; achievements and quest completions earn karma on the OASIS reputation layer.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "CelestialBodyDNA": {
+    "Name": "GameTemplatePlanet",
+    "CelestialBodies": [
+      {
+        "Name": "GameTemplatePlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "PlayerZome",
+            "Description": "Player profiles linked to OASIS Avatars — XP, level, achievements",
+            "Holons": [
+              {
+                "Name": "PlayerHolon",
+                "Description": "A player profile backed by an OASIS Avatar",
+                "Fields": [
+                  { "Name": "PlayerId",        "Type": "Guid",   "Required": true },
+                  { "Name": "AvatarId",        "Type": "Guid",   "Required": false },
+                  { "Name": "DisplayName",     "Type": "string", "Required": true },
+                  { "Name": "Level",           "Type": "int",    "Required": false },
+                  { "Name": "XP",              "Type": "int",    "Required": false },
+                  { "Name": "InventoryIds",    "Type": "Guid[]", "Required": false },
+                  { "Name": "AchievementIds",  "Type": "Guid[]", "Required": false },
+                  { "Name": "JoinedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",     "Type": "bool",   "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "InventoryZome",
+            "Description": "In-game items — optionally NFT-backed for cross-game portability",
+            "Holons": [
+              {
+                "Name": "ItemHolon",
+                "Description": "An in-game item owned by a player Avatar",
+                "Fields": [
+                  { "Name": "ItemId",          "Type": "Guid",   "Required": true },
+                  { "Name": "OwnerAvatarId",   "Type": "Guid",   "Required": false },
+                  { "Name": "Name",            "Type": "string", "Required": true },
+                  { "Name": "Type",            "Type": "string", "Required": false },
+                  { "Name": "Rarity",          "Type": "string", "Required": false,
+                    "Enum": ["common", "uncommon", "rare", "epic", "legendary"] },
+                  { "Name": "Stats",           "Type": "string", "Required": false,
+                    "Description": "JSON string of stat key-value pairs" },
+                  { "Name": "NFTMintAddress",  "Type": "string", "Required": false,
+                    "Description": "Optional Solana/EVM NFT mint address for cross-game portability" },
+                  { "Name": "AcquiredAt",      "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "QuestZome",
+            "Description": "Quests completed by players — completion earns karma",
+            "Holons": [
+              {
+                "Name": "QuestHolon",
+                "Description": "A quest completed by a player — earns karma on completion",
+                "Fields": [
+                  { "Name": "QuestId",        "Type": "Guid",     "Required": true },
+                  { "Name": "PlayerAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "QuestName",      "Type": "string",   "Required": true },
+                  { "Name": "QuestType",      "Type": "string",   "Required": false },
+                  { "Name": "XPReward",       "Type": "int",      "Required": false },
+                  { "Name": "Status",         "Type": "string",   "Required": false,
+                    "Enum": ["available", "active", "complete", "failed"] },
+                  { "Name": "StartedAt",      "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedAt",    "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",    "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

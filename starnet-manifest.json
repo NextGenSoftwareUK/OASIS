@@ -1,0 +1,89 @@
+{
+  "$schema": "https://oasisweb4.com/starnet-manifest/v1",
+  "name": "STARNET",
+  "version": "1.0.0",
+  "description": "STARNET is the OASIS OAPP registry and discovery layer. Every OAPP registered here gets a permanent UUID, appears in the Celestial Cyberspace galaxy, and can be cloned or downloaded by any developer or AI agent.",
+
+  "api": {
+    "local":      "http://localhost:5001",
+    "production": "https://star-api.oasisweb4.com",
+    "health":     "GET /api/Health",
+    "docs":       "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/docs/"
+  },
+
+  "mcp": {
+    "tools_file": "MCP/src/tools/starTools.ts",
+    "quick_start": [
+      "star_health_check",
+      "star_beam_in(username, password)",
+      "star_list_oapps",
+      "star_search_oapps(searchTerm)",
+      "star_get_oapp(id)"
+    ],
+    "publish_flow": [
+      "star_beam_in(username, password)",
+      "star_create_oapp(name, description, oappType)",
+      "star_create_zome(name, description)",
+      "star_create_holon(name, description, customData)",
+      "star_publish_oapp(id, sourcePath, launchTarget)",
+      "star_activate_oapp(id)"
+    ]
+  },
+
+  "oapp_types": {
+    "0": "Default",
+    "1": "Console",
+    "2": "WebAPI",
+    "3": "Blazor",
+    "4": "MAUI",
+    "5": "OAPPTemplate",
+    "6": "GeneratedCodeOnly"
+  },
+
+  "locations": {
+    "engine":    "ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/STARNET/",
+    "webapi":    "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/",
+    "mcp":       "MCP/src/tools/starTools.ts",
+    "store_ui":  "oportal-repo/starnet-store.html",
+    "galaxy":    "celestial-cyberspace/index.html",
+    "manifest":  "starnet-manifest.json"
+  },
+
+  "guides": {
+    "holonising_an_app":    "Docs/HOLONISING_YOUR_APP_WITH_STAR_MCP.md",
+    "auto_discovery":       "celestial-cyberspace/STARNET_AUTO_DISCOVERY.md",
+    "build_ideas":          "Docs/STAR_ODK_BUILD_IDEAS_AND_TEMPLATES.md",
+    "api_reference":        "Docs/Devs/API Documentation/STAR_API_Complete_Endpoints_Reference.md"
+  },
+
+  "registered_oapps": [
+    {
+      "name":    "PanGalacticTimebank",
+      "id":      "06ee81c2-4feb-471c-a726-5f37cf1d8134",
+      "type":    "OAPPTemplate",
+      "doc":     "Hitchhikers/Pan_Galactic_Timebank/PGT_OASIS_STAR_INTEGRATION.md"
+    },
+    {
+      "name":    "PanGalacticMonitor",
+      "id":      "b0bf0be6-4462-46da-a910-03d0081b48b3",
+      "type":    "OAPPTemplate",
+      "doc":     "Hitchhikers/Pan_Galactic_Monitor/HOLONISING_PAN_GALACTIC_MONITOR.md"
+    }
+  ],
+
+  "api_response_shape": {
+    "note": "Fields returned by GET /api/OAPPs per item",
+    "id":          "string (UUID)",
+    "name":        "string",
+    "description": "string",
+    "oappType":    "number (see oapp_types)",
+    "isActive":    "boolean",
+    "createdDate": "ISO 8601 string",
+    "starnetdna": {
+      "version":        "string e.g. '1.0.0'",
+      "downloads":      "number",
+      "totalDownloads": "number",
+      "publishedOnSTARNET": "boolean"
+    }
+  }
+}

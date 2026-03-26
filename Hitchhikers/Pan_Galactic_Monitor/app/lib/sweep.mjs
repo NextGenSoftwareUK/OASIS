@@ -1,8 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { loadSitesJson } from "./loadSites.mjs";
+import { fetchPangeaPins } from "./pangeaPins.mjs";
 import { enrichSite } from "./state.mjs";
 import { scanPlanningSprint } from "./planningPulse.mjs";
 import { buildActivityLayers, planningRootFromEnv } from "./activityFeed.mjs";
+import { clearAvatarCache } from "../../lib/oasis/avatar.mjs";
+
+const OASIS_ENABLED = process.env.OASIS_ENABLED === "true";
+const PGM_OAPP_ID   = "b0bf0be6-4462-46da-a910-03d0081b48b3";
 
 const VENUE_LABEL = {
   impact_hub: "Impact hubs",
@@ -33,7 +38,13 @@ function sum(arr, fn) {
 }
 
 export async function runSweep() {
-  const { sites: rawSites, sourcePath } = await loadSitesJson();
+  if (OASIS_ENABLED) clearAvatarCache();
+
+  const [{ sites: rawSitesFromJson, sourcePath }, pangeaPins] = await Promise.all([
+    loadSitesJson(),
+    fetchPangeaPins(),
+  ]);
+  const rawSites = [...rawSitesFromJson, ...pangeaPins];
   const sites = await Promise.all(rawSites.map(enrichSite));
   const planning = await scanPlanningSprint(planningRootFromEnv());
   const activity = buildActivityLayers(sites, planning);
@@ -189,6 +200,8 @@ export async function runSweep() {
       planningScanned: planning.scanned,
       sourcesOk: 3,
       sourcesFailed: 0,
+      oasisEnabled: OASIS_ENABLED,
+      oappId: PGM_OAPP_ID,
     },
     sites,
     domains,
