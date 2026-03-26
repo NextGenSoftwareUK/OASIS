@@ -1,0 +1,98 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "3e72d91a-8f4a-4b6c-a9f1-2d5e8c1b7f03",
+  "OAPPName": "AgentServiceMarketplaceTemplate",
+  "OAPPDesc": "Holonic marketplace for AI agents and human service providers. Agents publish capability cards; clients post tasks; reputation is tracked via OASIS karma and on-chain SERV payments. Built on the OASIS A2A protocol with native MNEE/SERV token settlement.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["agents", "a2a", "marketplace", "serv", "karma", "ai"],
+  "CelestialBodyDNA": {
+    "Name": "AgentServiceMarketplacePlanet",
+    "CelestialBodies": [
+      {
+        "Name": "AgentServiceMarketplacePlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "AgentRegistryZome",
+            "Description": "Agent capability cards — maps to OASIS A2AController agent cards",
+            "Holons": [
+              {
+                "Name": "AgentCardHolon",
+                "Description": "Published capability card for an AI agent or human provider",
+                "Fields": [
+                  { "Name": "AgentId",          "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": false },
+                  { "Name": "AgentName",         "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "Capabilities",      "Type": "string",   "Required": false },
+                  { "Name": "PricePerTask",      "Type": "double",   "Required": false },
+                  { "Name": "PriceCurrency",     "Type": "string",   "Required": false,
+                    "Enum": ["SERV", "MNEE", "SOL", "ETH", "SEEDS"] },
+                  { "Name": "EndpointUrl",       "Type": "string",   "Required": false },
+                  { "Name": "IsOnline",          "Type": "bool",     "Required": false },
+                  { "Name": "KarmaScore",        "Type": "int",      "Required": false },
+                  { "Name": "TotalTasksCompleted","Type": "int",     "Required": false },
+                  { "Name": "ReputationNftId",   "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "TaskZome",
+            "Description": "Task requests posted by clients and claimed by agents",
+            "Holons": [
+              {
+                "Name": "TaskHolon",
+                "Description": "A unit of work posted by a client — delegated via OASIS A2A protocol",
+                "Fields": [
+                  { "Name": "TaskId",            "Type": "Guid",     "Required": true },
+                  { "Name": "ClientAvatarId",    "Type": "Guid",     "Required": false },
+                  { "Name": "AgentId",           "Type": "Guid",     "Required": false },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "InputPayload",      "Type": "string",   "Required": false },
+                  { "Name": "OutputPayload",     "Type": "string",   "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["open", "claimed", "in_progress", "review", "complete", "disputed", "cancelled"] },
+                  { "Name": "Reward",            "Type": "double",   "Required": false },
+                  { "Name": "RewardCurrency",    "Type": "string",   "Required": false },
+                  { "Name": "Deadline",          "Type": "DateTime", "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaSynced",       "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ReputationZome",
+            "Description": "Verified reviews and on-chain reputation badges for agents",
+            "Holons": [
+              {
+                "Name": "AgentReviewHolon",
+                "Description": "Client review of a completed task — earns karma for both parties",
+                "Fields": [
+                  { "Name": "ReviewId",          "Type": "Guid",     "Required": true },
+                  { "Name": "TaskId",            "Type": "Guid",     "Required": true },
+                  { "Name": "ReviewerAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "AgentId",           "Type": "Guid",     "Required": true },
+                  { "Name": "Rating",            "Type": "int",      "Required": true },
+                  { "Name": "Feedback",          "Type": "string",   "Required": false },
+                  { "Name": "KarmaAwarded",      "Type": "int",      "Required": false },
+                  { "Name": "BadgeNftId",        "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "a0f4b9a7-6d2a-4b5d-ae8c-9d5f2a3b7c4a",
+  "OAPPName": "ClanGuildTemplate",
+  "OAPPDesc": "Holonic clan and guild management. Membership is gated by NFT; the guild treasury is governed by karma-weighted votes; achievements are minted as on-chain badges. Built on OASIS ClanController, KarmaController, WalletController, and NFT minting.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["clan", "guild", "nft", "treasury", "karma", "governance", "gaming"],
+  "CelestialBodyDNA": {
+    "Name": "ClanGuildPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "ClanGuildPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ClanZome",
+            "Description": "Clan/guild definitions — maps to OASIS ClanController",
+            "Holons": [
+              {
+                "Name": "ClanHolon",
+                "Description": "A holonic clan or guild with on-chain membership NFT and treasury",
+                "Fields": [
+                  { "Name": "ClanId",            "Type": "Guid",     "Required": true },
+                  { "Name": "FounderAvatarId",   "Type": "Guid",     "Required": false },
+                  { "Name": "Name",              "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "LogoUrl",           "Type": "string",   "Required": false },
+                  { "Name": "Charter",           "Type": "string",   "Required": false },
+                  { "Name": "MaxMembers",        "Type": "int",      "Required": false },
+                  { "Name": "MembershipNftId",   "Type": "string",   "Required": false },
+                  { "Name": "TreasuryAddress",   "Type": "string",   "Required": false },
+                  { "Name": "TreasuryChain",     "Type": "string",   "Required": false,
+                    "Enum": ["Solana", "Ethereum", "Polygon", "SEEDS"] },
+                  { "Name": "MinKarmaToJoin",    "Type": "int",      "Required": false },
+                  { "Name": "TotalKarma",        "Type": "int",      "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["forming", "active", "dissolved"] },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "MembershipZome",
+            "Description": "NFT-gated member records and role management",
+            "Holons": [
+              {
+                "Name": "MembershipHolon",
+                "Description": "A clan membership record — gated by holding the membership NFT",
+                "Fields": [
+                  { "Name": "MembershipId",      "Type": "Guid",     "Required": true },
+                  { "Name": "ClanId",            "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": false },
+                  { "Name": "DisplayName",       "Type": "string",   "Required": true },
+                  { "Name": "Role",              "Type": "string",   "Required": false,
+                    "Enum": ["founder", "officer", "member", "recruit", "honorary"] },
+                  { "Name": "NftTokenId",        "Type": "string",   "Required": false },
+                  { "Name": "NftWalletAddress",  "Type": "string",   "Required": false },
+                  { "Name": "KarmaContributed",  "Type": "int",      "Required": false },
+                  { "Name": "JoinedAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "IsActive",          "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "GovernanceZome",
+            "Description": "Karma-weighted guild actions and treasury votes",
+            "Holons": [
+              {
+                "Name": "GuildActionHolon",
+                "Description": "A governance action — karma-weighted vote on treasury spend, membership, or rule changes",
+                "Fields": [
+                  { "Name": "ActionId",          "Type": "Guid",     "Required": true },
+                  { "Name": "ClanId",            "Type": "Guid",     "Required": true },
+                  { "Name": "ProposerAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "ActionType",        "Type": "string",   "Required": true,
+                    "Enum": ["treasury_spend", "admit_member", "remove_member", "update_charter", "dissolve"] },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "Amount",            "Type": "double",   "Required": false },
+                  { "Name": "Recipient",         "Type": "string",   "Required": false },
+                  { "Name": "KarmaVotesFor",     "Type": "int",      "Required": false },
+                  { "Name": "KarmaVotesAgainst", "Type": "int",      "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["open", "passed", "rejected", "executed"] },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "ClosesAt",          "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "AchievementZome",
+            "Description": "On-chain achievement badges minted for guild milestones",
+            "Holons": [
+              {
+                "Name": "AchievementHolon",
+                "Description": "A guild milestone badge — minted as NFT on-chain when unlocked",
+                "Fields": [
+                  { "Name": "AchievementId",     "Type": "Guid",     "Required": true },
+                  { "Name": "ClanId",            "Type": "Guid",     "Required": true },
+                  { "Name": "AwardedToAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "BadgeName",         "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "ImageUrl",          "Type": "string",   "Required": false },
+                  { "Name": "Category",          "Type": "string",   "Required": false,
+                    "Enum": ["founding", "battle", "trade", "diplomacy", "service", "custom"] },
+                  { "Name": "NftTokenId",        "Type": "string",   "Required": false },
+                  { "Name": "NftTxHash",         "Type": "string",   "Required": false },
+                  { "Name": "KarmaBonus",        "Type": "int",      "Required": false },
+                  { "Name": "AwardedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

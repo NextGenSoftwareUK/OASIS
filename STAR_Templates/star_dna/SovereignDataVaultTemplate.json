@@ -1,0 +1,118 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "f1a5c0b8-7e3b-4c6e-af9d-0e6a3b4c8d5b",
+  "OAPPName": "SovereignDataVaultTemplate",
+  "OAPPDesc": "Self-sovereign personal data vault with cross-chain backup and granular access control. Users own their data — encrypted files backed up across multiple OASIS providers (MongoDB, IPFS, Holochain, Solana). Access grants are audited on-chain. Built on OASIS VaultController, FilesController, HyperDriveController, and DataController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["vault", "privacy", "sovereign", "identity", "ipfs", "holochain", "data"],
+  "CelestialBodyDNA": {
+    "Name": "SovereignDataVaultPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "SovereignDataVaultPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "VaultZome",
+            "Description": "Vault containers — each vault is an encrypted data space backed by OASIS HyperDrive",
+            "Holons": [
+              {
+                "Name": "VaultHolon",
+                "Description": "A named encrypted vault owned by a single Avatar — backed across multiple OASIS providers",
+                "Fields": [
+                  { "Name": "VaultId",           "Type": "Guid",     "Required": true },
+                  { "Name": "OwnerAvatarId",     "Type": "Guid",     "Required": true },
+                  { "Name": "Name",              "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "EncryptionScheme",  "Type": "string",   "Required": false,
+                    "Enum": ["AES256", "ChaCha20", "ECIES", "RSA4096"] },
+                  { "Name": "PrimaryProvider",   "Type": "string",   "Required": false,
+                    "Enum": ["MongoDB", "IPFS", "Holochain", "Solana", "Ethereum"] },
+                  { "Name": "BackupProviders",   "Type": "string",   "Required": false },
+                  { "Name": "TotalFilesStored",  "Type": "int",      "Required": false },
+                  { "Name": "TotalSizeBytes",    "Type": "long",     "Required": false },
+                  { "Name": "IsPubliclyListed",  "Type": "bool",     "Required": false },
+                  { "Name": "RequireNftAccess",  "Type": "bool",     "Required": false },
+                  { "Name": "AccessNftId",       "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "LastSyncedAt",      "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "FileZome",
+            "Description": "Encrypted files stored across OASIS providers — maps to FilesController and DataController",
+            "Holons": [
+              {
+                "Name": "VaultFileHolon",
+                "Description": "A single file stored in a vault — CID on IPFS, hash on-chain, metadata on MongoDB",
+                "Fields": [
+                  { "Name": "FileId",            "Type": "Guid",     "Required": true },
+                  { "Name": "VaultId",           "Type": "Guid",     "Required": true },
+                  { "Name": "FileName",          "Type": "string",   "Required": true },
+                  { "Name": "MimeType",          "Type": "string",   "Required": false },
+                  { "Name": "SizeBytes",         "Type": "long",     "Required": false },
+                  { "Name": "ContentHash",       "Type": "string",   "Required": false },
+                  { "Name": "IpfsCid",           "Type": "string",   "Required": false },
+                  { "Name": "HolochainAddress",  "Type": "string",   "Required": false },
+                  { "Name": "OnChainTxHash",     "Type": "string",   "Required": false },
+                  { "Name": "IsEncrypted",       "Type": "bool",     "Required": false },
+                  { "Name": "Tags",              "Type": "string",   "Required": false },
+                  { "Name": "UploadedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "ExpiresAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "AccessControlZome",
+            "Description": "Granular access grants and revocations — all changes audited on-chain",
+            "Holons": [
+              {
+                "Name": "AccessGrantHolon",
+                "Description": "A time-bound or permanent access grant from an owner to a recipient Avatar",
+                "Fields": [
+                  { "Name": "GrantId",           "Type": "Guid",     "Required": true },
+                  { "Name": "VaultId",           "Type": "Guid",     "Required": true },
+                  { "Name": "FileId",            "Type": "Guid",     "Required": false },
+                  { "Name": "OwnerAvatarId",     "Type": "Guid",     "Required": true },
+                  { "Name": "GranteeAvatarId",   "Type": "Guid",     "Required": false },
+                  { "Name": "GranteeWallet",     "Type": "string",   "Required": false },
+                  { "Name": "AccessLevel",       "Type": "string",   "Required": true,
+                    "Enum": ["read", "write", "admin", "share_read"] },
+                  { "Name": "Scope",             "Type": "string",   "Required": false,
+                    "Enum": ["vault", "file", "tag"] },
+                  { "Name": "ExpiresAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "GrantedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "RevokedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "OnChainTxHash",     "Type": "string",   "Required": false }
+                ]
+              },
+              {
+                "Name": "AccessLogHolon",
+                "Description": "Immutable log of every access event — proof of who read what and when",
+                "Fields": [
+                  { "Name": "LogId",             "Type": "Guid",     "Required": true },
+                  { "Name": "VaultId",           "Type": "Guid",     "Required": true },
+                  { "Name": "FileId",            "Type": "Guid",     "Required": false },
+                  { "Name": "AccessorAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "Action",            "Type": "string",   "Required": true,
+                    "Enum": ["read", "write", "delete", "share", "revoke", "backup"] },
+                  { "Name": "Provider",          "Type": "string",   "Required": false },
+                  { "Name": "IpAddress",         "Type": "string",   "Required": false },
+                  { "Name": "AccessedAt",        "Type": "DateTime", "Required": true }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

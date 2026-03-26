@@ -1,0 +1,130 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "7a1f6e4b-3c9d-4e2a-8b5f-6a2c9d0e4f17",
+  "OAPPName": "QuestBuilderTemplate",
+  "OAPPDesc": "Build and publish quests with geo hotspots, multi-stage missions, and NFT rewards. Quest creators earn karma on publication; completions mint reward NFTs on-chain. Leverages OASIS QuestManager, GeoHotSpotManager, and STARNFTManager.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["quests", "geo", "nft", "missions", "rewards", "gaming"],
+  "CelestialBodyDNA": {
+    "Name": "QuestBuilderPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "QuestBuilderPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "QuestZome",
+            "Description": "Top-level quest definitions — maps to OASIS QuestManager",
+            "Holons": [
+              {
+                "Name": "QuestHolon",
+                "Description": "A publishable quest with missions and rewards",
+                "Fields": [
+                  { "Name": "QuestId",           "Type": "Guid",     "Required": true },
+                  { "Name": "CreatorAvatarId",   "Type": "Guid",     "Required": false },
+                  { "Name": "CreatorName",       "Type": "string",   "Required": true },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["draft", "published", "active", "completed", "archived"] },
+                  { "Name": "QuestType",         "Type": "string",   "Required": false,
+                    "Enum": ["physical", "digital", "hybrid", "ar"] },
+                  { "Name": "MaxParticipants",   "Type": "int",      "Required": false },
+                  { "Name": "StartsAt",          "Type": "DateTime", "Required": false },
+                  { "Name": "EndsAt",            "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaReward",       "Type": "int",      "Required": false },
+                  { "Name": "NftRewardId",       "Type": "string",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "MissionZome",
+            "Description": "Sequential missions and chapters within a quest — maps to MissionManager / ChapterManager",
+            "Holons": [
+              {
+                "Name": "MissionHolon",
+                "Description": "A stage of a quest containing one or more chapters",
+                "Fields": [
+                  { "Name": "MissionId",         "Type": "Guid",     "Required": true },
+                  { "Name": "QuestId",           "Type": "Guid",     "Required": true },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "OrderIndex",        "Type": "int",      "Required": false },
+                  { "Name": "IsRequired",        "Type": "bool",     "Required": false },
+                  { "Name": "CompletionTrigger", "Type": "string",   "Required": false,
+                    "Enum": ["manual", "geo", "nfc", "qr_code", "time", "api_callback"] }
+                ]
+              },
+              {
+                "Name": "ChapterHolon",
+                "Description": "A single step within a mission",
+                "Fields": [
+                  { "Name": "ChapterId",         "Type": "Guid",     "Required": true },
+                  { "Name": "MissionId",         "Type": "Guid",     "Required": true },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Instructions",      "Type": "string",   "Required": false },
+                  { "Name": "OrderIndex",        "Type": "int",      "Required": false },
+                  { "Name": "PointsValue",       "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "GeoHotSpotZome",
+            "Description": "Physical location triggers — maps to GeoHotSpotManager and STARGeoNFTManager",
+            "Holons": [
+              {
+                "Name": "GeoHotSpotHolon",
+                "Description": "A GPS-triggered checkpoint that fires when a player arrives",
+                "Fields": [
+                  { "Name": "HotSpotId",         "Type": "Guid",     "Required": true },
+                  { "Name": "QuestId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ChapterId",         "Type": "Guid",     "Required": false },
+                  { "Name": "Name",              "Type": "string",   "Required": true },
+                  { "Name": "Latitude",          "Type": "double",   "Required": true },
+                  { "Name": "Longitude",         "Type": "double",   "Required": true },
+                  { "Name": "RadiusMetres",      "Type": "double",   "Required": false },
+                  { "Name": "Clue",              "Type": "string",   "Required": false },
+                  { "Name": "NftRewardId",       "Type": "string",   "Required": false },
+                  { "Name": "KarmaOnArrive",     "Type": "int",      "Required": false },
+                  { "Name": "IsActive",          "Type": "bool",     "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ParticipantZome",
+            "Description": "Quest participation and progress tracking",
+            "Holons": [
+              {
+                "Name": "ParticipantHolon",
+                "Description": "A player enrolled in a quest with their progress",
+                "Fields": [
+                  { "Name": "ParticipantId",     "Type": "Guid",     "Required": true },
+                  { "Name": "QuestId",           "Type": "Guid",     "Required": true },
+                  { "Name": "AvatarId",          "Type": "Guid",     "Required": false },
+                  { "Name": "DisplayName",       "Type": "string",   "Required": true },
+                  { "Name": "Score",             "Type": "int",      "Required": false },
+                  { "Name": "CheckpointsHit",    "Type": "int",      "Required": false },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["enrolled", "in_progress", "completed", "abandoned"] },
+                  { "Name": "StartedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "CompletedAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "RewardNftMinted",   "Type": "bool",     "Required": false },
+                  { "Name": "KarmaAwarded",      "Type": "int",      "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

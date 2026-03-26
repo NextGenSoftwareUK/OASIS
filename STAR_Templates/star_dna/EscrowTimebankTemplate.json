@@ -1,0 +1,113 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "c8d2f7e5-4b0e-4f3b-9c6a-7b3d0e1f5a28",
+  "OAPPName": "EscrowTimebankTemplate",
+  "OAPPDesc": "Time-banking platform with escrow-protected service exchange. Members offer hours of skilled service; escrow holds payment until delivery is verified; karma tracks contribution history. Integrates OASIS EscrowController, InvoiceController, TreasuryController, and KarmaController.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["timebank", "escrow", "invoice", "treasury", "karma", "community"],
+  "CelestialBodyDNA": {
+    "Name": "EscrowTimebankPlanet",
+    "CelestialBodies": [
+      {
+        "Name": "EscrowTimebankPlanet",
+        "CelestialBodyType": "Planet",
+        "Zomes": [
+          {
+            "Name": "ServiceOfferZome",
+            "Description": "Skills and services offered by community members",
+            "Holons": [
+              {
+                "Name": "ServiceOfferHolon",
+                "Description": "A member's offer to provide a service in exchange for time-credits",
+                "Fields": [
+                  { "Name": "OfferId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ProviderAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "ProviderName",      "Type": "string",   "Required": true },
+                  { "Name": "Title",             "Type": "string",   "Required": true },
+                  { "Name": "Description",       "Type": "string",   "Required": false },
+                  { "Name": "Category",          "Type": "string",   "Required": false,
+                    "Enum": ["tech", "creative", "education", "care", "legal", "finance", "manual", "other"] },
+                  { "Name": "HoursPerSession",   "Type": "double",   "Required": false },
+                  { "Name": "RateType",          "Type": "string",   "Required": false,
+                    "Enum": ["fixed", "hourly", "karma_only"] },
+                  { "Name": "KarmaPerHour",      "Type": "int",      "Required": false },
+                  { "Name": "IsAvailable",       "Type": "bool",     "Required": false },
+                  { "Name": "TotalHoursGiven",   "Type": "double",   "Required": false },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "ExchangeZome",
+            "Description": "Service agreements and escrow-protected transactions — maps to EscrowController and InvoiceController",
+            "Holons": [
+              {
+                "Name": "ServiceAgreementHolon",
+                "Description": "A confirmed service exchange between two community members",
+                "Fields": [
+                  { "Name": "AgreementId",       "Type": "Guid",     "Required": true },
+                  { "Name": "OfferId",           "Type": "Guid",     "Required": true },
+                  { "Name": "ProviderAvatarId",  "Type": "Guid",     "Required": false },
+                  { "Name": "RecipientAvatarId", "Type": "Guid",     "Required": false },
+                  { "Name": "RecipientName",     "Type": "string",   "Required": true },
+                  { "Name": "HoursAgreed",       "Type": "double",   "Required": true },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["proposed", "accepted", "in_escrow", "delivered", "verified", "disputed", "cancelled"] },
+                  { "Name": "EscrowId",          "Type": "string",   "Required": false },
+                  { "Name": "InvoiceId",         "Type": "string",   "Required": false },
+                  { "Name": "ScheduledAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "DeliveredAt",       "Type": "DateTime", "Required": false },
+                  { "Name": "KarmaTransferred",  "Type": "int",      "Required": false }
+                ]
+              },
+              {
+                "Name": "EscrowHolon",
+                "Description": "Funds held in escrow pending service delivery verification",
+                "Fields": [
+                  { "Name": "EscrowId",          "Type": "Guid",     "Required": true },
+                  { "Name": "AgreementId",       "Type": "Guid",     "Required": true },
+                  { "Name": "Amount",            "Type": "double",   "Required": true },
+                  { "Name": "Currency",          "Type": "string",   "Required": false },
+                  { "Name": "HeldByProvider",    "Type": "string",   "Required": false },
+                  { "Name": "ReleaseCondition",  "Type": "string",   "Required": false,
+                    "Enum": ["recipient_confirm", "time_lock", "arbitration"] },
+                  { "Name": "Status",            "Type": "string",   "Required": false,
+                    "Enum": ["holding", "released", "refunded", "disputed"] },
+                  { "Name": "CreatedAt",         "Type": "DateTime", "Required": false },
+                  { "Name": "ReleasedAt",        "Type": "DateTime", "Required": false }
+                ]
+              }
+            ]
+          },
+          {
+            "Name": "LedgerZome",
+            "Description": "Community time-credit ledger and treasury — maps to TreasuryController",
+            "Holons": [
+              {
+                "Name": "TimeCreditHolon",
+                "Description": "A time-credit transaction between members — immutable once committed",
+                "Fields": [
+                  { "Name": "CreditId",          "Type": "Guid",     "Required": true },
+                  { "Name": "AgreementId",       "Type": "Guid",     "Required": true },
+                  { "Name": "FromAvatarId",      "Type": "Guid",     "Required": false },
+                  { "Name": "ToAvatarId",        "Type": "Guid",     "Required": false },
+                  { "Name": "Hours",             "Type": "double",   "Required": true },
+                  { "Name": "KarmaEquivalent",   "Type": "int",      "Required": false },
+                  { "Name": "Notes",             "Type": "string",   "Required": false },
+                  { "Name": "RecordedAt",        "Type": "DateTime", "Required": false },
+                  { "Name": "OnChainTxHash",     "Type": "string",   "Required": false }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
