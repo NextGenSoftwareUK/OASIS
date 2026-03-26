@@ -40,13 +40,13 @@ if [[ -z "$ODOOM_EXE" ]]; then
 fi
 
 ODOOM_DIR="$(dirname "$ODOOM_EXE")"
-# Binary DT_NEEDED is libstar_api.so; STAR publish is star_api.so — keep them in sync (stale libstar_api.so caused undefined symbol).
-if [[ -f "$ODOOM_DIR/star_api.so" ]]; then
-  cp -f "$ODOOM_DIR/star_api.so" "$ODOOM_DIR/libstar_api.so"
-elif [[ -f "$ODOOM_DIR/star_api.dylib" ]]; then
-  cp -f "$ODOOM_DIR/star_api.dylib" "$ODOOM_DIR/libstar_api.dylib"
-elif [[ ! -f "$ODOOM_DIR/libstar_api.so" && ! -f "$ODOOM_DIR/libstar_api.dylib" ]]; then
-  if [[ -f "$HERE/libstar_api.so" ]]; then
+# Ensure libstar_api.so (or .dylib) is in the same dir as the executable; binary is linked against libstar_api
+if [[ ! -f "$ODOOM_DIR/libstar_api.so" && ! -f "$ODOOM_DIR/libstar_api.dylib" ]]; then
+  if [[ -f "$ODOOM_DIR/star_api.so" ]]; then
+    ln -sf star_api.so "$ODOOM_DIR/libstar_api.so" 2>/dev/null || cp -f "$ODOOM_DIR/star_api.so" "$ODOOM_DIR/libstar_api.so"
+  elif [[ -f "$ODOOM_DIR/star_api.dylib" ]]; then
+    ln -sf star_api.dylib "$ODOOM_DIR/libstar_api.dylib" 2>/dev/null || cp -f "$ODOOM_DIR/star_api.dylib" "$ODOOM_DIR/libstar_api.dylib"
+  elif [[ -f "$HERE/libstar_api.so" ]]; then
     cp -f "$HERE/libstar_api.so" "$ODOOM_DIR/"
   elif [[ -f "$HERE/star_api.so" ]]; then
     cp -f "$HERE/star_api.so" "$ODOOM_DIR/libstar_api.so"

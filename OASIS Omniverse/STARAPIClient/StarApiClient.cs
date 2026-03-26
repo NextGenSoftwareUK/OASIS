@@ -600,7 +600,7 @@ public sealed class StarApiClient : IDisposable
         StarApiExports.StarApiLogFileOnly("[Auth] Session cleared (expired JWT, refresh failed or no refresh token).");
     }
 
-    /// <summary>Validate JWT with one GET avatar/current, update cache, warm quest list, and invoke ProfileLoaded operation callback. Run on background (QueueRestoreSessionAsync). Proactively refreshes JWT if expired or expiring within 60s. Games must not call <see cref="RefreshAvatarProfileInBackground"/> immediately after (duplicate GET).</summary>
+    /// <summary>Validate current JWT by calling GET avatar/current; on success update cache and invoke callback so game can treat as beamed in. Run on background (e.g. QueueRestoreSessionAsync). Proactively refreshes JWT if expired or expiring within 60s so restore succeeds without waiting for 401.</summary>
     public async Task<OASISResult<bool>> RestoreSessionAsync(CancellationToken cancellationToken = default)
     {
         if (StarApiExports.GetStarDebug())
@@ -626,8 +626,7 @@ public sealed class StarApiClient : IDisposable
         }
 
         StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: GET avatar/current to validate saved session");
-        /* Single GET for saved-session bootstrap: do not use GetCurrentAvatarAsync(invokeCallback: true) here — games use StarApiOpProfileLoaded only. */
-        var result = await GetCurrentAvatarAsync(cancellationToken, invokeCallback: false).ConfigureAwait(false);
+        var result = await GetCurrentAvatarAsync(cancellationToken, invokeCallback: true).ConfigureAwait(false);
         if (result.IsError)
         {
             StarApiExports.StarApiLogFileOnly($"[Auth] RestoreSession failed: {result.Message}");
@@ -635,10 +634,9 @@ public sealed class StarApiClient : IDisposable
             StarApiExports.InvokeOperationCallback(errCode, StarApiExports.StarApiOpProfileLoaded);
             return FailAndCallback<bool>(result.Message ?? "Session restore failed.", errCode);
         }
-        /* Same warm path as star_api_refresh_avatar_profile (without a second GET avatar/current). Native must not call refresh immediately after restore. */
-        RequestQuestCacheRefreshInBackground(forceRefetch: false);
+        /* Invoke the same "profile loaded" operation callback that refresh_avatar_profile uses, so the game runs beamed-in logic: tracker, XP, quest cache, etc. */
         StarApiExports.InvokeOperationCallback(StarApiResultCode.Success, StarApiExports.StarApiOpProfileLoaded);
-        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile + quest warm started (operation callback invoked)");
+        StarApiExports.StarApiLogFileOnly("[Auth] RestoreSession: success, profile loaded (operation callback invoked)");
         return Success(true, StarApiResultCode.Success, "Session restored.");
     }
 
@@ -781,8 +779,8 @@ public sealed class StarApiClient : IDisposable
         Guid? loadObjectiveId;
         lock (_stateLock) { loadQuestId = _cachedActiveQuestId; loadObjectiveId = _cachedActiveObjectiveId; }
         StarApiExports.StarApiLogFileOnly($"[Avatar] GET WEB4 avatar profile OK: XP={avatar.XP} ActiveQuestId={loadQuestId} ActiveObjectiveId={loadObjectiveId} (cache updated)");
-        var (loadQuestName, loadObjTitle, loadObjDescPrev) = TryGetQuestAndObjectiveNamesFromCache(loadQuestId, loadObjectiveId);
-        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD questId={loadQuestId} objectiveId={loadObjectiveId} questName={loadQuestName ?? "(not in cache)"} objectiveTitle={loadObjTitle ?? "(not in cache)"} descriptionPreview={loadObjDescPrev ?? "(n/a)"}"); } catch { /* ignore */ }
+        var (loadQuestName, loadObjName) = TryGetQuestAndObjectiveNamesFromCache(loadQuestId, loadObjectiveId);
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD questId={loadQuestId} objectiveId={loadObjectiveId} questName={loadQuestName ?? "(not in cache)"} objectiveName={loadObjName ?? "(not in cache)"}"); } catch { /* ignore */ }
         LogActiveQuestSnapshot("after_web4_avatar_profile_loaded");
         if (StarApiExports.GetStarDebug())
         {
@@ -1099,9 +1097,6 @@ public sealed class StarApiClient : IDisposable
             _questsFilterLastLogSubQuests = ("", -1);
             _questsFilterLastLogPrereqs = ("", -1);
             _questObjectivesHydrating.Clear();
-            /* A fetch may be in flight with stale data; one follow-up GET after it finishes (same as explicit RequestQuestCacheRefreshInBackground after mutations). */
-            if (_questsRefreshInProgress)
-                _questsRefreshPending = true;
         }
     }
 
@@ -1129,9 +1124,7 @@ public sealed class StarApiClient : IDisposable
         {
             if (_questsRefreshInProgress)
             {
-                /* Do not queue a second GET just because another caller passed forceRefetch while a full list fetch
-                 * is already running (boot: Invalidate+Request and EnsureQuestsCacheInBackground both warm the list).
-                 * A true stale case uses InvalidateQuestCache(), which sets _questsRefreshPending while in flight. */
+                _questsRefreshPending = true;
                 return;
             }
             if (!forceRefetch && _cachedQuestList != null && _questsCacheString != null)
@@ -1212,7 +1205,7 @@ public sealed class StarApiClient : IDisposable
             {
                 var o = parent.Objectives[i];
                 var objTitle = GetObjectiveRawTitle(o, parent);
-                var objBody = GetObjectiveRawDescription(o);
+                var objBody = GetObjectiveRawDescription(o, objTitle);
                 list.Add(new StarQuestInfo
                 {
                     Id = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id,
@@ -1520,34 +1513,134 @@ public sealed class StarApiClient : IDisposable
         return 0;
     }
 
-    /// <summary>Objective title for lists and game serialization: <see cref="StarQuestObjective.Title"/> only (not ProgressSummary).</summary>
+    /// <summary>When API/DB only has ONODE-style <c>Objective</c> text (no parsed dictionaries), map phrases to HUD lines so ODOOM shows Killed 0/N not "Kill N in …".</summary>
+    private static void AppendLegacyObjectiveDescriptionProgressLines(string? desc, List<string> outLines)
+    {
+        if (string.IsNullOrWhiteSpace(desc)) return;
+        var t = desc.Trim();
+        var parts = t.Split(new[] { " and " }, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return;
+        foreach (var p in parts)
+            TryAppendLegacyObjectivePhrase(p, outLines);
+    }
+
+    private static void TryAppendLegacyObjectivePhrase(string part, List<string> lines)
+    {
+        part = part.Trim().TrimEnd('.', ')', ']', '…');
+        if (part.Length == 0) return;
+        const RegexOptions Rx = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+
+        static string TrimGameToken(string s) => s.Trim().TrimEnd('.', ')', ']', '…', ',');
+
+        /* "Kill … in <game>" with arbitrary middle text (commas, monster names). Avoids missing rows when API text is not exactly "Kill N monsters in X". */
+        var m = Regex.Match(part, @"^Kill\s+(\d+)\s*(?s:.+?)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var k) && k > 0)
+        {
+            lines.Add($"Killed 0/{k} monsters in {TrimGameToken(m.Groups[2].Value)}");
+            return;
+        }
+
+        /* "Kill N" with optional trailing "in Game" anywhere (some payloads omit "monsters"). */
+        var mKill = Regex.Match(part, @"^Kill\s+(\d+)\b", Rx);
+        if (mKill.Success && int.TryParse(mKill.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var kk) && kk > 0)
+        {
+            var mIn = Regex.Match(part, @"\bin\s+(\S+)\s*$", Rx);
+            if (mIn.Success)
+                lines.Add($"Killed 0/{kk} monsters in {TrimGameToken(mIn.Groups[1].Value)}");
+            else
+                lines.Add($"Killed 0/{kk} monsters");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+keys?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ck) && ck > 0)
+        {
+            lines.Add($"Collected 0/{ck} keys in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+health:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ch) && ch > 0)
+        {
+            lines.Add($"Collected 0/{ch} health in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+armor:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ca) && ca > 0)
+        {
+            lines.Add($"Collected 0/{ca} armor in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+ammo:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var am) && am > 0)
+        {
+            lines.Add($"Collected 0/{am} ammo in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+weapons?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var cw) && cw > 0)
+        {
+            lines.Add($"Collected 0/{cw} weapons in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+powerups?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var cp) && cp > 0)
+        {
+            lines.Add($"Collected 0/{cp} powerups in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Collect\s+items?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var ci) && ci > 0)
+        {
+            lines.Add($"Collected 0/{ci} items in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Earn\s+(\d+)\s+XP\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var xp) && xp > 0)
+        {
+            lines.Add($"Earned 0/{xp} XP in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Complete\s+level:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var cl) && cl > 0)
+        {
+            lines.Add($"Completed 0/{cl} levels in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Use\s+weapons?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uw) && uw > 0)
+        {
+            lines.Add($"Used 0/{uw} weapons in {m.Groups[2].Value}");
+            return;
+        }
+
+        m = Regex.Match(part, @"^Use\s+powerups?:\s*(\d+)\s+in\s+(\S+)$", Rx);
+        if (m.Success && int.TryParse(m.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var up) && up > 0)
+        {
+            lines.Add($"Used 0/{up} powerups in {m.Groups[2].Value}");
+            return;
+        }
+    }
+
+    /// <summary>Objective title for quest lists and detail popup. Always prefer authored Title.</summary>
     private static string GetObjectiveRawTitle(StarQuestObjective o, StarQuestInfo? quest)
     {
         return (o.Title ?? string.Empty).Trim();
     }
 
-    /// <summary>Objective body: <see cref="StarQuestObjective.Description"/> only.</summary>
-    private static string GetObjectiveRawDescription(StarQuestObjective o)
+    /// <summary>Objective body text for detail popup left pane. Always prefer authored Description.</summary>
+    private static string GetObjectiveRawDescription(StarQuestObjective o, string titleFallback)
     {
         return (o.Description ?? string.Empty).Trim();
     }
-
-    /// <summary>HUD quest tracker lines: <see cref="StarQuestObjective.ProgressSummary"/>; if empty (stale clone / old payload), derive from Need* dictionaries (same wording rules as backend objective progress).</summary>
-    private static string GetObjectiveTrackerLine(StarQuestObjective o)
-    {
-        var line = (o.ProgressSummary ?? string.Empty).Trim();
-        if (line.Length > 0)
-            return line;
-        if (o.Dictionaries == null)
-            return string.Empty;
-        var lines = new List<string>();
-        FormatRequirementProgressLines(o.Dictionaries, lines);
-        return lines.Count == 0 ? string.Empty : string.Join(" and ", lines);
-    }
-
-    /// <summary>Objective title only (for debug audit lines).</summary>
-    private static string FormatObjectiveLineForGameList(StarQuestObjective o, StarQuestInfo? quest) =>
-        EscapeForQuestLine(GetObjectiveRawTitle(o, quest));
 
     /// <summary>Format Need* + progress dicts into HUD lines (current/required). When <paramref name="restrictToGameKey"/> is set, only the row matching that game key (aliases e.g. DOOM/ODOOM) is emitted and the trailing " in Game" suffix is omitted.</summary>
     private static void FormatRequirementProgressLines(StarQuestObjectiveDictionaries? dicts, List<string> outLines, string? restrictToGameKey = null)
@@ -1627,7 +1720,11 @@ public sealed class StarApiClient : IDisposable
         AddKeyedProgressLine(dicts.NeedToUsePowerups, dicts.PowerupsCollected, "Used", "powerups");
     }
 
-    /// <summary>Computed progress lines for the requirements CVar from Need*/progress dictionaries (separate from the per-objective <c>progressSummary</c> field on game lite payloads).</summary>
+    /// <summary>Objective label for embedded O-lines in <see cref="SerializeQuestsForGame"/>: API goal text only. Progress (Killed X/Y) lives in tracker + requirements CVar, not in the name column.</summary>
+    private static string FormatObjectiveLineForGameList(StarQuestObjective o, StarQuestInfo? quest) =>
+        EscapeForQuestLine(GetObjectiveRawTitle(o, quest));
+
+    /// <summary>ProgressSummary for selected objective in the objectives popup lower pane.</summary>
     internal bool TryGetQuestObjectiveRequirementsForGame(string? questId, string? objectiveId, out string result)
     {
         result = string.Empty;
@@ -1647,7 +1744,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>One display row per objective for HUD tracker: <see cref="StarQuestObjective.ProgressSummary"/> per line (not Title).</summary>
+    /// <summary>One display row per objective for HUD tracker: objective ProgressSummary.</summary>
     internal bool TryGetQuestTrackerObjectivesProgress(string? questId, out string linesResult, out int activeObjectiveIndex)
     {
         linesResult = string.Empty;
@@ -1667,7 +1764,7 @@ public sealed class StarApiClient : IDisposable
             for (var i = 0; i < quest.Objectives.Count; i++)
             {
                 var o = quest.Objectives[i];
-                sb.Append(EscapeForQuestLine(GetObjectiveTrackerLine(o))).Append("\n");
+                sb.Append(EscapeForQuestLine(o.ProgressSummary ?? string.Empty)).Append("\n");
             }
             linesResult = sb.ToString().TrimEnd();
             activeObjectiveIndex = 0;
@@ -1706,7 +1803,7 @@ public sealed class StarApiClient : IDisposable
         return "InProgress";
     }
 
-    /// <summary>Serialize objectives as Q-lines (id, title, description, status, pct). Title/description come only from <see cref="StarQuestObjective.Title"/> / <see cref="StarQuestObjective.Description"/>.</summary>
+    /// <summary>Serialize a quest's Objectives collection as Q-lines (id, name, desc, status, pct) for the game UI. Name/desc are API goal text; progress is not duplicated here (tracker + odoom_quest_detail_requirements).</summary>
     private static string SerializeObjectivesAsQuestLines(StarQuestInfo quest)
     {
         if (quest.Objectives == null || quest.Objectives.Count == 0) return string.Empty;
@@ -1716,7 +1813,7 @@ public sealed class StarApiClient : IDisposable
             var o = quest.Objectives[i];
             var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
             var titleRaw = GetObjectiveRawTitle(o, quest);
-            var descRaw = GetObjectiveRawDescription(o);
+            var descRaw = GetObjectiveRawDescription(o, titleRaw);
             var name = EscapeForQuestLine(titleRaw);
             var desc = EscapeForQuestLine(descRaw);
             var status = SerializeObjectiveStatusToken(o, quest);
@@ -1958,26 +2055,24 @@ public sealed class StarApiClient : IDisposable
         lock (_stateLock) return _cachedActiveObjectiveId;
     }
 
-    /// <summary>Resolve quest and objective fields from cache for logging (save/load debug). objectiveTitle is "(empty)" when the row exists but <see cref="StarQuestObjective.Title"/> is blank; descriptionPreview is truncated body text.</summary>
-    private (string? questName, string? objectiveTitle, string? objectiveDescriptionPreview) TryGetQuestAndObjectiveNamesFromCache(Guid? questId, Guid? objectiveId)
+    /// <summary>Resolve quest and objective names from cache for logging (save/load debug). Returns (null, null) if cache not ready or ids not found.</summary>
+    private (string? questName, string? objectiveName) TryGetQuestAndObjectiveNamesFromCache(Guid? questId, Guid? objectiveId)
     {
-        if (!questId.HasValue) return (null, null, null);
+        if (!questId.HasValue) return (null, null);
         lock (_questsCacheLock)
         {
-            if (_cachedQuestList == null) return (null, null, null);
+            if (_cachedQuestList == null) return (null, null);
             var idStr = questId.Value.ToString();
             var q = _cachedQuestList.FirstOrDefault(x => string.Equals(x.Id, idStr, StringComparison.OrdinalIgnoreCase));
-            if (q == null) return (null, null, null);
-            if (!objectiveId.HasValue || q.Objectives == null)
-                return (q.Name, null, null);
-            var oidStr = objectiveId.Value.ToString();
-            var o = q.Objectives.FirstOrDefault(o => string.Equals(o.Id, oidStr, StringComparison.OrdinalIgnoreCase));
-            if (o == null) return (q.Name, "(objective id not in quest)", null);
-            var title = (o.Title ?? string.Empty).Trim();
-            var desc = (o.Description ?? string.Empty).Trim();
-            var titleLog = string.IsNullOrEmpty(title) ? "(empty)" : title;
-            var preview = desc.Length > 120 ? desc.Substring(0, 118) + ".." : desc;
-            return (q.Name, titleLog, string.IsNullOrEmpty(preview) ? "(none)" : preview);
+            if (q == null) return (null, null);
+            string? objName = null;
+            if (objectiveId.HasValue && q.Objectives != null)
+            {
+                var oidStr = objectiveId.Value.ToString();
+                var o = q.Objectives.FirstOrDefault(o => string.Equals(o.Id, oidStr, StringComparison.OrdinalIgnoreCase));
+                objName = o?.Title ?? o?.Description;
+            }
+            return (q.Name, objName);
         }
     }
 
@@ -2057,7 +2152,7 @@ public sealed class StarApiClient : IDisposable
             {
                 sb.Append("  hudTrackerObjectiveIndex (green / first incomplete): ").Append(hudIdx).AppendLine();
                 if (string.IsNullOrWhiteSpace(trk))
-                    sb.Append("  hudTrackerRows: (empty — each objective needs non-empty ProgressSummary from parsed requirement/progress dictionaries)").AppendLine();
+                    sb.Append("  hudTrackerRows: (empty — no per-objective lines from Need/Progress dicts)").AppendLine();
                 else
                 {
                     sb.Append("  hudTrackerRows (same as odoom_quest_tracker_objectives, one row per objective):").AppendLine();
@@ -2222,8 +2317,6 @@ public sealed class StarApiClient : IDisposable
                         .Append(" IsCompleted=").Append(oj.IsCompleted)
                         .Append(" GameSource=").Append(oj.GameSource ?? "").AppendLine();
                     sb.Append("         Title=").Append(oj.Title ?? "").AppendLine();
-                    if (string.IsNullOrWhiteSpace(oj.Title))
-                        sb.AppendLine("         hint=Title empty: API JSON should include \"title\" on each objective (WEB4/ONODE must persist authored title).");
                     sb.Append("         Description=").Append(oj.Description ?? "").AppendLine();
                     sb.Append("         ProgressSummary=").Append(oj.ProgressSummary ?? "").AppendLine();
                     AppendObjectiveDictionariesAudit(sb, "         ", oj.Dictionaries);
@@ -2289,9 +2382,9 @@ public sealed class StarApiClient : IDisposable
             _cachedActiveObjectiveId = objectiveId;
             _questTrackerSavedSinceLastGet = true;  /* Any in-flight GET WEB4 avatar profile must not overwrite this save */
         }
-        var (questName, objectiveTitle, objectiveDescPrev) = TryGetQuestAndObjectiveNamesFromCache(questId, objectiveId);
+        var (questName, objectiveName) = TryGetQuestAndObjectiveNamesFromCache(questId, objectiveId);
         try { StarApiExports.StarApiLog($"[Quest] SetActiveQuestAndObjectiveAsync saved OK: questId={questId}, objectiveId={objectiveId} (cache updated)"); } catch { /* ignore */ }
-        try { StarApiExports.StarApiLogFileOnly($"[Quest] SAVE OK questId={questId} objectiveId={objectiveId} questName={questName ?? "(not in cache)"} objectiveTitle={objectiveTitle ?? "(not in cache)"} descriptionPreview={objectiveDescPrev ?? "(n/a)"}"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] SAVE OK questId={questId} objectiveId={objectiveId} questName={questName ?? "(not in cache)"} objectiveName={objectiveName ?? "(not in cache)"}"); } catch { /* ignore */ }
         LogActiveQuestSnapshot("after_set_active_quest_saved");
         return Success(true, StarApiResultCode.Success, "Active quest/objective saved.");
     }
@@ -3742,42 +3835,17 @@ public sealed class StarApiClient : IDisposable
             return FailAndCallback<List<StarQuestInfo>>(parseErrorMessage ?? "Parse error", parseErrorCode);
         }
 
-        var logVerboseAllForAvatar = Interlocked.CompareExchange(ref _allForAvatarVerboseDiagnosticsLogged, 1, 0) == 0;
-        if (logVerboseAllForAvatar)
-        {
-            LogQuestJsonShapeFileOnly("[Quest][Parse] source=all-for-avatar/game envelope before unwrap", resultElement);
-            LogQuestParseChunkedFileOnly("[Quest][Parse] source=all-for-avatar/game full HTTP body (exact API/DB payload)", response.Result);
-        }
-        else
-        {
-            try { StarApiExports.StarApiLogFileOnly("[Quest][Parse] source=all-for-avatar/game (skipping repeat verbose raw HTTP body + per-quest/per-objective JSON chunks; logged once per process)"); } catch { /* ignore */ }
-        }
-
-        var quests = ParseQuestInfos(resultElement, "all-for-avatar/game", logVerboseAllForAvatar) ?? new List<StarQuestInfo>();
+        LogQuestJsonShapeFileOnly("[Quest][Parse] source=all-for-avatar/game envelope before unwrap", resultElement);
+        LogQuestParseChunkedFileOnly("[Quest][Parse] source=all-for-avatar/game full HTTP body (exact API/DB payload)", response.Result);
+        var quests = ParseQuestInfos(resultElement, "all-for-avatar/game") ?? new List<StarQuestInfo>();
+        LogParsedQuestListModelAudit("all-for-avatar/game", quests);
         int totalObjectives = quests.Sum(q => q.Objectives?.Count ?? 0);
-        if (logVerboseAllForAvatar)
-            LogParsedQuestListModelAudit("all-for-avatar/game", quests);
-        else
-        {
-            try { StarApiExports.StarApiLogFileOnly($"[Quest][Parse] MODEL after parse source=all-for-avatar/game (full audit skipped on refetch) questRowCount={quests.Count} totalObjectives={totalObjectives}"); } catch { /* ignore */ }
-        }
-
+        StarApiExports.StarApiLogFileOnly($"[Quests] GET all-for-avatar/game success: {quests.Count} quests, {totalObjectives} objectives");
         var idSummary = quests.Count > 0 ? string.Join(", ", quests.Take(12).Select(q => q.Id ?? "(null)")) + (quests.Count > 12 ? "..." : "") : "(none)";
-        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar/game OK: {quests.Count} quests, {totalObjectives} objectives | Ids={idSummary}");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar/game Response IsError=False Message=(ok) Parsed: Count={quests.Count} totalObjectives={totalObjectives} Ids={idSummary}");
+        StarApiExports.StarApiLogFileOnly($"[Quests] all-for-avatar/game parsed: {quests.Count} quests, {totalObjectives} objectives");
         // Update in-memory cache so GetQuestObjectivesFromCache / TryGetQuestObjectivesCache (and game detail panel) see this data without waiting for background refresh.
         UpdateQuestsCache(quests);
-        try
-        {
-            Guid? aq, ao;
-            lock (_stateLock)
-            {
-                aq = _cachedActiveQuestId;
-                ao = _cachedActiveObjectiveId;
-            }
-            var (qn, ot, dp) = TryGetQuestAndObjectiveNamesFromCache(aq, ao);
-            StarApiExports.StarApiLogFileOnly($"[Quest] LOAD (after all-for-avatar cache) questId={aq} objectiveId={ao} questName={qn ?? "(not in cache)"} objectiveTitle={ot ?? "(not in cache)"} descriptionPreview={dp ?? "(n/a)"}");
-        }
-        catch { /* ignore */ }
         InvokeCallback(StarApiResultCode.Success);
         return Success(quests, StarApiResultCode.Success, $"Loaded {quests.Count} quest(s) for avatar.");
     }
@@ -3896,7 +3964,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<List<StarQuestInfo>>> QueueGetActiveQuestsAsync(CancellationToken cancellationToken = default) =>
         RunOnBackgroundAsync(ct => GetActiveQuestsAsync(ct), cancellationToken);
 
-    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tTitle\tDescription\tProgressSummary\tdone\n" per embedded objective (done 0/1), then "P\tid1\tid2\n" (prereqs), then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
+    /// <summary>Serialize quests to a string for game UI: each quest block is "Q\tid\tname\tdesc\tstatus\tpct\n" then "O\tid\tdesc\tdone\n" per objective (sub-quests), then "P\tid1\tid2\n" (prereqs), then "---\n". Tabs/newlines in text are replaced with space. pct = completed objectives / total * 100.</summary>
     public static string SerializeQuestsForGame(List<StarQuestInfo>? quests)
     {
         if (quests is null || quests.Count == 0)
@@ -3927,10 +3995,7 @@ public sealed class StarApiClient : IDisposable
                 {
                     var o = q.Objectives[i];
                     var oid = string.IsNullOrEmpty(o.Id) ? $"obj_{i}" : o.Id;
-                    var oTitle = EscapeForQuestLine(GetObjectiveRawTitle(o, q));
-                    var oDesc = EscapeForQuestLine(GetObjectiveRawDescription(o));
-                    var oProgress = EscapeForQuestLine(GetObjectiveTrackerLine(o));
-                    sb.Append("O\t").Append(oid).Append("\t").Append(oTitle).Append("\t").Append(oDesc).Append("\t").Append(oProgress).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
+                    sb.Append("O\t").Append(oid).Append("\t").Append(FormatObjectiveLineForGameList(o, q)).Append("\t").Append(o.IsCompleted ? "1" : "0").Append("\n");
                 }
             }
             if (q.PrerequisiteQuestIds != null && q.PrerequisiteQuestIds.Count > 0)
@@ -5158,7 +5223,8 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrEmpty(path) || count <= 0) return;
         try
         {
-            if (!_objectivesSourceLogged.Add(path)) return;
+            var key = $"{path}:{count}";
+            if (!_objectivesSourceLogged.Add(key)) return;
             var expected = path.IndexOf("objectives", StringComparison.OrdinalIgnoreCase) >= 0
                 ? " (backend is serializing Quest.Objectives correctly)"
                 : " (API sent empty 'objectives'; data came from 'children' – backend PromoteQuestMetaDataToProperties or serialization may not be populating objectives)";
@@ -5167,17 +5233,16 @@ public sealed class StarApiClient : IDisposable
         catch { /* ignore */ }
     }
     private static readonly HashSet<string> _objectivesSourceLogged = new(StringComparer.OrdinalIgnoreCase);
-    /// <summary>0 until first all-for-avatar verbose dump; then 1. Suppresses multi-megabyte repeat logs when the game refetches the quest list.</summary>
-    private static int _allForAvatarVerboseDiagnosticsLogged;
 
     /// <summary>Get objectives from a quest element. Path in API response: Result[i].objectives or Result[i].children (each quest in the array).
     /// We try: Objectives, objectives, QuestObjectives, questObjectives, Children, children (root then MetaData/MapMetaData) and use the first that yields a non-empty list.
     /// Backend (QuestManager.PromoteQuestMetaDataToProperties) should populate Quest.Objectives from MetaData so "objectives" is in the JSON; if the API sends empty "objectives" and data in "children", we use children.</summary>
-    private static List<StarQuestObjective> GetObjectivesFromQuestElement(JsonElement questElement, bool logVerboseDiagnosticChunks = true)
+    private static List<StarQuestObjective> GetObjectivesFromQuestElement(JsonElement questElement)
     {
         if (questElement.ValueKind != JsonValueKind.Object) return new List<StarQuestObjective>();
 
-        bool TryKnownKeys(JsonElement parent, out List<StarQuestObjective> list, out string? usedKey)
+        /* Try each known key and use the first that yields a non-empty list. If API returns both "objectives": [] and "children": [...], we must not stop at the empty objectives. */
+        static bool TryKnownKeys(JsonElement parent, out List<StarQuestObjective> list, out string? usedKey)
         {
             list = new List<StarQuestObjective>();
             usedKey = null;
@@ -5185,7 +5250,7 @@ public sealed class StarApiClient : IDisposable
             foreach (var key in keys)
             {
                 if (!TryGetProperty(parent, key, out var el)) continue;
-                var parsed = ParseObjectivesFromElement(el, logVerboseDiagnosticChunks);
+                var parsed = ParseObjectivesFromElement(el);
                 if (parsed.Count > 0)
                 {
                     list = parsed;
@@ -5214,6 +5279,30 @@ public sealed class StarApiClient : IDisposable
                     LogObjectivesSourceOnce("MetaData.MapMetaData." + keyUsed, fromMap.Count);
                     return fromMap;
                 }
+        }
+
+        /* Safe fallback: only keys that contain "objective" (case-insensitive), so we never bind SubQuests/PrerequisiteQuestIds. Handles provider/API key variants. */
+        static List<StarQuestObjective> TryKeysContainingObjective(JsonElement parent)
+        {
+            foreach (var prop in parent.EnumerateObject())
+            {
+                if (!prop.Name.Contains("objective", StringComparison.OrdinalIgnoreCase)) continue;
+                var list = ParseObjectivesFromElement(prop.Value);
+                if (list.Count > 0) return list;
+            }
+            return new List<StarQuestObjective>();
+        }
+        var fromScan = TryKeysContainingObjective(questElement);
+        if (fromScan.Count > 0) return fromScan;
+        if ((TryGetProperty(questElement, "MetaData", out var meta2) || TryGetProperty(questElement, "metaData", out meta2)) && meta2.ValueKind == JsonValueKind.Object)
+        {
+            fromScan = TryKeysContainingObjective(meta2);
+            if (fromScan.Count > 0) return fromScan;
+            if ((TryGetProperty(meta2, "MapMetaData", out var mapMeta2) || TryGetProperty(meta2, "mapMetaData", out mapMeta2)) && mapMeta2.ValueKind == JsonValueKind.Object)
+            {
+                fromScan = TryKeysContainingObjective(mapMeta2);
+                if (fromScan.Count > 0) return fromScan;
+            }
         }
 
         return new List<StarQuestObjective>();
@@ -5393,22 +5482,15 @@ public sealed class StarApiClient : IDisposable
         WriteDict("LevelsCompleted", dicts.LevelsCompleted);
     }
 
-    /// <summary>Read objective authored text: <c>title</c>/<c>Title</c> and <c>description</c>/<c>Description</c> only (canonical API fields).</summary>
+    /// <summary>Read objective <c>Title</c> and <c>Description</c> from JSON (Option B model).</summary>
     private static void ParseObjectiveStringsFromJsonObject(JsonElement objective, out string title, out string description)
     {
         title = (GetStringProperty(objective, "Title") ?? GetStringProperty(objective, "title") ?? string.Empty).Trim();
         description = (GetStringProperty(objective, "Description") ?? GetStringProperty(objective, "description") ?? string.Empty).Trim();
     }
 
-    /// <summary>Read precomputed HUD progress line from JSON: <c>progressSummary</c> only (ASP.NET default camelCase for <see cref="StarQuestObjective.ProgressSummary"/>).</summary>
-    private static string GetObjectiveProgressSummaryFromJson(JsonElement objective)
-    {
-        var s = GetStringProperty(objective, "progressSummary");
-        return string.IsNullOrWhiteSpace(s) ? string.Empty : s.Trim();
-    }
-
     /// <summary>Parse objectives from a JsonElement that may be an array or a JSON string containing an array (e.g. from MetaData).</summary>
-    private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element, bool logVerboseDiagnosticChunks = true)
+    private static List<StarQuestObjective> ParseObjectivesFromElement(JsonElement element)
     {
         var objectives = new List<StarQuestObjective>();
         if (element.ValueKind == JsonValueKind.Array)
@@ -5418,10 +5500,7 @@ public sealed class StarApiClient : IDisposable
             {
                 if (objective.ValueKind != JsonValueKind.Object) continue;
                 var id = GetStringProperty(objective, "Id") ?? GetStringProperty(objective, "id") ?? string.Empty;
-                if (logVerboseDiagnosticChunks)
-                {
-                    try { LogQuestParseChunkedFileOnly($"[Quest][Parse][Raw] objectiveFromArray idx={index} id={id} json", objective.GetRawText()); } catch { /* ignore */ }
-                }
+                try { LogQuestParseChunkedFileOnly($"[Quest][Parse][Raw] objectiveFromArray idx={index} id={id} json", objective.GetRawText()); } catch { /* ignore */ }
                 ParseObjectiveStringsFromJsonObject(objective, out var title, out var desc);
                 var gameSource = GetStringProperty(objective, "GameSource") ?? GetStringProperty(objective, "gameSource") ?? string.Empty;
                 var order = GetIntProperty(objective, "Order") ?? GetIntProperty(objective, "order") ?? index;
@@ -5439,7 +5518,6 @@ public sealed class StarApiClient : IDisposable
                     IsCompleted = isCompleted,
                     CompletedAt = completedAt,
                     CompletedBy = completedBy,
-                    ProgressSummary = GetObjectiveProgressSummaryFromJson(objective),
                     Dictionaries = dicts
                 });
                 index++;
@@ -5450,14 +5528,11 @@ public sealed class StarApiClient : IDisposable
         {
             var json = element.GetString();
             if (string.IsNullOrWhiteSpace(json)) return objectives;
-            if (logVerboseDiagnosticChunks)
-            {
-                try { LogQuestParseChunkedFileOnly("[Quest][Parse][Raw] objectivesMetaDataString (JSON text inside string property)", json); } catch { /* ignore */ }
-            }
+            try { LogQuestParseChunkedFileOnly("[Quest][Parse][Raw] objectivesMetaDataString (JSON text inside string property)", json); } catch { /* ignore */ }
             try
             {
                 using var doc = JsonDocument.Parse(json);
-                return ParseObjectivesFromElement(doc.RootElement, logVerboseDiagnosticChunks);
+                return ParseObjectivesFromElement(doc.RootElement);
             }
             catch
             {
@@ -6420,6 +6495,7 @@ public sealed class StarApiClient : IDisposable
             catch { /* ignore parse for fallback */ }
         }
         try { StarApiExports.StarApiLogFileOnly($"[Avatar] ParseAvatarProfile: ActiveQuestId={activeQuestId} (from {questSource ?? "none"}) ActiveObjectiveId={activeObjectiveId} (from {objectiveSource ?? "none"})"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest] LOAD (parsed from API) questId={activeQuestId} objectiveId={activeObjectiveId}"); } catch { /* ignore */ }
         return new StarAvatarProfile
         {
             Id = id,
@@ -6433,11 +6509,10 @@ public sealed class StarApiClient : IDisposable
         };
     }
 
-    private static List<StarQuestInfo> ParseQuestInfos(JsonElement element, string parseSource, bool logVerboseDiagnosticChunks = true)
+    private static List<StarQuestInfo> ParseQuestInfos(JsonElement element, string parseSource)
     {
         element = UnwrapQuestListRoot(element);
-        if (logVerboseDiagnosticChunks)
-            LogQuestJsonShapeFileOnly($"[Quest][Parse] source={parseSource} listRoot", element);
+        LogQuestJsonShapeFileOnly($"[Quest][Parse] source={parseSource} listRoot", element);
 
         var quests = new List<StarQuestInfo>();
         if (element.ValueKind != JsonValueKind.Array)
@@ -6453,21 +6528,17 @@ public sealed class StarApiClient : IDisposable
             if (questElement.ValueKind != JsonValueKind.Object)
                 continue;
 
-            if (logVerboseDiagnosticChunks)
-            {
-                try { LogQuestParseChunkedFileOnly($"[Quest][Parse] source={parseSource} rawQuestRow[{rowIdx}] json", questElement.GetRawText()); } catch { /* ignore */ }
-            }
+            try { LogQuestParseChunkedFileOnly($"[Quest][Parse] source={parseSource} rawQuestRow[{rowIdx}] json", questElement.GetRawText()); } catch { /* ignore */ }
 
             /* Only read from known objective property names (Objectives, objectives, QuestObjectives, questObjectives at root/MetaData/MapMetaData) so we never bind SubQuests or PrerequisiteQuestIds. */
-            var objectives = GetObjectivesFromQuestElement(questElement, logVerboseDiagnosticChunks);
-            /* Fallback: API may use "Quests" array for embedded objectives when items look like objectives (title/description, no nested quest Name). */
+            var objectives = GetObjectivesFromQuestElement(questElement);
+            /* Fallback: API may use "Quests" array for embedded objectives when items look like objectives (Description, no Name). */
             if (objectives.Count == 0 && (TryGetProperty(questElement, "Quests", out var qArr) || TryGetProperty(questElement, "Quest", out qArr)) && qArr.ValueKind == JsonValueKind.Array)
             {
                 var first = qArr.EnumerateArray().FirstOrDefault();
-                var hasQuestRowName = !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name"));
-                var hasObjText = !string.IsNullOrEmpty(GetStringProperty(first, "Description") ?? GetStringProperty(first, "description")
-                    ?? GetStringProperty(first, "Title") ?? GetStringProperty(first, "title"));
-                if (first.ValueKind == JsonValueKind.Object && !hasQuestRowName && hasObjText)
+                var hasName = !string.IsNullOrEmpty(GetStringProperty(first, "Name") ?? GetStringProperty(first, "name"));
+                if (first.ValueKind == JsonValueKind.Object && !hasName &&
+                    (GetStringProperty(first, "Description") ?? GetStringProperty(first, "description") ?? GetStringProperty(first, "Objective") ?? GetStringProperty(first, "objective")) != null)
                 {
                     var idx = 0;
                     foreach (var sub in qArr.EnumerateArray())
@@ -6482,7 +6553,6 @@ public sealed class StarApiClient : IDisposable
                             GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                             Order = GetIntProperty(sub, "Order") ?? idx,
                             IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
-                            ProgressSummary = GetObjectiveProgressSummaryFromJson(sub),
                             Dictionaries = ParseObjectiveDictionaries(sub)
                         });
                         idx++;
@@ -6557,18 +6627,15 @@ public sealed class StarApiClient : IDisposable
                 foreach (var childEl in childElements)
                 {
                     if (childEl.ValueKind != JsonValueKind.Object) continue;
-                    if (logVerboseDiagnosticChunks)
-                    {
-                        try { LogQuestParseChunkedFileOnly($"[Quest][Parse] source={parseSource} rawSubQuestRow parentId={parentId} json", childEl.GetRawText()); } catch { /* ignore */ }
-                    }
+                    try { LogQuestParseChunkedFileOnly($"[Quest][Parse] source={parseSource} rawSubQuestRow parentId={parentId} json", childEl.GetRawText()); } catch { /* ignore */ }
                     var childId = GetStringProperty(childEl, "Id") ?? GetStringProperty(childEl, "id");
                     if (string.IsNullOrEmpty(childId)) continue;
                     var childObj = new List<StarQuestObjective>();
                     if (TryGetProperty(childEl, "Objectives", out var coEl) || TryGetProperty(childEl, "objectives", out coEl))
-                        childObj = ParseObjectivesFromElement(coEl, logVerboseDiagnosticChunks);
+                        childObj = ParseObjectivesFromElement(coEl);
                     if (childObj.Count == 0 && (TryGetProperty(childEl, "MetaData", out var cMeta) || TryGetProperty(childEl, "metaData", out cMeta)) && cMeta.ValueKind == JsonValueKind.Object
                         && (TryGetProperty(cMeta, "Objectives", out var cMetaObj) || TryGetProperty(cMeta, "objectives", out cMetaObj)))
-                        childObj = ParseObjectivesFromElement(cMetaObj, logVerboseDiagnosticChunks);
+                        childObj = ParseObjectivesFromElement(cMetaObj);
                     var childPrereqIds = GetStringListFromElement(childEl, "MetaData", "PrerequisiteQuestIds");
                     if (childPrereqIds.Count == 0)
                         childPrereqIds = GetStringListFromElement(childEl, "metaData", "prerequisiteQuestIds");
@@ -6620,7 +6687,7 @@ public sealed class StarApiClient : IDisposable
             {
                 if (sub.ValueKind != JsonValueKind.Object) continue;
                 ParseObjectiveStringsFromJsonObject(sub, out var title, out var desc);
-                if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(desc)) continue;
+                if (string.IsNullOrEmpty(desc)) continue; /* Skip items that look like full quests (no Description/Objective). */
                 objectives.Add(new StarQuestObjective
                 {
                     Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
@@ -6629,7 +6696,6 @@ public sealed class StarApiClient : IDisposable
                     GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                     Order = GetIntProperty(sub, "Order") ?? GetIntProperty(sub, "order") ?? 0,
                     IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
-                    ProgressSummary = GetObjectiveProgressSummaryFromJson(sub),
                     Dictionaries = ParseObjectiveDictionaries(sub)
                 });
             }
@@ -7113,7 +7179,7 @@ public static unsafe class StarApiExports
         return result.IsError ? (int)StarApiResultCode.ApiError : (int)StarApiResultCode.Success;
     }
 
-    /// <summary>Start async session restore: one GET avatar/current, quest warm, ProfileLoaded operation callback on success/failure. Does not block; do not call star_api_refresh_avatar_profile right after (duplicate GET).</summary>
+    /// <summary>Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_restore_session", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiRestoreSession()
     {
@@ -7306,7 +7372,7 @@ public static unsafe class StarApiExports
         FreeItemListInternal(itemList);
     }
 
-    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tTitle\tDescription\tProgressSummary\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error. Must not throw - native caller can crash.</summary>
+    /// <summary>Write serialized quest list (InProgress) to buf for game UI. Returns cached data immediately (never blocks). If cache is empty, starts a background refresh and returns "Loading...". Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Returns bytes written (excluding null), or negative StarApiResultCode on error. Must not throw - native caller can crash.</summary>
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_quests_string", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetQuestsString(sbyte* buf, nuint bufSize)
     {
