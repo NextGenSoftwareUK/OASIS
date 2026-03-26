@@ -42,10 +42,10 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #include <cstring>
 #include <cstdarg>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <cctype>
 #include <map>
-#include <vector>
 #include <thread>
 #include <mutex>
 #include <atomic>
@@ -98,20 +98,16 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #define ODOOM_K_LEFT      GK_LEFT
 #define ODOOM_K_RIGHT     GK_RIGHT
 #define ODOOM_K_RETURN    GK_RETURN
-#if defined(GK_PAGEUP) && defined(GK_PAGEDOWN)
+#if defined(GK_PAGEUP)
 #define ODOOM_K_PAGEUP    GK_PAGEUP
 #define ODOOM_K_PAGEDOWN  GK_PAGEDOWN
-#elif defined(GK_PGUP) && defined(GK_PGDN)
-/* ZDoom-style menu keys (see zdefs.acs: GK_PGUP=2, GK_PGDN=1). */
-#define ODOOM_K_PAGEUP    GK_PGUP
-#define ODOOM_K_PAGEDOWN  GK_PGDN
-#elif defined(GK_PRIOR) && defined(GK_NEXT)
+#elif defined(GK_PRIOR)
 #define ODOOM_K_PAGEUP    GK_PRIOR
 #define ODOOM_K_PAGEDOWN  GK_NEXT
 #else
-/* Match d_gui.h legacy numeric codes used by ODOOM_GetRawKeyDown SDL mapping (PGUP=2, PGDN=1). Never use 0 — GetRawKeyDown(0) does not map to any key. */
-#define ODOOM_K_PAGEUP    2
-#define ODOOM_K_PAGEDOWN  1
+/* Fallback if engine uses other names; define to a harmless value so build succeeds. */
+#define ODOOM_K_PAGEUP    0
+#define ODOOM_K_PAGEDOWN  0
 #endif
 #define ODOOM_K_HOME      GK_HOME
 #define ODOOM_K_END       GK_END
@@ -1066,43 +1062,23 @@ static int ODOOM_GetRawKeyDown(int vk_or_ascii)
 #if defined(GK_BACKSPACE)
 	else if (vk_or_ascii == GK_BACKSPACE) scancode = SDL_SCANCODE_BACKSPACE;
 #endif
-	/* Engine may use GK_PAGEUP/GK_PRIOR etc. with values other than 1–4; map explicitly for SDL. */
-#if defined(GK_PAGEUP)
-	else if (vk_or_ascii == GK_PAGEUP) scancode = SDL_SCANCODE_PAGEUP;
-#endif
-#if defined(GK_PAGEDOWN)
-	else if (vk_or_ascii == GK_PAGEDOWN) scancode = SDL_SCANCODE_PAGEDOWN;
-#endif
-#if defined(GK_PGUP)
-	else if (vk_or_ascii == GK_PGUP) scancode = SDL_SCANCODE_PAGEUP;
-#endif
-#if defined(GK_PGDN)
-	else if (vk_or_ascii == GK_PGDN) scancode = SDL_SCANCODE_PAGEDOWN;
-#endif
-#if defined(GK_PRIOR)
-	else if (vk_or_ascii == GK_PRIOR) scancode = SDL_SCANCODE_PAGEUP;
-#endif
-#if defined(GK_NEXT)
-	else if (vk_or_ascii == GK_NEXT) scancode = SDL_SCANCODE_PAGEDOWN;
-#endif
-#if defined(GK_HOME)
-	else if (vk_or_ascii == GK_HOME) scancode = SDL_SCANCODE_HOME;
-#endif
-#if defined(GK_END)
-	else if (vk_or_ascii == GK_END) scancode = SDL_SCANCODE_END;
-#endif
 	return (scancode >= 0 && scancode < SDL_NUM_SCANCODES && state[scancode]) ? 1 : 0;
 #endif
 }
 
 /** Max bytes to pass to the inventory list CVar. Engine string CVars can have a small fixed buffer; exceeding it causes "attempted to write past end of stream". Use 1K to stay under typical limits. */
 static const size_t ODOOM_INVENTORY_CVAR_MAX_BYTES = 1024;
-/** Max bytes for quest list string (Q\tid\tname\tdesc\tstatus\tpct\n and O\t...\n lines). */
-static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 16384;
-/** Max bytes to assign to odoom_quest_list CVar. Engine string CVars have a fixed buffer; exceeding it causes "Attempted to write past end of stream". */
-static const size_t ODOOM_QUEST_CVAR_MAX_BYTES = 4096;
-/** Max UTF-8 bytes for odoom_quest_tracker_objectives (newline-separated). Too small truncates lines and drops trailing " [Completed]" so completed rows never grey. */
-static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = 4096;
+/** Max UTF-8 bytes safe to assign to any ZScript-facing CVAR_String (matches ODOOM_INVENTORY_CVAR_MAX_BYTES-1; longer values hang / error in UZDoom). */
+static const size_t ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8 =
+	(ODOOM_INVENTORY_CVAR_MAX_BYTES > 1) ? (ODOOM_INVENTORY_CVAR_MAX_BYTES - 1) : 1u;
+/** Quest list window: pack compact Q-only lines under SetGenericRep cap (full O/P blocks are too large for ~6 rows). */
+static const size_t ODOOM_QUEST_LIST_CVAR_WINDOW_BUDGET = ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8;
+/** Hard max UTF-8 bytes per compact Q line (~6 lines must fit in ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8). */
+static const size_t ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8 = 168;
+/** Max bytes from star_api_get_top_level_quests_string (full serialized cache before windowing). Large so many quests fit; list CVar is windowed separately. */
+static const size_t ODOOM_QUEST_LIST_MAX_BYTES = 256 * 1024;
+/** Max UTF-8 bytes for odoom_quest_tracker_objectives (must stay within ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8). */
+static const size_t ODOOM_QUEST_TRACKER_OBJECTIVES_CVAR_MAX = ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8;
 
 /** Truncate UTF-8 so len <= maxBytes without splitting a multibyte character (ZScript string CVars). */
 static void ODOOM_TruncateUtf8ForZScriptCVar(std::string& s, size_t maxBytes) {
@@ -1321,34 +1297,139 @@ static bool ODOOM_QuestIdEqInsensitive(const std::string& a, const std::string& 
 	return true;
 }
 
-/** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
-/** Parse one O-line: "O\\tid\\tTitle\\tDescription\\tProgressSummary\\tdone" (done 0/1). When done==0, sets out_progress to ProgressSummary (field 4). */
-static void ODOOM_ParseOlineTrackerProgress(const char* lineStart, size_t lineLen, std::string& out_progress)
-{
-	out_progress.clear();
-	if (lineLen < 4 || lineStart[0] != 'O' || lineStart[1] != '\t')
-		return;
-	std::vector<std::string> f;
-	{
-		size_t i = 0;
-		while (i < lineLen) {
-			size_t j = i;
-			while (j < lineLen && lineStart[j] != '\t' && lineStart[j] != '\n' && lineStart[j] != '\r')
-				j++;
-			f.emplace_back(lineStart + i, lineStart + j);
-			if (j < lineLen && lineStart[j] == '\t')
-				j++;
-			i = j;
-		}
-	}
-	if (f.size() < 6 || f[0] != "O")
-		return;
-	const std::string& last = f.back();
-	if (last.empty() || last[0] != '0')
-		return;
-	out_progress = f[4];
+static bool ODOOM_StreqI(const char* a, const char* b) {
+	if (!a || !b) return false;
+#ifdef _WIN32
+	return _stricmp(a, b) == 0;
+#else
+	return strcasecmp(a, b) == 0;
+#endif
 }
 
+/** 4th tab-separated field after Q\t = status (id, name, desc, status, ...). */
+static bool ODOOM_ParseStatusFromQuestQLine(const char* line, size_t lineLen, std::string& outStatus) {
+	if (lineLen < 4 || line[0] != 'Q' || line[1] != '\t') return false;
+	const char* p = line + 2;
+	const char* end = line + lineLen;
+	int field = 0;
+	const char* fs = p;
+	for (const char* q = p; q <= end; ++q) {
+		if (q == end || *q == '\t') {
+			if (field == 3) {
+				outStatus.assign(fs, static_cast<size_t>(q - fs));
+				return true;
+			}
+			field++;
+			fs = q + 1;
+		}
+	}
+	return false;
+}
+
+static bool ODOOM_QuestStatusPassesPopupFilter(const std::string& st, int fn, int fi, int fc) {
+	if (st.empty()) return fi != 0;
+	const char* s = st.c_str();
+	const bool ns = ODOOM_StreqI(s, "NotStarted") || ODOOM_StreqI(s, "Not Started");
+	const bool ip = ODOOM_StreqI(s, "InProgress") || ODOOM_StreqI(s, "In Progress");
+	const bool done = ODOOM_StreqI(s, "Completed");
+	return (ns && fn != 0) || (ip && fi != 0) || (done && fc != 0);
+}
+
+static bool ODOOM_ParseQuestIdFromQLine(const char* line, size_t lineLen, std::string& outId) {
+	if (lineLen < 4 || line[0] != 'Q' || line[1] != '\t') return false;
+	const char* p = line + 2;
+	const char* end = line + lineLen;
+	const char* t0 = (const char*)memchr(p, '\t', static_cast<size_t>(end - p));
+	if (!t0 || t0 == p) return false;
+	outId.assign(p, static_cast<size_t>(t0 - p));
+	return true;
+}
+
+/** Each range [first, second) is one top-level quest block (from its Q line through the byte before the next Q line). */
+static void ODOOM_CollectQuestBlockRanges(const char* buf, int n, std::vector<std::pair<size_t, size_t>>& outRanges) {
+	outRanges.clear();
+	if (!buf || n <= 0) return;
+	size_t pos = 0;
+	const size_t endPos = static_cast<size_t>(n);
+	while (pos < endPos) {
+		const char* lineStart = buf + pos;
+		const char* nl = (const char*)memchr(lineStart, '\n', endPos - pos);
+		size_t lineLen = nl ? static_cast<size_t>(nl - lineStart) : (endPos - pos);
+		if (lineLen >= 2 && lineStart[0] == 'Q' && lineStart[1] == '\t') {
+			size_t blockStart = pos;
+			pos = nl ? static_cast<size_t>(nl - buf) + 1 : endPos;
+			while (pos < endPos) {
+				const char* ls2 = buf + pos;
+				const char* nl2 = (const char*)memchr(ls2, '\n', endPos - pos);
+				size_t ll2 = nl2 ? static_cast<size_t>(nl2 - ls2) : (endPos - pos);
+				if (ll2 >= 2 && ls2[0] == 'Q' && ls2[1] == '\t')
+					break;
+				pos = nl2 ? static_cast<size_t>(nl2 - buf) + 1 : endPos;
+			}
+			outRanges.emplace_back(blockStart, pos);
+		} else {
+			pos = nl ? static_cast<size_t>(nl - buf) + 1 : endPos;
+		}
+	}
+}
+
+/** One compact Q line for odoom_quest_list (main list uses Q rows only). Shrinks name/desc caps until the line fits ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8 (keeps tab structure; avoids whole-line chop when possible). */
+static void ODOOM_FormatCompactQuestQLineForCVarShrink(const char* line, size_t lineLen, size_t maxNameUtf8, size_t maxDescUtf8, std::string& out) {
+	out.clear();
+	if (lineLen < 4 || !line || line[0] != 'Q' || line[1] != '\t') return;
+	const char* end = line + lineLen;
+	const char* p = line + 2;
+	const char* t1 = (const char*)memchr(p, '\t', static_cast<size_t>(end - p));
+	if (!t1 || t1 == p) return;
+	std::string id(p, static_cast<size_t>(t1 - p));
+	p = t1 + 1;
+	const char* t2 = (const char*)memchr(p, '\t', static_cast<size_t>(end - p));
+	if (!t2) return;
+	std::string name(p, static_cast<size_t>(t2 - p));
+	p = t2 + 1;
+	const char* t3 = (const char*)memchr(p, '\t', static_cast<size_t>(end - p));
+	if (!t3) return;
+	std::string desc(p, static_cast<size_t>(t3 - p));
+	p = t3 + 1;
+	const char* t4 = (const char*)memchr(p, '\t', static_cast<size_t>(end - p));
+	if (!t4) return;
+	std::string status(p, static_cast<size_t>(t4 - p));
+	p = t4 + 1;
+	std::string pct(p, static_cast<size_t>(end - p));
+
+	size_t maxName = maxNameUtf8;
+	size_t maxDesc = maxDescUtf8;
+	for (int iter = 0; iter < 32; ++iter) {
+		std::string nameC = name;
+		std::string descC = desc;
+		ODOOM_TruncateUtf8ForZScriptCVar(nameC, maxName);
+		ODOOM_TruncateUtf8ForZScriptCVar(descC, maxDesc);
+		out.clear();
+		out.push_back('Q');
+		out.push_back('\t');
+		out += id;
+		out.push_back('\t');
+		out += nameC;
+		out.push_back('\t');
+		out += descC;
+		out.push_back('\t');
+		out += status;
+		out.push_back('\t');
+		out += pct;
+		out.push_back('\n');
+		if (out.size() <= ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8)
+			return;
+		if (maxDesc > 16)
+			maxDesc -= 8;
+		else if (maxName > 12)
+			maxName -= 6;
+		else
+			break;
+	}
+	ODOOM_TruncateUtf8ForZScriptCVar(out, ODOOM_QUEST_COMPACT_Q_LINE_MAX_UTF8);
+}
+
+/** Update tracker progress lines + active index from STAR cache (no full quest list parse). Call every frame while tracker is visible so Need and Progress dictionary merges show immediately after kills/pickups. */
 static void ODOOM_PushTrackerProgressCvars(const char* wantIdCStr) {
 	if (!wantIdCStr || !wantIdCStr[0] || std::strcmp(wantIdCStr, "...") == 0) return;
 	FBaseCVar* trackerObjLinesVar = FindCVar("odoom_quest_tracker_objectives", nullptr);
@@ -1398,53 +1479,145 @@ static void ODOOM_RefreshQuestCVars(void) {
 		n = (int)sizeof(questBuf) - 1;
 	questBuf[n] = '\0';
 
-	/* Truncate to CVar-safe length so engine does not overflow ("Attempted to write past end of stream"). */
-	size_t assignLen = (size_t)n;
-	if (assignLen > ODOOM_QUEST_CVAR_MAX_BYTES) {
-		assignLen = ODOOM_QUEST_CVAR_MAX_BYTES;
-		/* Find last newline in [0, assignLen) so we don't cut mid-line */
-		size_t lastNl = 0;
-		for (size_t i = 0; i < assignLen; i++)
-			if (questBuf[i] == '\n') lastNl = i + 1;
-		if (lastNl > 0)
-			assignLen = lastNl;
+	std::vector<std::pair<size_t, size_t>> questRanges;
+	ODOOM_CollectQuestBlockRanges(questBuf, n, questRanges);
+	const int totalTopLevelBlocks = (int)questRanges.size();
+
+	int fn = 1, fi = 1, fc = 1;
+	{
+		FBaseCVar* fnV = FindCVar("odoom_quest_filter_not_started", nullptr);
+		FBaseCVar* fiV = FindCVar("odoom_quest_filter_in_progress", nullptr);
+		FBaseCVar* fcV = FindCVar("odoom_quest_filter_completed", nullptr);
+		if (fnV && fnV->GetRealType() == CVAR_Int) fn = fnV->GetGenericRep(CVAR_Int).Int != 0 ? 1 : 0;
+		if (fiV && fiV->GetRealType() == CVAR_Int) fi = fiV->GetGenericRep(CVAR_Int).Int != 0 ? 1 : 0;
+		if (fcV && fcV->GetRealType() == CVAR_Int) fc = fcV->GetGenericRep(CVAR_Int).Int != 0 ? 1 : 0;
 	}
 
-	/* Debug: log bytes received and quest count (throttle to avoid spam) */
+	std::vector<size_t> filteredIdx;
+	filteredIdx.reserve(questRanges.size());
+	for (size_t ri = 0; ri < questRanges.size(); ++ri) {
+		const auto& rg = questRanges[ri];
+		const char* firstLine = questBuf + rg.first;
+		const char* nl = (const char*)memchr(firstLine, '\n', rg.second - rg.first);
+		size_t ll = nl ? static_cast<size_t>(nl - firstLine) : (rg.second - rg.first);
+		std::string st;
+		if (!ODOOM_ParseStatusFromQuestQLine(firstLine, ll, st)) continue;
+		if (ODOOM_QuestStatusPassesPopupFilter(st, fn, fi, fc))
+			filteredIdx.push_back(ri);
+	}
+	const int totalFiltered = (int)filteredIdx.size();
+
+	FBaseCVar* scrollVar = FindCVar("odoom_quest_scroll_offset", nullptr);
+	FBaseCVar* scrollToIdVar = FindCVar("odoom_quest_scroll_to_id", nullptr);
+	FBaseCVar* pendSelVar = FindCVar("odoom_quest_pending_select_filtered_index", nullptr);
+	if (scrollToIdVar && scrollToIdVar->GetRealType() == CVAR_String) {
+		const char* gid = scrollToIdVar->GetGenericRep(CVAR_String).String;
+		if (gid && gid[0]) {
+			std::string wantG(gid);
+			for (int fiq = 0; fiq < totalFiltered; ++fiq) {
+				size_t ri = filteredIdx[static_cast<size_t>(fiq)];
+				const auto& rg = questRanges[ri];
+				const char* fl = questBuf + rg.first;
+				const char* nl2 = (const char*)memchr(fl, '\n', rg.second - rg.first);
+				size_t ll2 = nl2 ? static_cast<size_t>(nl2 - fl) : (rg.second - rg.first);
+				std::string qid;
+				if (ODOOM_ParseQuestIdFromQLine(fl, ll2, qid) && ODOOM_QuestIdEqInsensitive(qid, wantG)) {
+					if (scrollVar && scrollVar->GetRealType() == CVAR_Int) {
+						UCVarValue sv;
+						sv.Int = fiq;
+						scrollVar->SetGenericRep(sv, CVAR_Int);
+					}
+					if (pendSelVar && pendSelVar->GetRealType() == CVAR_Int) {
+						UCVarValue pv;
+						pv.Int = fiq;
+						pendSelVar->SetGenericRep(pv, CVAR_Int);
+					}
+					break;
+				}
+			}
+			UCVarValue es;
+			es.String = (char*)"";
+			scrollToIdVar->SetGenericRep(es, CVAR_String);
+		}
+	}
+
+	int scrollIdx = 0;
+	if (scrollVar && scrollVar->GetRealType() == CVAR_Int)
+		scrollIdx = scrollVar->GetGenericRep(CVAR_Int).Int;
+	if (scrollIdx < 0) scrollIdx = 0;
+	if (totalFiltered > 0 && scrollIdx >= totalFiltered) scrollIdx = totalFiltered - 1;
+
+	static std::string s_questListValue;
+	const size_t cvarBudget = ODOOM_QUEST_LIST_CVAR_WINDOW_BUDGET;
+	const int remainingFiltered = std::max(0, totalFiltered - scrollIdx);
+	const int needMinWindow = std::min(6, remainingFiltered);
+	size_t nameCap = 80;
+	size_t descCap = 96;
+	int windowQuestCount = 0;
+	for (int shrinkRound = 0; shrinkRound < 16; ++shrinkRound) {
+		s_questListValue.clear();
+		windowQuestCount = 0;
+		for (int i = scrollIdx; i < totalFiltered; ++i) {
+			size_t ri = filteredIdx[static_cast<size_t>(i)];
+			const auto& rg = questRanges[ri];
+			if (rg.second <= rg.first) continue;
+			const char* block = questBuf + rg.first;
+			size_t blockLen = rg.second - rg.first;
+			const char* nl = (const char*)memchr(block, '\n', blockLen);
+			size_t qll = nl ? static_cast<size_t>(nl - block) : blockLen;
+			if (qll < 4) continue;
+			std::string one;
+			ODOOM_FormatCompactQuestQLineForCVarShrink(block, qll, nameCap, descCap, one);
+			if (one.empty()) continue;
+			if (s_questListValue.size() + one.size() > cvarBudget)
+				break;
+			s_questListValue += one;
+			windowQuestCount++;
+		}
+		if (needMinWindow <= 0 || windowQuestCount >= needMinWindow)
+			break;
+		if (descCap > 20)
+			descCap -= 12;
+		else if (nameCap > 16)
+			nameCap -= 8;
+		else
+			break;
+	}
+	const size_t assignLen = s_questListValue.size();
+
+	/* Debug: log bytes received and quest counts (throttle to avoid spam) */
 	{
 		static int s_last_n = -1;
-		static int s_last_quest_count = -1;
-		int questCountForLog = 0;
-		{ const char* pp = questBuf; const char* endBuf = questBuf + n; while (pp < endBuf && *pp) {
-			const char* lineEnd = (const char*)memchr(pp, '\n', (size_t)(endBuf - pp));
-			size_t lineLen = lineEnd ? (size_t)(lineEnd - pp) : (size_t)(endBuf - pp);
-			if (lineLen >= 2 && pp[0] == 'Q' && pp[1] == '\t') questCountForLog++;
-			if (lineLen >= 3 && pp[0] == '-' && pp[1] == '-' && pp[2] == '-') { pp += 3; if (pp < endBuf && *pp == '\n') pp++; continue; }
-			pp = lineEnd ? lineEnd + 1 : pp + lineLen;
-		} }
-		if (n != s_last_n || questCountForLog != s_last_quest_count) {
-			s_last_n = n; s_last_quest_count = questCountForLog;
+		static int s_last_total_f = -1;
+		static int s_last_win = -1;
+		if (n != s_last_n || totalFiltered != s_last_total_f || windowQuestCount != s_last_win) {
+			s_last_n = n;
+			s_last_total_f = totalFiltered;
+			s_last_win = windowQuestCount;
 			if (g_star_debug_logging) {
-				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d (STAR debug: full payload in chunk lines)", n, (size_t)assignLen, questCountForLog);
+				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d list_cvar_bytes=%zu top_level=%d filtered_total=%d window_q=%d scroll=%d (STAR debug: full payload in chunk lines)",
+					n, assignLen, totalTopLevelBlocks, totalFiltered, windowQuestCount, scrollIdx);
 				StarLogQuestListPayloadChunks(questBuf, n);
 			} else {
 				std::string preview;
 				for (int i = 0; i < n && i < 240; i++) {
-					char c = questBuf[i];
-					if (c == '\n') preview += "\\n";
-					else if (c == '\r') preview += "\\r";
-					else if (c == '\t') preview += "|";
-					else if (c >= 32 && c < 127) preview += c;
+					char ch = questBuf[i];
+					if (ch == '\n') preview += "\\n";
+					else if (ch == '\r') preview += "\\r";
+					else if (ch == '\t') preview += "|";
+					else if (ch >= 32 && ch < 127) preview += ch;
 					else preview += ".";
 				}
-				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d assign_to_cvar=%zu quest_lines_parsed=%d preview=%.220s", n, (size_t)assignLen, questCountForLog, preview.c_str());
+				StarLogInfo("[Quests] ODOOM: bytes_from_api=%d list_cvar_bytes=%zu top_level=%d filtered_total=%d window_q=%d scroll=%d preview=%.220s",
+					n, assignLen, totalTopLevelBlocks, totalFiltered, windowQuestCount, scrollIdx, preview.c_str());
 			}
 		}
 	}
 
-	static std::string s_questListValue;
-	s_questListValue.assign(questBuf, assignLen);
-	UCVarValue v; v.String = (char*)s_questListValue.c_str();
+	ODOOM_TruncateUtf8ForZScriptCVar(s_questListValue, ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8);
+
+	UCVarValue v;
+	v.String = s_questListValue.empty() ? (char*)"" : (char*)s_questListValue.c_str();
 	listVar->SetGenericRep(v, CVAR_String);
 
 	std::string wantId;
@@ -1492,14 +1665,26 @@ static void ODOOM_RefreshQuestCVars(void) {
 			continue;
 		}
 		if (lineLen >= 2 && p[0] == 'O' && p[1] == '\t' && inTargetBlock && trackerObjective.empty()) {
-			/* O-line: Title, Description, ProgressSummary (STAR client); odoom_quest_tracker_objective binds ProgressSummary only. */
-			ODOOM_ParseOlineTrackerProgress(p, lineLen, trackerObjective);
+			/* O, id, desc, done - first incomplete objective (done=0); desc is 2nd field after id */
+			const char* f0 = p + 2;
+			size_t rest0 = (size_t)((p + lineLen) - f0);
+			const char* f1 = (const char*)memchr(f0, '\t', rest0);
+			if (f1 && f1 < p + lineLen) {
+				f1++;
+				size_t rest1 = (size_t)((p + lineLen) - f1);
+				const char* f2 = (const char*)memchr(f1, '\t', rest1);
+				if (f2 && f2 < p + lineLen) {
+					const char* doneStart = f2 + 1;
+					if (doneStart < p + lineLen && *doneStart == '0')
+						trackerObjective.assign(f1, (size_t)(f2 - f1));
+				}
+			}
 		}
 		p = lineEnd ? lineEnd + 1 : p + lineLen;
 	}
 
 	/* Profile ActiveQuestId may be stale (deleted quest), a sub-quest id not in top-level lines, or differ only by case — then trackerTitle stays empty and HUD stuck on "Loading...". Fall back to first top-level quest for display + progress. */
-	if (!wantId.empty() && wantId != "..." && trackerTitle.empty() && questCount > 0) {
+	if (!wantId.empty() && wantId != "..." && trackerTitle.empty() && totalTopLevelBlocks > 0) {
 		const char* fp = questBuf;
 		const char* fend = questBuf + n;
 		std::string firstId, firstTitle;
@@ -1532,21 +1717,8 @@ static void ODOOM_RefreshQuestCVars(void) {
 		}
 	}
 
-	/* When list was truncated for CVar, report only the number of quests in the truncated list so ZScript scroll/count match. */
-	if (assignLen < (size_t)n) {
-		int listCount = 0;
-		const char* pp = questBuf;
-		const char* endAssign = questBuf + assignLen;
-		while (pp < endAssign && *pp) {
-			const char* lineEnd = (const char*)memchr(pp, '\n', (size_t)(endAssign - pp));
-			size_t lineLen = lineEnd ? (size_t)(lineEnd - pp) : (size_t)(endAssign - pp);
-			if (lineLen >= 2 && pp[0] == 'Q' && pp[1] == '\t') listCount++;
-			pp = lineEnd ? lineEnd + 1 : pp + lineLen;
-		}
-		questCount = listCount;
-	}
-
-	UCVarValue c; c.Int = questCount;
+	UCVarValue c;
+	c.Int = totalFiltered;
 	countVar->SetGenericRep(c, CVAR_Int);
 	/* Only update tracker title when we have real data; if we have tracker_quest_id but list is still loading, keep "Loading..." (set by OnAuthDone/frame pump). */
 	if (trackerTitleVar && trackerTitleVar->GetRealType() == CVAR_String) {
@@ -1554,24 +1726,21 @@ static void ODOOM_RefreshQuestCVars(void) {
 			{ UCVarValue t; t.String = (char*)trackerTitle.c_str(); trackerTitleVar->SetGenericRep(t, CVAR_String); }
 		else if (wantId.empty())
 			{ UCVarValue t; t.String = (char*)""; trackerTitleVar->SetGenericRep(t, CVAR_String); }
-		else if (questCount == 0)
+		else if (totalTopLevelBlocks == 0)
 		{
-			/* List empty (still loading or API returned none). If profile already set a tracker quest id, keep id + stable title —
-			 * clearing the id made the frame pump re-fill from profile next tick and fight this branch → "No Active Quest" flashing. */
-			UCVarValue t; t.String = (char*)(wantId.empty() ? "No Active Quest Found" : "Loading quests...");
+			/* No quests in cache/list for this avatar: do not leave stale "Loading..." title visible. */
+			UCVarValue t; t.String = (char*)"No Active Quest Found";
 			trackerTitleVar->SetGenericRep(t, CVAR_String);
-			if (wantId.empty()) {
-				if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
-				{
-					UCVarValue q; q.String = (char*)"";
-					trackerIdVar->SetGenericRep(q, CVAR_String);
-				}
-				FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
-				if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
-				{
-					UCVarValue o; o.String = (char*)"";
-					trackerActiveIdVar->SetGenericRep(o, CVAR_String);
-				}
+			if (trackerIdVar && trackerIdVar->GetRealType() == CVAR_String)
+			{
+				UCVarValue q; q.String = (char*)"";
+				trackerIdVar->SetGenericRep(q, CVAR_String);
+			}
+			FBaseCVar* trackerActiveIdVar = FindCVar("odoom_quest_tracker_active_objective_id", nullptr);
+			if (trackerActiveIdVar && trackerActiveIdVar->GetRealType() == CVAR_String)
+			{
+				UCVarValue o; o.String = (char*)"";
+				trackerActiveIdVar->SetGenericRep(o, CVAR_String);
 			}
 		}
 	}
@@ -1606,9 +1775,9 @@ static void ODOOM_RefreshQuestCVars(void) {
 }
 
 /** Max bytes for each quest detail list CVar (prereqs, objectives, subquests). */
-static const size_t ODOOM_QUEST_DETAIL_CVAR_MAX = 1024;
-/** Requirements/progress can be many Need rows; keep under typical engine string CVar limits. */
-static const size_t ODOOM_QUEST_DETAIL_REQUIREMENTS_CVAR_MAX = 4096;
+static const size_t ODOOM_QUEST_DETAIL_CVAR_MAX = ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8;
+/** Requirements/progress can be many Need rows; same hard cap as other ZScript string CVars. */
+static const size_t ODOOM_QUEST_DETAIL_REQUIREMENTS_CVAR_MAX = ODOOM_ZSCRIPT_CVAR_STRING_MAX_UTF8;
 
 /** When odoom_quest_detail_quest_id is set, fill prereqs/objectives/subquests CVars from STAR API for the 2nd (detail) popup. */
 static void ODOOM_RefreshQuestDetailCVars(void) {
@@ -2024,7 +2193,6 @@ static void ODOOM_OnUseItemDone(void* user_data) {
 
 static bool ODOOM_AnyStarPopupOpenForHudToggle(void);
 static void ODOOM_FlipHudIntCVarImpl(const char* cvarName);
-static void ODOOM_FlipHudIntCVar(const char* cvarName);
 
 /** Called every frame from the main loop (see patch_uzdoom_engine.ps1: d_main and g_game). Must run so send/auth/inventory callbacks are invoked. */
 void ODOOM_InventoryInputCaptureFrame(void)
@@ -2234,6 +2402,10 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		}
 	}
 
+	/* Quest list CVar is windowed like inventory; refresh every frame while popup open so scroll/filter reach C++ before draw. */
+	if (g_star_initialized && questPopupOpen)
+		ODOOM_RefreshQuestCVars();
+
 	if (anyPopupOpen && !g_odoom_inventory_bindings_captured)
 	{
 		/* Clear arrow, movement, and inventory key bindings so game doesn't receive them (OQuake-style). Also when quest popup is open so arrows/Enter drive quest list. */
@@ -2313,7 +2485,6 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int use  = ODOOM_GetRawKeyDown('E');
 		int a    = ODOOM_GetRawKeyDown('A');
 		int c    = ODOOM_GetRawKeyDown('C');
-		int keyD = ODOOM_GetRawKeyDown('D');
 		int z    = ODOOM_GetRawKeyDown('Z');
 		int x    = ODOOM_GetRawKeyDown('X');
 		int i    = ODOOM_GetRawKeyDown('I');
@@ -2336,28 +2507,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		int backspace = ODOOM_GetRawKeyDown(ODOOM_K_BACKSPACE);
 		/* Merge Enter into use so ZScript sees keyUsePressed for both E and Enter (confirm/close) */
 		use = (use || enter) ? 1 : 0;
-		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, keyD, backspace);
-		/* HUD X/B/Z: flip only here (same path as odoom_hud_toggle_* CCMDs). ZScript WorldTick cannot set these CVars — "outside menu code" abort in current GZDoom. */
-		{
-			static int s_odoom_hud_x_raw_was_down = 0;
-			static int s_odoom_hud_b_raw_was_down = 0;
-			static int s_odoom_hud_z_raw_was_down = 0;
-			if (g_star_initialized)
-			{
-				FBaseCVar* questPopupHudVar = FindCVar("odoom_quest_popup_open", nullptr);
-				int questHudPopupOpen = (questPopupHudVar && questPopupHudVar->GetRealType() == CVAR_Int && questPopupHudVar->GetGenericRep(CVAR_Int).Int != 0);
-				if (x && !s_odoom_hud_x_raw_was_down)
-					ODOOM_FlipHudIntCVar("odoom_hud_show_xp");
-				/* B toggles Not Started filter while quest list is open (ZScript); do not flip beamed HUD there. */
-				if (keyB && !s_odoom_hud_b_raw_was_down && !questHudPopupOpen)
-					ODOOM_FlipHudIntCVar("odoom_hud_show_beamed");
-				if (z && !s_odoom_hud_z_raw_was_down)
-					ODOOM_FlipHudIntCVar("odoom_hud_show_timer");
-			}
-			s_odoom_hud_x_raw_was_down = x ? 1 : 0;
-			s_odoom_hud_b_raw_was_down = keyB ? 1 : 0;
-			s_odoom_hud_z_raw_was_down = z ? 1 : 0;
-		}
+		ODOOM_InventorySetKeyState(up, down, left, right, use, a, c, z, x, i, o, p, keyS, keyT, q, enter, pgup, pgdown, home, endkey, keyB, keyN, keyM, keyK, keyV, backspace);
+		/* B/X/Z HUD toggles: ZScript flips odoom_hud_show_* on odoom_key_* rising edge (inventory/quest/send closed). Avoid C++ flip here — double-toggle if both ran. */
 		/* K = Start/Set quest: drive from C++ using odoom_quest_selected_id (ZScript sets every frame) so we don't rely on one-frame CVar handoff. */
 		{
 			static int s_key_k_was_down = 0;
@@ -2367,25 +2518,14 @@ void ODOOM_InventoryInputCaptureFrame(void)
 				int qOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int && questPopupVar->GetGenericRep(CVAR_Int).Int != 0);
 				if (!s_key_k_was_down && qOpen)
 				{
-					/* K=Start Quest on main list only; quest detail uses Enter to activate quest + objective (ZScript). */
-					bool detailPopupOpen = false;
-					FBaseCVar* detailIdVar = FindCVar("odoom_quest_detail_quest_id", nullptr);
-					if (detailIdVar && detailIdVar->GetRealType() == CVAR_String)
+					FBaseCVar* selIdVar = FindCVar("odoom_quest_selected_id", nullptr);
+					if (selIdVar && selIdVar->GetRealType() == CVAR_String)
 					{
-						const char* did = detailIdVar->GetGenericRep(CVAR_String).String;
-						detailPopupOpen = (did && did[0]);
-					}
-					if (!detailPopupOpen)
-					{
-						FBaseCVar* selIdVar = FindCVar("odoom_quest_selected_id", nullptr);
-						if (selIdVar && selIdVar->GetRealType() == CVAR_String)
+						const char* id = selIdVar->GetGenericRep(CVAR_String).String;
+						if (id && id[0])
 						{
-							const char* id = selIdVar->GetGenericRep(CVAR_String).String;
-							if (id && id[0])
-							{
-								star_api_start_quest(id);
-								ODOOM_RefreshQuestCVars();
-							}
+							star_api_start_quest(id);
+							ODOOM_RefreshQuestCVars();
 						}
 					}
 				}
@@ -2397,7 +2537,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		/* Quest popup is driven by ZScript only (same as inventory I key): ZScript reads odoom_key_q and toggles; C++ does not set odoom_quest_popup_open. */
 	}
 
-	/* Quest: invalidate when popup opens and refresh once to trigger single API request; then refresh every 60 frames only while popup is open so API is hit once. */
+	/* Quest: cache invalidation callback; detail CVars every frame while popup open. Main list odoom_quest_list is refreshed every frame while popup open (see above). */
 	if (g_star_initialized) {
 		if (g_odoom_quests_cache_refresh_pending) {
 			g_odoom_quests_cache_refresh_pending = false;
@@ -2407,23 +2547,13 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		FBaseCVar* questPopupVar = FindCVar("odoom_quest_popup_open", nullptr);
 		int questPopupOpen = (questPopupVar && questPopupVar->GetRealType() == CVAR_Int) ? questPopupVar->GetGenericRep(CVAR_Int).Int : 0;
 		static int s_quest_popup_was_open = 0;
-		static int s_quest_refresh_frames = 0;
 		if (questPopupOpen && !s_quest_popup_was_open) {
 #ifdef ODOOM_STAR_API_HAS_REFRESH_QUEST_BACKGROUND
 			star_api_refresh_quest_cache_in_background();
-#else
-			/* Without new API: do not invalidate – show existing cache and let 60-frame refresh update when fetch completes. */
 #endif
-			ODOOM_RefreshQuestCVars();  /* push current cache to CVars so list shows immediately */
-			s_quest_refresh_frames = 0; /* do not run 60-frame refresh this frame */
 		}
 		s_quest_popup_was_open = questPopupOpen;
-		/* Only poll cache every 60 frames while popup is open (no extra API call). */
 		if (questPopupOpen) {
-			if (++s_quest_refresh_frames >= 60) {
-				s_quest_refresh_frames = 0;
-				ODOOM_RefreshQuestCVars();
-			}
 			/* Refresh detail popup lists (prereqs, objectives, subquests) when 2nd popup is open (ZScript sets odoom_quest_detail_quest_id). */
 			ODOOM_RefreshQuestDetailCVars();
 		} else {
@@ -2464,9 +2594,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 							oidVar->SetGenericRep(u, CVAR_String);
 						}
 					}
-					/* Do not call star_api_refresh_quest_cache_in_background here: boot already ran EnsureQuestsCacheInBackground
-					 * (GET all-for-avatar/game). A forced refresh duplicates that GET seconds later. Cold list still fills via Ensure
-					 * when get_top_level_quests_string runs; use quest popup or explicit refresh when a hard refetch is needed. */
+					star_api_refresh_quest_cache_in_background();
 					star_api_request_inventory_in_background();  /* non-blocking: cache ready for overlay/door checks */
 					ODOOM_RefreshQuestCVars();
 				}
@@ -2811,7 +2939,7 @@ static void ODOOM_FlipHudIntCVarImpl(const char* cvarName)
 	hv->SetGenericRep(u, CVAR_Int);
 }
 
-void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int keyD, int backspace)
+void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, int a, int c, int z, int x, int i, int o, int p, int keyS, int keyT, int q, int enter, int pgup, int pgdown, int home, int endkey, int keyB, int keyN, int keyM, int keyK, int keyV, int backspace)
 {
 	UCVarValue val;
 	FBaseCVar* v;
@@ -2831,7 +2959,6 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_use", use);
 	SET_KEY_CVAR("odoom_key_a", a);
 	SET_KEY_CVAR("odoom_key_c", c);
-	SET_KEY_CVAR("odoom_key_d", keyD);
 	SET_KEY_CVAR("odoom_key_z", z);
 	SET_KEY_CVAR("odoom_key_x", x);
 	SET_KEY_CVAR("odoom_key_i", i);
@@ -2844,7 +2971,7 @@ void ODOOM_InventorySetKeyState(int up, int down, int left, int right, int use, 
 	SET_KEY_CVAR("odoom_key_k", keyK);
 	SET_KEY_CVAR("odoom_key_backspace", backspace);
 #undef SET_KEY_CVAR
-	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; native tick flips odoom_hud_show_* (ZScript cannot). */
+	/* B/X/Z: unbound for engine; raw odoom_key_* for ZScript; ZScript toggles odoom_hud_show_* when no STAR popup. */
 }
 
 int UZDoom_STAR_GetShowAnorakFace(void)
@@ -3278,7 +3405,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 					g_star_effective_username = g_odoom_saved_username;
 				odoom_star_username = g_star_effective_username.empty() ? "Avatar" : g_star_effective_username.c_str();
 				StarApplyBeamFacePreference();
-				/* RestoreSessionAsync already GETs avatar/current, warms quest cache, and fires ProfileLoaded — do not call star_api_refresh_avatar_profile() here (duplicate GET + double callback). */
+				star_api_refresh_avatar_profile();
 				g_odoom_pending_loading_tracker = true;  /* Frame pump will set "Loading..." when CVars are ready */
 				if (logVerbose) StarLogInfo("Restoring saved session for %s.", g_odoom_saved_username[0] ? g_odoom_saved_username : "(avatar)");
 				return true;
@@ -3426,7 +3553,7 @@ void UZDoom_STAR_Init(void) {
 	C_DoCommand("defaultbind p +user3");
 	C_DoCommand("defaultbind c odoom_use_health");
 	C_DoCommand("defaultbind f odoom_use_armor");
-	/* HUD: X/B/Z flipped in native tick (ZScript cannot set odoom_hud_show_*). Keys unbound so +zoom etc. never steal Z. Console: odoom_hud_toggle_* */
+	/* HUD B/X/Z toggled from C++ raw-key edge; leave unbound so +zoom etc. never steal Z. Console: odoom_hud_toggle_* */
 	C_DoCommand("defaultbind B \"\"");
 	C_DoCommand("defaultbind X \"\"");
 	C_DoCommand("defaultbind Z \"\"");

@@ -105,6 +105,9 @@ star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
+/** Queue start quest; when that succeeds, persist active quest + objective on avatar (same as star_api_set_active_quest). Use from game when user picks an objective on a Not Started quest so set-active runs after start completes (avoids racing the async start). objective_id required. */
+#define STAR_API_HAS_START_QUEST_THEN_SET_ACTIVE_OBJECTIVE 1
+star_api_result_t star_api_start_quest_then_set_active_objective(const char* quest_id, const char* objective_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
 /** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tTitle\tDescription\tProgressSummary\tdone\n" per embedded objective (done 0/1), "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
