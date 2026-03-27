@@ -65,15 +65,14 @@ void star_api_refresh_avatar_profile(void) {
 	if (fn) fn();
 }
 #else
+/* RTLD_NEXT: dlopen(NULL)+dlsym resolves this same symbol in the executable → infinite recursion. NEEDED is often star_api.so, not libstar_api.so. */
 void star_api_refresh_avatar_profile(void) {
 	typedef void (*fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_refresh_avatar_profile");
-	}
-	if (fn) fn();
+	static fn_t real_fn;
+	if (!real_fn)
+		real_fn = (fn_t)dlsym(RTLD_NEXT, "star_api_refresh_avatar_profile");
+	if (real_fn)
+		real_fn();
 }
 #endif
 #endif
@@ -180,14 +179,12 @@ static void star_api_request_inventory_in_background_impl(void) {
 }
 void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #else
+/* RTLD_NEXT: avoid dlsym binding to these forwarders in the main binary (same issue as star_api_refresh_avatar_profile). */
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
 	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_authenticate_with_jwt_out");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_authenticate_with_jwt_out");
 	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
@@ -195,11 +192,8 @@ star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const cha
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (*fn_t)(const char*);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_set_saved_session");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_saved_session");
 	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
@@ -207,11 +201,8 @@ star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_
 static star_api_result_t star_api_restore_session_impl(void) {
 	typedef star_api_result_t (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_restore_session");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_restore_session");
 	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
@@ -219,11 +210,8 @@ star_api_result_t star_api_restore_session(void) { return star_api_restore_sessi
 static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_username");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_username");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
@@ -231,11 +219,8 @@ int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_
 static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_jwt");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_jwt");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
@@ -243,23 +228,18 @@ int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_c
 static void star_api_set_refresh_token_impl(const char* refresh_token) {
 	typedef void (*fn_t)(const char*);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_set_refresh_token");
-	}
-	if (fn) fn(refresh_token);
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_refresh_token");
+	if (fn)
+		fn(refresh_token);
 }
 void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
 
 static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_refresh_token");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_refresh_token");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
@@ -267,11 +247,8 @@ int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star
 static int star_api_is_session_expired_impl(void) {
 	typedef int (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_is_session_expired");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_is_session_expired");
 	return fn ? fn() : 0;
 }
 int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
@@ -279,12 +256,10 @@ int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(
 static void star_api_request_inventory_in_background_impl(void) {
 	typedef void (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_request_inventory_in_background");
-	}
-	if (fn) fn();
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_request_inventory_in_background");
+	if (fn)
+		fn();
 }
 void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #endif
@@ -1706,7 +1681,9 @@ static int OQ_FindConfigFile(const char *filename, char *out_path, int maxlen) {
     
     const char *locations[] = {
         "build/",  /* Relative to exe if in build folder */
-        "../build/",  /* One level up from exe */
+        "../build/",  /* One level up from exe (e.g. vkQuake/build-asan -> vkQuake/build) */
+        "../../OASIS/OASIS Omniverse/OQuake/build/", /* vkQuake/build-asan with OASIS+vkQuake siblings under Source/ */
+        "../OASIS/OASIS Omniverse/OQuake/build/",  /* Exe one level under vkQuake (e.g. build/) */
         "../OASIS Omniverse/OQuake/build/",  /* From basedir, go to OQuake build */
         "../../OASIS Omniverse/OQuake/build/",  /* Two levels up */
         "OASIS Omniverse/OQuake/build/",  /* Relative from repo root */
