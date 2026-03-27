@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.HoloOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Holochain OASIS Provider</Product>
@@ -50,6 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
     <ProjectReference Include="..\..\..\..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj" />
     <ProjectReference Include="..\..\..\..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />

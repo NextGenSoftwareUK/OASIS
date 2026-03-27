@@ -3473,7 +3473,7 @@ public sealed class StarknetOASIS : OASISStorageProviderBase,
                 {
                     var list = JsonSerializer.Deserialize<List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>>(invRaw);
                     if (list != null)
-                        avatarDetail.Inventory = new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IInventoryItem>(list);
+                        avatarDetail.Inventory = new List<IInventoryItem>(list);
                 }
             }
             return avatarDetail;
