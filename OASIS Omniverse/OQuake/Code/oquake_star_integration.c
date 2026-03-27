@@ -3377,7 +3377,10 @@ void OQuake_STAR_OnStatsChangedEx(
     /* Health: add 1 qty with description e.g. "Health (+25)" or "Megahealth (+100)". Skip if we just applied health from overlay (would re-add and qty bounces). */
     if (new_health > old_health) {
         extern double realtime;
-        if (realtime - g_oq_health_applied_from_overlay_time >= 1.0) {
+        /* Respawn: Quake client STAT_HEALTH is 0 while dead; spawn jumps to 100+ — not a world pickup (avoids false quest/inventory). */
+        if (old_health <= 0 && new_health > 0) {
+            OQ_PickupLog("Stats: Health +%d skip (respawn)", new_health - old_health);
+        } else if (realtime - g_oq_health_applied_from_overlay_time >= 1.0) {
             int delta = new_health - old_health;
             if (delta >= 100) {
                 q_snprintf(desc, sizeof(desc), "Megahealth (+%d)", delta);
@@ -3413,6 +3416,38 @@ void OQuake_STAR_OnStatsChanged(
     OQuake_STAR_OnStatsChangedEx(old_shells, new_shells, old_nails, new_nails,
         old_rockets, new_rockets, old_cells, new_cells,
         old_health, new_health, old_armor, new_armor, 1);
+}
+
+/** K on quest row or while viewing that quest in the objectives panel (ODOOM: Start quest / set tracker). */
+static void OQ_QuestApplyKForQuestRow(const char* quest_id, const char* qstatus, const char* display_name)
+{
+    if (!quest_id || !quest_id[0] || !qstatus)
+        return;
+    if (strcmp(qstatus, "NotStarted") == 0 || strcmp(qstatus, "0") == 0) {
+        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+        g_quest_status_frames = 600;
+        q_strlcpy(g_quest_start_pending_id, quest_id, sizeof(g_quest_start_pending_id));
+        star_api_start_quest(quest_id);
+        return;
+    }
+    if (strcmp(qstatus, "InProgress") == 0 || strcmp(qstatus, "1") == 0 ||
+        strcmp(qstatus, "Completed") == 0 || strcmp(qstatus, "2") == 0) {
+        if (strcmp(quest_id, g_quest_tracker_id) != 0) {
+            g_quest_tracker_active_objective_id[0] = '\0';
+            g_quest_tracker_active_display_index = -1;
+            g_quest_tracker_objective_index = 0;
+        }
+        q_strlcpy(g_quest_tracker_id, quest_id, sizeof(g_quest_tracker_id));
+        q_strlcpy(g_quest_tracker_name, display_name && display_name[0] ? display_name : "", sizeof(g_quest_tracker_name));
+        g_quest_tracker_show = 1;
+        {
+            static char log_buf[512];
+            const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
+            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (K) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
+            star_api_log_to_file(log_buf);
+        }
+        star_api_set_active_quest(g_quest_tracker_id, NULL);
+    }
 }
 
 /** Case-insensitive string equality (for classnames; some engines/mods use different casing). */
@@ -5159,8 +5194,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         /* Compute left list count and sync selection to tracked quest *before* setting panel_quest_id, so right-panel fetch uses the correct quest. */
         int left_list_count = g_quest_drill_parent_id[0] ? drill_q_filtered_count : q_filtered_count;
         static char panel_quest_id[64];
+        static char panel_quest_status[32];
+        static char panel_quest_name[128];
         static int s_key_debounce_frames = 0;  /* ignore Up/Down/Mwheel for this many frames after sync/open so key repeat does not move selection */
         panel_quest_id[0] = '\0';
+        panel_quest_status[0] = '\0';
+        panel_quest_name[0] = '\0';
         if (g_quest_popup_sync_to_tracker && s_key_debounce_frames <= 0)
             s_key_debounce_frames = 3;  /* debounce as soon as popup opened (sync pending) */
         if (s_key_debounce_frames > 0)
@@ -5241,6 +5280,26 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 int sel_for_panel = (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
                 if (sel_for_panel >= 0 && sel_for_panel < q_count && q_id[sel_for_panel][0])
                     q_strlcpy(panel_quest_id, q_id[sel_for_panel], sizeof(panel_quest_id));
+            }
+        }
+        /* Status + display name for panel quest (main list row or drill child); used for ODOOM-parity Enter/K on objectives. */
+        if (panel_quest_id[0]) {
+            int pqi;
+            for (pqi = 0; pqi < q_count; pqi++) {
+                if (strcmp(q_id[pqi], panel_quest_id) == 0) {
+                    q_strlcpy(panel_quest_status, q_status[pqi], sizeof(panel_quest_status));
+                    q_strlcpy(panel_quest_name, q_name[pqi][0] ? q_name[pqi] : "", sizeof(panel_quest_name));
+                    break;
+                }
+            }
+            if (!panel_quest_status[0]) {
+                for (pqi = 0; pqi < drill_q_count; pqi++) {
+                    if (strcmp(drill_q_id[pqi], panel_quest_id) == 0) {
+                        q_strlcpy(panel_quest_status, drill_q_status[pqi], sizeof(panel_quest_status));
+                        q_strlcpy(panel_quest_name, drill_q_name[pqi][0] ? drill_q_name[pqi] : "", sizeof(panel_quest_name));
+                        break;
+                    }
+                }
             }
         }
 
@@ -5455,10 +5514,16 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         /* Key handling: Tab switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel. Tab is blocked from engine while popup is open. */
         {
             static int s_tab_key = -2;
+            static int s_k_quest_action = -2;
             const int q_enter_main = K_ENTER;
             const int q_enter_kp = K_KP_ENTER;
             if (s_tab_key == -2) s_tab_key = Key_StringToKeynum("tab");
             if (s_tab_key < 0) s_tab_key = 9;  /* K_TAB fallback if key lookup fails */
+            if (s_k_quest_action == -2) {
+                s_k_quest_action = Key_StringToKeynum("k");
+                if (s_k_quest_action < 0)
+                    s_k_quest_action = 'k';
+            }
             if (g_quest_drill_parent_id[0] && OQ_KeyPressed(K_ESCAPE)) {
                 g_quest_drill_parent_id[0] = '\0';
                 g_quest_selected_index = 0;
@@ -5509,27 +5574,69 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             } else if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_objectives_selected--; if (g_quest_objectives_selected < 0) g_quest_objectives_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_objectives_selected++; if (g_quest_objectives_selected >= nobj) g_quest_objectives_selected = nobj > 0 ? nobj - 1 : 0; }
-                /* Enter = set active objective for tracker (only when detail quest is the tracked quest). */
-                if (enter_edge && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj &&
-                    g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 && obj_id[g_quest_objectives_selected][0]) {
-                    q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
-                    g_quest_tracker_objective_index = g_quest_objectives_selected;
-                    g_quest_tracker_active_display_index = g_quest_objectives_selected;
-                    {
-                        static char log_buf[512];
-                        const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
-                        const char* on = (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < obj_count && obj_name[g_quest_objectives_selected][0]) ? obj_name[g_quest_objectives_selected] : "(none)";
-                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on objective) quest_id=%s objective_id=%s quest_name=%s objective_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn, on);
-                        star_api_log_to_file(log_buf);
-                    }
-                    {
-                        char persist_obj[64];
-                        const char* persist_ptr = NULL;
-                        if (OQ_SelectPersistableObjectiveId(g_quest_tracker_id, g_quest_tracker_active_objective_id, persist_obj, sizeof(persist_obj))) {
-                            q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
-                            persist_ptr = g_quest_tracker_active_objective_id;
+                /* ODOOM: K = Start / Set tracker for the quest you are viewing, even when focus is on objectives. */
+                if (OQ_KeyPressed(s_k_quest_action) && panel_quest_id[0] && panel_quest_status[0])
+                    OQ_QuestApplyKForQuestRow(panel_quest_id, panel_quest_status, panel_quest_name);
+                /* Enter on objective: if tracker quest != panel quest, activate panel quest first (start or track) then objective (odoom_inventory_popup.zs). */
+                if (enter_edge && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj && obj_id[g_quest_objectives_selected][0] && panel_quest_id[0]) {
+                    const char* sel_obj = obj_id[g_quest_objectives_selected];
+                    int same_tracked = (g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0);
+                    int not_started = (panel_quest_status[0] && (strcmp(panel_quest_status, "NotStarted") == 0 || strcmp(panel_quest_status, "0") == 0));
+                    int inprog = (panel_quest_status[0] && (strcmp(panel_quest_status, "InProgress") == 0 || strcmp(panel_quest_status, "1") == 0));
+                    int can_activate = not_started || inprog;
+                    int used_start_then = 0;
+
+                    if (!same_tracked && can_activate && not_started) {
+                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+                        g_quest_status_frames = 600;
+                        q_strlcpy(g_quest_start_pending_id, panel_quest_id, sizeof(g_quest_start_pending_id));
+                        q_strlcpy(g_quest_tracker_id, panel_quest_id, sizeof(g_quest_tracker_id));
+                        q_strlcpy(g_quest_tracker_name, panel_quest_name, sizeof(g_quest_tracker_name));
+                        g_quest_tracker_show = 1;
+                        g_quest_tracker_objective_index = g_quest_objectives_selected;
+                        g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                        {
+                            char persist_obj[64];
+                            if (OQ_SelectPersistableObjectiveId(panel_quest_id, sel_obj, persist_obj, sizeof(persist_obj)))
+                                q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
+                            else
+                                q_strlcpy(g_quest_tracker_active_objective_id, sel_obj, sizeof(g_quest_tracker_active_objective_id));
                         }
-                        star_api_set_active_quest(g_quest_tracker_id, persist_ptr);
+                        star_api_start_quest_then_set_active_objective(panel_quest_id, sel_obj);
+                        used_start_then = 1;
+                        star_api_log_to_file("[Quest] Enter objective: start_then_set_active_objective (ODOOM parity)");
+                    } else if (!same_tracked && inprog) {
+                        if (strcmp(panel_quest_id, g_quest_tracker_id) != 0) {
+                            g_quest_tracker_active_objective_id[0] = '\0';
+                            g_quest_tracker_active_display_index = -1;
+                            g_quest_tracker_objective_index = 0;
+                        }
+                        q_strlcpy(g_quest_tracker_id, panel_quest_id, sizeof(g_quest_tracker_id));
+                        q_strlcpy(g_quest_tracker_name, panel_quest_name, sizeof(g_quest_tracker_name));
+                        g_quest_tracker_show = 1;
+                    }
+
+                    if (!used_start_then && (same_tracked || can_activate)) {
+                        q_strlcpy(g_quest_tracker_active_objective_id, sel_obj, sizeof(g_quest_tracker_active_objective_id));
+                        g_quest_tracker_objective_index = g_quest_objectives_selected;
+                        g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                        {
+                            static char log_buf[512];
+                            const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
+                            const char* on = (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < obj_count && obj_name[g_quest_objectives_selected][0]) ? obj_name[g_quest_objectives_selected] : "(none)";
+                            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on objective) quest_id=%s objective_id=%s quest_name=%s objective_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn, on);
+                            star_api_log_to_file(log_buf);
+                        }
+                        {
+                            char persist_obj[64];
+                            const char* persist_ptr = NULL;
+                            if (OQ_SelectPersistableObjectiveId(panel_quest_id, g_quest_tracker_active_objective_id, persist_obj, sizeof(persist_obj))) {
+                                q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
+                                persist_ptr = g_quest_tracker_active_objective_id;
+                            } else
+                                persist_ptr = g_quest_tracker_active_objective_id;
+                            star_api_set_active_quest(g_quest_tracker_id, persist_ptr);
+                        }
                     }
                 }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
@@ -5562,71 +5669,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         else if (n_subquest_list > 0)
                             g_quest_focus = OQ_QUEST_FOCUS_SUBQUEST;
                     }
-                    {
-                        static int s_k_quest_action = -2;
-                        if (s_k_quest_action == -2) {
-                            s_k_quest_action = Key_StringToKeynum("k");
-                            if (s_k_quest_action < 0)
-                                s_k_quest_action = 'k';
-                        }
-                        if (OQ_KeyPressed(s_k_quest_action)) {
-                            if (g_quest_drill_parent_id[0]) {
-                                int di = drill_q_filtered_indices[g_quest_selected_index];
-                                if (di >= 0 && di < drill_q_count && drill_q_id[di][0]) {
-                                    if (strcmp(drill_q_status[di], "NotStarted") == 0 || strcmp(drill_q_status[di], "0") == 0) {
-                                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                        g_quest_status_frames = 600;
-                                        q_strlcpy(g_quest_start_pending_id, drill_q_id[di], sizeof(g_quest_start_pending_id));
-                                        star_api_start_quest(drill_q_id[di]);
-                                    } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0 ||
-                                               strcmp(drill_q_status[di], "Completed") == 0 || strcmp(drill_q_status[di], "2") == 0) {
-                                        const char* new_quest_id = drill_q_id[di];
-                                        if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
-                                            g_quest_tracker_active_objective_id[0] = '\0';
-                                            g_quest_tracker_active_display_index = -1;
-                                            g_quest_tracker_objective_index = 0;
-                                        }
-                                        q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                        q_strlcpy(g_quest_tracker_name, drill_q_name[di][0] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
-                                        g_quest_tracker_show = 1;
-                                        {
-                                            static char log_buf[512];
-                                            const char* qn = drill_q_name[di][0] ? drill_q_name[di] : "(none)";
-                                            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (K on drill quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
-                                            star_api_log_to_file(log_buf);
-                                        }
-                                        star_api_set_active_quest(g_quest_tracker_id, NULL);
-                                    }
-                                }
-                            } else {
-                                int idx = q_filtered_indices[g_quest_selected_index];
-                                if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                                    if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
-                                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                        g_quest_status_frames = 600;
-                                        q_strlcpy(g_quest_start_pending_id, q_id[idx], sizeof(g_quest_start_pending_id));
-                                        star_api_start_quest(q_id[idx]);
-                                    } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0 ||
-                                               strcmp(q_status[idx], "Completed") == 0 || strcmp(q_status[idx], "2") == 0) {
-                                        const char* new_quest_id = q_id[idx];
-                                        if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
-                                            g_quest_tracker_active_objective_id[0] = '\0';
-                                            g_quest_tracker_active_display_index = -1;
-                                            g_quest_tracker_objective_index = 0;
-                                        }
-                                        q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                        q_strlcpy(g_quest_tracker_name, q_name[idx][0] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
-                                        g_quest_tracker_show = 1;
-                                        {
-                                            static char log_buf[512];
-                                            const char* qn = q_name[idx][0] ? q_name[idx] : "(none)";
-                                            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (K on top-level quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
-                                            star_api_log_to_file(log_buf);
-                                        }
-                                        star_api_set_active_quest(g_quest_tracker_id, NULL);
-                                    }
-                                }
-                            }
+                    if (OQ_KeyPressed(s_k_quest_action)) {
+                        if (g_quest_drill_parent_id[0]) {
+                            int di = drill_q_filtered_indices[g_quest_selected_index];
+                            if (di >= 0 && di < drill_q_count && drill_q_id[di][0])
+                                OQ_QuestApplyKForQuestRow(drill_q_id[di], drill_q_status[di], drill_q_name[di][0] ? drill_q_name[di] : "");
+                        } else {
+                            int idx = q_filtered_indices[g_quest_selected_index];
+                            if (idx >= 0 && idx < q_count && q_id[idx][0])
+                                OQ_QuestApplyKForQuestRow(q_id[idx], q_status[idx], q_name[idx][0] ? q_name[idx] : "");
                         }
                     }
                 }
