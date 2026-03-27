@@ -3744,6 +3744,28 @@ void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_typ
         OQ_RefreshOverlayFromClient();
 }
 
+/* vkQuake client.h: signon 0..SIGNONS-1 until server stream is complete; cl.stats/items not stable for deltas. */
+#ifndef OQ_VKQUAKE_SIGNONS
+#define OQ_VKQUAKE_SIGNONS 4
+#endif
+
+/** Snapshot cl.items + combat stats into poll_prev_* without running pickup/quest delta logic. */
+static void OQ_PollCaptureItemStatsBaseline(
+    unsigned int* poll_prev_items,
+    int* poll_prev_shells, int* poll_prev_nails, int* poll_prev_rockets, int* poll_prev_cells,
+    int* poll_prev_health, int* poll_prev_armor, int* poll_prev_valid)
+{
+    extern client_state_t cl;
+    *poll_prev_items = (unsigned int)cl.items;
+    *poll_prev_shells = cl.stats[STAT_SHELLS];
+    *poll_prev_nails = cl.stats[STAT_NAILS];
+    *poll_prev_rockets = cl.stats[STAT_ROCKETS];
+    *poll_prev_cells = cl.stats[STAT_CELLS];
+    *poll_prev_health = cl.stats[STAT_HEALTH];
+    *poll_prev_armor = cl.stats[STAT_ARMOR];
+    *poll_prev_valid = 1;
+}
+
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
 void OQuake_STAR_PollItems(void) {
     extern client_state_t cl;
@@ -3753,6 +3775,8 @@ void OQuake_STAR_PollItems(void) {
     static int poll_prev_shells = -1, poll_prev_nails = -1, poll_prev_rockets = -1, poll_prev_cells = -1;
     static int poll_prev_health = -1, poll_prev_armor = -1;
     static int poll_prev_valid = 0;
+    static char poll_map_baseline[128];
+    static qboolean poll_need_spawn_baseline = true;
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
@@ -3874,14 +3898,27 @@ void OQuake_STAR_PollItems(void) {
             OQ_UpdateSendPopupBindingCapture();
         }
         OQ_UpdatePopupInputCapture();
-        poll_prev_items = (unsigned int)cl.items;
-        poll_prev_shells = cl.stats[STAT_SHELLS];
-        poll_prev_nails = cl.stats[STAT_NAILS];
-        poll_prev_rockets = cl.stats[STAT_ROCKETS];
-        poll_prev_cells = cl.stats[STAT_CELLS];
-        poll_prev_health = cl.stats[STAT_HEALTH];
-        poll_prev_armor = cl.stats[STAT_ARMOR];
-        poll_prev_valid = 1;
+        /* Next time we are in-game, do not diff against menu/loading cl.* — that looks like mass pickups (spawn kit). */
+        poll_need_spawn_baseline = true;
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        return;
+    }
+    /* Mid-signon: cl wiped/filling after serverinfo; never emit pickup deltas vs stale poll_prev. */
+    if (cls.signon < OQ_VKQUAKE_SIGNONS) {
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        return;
+    }
+    /* New map (CL_ParseServerInfo → CL_ClearState) or first frame after menu: baseline = current spawn kit, no fake pickups. */
+    if (poll_need_spawn_baseline || q_strcasecmp(cl.mapname, poll_map_baseline) != 0) {
+        q_strlcpy(poll_map_baseline, cl.mapname, sizeof(poll_map_baseline));
+        poll_need_spawn_baseline = false;
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
         return;
     }
     OQuake_STAR_OnItemsChangedEx(poll_prev_items, (unsigned int)cl.items, 1);
