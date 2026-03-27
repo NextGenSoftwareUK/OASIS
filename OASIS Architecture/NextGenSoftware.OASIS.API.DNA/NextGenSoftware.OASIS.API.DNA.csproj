@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API DNA</Product>
 	  <Title>WEB4 OASIS API DNA</Title>
@@ -48,6 +48,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+	  <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
