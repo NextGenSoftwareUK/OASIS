@@ -499,12 +499,6 @@ static char g_inventory_saved_down_bind[128] __attribute__((unused));
 static char g_inventory_saved_left_bind[128] __attribute__((unused));
 static char g_inventory_saved_right_bind[128] __attribute__((unused));
 static char g_inventory_saved_all_binds[MAX_KEYS][128];
-/* Movement keys (WASD + arrows): when inventory or quest popup is open, we clear these bindings so the player cannot move even if the engine was not patched (e.g. Linux without cl_input.c patch). Restored on close. */
-#define OQ_MOVEMENT_KEY_COUNT 8
-static int g_movement_key_indices[OQ_MOVEMENT_KEY_COUNT];  /* filled on first use */
-static char g_movement_saved_binds[OQ_MOVEMENT_KEY_COUNT][128];
-static qboolean g_movement_bindings_captured = false;
-static qboolean g_movement_keys_resolved = false;
 /* Pending use-item from overlay (E key): applied in callback after async use completes so inventory refresh shows correct qty/removal. */
 static char g_oq_use_pending_name[256];
 static char g_oq_use_pending_type[64];
@@ -519,6 +513,11 @@ static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM: filter by status, Start (Not Started) or Set tracker (In Progress). */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
+static qboolean g_inventory_i_key_was_down = false;
+/* Detect quest list refetch / filter change so selection index is re-aligned to tracker (ODOOM-style; avoids highlight drift without Enter idx_below). */
+static unsigned s_oq_quest_list_layout_sig_prev;
+static int s_oq_quest_sel_idx_for_sig = -1;
+static char s_oq_quest_sel_id_for_sig[64];
 
 int OQuake_STAR_IsQuestPopupOpen(void)
 {
@@ -533,6 +532,27 @@ int OQuake_STAR_IsInventoryPopupOpen(void)
 #define OQ_QUEST_MAX 64
 #define OQ_LINKS_MAX 16   /* max prereq or sub-quest IDs per quest */
 #define OQ_OBJ_MAX 16    /* max objectives per quest */
+
+/** Quest panel height: same clamps for key handling and draw (matches ODOOM single max-row source). */
+static int OQ_QuestPopupPanelQh(void)
+{
+    int qh = q_min(glheight - 24, 900);
+    if (qh < 420)
+        qh = 420;
+    return qh;
+}
+
+/** Visible quest rows in left list; OQ_PY(96) must match header+toggles+table header space used in draw (was mixed with raw 96, causing scroll/highlight drift). */
+static int OQ_QuestPopupListMaxRowsForQh(int qh)
+{
+    int row_h = OQ_PY(12);
+    int max_r = (qh - OQ_PY(96)) / row_h;
+    if (max_r < 6)
+        max_r = 6;
+    if (max_r > OQ_QUEST_MAX)
+        max_r = OQ_QUEST_MAX;
+    return max_r;
+}
 static int g_quest_filter_not_started = 1;
 static int g_quest_filter_in_progress = 1;
 static int g_quest_filter_completed = 1;
@@ -562,6 +582,7 @@ static char g_quest_tracker_last_n_obj_id[64] = "";
 static int g_quest_tracker_needs_refresh = 0;
 static int g_quest_popup_sync_to_tracker = 0;  /* 1 = when popup opens, sync left-list selection to tracked quest once list is ready */
 static int g_quest_popup_sync_objective_once = 0;  /* 1 = sync right-panel objective selection to tracked objective once (when panel shows tracked quest) */
+static int g_quest_popup_suppress_enter_frames = 0;  /* kept at 0; Enter is no longer gated on this counter */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
 static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
@@ -649,6 +670,70 @@ static qboolean OQ_KeyPressed(int key)
     if (!keydown[key])
         g_inventory_key_was_down[key] = false;
     return false;
+}
+
+/** Rising edge on main or keypad Enter (quest popup). Uses keynums from quakedef.h — avoids Key_StringToKeynum("enter") drift on some platforms. */
+static qboolean OQ_QuestEnterRisingEdge(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && keydown[k_main] && !g_inventory_key_was_down[k_main])
+        return true;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && keydown[k_kp] && !g_inventory_key_was_down[k_kp])
+        return true;
+    return false;
+}
+
+static void OQ_QuestEnterCommit(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && keydown[k_main])
+        g_inventory_key_was_down[k_main] = true;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && keydown[k_kp])
+        g_inventory_key_was_down[k_kp] = true;
+}
+
+static void OQ_QuestEnterReleaseTick(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && !keydown[k_main])
+        g_inventory_key_was_down[k_main] = false;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && !keydown[k_kp])
+        g_inventory_key_was_down[k_kp] = false;
+}
+
+/** Fingerprint top-level quest buffer + counts so cache refetch / filter changes are visible (ODOOM C++ list window invalidation analogue). */
+static unsigned OQ_QuestListLayoutSig(const char* buf, int buflen, int qn, int fn)
+{
+    unsigned h = 5381u ^ ((unsigned)qn * 257u) ^ ((unsigned)fn * 65537u);
+    int i, lim;
+    if (!buf || buflen <= 0)
+        return h;
+    lim = buflen;
+    if (lim > 768)
+        lim = 768;
+    for (i = 0; i < lim; i++)
+        h = ((h << 5) + h) + (unsigned char)buf[i];
+    return h;
+}
+
+static int OQ_KeybindingReferencesCommand(int key, const char* cmd)
+{
+    const char* b;
+    if (key < 0 || key >= MAX_KEYS || !cmd || !cmd[0])
+        return 0;
+    b = keybindings[key];
+    if (!b || !b[0])
+        return 0;
+    return strstr(b, cmd) != NULL;
+}
+
+/** Shared cleanup when quest popup closes (Q, I, or leaving a map). Clears STAR flag and quest-list signature state. */
+static void OQ_OnQuestPopupClosed(void)
+{
+    star_api_set_quest_popup_open(0);
+    g_quest_popup_suppress_enter_frames = 0;
+    g_quest_status_message[0] = '\0';
+    g_quest_status_frames = 0;
+    g_quest_start_pending_id[0] = '\0';
+    s_oq_quest_sel_idx_for_sig = -1;
+    s_oq_quest_list_layout_sig_prev = 0u;
 }
 
 static int OQ_BuildFilteredIndices(int* out_indices, int max_indices)
@@ -811,52 +896,9 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
     return 1;
 }
 
-/** Resolve movement key indices once (WASD + arrows). Used so we can clear bindings when popup is open on Linux where engine may not be patched. */
-static void OQ_ResolveMovementKeys(void)
-{
-    static const char* const names[OQ_MOVEMENT_KEY_COUNT] = {
-        "w", "a", "s", "d", "uparrow", "downarrow", "leftarrow", "rightarrow"
-    };
-    int i;
-    if (g_movement_keys_resolved)
-        return;
-    g_movement_keys_resolved = true;
-    for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-        int kn = Key_StringToKeynum(names[i]);
-        g_movement_key_indices[i] = (kn >= 0 && kn < MAX_KEYS) ? kn : -1;
-    }
-}
-
-/** When inventory or quest popup is open: clear WASD and arrow key bindings so the player cannot move (fallback when engine cl_input.c is not patched, e.g. Linux). Restore on close so keys work immediately. */
+/** Inventory/quest popups: movement is blocked in vkQuake cl_input.c (OQuake patch) without touching keybindings — same model as ODOOM + VKQUAKE_OQUAKE_INTEGRATION.md. Stripping WASD here caused first-load / empty-restore dead keys on Linux. Send-to-avatar popup still clears binds via OQ_UpdateSendPopupBindingCapture. */
 static void OQ_UpdatePopupInputCapture(void)
 {
-    int i;
-    qboolean popup_open = (g_inventory_open || g_quest_popup_open) ? true : false;
-
-    if (popup_open) {
-        OQ_ResolveMovementKeys();
-        if (!g_movement_bindings_captured) {
-            for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-                int k = g_movement_key_indices[i];
-                if (k >= 0) {
-                    q_strlcpy(g_movement_saved_binds[i],
-                        keybindings[k] ? keybindings[k] : "",
-                        sizeof(g_movement_saved_binds[i]));
-                    Key_SetBinding(k, "");
-                }
-            }
-            Key_ClearStates();
-            g_movement_bindings_captured = true;
-        }
-    } else if (g_movement_bindings_captured) {
-        for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-            int k = g_movement_key_indices[i];
-            if (k >= 0)
-                Key_SetBinding(k, g_movement_saved_binds[i]);
-        }
-        Key_ClearStates();
-        g_movement_bindings_captured = false;
-    }
 }
 
 static void OQ_UpdateSendPopupBindingCapture(void)
@@ -3714,6 +3756,8 @@ void OQuake_STAR_PollItems(void) {
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
+    /* Keep movement bind capture in sync every frame so closing a popup still restores WASD if the HUD draw path did not run (Linux / loading / menu). */
+    OQ_UpdatePopupInputCapture();
 
     /* If async auth was started but callback never fired (hang, or star_sync_pump never runs e.g. missing host.c patch), wall-clock timeout. */
     if (g_star_async_auth_pending) {
@@ -3819,6 +3863,17 @@ void OQuake_STAR_PollItems(void) {
     /* XP refresh is done once in auth-done or API-key path; no delayed second call. */
 
     if (!sv.active || cls.demoplayback) {
+        /* Leaving a map / demo: close overlays so movement bind capture always restores (Linux stuck WASD if HUD path skipped). */
+        if (g_quest_popup_open) {
+            g_quest_popup_open = false;
+            OQ_OnQuestPopupClosed();
+        }
+        if (g_inventory_open) {
+            g_inventory_open = false;
+            g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+            OQ_UpdateSendPopupBindingCapture();
+        }
+        OQ_UpdatePopupInputCapture();
         poll_prev_items = (unsigned int)cl.items;
         poll_prev_shells = cl.stats[STAT_SHELLS];
         poll_prev_nails = cl.stats[STAT_NAILS];
@@ -4567,9 +4622,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (keydown[s_q_key] && !g_quest_key_was_down) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
-                    star_api_refresh_quest_cache_in_background();
+                    /* STAR: no progress POST/merge and no quest-cache replace from GET while popup open (see star_api_set_quest_popup_open). Cache stays client-merged during play; no GET on open (would be discarded while flag is set). */
+                    star_api_set_quest_popup_open(1);
                     g_quest_popup_sync_to_tracker = 1;  /* Sync selection to tracked quest once list is ready */
                     g_quest_popup_sync_objective_once = 1;  /* Sync objective selection to tracked objective once */
+                    g_quest_popup_suppress_enter_frames = 0;  /* do not block Enter; Q is edge-triggered so accidental Enter is rare */
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -4580,15 +4637,34 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     g_quest_subquest_selected = 0;
                     g_quest_subquest_scroll = 0;
                 } else {
-                    g_quest_status_message[0] = '\0';
-                    g_quest_status_frames = 0;
-                    g_quest_start_pending_id[0] = '\0';
+                    OQ_OnQuestPopupClosed();
                 }
                 g_quest_key_was_down = true;
             }
             if (!keydown[s_q_key])
                 g_quest_key_was_down = false;
         }
+    }
+
+    /* I key: poll like Q when 'i' is not bound to oasis_inventory_toggle (menu "reset keys" restores vanilla binds; Q worked because it is polled). */
+    {
+        static int s_i_hud_key = -1;
+        if (s_i_hud_key < 0)
+            s_i_hud_key = Key_StringToKeynum("i");
+        if (s_i_hud_key >= 0 && s_i_hud_key < MAX_KEYS && key_dest != key_message && key_dest != key_console && key_dest != key_menu &&
+            !OQ_KeybindingReferencesCommand(s_i_hud_key, "oasis_inventory_toggle")) {
+            if (keydown[s_i_hud_key] && !g_inventory_i_key_was_down) {
+                g_inventory_i_key_was_down = true;
+                if (g_quest_popup_open) {
+                    g_quest_popup_open = false;
+                    OQ_OnQuestPopupClosed();
+                }
+                OQ_InventoryToggle_f();
+            }
+            if (!keydown[s_i_hud_key])
+                g_inventory_i_key_was_down = false;
+        } else if (s_i_hud_key >= 0 && s_i_hud_key < MAX_KEYS && !keydown[s_i_hud_key])
+            g_inventory_i_key_was_down = false;
     }
 
     /* C = use health, F = use armor (like ODOOM): poll in draw path so they work regardless of key bindings. */
@@ -4658,7 +4734,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
     }
 
-    /* Update movement-key capture whenever either popup is open (so WASD/arrows are disabled on Linux even if engine cl_input.c was not patched). */
+    /* Placeholder: movement blocking is vkQuake cl_input.c (OQuake patch); do not strip keybindings here (Linux first-load dead WASD). */
     OQ_UpdatePopupInputCapture();
 
     if (g_inventory_open)
@@ -4780,6 +4856,9 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
     /* Quest popup (Q key): filter by status (B/N/M), list nav (Home/End/PgUp/PgDn), selection (Up/Down), Enter = Start or Set tracker. */
     if (g_quest_popup_open) {
+        if (g_quest_popup_suppress_enter_frames > 0)
+            g_quest_popup_suppress_enter_frames--;
+
         static char quest_buf[65536];
         static char q_id[OQ_QUEST_MAX][64];
         static char q_name[OQ_QUEST_MAX][128];
@@ -4915,9 +4994,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
-        /* Sync only when popup opens (g_quest_popup_sync_to_tracker set there). Do NOT re-sync on list refresh:
-         * a mid-session cache refresh can change filtered count and make the same quest id resolve to a different fi,
-         * which then overwrote selection and caused "1 above" when user pressed Enter. */
+        /* ODOOM-style: when the list buffer/filter layout changes, the same filtered row index can point at a different quest after reload/refetch — re-sync highlight to the tracked quest (g_quest_popup_sync_to_tracker). Enter still uses g_quest_selected_index only (no idx_below). */
+        {
+            unsigned sig = OQ_QuestListLayoutSig(quest_buf, n, q_count, q_filtered_count);
+            if (!g_quest_drill_parent_id[0] && s_oq_quest_list_layout_sig_prev != 0u && sig != s_oq_quest_list_layout_sig_prev && g_quest_tracker_id[0] &&
+                s_oq_quest_sel_idx_for_sig >= 0 && g_quest_selected_index == s_oq_quest_sel_idx_for_sig && s_oq_quest_sel_id_for_sig[0]) {
+                int qi_now = -1;
+                if (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count)
+                    qi_now = q_filtered_indices[g_quest_selected_index];
+                {
+                    const char* id_now = (qi_now >= 0 && qi_now < q_count && q_id[qi_now][0]) ? q_id[qi_now] : "";
+                    if (id_now[0] && q_strcasecmp(id_now, s_oq_quest_sel_id_for_sig) != 0)
+                        g_quest_popup_sync_to_tracker = 1;
+                }
+            }
+            s_oq_quest_list_layout_sig_prev = sig;
+        }
 
         /* When tracker was restored from profile (id set, name empty), fill name from quest list once it loads */
         if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
@@ -5036,18 +5128,20 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             s_key_debounce_frames = 3;  /* debounce as soon as popup opened (sync pending) */
         if (s_key_debounce_frames > 0)
             s_key_debounce_frames--;
-        if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
+        /* One-shot list sync to restored tracker. Clear the flag even when there is nothing to sync or the quest is not in the filtered list — otherwise Enter stays blocked forever. */
+        if (g_quest_popup_sync_to_tracker && (!g_quest_tracker_id[0] || left_list_count <= 0))
+            g_quest_popup_sync_to_tracker = 0;
+        else if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
             int fi;
-            int found = 0;
             if (g_quest_drill_parent_id[0]) {
                 for (fi = 0; fi < drill_q_filtered_count; fi++) {
                     int di = drill_q_filtered_indices[fi];
                     if (di >= 0 && di < drill_q_count && q_strcasecmp(drill_q_id[di], g_quest_tracker_id) == 0) {
+                        int mr_sync = OQ_QuestPopupListMaxRowsForQh(OQ_QuestPopupPanelQh());
                         g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        g_quest_scroll = (fi >= mr_sync) ? fi - mr_sync + 1 : 0;
                         if (g_quest_scroll < 0) g_quest_scroll = 0;
                         q_strlcpy(panel_quest_id, drill_q_id[di], sizeof(panel_quest_id));
-                        found = 1;
                         s_key_debounce_frames = 3;  /* ignore Up/Down for 3 frames to avoid key repeat moving selection */
                         break;
                     }
@@ -5056,11 +5150,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 for (fi = 0; fi < q_filtered_count; fi++) {
                     int qi = q_filtered_indices[fi];
                     if (qi >= 0 && qi < q_count && q_strcasecmp(q_id[qi], g_quest_tracker_id) == 0) {
+                        int mr_sync = OQ_QuestPopupListMaxRowsForQh(OQ_QuestPopupPanelQh());
                         g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        g_quest_scroll = (fi >= mr_sync) ? fi - mr_sync + 1 : 0;
                         if (g_quest_scroll < 0) g_quest_scroll = 0;
                         q_strlcpy(panel_quest_id, q_id[qi], sizeof(panel_quest_id));
-                        found = 1;
                         s_key_debounce_frames = 3;  /* ignore Up/Down for 3 frames to avoid key repeat moving selection */
                         {
                             static char sync_log[128];
@@ -5071,7 +5165,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     }
                 }
             }
-            if (found) g_quest_popup_sync_to_tracker = 0;
+            g_quest_popup_sync_to_tracker = 0;
         }
 
         /* Clear "Starting quest..." when list shows the quest as InProgress (cache updated). */
@@ -5314,16 +5408,19 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 }
             }
             g_quest_popup_sync_objective_once = 0;
+        } else if (g_quest_popup_sync_objective_once) {
+            /* No active objective on profile, wrong panel, or no objectives — do not block Enter on objectives row forever. */
+            if (!g_quest_tracker_id[0] || !g_quest_tracker_active_objective_id[0] || n_objectives <= 0 ||
+                !panel_quest_id[0] || strcmp(panel_quest_id, g_quest_tracker_id) != 0)
+                g_quest_popup_sync_objective_once = 0;
         }
 
         /* Key handling: Tab switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel. Tab is blocked from engine while popup is open. */
         {
-            static int s_enter_key = -2, s_kp_enter_key = -2, s_tab_key = -2;
-            if (s_enter_key == -2) s_enter_key = Key_StringToKeynum("enter");
-            if (s_kp_enter_key == -2) s_kp_enter_key = Key_StringToKeynum("kp_enter");
+            static int s_tab_key = -2;
+            const int q_enter_main = K_ENTER;
+            const int q_enter_kp = K_KP_ENTER;
             if (s_tab_key == -2) s_tab_key = Key_StringToKeynum("tab");
-            if (s_enter_key < 0) s_enter_key = K_ENTER;
-            if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
             if (s_tab_key < 0) s_tab_key = 9;  /* K_TAB fallback if key lookup fails */
             if (g_quest_drill_parent_id[0] && OQ_KeyPressed(K_ESCAPE)) {
                 g_quest_drill_parent_id[0] = '\0';
@@ -5344,11 +5441,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int npr = n_prereq;
             int nobj = n_objectives;
             int nsq = n_subquest_list;
+            const qboolean enter_edge = OQ_QuestEnterRisingEdge(q_enter_main, q_enter_kp);
 
             if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_prereq_selected--; if (g_quest_prereq_selected < 0) g_quest_prereq_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_prereq_selected++; if (g_quest_prereq_selected >= npr) g_quest_prereq_selected = npr > 0 ? npr - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr) {
+                if (enter_edge && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr) {
                     const char* want_id = pr_id[g_quest_prereq_selected];
                     int fi;
                     if (g_quest_drill_parent_id[0]) {
@@ -5375,7 +5473,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_objectives_selected--; if (g_quest_objectives_selected < 0) g_quest_objectives_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_objectives_selected++; if (g_quest_objectives_selected >= nobj) g_quest_objectives_selected = nobj > 0 ? nobj - 1 : 0; }
                 /* Enter = set active objective for tracker (only when detail quest is the tracked quest). */
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj &&
+                if (enter_edge && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj &&
                     g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 && obj_id[g_quest_objectives_selected][0]) {
                     q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
                     g_quest_tracker_objective_index = g_quest_objectives_selected;
@@ -5400,7 +5498,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nsq) g_quest_subquest_selected = nsq > 0 ? nsq - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nsq > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nsq) {
+                if (enter_edge && nsq > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nsq) {
                     q_strlcpy(g_quest_drill_parent_id, sq_id[g_quest_subquest_selected], sizeof(g_quest_drill_parent_id));
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
@@ -5420,7 +5518,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                             if (g_quest_selected_index >= left_count) g_quest_selected_index = left_count - 1;
                         }
                     }
-                    if (OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) {
+                    if (enter_edge) {
                         if (g_quest_drill_parent_id[0]) {
                             int di = drill_q_filtered_indices[g_quest_selected_index];
                             if (di >= 0 && di < drill_q_count && drill_q_id[di][0]) {
@@ -5429,7 +5527,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                     g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
                                     q_strlcpy(g_quest_start_pending_id, drill_q_id[di], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(drill_q_id[di]);
-                                } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0) {
+                                } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0 ||
+                                           strcmp(drill_q_status[di], "Completed") == 0 || strcmp(drill_q_status[di], "2") == 0) {
                                     const char* new_quest_id = drill_q_id[di];
                                     /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
                                     if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
@@ -5446,33 +5545,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                         q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on drill quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
                                         star_api_log_to_file(log_buf);
                                     }
-                                    {
-                                        char persist_obj[64];
-                                        const char* persist_ptr = NULL;
-                                        if (OQ_SelectPersistableObjectiveId(g_quest_tracker_id, g_quest_tracker_active_objective_id, persist_obj, sizeof(persist_obj))) {
-                                            q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
-                                            persist_ptr = g_quest_tracker_active_objective_id;
-                                        }
-                                        star_api_set_active_quest(g_quest_tracker_id, persist_ptr);
-                                    }
+                                    /* Quest-list Enter tracks the quest only; objective stays API-driven (first incomplete or explicit objective Enter). */
+                                    star_api_set_active_quest(g_quest_tracker_id, NULL);
                                 }
                             }
                         } else {
+                            /* Use the highlighted list index only. Do not redirect to the row below when it is the tracked quest:
+                             * that made Enter appear dead after moving Up (selection sits above tracker; we'd re-save the same quest). */
                             int idx = q_filtered_indices[g_quest_selected_index];
-                            /* If tracked quest is in list and selection is one row above it (display bug), use tracked quest for save */
-                            if (g_quest_tracker_id[0] && g_quest_selected_index + 1 < q_filtered_count) {
-                                int idx_below = q_filtered_indices[g_quest_selected_index + 1];
-                                if (idx_below >= 0 && idx_below < q_count && q_strcasecmp(q_id[idx_below], g_quest_tracker_id) == 0) {
-                                    idx = idx_below;
-                                }
-                            }
                             if (idx >= 0 && idx < q_count && q_id[idx][0]) {
                                 if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
                                     q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
                                     g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
                                     q_strlcpy(g_quest_start_pending_id, q_id[idx], sizeof(g_quest_start_pending_id));
                                     star_api_start_quest(q_id[idx]);
-                                } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
+                                } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0 ||
+                                           strcmp(q_status[idx], "Completed") == 0 || strcmp(q_status[idx], "2") == 0) {
                                     const char* new_quest_id = q_id[idx];
                                     /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
                                     if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
@@ -5489,21 +5577,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                         q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on top-level quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
                                         star_api_log_to_file(log_buf);
                                     }
-                                    {
-                                        char persist_obj[64];
-                                        const char* persist_ptr = NULL;
-                                        if (OQ_SelectPersistableObjectiveId(g_quest_tracker_id, g_quest_tracker_active_objective_id, persist_obj, sizeof(persist_obj))) {
-                                            q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
-                                            persist_ptr = g_quest_tracker_active_objective_id;
-                                        }
-                                        star_api_set_active_quest(g_quest_tracker_id, persist_ptr);
-                                    }
+                                    /* Quest-list Enter tracks the quest only; objective stays API-driven (first incomplete or explicit objective Enter). */
+                                    star_api_set_active_quest(g_quest_tracker_id, NULL);
                                 }
                             }
                         }
                     }
                 }
             }
+            if (enter_edge)
+                OQ_QuestEnterCommit(q_enter_main, q_enter_kp);
+            OQ_QuestEnterReleaseTick(q_enter_main, q_enter_kp);
             }
         }
         /* Toggles: 1=Not Started, 2=In Progress, 3=Completed */
@@ -5519,12 +5603,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (OQ_KeyPressed(s_kn)) g_quest_filter_in_progress = !g_quest_filter_in_progress;
             if (OQ_KeyPressed(s_km)) g_quest_filter_completed = !g_quest_filter_completed;
         }
-        /* List navigation: Home=first, End=last, PgUp/PgDn=one screen */
+        /* List navigation: Home=first, End=last, PgUp/PgDn=one screen (qh/max rows = draw path; ODOOM uses one row count for keys + overlay). */
         if (g_quest_focus == OQ_QUEST_FOCUS_MAIN && left_list_count > 0) {
-        int qh_key = q_min(glheight - 24, 900);
-            if (qh_key < 200) qh_key = 200;
-        int max_rows_key = (qh_key - OQ_PY(96)) / OQ_PY(12);
-            if (max_rows_key < 6) max_rows_key = 6;
+            int qh_key = OQ_QuestPopupPanelQh();
+            int max_rows_key = OQ_QuestPopupListMaxRowsForQh(qh_key);
             if (OQ_KeyPressed(K_HOME)) {
                 g_quest_selected_index = 0;
                 g_quest_scroll = 0;
@@ -5550,6 +5632,18 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_quest_selected_index >= left_list_count && left_list_count > 0)
             g_quest_selected_index = left_list_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+        /* Track row identity for list-layout drift detection (top-level list only). */
+        if (!g_quest_drill_parent_id[0]) {
+            s_oq_quest_sel_idx_for_sig = g_quest_selected_index;
+            if (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) {
+                int sqi = q_filtered_indices[g_quest_selected_index];
+                if (sqi >= 0 && sqi < q_count && q_id[sqi][0])
+                    q_strlcpy(s_oq_quest_sel_id_for_sig, q_id[sqi], sizeof(s_oq_quest_sel_id_for_sig));
+                else
+                    s_oq_quest_sel_id_for_sig[0] = '\0';
+            } else
+                s_oq_quest_sel_id_for_sig[0] = '\0';
+        }
         sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
         if (g_quest_prereq_selected >= n_prereq && n_prereq > 0) g_quest_prereq_selected = n_prereq - 1;
         if (g_quest_objectives_selected >= n_objectives && n_objectives > 0) g_quest_objectives_selected = n_objectives - 1;
@@ -5557,9 +5651,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
 
         /* Draw: same size as inventory (900x480), slightly taller (540) for right panel; left = list (half name col), right = desc + prereq + subquest */
         int qw = q_min(glwidth - 24, 1440);
-        int qh = q_min(glheight - 24, 900);
+        int qh = OQ_QuestPopupPanelQh();
         if (qw < 1000) qw = 1000;
-        if (qh < 420) qh = 420;
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
         if (qx < 0) qx = 0;
@@ -5600,9 +5693,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int list_left_w = OQ_TEXT_W_CHARS(col1_chars + col2_chars + 14);
             dy = qy + OQ_PY(48);
             row_h = OQ_PY(12);
-            max_rows = (qh - 96) / row_h;  /* one fewer row to leave space before bottom hint text */
-            if (max_rows < 6) max_rows = 6;
-            if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
+            max_rows = OQ_QuestPopupListMaxRowsForQh(qh);
             col1_x = qx + 10;
             col2_x = qx + 10 + OQ_TEXT_W_CHARS(col1_chars);
             col3_x = qx + 10 + OQ_TEXT_W_CHARS(col1_chars + col2_chars);
