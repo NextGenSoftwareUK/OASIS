@@ -24,6 +24,36 @@ public unsafe class StarApiExportsUnitTests
     }
 
     [Fact]
+    public void StarApiInit_NativeTransport_ReturnsInitFailed()
+    {
+        delegate* unmanaged[Cdecl]<star_api_config_t*, int> initPtr = &StarApiExports.StarApiInit;
+        delegate* unmanaged[Cdecl]<sbyte*> getLastErrorPtr = &StarApiExports.StarApiGetLastError;
+        delegate* unmanaged[Cdecl]<void> cleanupPtr = &StarApiExports.StarApiCleanup;
+
+        cleanupPtr();
+        var baseUrlPtr = StringToNativeUtf8("https://web5.example.com/api");
+        try
+        {
+            var config = new star_api_config_t
+            {
+                base_url = baseUrlPtr,
+                timeout_seconds = 30,
+                transport = (int)StarApiTransport.Native
+            };
+            var code = initPtr(&config);
+            var err = PtrToString(getLastErrorPtr());
+
+            Assert.Equal((int)StarApiResultCode.InitFailed, code);
+            Assert.Contains("Native STAR", err ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            NativeMemory.Free((void*)baseUrlPtr);
+            cleanupPtr();
+        }
+    }
+
+    [Fact]
     public void StarApiSetOasisBaseUrl_BeforeInit_ReturnsNotInitialized()
     {
         delegate* unmanaged[Cdecl]<sbyte*, int> setWeb4Ptr = &StarApiExports.StarApiSetOasisBaseUrl;

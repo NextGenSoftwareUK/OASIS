@@ -4,6 +4,8 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 **OQuake is based on vkQuake.** Full credit to [vkQuake](https://github.com/Novum/vkQuake) (Novum). vkQuake is GPL-2.0. See **[Docs/CREDITS_AND_LICENSE.md](Docs/CREDITS_AND_LICENSE.md)** for credits and license obligations.
 
+**Engine checkout (`VKQUAKE_SRC`):** use **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (patched vkQuake fork). Vanilla vkQuake works only if build scripts successfully apply integration from this repo; the fork is recommended. See [Docs/DEVELOPER_ONBOARDING.md](../Docs/DEVELOPER_ONBOARDING.md).
+
 ## Quick start
 
 ### Windows

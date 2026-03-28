@@ -48,7 +48,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY;
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
-REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / OASIS Omniverse\Docs\STAR_INTEGRATION_AUDIT.md.
 if not defined OASIS_STAR_SYNC_IN_CLIENT set "OASIS_STAR_SYNC_IN_CLIENT=1"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
