@@ -1467,7 +1467,7 @@ public sealed class StarApiClient : IDisposable
             };
             _cachedQuestList[i] = updated;
             _questObjectivesCacheVersion++;
-            StarApiExports.StarApiLog($"[Quests] Merged {objectives.Count} objectives into cached quest {questId}; cache version now {_questObjectivesCacheVersion}. UI should re-call get_quest_objectives_string to refresh.");
+            StarApiExports.StarApiLogFileOnly($"[Quests] Merged {objectives.Count} objectives into cached quest {questId}; cache version now {_questObjectivesCacheVersion}. UI should re-call get_quest_objectives_string to refresh.");
             break;
         }
     }
@@ -2112,7 +2112,7 @@ public sealed class StarApiClient : IDisposable
         }
     }
 
-    /// <summary>File log: each top-level quest id, status, completed/total objectives, and list pct (same formula as <see cref="SerializeQuestsForGame"/>). Caller must hold <see cref="_questsCacheLock"/>.</summary>
+    /// <summary>File log: default one totals line; per-quest lines when <c>STAR_VERBOSE_QUEST_LIST=1</c>. Caller must hold <see cref="_questsCacheLock"/>.</summary>
     private void LogTopLevelQuestPctSnapshotUnderQuestLock(string reason, Guid? activeQuestId)
     {
         if (_cachedQuestList is null || _cachedQuestList.Count == 0)
@@ -2124,8 +2124,21 @@ public sealed class StarApiClient : IDisposable
             .Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString())
             .OrderBy(q => q.Id ?? string.Empty, StringComparer.Ordinal)
             .ToList();
+        var totalObj = 0;
+        var doneObj = 0;
+        foreach (var q in top)
+        {
+            totalObj += q.Objectives?.Count ?? 0;
+            doneObj += q.Objectives?.Count(o => o.IsCompleted) ?? 0;
+        }
+        try
+        {
+            StarApiExports.StarApiLogFileOnly($"[Quests][PctSnapshot] reason={reason} questsInCache={_cachedQuestList.Count} topLevel={top.Count} objectivesCompleted={doneObj}/{totalObj} activeQuest={activeQuestId?.ToString("D") ?? "(null)"}");
+        }
+        catch { /* ignore */ }
+        if (!VerboseQuestListLogsEnabled) return;
         var sb = new StringBuilder(512 + top.Count * 120);
-        sb.Append("[Quests][PctSnapshot] reason=").Append(reason)
+        sb.Append("[Quests][PctSnapshot][verbose] reason=").Append(reason)
             .Append(" topLevel=").Append(top.Count)
             .Append(" activeQuest=").Append(activeQuestId?.ToString("D") ?? "(null)");
         var n = 0;
@@ -2160,8 +2173,21 @@ public sealed class StarApiClient : IDisposable
             .Where(q => string.IsNullOrWhiteSpace(q.ParentQuestId) || q.ParentQuestId == Guid.Empty.ToString())
             .OrderBy(q => q.Id ?? string.Empty, StringComparer.Ordinal)
             .ToList();
+        var totalObj = 0;
+        var doneObj = 0;
+        foreach (var q in top)
+        {
+            totalObj += q.Objectives?.Count ?? 0;
+            doneObj += q.Objectives?.Count(o => o.IsCompleted) ?? 0;
+        }
+        try
+        {
+            StarApiExports.StarApiLogFileOnly($"[Quests][PctSnapshot] reason={reason} questsInList={list.Count} topLevel={top.Count} objectivesCompleted={doneObj}/{totalObj} activeQuest={activeQuestId?.ToString("D") ?? "(null)"}");
+        }
+        catch { /* ignore */ }
+        if (!VerboseQuestListLogsEnabled) return;
         var sb = new StringBuilder(512 + top.Count * 120);
-        sb.Append("[Quests][PctSnapshot] reason=").Append(reason)
+        sb.Append("[Quests][PctSnapshot][verbose] reason=").Append(reason)
             .Append(" topLevel=").Append(top.Count)
             .Append(" activeQuest=").Append(activeQuestId?.ToString("D") ?? "(null)");
         var n = 0;
@@ -2192,7 +2218,7 @@ public sealed class StarApiClient : IDisposable
         try { StarApiExports.StarApiLogFileOnly($"[Quest] quest popup open={newVal}"); } catch { /* ignore */ }
     }
 
-    /// <summary>File log: cached active quest/objective IDs, resolved quest row from <see cref="_cachedQuestList"/>, every objective (id, order, completed, list line), and HUD tracker rows (same as <c>odoom_quest_tracker_objectives</c>). Search log for <c>[Quest][ActiveSnapshot]</c>.</summary>
+    /// <summary>File log: default one-line summary; full objective/tracker dump when <c>STAR_VERBOSE_QUEST_LIST=1</c>. Search <c>[Quest][ActiveSnapshot]</c>.</summary>
     private void LogActiveQuestSnapshot(string reason)
     {
         Guid? qid;
@@ -2201,6 +2227,34 @@ public sealed class StarApiClient : IDisposable
         {
             qid = _cachedActiveQuestId;
             oid = _cachedActiveObjectiveId;
+        }
+
+        if (!VerboseQuestListLogsEnabled)
+        {
+            string? qn = null;
+            var objN = 0;
+            if (qid.HasValue && qid.Value != Guid.Empty)
+            {
+                lock (_questsCacheLock)
+                {
+                    if (_cachedQuestList != null)
+                    {
+                        var qs = qid.Value.ToString("D");
+                        var quest = _cachedQuestList.FirstOrDefault(q => string.Equals(q.Id, qs, StringComparison.OrdinalIgnoreCase));
+                        if (quest != null)
+                        {
+                            qn = quest.Name;
+                            objN = quest.Objectives?.Count ?? 0;
+                        }
+                    }
+                }
+            }
+            try
+            {
+                StarApiExports.StarApiLogFileOnly($"[Quest][ActiveSnapshot] reason={reason} activeQuest={qid?.ToString("D") ?? "(null)"} activeObjective={oid?.ToString("D") ?? "(null)"} questName={qn ?? "(n/a)"} objectiveCount={objN}");
+            }
+            catch { /* ignore */ }
+            return;
         }
 
         var sb = new StringBuilder(1024);
@@ -2282,11 +2336,15 @@ public sealed class StarApiClient : IDisposable
         }
 
         try { StarApiExports.StarApiLogFileOnly(sb.ToString()); } catch { /* ignore */ }
-        try { StarApiExports.StarApiLog($"[Quest] ActiveSnapshot reason={reason} — full detail in star_api.log ([Quest][ActiveSnapshot])"); } catch { /* ignore */ }
+        try { StarApiExports.StarApiLogFileOnly($"[Quest][ActiveSnapshot] reason={reason} (verbose block logged above)"); } catch { /* ignore */ }
     }
 
     private static readonly bool VerboseQuestParseLogsEnabled =
         string.Equals(Environment.GetEnvironmentVariable("STAR_VERBOSE_QUEST_PARSE"), "1", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Per-quest pct lines in file log, full <see cref="LogActiveQuestSnapshot"/>, and console merge-detail. Default off so STAR debug stays readable; set <c>STAR_VERBOSE_QUEST_LIST=1</c> for deep quest list logging.</summary>
+    private static readonly bool VerboseQuestListLogsEnabled =
+        string.Equals(Environment.GetEnvironmentVariable("STAR_VERBOSE_QUEST_LIST"), "1", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>File-only: logs large strings in fixed-size chunks (search <c>[Quest][Parse]</c> in star_api.log).</summary>
     private static void LogQuestParseChunkedFileOnly(string linePrefix, string? text)
@@ -3287,19 +3345,19 @@ public sealed class StarApiClient : IDisposable
         {
             if (_cachedQuestList is null || _cachedQuestList.Count == 0)
             {
-                try { StarApiExports.StarApiLog("[Quest] Merge cache SKIP: _cachedQuestList empty"); } catch { /* ignore */ }
+                try { StarApiExports.StarApiLogFileOnly("[Quest] Merge cache SKIP: _cachedQuestList empty"); } catch { /* ignore */ }
                 return false;
             }
             var idx = _cachedQuestList.FindIndex(q => string.Equals(q.Id, qid, StringComparison.OrdinalIgnoreCase));
             if (idx < 0)
             {
-                try { StarApiExports.StarApiLog($"[Quest] Merge cache SKIP: quest {qid} not in cache"); } catch { /* ignore */ }
+                try { StarApiExports.StarApiLogFileOnly($"[Quest] Merge cache SKIP: quest {qid} not in cache"); } catch { /* ignore */ }
                 return false;
             }
             var quest = _cachedQuestList[idx];
             if (quest.Objectives is null || quest.Objectives.Count == 0)
             {
-                try { StarApiExports.StarApiLog($"[Quest] Merge cache SKIP: quest {qid} has no objectives"); } catch { /* ignore */ }
+                try { StarApiExports.StarApiLogFileOnly($"[Quest] Merge cache SKIP: quest {qid} has no objectives"); } catch { /* ignore */ }
                 return false;
             }
 
@@ -3460,7 +3518,10 @@ public sealed class StarApiClient : IDisposable
 
             try
             {
-                StarApiExports.StarApiLog($"[Quest] Merge cache: quest={qid} gs={gs} profileActiveObjective={activeObjId?.ToString("D") ?? ""} objectiveIds=[{objIds}] touchedObjectiveIds=[{string.Join(",", touched)}] (per-type routing: armor→NeedToCollectArmor, ammo→NeedToCollectAmmo, …)");
+                if (VerboseQuestListLogsEnabled)
+                    StarApiExports.StarApiLogFileOnly($"[Quest] Merge cache [verbose]: quest={qid} gs={gs} profileActiveObjective={activeObjId?.ToString("D") ?? ""} objectiveIds=[{objIds}] touchedObjectiveIds=[{string.Join(",", touched)}]");
+                else
+                    StarApiExports.StarApiLogFileOnly($"[Quest] Merge cache: quest={qid} touchedObjectives={touched.Count} gs={gs}");
             }
             catch { /* ignore */ }
 
@@ -3515,16 +3576,8 @@ public sealed class StarApiClient : IDisposable
             try { StarApiExports.StarApiLogFileOnly($"[Quest] Progress SKIP: all deltas zero (itemName={itemCollectedName ?? ""}, genericItem={genericItemPickup}, armor={armorDelta}, health={healthDelta})"); } catch { /* ignore */ }
             return; /* Do not send progress when nothing changed (avoids 0-delta calls and reduces 404s if backend route is missing). */
         }
-        if (Volatile.Read(ref _questUiPopupOpen) != 0)
-        {
-            try
-            {
-                StarApiExports.StarApiLogFileOnly($"[Quest] Progress IGNORED (quest popup open — no POST, no merge): questId={qid.Value} gs={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} generic={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds}");
-            }
-            catch { /* ignore */ }
-            return;
-        }
-        StarApiExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds}");
+        /* Always POST progress while quest popup is open. Skipping POST here previously dropped persistence (armor/keys-style deltas) while the UI still looked updated from earlier merges — reload then showed 0% from server. GET-all-for-avatar refresh remains discarded while popup is open (see quest cache refresh). */
+        StarApiExports.StarApiLogFileOnly($"[Quest] Progress: questId={qid.Value} gameSource={gs} kills={monstersKilledDelta} xp={xpEarnedDelta} keys={keysCollectedDelta} armor={armorDelta} health={healthDelta} weapons={weaponsDelta} powerups={powerupsDelta} ammo={ammoDelta} genericItem={genericItemPickup} itemName={itemCollectedName ?? ""} levelTimeSec={levelTimeSeconds} questPopupOpen={Volatile.Read(ref _questUiPopupOpen)}");
         var payload = BuildJson(writer =>
         {
             writer.WriteStartObject();
@@ -3565,7 +3618,7 @@ public sealed class StarApiClient : IDisposable
                 lock (_stateLock) { _questLastProgressGameSource = gs; }
                 try
                 {
-                    StarApiExports.StarApiLog($"[Quest] Progress OK: cache refresh mode={(mode == QuestProgressCacheRefreshMode.FullServerRefresh ? "server_GET" : "client_merge")}");
+                    StarApiExports.StarApiLogFileOnly($"[Quest] Progress OK: cache refresh mode={(mode == QuestProgressCacheRefreshMode.FullServerRefresh ? "server_GET" : "client_merge")}");
                 }
                 catch { /* ignore */ }
                 if (mode == QuestProgressCacheRefreshMode.FullServerRefresh)
@@ -3612,13 +3665,31 @@ public sealed class StarApiClient : IDisposable
             else if (it.IndexOf("Powerup", StringComparison.OrdinalIgnoreCase) >= 0 || it.IndexOf("Artifact", StringComparison.OrdinalIgnoreCase) >= 0) powerups = 1;
             else if (it.IndexOf("Ammo", StringComparison.OrdinalIgnoreCase) >= 0) ammo = 1;
         }
-        /* itemType may be generic "Item"; infer health/armor from display name (e.g. Stimpack, GreenArmor). */
-        if (armor == 0 && health == 0 && !string.IsNullOrWhiteSpace(itemCollectedName))
+        /* itemType may be generic "Item" or "Powerup"; infer health/armor/weapons from display name (matches ODOOM ToStarItemName output). */
+        if (!string.IsNullOrWhiteSpace(itemCollectedName))
         {
             var n = itemCollectedName;
-            if (n.IndexOf("Armor", StringComparison.OrdinalIgnoreCase) >= 0) armor = 1;
-            else if (n.IndexOf("Stimpack", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Medikit", StringComparison.OrdinalIgnoreCase) >= 0
-                     || n.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0) health = 1;
+            if (armor == 0 && health == 0)
+            {
+                if (n.IndexOf("Mega Sphere", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Megasphere", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    armor = 1;
+                    health = 1;
+                }
+                else if (n.IndexOf("Armor", StringComparison.OrdinalIgnoreCase) >= 0) armor = 1;
+                else if (n.IndexOf("Stimpack", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Medikit", StringComparison.OrdinalIgnoreCase) >= 0
+                         || n.IndexOf("Health", StringComparison.OrdinalIgnoreCase) >= 0) health = 1;
+            }
+            /* Do not match "ShotgunGuy" / "ChaingunGuy" (monster inventory names). */
+            if (weapons == 0 && n.IndexOf("Guy", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                if (n.IndexOf("Shotgun", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Chaingun", StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("Pistol", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("BFG", StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("Plasma", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Rocket Launcher", StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("RocketLauncher", StringComparison.OrdinalIgnoreCase) >= 0 || n.IndexOf("Chainsaw", StringComparison.OrdinalIgnoreCase) >= 0
+                    || n.IndexOf("Fist", StringComparison.OrdinalIgnoreCase) >= 0)
+                    weapons = 1;
+            }
         }
         if (genericItemPickup != 0 && armor == 0 && health == 0 && weapons == 0 && powerups == 0 && ammo == 0 && monstersKilledDelta == 0 && xpEarnedDelta == 0 && keysCollectedDelta == 0)
         {
@@ -5932,7 +6003,64 @@ public sealed class StarApiClient : IDisposable
 
     private void StopQuestsWorker()
     {
-        StopDedicatedWorker(_questsLock, ref _questsCts, ref _questsWorker, _questsSignal, _questsQueue);
+        /* Quest progress runs on this queue; StopDedicatedWorker used to cancel then discard remaining jobs,
+         * so exit/reload could drop POST /quests/.../progress that had not run yet (or abort in-flight).
+         * Give the worker time to drain, a short grace for the last HTTP, then run any leftovers synchronously. */
+        const int spinMs = 10;
+        var spinDeadline = DateTime.UtcNow.AddSeconds(12);
+        var sawQueuedWork = !_questsQueue.IsEmpty;
+        while (DateTime.UtcNow < spinDeadline && !_questsQueue.IsEmpty)
+        {
+            sawQueuedWork = true;
+            try { _questsSignal.Release(1); }
+            catch { /* Semaphore disposed or at capacity — stop spinning */ break; }
+            Thread.Sleep(spinMs);
+        }
+
+        /* Brief grace so an in-flight progress POST can finish; longer if we were draining the queue. */
+        Thread.Sleep(sawQueuedWork ? TimeSpan.FromSeconds(2) : TimeSpan.FromMilliseconds(500));
+
+        CancellationTokenSource? c;
+        Task? w;
+        lock (_questsLock)
+        {
+            c = _questsCts;
+            w = _questsWorker;
+            _questsCts = null;
+            _questsWorker = null;
+        }
+
+        if (c is not null)
+        {
+            try
+            {
+                c.Cancel();
+                try { _questsSignal.Release(1); } catch { /* ignore */ }
+                w?.GetAwaiter().GetResult();
+            }
+            catch { /* join */ }
+            finally { c.Dispose(); }
+        }
+
+        var drainSw = Stopwatch.StartNew();
+        while (drainSw.Elapsed < TimeSpan.FromSeconds(10) && _questsQueue.TryDequeue(out var job))
+        {
+            try
+            {
+                job(CancellationToken.None).GetAwaiter().GetResult();
+            }
+            catch (Exception ex)
+            {
+                StarApiExports.StarApiLogFileOnly($"[Quest] Shutdown drain job failed: {ex.Message}");
+            }
+        }
+
+        if (!_questsQueue.IsEmpty)
+        {
+            var dropped = 0;
+            while (_questsQueue.TryDequeue(out _)) dropped++;
+            StarApiExports.StarApiLogFileOnly($"[Quest] Shutdown: {dropped} queued job(s) not drained after budget — progress may not persist.");
+        }
     }
 
     private static async Task ProcessDedicatedWorkerAsync(ConcurrentQueue<Func<CancellationToken, Task>> queue, SemaphoreSlim signal, CancellationToken cancellationToken)
@@ -7442,6 +7570,14 @@ public static unsafe class StarApiExports
         return code == StarApiResultCode.Success && result.Result ? (byte)1 : (byte)0;
     }
 
+    /// <summary>Coerce item_type for native games: holons may use enum names containing "Weapon" for monster NFTs. Monster mint rows use description "Monster defeated in ...".</summary>
+    private static string GetNativeItemType(StarItem src)
+    {
+        if (!string.IsNullOrEmpty(src.Description) && src.Description.Contains("Monster defeated", StringComparison.OrdinalIgnoreCase))
+            return "Monster";
+        return src.ItemType ?? string.Empty;
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "star_api_get_inventory", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiGetInventory(star_item_list_t** itemList)
     {
@@ -7484,7 +7620,7 @@ public static unsafe class StarApiExports
                 WriteFixedUtf8(src.Name, dst->name, 256);
                 WriteFixedUtf8(src.Description, dst->description, 512);
                 WriteFixedUtf8(src.GameSource, dst->game_source, 64);
-                WriteFixedUtf8(src.ItemType, dst->item_type, 64);
+                WriteFixedUtf8(GetNativeItemType(src), dst->item_type, 64);
                 WriteFixedUtf8(src.NftId ?? string.Empty, dst->nft_id, 128);
                 dst->quantity = src.Quantity;
             }
@@ -7973,7 +8109,8 @@ public static unsafe class StarApiExports
         var it = PtrToString(itemType);
         var name = PtrToString(itemName);
         try { StarApiExports.StarApiLogFileOnly($"[Quest] star_api_queue_quest_progress_from_pickup: gs={gs} itemType={it ?? ""} itemName={name ?? ""}"); } catch { /* ignore */ }
-        client.EnqueueQuestProgressFromGame(gs, 0, 0, name, 0, 1, null, it);
+        var keysDeltaPickup = !string.IsNullOrWhiteSpace(it) && it.IndexOf("Key", StringComparison.OrdinalIgnoreCase) >= 0 ? 1 : 0;
+        client.EnqueueQuestProgressFromGame(gs, 0, 0, name, keysDeltaPickup, 1, null, it);
     }
 
     [UnmanagedCallersOnly(EntryPoint = "star_api_queue_add_xp", CallConvs = [typeof(CallConvCdecl)])]

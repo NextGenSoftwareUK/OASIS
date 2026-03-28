@@ -1203,7 +1203,10 @@ class OASISInventoryOverlayHandler : EventHandler
 		String n = itemName;
 		if (tabIndex == TAB_KEYS) return t.IndexOf("Key") >= 0 || n.IndexOf("key") >= 0;
 		if (tabIndex == TAB_POWERUPS) return t.IndexOf("Powerup") >= 0 || t == "Powerup" || IsPhase1PowerupInventoryName(n);
-		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
+		if (tabIndex == TAB_WEAPONS) {
+			if (t.IndexOf("Monster") >= 0 || t == "Monster" || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0) return false;
+			return t.IndexOf("Weapon") >= 0 || t == "Weapon";
+		}
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
 		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0;

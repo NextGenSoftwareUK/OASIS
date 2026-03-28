@@ -990,7 +990,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Applies in-game progress (kills, pickups, XP, level time) to the quest's incomplete objectives.
         /// Updates progress dictionaries; completes objectives when thresholds are met; completes the quest when all objectives are done.
-        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set; otherwise by Order then Id.
+        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order (active objective first when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set); every incomplete row receives the delta bundle and <see cref="ApplyDeltaToObjective"/> only applies matching Need* fields (same idea as the STAR client merge).
         /// </summary>
         public async Task<OASISResult<QuestProgressApplyResult>> ApplyQuestProgressAsync(Guid avatarId, Guid questId, string gameSource, QuestProgressDelta delta)
         {
@@ -1026,19 +1026,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.Objectives == null)
                     quest.Objectives = new List<Objective>();
                 int completedThisRound = 0;
-                /* When the client sends ActiveObjectiveId (avatar profile), only that incomplete objective receives the delta.
-                   Otherwise legacy behaviour: fan-out to all incomplete objectives (parallel requirements). */
-                IEnumerable<Objective> progressTargets;
-                if (delta.ActiveObjectiveId.HasValue && delta.ActiveObjectiveId.Value != Guid.Empty)
-                {
-                    var active = quest.Objectives?.FirstOrDefault(o => o.Id == delta.ActiveObjectiveId.Value);
-                    if (active != null && !active.IsCompleted)
-                        progressTargets = new[] { active };
-                    else
-                        progressTargets = Array.Empty<Objective>();
-                }
-                else
-                    progressTargets = OrderIncompleteObjectivesForProgress(quest.Objectives, null);
+                /* Match STAR client MergeQuestProgressIntoLocalCache: process every incomplete objective (active first when
+                   ActiveObjectiveId is set). Each objective only absorbs deltas that match its Need* rows — e.g. kills on
+                   the kill objective, health pickups on the health objective. Applying to active only dropped health/armor/etc.
+                   when the profile pointed at a different incomplete row than the one carrying NeedToCollectHealth. */
+                Guid? orderByActive = delta.ActiveObjectiveId.HasValue && delta.ActiveObjectiveId.Value != Guid.Empty
+                    ? delta.ActiveObjectiveId
+                    : null;
+                IEnumerable<Objective> progressTargets = OrderIncompleteObjectivesForProgress(quest.Objectives, orderByActive);
                 foreach (var objective in progressTargets)
                 {
                     ApplyDeltaToObjective(objective, gs, delta);

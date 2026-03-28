@@ -411,6 +411,11 @@ static int g_oq_cross_grant_suppress_weapon_star = 0;
 /** After cross-game ammo (`give s|n|r|c` or client cl.stats in DM), skip STAR ammo stat deltas for a few frames (avoids duplicate ammo rows). */
 static int g_oq_cross_grant_suppress_ammo_star = 0;
 
+/* vkQuake client.h: signon 0..SIGNONS-1 until server stream is complete; cl.stats/items not stable for deltas. */
+#ifndef OQ_VKQUAKE_SIGNONS
+#define OQ_VKQUAKE_SIGNONS 4
+#endif
+
 /* key binding helpers from keys.c; key_message, key_console, key_menu are enum constants from keys.h */
 extern char *keybindings[MAX_KEYS];
 extern qboolean keydown[MAX_KEYS];
@@ -1364,10 +1369,15 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     /* API may return "KeyItem" or different casing; match type and name case-insensitively so API items show in correct tab. */
     int is_key = OQ_ContainsNoCase(type, "key") || (name && OQ_ContainsNoCase(name, "key"));
     int is_powerup = OQ_ContainsNoCase(type, "powerup") || (name && (OQ_IsOasisCanonicalPowerupInventoryName(name) || OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Ring") || OQ_ContainsNoCase(name, "Pentagram") || OQ_ContainsNoCase(name, "Biosuit") || OQ_ContainsNoCase(name, "Quad")));
-    int is_weapon = OQ_ContainsNoCase(type, "weapon") || (name && (OQ_ContainsNoCase(name, "Shotgun") || OQ_ContainsNoCase(name, "Nailgun") || OQ_ContainsNoCase(name, "Launcher") || OQ_ContainsNoCase(name, "Lightning")));
+    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
+    /* Name heuristics must not match Doom monsters ShotgunGuy / ChaingunGuy (substring Shotgun/Chaingun). Monster rows must never match Weapons tab. */
+    int is_weapon = !is_monster
+        && (OQ_ContainsNoCase(type, "weapon")
+            || (name && !OQ_ContainsNoCase(name, "Guy")
+                && (OQ_ContainsNoCase(name, "Shotgun") || OQ_ContainsNoCase(name, "Chaingun") || OQ_ContainsNoCase(name, "Nailgun")
+                    || OQ_ContainsNoCase(name, "Launcher") || OQ_ContainsNoCase(name, "Lightning"))));
     int is_ammo = OQ_ContainsNoCase(type, "ammo") || (name && (OQ_ContainsNoCase(name, "Shells") || OQ_ContainsNoCase(name, "Nails") || OQ_ContainsNoCase(name, "Rockets") || OQ_ContainsNoCase(name, "Cells")));
     int is_armor = OQ_ContainsNoCase(type, "armor") || (name && OQ_ContainsNoCase(name, "Armor"));
-    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
 
     switch (tab) {
         case OQ_TAB_KEYS: return is_key;
@@ -1395,6 +1405,8 @@ static qboolean OQ_AllowPrivilegedCommands(void) {
     if (!u || !u[0]) return false;
     return (q_strcasecmp(u, "dellams") == 0 || q_strcasecmp(u, "anorak") == 0);
 }
+
+static void OQ_ResetCrossGameBeamTransferState(void);
 
 /** Called from main thread by star_sync_pump() when auth completes. */
 static void OQ_OnAuthDone(void* user_data) {
@@ -2134,17 +2146,17 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
         for (i = 0; i < list->count; i++) {
             const char* gs = list->items[i].game_source;
             const char* raw_name = list->items[i].name;
-            const char* itype = list->items[i].item_type;
             char base[256];
             int qty = list->items[i].quantity;
             const char* mapped;
             unsigned int wbit;
             const char* giv;
             if (!OQ_ItemGameSourceIsDoom(gs)) continue;
-            if (!raw_name || !itype || !OQ_ContainsNoCase(itype, "weapon")) continue;
+            if (!raw_name) continue;
             if (qty <= 0) qty = 1;
             (void)qty;
             OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
+            /* Allowlist is the cross-game map — do not require ItemType to contain "weapon" (API/holons may use Miscellaneous, Armour, etc.). */
             mapped = OQ_CrossGameMapLookup(g_oq_doom_weapon_to_quake, g_oq_doom_weapon_to_quake_n, base);
             if (!mapped) continue;
             wbit = OQ_QuakeItemsBitForWeaponDisplayName(mapped);
@@ -4179,11 +4191,6 @@ void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_typ
     if (g_inventory_open)
         OQ_RefreshOverlayFromClient();
 }
-
-/* vkQuake client.h: signon 0..SIGNONS-1 until server stream is complete; cl.stats/items not stable for deltas. */
-#ifndef OQ_VKQUAKE_SIGNONS
-#define OQ_VKQUAKE_SIGNONS 4
-#endif
 
 /** Snapshot cl.items + combat stats into poll_prev_* without running pickup/quest delta logic. */
 static void OQ_PollCaptureItemStatsBaseline(
