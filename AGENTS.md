@@ -20,6 +20,7 @@ Resume from **files in git**, not from chat history. Read:
 |--------|-------------------|
 | **Root cause vs hacks / fallbacks** (policy for agents) | `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` |
 | STAR CLI shell / `--non-interactive` / `--json` | `Docs/Devs/STAR_CLI_NonInteractive.md` |
+| STAR CLI hub (users & devs, Light/templating, STARNET, AI/MCP) | `Docs/Devs/STAR_CLI_Comprehensive_Guide.md` |
 | **Session handoff** (what’s done, what’s next, file map) | `Docs/Devs/STAR_CLI_SessionHandoff.md` |
 | **ODOOM quest list + STAR** (CVars, scroll, do-not-break invariants) | `OASIS Omniverse/Docs/ODOOM_Quest_List_STAR.md` |
 | **ODOOM vs UZDoom** (why HUD/timer/toggle edits seem ignored; copy step) | `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md` |
