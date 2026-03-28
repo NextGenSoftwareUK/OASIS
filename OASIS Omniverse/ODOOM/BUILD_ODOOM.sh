@@ -178,44 +178,6 @@ if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
   exit 1
 fi
 
-# ODOOM is linked against symbols from star_api.h. Running with an old star_api.so → "symbol lookup error: undefined symbol: ...".
-oasis_odoom_star_lib_has_export() {
-  local lib="$1" sym="$2"
-  [[ -f "$lib" ]] || return 1
-  if command -v nm >/dev/null 2>&1; then
-    nm -D "$lib" 2>/dev/null | grep -qF "$sym" && return 0
-    nm -gU "$lib" 2>/dev/null | grep -qF "$sym" && return 0
-  fi
-  if command -v objdump >/dev/null 2>&1; then
-    objdump -T "$lib" 2>/dev/null | grep -qF "$sym" && return 0
-  fi
-  if command -v readelf >/dev/null 2>&1; then
-    readelf -Ws "$lib" 2>/dev/null | grep -qF "$sym" && return 0
-  fi
-  return 1
-}
-STAR_LIB_FOR_VERIFY=""
-for _star_cand in "$ODOOM_INTEGRATION/star_api.so" "$ODOOM_INTEGRATION/libstar_api.so" "$ODOOM_INTEGRATION/star_api.dylib" "$ODOOM_INTEGRATION/libstar_api.dylib"; do
-  [[ -f "$_star_cand" ]] && STAR_LIB_FOR_VERIFY="$_star_cand" && break
-done
-if [[ -n "$STAR_LIB_FOR_VERIFY" ]]; then
-  if command -v nm >/dev/null 2>&1 || command -v objdump >/dev/null 2>&1 || command -v readelf >/dev/null 2>&1; then
-    if ! oasis_odoom_star_lib_has_export "$STAR_LIB_FOR_VERIFY" "star_api_start_quest_then_set_active_objective"; then
-      echo "ERROR: STAR native library in ODOOM folder is missing export star_api_start_quest_then_set_active_objective:"
-      echo "  $STAR_LIB_FOR_VERIFY"
-      echo "  It does not match the current star_api.h. Rebuild and deploy STARAPIClient, then re-run this script:"
-      echo "    BUILD_STAR_CLIENT=1 ./BUILD_ODOOM.sh"
-      echo "    bash \"$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh\" -ForceBuild"
-      echo "  Doc: Docs/Devs/ODOOM_UZDoom_Build_Sync.md (STAR native library must match star_api.h)."
-      exit 1
-    fi
-    echo "[ODOOM] Verified STAR native library exports star_api_start_quest_then_set_active_objective"
-  else
-    echo "ERROR: nm, objdump, and readelf missing; cannot verify star_api exports. Install binutils (sudo apt install binutils)." >&2
-    exit 1
-  fi
-fi
-
 # star_sync
 if [[ -f "$STARAPICLIENT/star_sync.c" ]]; then
   cp -f "$STARAPICLIENT/star_sync.c" "$ODOOM_INTEGRATION/"
@@ -402,7 +364,7 @@ mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
 done
-# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile star_sync.c (C). See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile star_sync.c (C). See star_sync.h / OASIS Omniverse/Docs/STAR_INTEGRATION_AUDIT.md.
 if [[ "${OASIS_STAR_SYNC_IN_CLIENT:-1}" == "0" ]]; then
   CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=OFF"
   echo "[ODOOM][INFO] Compiling star_sync.c - C implementation"
@@ -478,22 +440,18 @@ else
 fi
 cp -f "$ODOOM_BIN" "$ODOOM_INTEGRATION/build/ODOOM"
 chmod +x "$ODOOM_INTEGRATION/build/ODOOM"
-# Deploy STAR API next to ODOOM. NativeAOT output name is star_api.so; ELF DT_NEEDED is libstar_api.so — must be refreshed every package.
-# BUG (fixed): copying only when libstar_api.so was missing left a stale build/libstar_api.so while build/star_api.so was new → undefined symbol at launch.
-if [[ -f "$ODOOM_INTEGRATION/star_api.so" ]]; then
-  cp -f "$ODOOM_INTEGRATION/star_api.so" "$ODOOM_INTEGRATION/build/"
-elif [[ -f "$ODOOM_INTEGRATION/libstar_api.so" ]]; then
-  cp -f "$ODOOM_INTEGRATION/libstar_api.so" "$ODOOM_INTEGRATION/build/star_api.so"
-fi
-if [[ -f "$ODOOM_INTEGRATION/star_api.dylib" ]]; then
-  cp -f "$ODOOM_INTEGRATION/star_api.dylib" "$ODOOM_INTEGRATION/build/"
-elif [[ -f "$ODOOM_INTEGRATION/libstar_api.dylib" ]]; then
-  cp -f "$ODOOM_INTEGRATION/libstar_api.dylib" "$ODOOM_INTEGRATION/build/star_api.dylib"
-fi
-if [[ -f "$ODOOM_INTEGRATION/build/star_api.so" ]]; then
+# Deploy STAR API shared lib next to executable; binary is linked against libstar_api.so / libstar_api.dylib
+for so in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+  if [[ -f "$ODOOM_INTEGRATION/$so" ]]; then
+    cp -f "$ODOOM_INTEGRATION/$so" "$ODOOM_INTEGRATION/build/"
+    break
+  fi
+done
+# Ensure libstar_api.so (or .dylib) exists so the loader finds it (in case deploy produced only star_api.so)
+if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.so" && -f "$ODOOM_INTEGRATION/build/star_api.so" ]]; then
   cp -f "$ODOOM_INTEGRATION/build/star_api.so" "$ODOOM_INTEGRATION/build/libstar_api.so"
 fi
-if [[ -f "$ODOOM_INTEGRATION/build/star_api.dylib" ]]; then
+if [[ ! -f "$ODOOM_INTEGRATION/build/libstar_api.dylib" && -f "$ODOOM_INTEGRATION/build/star_api.dylib" ]]; then
   cp -f "$ODOOM_INTEGRATION/build/star_api.dylib" "$ODOOM_INTEGRATION/build/libstar_api.dylib"
 fi
 [[ -f "$ODOOM_INTEGRATION/odoom_face.pk3" ]] && cp -f "$ODOOM_INTEGRATION/odoom_face.pk3" "$ODOOM_INTEGRATION/build/"

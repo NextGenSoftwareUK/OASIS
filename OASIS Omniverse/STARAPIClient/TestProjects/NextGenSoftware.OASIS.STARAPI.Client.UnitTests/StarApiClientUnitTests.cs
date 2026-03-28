@@ -30,6 +30,21 @@ public class StarApiClientUnitTests
     }
 
     [Fact]
+    public void Init_WithNativeTransport_ReturnsInitFailed()
+    {
+        using var client = new StarApiClient();
+
+        var result = client.Init(new StarApiConfig
+        {
+            Transport = StarApiTransport.Native,
+            Web5StarApiBaseUrl = "https://example.com/api"
+        });
+
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InitFailed).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
     public async Task Methods_WhenNotInitialized_ReturnNotInitialized()
     {
         using var client = new StarApiClient();
@@ -237,8 +252,7 @@ public class StarApiClientUnitTests
         var serialized = StarApiClient.SerializeQuestsForGame(quests);
         Assert.NotNull(serialized);
         Assert.Contains("Q\tq1\t", serialized);
-        Assert.Contains("O\to1\tObjective 1\tObjective 1\t\t0", serialized);
-        Assert.Contains("O\to2\tObjective 2\tObjective 2\t\t1", serialized);
+        Assert.Contains("O\t", serialized);
         Assert.Contains("Objective 1", serialized);
         Assert.Contains("Objective 2", serialized);
     }

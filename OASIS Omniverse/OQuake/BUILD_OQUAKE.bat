@@ -14,8 +14,8 @@ set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "OQUAKE_INTEGRATION=%HERE%"
 REM Set to 1 to always build and deploy STARAPIClient before building (script skips build if client unchanged).
 set "BUILD_STAR_CLIENT=0"
-REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / STAR_INTEGRATION_AUDIT.md.
-if not defined OASIS_STAR_SYNC_IN_CLIENT set "OASIS_STAR_SYNC_IN_CLIENT=1"
+REM Always use star_sync from star_api.dll (C# client exports). Do not compile star_sync.c in engine.
+set "OASIS_STAR_SYNC_IN_CLIENT=1"
 
 REM Generate OQuake version from Version/oquake_version.txt -> Code/oquake_version.h, Version/version_display.txt
 if exist "%OQUAKE_INTEGRATION%Scripts\generate_oquake_version.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%OQUAKE_INTEGRATION%Scripts\generate_oquake_version.ps1" -Root "%OQUAKE_INTEGRATION%"
@@ -80,12 +80,11 @@ if not defined STAR_DLL (
 
 if not exist "%STARAPICLIENT%\star_api.h" (echo star_api.h not found: %STARAPICLIENT% & pause & exit /b 1)
 
-REM --- star_sync (shared with Doom): always copy from STARAPIClient so Quake uses the same star_sync as Doom and the client. ---
+REM --- star_sync declarations only (implementation comes from star_api.dll exports). ---
 set "STARAPICLIENT=%HERE%..\STARAPIClient"
 set "OQUAKE_CODE=%OQUAKE_INTEGRATION%Code\"
-if exist "%STARAPICLIENT%\star_sync.c" (
+if exist "%STARAPICLIENT%\star_sync.h" (
     if not exist "%OQUAKE_CODE%" mkdir "%OQUAKE_CODE%"
-    copy /Y "%STARAPICLIENT%\star_sync.c" "%OQUAKE_CODE%" >nul
     copy /Y "%STARAPICLIENT%\star_sync.h" "%OQUAKE_CODE%" >nul
 )
 
@@ -102,7 +101,6 @@ if exist "%QUAKE_SRC%" (
     copy /Y "%OQUAKE_INTEGRATION%Docs\WINDOWS_INTEGRATION.md" "%QUAKE_SRC%\" >nul
     copy /Y "%OQUAKE_CODE%engine_oquake_hooks.c.example" "%QUAKE_SRC%\" >nul
     copy /Y "%STARAPICLIENT%\star_api.h" "%QUAKE_SRC%\" >nul
-    if exist "%OQUAKE_CODE%star_sync.c" copy /Y "%OQUAKE_CODE%star_sync.c" "%QUAKE_SRC%\" >nul
     if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%QUAKE_SRC%\" >nul
     copy /Y "%STAR_DLL%" "%QUAKE_SRC%\star_api.dll" >nul
     if defined STAR_LIB copy /Y "%STAR_LIB%" "%QUAKE_SRC%\star_api.lib" >nul
@@ -118,14 +116,12 @@ if not exist "%VKQUAKE_SRC%\Quake\pr_ext.c" goto :done
 echo.
 echo [OQuake] Patching vkQuake source...
 set "APPLY_PS1=%OQUAKE_INTEGRATION%vkquake_oquake\apply_oquake_to_vkquake.ps1"
-if "%OASIS_STAR_SYNC_IN_CLIENT%"=="0" echo [OQuake] OASIS_STAR_SYNC_IN_CLIENT=0 - compiling star_sync.c
 if exist "%APPLY_PS1%" powershell -NoProfile -ExecutionPolicy Bypass -File "%APPLY_PS1%" -VkQuakeSrc "%VKQUAKE_SRC%"
 REM Ensure vkQuake always has latest header and integration sources (apply script copies these too; this guarantees after bat run)
 copy /Y "%OQUAKE_CODE%oquake_star_integration.c" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OQUAKE_CODE%oquake_star_integration.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%OQUAKE_CODE%oquake_version.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%STARAPICLIENT%\star_api.h" "%VKQUAKE_SRC%\Quake\" >nul
-if exist "%OQUAKE_CODE%star_sync.c" copy /Y "%OQUAKE_CODE%star_sync.c" "%VKQUAKE_SRC%\Quake\" >nul
 if exist "%OQUAKE_CODE%star_sync.h" copy /Y "%OQUAKE_CODE%star_sync.h" "%VKQUAKE_SRC%\Quake\" >nul
 copy /Y "%STAR_DLL%" "%VKQUAKE_SRC%\Quake\star_api.dll" >nul
 if defined STAR_LIB copy /Y "%STAR_LIB%" "%VKQUAKE_SRC%\Quake\star_api.lib" >nul

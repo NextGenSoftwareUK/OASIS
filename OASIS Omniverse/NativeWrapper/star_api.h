@@ -20,6 +20,9 @@ typedef struct {
     const char* api_key;
     const char* avatar_id;
     int timeout_seconds;
+    const char* client_game_source;
+    int32_t transport;
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {
@@ -75,6 +78,7 @@ star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
+star_api_result_t star_api_start_quest_then_set_active_objective(const char* quest_id, const char* objective_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */

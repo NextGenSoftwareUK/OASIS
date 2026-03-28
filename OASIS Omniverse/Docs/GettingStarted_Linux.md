@@ -74,8 +74,9 @@ mkdir -p ~/Source
 cd ~/Source
 
 git clone <OASIS-repo-url> OASIS-master
-git clone https://github.com/coelckers/UZDoom.git UZDoom
-git clone https://github.com/Novum/vkQuake.git vkQuake
+# Recommended: OASIS forks (upstream UZDoom / vkQuake; see DEVELOPER_ONBOARDING.md)
+git clone https://github.com/NextGenSoftwareUK/ODOOM.git UZDoom
+git clone https://github.com/NextGenSoftwareUK/OQUAKE.git vkQuake
 git clone <quake-rerelease-qc-repo-url> quake-rerelease-qc
 ```
 
@@ -258,4 +259,4 @@ Or build and run:
 | **OQuake can't find game data** | Set `OQUAKE_BASEDIR` to the directory that contains the `id1` folder and pak files. |
 | **"face_anorak.png ... Cannot find drive 'C'"** | Set `OQUAKE_BASEDIR` to your Linux Quake game path (e.g. `$HOME/.steam/steam/steamapps/common/Quake`) so the apply script can copy the anorak face into `id1/gfx/`. |
 
-For more detail, see [LINUX_BUILD.md](../LINUX_BUILD.md) and [STARAPIClient/README.md](../STARAPIClient/README.md).
+For more detail, see [LINUX_BUILD.md](LINUX_BUILD.md) and [STARAPIClient/README.md](../STARAPIClient/README.md).
