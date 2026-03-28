@@ -1,4 +1,6 @@
 {
+  "star_transport": "remote",
+  "oasis_dna_path": "",
   "star_api_url": "http://localhost:8888",
   "oasis_api_url": "http://localhost:7777",
   "beam_face": 1,
