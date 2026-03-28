@@ -1957,12 +1957,11 @@ static void OQ_InitCrossGameMapsToDefaults(void) {
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Plasma Rifle", "Super Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Rocket Launcher", "Rocket Launcher");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Super Shotgun", "Super Shotgun");
-    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Grenade Launcher", "Grenade Launcher");
-    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Lightning Gun", "Lightning Gun");
     /* Legacy rows from older ToStarItemName() fallback (class OQNailgun -> "Oqnailgun", etc.) */
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqnailgun", "Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqsupernailgun", "Super Nailgun");
-    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqgrenadelauncher", "Grenade Launcher");
+    /* Old OQGrenadeLauncher/OQThunderbolt fallbacks before they mapped to Plasma Rifle / BFG9000 */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqgrenadelauncher", "Super Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqthunderbolt", "Lightning Gun");
     OQ_CrossGamePairsClearTable(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
     OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Nailgun", "Chaingun");

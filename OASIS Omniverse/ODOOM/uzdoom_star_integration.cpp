@@ -3451,13 +3451,19 @@ static int GetHardcodedAmmoAmount(const char* className) {
 static std::string ToStarItemName(const char* className) {
 	if (!className || !className[0]) return "Item";
 	const char* c = className;
-	/* ODOOM odoom_oquake_items.zs — STAR names must match OQuake cross_game_doom_weapon_to_quake keys (after stripping " (ODOOM)"). */
+	/*
+	 * ODOOM odoom_oquake_items.zs: Quake-themed pickups in Doom. Returned strings are STAR *inventory names* (Doom side only).
+	 * OQuake beam-in uses them as keys into cross_game_doom_weapon_to_quake — same left-hand names as vanilla Doom weapons:
+	 * Chaingun→Nailgun, Plasma Rifle→Super Nailgun, BFG9000→Lightning Gun, etc. OQGrenadeLauncher/OQThunderbolt inherit
+	 * RocketLauncher/PlasmaRifle in ZScript but use those canonical keys so cross-game matches quake_weapon_to_doom
+	 * (Grenade Launcher↔PlasmaRifle, Lightning Gun↔BFG9000).
+	 */
 	if (strstr(c, "OQSuperShotgun")) return "Super Shotgun";
 	if (strstr(c, "OQShotgun")) return "Shotgun";
 	if (strstr(c, "OQSuperNailgun")) return "Plasma Rifle";
 	if (strstr(c, "OQNailgun")) return "Chaingun";
-	if (strstr(c, "OQGrenadeLauncher")) return "Grenade Launcher";
-	if (strstr(c, "OQThunderbolt")) return "Lightning Gun";
+	if (strstr(c, "OQGrenadeLauncher")) return "Plasma Rifle";
+	if (strstr(c, "OQThunderbolt")) return "BFG9000";
 	/* Ammo (check weapons first so "RocketLauncher" is not matched as "Rockets") */
 	if (strstr(c, "Clip") || strstr(c, "Bullet")) return "Bullets";
 	if (strstr(c, "Shell") && !strstr(c, "Shotgun")) return "Shells";
