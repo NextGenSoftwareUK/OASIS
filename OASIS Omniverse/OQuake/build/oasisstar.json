@@ -1,61 +1,31 @@
 {
-  // OASIS STAR — full key reference: OASIS Omniverse/Docs/STAR_Games_User_Guide.md (Section 8).
-  // Lines starting with // are comments. Do not put double-quoted key names inside comments.
-  // star config save in-game may rewrite this file and drop comments; keep a backup if needed.
-
-  // Internal: config format label (OQuake writes this on save).
   "config_file": "json",
-
-  // How the native client reaches STAR (e.g. remote HTTP).
   "star_transport": "remote",
-  // WEB5 STAR API — quests, STAR inventory, progress. Local dev often port 8888.
   "star_api_url": "http://localhost:8888",
-  // WEB4 OASIS API — login, avatar, token refresh. Local dev often port 7777.
   "oasis_api_url": "http://localhost:7777",
-  // Optional path for OASIS DNA / tooling (see developer transport docs if used).
   "oasis_dna_path": "",
-
-  // 1 = show beam-in / anorak-style face where supported; 0 = off.
   "beam_face": 1,
-
-  // stack_* : OQuake pickup sync style (event vs unlock). See user guide §8.5. Not wired the same on ODOOM.
   "stack_armor": 1,
   "stack_weapons": 1,
   "stack_powerups": 1,
   "stack_keys": 1,
-  // OQuake only — sigil pieces (Dimension of the Machine / similar).
   "stack_sigils": 1,
-
-  // 1 = mint NFT when that category is collected (WEB4 NFTHolon path). 0 = off.
   "mint_weapons": 0,
   "mint_armor": 0,
   "mint_powerups": 0,
   "mint_keys": 0,
-
-  // Caps when using health/armor from STAR overlay (and related checks).
   "max_health": 100,
   "max_armor": 100,
-
-  // 1 = at max you can still pick up into STAR; 0 = vanilla leave on floor when full.
   "always_allow_pickup_if_max": 1,
-  // 1 = also add STAR row when engine already consumed pickup; 0 = only when integration path adds.
   "always_add_items_to_inventory": 0,
-
-  // 0 = below max, bank pickup in STAR (engine does not apply on touch). 1 = vanilla apply on pickup.
   "use_health_on_pickup": 0,
   "use_armor_on_pickup": 0,
   "use_powerup_on_pickup": 0,
-
-  // NFT mint provider and optional wallet to receive minted NFTs.
   "nft_provider": "SolanaOASIS",
   "send_to_address_after_minting": "",
-
-  // Session — private; do not commit or share real tokens.
   "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDY2NjY1NiwiZXhwIjoxNzc0NjY3NTU2LCJpYXQiOjE3NzQ2NjY2NTZ9.tPSA5kLVxioa6OSBBEMtQq8-xsdFLeGCwRWLE7gADuQ",
-  "refresh_token": "254E536FBFDEBF156204A2C2456FE5C621ED9CFC4FA7503D2EAA420EB04C40FE702E93A8F93443F6",
-
-  // Per-monster mint toggles (1 = on, 0 = off). Keys are mint_monster_<id> per game tables.
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDY2OTYzOCwiZXhwIjoxNzc0NjcwNTM4LCJpYXQiOjE3NzQ2Njk2Mzh9.SRuhrilCUE6ejGgeICXgWFcI7oB1efFDfWMAGFpJIb4",
+  "refresh_token": "455DFD42371709B64F556A352EB7D80156850AB7FE0EA36690E0C310F89EB4A4F8F5B74749EED4F9",
   "mint_monster_oquake_dog": 0,
   "mint_monster_oquake_zombie": 0,
   "mint_monster_oquake_fish": 0,

@@ -406,6 +406,16 @@ static bool g_star_face_suppressed_for_session = false;
 /** Single source of truth for status bar face; only set by star face on/off and beam-in/out. */
 static bool g_star_show_anorak_face = false;
 
+/* Cross-game beam-in: apply Quake STAR ammo (and weapons) to local player once per session. Maps loaded from oasisstar.json. */
+static constexpr int ODOOM_CROSS_PAIR_MAX = 48;
+using ODOOMCrossPairs = std::vector<std::pair<std::string, std::string>>;
+static ODOOMCrossPairs g_odoom_cross_doom_ammo_to_quake;
+static ODOOMCrossPairs g_odoom_cross_quake_ammo_to_doom;
+static ODOOMCrossPairs g_odoom_cross_doom_weapon_to_quake;
+static ODOOMCrossPairs g_odoom_cross_quake_weapon_to_doom;
+static bool g_odoom_cross_game_beam_transfer_done = false;
+static int g_odoom_cross_empty_inventory_wait_frames = 0;
+
 /** True when we started async SSO auth so beamin command can show "Authenticating..." instead of "Beam-in failed". */
 static bool g_star_async_auth_pending = false;
 /** Frames since async auth started; used to show timeout error if callback never fires (e.g. 30 s). */
@@ -597,6 +607,200 @@ static bool ODOOM_ExtractJsonValue(const char* json, const char* key, char* valu
 	return n > 0;
 }
 
+static std::string ODOOM_TrimAscii(const std::string& s) {
+	size_t a = 0;
+	size_t b = s.size();
+	while (a < b && std::isspace(static_cast<unsigned char>(s[a]))) a++;
+	while (b > a && std::isspace(static_cast<unsigned char>(s[b - 1]))) b--;
+	return s.substr(a, b - a);
+}
+
+static void ODOOM_CrossGameInitDefaults(void) {
+	g_odoom_cross_doom_ammo_to_quake = {
+		{"Bullets", "Nails"}, {"Shells", "Shells"}, {"Rockets", "Rockets"}, {"Cells", "Cells"}
+	};
+	g_odoom_cross_quake_ammo_to_doom = {
+		{"Nails", "Bullets"}, {"Shells", "Shells"}, {"Rockets", "Rockets"}, {"Cells", "Cells"}
+	};
+	g_odoom_cross_doom_weapon_to_quake = {
+		{"Chaingun", "Nailgun"}, {"Shotgun", "Shotgun"}, {"BFG9000", "Lightning Gun"},
+		{"Plasma Rifle", "Super Nailgun"}, {"Rocket Launcher", "Rocket Launcher"}, {"Super Shotgun", "Super Shotgun"}
+	};
+	g_odoom_cross_quake_weapon_to_doom = {
+		{"Nailgun", "Chaingun"}, {"Shotgun", "Shotgun"}, {"Super Nailgun", "PlasmaRifle"},
+		{"Lightning Gun", "BFG9000"}, {"Grenade Launcher", "PlasmaRifle"}, {"Rocket Launcher", "RocketLauncher"},
+		{"Super Shotgun", "SuperShotgun"}
+	};
+}
+
+static void ODOOM_ParseCrossGamePairList(const char* list, ODOOMCrossPairs* out) {
+	if (!out) return;
+	out->clear();
+	if (!list || !list[0]) return;
+	std::string L(list);
+	size_t pos = 0;
+	while (pos < L.size() && out->size() < (size_t)ODOOM_CROSS_PAIR_MAX) {
+		size_t comma = L.find(',', pos);
+		std::string seg = ODOOM_TrimAscii(L.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos));
+		if (!seg.empty()) {
+			size_t eq = seg.find('=');
+			if (eq != std::string::npos) {
+				std::string k = ODOOM_TrimAscii(seg.substr(0, eq));
+				std::string v = ODOOM_TrimAscii(seg.substr(eq + 1));
+				if (!k.empty() && !v.empty())
+					out->emplace_back(std::move(k), std::move(v));
+			}
+		}
+		if (comma == std::string::npos) break;
+		pos = comma + 1;
+	}
+}
+
+static const char* ODOOM_CrossMapLookup(const ODOOMCrossPairs& m, const char* key) {
+	if (!key || !key[0]) return nullptr;
+	for (const auto& p : m) {
+#ifdef _WIN32
+		if (_stricmp(p.first.c_str(), key) == 0)
+#else
+		if (strcasecmp(p.first.c_str(), key) == 0)
+#endif
+			return p.second.c_str();
+	}
+	return nullptr;
+}
+
+static bool ODOOM_ItemGameSourceIsQuake(const char* gs) {
+	if (!gs || !gs[0]) return false;
+	std::string g(gs);
+	for (auto& c : g) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+	return g.find("quake") != std::string::npos || g == "oquake";
+}
+
+static std::string ODOOM_StripStarStorageGameSuffix(const std::string& name) {
+	static const char* suf[] = {" (ODOOM)", " (OQUAKE)", " (QUAKE)"};
+	for (const char* s : suf) {
+		size_t n = strlen(s);
+		if (name.size() >= n && !strcasecmp(name.c_str() + name.size() - n, s))
+			return name.substr(0, name.size() - n);
+	}
+	return name;
+}
+
+static void ODOOM_ReloadCrossGameMapsFromJson(const char* json) {
+	char mapbuf[4096];
+	if (!json) return;
+	ODOOM_CrossGameInitDefaults();
+	if (ODOOM_ExtractJsonValue(json, "cross_game_doom_ammo_to_quake", mapbuf, (int)sizeof(mapbuf)) && mapbuf[0])
+		ODOOM_ParseCrossGamePairList(mapbuf, &g_odoom_cross_doom_ammo_to_quake);
+	if (ODOOM_ExtractJsonValue(json, "cross_game_quake_ammo_to_doom", mapbuf, (int)sizeof(mapbuf)) && mapbuf[0])
+		ODOOM_ParseCrossGamePairList(mapbuf, &g_odoom_cross_quake_ammo_to_doom);
+	if (ODOOM_ExtractJsonValue(json, "cross_game_doom_weapon_to_quake", mapbuf, (int)sizeof(mapbuf)) && mapbuf[0])
+		ODOOM_ParseCrossGamePairList(mapbuf, &g_odoom_cross_doom_weapon_to_quake);
+	if (ODOOM_ExtractJsonValue(json, "cross_game_quake_weapon_to_doom", mapbuf, (int)sizeof(mapbuf)) && mapbuf[0])
+		ODOOM_ParseCrossGamePairList(mapbuf, &g_odoom_cross_quake_weapon_to_doom);
+}
+
+static void ODOOM_ResetCrossGameBeamTransferState(void) {
+	g_odoom_cross_game_beam_transfer_done = false;
+	g_odoom_cross_empty_inventory_wait_frames = 0;
+}
+
+static bool ODOOM_InDeathmatch(void) {
+	FBaseCVar* d = FindCVar("deathmatch", nullptr);
+	return d && d->GetRealType() == CVAR_Int && d->GetGenericRep(CVAR_Int).Int != 0;
+}
+
+static void ODOOM_ApplyCrossGameAmmo(player_t* player, const char* logicalDoomAmmo, int delta) {
+	if (!player || !player->mo || delta <= 0 || !logicalDoomAmmo || !logicalDoomAmmo[0]) return;
+	const char* invClass = nullptr;
+	if (!strcasecmp(logicalDoomAmmo, "Bullets")) invClass = "Clip";
+	else if (!strcasecmp(logicalDoomAmmo, "Shells")) invClass = "Shell";
+	else if (!strcasecmp(logicalDoomAmmo, "Rockets")) invClass = "RocketAmmo";
+	else if (!strcasecmp(logicalDoomAmmo, "Cells")) invClass = "Cell";
+	if (!invClass) return;
+	FName fn(invClass);
+	AActor* a = player->mo->FindInventory(fn, true);
+	if (!a) {
+		/* Deathmatch: console `give` often requires sv_cheats; still try — if it fails, direct Amount add runs only when inventory exists after pickup. */
+		FString cmd;
+		cmd.Format("give %s", invClass);
+		C_DoCommand(cmd);
+		a = player->mo->FindInventory(fn, true);
+	}
+	if (!a) {
+		if (ODOOM_InDeathmatch() && g_star_debug_logging)
+			Printf(PRINT_HIGH, "[STAR] Cross-game ammo: no %s inventory yet; `give %s` did not apply (deathmatch/cheats). Pick up ammo once or enable sv_cheats.\n", invClass, invClass);
+		return;
+	}
+	int& amount = a->IntVar(FName("Amount"));
+	int maxAmt = a->IntVar(FName("MaxAmount"));
+	int newv = amount + delta;
+	if (maxAmt > 0 && newv > maxAmt) newv = maxAmt;
+	amount = newv;
+}
+
+static void ODOOM_GiveWeaponClassIfMissing(player_t* player, const char* className) {
+	if (!player || !player->mo || !className || !className[0]) return;
+	FName fn(className);
+	if (player->mo->FindInventory(fn, true)) return;
+	FString cmd;
+	cmd.Format("give %s", className);
+	C_DoCommand(cmd);
+	if (!player->mo->FindInventory(fn, true) && ODOOM_InDeathmatch() && g_star_debug_logging)
+		Printf(PRINT_HIGH, "[STAR] Cross-game weapon: `give %s` did not apply (deathmatch / netgame may block cheats).\n", className);
+}
+
+/** Returns true if this frame applied Quake-sourced ammo or weapons (caller may refresh HUD). */
+static bool ODOOM_TryApplyCrossGameBeamInTransfers(void) {
+	if (!g_star_initialized) return false;
+	FLevelLocals* level = primaryLevel;
+	player_t* player = level ? level->GetConsolePlayer() : nullptr;
+	if (!player || !player->mo) return false;
+	if (g_odoom_cross_game_beam_transfer_done) return false;
+	if (g_odoom_cross_quake_ammo_to_doom.empty())
+		ODOOM_CrossGameInitDefaults();
+	star_item_list_t* list = nullptr;
+	if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return false;
+	if (list->count == 0) {
+		g_odoom_cross_empty_inventory_wait_frames++;
+		star_api_free_item_list(list);
+		if (g_odoom_cross_empty_inventory_wait_frames < 300) return false;
+		g_odoom_cross_game_beam_transfer_done = true;
+		g_odoom_cross_empty_inventory_wait_frames = 0;
+		return false;
+	}
+	g_odoom_cross_empty_inventory_wait_frames = 0;
+	bool applied = false;
+	for (size_t i = 0; i < list->count; i++) {
+		const char* gs = list->items[i].game_source;
+		const char* rawName = list->items[i].name;
+		const char* itype = list->items[i].item_type;
+		if (!ODOOM_ItemGameSourceIsQuake(gs)) continue;
+		if (!rawName || !itype) continue;
+		std::string base = ODOOM_StripStarStorageGameSuffix(std::string(rawName));
+		int qty = list->items[i].quantity;
+		if (qty <= 0) qty = 1;
+		if (strstr(itype, "Ammo") != nullptr || strstr(itype, "ammo") != nullptr) {
+			const char* toLogical = ODOOM_CrossMapLookup(g_odoom_cross_quake_ammo_to_doom, base.c_str());
+			if (!toLogical) continue;
+			ODOOM_ApplyCrossGameAmmo(player, toLogical, qty);
+			applied = true;
+			if (g_star_debug_logging)
+				Printf(PRINT_HIGH, "[STAR] Cross-game beam-in: +%d %s (from Quake \"%s\") -> Doom %s\n", qty, base.c_str(), rawName, toLogical);
+		} else if (strstr(itype, "Weapon") != nullptr || strstr(itype, "weapon") != nullptr) {
+			const char* zclass = ODOOM_CrossMapLookup(g_odoom_cross_quake_weapon_to_doom, base.c_str());
+			if (!zclass) continue;
+			ODOOM_GiveWeaponClassIfMissing(player, zclass);
+			applied = true;
+			if (g_star_debug_logging)
+				Printf(PRINT_HIGH, "[STAR] Cross-game beam-in: weapon %s -> give %s\n", base.c_str(), zclass);
+		}
+	}
+	g_odoom_cross_game_beam_transfer_done = true;
+	star_api_free_item_list(list);
+	return applied;
+}
+
 static bool ODOOM_LoadJsonConfig(const char* json_path) {
 	FILE* f = fopen(json_path, "r");
 	if (!f) return false;
@@ -769,6 +973,7 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 	}
 	if (g_star_client_ready)
 		star_api_set_quest_progress_cache_refresh(g_odoom_quest_progress_cache_refresh);
+	ODOOM_ReloadCrossGameMapsFromJson(json);
 	return loaded;
 }
 
@@ -2018,6 +2223,7 @@ static void ODOOM_OnAuthDone(void* user_data) {
 		g_star_initialized = true;
 		g_star_frames_since_beamin = 0;  /* Grace period: don't consume keys on door checks for a few seconds after beamin. */
 		g_star_just_beamed_in = true;    /* Next frame: refresh gold/silver key CVars so OQ keys appear with Doom keycards. */
+		ODOOM_ResetCrossGameBeamTransferState();
 		g_star_logged_runtime_auth_failure = false;
 		g_star_logged_missing_auth_config = false;
 		g_star_effective_username = username_buf;
@@ -2558,6 +2764,7 @@ void ODOOM_InventoryInputCaptureFrame(void)
 			}
 		}
 	} else if (g_star_initialized) {
+		(void)ODOOM_TryApplyCrossGameBeamInTransfers();
 		/* First frame after beam-in: refresh gold/silver key CVars immediately so OQ keys appear with Doom keycards (no wait for console close). */
 		if (g_star_just_beamed_in) {
 			g_star_just_beamed_in = false;
@@ -3585,6 +3792,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	// API key + avatar mode: accept credentials and start inventory in background (no blocking call).
 	if (HasValue(g_star_config.api_key) && HasValue(g_star_config.avatar_id)) {
 		g_star_initialized = true;
+		ODOOM_ResetCrossGameBeamTransferState();
 		g_star_init_failed_this_session = false;
 		g_star_logged_runtime_auth_failure = false;
 		g_star_logged_missing_auth_config = false;
@@ -3609,6 +3817,7 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 			result = star_api_restore_session();
 			if (result == STAR_API_SUCCESS) {
 				g_star_initialized = true;
+				ODOOM_ResetCrossGameBeamTransferState();
 				g_star_init_failed_this_session = false;
 				g_star_logged_runtime_auth_failure = false;
 				g_star_logged_missing_auth_config = false;
@@ -4681,6 +4890,7 @@ CCMD(star)
 		// username=anorak password=test! enables custom HUD face.
 		if (IsMockAnorakCredentials(g_star_override_username, g_star_override_password)) {
 			g_star_initialized = true;
+			ODOOM_ResetCrossGameBeamTransferState();
 			g_star_frames_since_beamin = 0;
 			g_star_logged_runtime_auth_failure = false;
 			g_star_logged_missing_auth_config = false;
@@ -4758,6 +4968,7 @@ CCMD(star)
 		g_star_show_anorak_face = false;
 		oasis_star_anorak_face = false;
 		odoom_star_username = "";
+		ODOOM_ResetCrossGameBeamTransferState();
 		Printf("Beam-out successful. Use 'star beamin' to beam in again.\n");
 		Printf("\n");
 		return;

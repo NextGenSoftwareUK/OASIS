@@ -209,7 +209,22 @@ These control **whether the game engine applies the pickup immediately** or **se
 
 Keys look like **`mint_monster_<id>`** (e.g. **`mint_monster_oquake_shambler`**, **`mint_monster_odoom_cyberdemon`**). **`1`** = allow mint when that monster kill is configured to mint; **`0`** = off. The exact list is whatever each game ships in its monster table; your `oasisstar.json` may list many rows. **If a key is missing**, defaults are typically **on (`1`)** for monsters the game knows about.
 
-### 8.8 Quick mental model
+### 8.8 Cross-game beam-in maps (ammo & weapons)
+
+Optional **string** values: comma-separated **`From=To`** pairs using the same **display names** STAR stores (without the ` (ODOOM)` / ` (OQUAKE)` suffix). Override these if you want different pairings.
+
+| Key | Purpose |
+|-----|---------|
+| **`cross_game_doom_ammo_to_quake`** | **OQuake** reads **Doom-sourced** ammo rows and maps them onto Quake **Shells / Nails / Rockets / Cells**. |
+| **`cross_game_quake_ammo_to_doom`** | **ODOOM** reads **Quake-sourced** ammo rows and maps them onto Doom **Bullets / Shells / Rockets / Cells** (engine inventory types). |
+| **`cross_game_doom_weapon_to_quake`** | **OQuake**: Doom-sourced **Weapon** rows → vkQuake **`give`** digits **`2`–`8`** for id1 weapons (see **`CROSS_GAME_POWERUP_WEAPON_MAP.md`**). In deathmatch, **`give` does nothing** in vanilla Quake — the client ORs **`cl.items`** as a best-effort fallback. |
+| **`cross_game_quake_weapon_to_doom`** | **ODOOM**: Quake-sourced **Weapon** rows → **`give`** class names (e.g. **`PlasmaRifle`**, **`BFG9000`**). |
+
+Defaults include **Bullets↔Nails** (chaingun / nailgun), **BFG9000↔Lightning Gun**, **Plasma Rifle↔Super Nailgun**, and **Grenade Launcher→PlasmaRifle** alongside **Super Shotgun** / **Rocket Launcher** alignment. Transfer runs **once per beam-in session** after inventory is ready; use **beam out / beam in** to refresh from STAR after playing the other game. See **`CROSS_GAME_POWERUP_WEAPON_MAP.md`** for the full table.
+
+**Deathmatch:** **OQuake** uses **`give s/n/r/c`** for ammo in **non-DM** only; in **DM** it updates client ammo stats directly (vanilla `give` is disabled). **ODOOM** relies on **`give`** for new ammo types; in DM you may need **`sv_cheats 1`** or an existing ammo inventory — see the cross-game doc.
+
+### 8.9 Quick mental model
 
 - **Bank pickups / vanilla pickups:** **`use_*_on_pickup`**, **`always_allow_pickup_if_max`**, **`always_add_items_to_inventory`**, **`max_health`**, **`max_armor`**.
 - **Duplicate STAR rows / sync style (OQuake):** **`stack_*`** (and **`stack_sigils`**).
@@ -225,3 +240,4 @@ Use **`star config`** in-game to see the effective values after load.
 |------|------|
 | 2026-03-27 | Initial user guide for OQuake + ODOOM STAR features. |
 | 2026-03-27 | Added §8 full `oasisstar.json` reference (keys, pickup vs stack, ODOOM `stack_*` caveat). |
+| 2026-03-27 | Added §8.8 cross-game beam-in map keys (`cross_game_*`) and doc cross-link. |
