@@ -28,6 +28,13 @@ public enum StarApiResultCode
     ApiError = -5
 }
 
+/// <summary>How the game connects to STAR: HTTP to hosted WEB5/WEB4 APIs (default), or in-process OASIS (requires a native host build that embeds HyperDrive — not the default NativeAOT star_api).</summary>
+public enum StarApiTransport
+{
+    Remote = 0,
+    Native = 1
+}
+
 /// <summary>How to refresh the in-memory quest cache after a successful POST /quests/{id}/progress.</summary>
 public enum QuestProgressCacheRefreshMode
 {
@@ -51,6 +58,10 @@ public sealed class StarApiConfig
     public QuestProgressCacheRefreshMode QuestProgressCacheRefresh { get; init; } = QuestProgressCacheRefreshMode.ClientCacheMerge;
     /// <summary>Which executable is running (e.g. ODOOM vs OQUAKE). Used with quest/objective <c>GameSource</c> to pick the correct requirement row for the tracker. Set from native <c>client_game_source</c>; do not hardcode in shared client logic.</summary>
     public string? ClientGameSource { get; init; }
+    /// <summary><see cref="StarApiTransport.Remote"/> = HTTP client (default). <see cref="StarApiTransport.Native"/> is only supported when star_api is built/loaded with the full OASIS stack (not the shipped NativeAOT DLL).</summary>
+    public StarApiTransport Transport { get; init; } = StarApiTransport.Remote;
+    /// <summary>Optional path to OASIS_DNA.json for native transport (consumed by a native host when implemented).</summary>
+    public string? OasisDnaPath { get; init; }
 }
 
 public sealed class StarItem
@@ -264,8 +275,14 @@ public sealed class StarApiClient : IDisposable
     public OASISResult<bool> Init(StarApiConfig config)
     {
         StarApiExports.StarApiLog("\n********** GAME LOAD **********");
-        var web5BaseUrl = config?.Web5StarApiBaseUrl;
-        if (config is null || string.IsNullOrWhiteSpace(web5BaseUrl))
+        if (config is null)
+            return Fail<bool>("Invalid configuration.", StarApiResultCode.InvalidParam);
+        if (config.Transport == StarApiTransport.Native)
+            return Fail<bool>(
+                "Native STAR transport is not implemented in STARAPIClient (NativeAOT). Use star_transport \"remote\" with WEB5/WEB4 URLs, or load a star_api build that embeds OASIS HyperDrive and OASISBootLoader.",
+                StarApiResultCode.InitFailed);
+        var web5BaseUrl = config.Web5StarApiBaseUrl;
+        if (string.IsNullOrWhiteSpace(web5BaseUrl))
             return Fail<bool>("Invalid configuration.", StarApiResultCode.InvalidParam);
 
         if (!Uri.TryCreate(web5BaseUrl.TrimEnd('/'), UriKind.Absolute, out var baseUri))
@@ -7093,7 +7110,7 @@ public sealed class StarApiClient : IDisposable
     }
 }
 
-[StructLayout(LayoutKind.Sequential)]
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
 public unsafe struct star_api_config_t
 {
     public sbyte* base_url;
@@ -7102,6 +7119,10 @@ public unsafe struct star_api_config_t
     public int timeout_seconds;
     /// <summary>Optional: runtime client id for cross-game quest UI (e.g. ODOOM, OQUAKE). Null = infer from objective/quest/last progress only.</summary>
     public sbyte* client_game_source;
+    /// <summary>0 = <see cref="StarApiTransport.Remote"/>, 1 = <see cref="StarApiTransport.Native"/> (requires native host; default star_api returns InitFailed).</summary>
+    public int transport;
+    /// <summary>Optional UTF-8 path to OASIS_DNA.json for native transport.</summary>
+    public sbyte* oasis_dna_path;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -7215,7 +7236,19 @@ public static unsafe class StarApiExports
     [UnmanagedCallersOnly(EntryPoint = "star_api_init", CallConvs = [typeof(CallConvCdecl)])]
     public static int StarApiInit(star_api_config_t* config)
     {
-        if (config is null || config->base_url is null)
+        if (config is null)
+            return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam, StarApiOpInit);
+
+        int tr = config->transport;
+        if (tr == (int)StarApiTransport.Native)
+            return (int)SetErrorAndReturn(
+                "Native STAR transport is not available in this star_api build. Use star_transport \"remote\" with WEB5/WEB4 URLs, or a native OASIS host that implements star_api_init with HyperDrive.",
+                StarApiResultCode.InitFailed,
+                StarApiOpInit);
+        if (tr != 0 && tr != (int)StarApiTransport.Remote)
+            return (int)SetErrorAndReturn("Invalid star_api_config_t.transport value.", StarApiResultCode.InvalidParam, StarApiOpInit);
+
+        if (config->base_url is null)
             return (int)SetErrorAndReturn("Invalid configuration.", StarApiResultCode.InvalidParam, StarApiOpInit);
 
         var baseUrl = PtrToString(config->base_url) ?? string.Empty;
@@ -7225,7 +7258,9 @@ public static unsafe class StarApiExports
             ApiKey = PtrToString(config->api_key),
             AvatarId = PtrToString(config->avatar_id),
             TimeoutSeconds = config->timeout_seconds,
-            ClientGameSource = config->client_game_source != null ? PtrToString(config->client_game_source) : null
+            ClientGameSource = config->client_game_source != null ? PtrToString(config->client_game_source) : null,
+            Transport = StarApiTransport.Remote,
+            OasisDnaPath = config->oasis_dna_path != null ? PtrToString(config->oasis_dna_path) : null
         };
 
         lock (Sync)

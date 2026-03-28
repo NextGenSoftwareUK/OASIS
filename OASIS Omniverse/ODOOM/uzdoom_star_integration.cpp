@@ -438,6 +438,8 @@ CVAR(Int, odoom_hud_show_xp, 1, CVAR_ARCHIVE)
 /** 1 = show level timer (bottom area). */
 CVAR(Int, odoom_hud_show_timer, 1, CVAR_ARCHIVE)
 CVAR(String, odoom_oasis_api_url, "https://api.oasisplatform.world", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(String, odoom_star_transport, "remote", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
+CVAR(String, odoom_oasis_dna_path, "", CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 /* Stack (1) = each pickup adds quantity; Unlock (0) = one per type. Ammo always stacks. Shared with OQuake; sigils are OQuake-only. */
 CVAR(Int, odoom_star_stack_armor, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
 CVAR(Int, odoom_star_stack_weapons, 1, CVAR_ARCHIVE | CVAR_GLOBALCONFIG)
@@ -613,6 +615,14 @@ static bool ODOOM_LoadJsonConfig(const char* json_path) {
 		odoom_oasis_api_url = value;
 		loaded = true;
 	}
+	if (ODOOM_ExtractJsonValue(json, "star_transport", value, (int)sizeof(value))) {
+		odoom_star_transport = value;
+		loaded = true;
+	}
+	if (ODOOM_ExtractJsonValue(json, "oasis_dna_path", value, (int)sizeof(value))) {
+		odoom_oasis_dna_path = value;
+		loaded = true;
+	}
 	if (ODOOM_ExtractJsonValue(json, "beam_face", value, (int)sizeof(value))) {
 		oasis_star_beam_face = (atoi(value) != 0);
 		loaded = true;
@@ -768,8 +778,19 @@ static bool ODOOM_SaveJsonConfig(const char* json_path) {
 	const char* star_url = (const char*)odoom_star_api_url;
 	const char* oasis_url = (const char*)odoom_oasis_api_url;
 	fprintf(f, "{\n");
+	fprintf(f, "  \"star_transport\": \"%s\",\n", (const char*)odoom_star_transport && ((const char*)odoom_star_transport)[0] ? (const char*)odoom_star_transport : "remote");
 	fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
 	fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
+	{
+		const char* dna = (const char*)odoom_oasis_dna_path;
+		if (!dna) dna = "";
+		fprintf(f, "  \"oasis_dna_path\": \"");
+		for (; *dna; dna++) {
+			if (*dna == '"' || *dna == '\\') fputc('\\', f);
+			fputc((unsigned char)*dna, f);
+		}
+		fprintf(f, "\",\n");
+	}
 	fprintf(f, "  \"beam_face\": %d,\n", oasis_star_beam_face ? 1 : 0);
 	fprintf(f, "  \"star_debug\": %d,\n", g_star_debug_logging ? 1 : 0);
 	fprintf(f, "  \"quest_progress_refresh\": \"%s\",\n", g_odoom_quest_progress_cache_refresh ? "server" : "client");
@@ -3407,6 +3428,14 @@ static bool StarTryInitializeAndAuthenticate(bool verbose) {
 	g_star_config.timeout_seconds = 30;
 	/* STAR client uses this for quest tracker rows (PickQuestTrackerObjectiveDisplayLine vs multi-game keys). */
 	g_star_config.client_game_source = "ODOOM";
+	{
+		const char* tr = (const char*)odoom_star_transport;
+		g_star_config.transport = ODOOM_StreqI(tr, "native") ? 1 : 0;
+	}
+	{
+		const char* dna = (const char*)odoom_oasis_dna_path;
+		g_star_config.oasis_dna_path = (dna && dna[0]) ? dna : nullptr;
+	}
 	if (logVerbose) {
 		StarLogInfo(
 			"Init/auth start (base_url=%s, has_api_key=%s, has_avatar_id=%s, has_username=%s, has_password=%s)",
