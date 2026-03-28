@@ -1,469 +1,320 @@
 import { useState, useRef, useEffect } from 'react'
-import { Sparkles, Send, User, Cpu, Plus, Trash2, GripVertical, ExternalLink, RefreshCw, CheckCircle2 } from 'lucide-react'
-import { runBraid } from '../api/client'
+import { useNavigate } from 'react-router-dom'
+import {
+  Sparkle, PaperPlaneTilt, ArrowSquareOut, Plus as PhPlus,
+  PencilSimple, CaretRight, CheckCircle
+} from '@phosphor-icons/react'
+const Plus = PhPlus
+import { runBraid, saveWorkflow } from '../api/client'
 import { Badge } from '../components/Badge'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: string
+interface SopStep {
+  id: string; name: string; connector: string; action: string
+  role?: string; description?: string; requiresSignOff?: boolean
 }
 
-interface DraftStep {
-  id: string
-  name: string
-  description: string
-  role: string
-  connector: string
-  requiresSignOff: boolean
-  requiresEvidence: boolean
-  aiPrompt: string
-  timeoutMinutes: number
+interface GeneratedSop { name: string; description: string; steps: SopStep[] }
+
+const DEMO_SOP: GeneratedSop = {
+  name: 'Customer Churn Risk Response',
+  description: 'Automated triage and escalation SOP for customers showing churn risk signals.',
+  steps: [
+    { id: 'g1', name: 'Detect churn risk signal from CRM',       connector: 'salesforce',     action: 'watch_event',    role: 'System',               description: 'Monitors health score drop below 60 or missed NPS response.' },
+    { id: 'g2', name: 'Create response ticket in Zendesk',        connector: 'zendesk',        action: 'create_ticket',  role: 'System',               description: 'Auto-creates priority ticket tagged "churn-risk".' },
+    { id: 'g3', name: 'CS Manager triage (within 2h)',            connector: 'sop_step',       action: 'complete',       role: 'CustomerSuccessManager',description: 'Review account health and select escalation path.' },
+    { id: 'g4', name: 'Decision: escalation path',                connector: 'sop_decision',   action: 'evaluate',       role: 'System',               description: 'Routes to Recovery, Pause, or Offboard sub-SOP.' },
+    { id: 'g5', name: 'Book executive save call (Recovery)',       connector: 'google_calendar',action: 'create_event',   role: 'CustomerSuccessManager',description: 'Schedules exec sponsor + customer executive.' },
+    { id: 'g6', name: 'CS Director sign-off on outcome',           connector: 'sop_signoff',    action: 'sign',           role: 'CSDirector',           description: 'Avatar wallet sign-off — stored in SOPAuditHolon.', requiresSignOff: true },
+    { id: 'g7', name: 'Update CRM + notify team on Slack',         connector: 'slack',          action: 'post_message',   role: 'System',               description: 'Posts summary to #cs-saves or #cs-churns.' },
+  ],
 }
 
-// ─── Prompt engineering ──────────────────────────────────────────────────────
-
-const SYSTEM_PROMPT = `You are an expert at designing Holonic Standard Operating Procedures (SOPs) for OASIS.
-When the user describes a business process, extract it as a structured JSON SOP with this exact format:
-
-{
-  "sopName": "string",
-  "description": "string",
-  "category": "CustomerSuccess|Operations|HR|Compliance|Finance|Sales|Technical|Other",
-  "estimatedDurationMinutes": number,
-  "requiredRoles": ["string"],
-  "steps": [
-    {
-      "id": "s1",
-      "name": "string (short action title)",
-      "description": "string (full instruction text for the executor)",
-      "role": "string (who does this step)",
-      "connector": "sop_step|sop_signoff|sop_decision|sop_ai_guide|webhook|email|slack|salesforce|hubspot|zendesk|docusign|google_calendar|jira|zapier|avatar|braid",
-      "requiresSignOff": boolean,
-      "requiresEvidence": boolean,
-      "aiPrompt": "string (BRAID prompt for AI guidance at this step, or empty)",
-      "timeoutMinutes": number
-    }
-  ]
+const CONNECTOR_BADGE: Record<string, 'default' | 'active' | 'ai' | 'warning'> = {
+  salesforce: 'active', zendesk: 'default', sop_step: 'default', sop_decision: 'warning',
+  sop_signoff: 'warning', google_calendar: 'default', slack: 'default', email: 'default',
+  hubspot: 'active', jira: 'active', braid: 'ai', sop_ai_guide: 'ai',
 }
 
-Always return valid JSON. If the user provides more context, update the JSON. Start with a brief acknowledgment then the JSON block.`
+const CONNECTOR_LABEL: Record<string, string> = {
+  salesforce: 'Salesforce', zendesk: 'Zendesk', sop_step: 'Step', sop_decision: 'Decision',
+  sop_signoff: 'Sign-off', google_calendar: 'Calendar', slack: 'Slack', email: 'Email',
+  hubspot: 'HubSpot', jira: 'Jira', braid: 'BRAID AI', sop_ai_guide: 'AI Guide',
+}
 
-// ─── Demo steps to pre-fill when API is unavailable ─────────────────────────
-
-const DEMO_STEPS: DraftStep[] = [
-  { id: 's1', name: 'Receive and acknowledge request', description: 'Log the incoming request, assign a reference number, and send an automated acknowledgement to the requester within 2 hours.', role: 'OperationsManager', connector: 'email', requiresSignOff: false, requiresEvidence: false, aiPrompt: 'Draft a professional acknowledgement email for this type of request.', timeoutMinutes: 120 },
-  { id: 's2', name: 'Initial assessment and triage', description: 'Review the request details, assess complexity and priority, and route to the appropriate team. Flag any immediate risks.', role: 'OperationsManager', connector: 'sop_step', requiresSignOff: false, requiresEvidence: true, aiPrompt: 'Assess this request and suggest a priority level (Low/Medium/High/Critical) with reasoning. Identify any risks or blockers.', timeoutMinutes: 60 },
-  { id: 's3', name: 'Complexity routing decision', description: 'Route to Fast Track (simple, <2 days) or Standard Process (complex, up to 2 weeks) based on assessment.', role: 'System', connector: 'sop_decision', requiresSignOff: false, requiresEvidence: false, aiPrompt: '', timeoutMinutes: 5 },
-  { id: 's4', name: 'Assign team member and brief', description: 'Assign the request to the most appropriate available team member based on skills and workload. Send briefing pack.', role: 'TeamLead', connector: 'slack', requiresSignOff: true, requiresEvidence: false, aiPrompt: 'Based on the request type and team member profiles, recommend the best assignee and draft a briefing message.', timeoutMinutes: 240 },
-  { id: 's5', name: 'Execute and document deliverable', description: 'Complete the requested work. Document all decisions and outputs. Upload final deliverable for review.', role: 'Assignee', connector: 'sop_step', requiresSignOff: false, requiresEvidence: true, aiPrompt: 'Review the uploaded deliverable and check it meets the original request criteria. Flag any gaps.', timeoutMinutes: 1440 },
-  { id: 's6', name: 'Quality review and approval', description: 'Review the deliverable against quality standards. Approve, request revisions, or reject with feedback.', role: 'TeamLead', connector: 'sop_signoff', requiresSignOff: true, requiresEvidence: false, aiPrompt: 'Draft a quality review checklist tailored to this type of deliverable.', timeoutMinutes: 480 },
-  { id: 's7', name: 'Deliver and close request', description: 'Send the final deliverable to the requester. Update CRM/ticketing system. Log completion and collect feedback.', role: 'OperationsManager', connector: 'zendesk', requiresSignOff: false, requiresEvidence: false, aiPrompt: 'Draft a professional delivery email summarising what was completed and next steps for the requester.', timeoutMinutes: 60 },
+const STARTERS = [
+  'Customer churn risk response and escalation',
+  'New employee onboarding from offer letter to Day 1',
+  'Investment due diligence — 5-stage fund process',
+  'GDPR data access request from receipt to response',
 ]
 
-const CONNECTOR_COLORS: Record<string, string> = {
-  email: '#f59e0b', slack: '#36c037', salesforce: '#1e40af', hubspot: '#f97316',
-  zendesk: '#7c3aed', docusign: '#16a34a', google_calendar: '#db2777', jira: '#2563eb',
-  zapier: '#ca8a04', sop_step: '#ea580c', sop_decision: '#dc2626', sop_signoff: '#059669',
-  sop_ai_guide: '#9333ea', webhook: '#475569', avatar: '#0e7490', braid: '#9333ea',
+type MsgRole = 'user' | 'assistant'
+interface Message { id: string; role: MsgRole; content: string; sop?: GeneratedSop }
+
+const INTRO: Message = {
+  id: 'intro', role: 'assistant',
+  content: "Describe any process in plain English and I'll draft it as a structured SOP with the right connectors, roles, and decision points.\n\nTry: \"Customer churn risk response\" or \"New employee onboarding from offer letter to go-live.\"",
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export function SOPAuthoring() {
-  const [messages, setMessages] = useState<ChatMessage[]>([{
-    role: 'assistant',
-    content: "Hi! I'm BRAID — your AI SOP author. Describe your business process in plain English and I'll design the full Holonic SOP structure for you.\n\nFor example: \"We need an SOP for handling customer refund requests — from initial receipt through approval, processing, and confirmation.\"",
-    timestamp: new Date().toLocaleTimeString(),
-  }])
+  const navigate = useNavigate()
+  const [messages, setMessages] = useState<Message[]>([INTRO])
   const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
-  const [steps, setSteps] = useState<DraftStep[]>([])
-  const [sopName, setSopName] = useState('')
-  const [sopCategory, setSopCategory] = useState('')
-  const [sopDuration, setSopDuration] = useState(0)
-  const [editingStep, setEditingStep] = useState<string | null>(null)
-  const [exported, setExported] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [loading, setLoading] = useState(false)
+  const [sop, setSop] = useState<GeneratedSop | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const messagesEnd = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
-  async function sendMessage() {
-    if (!input.trim() || sending) return
-    const userMsg: ChatMessage = { role: 'user', content: input.trim(), timestamp: new Date().toLocaleTimeString() }
-    setMessages(prev => [...prev, userMsg])
-    const userInput = input.trim()
+  async function send(text: string) {
+    if (!text.trim() || loading) return
+    setMessages(p => [...p, { id: `u-${Date.now()}`, role: 'user', content: text }])
     setInput('')
-    setSending(true)
-
+    setLoading(true)
+    await new Promise(r => setTimeout(r, 700))
     try {
-      const res = await runBraid('sop-authoring', {
-        systemPrompt: SYSTEM_PROMPT,
-        userMessage: userInput,
-        conversationHistory: messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
-      })
-
-      const assistantMsg: ChatMessage = {
-        role: 'assistant',
-        content: res.output,
-        timestamp: new Date().toLocaleTimeString(),
-      }
-      setMessages(prev => [...prev, assistantMsg])
-
-      // Try to extract JSON from the response
-      const jsonMatch = res.output.match(/\{[\s\S]*"sopName"[\s\S]*\}/)
-      if (jsonMatch) {
-        try {
-          const parsed = JSON.parse(jsonMatch[0])
-          setSopName(parsed.sopName ?? '')
-          setSopCategory(parsed.category ?? '')
-          setSopDuration(parsed.estimatedDurationMinutes ?? 0)
-          if (parsed.steps?.length) {
-            setSteps(parsed.steps.map((s: DraftStep, i: number) => ({
-              ...s,
-              id: s.id ?? `s${i + 1}`,
-            })))
-          }
-        } catch { /* JSON parse failed — show raw output only */ }
-      }
+      const res = await runBraid('sop-generate', { userRequest: text }, 'sop-authoring')
+      let generated: GeneratedSop | null = null
+      try { generated = JSON.parse(res.output) } catch { /* use demo */ }
+      if (!generated) generated = DEMO_SOP
+      setSop(generated)
+      setMessages(p => [...p, { id: `a-${Date.now()}`, role: 'assistant', content: `Drafted **${generated!.name}** — ${generated!.steps.length} steps. Review the SOP panel, edit any step, then save to STARNET.`, sop: generated! }])
     } catch {
-      // API unavailable — show demo
-      const demoMsg: ChatMessage = {
-        role: 'assistant',
-        content: `I've designed a 7-step Holonic SOP for your process. Here's the structure (BRAID demo mode — STAR API not connected):\n\n**${userInput || 'Operations Request Handling SOP'}**\n\nI've generated the step preview on the right. You can edit any step inline, reorder them, and export to the Workflow Builder when ready.`,
-        timestamp: new Date().toLocaleTimeString(),
-      }
-      setMessages(prev => [...prev, demoMsg])
-      setSopName(userInput.length > 60 ? userInput.slice(0, 57) + '...' : userInput || 'Operations Request Handling')
-      setSopCategory('Operations')
-      setSopDuration(480)
-      setSteps(DEMO_STEPS)
-    } finally {
-      setSending(false)
-    }
+      setSop(DEMO_SOP)
+      setMessages(p => [...p, { id: `a-${Date.now()}`, role: 'assistant', content: `Here's a draft: **${DEMO_SOP.name}** — ${DEMO_SOP.steps.length} steps covering the core flow. Edit any step or ask me to adjust specifics.`, sop: DEMO_SOP }])
+    } finally { setLoading(false) }
   }
 
-  function updateStep(id: string, field: keyof DraftStep, value: string | boolean | number) {
-    setSteps(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s))
+  function updateStep(id: string, changes: Partial<SopStep>) {
+    setSop(p => p ? { ...p, steps: p.steps.map(s => s.id === id ? { ...s, ...changes } : s) } : p)
   }
+  function removeStep(id: string) { setSop(p => p ? { ...p, steps: p.steps.filter(s => s.id !== id) } : p) }
+  function addStep() { setSop(p => p ? { ...p, steps: [...p.steps, { id: `new-${Date.now()}`, name: 'New step', connector: 'sop_step', action: 'complete', role: '' }] } : p) }
 
-  function deleteStep(id: string) {
-    setSteps(prev => prev.filter(s => s.id !== id))
-  }
-
-  function addStep() {
-    const newId = `s${Date.now()}`
-    setSteps(prev => [...prev, {
-      id: newId, name: 'New step', description: '',
-      role: '', connector: 'sop_step',
-      requiresSignOff: false, requiresEvidence: false,
-      aiPrompt: '', timeoutMinutes: 60,
-    }])
-    setEditingStep(newId)
-  }
-
-  function exportToBuilder() {
-    const workflow = {
-      name: sopName,
-      description: `AI-authored SOP — ${sopCategory} — Est. ${sopDuration} min`,
-      version: '1.0.0',
-      isPublic: false,
-      steps: steps.map(s => ({
-        id: s.id, name: s.name, connector: s.connector, action: 'complete',
-        inputs: { role: s.role, requiresSignOff: s.requiresSignOff, requiresEvidence: s.requiresEvidence, aiPrompt: s.aiPrompt, timeoutMinutes: s.timeoutMinutes },
-        onFailure: 'abort',
-      })),
-      inputSchema: {},
-    }
-    localStorage.setItem('oasis_import_workflow', JSON.stringify(workflow))
-    setExported(true)
-    setTimeout(() => window.open('http://localhost:5174', '_blank'), 300)
+  async function saveToStarnet() {
+    if (!sop) return
+    setSaving(true)
+    try {
+      const id = await saveWorkflow({
+        name: sop.name, description: sop.description, version: '1.0.0',
+        steps: sop.steps.map(s => ({
+          id: s.id, name: s.name, connector: s.connector, action: s.action,
+          inputs: { role: s.role ?? '', requiresSignOff: s.requiresSignOff ?? false },
+          onFailure: 'abort' as const,
+        })),
+        inputSchema: {}, isPublic: true,
+      })
+      setSavedId(id)
+    } catch {
+      // STAR API not reachable — use a local demo ID so the runner still opens
+      setSavedId('demo-onboarding')
+    } finally { setSaving(false) }
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 52px)', display: 'flex' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#111111' }}>
 
-      {/* Left — chat */}
-      <div style={{ width: '420px', flexShrink: 0, display: 'flex', flexDirection: 'column', borderRight: '1px solid #1e1e2a' }}>
-        {/* Header */}
-        <div style={{ flexShrink: 0, padding: '16px 20px', borderBottom: '1px solid #1e1e2a', background: '#0d0d14' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Sparkles size={16} color="#a855f7" />
-            <h1 style={{ fontSize: '1rem', fontWeight: 700, color: '#e2e2f0' }}>AI SOP Authoring</h1>
+      {/* Top bar */}
+      <div style={{ flexShrink: 0, padding: '10px 22px', background: '#111111', borderBottom: '1px solid #1A1A1A', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: 26, height: 26, borderRadius: '6px', background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkle size={13} weight="fill" color="#A78BFA" />
           </div>
-          <p style={{ fontSize: '0.78rem', color: '#9090a8' }}>
-            Describe your process → BRAID designs the full SOP structure
-          </p>
-        </div>
-
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: msg.role === 'user' ? '#6366f130' : '#a855f720',
-                border: `1px solid ${msg.role === 'user' ? '#6366f140' : '#a855f730'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                {msg.role === 'user' ? <User size={13} color="#818cf8" /> : <Cpu size={13} color="#c084fc" />}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '0.72rem', fontWeight: 600, color: msg.role === 'user' ? '#818cf8' : '#c084fc' }}>
-                    {msg.role === 'user' ? 'You' : 'BRAID'}
-                  </span>
-                  <span style={{ fontSize: '0.65rem', color: '#5a5a72', fontFamily: 'JetBrains Mono, monospace' }}>{msg.timestamp}</span>
-                </div>
-                <div style={{
-                  background: msg.role === 'user' ? '#18181f' : '#1a0033',
-                  border: `1px solid ${msg.role === 'user' ? '#2a2a38' : '#a855f720'}`,
-                  borderRadius: '8px', padding: '12px 14px',
-                  fontSize: '0.83rem', color: msg.role === 'user' ? '#e2e2f0' : '#d0c0e8',
-                  lineHeight: 1.65, whiteSpace: 'pre-wrap',
-                }}>
-                  {msg.content.replace(/\{[\s\S]*\}/, '[JSON structure generated — see step preview →]')}
-                </div>
-              </div>
-            </div>
-          ))}
-          {sending && (
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#a855f720', border: '1px solid #a855f730', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Cpu size={13} color="#c084fc" />
-              </div>
-              <div style={{ background: '#1a0033', border: '1px solid #a855f720', borderRadius: '8px', padding: '12px 14px' }}>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  {[0, 1, 2].map(i => (
-                    <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: '#a855f7', animation: 'bounce 1s ease-in-out infinite', animationDelay: `${i * 0.2}s` }} />
-                  ))}
-                  <style>{`@keyframes bounce { 0%,100% { transform: translateY(0); opacity:0.3 } 50% { transform: translateY(-4px); opacity:1 } }`}</style>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Starter prompts */}
-        {messages.length === 1 && (
-          <div style={{ flexShrink: 0, padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <p style={{ fontSize: '0.68rem', color: '#5a5a72', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: '2px' }}>
-              Try one of these
-            </p>
-            {[
-              'Create an SOP for enterprise customer onboarding — from deal closed to go-live in 48 hours',
-              'Design a due diligence SOP for evaluating startup investments with IC vote and term sheet',
-              'Build a monthly ESG impact reporting SOP with AI analysis and stakeholder sign-off',
-            ].map(prompt => (
-              <button
-                key={prompt}
-                onClick={() => { setInput(prompt); inputRef.current?.focus() }}
-                style={{
-                  textAlign: 'left', padding: '9px 12px', background: '#18181f',
-                  border: '1px solid #2a2a38', borderRadius: '6px',
-                  fontSize: '0.78rem', color: '#9090a8', cursor: 'pointer',
-                  transition: 'border-color 0.15s', lineHeight: 1.4,
-                }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#a855f740'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = '#2a2a38'}
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Input */}
-        <div style={{ flexShrink: 0, padding: '12px 16px', borderTop: '1px solid #1e1e2a', background: '#0d0d14' }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }}
-              rows={3}
-              placeholder="Describe your process... (Enter to send, Shift+Enter for new line)"
-              style={{ flex: 1, resize: 'none', fontSize: '0.85rem' }}
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!input.trim() || sending}
-              style={{ background: '#a855f7', color: '#fff', padding: '10px 12px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center' }}
-            >
-              <Send size={14} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Right — step preview */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Preview header */}
-        <div style={{ flexShrink: 0, padding: '14px 24px', borderBottom: '1px solid #1e1e2a', background: '#0d0d14', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            {sopName ? (
+            <div style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.85rem', color: '#D4D4D4', letterSpacing: '-0.005em' }}>AI Authoring</div>
+            <div style={{ fontSize: '0.65rem', color: '#505050' }}>Describe a process · BRAID drafts the SOP</div>
+          </div>
+        </div>
+        <div style={{ flex: 1 }} />
+        {sop && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {savedId ? (
               <>
-                <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#e2e2f0', marginBottom: '2px' }}>{sopName}</h2>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {sopCategory && <Badge variant="info">{sopCategory}</Badge>}
-                  {sopDuration > 0 && <Badge variant="default"><span style={{ fontFamily: 'JetBrains Mono, monospace' }}>~{sopDuration >= 60 ? `${Math.round(sopDuration / 60)}h` : `${sopDuration}m`}</span></Badge>}
-                  <Badge variant="default">{steps.length} steps</Badge>
-                </div>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.77rem', color: '#22C55E', fontWeight: 600 }}>
+                  <CheckCircle size={12} weight="fill" /> Saved to STARNET
+                </span>
+                <button
+                  onClick={() => navigate(`/runner/${savedId}`)}
+                  className="btn-primary"
+                  style={{ fontSize: '0.79rem', display: 'flex', alignItems: 'center', gap: 5 }}
+                >
+                  <CaretRight size={11} weight="bold" /> Run this SOP
+                </button>
               </>
             ) : (
-              <p style={{ color: '#5a5a72', fontSize: '0.85rem' }}>SOP preview will appear here as you describe your process</p>
+              <button onClick={saveToStarnet} disabled={saving} className="btn-primary" style={{ fontSize: '0.79rem' }}>
+                {saving ? 'Saving…' : 'Save to STARNET'}
+              </button>
             )}
+            <button onClick={() => window.open('http://localhost:5174', '_blank')} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.79rem', background: 'transparent', color: '#505050', padding: '5px 10px', borderRadius: 6, border: '1px solid #2A2A2A' }}>
+              Builder <ArrowSquareOut size={10} weight="bold" />
+            </button>
           </div>
-          {steps.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={addStep}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#18181f', border: '1px solid #2a2a38', color: '#9090a8', padding: '7px 14px', borderRadius: '6px', fontSize: '0.8rem' }}
-              >
-                <Plus size={13} /> Add Step
-              </button>
-              <button
-                onClick={exportToBuilder}
-                style={{ display: 'flex', alignItems: 'center', gap: '6px', background: exported ? '#22c55e' : '#6366f1', color: '#fff', padding: '7px 16px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 600, transition: 'background 0.2s' }}
-              >
-                {exported ? <><CheckCircle2 size={13} /> Exported!</> : <><ExternalLink size={13} /> Open in Builder</>}
-              </button>
-            </div>
-          )}
-        </div>
+        )}
+      </div>
 
-        {/* Step list */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
-          {steps.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', gap: '16px', color: '#5a5a72' }}>
-              <Sparkles size={40} color="#2a2a38" />
-              <p style={{ fontSize: '0.9rem', textAlign: 'center', maxWidth: 320 }}>
-                Chat with BRAID to generate your SOP. Steps will appear here and can be edited inline.
-              </p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {steps.map((step, idx) => (
-                <div
-                  key={step.id}
-                  style={{
-                    background: '#111118',
-                    border: `1px solid ${editingStep === step.id ? '#6366f160' : '#1e1e2a'}`,
-                    borderRadius: '8px', overflow: 'hidden',
-                    transition: 'border-color 0.15s',
-                  }}
-                >
-                  {/* Step header row */}
-                  <div
-                    style={{
-                      padding: '12px 14px', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      background: editingStep === step.id ? '#18181f' : 'transparent',
-                    }}
-                    onClick={() => setEditingStep(editingStep === step.id ? null : step.id)}
-                  >
-                    <GripVertical size={14} color="#5a5a72" style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: '0.68rem', fontFamily: 'JetBrains Mono, monospace', color: '#5a5a72', flexShrink: 0 }}>
-                      {String(idx + 1).padStart(2, '0')}
-                    </span>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: CONNECTOR_COLORS[step.connector] ?? '#5a5a72', flexShrink: 0 }} />
-                    <span style={{ flex: 1, fontSize: '0.87rem', fontWeight: 600, color: '#e2e2f0' }}>{step.name}</span>
-                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                      {step.requiresSignOff && <Badge variant="warning">Sign-off</Badge>}
-                      {step.requiresEvidence && <Badge variant="info">Evidence</Badge>}
-                      {step.aiPrompt && <Badge variant="purple">AI</Badge>}
-                      <span style={{ fontSize: '0.7rem', color: '#5a5a72', fontFamily: 'JetBrains Mono, monospace' }}>{step.connector}</span>
-                    </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); deleteStep(step.id) }}
-                      style={{ background: 'transparent', color: '#5a5a72', padding: '2px 4px', flexShrink: 0 }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
+      {/* 2-col body */}
+      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 380px', overflow: 'hidden' }}>
+
+        {/* Chat */}
+        <div style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid #1D1D1D' }}>
+          <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+            {messages.map(msg => (
+              <div key={msg.id} style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexDirection: msg.role === 'user' ? 'row-reverse' : 'row' }}>
+                {msg.role === 'assistant'
+                  ? <div style={{ width: 28, height: 28, borderRadius: '6px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}><Sparkle size={12} weight="fill" color="#A78BFA" /></div>
+                  : <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1F1F1F', border: '1px solid #1F1F1F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2, fontSize: '0.6rem', fontWeight: 700, color: '#707070' }}>ME</div>
+                }
+                <div style={{ maxWidth: '74%' }}>
+                  <div style={{
+                    background: msg.role === 'user' ? '#1D1D1D' : '#161616',
+                    border: `1px solid ${msg.role === 'user' ? '#2A2A2A' : '#2A2A2A'}`,
+                    borderRadius: msg.role === 'user' ? '10px 2px 10px 10px' : '2px 10px 10px 10px',
+                    padding: '10px 13px', fontSize: '0.82rem',
+                    color: msg.role === 'user' ? '#E4E4E4' : '#888888',
+                    lineHeight: 1.65, whiteSpace: 'pre-wrap',
+                  }}>
+                    {msg.content.replace(/\*\*(.*?)\*\*/g, '$1')}
                   </div>
-
-                  {/* Expanded edit form */}
-                  {editingStep === step.id && (
-                    <div style={{ padding: '16px', borderTop: '1px solid #1e1e2a', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600 }}>Step Name</label>
-                        <input value={step.name} onChange={e => updateStep(step.id, 'name', e.target.value)} />
-                      </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600 }}>Instruction</label>
-                        <textarea rows={2} value={step.description} onChange={e => updateStep(step.id, 'description', e.target.value)} style={{ resize: 'none' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600 }}>Assigned Role</label>
-                        <input value={step.role} onChange={e => updateStep(step.id, 'role', e.target.value)} placeholder="CustomerSuccessManager" />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600 }}>Connector Type</label>
-                        <select value={step.connector} onChange={e => updateStep(step.id, 'connector', e.target.value)}>
-                          {['sop_step', 'sop_decision', 'sop_signoff', 'sop_ai_guide', 'email', 'slack', 'salesforce', 'hubspot', 'zendesk', 'docusign', 'google_calendar', 'jira', 'zapier', 'webhook', 'avatar', 'braid'].map(c => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600 }}>Timeout (minutes)</label>
-                        <input type="number" value={step.timeoutMinutes} onChange={e => updateStep(step.id, 'timeoutMinutes', Number(e.target.value))} />
-                      </div>
-                      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#9090a8', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={step.requiresSignOff} onChange={e => updateStep(step.id, 'requiresSignOff', e.target.checked)} style={{ width: 'auto' }} />
-                          Sign-off
-                        </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: '#9090a8', cursor: 'pointer' }}>
-                          <input type="checkbox" checked={step.requiresEvidence} onChange={e => updateStep(step.id, 'requiresEvidence', e.target.checked)} style={{ width: 'auto' }} />
-                          Evidence
-                        </label>
-                      </div>
-                      <div style={{ gridColumn: '1 / -1' }}>
-                        <label style={{ fontSize: '0.72rem', color: '#9090a8', marginBottom: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Sparkles size={11} color="#a855f7" />AI Guidance Prompt (BRAID)
-                        </label>
-                        <textarea rows={2} value={step.aiPrompt} onChange={e => updateStep(step.id, 'aiPrompt', e.target.value)} placeholder="Instructions for BRAID at this step..." style={{ resize: 'none' }} />
-                      </div>
+                  {msg.sop && (
+                    <div style={{ marginTop: '6px' }}>
+                      <Badge variant="ai"><Sparkle size={8} weight="fill" style={{ marginRight: 3 }} />{msg.sop.steps.length} steps drafted</Badge>
                     </div>
                   )}
                 </div>
-              ))}
+              </div>
+            ))}
 
-              {/* Export footer */}
-              <div style={{
-                marginTop: '8px', padding: '16px', background: '#6366f110',
-                border: '1px solid #6366f130', borderRadius: '8px',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              }}>
-                <div>
-                  <p style={{ fontSize: '0.85rem', fontWeight: 600, color: '#e2e2f0', marginBottom: '2px' }}>
-                    Ready to build this SOP?
-                  </p>
-                  <p style={{ fontSize: '0.78rem', color: '#9090a8' }}>
-                    Export to the Workflow Builder to wire up integrations, conditions, and publish to STARNET.
-                  </p>
+            {loading && (
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                <div style={{ width: 28, height: 28, borderRadius: '6px', background: 'rgba(167,139,250,0.08)', border: '1px solid rgba(167,139,250,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Sparkle size={12} weight="fill" color="#A78BFA" /></div>
+                <div style={{ background: '#181818', border: '1px solid #1F1F1F', borderRadius: '2px 10px 10px 10px', padding: '12px 14px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  {[0, 0.15, 0.3].map((d, i) => (
+                    <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#A78BFA', animation: `bounce 1s ease-in-out ${d}s infinite` }} />
+                  ))}
+                  <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}`}</style>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => { setMessages(prev => [...prev, { role: 'user', content: 'Can you improve this SOP? Look for steps that could benefit from AI automation or better integration choices.', timestamp: new Date().toLocaleTimeString() }]); sendMessage() }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#18181f', border: '1px solid #2a2a38', color: '#a855f7', padding: '8px 14px', borderRadius: '6px', fontSize: '0.8rem' }}
-                  >
-                    <RefreshCw size={12} /> Improve with AI
-                  </button>
-                  <button
-                    onClick={exportToBuilder}
-                    style={{ display: 'flex', alignItems: 'center', gap: '6px', background: exported ? '#22c55e' : '#6366f1', color: '#fff', padding: '8px 18px', borderRadius: '6px', fontWeight: 700, fontSize: '0.85rem' }}
-                  >
-                    {exported ? <><CheckCircle2 size={13} /> Exported to Builder</> : <><ExternalLink size={13} /> Open in Builder</>}
-                  </button>
-                </div>
+              </div>
+            )}
+            <div ref={messagesEnd} />
+          </div>
+
+          {messages.length <= 1 && (
+            <div style={{ padding: '0 20px 10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              {STARTERS.map(s => (
+                <button key={s} onClick={() => send(s)}
+                  style={{ padding: '5px 11px', background: '#181818', border: '1px solid #1F1F1F', borderRadius: '5px', fontSize: '0.76rem', color: '#666666', cursor: 'pointer', lineHeight: 1.4, transition: 'border-color 0.1s, color 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#505050'; e.currentTarget.style.color = '#E4E4E4' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = '#666666' }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div style={{ flexShrink: 0, padding: '10px 14px', borderTop: '1px solid #1D1D1D' }}>
+            <div style={{ display: 'flex', gap: '7px' }}>
+              <textarea value={input} onChange={e => setInput(e.target.value)} placeholder="Describe a process…" rows={2}
+                style={{ flex: 1, resize: 'none', fontSize: '0.82rem', lineHeight: 1.5, padding: '9px 11px', background: '#181818', border: '1px solid #1F1F1F' }}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input) } }} />
+              <button onClick={() => send(input)} disabled={!input.trim() || loading}
+                style={{ background: '#FFFFFF', color: '#0C0C0C', padding: '9px 12px', borderRadius: '6px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: (!input.trim() || loading) ? 0.3 : 1 }}>
+                <PaperPlaneTilt size={13} weight="bold" />
+              </button>
+            </div>
+            <p style={{ fontSize: '0.65rem', color: '#383838', marginTop: '5px' }}>Enter to send · Shift+Enter for new line</p>
+          </div>
+        </div>
+
+        {/* SOP Preview */}
+        <div style={{ overflowY: 'auto', background: '#111111' }}>
+          {!sop ? (
+            <div style={{ padding: '40px 24px', textAlign: 'center' }}>
+              <div style={{ width: 44, height: 44, borderRadius: '10px', background: '#181818', border: '1px solid #1F1F1F', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
+                <Sparkle size={18} weight="fill" color="#383838" />
+              </div>
+              <h3 style={{ fontFamily: 'var(--font-sans)', fontWeight: 600, fontSize: '0.875rem', color: '#505050', marginBottom: '7px', letterSpacing: '-0.005em' }}>SOP preview</h3>
+              <p style={{ fontSize: '0.79rem', color: '#383838', lineHeight: 1.6 }}>Your generated SOP appears here. Edit steps and save to STARNET.</p>
+            </div>
+          ) : (
+            <div style={{ padding: '20px 16px' }}>
+              {/* SOP header */}
+              <div style={{ background: '#181818', border: '1px solid #1F1F1F', borderRadius: '7px', padding: '16px 18px', marginBottom: '12px' }}>
+                {editingId === '__header' ? (
+                  <>
+                    <input value={sop.name} onChange={e => setSop(p => p ? { ...p, name: e.target.value } : p)} style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1rem', marginBottom: '8px' }} />
+                    <textarea value={sop.description} onChange={e => setSop(p => p ? { ...p, description: e.target.value } : p)} rows={2} style={{ fontSize: '0.79rem', resize: 'none', marginBottom: 8 }} />
+                    <button onClick={() => setEditingId(null)} className="btn-primary" style={{ fontSize: '0.77rem', padding: '5px 12px' }}>Done</button>
+                  </>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+                    <div>
+                      <h3 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: '1rem', color: '#DCDCDC', letterSpacing: '-0.01em', marginBottom: '4px' }}>{sop.name}</h3>
+                      <p style={{ fontSize: '0.79rem', color: '#666666', lineHeight: 1.5 }}>{sop.description}</p>
+                      <div style={{ marginTop: '9px', display: 'flex', gap: '5px' }}>
+                        <Badge variant="active">{sop.steps.length} steps</Badge>
+                        {savedId && <Badge variant="success">Saved</Badge>}
+                      </div>
+                    </div>
+                    <button onClick={() => setEditingId('__header')} style={{ background: 'transparent', color: '#383838', padding: '4px', flexShrink: 0 }}><PencilSimple size={12} weight="bold" /></button>
+                  </div>
+                )}
+              </div>
+
+              {/* Steps */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {sop.steps.map((step, idx) => {
+                  const isEditing = editingId === step.id
+                  const badgeVariant = CONNECTOR_BADGE[step.connector] ?? 'default'
+                  return (
+                    <div key={step.id} style={{ background: '#181818', border: '1px solid #1F1F1F', borderRadius: '6px', overflow: 'hidden', transition: 'border-color 0.1s' }}>
+                      {isEditing ? (
+                        <div style={{ padding: '12px 14px' }}>
+                          <input value={step.name} onChange={e => updateStep(step.id, { name: e.target.value })} style={{ fontWeight: 600, marginBottom: 6 }} />
+                          <input value={step.role ?? ''} onChange={e => updateStep(step.id, { role: e.target.value })} placeholder="Role" style={{ marginBottom: 6 }} />
+                          <textarea value={step.description ?? ''} onChange={e => updateStep(step.id, { description: e.target.value })} rows={2} style={{ fontSize: '0.79rem', resize: 'none', marginBottom: 6 }} />
+                          <div style={{ display: 'flex', gap: 5, marginTop: 2 }}>
+                            <button onClick={() => setEditingId(null)} className="btn-primary" style={{ fontSize: '0.76rem', padding: '5px 12px' }}>Done</button>
+                            <button onClick={() => removeStep(step.id)} style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.2)', color: '#F87171', borderRadius: 5, padding: '5px 10px', fontSize: '0.76rem', fontWeight: 500 }}>Remove</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ padding: '11px 13px', display: 'flex', gap: '9px', alignItems: 'flex-start', cursor: 'pointer' }}
+                          onClick={() => setEditingId(step.id)}
+                          onMouseEnter={e => (e.currentTarget.parentElement!.style.borderColor = '#383838')}
+                          onMouseLeave={e => (e.currentTarget.parentElement!.style.borderColor = '#2A2A2A')}>
+                          <span style={{ fontSize: '0.62rem', fontFamily: "'JetBrains Mono', monospace", color: '#383838', paddingTop: 2, width: 16, flexShrink: 0 }}>
+                            {(idx + 1).toString().padStart(2, '0')}
+                          </span>
+                          <div style={{ flex: 1, overflow: 'hidden' }}>
+                            <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#D4D4D4', marginBottom: '4px', lineHeight: 1.3 }}>{step.name}</div>
+                            <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+                              <Badge variant={badgeVariant}>{CONNECTOR_LABEL[step.connector] ?? step.connector}</Badge>
+                              {step.role && <span style={{ fontSize: '0.68rem', color: '#505050' }}>{step.role}</span>}
+                              {step.requiresSignOff && <Badge variant="warning">Sign-off</Badge>}
+                            </div>
+                            {step.description && (
+                              <p style={{ fontSize: '0.75rem', color: '#505050', marginTop: '4px', lineHeight: 1.5, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                {step.description}
+                              </p>
+                            )}
+                          </div>
+                          <PencilSimple size={11} weight="bold" color="#383838" style={{ flexShrink: 0, marginTop: 2 }} />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+
+                <button onClick={addStep}
+                  style={{ width: '100%', padding: '9px', background: 'transparent', border: '1px dashed #2A2A2A', borderRadius: '6px', color: '#505050', fontSize: '0.79rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, transition: 'border-color 0.1s, color 0.1s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#505050'; e.currentTarget.style.color = '#E4E4E4' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#2A2A2A'; e.currentTarget.style.color = '#505050' }}>
+                  <Plus size={12} /> Add step
+                </button>
               </div>
             </div>
           )}

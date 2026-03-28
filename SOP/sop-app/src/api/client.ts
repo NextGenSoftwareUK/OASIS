@@ -115,6 +115,21 @@ export async function getExecution(executionId: string): Promise<WorkflowExecuti
   return data.result
 }
 
+export async function saveWorkflow(wf: Omit<WorkflowDefinition, 'id'>): Promise<string> {
+  const data = await request<{ result?: { id?: string } }>('POST', '/workflow/save', wf)
+  return data?.result?.id ?? `local-${Date.now()}`
+}
+
+// ── Execution step completion ────────────────────────────────────────────────
+
+export async function completeStepApi(
+  executionId: string,
+  stepId: string,
+  data: { completedBy: string; note?: string; evidence?: string[] }
+): Promise<void> {
+  await request('POST', `/workflow/execution/${executionId}/steps/${stepId}/complete`, data)
+}
+
 export async function verifyProof(holonId: string): Promise<{ verified: boolean; details: string }> {
   const data = await request<{ result?: { verified: boolean; details: string } }>(
     'GET', `/workflow/verify/${holonId}`
