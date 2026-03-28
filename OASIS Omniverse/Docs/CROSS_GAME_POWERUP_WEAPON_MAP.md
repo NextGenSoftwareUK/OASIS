@@ -49,9 +49,31 @@ For these, keep **distinct canonical IDs** (`OASIS.PartialVis`, `OASIS.LightAmp`
 
 ---
 
-## Weapons (placeholder)
+## Weapons & ammo (beam-in, player-facing names)
 
-Weapons will need a **separate table** (ammo family, slot, PvP balance). Start with powerups first; same pattern: **`OASIS.Weapon.Shotgun`**-style IDs and per-game spawn / give rules.
+STAR rows use **short display names** plus a **game suffix** in storage (e.g. `Nails (OQUAKE)`, `Bullets (ODOOM)`). The in-game overlay should show **Shotgun**, **Nailgun**, **Chaingun**, etc.—not `OASIS.Weapon.*` strings.
+
+### Config: `oasisstar.json` (both games)
+
+Optional string keys (comma-separated `From=To` pairs, spaces optional):
+
+| Key | Used when playing |
+|-----|-------------------|
+| **`cross_game_doom_ammo_to_quake`** | **OQuake**: map Doom ammo display name → Quake ammo (Shells / Nails / Rockets / Cells). |
+| **`cross_game_quake_ammo_to_doom`** | **ODOOM**: map Quake ammo display name → Doom ammo (Bullets / Shells / Rockets / Cells). |
+| **`cross_game_doom_weapon_to_quake`** | **OQuake**: Doom **Weapon** rows → vkQuake **`give 2`–`give 8`** (id1 weapons via `Host_Give_f`), or client `cl.items` OR in **deathmatch** (vanilla `give` is a no-op there). |
+| **`cross_game_quake_weapon_to_doom`** | **ODOOM**: Quake weapon display name → Doom actor class for **`give`** (e.g. `PlasmaRifle`, `BFG9000`). |
+
+Defaults match the current product intent: **Nails ↔ Bullets** (chaingun ↔ nailgun), **Lightning Gun → BFG9000**, **Super Nailgun** and **Grenade Launcher** → **PlasmaRifle**, shotguns and rocket launchers aligned by name.
+
+### Behaviour
+
+- **Once per beam-in session**, after STAR inventory is available, the **receiving** game adds **ammo quantities** from the **other** game’s `Ammo` rows (1:1 count, subject to local max ammo).
+- **OQuake ammo (vkQuake):** when **not** in deathmatch, uses **`give s|n|r|c <new_total>`** so the **server** owns ammo (same as `Host_Give_f`). In **deathmatch**, `give` is a no-op in vanilla vkQuake — ammo is applied by updating **`cl.stats`** only (best effort; may desync in MP). STAR ammo deltas from that grant are **suppressed** for a few frames so rows are not duplicated.
+- **ODOOM ammo:** adds to existing **Clip/Shell/RocketAmmo/Cell** inventory or runs **`give`** to create it. In **deathmatch**, `give` may be blocked without cheats — if nothing is granted, enable **`sv_cheats`** or pick up one box of that ammo type first (debug log when `star_debug` is on).
+- **ODOOM** runs **`give <class>`** once per mapped **Weapon** row from Quake if the player does not already have that weapon.
+- **OQuake** runs **`give N`** (vkQuake digit form: 2=shotgun … 8=lightning) per mapped **Weapon** row from Doom, and **suppresses duplicate STAR weapon rows** for those bits for a few frames.
+- To pull updated counts from STAR after play in the other title, **beam out and beam in again** (or start a new session)—the transfer is intentionally not re-run every map load.
 
 ---
 

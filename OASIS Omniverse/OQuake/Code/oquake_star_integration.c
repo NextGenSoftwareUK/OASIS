@@ -393,6 +393,24 @@ static char g_star_last_pickup_desc[512] = {0};
 static char g_star_last_pickup_type[64] = {0};
 static qboolean g_star_has_last_pickup = false;
 
+/* Cross-game beam-in: map other title's STAR ammo (and optional weapons on ODOOM) once per session after inventory loads. */
+#define OQ_CROSS_PAIR_MAX 32
+typedef struct { char from[96]; char to[96]; } oq_cross_pair_t;
+static oq_cross_pair_t g_oq_doom_ammo_to_quake[OQ_CROSS_PAIR_MAX];
+static int g_oq_doom_ammo_to_quake_n;
+static oq_cross_pair_t g_oq_quake_ammo_to_doom[OQ_CROSS_PAIR_MAX];
+static int g_oq_quake_ammo_to_doom_n;
+static oq_cross_pair_t g_oq_doom_weapon_to_quake[OQ_CROSS_PAIR_MAX];
+static int g_oq_doom_weapon_to_quake_n;
+static oq_cross_pair_t g_oq_quake_weapon_to_doom[OQ_CROSS_PAIR_MAX];
+static int g_oq_quake_weapon_to_doom_n;
+static int g_oq_cross_game_beam_transfer_done = 0;
+static int g_oq_cross_empty_inventory_wait_frames = 0;
+/** After cross-game `give N` (vkQuake Host_Give_f), skip STAR sync for weapon bit gains for a few frames (avoids duplicate Quake weapon rows). */
+static int g_oq_cross_grant_suppress_weapon_star = 0;
+/** After cross-game ammo (`give s|n|r|c` or client cl.stats in DM), skip STAR ammo stat deltas for a few frames (avoids duplicate ammo rows). */
+static int g_oq_cross_grant_suppress_ammo_star = 0;
+
 /* key binding helpers from keys.c; key_message, key_console, key_menu are enum constants from keys.h */
 extern char *keybindings[MAX_KEYS];
 extern qboolean keydown[MAX_KEYS];
@@ -1431,6 +1449,7 @@ static void OQ_OnAuthDone(void* user_data) {
                 q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
         }
         g_star_beamed_in = 1;
+        OQ_ResetCrossGameBeamTransferState();
         g_inventory_last_refresh = 0.0;
         /* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
         OQ_SaveStarConfigToFiles();
@@ -1889,6 +1908,288 @@ static int OQ_ExtractJsonValue(const char *json, const char *key, char *value, i
     }
 }
 
+static void OQ_ResetCrossGameBeamTransferState(void) {
+    g_oq_cross_game_beam_transfer_done = 0;
+    g_oq_cross_empty_inventory_wait_frames = 0;
+    g_oq_cross_grant_suppress_weapon_star = 0;
+    g_oq_cross_grant_suppress_ammo_star = 0;
+}
+
+static void OQ_CrossGamePairsClearTable(oq_cross_pair_t* tab, int* n) {
+    *n = 0;
+    memset(tab, 0, sizeof(oq_cross_pair_t) * (size_t)OQ_CROSS_PAIR_MAX);
+}
+
+static void OQ_CrossGamePairsAdd(oq_cross_pair_t* tab, int* n, const char* from, const char* to) {
+    if (!from || !to || !from[0] || !to[0] || *n >= OQ_CROSS_PAIR_MAX) return;
+    q_strlcpy(tab[*n].from, from, sizeof(tab[*n].from));
+    q_strlcpy(tab[*n].to, to, sizeof(tab[*n].to));
+    (*n)++;
+}
+
+static void OQ_InitCrossGameMapsToDefaults(void) {
+    OQ_CrossGamePairsClearTable(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n);
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Bullets", "Nails");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Shells", "Shells");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Rockets", "Rockets");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Cells", "Cells");
+    OQ_CrossGamePairsClearTable(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n);
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Nails", "Bullets");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Shells", "Shells");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Rockets", "Rockets");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Cells", "Cells");
+    OQ_CrossGamePairsClearTable(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n);
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Chaingun", "Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Shotgun", "Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "BFG9000", "Lightning Gun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Plasma Rifle", "Super Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Rocket Launcher", "Rocket Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Super Shotgun", "Super Shotgun");
+    OQ_CrossGamePairsClearTable(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Nailgun", "Chaingun");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Shotgun", "Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Super Nailgun", "PlasmaRifle");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Lightning Gun", "BFG9000");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Grenade Launcher", "PlasmaRifle");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Rocket Launcher", "RocketLauncher");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Super Shotgun", "SuperShotgun");
+}
+
+static void OQ_TrimAsciiInPlace(char* s) {
+    char* p = s;
+    char* end;
+    if (!s) return;
+    while (*p && (unsigned char)*p <= ' ') p++;
+    end = p + strlen(p);
+    while (end > p && (unsigned char)end[-1] <= ' ') end--;
+    *end = '\0';
+    if (p != s)
+        memmove(s, p, (size_t)(end - p + 1));
+}
+
+static void OQ_ParseCrossGamePairList(const char* list, oq_cross_pair_t* tab, int* outn) {
+    char buf[4096];
+    char* seg;
+    char* cursor;
+    if (!list || !list[0] || !outn) return;
+    q_strlcpy(buf, list, sizeof(buf));
+    *outn = 0;
+    memset(tab, 0, sizeof(oq_cross_pair_t) * (size_t)OQ_CROSS_PAIR_MAX);
+    for (cursor = buf; *cursor && *outn < OQ_CROSS_PAIR_MAX; ) {
+        seg = cursor;
+        while (*cursor && *cursor != ',') cursor++;
+        if (*cursor == ',') { *cursor = '\0'; cursor++; }
+        OQ_TrimAsciiInPlace(seg);
+        if (seg[0]) {
+            char* eq = strchr(seg, '=');
+            if (eq) {
+                *eq = '\0';
+                OQ_TrimAsciiInPlace(seg);
+                OQ_TrimAsciiInPlace(eq + 1);
+                if (seg[0] && eq[1])
+                    OQ_CrossGamePairsAdd(tab, outn, seg, eq + 1);
+            }
+        }
+    }
+}
+
+static const char* OQ_CrossGameMapLookup(const oq_cross_pair_t* tab, int n, const char* key) {
+    int i;
+    if (!key || !key[0]) return NULL;
+    for (i = 0; i < n; i++) {
+        if (!q_strcasecmp(tab[i].from, key))
+            return tab[i].to;
+    }
+    return NULL;
+}
+
+static int OQ_ItemGameSourceIsDoom(const char* gs) {
+    return gs && gs[0] && OQ_ContainsNoCase(gs, "doom");
+}
+
+static void OQ_StripStarStorageGameSuffix(const char* name, char* out, size_t outsz) {
+    size_t len;
+    if (!name || !out || outsz < 2) { if (out) out[0] = '\0'; return; }
+    q_strlcpy(out, name, outsz);
+    len = strlen(out);
+    if (len > 8 && !strcmp(out + len - 8, " (ODOOM)")) { out[len - 8] = '\0'; return; }
+    if (len > 9 && !strcmp(out + len - 9, " (OQUAKE)")) { out[len - 9] = '\0'; return; }
+    if (len > 8 && !strcmp(out + len - 8, " (QUAKE)")) { out[len - 8] = '\0'; return; }
+}
+
+/** Cross-game Doom ammo -> Quake: vkQuake `give s|n|r|c <total>` when not deathmatch (Host_Give_f); in deathmatch `give` is disabled — update cl.stats only. Returns 1 if ammo changed. */
+static int OQ_CrossGameApplyQuakeAmmoFromDoom(const char* logical, int qty) {
+    extern client_state_t cl;
+    extern cvar_t deathmatch;
+    extern void Cbuf_AddText(const char* text);
+    int stat_idx = -1;
+    int cap = 200;
+    const char* give_letter = NULL;
+    if (!logical || !logical[0] || qty <= 0) return 0;
+    if (!q_strcasecmp(logical, "Shells")) { stat_idx = STAT_SHELLS; cap = 100; give_letter = "s"; }
+    else if (!q_strcasecmp(logical, "Nails")) { stat_idx = STAT_NAILS; cap = 200; give_letter = "n"; }
+    else if (!q_strcasecmp(logical, "Rockets")) { stat_idx = STAT_ROCKETS; cap = 100; give_letter = "r"; }
+    else if (!q_strcasecmp(logical, "Cells")) { stat_idx = STAT_CELLS; cap = 100; give_letter = "c"; }
+    if (stat_idx < 0 || !give_letter) return 0;
+    {
+        int cur = (int)cl.stats[stat_idx];
+        int n = cur + qty;
+        if (n > cap) n = cap;
+        if (n <= cur) return 0;
+        if (deathmatch.value != 0) {
+            cl.stats[stat_idx] = n;
+        } else {
+            char cmd[40];
+            q_snprintf(cmd, sizeof(cmd), "\ngive %s %d\n", give_letter, n);
+            Cbuf_AddText(cmd);
+        }
+        return 1;
+    }
+}
+
+/** Standard id1 weapon item bits (for STAR sync suppression after cross-game `give`). */
+#define OQ_CROSS_STAR_WEAPON_ITEMS ((unsigned int)(IT_SHOTGUN | IT_SUPER_SHOTGUN | IT_NAILGUN | IT_SUPER_NAILGUN | IT_GRENADE_LAUNCHER | IT_ROCKET_LAUNCHER | IT_LIGHTNING | IT_SUPER_LIGHTNING))
+
+static unsigned int OQ_QuakeItemsBitForWeaponDisplayName(const char* mapped) {
+    if (!mapped || !mapped[0]) return 0;
+    if (!q_strcasecmp(mapped, "Shotgun")) return (unsigned int)IT_SHOTGUN;
+    if (!q_strcasecmp(mapped, "Super Shotgun")) return (unsigned int)IT_SUPER_SHOTGUN;
+    if (!q_strcasecmp(mapped, "Nailgun")) return (unsigned int)IT_NAILGUN;
+    if (!q_strcasecmp(mapped, "Super Nailgun")) return (unsigned int)IT_SUPER_NAILGUN;
+    if (!q_strcasecmp(mapped, "Grenade Launcher")) return (unsigned int)IT_GRENADE_LAUNCHER;
+    if (!q_strcasecmp(mapped, "Rocket Launcher")) return (unsigned int)IT_ROCKET_LAUNCHER;
+    if (!q_strcasecmp(mapped, "Lightning Gun")) return (unsigned int)IT_LIGHTNING;
+    if (!q_strcasecmp(mapped, "Super Lightning")) return (unsigned int)IT_SUPER_LIGHTNING;
+    return 0;
+}
+
+/** vkQuake `give` uses digits 2–8 for id1 weapons (Host_Give_f). */
+static const char* OQ_QuakeGiveArgForWeaponBit(unsigned int bit) {
+    if (bit == (unsigned int)IT_SHOTGUN) return "2";
+    if (bit == (unsigned int)IT_SUPER_SHOTGUN) return "3";
+    if (bit == (unsigned int)IT_NAILGUN) return "4";
+    if (bit == (unsigned int)IT_SUPER_NAILGUN) return "5";
+    if (bit == (unsigned int)IT_GRENADE_LAUNCHER) return "6";
+    if (bit == (unsigned int)IT_ROCKET_LAUNCHER) return "7";
+    if (bit == (unsigned int)IT_LIGHTNING) return "8";
+    if (bit == (unsigned int)IT_SUPER_LIGHTNING) return "8";
+    return NULL;
+}
+
+/** 1 if this frame applied cross-game ammo/weapons from STAR (caller should refresh poll_prev_* baselines). */
+static int OQ_TryApplyCrossGameBeamInTransfers(void) {
+    extern client_state_t cl;
+    extern client_static_t cls;
+    extern server_t sv;
+    star_item_list_t* list = NULL;
+    size_t i;
+    int applied = 0;
+    if (!g_star_initialized || !g_star_beamed_in) return 0;
+    if (!sv.active || cls.demoplayback) return 0;
+    if (cls.signon < OQ_VKQUAKE_SIGNONS) return 0;
+    if (g_oq_cross_game_beam_transfer_done) return 0;
+    if (g_oq_doom_ammo_to_quake_n <= 0)
+        OQ_InitCrossGameMapsToDefaults();
+    if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return 0;
+    if (list->count == 0) {
+        g_oq_cross_empty_inventory_wait_frames++;
+        star_api_free_item_list(list);
+        if (g_oq_cross_empty_inventory_wait_frames < 300) return 0;
+        g_oq_cross_game_beam_transfer_done = 1;
+        g_oq_cross_empty_inventory_wait_frames = 0;
+        return 0;
+    }
+    g_oq_cross_empty_inventory_wait_frames = 0;
+    {
+        int ammo_applied = 0;
+        for (i = 0; i < list->count; i++) {
+            const char* gs = list->items[i].game_source;
+            const char* raw_name = list->items[i].name;
+            const char* itype = list->items[i].item_type;
+            char base[256];
+            int qty = list->items[i].quantity;
+            const char* mapped;
+            if (!OQ_ItemGameSourceIsDoom(gs)) continue;
+            if (!raw_name || !itype || !OQ_ContainsNoCase(itype, "ammo")) continue;
+            if (qty <= 0) qty = 1;
+            OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
+            mapped = OQ_CrossGameMapLookup(g_oq_doom_ammo_to_quake, g_oq_doom_ammo_to_quake_n, base);
+            if (!mapped) continue;
+            if (!OQ_CrossGameApplyQuakeAmmoFromDoom(mapped, qty)) continue;
+            ammo_applied++;
+            applied = 1;
+            if (g_star_debug_logging) {
+                char logb[384];
+                q_snprintf(logb, sizeof(logb), "[OQuake] Cross-game beam-in: +%d %s (from Doom \"%s\") -> local %s", qty, base, raw_name, mapped);
+                star_api_log_to_file(logb);
+            }
+        }
+        if (ammo_applied > 0)
+            g_oq_cross_grant_suppress_ammo_star = 5;
+    }
+    {
+        int weapon_gives = 0;
+        extern cvar_t deathmatch;
+        extern void Cbuf_AddText(const char* text);
+        for (i = 0; i < list->count; i++) {
+            const char* gs = list->items[i].game_source;
+            const char* raw_name = list->items[i].name;
+            const char* itype = list->items[i].item_type;
+            char base[256];
+            int qty = list->items[i].quantity;
+            const char* mapped;
+            unsigned int wbit;
+            const char* giv;
+            if (!OQ_ItemGameSourceIsDoom(gs)) continue;
+            if (!raw_name || !itype || !OQ_ContainsNoCase(itype, "weapon")) continue;
+            if (qty <= 0) qty = 1;
+            (void)qty;
+            OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
+            mapped = OQ_CrossGameMapLookup(g_oq_doom_weapon_to_quake, g_oq_doom_weapon_to_quake_n, base);
+            if (!mapped) continue;
+            wbit = OQ_QuakeItemsBitForWeaponDisplayName(mapped);
+            if (!wbit) continue;
+            if (((unsigned int)cl.items) & wbit) continue;
+            giv = OQ_QuakeGiveArgForWeaponBit(wbit);
+            if (!giv) continue;
+            /* vkQuake Host_Give_f applies on server for non-deathmatch; `give` is a no-op in deathmatch — OR client bits as best effort. */
+            if (deathmatch.value != 0) {
+                cl.items = (int)(((unsigned int)cl.items) | wbit);
+            } else {
+                char cmd[32];
+                q_snprintf(cmd, sizeof(cmd), "\ngive %s\n", giv);
+                Cbuf_AddText(cmd);
+            }
+            weapon_gives++;
+            applied = 1;
+            if (g_star_debug_logging) {
+                char logb[384];
+                q_snprintf(logb, sizeof(logb), "[OQuake] Cross-game beam-in: weapon \"%s\" -> %s (give %s)", raw_name, mapped, giv);
+                star_api_log_to_file(logb);
+            }
+        }
+        if (weapon_gives > 0)
+            g_oq_cross_grant_suppress_weapon_star = 4;
+    }
+    g_oq_cross_game_beam_transfer_done = 1;
+    star_api_free_item_list(list);
+    return applied;
+}
+
+static void OQ_ReloadCrossGameMapsFromJsonString(const char* json) {
+    char mapbuf[4096];
+    if (!json) return;
+    OQ_InitCrossGameMapsToDefaults();
+    if (OQ_ExtractJsonValue(json, "cross_game_doom_ammo_to_quake", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_quake_ammo_to_doom", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_doom_weapon_to_quake", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_quake_weapon_to_doom", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
+}
+
 /* Load config from oasisstar.json */
 static int OQ_LoadJsonConfig(const char *json_path) {
     FILE *f = fopen(json_path, "r");
@@ -2053,6 +2354,7 @@ static int OQ_LoadJsonConfig(const char *json_path) {
             loaded = 1;
         }
     }
+    OQ_ReloadCrossGameMapsFromJsonString(json);
     free(json);
     return loaded;
 }
@@ -3165,6 +3467,7 @@ void OQuake_STAR_Init(void) {
             if (result == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
                 g_star_beamed_in = 1;
+                OQ_ResetCrossGameBeamTransferState();
                 star_api_refresh_avatar_profile();
                 star_api_log_to_file("[OQuake] Init (username+password): beamed_in=1, profile refresh started");
                 printf("OQuake STAR API: Authenticated. Cross-game assets enabled.\n");
@@ -3174,6 +3477,7 @@ void OQuake_STAR_Init(void) {
         } else if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
             g_star_beamed_in = 1;
+            OQ_ResetCrossGameBeamTransferState();
             star_api_refresh_avatar_profile();
             star_api_log_to_file("[OQuake] Init (API key+avatar_id): beamed_in=1, profile refresh started");
             printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
@@ -3186,6 +3490,7 @@ void OQuake_STAR_Init(void) {
                 if (g_oq_saved_refresh_token[0])
                     star_api_set_refresh_token(g_oq_saved_refresh_token);
                 g_star_initialized = 1;
+                OQ_ResetCrossGameBeamTransferState();
                 if (g_oq_saved_username[0])
                     q_strlcpy(g_star_username, g_oq_saved_username, sizeof(g_star_username));
                 star_api_restore_session();
@@ -3347,6 +3652,12 @@ void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items
         return;
     if (gained == 0)
         return;
+    if (g_oq_cross_grant_suppress_weapon_star > 0 && (gained & OQ_CROSS_STAR_WEAPON_ITEMS)) {
+        g_oq_cross_grant_suppress_weapon_star--;
+        gained &= ~OQ_CROSS_STAR_WEAPON_ITEMS;
+    }
+    if (gained == 0)
+        return;
     /* Only mint/add after user has beamed in and started a level; avoid minting shells/shotgun at startup. */
     if (!g_star_beamed_in)
         return;
@@ -3420,25 +3731,35 @@ void OQuake_STAR_OnStatsChangedEx(
      * Always add here when stats go up (restores original "used to work" behaviour; touch path often not called). */
 
     /* Ammo: stats path is the one that fires in vkQuake (no touch for ammo boxes). */
-    if (new_shells > old_shells) {
-        q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
-        added += OQ_AddInventoryEvent("Shells", desc, "Ammo");
-        OQ_PickupLog("Stats: Shells +%d -> STAR", new_shells - old_shells);
-    }
-    if (new_nails > old_nails) {
-        q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
-        added += OQ_AddInventoryEvent("Nails", desc, "Ammo");
-        OQ_PickupLog("Stats: Nails +%d -> STAR", new_nails - old_nails);
-    }
-    if (new_rockets > old_rockets) {
-        q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
-        added += OQ_AddInventoryEvent("Rockets", desc, "Ammo");
-        OQ_PickupLog("Stats: Rockets +%d -> STAR", new_rockets - old_rockets);
-    }
-    if (new_cells > old_cells) {
-        q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
-        added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
-        OQ_PickupLog("Stats: Cells +%d -> STAR", new_cells - old_cells);
+    {
+        int ammo_delta = (new_shells > old_shells) || (new_nails > old_nails) || (new_rockets > old_rockets) || (new_cells > old_cells);
+        int skip_ammo_star = 0;
+        if (g_oq_cross_grant_suppress_ammo_star > 0 && ammo_delta) {
+            g_oq_cross_grant_suppress_ammo_star--;
+            skip_ammo_star = 1;
+        }
+        if (!skip_ammo_star) {
+            if (new_shells > old_shells) {
+                q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
+                added += OQ_AddInventoryEvent("Shells", desc, "Ammo");
+                OQ_PickupLog("Stats: Shells +%d -> STAR", new_shells - old_shells);
+            }
+            if (new_nails > old_nails) {
+                q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
+                added += OQ_AddInventoryEvent("Nails", desc, "Ammo");
+                OQ_PickupLog("Stats: Nails +%d -> STAR", new_nails - old_nails);
+            }
+            if (new_rockets > old_rockets) {
+                q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
+                added += OQ_AddInventoryEvent("Rockets", desc, "Ammo");
+                OQ_PickupLog("Stats: Rockets +%d -> STAR", new_rockets - old_rockets);
+            }
+            if (new_cells > old_cells) {
+                q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
+                added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
+                OQ_PickupLog("Stats: Cells +%d -> STAR", new_cells - old_cells);
+            }
+        }
     }
     /* Armor: add 1 qty with description e.g. "Green Armor (+100)" so use-item applies correct amount. Skip if we just applied armor from overlay (would re-add and qty bounces). */
     if (new_armor > old_armor) {
@@ -4034,7 +4355,17 @@ void OQuake_STAR_PollItems(void) {
         OQ_PollCaptureItemStatsBaseline(
             &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
             &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        if (OQ_TryApplyCrossGameBeamInTransfers()) {
+            OQ_PollCaptureItemStatsBaseline(
+                &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+                &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        }
         return;
+    }
+    if (OQ_TryApplyCrossGameBeamInTransfers()) {
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
     }
     OQuake_STAR_OnItemsChangedEx(poll_prev_items, (unsigned int)cl.items, 1);
     poll_prev_items = (unsigned int)cl.items;
@@ -4396,9 +4727,10 @@ void OQuake_STAR_Console_f(void) {
 
         if (star_initialized() && !runtime_user) { Con_Printf("Already logged in. Use 'star beamout' first.\n"); return; }
         if (star_initialized() && runtime_user) {
-            star_api_cleanup();
-            g_star_initialized = 0;
-            g_star_beamed_in = 0;
+        star_api_cleanup();
+        g_star_initialized = 0;
+        g_star_beamed_in = 0;
+        OQ_ResetCrossGameBeamTransferState();
         }
 
         if (runtime_user && runtime_pass && OQ_IsMockAnorakCredentials(runtime_user, runtime_pass)) {
@@ -4521,6 +4853,7 @@ void OQuake_STAR_Console_f(void) {
             // }
             star_api_refresh_avatar_profile();
             g_star_beamed_in = 1;
+            OQ_ResetCrossGameBeamTransferState();
             star_api_log_to_file("[OQuake] Beamin (API key): profile refresh started");
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
@@ -4545,6 +4878,7 @@ void OQuake_STAR_Console_f(void) {
         star_api_cleanup();
         g_star_initialized = 0;
         g_star_beamed_in = 0;
+        OQ_ResetCrossGameBeamTransferState();
         g_star_refresh_xp_called_this_session = 0;  /* Next beam-in will call refresh once. */
         g_star_username[0] = 0;
         Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
