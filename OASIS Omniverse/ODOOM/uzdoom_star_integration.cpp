@@ -3451,6 +3451,13 @@ static int GetHardcodedAmmoAmount(const char* className) {
 static std::string ToStarItemName(const char* className) {
 	if (!className || !className[0]) return "Item";
 	const char* c = className;
+	/* ODOOM odoom_oquake_items.zs — STAR names must match OQuake cross_game_doom_weapon_to_quake keys (after stripping " (ODOOM)"). */
+	if (strstr(c, "OQSuperShotgun")) return "Super Shotgun";
+	if (strstr(c, "OQShotgun")) return "Shotgun";
+	if (strstr(c, "OQSuperNailgun")) return "Plasma Rifle";
+	if (strstr(c, "OQNailgun")) return "Chaingun";
+	if (strstr(c, "OQGrenadeLauncher")) return "Grenade Launcher";
+	if (strstr(c, "OQThunderbolt")) return "Lightning Gun";
 	/* Ammo (check weapons first so "RocketLauncher" is not matched as "Rockets") */
 	if (strstr(c, "Clip") || strstr(c, "Bullet")) return "Bullets";
 	if (strstr(c, "Shell") && !strstr(c, "Shotgun")) return "Shells";
@@ -3477,6 +3484,7 @@ static std::string ToStarItemName(const char* className) {
 	/* Weapons */
 	if (strstr(c, "Fist")) return "Fist";
 	if (strstr(c, "Pistol")) return "Pistol";
+	if (strstr(c, "SuperShotgun")) return "Super Shotgun";
 	if (strstr(c, "Shotgun")) return "Shotgun";
 	if (strstr(c, "Chaingun")) return "Chaingun";
 	/* RocketLauncher already handled above (before generic Rocket) */
