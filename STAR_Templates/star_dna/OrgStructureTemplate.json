@@ -1,0 +1,112 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "b2c4d6e8-f0a2-4b6c-d8e0-f2a4b6c8d0e2",
+  "OAPPName": "OrgStructureTemplate",
+  "OAPPDesc": "Organisation, team, and role management for OASIS. Enables SOPs to resolve assigned roles to real Avatar identities, manage team membership, control SOP authoring/running permissions, and handle Avatar invite flows for external parties (e.g. customers signing a go-live step). Required infrastructure for multi-party SOP execution.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-28",
+  "Licence": "MIT",
+  "Tags": ["org", "team", "roles", "identity", "sso", "invite", "permissions", "sop", "avatar", "enterprise"],
+  "CelestialBodyDNA": {
+    "Zomes": [
+      {
+        "Name": "OrgZome",
+        "Description": "Organisation and role definitions. OrgHolon is the top-level entity; OrgRoleHolon defines named roles within that org and their SOP permissions.",
+        "Holons": [
+          {
+            "Name": "OrgHolon",
+            "Description": "Top-level organisation record. Owns all team members, roles, and SOP templates created within it. Referenced by SOPHolon.OwnerAvatarId and SOPRunHolon.AssignedAvatarIds.",
+            "Fields": [
+              { "Name": "Id",                    "Type": "Guid",     "Description": "Canonical identifier — consistent across all storage providers." },
+              { "Name": "ParentHolonId",          "Type": "Guid",     "Description": "COSMIC parent — typically the Avatar of the org owner." },
+              { "Name": "Name",                   "Type": "string",   "Description": "Organisation display name, e.g. 'Acme Corp' or 'TMRW Capital'." },
+              { "Name": "Domain",                 "Type": "string",   "Description": "Primary email domain, e.g. 'acme.com'. Used for SSO matching." },
+              { "Name": "OwnerAvatarId",          "Type": "Guid",     "Description": "Avatar with admin control over this org." },
+              { "Name": "SubscriptionTier",       "Type": "string",   "Enum": ["Free", "Growth", "Enterprise", "STARNET"],  "Description": "Controls how many SOPs can be active, SOP run limits, and STARNET publish permissions." },
+              { "Name": "MaxActiveSOPs",          "Type": "int",      "Description": "Number of concurrent active SOP definitions allowed." },
+              { "Name": "SSOProvider",            "Type": "string",   "Enum": ["None", "Google", "Microsoft", "Okta", "SAML", "OIDC"],  "Description": "Single Sign-On provider for this org." },
+              { "Name": "SSOClientId",            "Type": "string",   "Description": "OAuth Client ID for the configured SSO provider." },
+              { "Name": "SSOTenantId",            "Type": "string",   "Description": "Tenant/directory ID for Microsoft or Okta SSO." },
+              { "Name": "LogoUrl",                "Type": "string",   "Description": "URL to the org's logo — displayed in SOPRunner and SOPIntel headers." },
+              { "Name": "PrimaryColor",           "Type": "string",   "Description": "Brand hex color for white-label SOPRunner/Intel theming." },
+              { "Name": "DefaultSOPTimeoutMins",  "Type": "int",      "Description": "Org-wide fallback timeout if not set per step." },
+              { "Name": "NotifyOnDeviation",      "Type": "bool",     "Description": "Send Slack/email alert to org admin on every Critical deviation." },
+              { "Name": "NotificationWebhookUrl", "Type": "string",   "Description": "Webhook URL for org-wide deviation and completion alerts." },
+              { "Name": "CreatedByAvatarId",      "Type": "Guid",     "Description": "Avatar who created this org record." },
+              { "Name": "CreatedOn",              "Type": "DateTime", "Description": "Timestamp of creation." },
+              { "Name": "IsActive",               "Type": "bool",     "Description": "Whether this org subscription is active." }
+            ]
+          },
+          {
+            "Name": "OrgRoleHolon",
+            "Description": "A named role within an organisation — maps to SOP step AssignedRole fields. Defines what Avatars with this role can do (author SOPs, run SOPs, view analytics, admin).",
+            "Fields": [
+              { "Name": "Id",                  "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "OrgId",               "Type": "Guid",     "Description": "FK to the parent OrgHolon." },
+              { "Name": "Name",                "Type": "string",   "Description": "Role name — must match exactly to SOPStepHolon.AssignedRole for routing. e.g. 'CustomerSuccessManager', 'SolutionsEngineer', 'CustomerAdmin'." },
+              { "Name": "DisplayName",         "Type": "string",   "Description": "Human-friendly label shown in SOPRunner, e.g. 'Customer Success Manager'." },
+              { "Name": "Description",         "Type": "string",   "Description": "What this role does and which SOPs they typically participate in." },
+              { "Name": "CanAuthorSOPs",       "Type": "bool",     "Description": "Can create and publish SOP templates." },
+              { "Name": "CanRunSOPs",          "Type": "bool",     "Description": "Can start new SOP runs." },
+              { "Name": "CanViewIntel",        "Type": "bool",     "Description": "Can access SOPIntel analytics dashboard." },
+              { "Name": "CanApproveVersions",  "Type": "bool",     "Description": "Can approve AI-proposed SOPVersionHolon upgrades." },
+              { "Name": "IsAdmin",             "Type": "bool",     "Description": "Full admin access — manage members, roles, integrations, billing." },
+              { "Name": "IsExternalRole",      "Type": "bool",     "Description": "True for roles filled by people outside the org (e.g. customers, auditors, suppliers) — invited via OrgInviteHolon." },
+              { "Name": "Color",               "Type": "string",   "Description": "Hex color for this role's Avatar tag in SOPRunner UI." }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "MemberZome",
+        "Description": "Avatar-to-organisation membership and invite management. OrgMemberHolon links an OASIS Avatar to an org and role. OrgInviteHolon handles the pending invite flow before the Avatar accepts.",
+        "Holons": [
+          {
+            "Name": "OrgMemberHolon",
+            "Description": "Links an OASIS Avatar to an organisation and one or more roles. Created when an invite is accepted or SSO first-login occurs. The SOP runtime queries this to resolve which Avatars can complete a step with a given AssignedRole.",
+            "Fields": [
+              { "Name": "Id",                "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "OrgId",             "Type": "Guid",     "Description": "FK to the parent OrgHolon." },
+              { "Name": "AvatarId",          "Type": "Guid",     "Description": "FK to the OASIS Avatar (from Avatar system)." },
+              { "Name": "RoleIds",           "Type": "string[]", "Description": "List of OrgRoleHolon IDs assigned to this member. Members can hold multiple roles." },
+              { "Name": "RoleNames",         "Type": "string[]", "Description": "Denormalised role name list — enables fast SOP runtime lookup without join. Kept in sync with RoleIds." },
+              { "Name": "Status",            "Type": "string",   "Enum": ["Active", "Suspended", "Pending"],  "Description": "Active = full access; Suspended = read-only; Pending = invite not yet accepted." },
+              { "Name": "JoinedVia",         "Type": "string",   "Enum": ["Invite", "SSO", "AdminAdded"],  "Description": "How this member joined the org." },
+              { "Name": "InviteId",          "Type": "Guid",     "Description": "FK to the OrgInviteHolon if joined via invite." },
+              { "Name": "LastActiveAt",      "Type": "DateTime", "Description": "Most recent SOPRun interaction timestamp." },
+              { "Name": "JoinedOn",          "Type": "DateTime", "Description": "When this membership was created." },
+              { "Name": "NotifyByEmail",     "Type": "bool",     "Description": "Whether this member receives email step-assignment notifications." },
+              { "Name": "NotifyBySlack",     "Type": "bool",     "Description": "Whether this member receives Slack step-assignment DMs." },
+              { "Name": "SlackUserId",       "Type": "string",   "Description": "Slack User ID for direct message notifications." }
+            ]
+          },
+          {
+            "Name": "OrgInviteHolon",
+            "Description": "A pending invite to join an organisation. Sent via email with a unique token. On acceptance, an OASIS Avatar is created or linked and an OrgMemberHolon is created. Supports external party invites (customers signing go-live steps, auditors reviewing compliance SOPs).",
+            "Fields": [
+              { "Name": "Id",               "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "OrgId",            "Type": "Guid",     "Description": "FK to the OrgHolon the invitee is being added to." },
+              { "Name": "Email",            "Type": "string",   "Description": "Email address the invite was sent to." },
+              { "Name": "DisplayName",      "Type": "string",   "Description": "Invitee's name (pre-filled from the inviting user's input)." },
+              { "Name": "RoleId",           "Type": "Guid",     "Description": "FK to the OrgRoleHolon being granted on acceptance." },
+              { "Name": "RoleName",         "Type": "string",   "Description": "Denormalised role name for quick display." },
+              { "Name": "InviteToken",      "Type": "string",   "Description": "Cryptographically secure random token — embedded in invite link." },
+              { "Name": "InviteUrl",        "Type": "string",   "Description": "Full invite acceptance URL, e.g. https://sop.oasisweb4.com/join/{token}." },
+              { "Name": "SOPRunId",         "Type": "Guid",     "Description": "FK to SOPRunHolon if this invite was created to allow an external party to sign a specific SOP step." },
+              { "Name": "SOPStepId",        "Type": "Guid",     "Description": "FK to the specific SOPStepHolon the external party needs to sign or complete." },
+              { "Name": "InvitedByAvatarId","Type": "Guid",     "Description": "Avatar who sent this invite." },
+              { "Name": "Status",           "Type": "string",   "Enum": ["Pending", "Accepted", "Expired", "Revoked"],  "Description": "Current state of the invite." },
+              { "Name": "ExpiresAt",        "Type": "DateTime", "Description": "Invite link expiry — default 7 days for member invites, 24 hours for SOP sign-off invites." },
+              { "Name": "AcceptedAt",       "Type": "DateTime", "Description": "When the invite was accepted and the Avatar/member record was created." },
+              { "Name": "CreatedAvatarId",  "Type": "Guid",     "Description": "The OASIS Avatar ID created or linked when this invite was accepted." },
+              { "Name": "SentAt",           "Type": "DateTime", "Description": "When the invite email was dispatched." }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

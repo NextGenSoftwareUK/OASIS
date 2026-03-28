@@ -214,10 +214,27 @@ Nightly BRAID batch:
 
 ```
 ✅ Phase 0 — Foundation (already live)
-🔲 Phase 1 — SOPTemplate DNA (this session)
-🔲 Phase 2 — SOPBuilder node types (Week 1)
-🔲 Phase 3 — SOPRunner interface (Week 1–2)
-🔲 Phase 4 — SOPIntel dashboard (Week 2)
+✅ Phase 1 — SOPTemplate DNA             STAR_Templates/star_dna/SOPTemplate.json
+✅ Phase 2 — SOPBuilder node types       CRE/workflow-builder — 13 new ConnectorTypes
+                                         (9 integrations: slack, email, salesforce,
+                                          hubspot, zendesk, docusign, google_calendar,
+                                          jira, zapier + 4 SOP nodes: sop_step,
+                                          sop_decision, sop_signoff, sop_ai_guide)
+✅ Phase 3 — SOPRunner interface         SOP/sop-app/src/pages/SOPRunner.tsx
+                                         (step sidebar, BRAID co-pilot, evidence upload,
+                                          Avatar sign-off, progress bar, deviation flag)
+✅ Phase 4 — SOPIntel dashboard          SOP/sop-app/src/pages/SOPIntel.tsx
+                                         (KPI cards, recharts heatmap, avatar perf table,
+                                          AI improvement queue with approve/reject,
+                                          run history with proof holon verify)
+✅ Phase 4b — AI Authoring               SOP/sop-app/src/pages/SOPAuthoring.tsx
+                                         (BRAID chat, JSON extraction, live step preview,
+                                          inline edit, Export to Builder)
+✅ OrgStructureTemplate                  STAR_Templates/star_dna/OrgStructureTemplate.json
+                                         (OrgHolon, OrgRoleHolon, OrgMemberHolon,
+                                          OrgInviteHolon — registered in starnet-manifest)
+✅ Integration Setup Guide               SOP/INTEGRATION_SETUP.md
+                                         (per-connector auth steps, OAuth stubs, templates)
 🔲 Phase 5 — STARNET marketplace (Week 3)
 ```
 
