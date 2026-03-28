@@ -2,6 +2,8 @@
 
 All Markdown guides for ODOOM, OQuake, and STARAPIClient in this repo live in **this folder** (`OASIS Omniverse/Docs/`). For a **complete index** (architecture, quests, build sync, links to `STARAPIClient/` and game READMEs), open the main **[OASIS Omniverse README](../README.md)** one level up.
 
+**Engine trees:** for `UZDOOM_SRC` and `VKQUAKE_SRC`, prefer the OASIS forks **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** and **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)) rather than only vanilla UZDoom/vkQuake.
+
 **ODOOM and OQuake support Windows, macOS, and Linux.** Use the guide for your OS below.
 
 ## Getting Started (by platform)

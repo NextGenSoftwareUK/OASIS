@@ -54,6 +54,8 @@ Games call the C API; the **C# STARAPIClient** implements it and performs all HT
 
 Enable players to collect items (keycards, keys) in one game and use them in another game.
 
+**Powerups & weapons (design):** canonical Doom ↔ Quake mappings and implementation phases live in **[CROSS_GAME_POWERUP_WEAPON_MAP.md](CROSS_GAME_POWERUP_WEAPON_MAP.md)** (start with powerups; weapons TBD).
+
 ### Implementation Steps
 
 #### 1. Item Collection Tracking

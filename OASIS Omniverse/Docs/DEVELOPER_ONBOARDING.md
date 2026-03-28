@@ -24,9 +24,20 @@ Clone the following into a common parent (e.g. `C:\Source\`). Paths below assume
 | Repository | Purpose | Suggested path |
 |------------|---------|----------------|
 | **OASIS** (this repo) | Backend, ONODE/WEB4, STAR/WEB5, STARAPIClient, ODOOM/OQuake integration code | `C:\Source\OASIS-master` |
-| **UZDoom** | Doom engine used by ODOOM | `C:\Source\UZDoom` |
-| **vkQuake** | Quake engine used by OQuake (Vulkan) | `C:\Source\vkQuake` |
+| **Engine for ODOOM** | UZDoom-based tree that `BUILD_ODOOM` compiles (`UZDOOM_SRC`) | `C:\Source\UZDoom` |
+| **Engine for OQuake** | vkQuake-based tree that `BUILD_OQUAKE` compiles (`VKQUAKE_SRC`) | `C:\Source\vkQuake` |
 | **quake-rerelease-qc** | QuakeC source (maps, progs) used by OQuake | `C:\Source\quake-rerelease-qc` |
+
+### Recommended engine repositories (forks)
+
+Integration originally targeted **upstream [UZDoom](https://github.com/UZDoom/UZDoom)** and **[vkQuake](https://github.com/Novum/vkQuake)**. For day-to-day work, **clone the maintained OASIS forks** so the engine tree already matches what the OASIS Omniverse build scripts expect:
+
+| Engine role | Recommended clone (OASIS fork) | Upstream (reference only) |
+|-------------|--------------------------------|---------------------------|
+| **`UZDOOM_SRC` / ODOOM** | **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** | UZDoom |
+| **`VKQUAKE_SRC` / OQuake** | **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** | vkQuake (Novum) |
+
+You can still point `UZDOOM_SRC` / `VKQUAKE_SRC` at a vanilla upstream checkout if you apply the same patches the build scripts copy from this repo—but that is easy to get wrong; **prefer the forks above**.
 
 ### Clone commands (examples)
 
@@ -34,11 +45,11 @@ Clone the following into a common parent (e.g. `C:\Source\`). Paths below assume
 # OASIS (main repo – contains ODOOM/OQuake integration, APIs, scripts)
 git clone <OASIS-repo-url> C:\Source\OASIS-master
 
-# UZDoom – engine for ODOOM
-git clone https://github.com/UZDoom/UZDoom.git C:\Source\UZDoom
+# Engine for ODOOM (recommended: OASIS fork of UZDoom)
+git clone https://github.com/NextGenSoftwareUK/ODOOM.git C:\Source\UZDoom
 
-# vkQuake – engine for OQuake
-git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
+# Engine for OQuake (recommended: OASIS fork of vkQuake)
+git clone https://github.com/NextGenSoftwareUK/OQUAKE.git C:\Source\vkQuake
 
 # QuakeC (quake-rerelease-qc) – game data / progs for OQuake
 git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
