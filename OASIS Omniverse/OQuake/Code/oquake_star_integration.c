@@ -375,6 +375,9 @@ cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
 cvar_t oquake_star_config_file = {"oquake_star_config_file", "json", CVAR_ARCHIVE}; /* "json" or "cfg" - which config file to use */
 cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://oasisweb4.com/api/star", CVAR_ARCHIVE};
 cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://oasisweb4.com", CVAR_ARCHIVE};
+/* "remote" = HTTP WEB5/WEB4 (default). "native" = in-process OASIS (requires star_api built with HyperDrive; default DLL fails init with clear error). */
+cvar_t oquake_star_transport = {"oquake_star_transport", "remote", CVAR_ARCHIVE};
+cvar_t oquake_oasis_dna_path = {"oquake_oasis_dna_path", "", CVAR_ARCHIVE};
 cvar_t oquake_star_username = {"oquake_star_username", "", 0};
 cvar_t oquake_star_password = {"oquake_star_password", "", 0};
 cvar_t oquake_star_api_key = {"oquake_star_api_key", "", 0};
@@ -1879,6 +1882,14 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_oasis_api_url", value);
         loaded = 1;
     }
+    if (OQ_ExtractJsonValue(json, "star_transport", value, sizeof(value))) {
+        Cvar_Set("oquake_star_transport", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "oasis_dna_path", value, sizeof(value))) {
+        Cvar_Set("oquake_oasis_dna_path", value);
+        loaded = 1;
+    }
     if (OQ_ExtractJsonValue(json, "config_file", value, sizeof(value))) {
         Cvar_Set("oquake_star_config_file", value);
         loaded = 1;
@@ -2057,8 +2068,18 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     
     fprintf(f, "{\n");
     fprintf(f, "  \"config_file\": \"%s\",\n", config_file && config_file[0] ? config_file : "json");
+    fprintf(f, "  \"star_transport\": \"%s\",\n", (oquake_star_transport.string && oquake_star_transport.string[0]) ? oquake_star_transport.string : "remote");
     fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
     fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
+    fprintf(f, "  \"oasis_dna_path\": \"");
+    if (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) {
+        const char* pd;
+        for (pd = oquake_oasis_dna_path.string; *pd; pd++) {
+            if (*pd == '"' || *pd == '\\') fputc('\\', f);
+            fputc((unsigned char)*pd, f);
+        }
+    }
+    fprintf(f, "\",\n");
     fprintf(f, "  \"beam_face\": %d,\n", beam_face);
     fprintf(f, "  \"stack_armor\": %s,\n", (s_armor && atoi(s_armor)) ? "1" : "0");
     fprintf(f, "  \"stack_weapons\": %s,\n", (s_weapons && atoi(s_weapons)) ? "1" : "0");
@@ -2331,6 +2352,8 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         fprintf(f, "set oquake_star_config_file \"%s\"\n", oquake_star_config_file.string ? oquake_star_config_file.string : "json");
         fprintf(f, "set oquake_star_api_url \"%s\"\n", star_url ? star_url : "");
         fprintf(f, "set oquake_oasis_api_url \"%s\"\n", oasis_url ? oasis_url : "");
+        fprintf(f, "set oquake_star_transport \"%s\"\n", oquake_star_transport.string ? oquake_star_transport.string : "remote");
+        fprintf(f, "set oquake_oasis_dna_path \"%s\"\n", oquake_oasis_dna_path.string ? oquake_oasis_dna_path.string : "");
         fprintf(f, "set oasis_star_beam_face \"%d\"\n", (int)oasis_star_beam_face.value);
         fprintf(f, "set oquake_star_stack_armor \"%s\"\n", oquake_star_stack_armor.string);
         fprintf(f, "set oquake_star_stack_weapons \"%s\"\n", oquake_star_stack_weapons.string);
@@ -2494,6 +2517,8 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_config_file); /* Register this first so we can check it */
     Cvar_RegisterVariable(&oquake_star_api_url);
     Cvar_RegisterVariable(&oquake_oasis_api_url);
+    Cvar_RegisterVariable(&oquake_star_transport);
+    Cvar_RegisterVariable(&oquake_oasis_dna_path);
     Cvar_RegisterVariable(&oquake_star_username);
     Cvar_RegisterVariable(&oquake_star_password);
     Cvar_RegisterVariable(&oquake_star_api_key);
@@ -3039,6 +3064,11 @@ void OQuake_STAR_Init(void) {
     g_star_config.avatar_id = config_avatar_id;
     
     g_star_config.timeout_seconds = 30;
+    {
+        const char *tr = oquake_star_transport.string;
+        g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
+    }
+    g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
 
     printf("\n********** GAME LOAD **********\n");
     result = star_api_init(&g_star_config);
@@ -4367,6 +4397,11 @@ void OQuake_STAR_Console_f(void) {
         }
         g_star_config.avatar_id = avatar_id;
         g_star_config.timeout_seconds = 30;
+        {
+            const char *tr = oquake_star_transport.string;
+            g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
+        }
+        g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
         star_api_result_t r = star_api_init(&g_star_config);
         if (r != STAR_API_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());

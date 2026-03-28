@@ -77,6 +77,8 @@
             "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
             "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
             "AutoFailOverProvidersForCheckIfOASISSystemAccountExists": "MongoDBOASIS",
+            "AutoFailOverLocalProvidersEnabled": true,
+            "AutoFailOverLocalProviders": "SQLLiteDBOASIS, MongoDBOASIS, LocalFileOASIS, HoloOASIS",
             "OASISProviderBootType": "Warm",
             "AzureCosmosDBOASIS": {
                 "ServiceEndpoint": "",

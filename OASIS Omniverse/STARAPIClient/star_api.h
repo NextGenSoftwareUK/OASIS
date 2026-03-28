@@ -22,6 +22,10 @@ typedef struct {
     int timeout_seconds;
     /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
     const char* client_game_source;
+    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a star_api build that embeds HyperDrive; default library returns STAR_API_ERROR_INIT_FAILED). */
+    int32_t transport;
+    /* Optional: UTF-8 path to OASIS_DNA.json for native transport (for future native host). */
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {

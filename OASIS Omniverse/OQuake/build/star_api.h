@@ -20,6 +20,9 @@ typedef struct {
     const char* api_key;
     const char* avatar_id;
     int timeout_seconds;
+    const char* client_game_source;
+    int32_t transport;
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {
