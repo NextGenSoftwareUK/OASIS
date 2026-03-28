@@ -122,17 +122,26 @@ if (-not (Test-Path $faceSource)) {
     elseif (Test-Path (Join-Path $OQuakeRoot "gfx\face_anorak.png")) { $faceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png" }
 }
 if (Test-Path $faceSource) {
+    # Always stage under OQuake/build/id1/gfx (packaged next to OQUAKE; RUN_OQUAKE.sh syncs into real -basedir on Linux).
+    $buildFaceDir = [System.IO.Path]::Combine($OQuakeRoot, "build", "id1", "gfx")
+    try {
+        New-Item -Path $buildFaceDir -ItemType Directory -Force | Out-Null
+        Copy-Item -Path $faceSource -Destination ([System.IO.Path]::Combine($buildFaceDir, "face_anorak.png")) -Force
+        Write-Host "[OQuake] Copied face_anorak.png -> $buildFaceDir (next to OQuake/build/OQUAKE)"
+    } catch {
+        Write-Warning "[OQuake] Failed to copy face_anorak.png to '$buildFaceDir': $($_.Exception.Message)"
+    }
     $faceDestDir = Join-Path $QuakeInstallDir "id1" "gfx"
     if (Test-Path $QuakeInstallDir) {
         try {
             New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null
             Copy-Item -Path $faceSource -Destination (Join-Path $faceDestDir "face_anorak.png") -Force
-            Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir"
+            Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir (Quake game data for -basedir)"
         } catch {
             Write-Warning "[OQuake] Failed to copy face_anorak.png to '$faceDestDir': $($_.Exception.Message)"
         }
     } else {
-        Write-Warning "[OQuake] Skipping face_anorak.png copy (optional): Quake install dir not found: $QuakeInstallDir. Set OQUAKE_BASEDIR or -QuakeInstallDir to your game data path (e.g. Steam Quake) if you want the anorak face in the HUD when beamed in."
+        Write-Host "[OQuake] Quake game data dir not found ($QuakeInstallDir); face is in OQuake/build/id1/gfx. Linux: RUN_OQUAKE.sh copies it into your -basedir when id1/ exists. Or set OQUAKE_BASEDIR before build."
     }
 } else {
     Write-Warning "[OQuake] face_anorak.png not found. Expected: OQuake\Images\face_anorak.png or OQuake\face_anorak.png"

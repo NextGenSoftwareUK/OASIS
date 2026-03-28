@@ -122,6 +122,23 @@ if [[ -f "$HERE/build/config.cfg" && -d "$OQUAKE_BASEDIR" ]]; then
   cp -f "$HERE/build/config.cfg" "$OQUAKE_BASEDIR/config.cfg" 2>/dev/null || true
 fi
 
+# Anorak HUD face: vkQuake loads loose PNG from game data id1/gfx/ (not from the OQUAKE exe directory).
+_oq_face_src=""
+if [[ -f "$HERE/Images/face_anorak.png" ]]; then
+  _oq_face_src="$HERE/Images/face_anorak.png"
+elif [[ -f "$HERE/face_anorak.png" ]]; then
+  _oq_face_src="$HERE/face_anorak.png"
+elif [[ -f "$HERE/build/id1/gfx/face_anorak.png" ]]; then
+  _oq_face_src="$HERE/build/id1/gfx/face_anorak.png"
+fi
+if [[ -n "$_oq_face_src" && -n "${OQUAKE_BASEDIR:-}" && -d "$OQUAKE_BASEDIR/id1" ]]; then
+  mkdir -p "$OQUAKE_BASEDIR/id1/gfx"
+  if cp -f "$_oq_face_src" "$OQUAKE_BASEDIR/id1/gfx/face_anorak.png" 2>/dev/null; then
+    echo "[OQuake] Synced face_anorak.png -> $OQUAKE_BASEDIR/id1/gfx/"
+  fi
+fi
+unset _oq_face_src
+
 # vkQuake needs gfx.wad in basedir or id1. Steam often has only id1/pak0.pak (gfx.wad is inside the pak).
 if [[ -d "$OQUAKE_BASEDIR" ]]; then
   GFX_WAD=""

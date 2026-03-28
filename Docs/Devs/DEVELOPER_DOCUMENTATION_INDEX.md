@@ -6,6 +6,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 
 ## 🏗️ **Architecture Overview**
 
+### **Omniverse games (OQuake, ODOOM) + STAR**
+- **[STAR Quest System — Developer Guide](../../OASIS%20Omniverse/Docs/STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, STARAPIClient, `star_api_*`, extending games
+- **[STAR Games — User Guide](../../OASIS%20Omniverse/Docs/STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
+- **[ODOOM quest list + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
+
 ### **System Architecture**
 - **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
