@@ -1957,6 +1957,13 @@ static void OQ_InitCrossGameMapsToDefaults(void) {
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Plasma Rifle", "Super Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Rocket Launcher", "Rocket Launcher");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Super Shotgun", "Super Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Grenade Launcher", "Grenade Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Lightning Gun", "Lightning Gun");
+    /* Legacy rows from older ToStarItemName() fallback (class OQNailgun -> "Oqnailgun", etc.) */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqnailgun", "Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqsupernailgun", "Super Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqgrenadelauncher", "Grenade Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqthunderbolt", "Lightning Gun");
     OQ_CrossGamePairsClearTable(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
     OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Nailgun", "Chaingun");
     OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Shotgun", "Shotgun");
@@ -6648,7 +6655,11 @@ static int OQ_SelectPersistableObjectiveId(const char* quest_id, const char* pre
 
 /** Draw current quest tracker on HUD at top-left when user has set a tracked quest. O cycles: single obj 1..n, All, Hide. Same behaviour as ODOOM. */
 void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
+    extern qboolean sb_showscores;
     if (!g_star_initialized || !cbx)
+        return;
+    /* vkQuake sbar.c: +showscores / Tab — same HUD path still calls us; skip duplicate large tracker over the scoreboard. */
+    if (sb_showscores)
         return;
     if (!g_quest_tracker_id[0])
         return;
