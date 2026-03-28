@@ -8,7 +8,7 @@ Applies to **every change** in this repo — C#, C++, ZScript, HTTP/API, DB, scr
 
 **Do** identify the **one invariant** that should hold, fix **the layer that broke it** (await ordering, cache invalidation, correct id persisted, deploy artifact match), use **`OASISResult<T>`** / real errors, and add **tests or build checks** where they lock the invariant in.
 
-**Deploy / native:** missing `star_api_*` symbol → rebuild STARAPIClient, run full `BUILD_ODOOM.sh`, verify exports in scripts — see **`Docs/Devs/ODOOM_UZDoom_Build_Sync.md`**.
+**Deploy / native:** missing `star_api_*` symbol → rebuild STARAPIClient, run full `BUILD_ODOOM.sh`, verify exports in scripts — see **`OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md`**.
 
 Full policy (code patterns + build): **`Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md`**. Read it before adding shims or “fallbacks.”
 
@@ -21,9 +21,12 @@ Resume from **files in git**, not from chat history. Read:
 | **Root cause vs hacks / fallbacks** (policy for agents) | `Docs/Devs/AGENT_Root_Cause_No_Fallbacks.md` |
 | STAR CLI shell / `--non-interactive` / `--json` | `Docs/Devs/STAR_CLI_NonInteractive.md` |
 | **Session handoff** (what’s done, what’s next, file map) | `Docs/Devs/STAR_CLI_SessionHandoff.md` |
-| **ODOOM quest list + STAR** (CVars, scroll, do-not-break invariants) | `Docs/Devs/ODOOM_Quest_List_STAR.md` |
-| **ODOOM vs UZDoom** (why HUD/timer/toggle edits seem ignored; copy step) | `Docs/Devs/ODOOM_UZDoom_Build_Sync.md` |
-| **`star_api.so` / `star_api.h` drift** (undefined symbol at launch; fix deploy, not game shims) | `Docs/Devs/ODOOM_UZDoom_Build_Sync.md` (heading: STAR native library must match star_api.h) |
+| **ODOOM quest list + STAR** (CVars, scroll, do-not-break invariants) | `OASIS Omniverse/Docs/ODOOM_Quest_List_STAR.md` |
+| **ODOOM vs UZDoom** (why HUD/timer/toggle edits seem ignored; copy step) | `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md` |
+| **`star_api.so` / `star_api.h` drift** (undefined symbol at launch; fix deploy, not game shims) | `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md` (heading: STAR native library must match star_api.h) |
+| **STAR `star_transport` remote vs native** (size, AOT, BootLoader, split-build recommendation) | `OASIS Omniverse/Docs/STAR_API_Native_Transport_Architecture.md` |
+| **STAR Quest system** (WEB5 API, STARAPIClient, `star_api_*`, game hooks) | `OASIS Omniverse/Docs/STAR_Quest_System_Developer_Guide.md` |
+| **OQuake / ODOOM STAR user guide** (beam-in, inventory, quest keys) | `OASIS Omniverse/Docs/STAR_Games_User_Guide.md` |
 
 For a **new chat**, paste: goal + “see `Docs/Devs/STAR_CLI_SessionHandoff.md`”.
 

@@ -1,5 +1,7 @@
 # OASIS Omniverse — Documentation
 
+All Markdown guides for ODOOM, OQuake, and STARAPIClient in this repo live in **this folder** (`OASIS Omniverse/Docs/`). For a **complete index** (architecture, quests, build sync, links to `STARAPIClient/` and game READMEs), open the main **[OASIS Omniverse README](../README.md)** one level up.
+
 **ODOOM and OQuake support Windows, macOS, and Linux.** Use the guide for your OS below.
 
 ## Getting Started (by platform)
@@ -21,4 +23,4 @@ Each guide includes:
 - Environment variables and custom paths
 - Troubleshooting
 
-For deeper setup (APIs, config, onboarding), see the main [OASIS Omniverse README](../README.md) and [DEVELOPER_ONBOARDING.md](../DEVELOPER_ONBOARDING.md).
+For deeper setup (APIs, config, onboarding), see the main [OASIS Omniverse README](../README.md) (full documentation index) and [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md).

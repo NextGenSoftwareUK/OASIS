@@ -2,3 +2,5 @@ star beamin dellams test!
 star
 star beamin dellams test!
 star debug on
+star
+star config
