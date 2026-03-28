@@ -2,6 +2,8 @@
 
 **ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake** can open doors in ODOOM and vice versa.
 
+**Engine checkout (`UZDOOM_SRC`):** use **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (patched UZDoom fork). Vanilla UZDoom is possible but the Omniverse build copies integration from this repo; the fork reduces drift. See [Docs/DEVELOPER_ONBOARDING.md](../Docs/DEVELOPER_ONBOARDING.md).
+
 ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handling. By NextGen World Ltd.
 
 ## Quick start

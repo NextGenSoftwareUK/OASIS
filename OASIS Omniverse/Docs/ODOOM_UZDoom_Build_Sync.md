@@ -110,4 +110,4 @@ Toggles are implemented in **`uzdoom_star_integration.cpp`** (raw key edge detec
 
 ## See also
 
-- `Docs/Devs/ODOOM_Quest_List_STAR.md` — quest list CVars and invariants (don’t “fix” scrolling by random rebuilds without sync).
+- `OASIS Omniverse/Docs/ODOOM_Quest_List_STAR.md` — quest list CVars and invariants (don’t “fix” scrolling by random rebuilds without sync).

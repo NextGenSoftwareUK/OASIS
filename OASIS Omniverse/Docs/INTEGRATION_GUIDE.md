@@ -54,6 +54,8 @@ Games call the C API; the **C# STARAPIClient** implements it and performs all HT
 
 Enable players to collect items (keycards, keys) in one game and use them in another game.
 
+**Powerups & weapons (design):** canonical Doom ↔ Quake mappings and implementation phases live in **[CROSS_GAME_POWERUP_WEAPON_MAP.md](CROSS_GAME_POWERUP_WEAPON_MAP.md)** (start with powerups; weapons TBD).
+
 ### Implementation Steps
 
 #### 1. Item Collection Tracking
@@ -444,7 +446,7 @@ printf("Last error: %s\n", error);
 
 ## Support
 
-- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](ODOOM/README.md), [OQuake/README.md](OQuake/README.md), [STARAPIClient/README.md](STARAPIClient/README.md)
+- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](../ODOOM/README.md), [OQuake/README.md](../OQuake/README.md), [STARAPIClient/README.md](../STARAPIClient/README.md)
 - **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `star_api.log` in game exe folder)
 
 ## License

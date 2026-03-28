@@ -22,6 +22,10 @@ typedef struct {
     int timeout_seconds;
     /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
     const char* client_game_source;
+    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a star_api build that embeds HyperDrive; default library returns STAR_API_ERROR_INIT_FAILED). */
+    int32_t transport;
+    /* Optional: UTF-8 path to OASIS_DNA.json for native transport (for future native host). */
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {
@@ -64,7 +68,7 @@ star_api_result_t star_api_authenticate(const char* username, const char* passwo
 star_api_result_t star_api_authenticate_with_jwt_out(const char* username, const char* password, char* jwt_buf, size_t jwt_size);
 /** Set JWT from persisted session (e.g. oasisstar.json). Call star_api_restore_session to validate and load profile. */
 star_api_result_t star_api_set_saved_session(const char* jwt);
-/** Start async session restore: one GET avatar/current, quest list warm, then STAR_API_OP_PROFILE_LOADED (success or error). Does not block. Do not call star_api_refresh_avatar_profile() immediately after — that would duplicate the GET. */
+/** Start async session restore (GET avatar/current). Callback is invoked on success/failure. Does not block. */
 star_api_result_t star_api_restore_session(void);
 /** Write current username to buf for saving to oasisstar.json. Returns bytes written or 0. */
 int star_api_get_current_username(char* buf, size_t buf_size);
@@ -105,9 +109,12 @@ star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
+/** Queue start quest; when that succeeds, persist active quest + objective on avatar (same as star_api_set_active_quest). Use from game when user picks an objective on a Not Started quest so set-active runs after start completes (avoids racing the async start). objective_id required. */
+#define STAR_API_HAS_START_QUEST_THEN_SET_ACTIVE_OBJECTIVE 1
+star_api_result_t star_api_start_quest_then_set_active_objective(const char* quest_id, const char* objective_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
-/** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tTitle\tDescription\tProgressSummary\tdone\n" per embedded objective (done 0/1), "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
+/** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
 int star_api_get_quests_string(char* buf, size_t buf_size);
 /** Write serialized top-level quests only (no sub-quests) to buf for left list. Same format as star_api_get_quests_string. Use for main quest list so sub-quests do not appear in the left panel. */
 int star_api_get_top_level_quests_string(char* buf, size_t buf_size);
@@ -132,6 +139,8 @@ int star_api_get_quest_tracker_active_objective_index(const char* quest_id);
 void star_api_invalidate_quest_cache(void);
 /** Start a background refresh of the quest cache without clearing it. Show existing cache in the UI immediately; list updates when the callback returns. */
 void star_api_refresh_quest_cache_in_background(void);
+/** 1 = in-game quest list popup is open, 0 = closed. While open, quest progress (POST/merge) and applying GET all-for-avatar into the cache are skipped. List uses the same in-memory cache updated by progress merge during gameplay. */
+void star_api_set_quest_popup_open(int is_open);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);

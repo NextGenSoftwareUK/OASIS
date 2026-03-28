@@ -43,6 +43,29 @@ static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle
 #define memmem(bp, blen, s, slen) OQ_memmem(bp, blen, s, slen)
 #endif
 
+/* OQuake overlay: 2x conchar size (ODOOM-style readability). */
+#define OQ_UI_TEXT_SCALE 2.0f
+#define OQ_TEXT_W_CHARS(n) ((int)((float)(n) * 8.0f * OQ_UI_TEXT_SCALE))
+#define OQ_PY(px) ((int)((float)(px) * OQ_UI_TEXT_SCALE))
+
+static void OQ_DrawStr(cb_context_t* cbx, float x, float y, const char* s) {
+	Draw_StringScaled(cbx, x, y, OQ_UI_TEXT_SCALE, s, NULL);
+}
+static void OQ_DrawStrScale(cb_context_t* cbx, float x, float y, float scale, const char* s, const byte* rgba) {
+	Draw_StringScaled(cbx, x, y, scale, s, rgba);
+}
+static void OQ_DrawStrCol(cb_context_t* cbx, float x, float y, const char* s, byte r, byte g, byte b) {
+	byte rgba[4];
+	rgba[0] = r;
+	rgba[1] = g;
+	rgba[2] = b;
+	rgba[3] = 255;
+	Draw_StringScaled(cbx, x, y, OQ_UI_TEXT_SCALE, s, rgba);
+}
+
+/* Async `star beamin` guard: wall-clock seconds (frame-based timeout broke at high FPS). Keep near HttpClient timeout. */
+#define OQ_BEAMIN_ASYNC_TIMEOUT_SEC 30.0
+
 #ifndef STAR_API_HAS_SEND_ITEM
 /* Forward declare send-item API when using an older star_api.h. Link with updated star_api.lib. */
 star_api_result_t star_api_send_item_to_avatar(const char* target_username_or_avatar_id, const char* item_name, int quantity, const char* item_id);
@@ -62,15 +85,14 @@ void star_api_refresh_avatar_profile(void) {
 	if (fn) fn();
 }
 #else
+/* RTLD_NEXT: dlopen(NULL)+dlsym resolves this same symbol in the executable → infinite recursion. NEEDED is often star_api.so, not libstar_api.so. */
 void star_api_refresh_avatar_profile(void) {
 	typedef void (*fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_refresh_avatar_profile");
-	}
-	if (fn) fn();
+	static fn_t real_fn;
+	if (!real_fn)
+		real_fn = (fn_t)dlsym(RTLD_NEXT, "star_api_refresh_avatar_profile");
+	if (real_fn)
+		real_fn();
 }
 #endif
 #endif
@@ -177,14 +199,12 @@ static void star_api_request_inventory_in_background_impl(void) {
 }
 void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #else
+/* RTLD_NEXT: avoid dlsym binding to these forwarders in the main binary (same issue as star_api_refresh_avatar_profile). */
 static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
 	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_authenticate_with_jwt_out");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_authenticate_with_jwt_out");
 	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
@@ -192,11 +212,8 @@ star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const cha
 static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
 	typedef star_api_result_t (*fn_t)(const char*);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_set_saved_session");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_saved_session");
 	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
@@ -204,11 +221,8 @@ star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_
 static star_api_result_t star_api_restore_session_impl(void) {
 	typedef star_api_result_t (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_restore_session");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_restore_session");
 	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
 }
 star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
@@ -216,11 +230,8 @@ star_api_result_t star_api_restore_session(void) { return star_api_restore_sessi
 static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_username");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_username");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
@@ -228,11 +239,8 @@ int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_
 static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_jwt");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_jwt");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
@@ -240,23 +248,18 @@ int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_c
 static void star_api_set_refresh_token_impl(const char* refresh_token) {
 	typedef void (*fn_t)(const char*);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_set_refresh_token");
-	}
-	if (fn) fn(refresh_token);
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_refresh_token");
+	if (fn)
+		fn(refresh_token);
 }
 void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
 
 static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
 	typedef int (*fn_t)(char*, size_t);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_get_current_refresh_token");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_refresh_token");
 	return fn ? fn(buf, buf_size) : 0;
 }
 int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
@@ -264,11 +267,8 @@ int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star
 static int star_api_is_session_expired_impl(void) {
 	typedef int (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_is_session_expired");
-	}
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_is_session_expired");
 	return fn ? fn() : 0;
 }
 int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
@@ -276,12 +276,10 @@ int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(
 static void star_api_request_inventory_in_background_impl(void) {
 	typedef void (*fn_t)(void);
 	static fn_t fn;
-	if (!fn) {
-		void* h = dlopen("libstar_api.so", RTLD_NOW | RTLD_NOLOAD);
-		if (!h) h = dlopen(NULL, RTLD_NOW);
-		if (h) fn = (fn_t)dlsym(h, "star_api_request_inventory_in_background");
-	}
-	if (fn) fn();
+	if (!fn)
+		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_request_inventory_in_background");
+	if (fn)
+		fn();
 }
 void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
 #endif
@@ -300,6 +298,7 @@ static void OQ_OnSendItemDone(void* user_data);
 static void OQ_SaveStarConfigToFiles(void);
 static void OQ_PickupLog(const char* fmt, ...);
 static void OQ_StarDebugLog(const char* fmt, ...);
+static int OQ_SelectPersistableObjectiveId(const char* quest_id, const char* preferred_id, char* out_id, size_t out_size);
 static qboolean g_star_debug_logging = false;
 
 /** Case-insensitive substring search. Defined early so MSVC parses call sites without error. */
@@ -323,6 +322,37 @@ static int OQ_ContainsNoCase(const char* haystack, const char* needle) {
     return 0;
 }
 
+/* Cross-game canonical ids (Doom / beam-in rows). Quake uses legacy display names when *adding*; helpers below still match these when reading. */
+#define OQ_OASIS_MEGAHEALTH       "OASIS.MegaHealth"
+#define OQ_OASIS_MEGAHEALTH_ARMOR "OASIS.MegaHealthArmor"
+#define OQ_OASIS_QUAD_DAMAGE      "OASIS.QuadDamage"
+#define OQ_OASIS_INVULN           "OASIS.Invulnerability"
+#define OQ_OASIS_ENV_SUIT         "OASIS.EnvironmentSuit"
+#define OQ_OASIS_RING_SHADOWS     "OASIS.RingShadows"
+/* Player-visible STAR row names for Quake-native pickups (inventory overlay). */
+#define OQ_QUAKE_NAME_MEGAHEALTH          "Megahealth"
+#define OQ_QUAKE_NAME_QUAD_DAMAGE         "Quad Damage"
+#define OQ_QUAKE_NAME_PENTAGRAM           "Pentagram of Protection"
+#define OQ_QUAKE_NAME_BIOSUIT             "Biosuit"
+#define OQ_QUAKE_NAME_RING_OF_SHADOWS     "Ring of Shadows"
+
+static int OQ_IsOasisMegaHealthArmorName(const char* n) {
+    return n && OQ_ContainsNoCase(n, "OASIS.MegaHealthArmor");
+}
+/** Mega-health row only (Quake megahealth or Doom soul-equivalent), not megasphere combo. */
+static int OQ_IsMegaHealthStyleInventoryName(const char* n) {
+    if (!n || OQ_IsOasisMegaHealthArmorName(n)) return 0;
+    if (OQ_ContainsNoCase(n, "OASIS.MegaHealth")) return 1;
+    if (OQ_ContainsNoCase(n, "Megahealth")) return 1;
+    return 0;
+}
+static int OQ_IsOasisCanonicalPowerupInventoryName(const char* name) {
+    if (!name || !OQ_ContainsNoCase(name, "OASIS.")) return 0;
+    return OQ_ContainsNoCase(name, "MegaHealth") || OQ_ContainsNoCase(name, "QuadDamage")
+        || OQ_ContainsNoCase(name, "Invulnerability") || OQ_ContainsNoCase(name, "EnvironmentSuit")
+        || OQ_ContainsNoCase(name, "RingShadows");
+}
+
 /** Called from sync worker after each star_api_add_item; logs result to console only when star debug is on. */
 static void OQ_AddItemLogCb(const char* item_name, int success, const char* error_message, void* user_data) {
     (void)user_data;
@@ -344,7 +374,8 @@ static int g_star_refresh_xp_called_this_session = 0;
 static volatile int g_star_profile_loaded_pending = 0;
 /** True when async SSO auth was started (star beamin); cleared when OQ_OnAuthDone runs or timeout. Used to show timeout error if callback never fires. */
 static int g_star_async_auth_pending = 0;
-static int g_star_async_auth_pending_frames = 0;
+/* Wall-clock start for async beamin; do not use frame counts (high FPS caused ~7s false timeouts). */
+static double g_star_async_auth_start_realtime = 0;
 /** Set when we showed timeout; ignore the next OQ_OnAuthDone (late callback from the timed-out attempt) and allow retry. */
 static int g_star_auth_timed_out = 0;
 static int g_star_console_registered = 0;
@@ -362,6 +393,30 @@ static char g_star_last_pickup_desc[512] = {0};
 static char g_star_last_pickup_type[64] = {0};
 static qboolean g_star_has_last_pickup = false;
 
+/* Cross-game beam-in: map other title's STAR ammo (and optional weapons on ODOOM) once per session after inventory loads. */
+#define OQ_CROSS_PAIR_MAX 32
+typedef struct { char from[96]; char to[96]; } oq_cross_pair_t;
+static oq_cross_pair_t g_oq_doom_ammo_to_quake[OQ_CROSS_PAIR_MAX];
+static int g_oq_doom_ammo_to_quake_n;
+static oq_cross_pair_t g_oq_quake_ammo_to_doom[OQ_CROSS_PAIR_MAX];
+static int g_oq_quake_ammo_to_doom_n;
+static oq_cross_pair_t g_oq_doom_weapon_to_quake[OQ_CROSS_PAIR_MAX];
+static int g_oq_doom_weapon_to_quake_n;
+static oq_cross_pair_t g_oq_quake_weapon_to_doom[OQ_CROSS_PAIR_MAX];
+static int g_oq_quake_weapon_to_doom_n;
+static int g_oq_cross_game_beam_transfer_done = 0;
+static int g_oq_cross_game_logged_done_skip = 0;
+static int g_oq_cross_empty_inventory_wait_frames = 0;
+/** After cross-game `give N` (vkQuake Host_Give_f), skip STAR sync for weapon bit gains for a few frames (avoids duplicate Quake weapon rows). */
+static int g_oq_cross_grant_suppress_weapon_star = 0;
+/** After cross-game ammo (`give s|n|r|c` or client cl.stats in DM), skip STAR ammo stat deltas for a few frames (avoids duplicate ammo rows). */
+static int g_oq_cross_grant_suppress_ammo_star = 0;
+
+/* vkQuake client.h: signon 0..SIGNONS-1 until server stream is complete; cl.stats/items not stable for deltas. */
+#ifndef OQ_VKQUAKE_SIGNONS
+#define OQ_VKQUAKE_SIGNONS 4
+#endif
+
 /* key binding helpers from keys.c; key_message, key_console, key_menu are enum constants from keys.h */
 extern char *keybindings[MAX_KEYS];
 extern qboolean keydown[MAX_KEYS];
@@ -375,6 +430,9 @@ cvar_t oasis_star_beam_face = {"oasis_star_beam_face", "1", CVAR_ARCHIVE};
 cvar_t oquake_star_config_file = {"oquake_star_config_file", "json", CVAR_ARCHIVE}; /* "json" or "cfg" - which config file to use */
 cvar_t oquake_star_api_url = {"oquake_star_api_url", "https://oasisweb4.com/api/star", CVAR_ARCHIVE};
 cvar_t oquake_oasis_api_url = {"oquake_oasis_api_url", "https://oasisweb4.com", CVAR_ARCHIVE};
+/* "remote" = HTTP WEB5/WEB4 (default). "native" = in-process OASIS (requires star_api built with HyperDrive; default DLL fails init with clear error). */
+cvar_t oquake_star_transport = {"oquake_star_transport", "remote", CVAR_ARCHIVE};
+cvar_t oquake_oasis_dna_path = {"oquake_oasis_dna_path", "", CVAR_ARCHIVE};
 cvar_t oquake_star_username = {"oquake_star_username", "", 0};
 cvar_t oquake_star_password = {"oquake_star_password", "", 0};
 cvar_t oquake_star_api_key = {"oquake_star_api_key", "", 0};
@@ -403,6 +461,11 @@ cvar_t oquake_star_always_add_items_to_inventory = {"oquake_star_always_add_item
 cvar_t oquake_star_use_health_on_pickup = {"oquake_star_use_health_on_pickup", "0", 0};
 cvar_t oquake_star_use_armor_on_pickup = {"oquake_star_use_armor_on_pickup", "0", 0};
 cvar_t oquake_star_use_powerup_on_pickup = {"oquake_star_use_powerup_on_pickup", "0", 0};
+/* HUD toggles (same idea as ODOOM odoom_hud_show_xp / odoom_hud_show_beamed); X / B edge-triggered in draw path. */
+cvar_t oquake_hud_show_xp = {"oquake_hud_show_xp", "1", CVAR_ARCHIVE};
+cvar_t oquake_hud_show_beamed = {"oquake_hud_show_beamed", "1", CVAR_ARCHIVE};
+/* 1 = console + star_api_log cross-game beam transfer diagnostics (set oquake_star_cross_game_log 1). */
+cvar_t oquake_star_cross_game_log = {"oquake_star_cross_game_log", "0", CVAR_ARCHIVE};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -499,12 +562,6 @@ static char g_inventory_saved_down_bind[128] __attribute__((unused));
 static char g_inventory_saved_left_bind[128] __attribute__((unused));
 static char g_inventory_saved_right_bind[128] __attribute__((unused));
 static char g_inventory_saved_all_binds[MAX_KEYS][128];
-/* Movement keys (WASD + arrows): when inventory or quest popup is open, we clear these bindings so the player cannot move even if the engine was not patched (e.g. Linux without cl_input.c patch). Restored on close. */
-#define OQ_MOVEMENT_KEY_COUNT 8
-static int g_movement_key_indices[OQ_MOVEMENT_KEY_COUNT];  /* filled on first use */
-static char g_movement_saved_binds[OQ_MOVEMENT_KEY_COUNT][128];
-static qboolean g_movement_bindings_captured = false;
-static qboolean g_movement_keys_resolved = false;
 /* Pending use-item from overlay (E key): applied in callback after async use completes so inventory refresh shows correct qty/removal. */
 static char g_oq_use_pending_name[256];
 static char g_oq_use_pending_type[64];
@@ -519,6 +576,11 @@ static int g_oq_toast_frames = 0;
 /* Quest popup (Q key), same as ODOOM: filter by status, Start (Not Started) or Set tracker (In Progress). */
 static qboolean g_quest_popup_open = false;
 static qboolean g_quest_key_was_down = false;
+static qboolean g_inventory_i_key_was_down = false;
+/* Detect quest list refetch / filter change so selection index is re-aligned to tracker (ODOOM-style; avoids highlight drift without Enter idx_below). */
+static unsigned s_oq_quest_list_layout_sig_prev;
+static int s_oq_quest_sel_idx_for_sig = -1;
+static char s_oq_quest_sel_id_for_sig[64];
 
 int OQuake_STAR_IsQuestPopupOpen(void)
 {
@@ -533,6 +595,27 @@ int OQuake_STAR_IsInventoryPopupOpen(void)
 #define OQ_QUEST_MAX 64
 #define OQ_LINKS_MAX 16   /* max prereq or sub-quest IDs per quest */
 #define OQ_OBJ_MAX 16    /* max objectives per quest */
+
+/** Quest panel height: same clamps for key handling and draw (matches ODOOM single max-row source). */
+static int OQ_QuestPopupPanelQh(void)
+{
+    int qh = q_min(glheight - 24, 900);
+    if (qh < 420)
+        qh = 420;
+    return qh;
+}
+
+/** Visible quest rows in left list; OQ_PY(96) must match header+toggles+table header space used in draw (was mixed with raw 96, causing scroll/highlight drift). */
+static int OQ_QuestPopupListMaxRowsForQh(int qh)
+{
+    int row_h = OQ_PY(12);
+    int max_r = (qh - OQ_PY(96)) / row_h;
+    if (max_r < 6)
+        max_r = 6;
+    if (max_r > OQ_QUEST_MAX)
+        max_r = OQ_QUEST_MAX;
+    return max_r;
+}
 static int g_quest_filter_not_started = 1;
 static int g_quest_filter_in_progress = 1;
 static int g_quest_filter_completed = 1;
@@ -562,6 +645,7 @@ static char g_quest_tracker_last_n_obj_id[64] = "";
 static int g_quest_tracker_needs_refresh = 0;
 static int g_quest_popup_sync_to_tracker = 0;  /* 1 = when popup opens, sync left-list selection to tracked quest once list is ready */
 static int g_quest_popup_sync_objective_once = 0;  /* 1 = sync right-panel objective selection to tracked objective once (when panel shows tracked quest) */
+static int g_quest_popup_suppress_enter_frames = 0;  /* kept at 0; Enter is no longer gated on this counter */
 static char g_quest_status_message[80] = "";  /* Bottom-right status (e.g. "Starting quest..."). */
 static int g_quest_status_frames = 0;
 static char g_quest_start_pending_id[64] = "";  /* When set, "Starting quest..." stays until list shows this quest as InProgress (or timeout). */
@@ -649,6 +733,70 @@ static qboolean OQ_KeyPressed(int key)
     if (!keydown[key])
         g_inventory_key_was_down[key] = false;
     return false;
+}
+
+/** Rising edge on main or keypad Enter (quest popup). Uses keynums from quakedef.h — avoids Key_StringToKeynum("enter") drift on some platforms. */
+static qboolean OQ_QuestEnterRisingEdge(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && keydown[k_main] && !g_inventory_key_was_down[k_main])
+        return true;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && keydown[k_kp] && !g_inventory_key_was_down[k_kp])
+        return true;
+    return false;
+}
+
+static void OQ_QuestEnterCommit(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && keydown[k_main])
+        g_inventory_key_was_down[k_main] = true;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && keydown[k_kp])
+        g_inventory_key_was_down[k_kp] = true;
+}
+
+static void OQ_QuestEnterReleaseTick(int k_main, int k_kp)
+{
+    if (k_main >= 0 && k_main < MAX_KEYS && !keydown[k_main])
+        g_inventory_key_was_down[k_main] = false;
+    if (k_kp >= 0 && k_kp < MAX_KEYS && !keydown[k_kp])
+        g_inventory_key_was_down[k_kp] = false;
+}
+
+/** Fingerprint top-level quest buffer + counts so cache refetch / filter changes are visible (ODOOM C++ list window invalidation analogue). */
+static unsigned OQ_QuestListLayoutSig(const char* buf, int buflen, int qn, int fn)
+{
+    unsigned h = 5381u ^ ((unsigned)qn * 257u) ^ ((unsigned)fn * 65537u);
+    int i, lim;
+    if (!buf || buflen <= 0)
+        return h;
+    lim = buflen;
+    if (lim > 768)
+        lim = 768;
+    for (i = 0; i < lim; i++)
+        h = ((h << 5) + h) + (unsigned char)buf[i];
+    return h;
+}
+
+static int OQ_KeybindingReferencesCommand(int key, const char* cmd)
+{
+    const char* b;
+    if (key < 0 || key >= MAX_KEYS || !cmd || !cmd[0])
+        return 0;
+    b = keybindings[key];
+    if (!b || !b[0])
+        return 0;
+    return strstr(b, cmd) != NULL;
+}
+
+/** Shared cleanup when quest popup closes (Q, I, or leaving a map). Clears STAR flag and quest-list signature state. */
+static void OQ_OnQuestPopupClosed(void)
+{
+    star_api_set_quest_popup_open(0);
+    g_quest_popup_suppress_enter_frames = 0;
+    g_quest_status_message[0] = '\0';
+    g_quest_status_frames = 0;
+    g_quest_start_pending_id[0] = '\0';
+    s_oq_quest_sel_idx_for_sig = -1;
+    s_oq_quest_list_layout_sig_prev = 0u;
 }
 
 static int OQ_BuildFilteredIndices(int* out_indices, int max_indices)
@@ -811,52 +959,9 @@ static int OQ_GetSelectedGroupInfo(int* out_rep_index, int* out_mode, int* out_v
     return 1;
 }
 
-/** Resolve movement key indices once (WASD + arrows). Used so we can clear bindings when popup is open on Linux where engine may not be patched. */
-static void OQ_ResolveMovementKeys(void)
-{
-    static const char* const names[OQ_MOVEMENT_KEY_COUNT] = {
-        "w", "a", "s", "d", "uparrow", "downarrow", "leftarrow", "rightarrow"
-    };
-    int i;
-    if (g_movement_keys_resolved)
-        return;
-    g_movement_keys_resolved = true;
-    for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-        int kn = Key_StringToKeynum(names[i]);
-        g_movement_key_indices[i] = (kn >= 0 && kn < MAX_KEYS) ? kn : -1;
-    }
-}
-
-/** When inventory or quest popup is open: clear WASD and arrow key bindings so the player cannot move (fallback when engine cl_input.c is not patched, e.g. Linux). Restore on close so keys work immediately. */
+/** Inventory/quest popups: movement is blocked in vkQuake cl_input.c (OQuake patch) without touching keybindings — same model as ODOOM + VKQUAKE_OQUAKE_INTEGRATION.md. Stripping WASD here caused first-load / empty-restore dead keys on Linux. Send-to-avatar popup still clears binds via OQ_UpdateSendPopupBindingCapture. */
 static void OQ_UpdatePopupInputCapture(void)
 {
-    int i;
-    qboolean popup_open = (g_inventory_open || g_quest_popup_open) ? true : false;
-
-    if (popup_open) {
-        OQ_ResolveMovementKeys();
-        if (!g_movement_bindings_captured) {
-            for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-                int k = g_movement_key_indices[i];
-                if (k >= 0) {
-                    q_strlcpy(g_movement_saved_binds[i],
-                        keybindings[k] ? keybindings[k] : "",
-                        sizeof(g_movement_saved_binds[i]));
-                    Key_SetBinding(k, "");
-                }
-            }
-            Key_ClearStates();
-            g_movement_bindings_captured = true;
-        }
-    } else if (g_movement_bindings_captured) {
-        for (i = 0; i < OQ_MOVEMENT_KEY_COUNT; i++) {
-            int k = g_movement_key_indices[i];
-            if (k >= 0)
-                Key_SetBinding(k, g_movement_saved_binds[i]);
-        }
-        Key_ClearStates();
-        g_movement_bindings_captured = false;
-    }
 }
 
 static void OQ_UpdateSendPopupBindingCapture(void)
@@ -999,9 +1104,18 @@ static int OQ_WouldUseExceedMax(const char* name, const char* type, const char* 
     cur_h = cl.stats[STAT_HEALTH];
     cur_a = cl.stats[STAT_ARMOR];
     amount_from_desc = OQ_ParseAmountFromDescription(description);
+    /* Doom megasphere equivalent: +200 HP and +200 armor in one STAR row */
+    if (OQ_IsOasisMegaHealthArmorName(name) && type && OQ_ContainsNoCase(type, "powerup")) {
+        const int dh = 200, da = 200;
+        if (cur_h >= max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
+        if (cur_h + dh > max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
+        if (cur_a >= max_a) { *toast_msg = "You cannot use this because you are already at max armor."; return 1; }
+        if (cur_a + da > max_a) { *toast_msg = "You cannot use this because you are already at max armor."; return 1; }
+        return 0;
+    }
     {
         int is_health = type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup"));
-        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
+        int is_health_item = name && (OQ_IsMegaHealthStyleInventoryName(name) || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
         if (is_health && is_health_item) {
             int amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : (OQ_ContainsNoCase(name, "Stimpack") ? 10 : 25));
             if (cur_h >= max_h) { *toast_msg = "You cannot use this because you are already at max health."; return 1; }
@@ -1028,9 +1142,19 @@ static void OQ_ApplyHealthOrArmor(const char* name, const char* type, const char
         max_h = atoi(oquake_star_max_health.string);
     if (oquake_star_max_armor.string && oquake_star_max_armor.string[0] && atoi(oquake_star_max_armor.string) > 0)
         max_a = atoi(oquake_star_max_armor.string);
+    if (OQ_IsOasisMegaHealthArmorName(name)) {
+        const int dh = 200, da = 200;
+        cl.stats[STAT_HEALTH] += dh;
+        if (cl.stats[STAT_HEALTH] > max_h) cl.stats[STAT_HEALTH] = max_h;
+        cl.stats[STAT_ARMOR] += da;
+        if (cl.stats[STAT_ARMOR] > max_a) cl.stats[STAT_ARMOR] = max_a;
+        g_oq_health_applied_from_overlay_time = realtime;
+        g_oq_armor_applied_from_overlay_time = realtime;
+        return;
+    }
     {
         int is_health = type && (OQ_ContainsNoCase(type, "health") || OQ_ContainsNoCase(type, "powerup"));
-        int is_health_item = name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
+        int is_health_item = name && (OQ_IsMegaHealthStyleInventoryName(name) || OQ_ContainsNoCase(name, "Health") || OQ_ContainsNoCase(name, "Stimpack"));
         if (is_health && is_health_item) {
             amount = (amount_from_desc >= 0) ? amount_from_desc : (OQ_ContainsNoCase(name, "Mega") ? 100 : (OQ_ContainsNoCase(name, "Stimpack") ? 10 : 25));
             cl.stats[STAT_HEALTH] += amount;
@@ -1118,7 +1242,7 @@ static const oquake_inventory_entry_t* OQ_FindFirstHealthEntry(void) {
     int i;
     for (i = 0; i < g_inventory_count; i++) {
         const oquake_inventory_entry_t* e = &g_inventory_entries[i];
-        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name[0] && (OQ_ContainsNoCase(e->name, "Megahealth") || OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")))
+        if (OQ_ItemMatchesTab(e, OQ_TAB_POWERUPS) && e->name[0] && (OQ_IsMegaHealthStyleInventoryName(e->name) || OQ_IsOasisMegaHealthArmorName(e->name) || OQ_ContainsNoCase(e->name, "Health") || OQ_ContainsNoCase(e->name, "Stimpack")))
             return e;
         if (e->item_type[0] && OQ_ContainsNoCase(e->item_type, "health"))
             return e;
@@ -1250,11 +1374,16 @@ static int OQ_ItemMatchesTab(const oquake_inventory_entry_t* item, int tab) {
     const char* name = item ? item->name : NULL;
     /* API may return "KeyItem" or different casing; match type and name case-insensitively so API items show in correct tab. */
     int is_key = OQ_ContainsNoCase(type, "key") || (name && OQ_ContainsNoCase(name, "key"));
-    int is_powerup = OQ_ContainsNoCase(type, "powerup") || (name && (OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Ring") || OQ_ContainsNoCase(name, "Pentagram") || OQ_ContainsNoCase(name, "Biosuit") || OQ_ContainsNoCase(name, "Quad")));
-    int is_weapon = OQ_ContainsNoCase(type, "weapon") || (name && (OQ_ContainsNoCase(name, "Shotgun") || OQ_ContainsNoCase(name, "Nailgun") || OQ_ContainsNoCase(name, "Launcher") || OQ_ContainsNoCase(name, "Lightning")));
+    int is_powerup = OQ_ContainsNoCase(type, "powerup") || (name && (OQ_IsOasisCanonicalPowerupInventoryName(name) || OQ_ContainsNoCase(name, "Megahealth") || OQ_ContainsNoCase(name, "Ring") || OQ_ContainsNoCase(name, "Pentagram") || OQ_ContainsNoCase(name, "Biosuit") || OQ_ContainsNoCase(name, "Quad")));
+    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
+    /* Name heuristics must not match Doom monsters ShotgunGuy / ChaingunGuy (substring Shotgun/Chaingun). Monster rows must never match Weapons tab. */
+    int is_weapon = !is_monster
+        && (OQ_ContainsNoCase(type, "weapon")
+            || (name && !OQ_ContainsNoCase(name, "Guy")
+                && (OQ_ContainsNoCase(name, "Shotgun") || OQ_ContainsNoCase(name, "Chaingun") || OQ_ContainsNoCase(name, "Nailgun")
+                    || OQ_ContainsNoCase(name, "Launcher") || OQ_ContainsNoCase(name, "Lightning"))));
     int is_ammo = OQ_ContainsNoCase(type, "ammo") || (name && (OQ_ContainsNoCase(name, "Shells") || OQ_ContainsNoCase(name, "Nails") || OQ_ContainsNoCase(name, "Rockets") || OQ_ContainsNoCase(name, "Cells")));
     int is_armor = OQ_ContainsNoCase(type, "armor") || (name && OQ_ContainsNoCase(name, "Armor"));
-    int is_monster = OQ_ContainsNoCase(type, "monster") || (name && (strstr(name, "[NFT]") != NULL || strstr(name, "[BOSSNFT]") != NULL));
 
     switch (tab) {
         case OQ_TAB_KEYS: return is_key;
@@ -1283,6 +1412,8 @@ static qboolean OQ_AllowPrivilegedCommands(void) {
     return (q_strcasecmp(u, "dellams") == 0 || q_strcasecmp(u, "anorak") == 0);
 }
 
+static void OQ_ResetCrossGameBeamTransferState(void);
+
 /** Called from main thread by star_sync_pump() when auth completes. */
 static void OQ_OnAuthDone(void* user_data) {
     int success = 0;
@@ -1301,6 +1432,7 @@ static void OQ_OnAuthDone(void* user_data) {
     star_sync_auth_get_result_jwt(jwt_buf, sizeof(jwt_buf));
     g_star_async_auth_pending = 0;
     if (success) {
+        star_api_log_to_file("[OQuake] Beamin: auth OK (async callback); loading profile");
         /* Persist JWT from auth result so oasisstar.json has jwt_token for autobeamin (avoids relying on get_current_jwt export). */
         if (jwt_buf[0])
             q_strlcpy(g_oq_saved_jwt, jwt_buf, sizeof(g_oq_saved_jwt));
@@ -1335,12 +1467,18 @@ static void OQ_OnAuthDone(void* user_data) {
                 q_strlcpy(g_quest_tracker_active_objective_id, oid, sizeof(g_quest_tracker_active_objective_id));
         }
         g_star_beamed_in = 1;
+        OQ_ResetCrossGameBeamTransferState();
         g_inventory_last_refresh = 0.0;
         /* Persist session to oasisstar.json immediately so we stay logged in after restart (or if game crashes before exit). */
         OQ_SaveStarConfigToFiles();
         Con_Printf("Logged in (beamin). Cross-game assets enabled.\n");
     } else {
         const char* msg = error_msg[0] ? error_msg : "Unknown error";
+        {
+            char logb[384];
+            q_snprintf(logb, sizeof(logb), "[OQuake] Beamin: auth failed (async): %s", msg);
+            star_api_log_to_file(logb);
+        }
         Con_Printf("Beam-in failed: %s\n", msg);
         {
             char toast_buf[256];
@@ -1696,7 +1834,9 @@ static int OQ_FindConfigFile(const char *filename, char *out_path, int maxlen) {
     
     const char *locations[] = {
         "build/",  /* Relative to exe if in build folder */
-        "../build/",  /* One level up from exe */
+        "../build/",  /* One level up from exe (e.g. vkQuake/build-asan -> vkQuake/build) */
+        "../../OASIS/OASIS Omniverse/OQuake/build/", /* vkQuake/build-asan with OASIS+vkQuake siblings under Source/ */
+        "../OASIS/OASIS Omniverse/OQuake/build/",  /* Exe one level under vkQuake (e.g. build/) */
         "../OASIS Omniverse/OQuake/build/",  /* From basedir, go to OQuake build */
         "../../OASIS Omniverse/OQuake/build/",  /* Two levels up */
         "OASIS Omniverse/OQuake/build/",  /* Relative from repo root */
@@ -1786,17 +1926,433 @@ static int OQ_ExtractJsonValue(const char *json, const char *key, char *value, i
     }
 }
 
+static void OQ_ResetCrossGameBeamTransferState(void) {
+    g_oq_cross_game_beam_transfer_done = 0;
+    g_oq_cross_empty_inventory_wait_frames = 0;
+    g_oq_cross_grant_suppress_weapon_star = 0;
+    g_oq_cross_grant_suppress_ammo_star = 0;
+    g_oq_cross_game_logged_done_skip = 0;
+}
+
+static int OQ_CrossGameLogEnabled(void) {
+    return oquake_star_cross_game_log.string && atoi(oquake_star_cross_game_log.string) != 0;
+}
+
+static void OQ_CrossGameDbgThrottled(const char* msg) {
+    extern double realtime;
+    static double t_last = -1e9;
+    static char prev[256];
+    if (!OQ_CrossGameLogEnabled() || !msg) return;
+    if (realtime - t_last < 1.25 && !strcmp(prev, msg)) return;
+    t_last = realtime;
+    q_strlcpy(prev, msg, sizeof(prev));
+    Con_Printf("[OQuake cross-game] %s\n", msg);
+    {
+        char logb[320];
+        q_snprintf(logb, sizeof(logb), "[OQuake cross-game] %s", msg);
+        star_api_log_to_file(logb);
+    }
+}
+
+static void OQ_CrossGameDbgPrintf(const char* fmt, ...) {
+    va_list ap;
+    char buf[512];
+    char logb[560];
+    if (!OQ_CrossGameLogEnabled() || !fmt) return;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    buf[sizeof(buf) - 1] = '\0';
+    Con_Printf("[OQuake cross-game] %s\n", buf);
+    q_snprintf(logb, sizeof(logb), "[OQuake cross-game] %s", buf);
+    star_api_log_to_file(logb);
+}
+
+static void OQ_CrossGamePairsClearTable(oq_cross_pair_t* tab, int* n) {
+    *n = 0;
+    memset(tab, 0, sizeof(oq_cross_pair_t) * (size_t)OQ_CROSS_PAIR_MAX);
+}
+
+static void OQ_CrossGamePairsAdd(oq_cross_pair_t* tab, int* n, const char* from, const char* to) {
+    if (!from || !to || !from[0] || !to[0] || *n >= OQ_CROSS_PAIR_MAX) return;
+    q_strlcpy(tab[*n].from, from, sizeof(tab[*n].from));
+    q_strlcpy(tab[*n].to, to, sizeof(tab[*n].to));
+    (*n)++;
+}
+
+static void OQ_InitCrossGameMapsToDefaults(void) {
+    OQ_CrossGamePairsClearTable(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n);
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Bullets", "Nails");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Shells", "Shells");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Rockets", "Rockets");
+    OQ_CrossGamePairsAdd(g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n, "Cells", "Cells");
+    OQ_CrossGamePairsClearTable(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n);
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Nails", "Bullets");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Shells", "Shells");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Rockets", "Rockets");
+    OQ_CrossGamePairsAdd(g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n, "Cells", "Cells");
+    OQ_CrossGamePairsClearTable(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n);
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Chaingun", "Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Shotgun", "Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "BFG9000", "Lightning Gun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Plasma Rifle", "Super Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Rocket Launcher", "Rocket Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Super Shotgun", "Super Shotgun");
+    /* Holon / compact names that do not match ToStarItemName() spacing */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "RocketLauncher", "Rocket Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "SuperShotgun", "Super Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "PlasmaRifle", "Plasma Rifle");
+    /* Legacy rows from older ToStarItemName() fallback (class OQNailgun -> "Oqnailgun", etc.) */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqnailgun", "Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqsupernailgun", "Super Nailgun");
+    /* Old OQGrenadeLauncher/OQThunderbolt fallbacks before they mapped to Plasma Rifle / BFG9000 */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqgrenadelauncher", "Super Nailgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqthunderbolt", "Lightning Gun");
+    OQ_CrossGamePairsClearTable(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Nailgun", "Chaingun");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Shotgun", "Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Super Nailgun", "PlasmaRifle");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Lightning Gun", "BFG9000");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Grenade Launcher", "PlasmaRifle");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Rocket Launcher", "RocketLauncher");
+    OQ_CrossGamePairsAdd(g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n, "Super Shotgun", "SuperShotgun");
+}
+
+static void OQ_TrimAsciiInPlace(char* s) {
+    char* p = s;
+    char* end;
+    if (!s) return;
+    while (*p && (unsigned char)*p <= ' ') p++;
+    end = p + strlen(p);
+    while (end > p && (unsigned char)end[-1] <= ' ') end--;
+    *end = '\0';
+    if (p != s)
+        memmove(s, p, (size_t)(end - p + 1));
+}
+
+static void OQ_ParseCrossGamePairList(const char* list, oq_cross_pair_t* tab, int* outn) {
+    char buf[4096];
+    char* seg;
+    char* cursor;
+    if (!list || !list[0] || !outn) return;
+    q_strlcpy(buf, list, sizeof(buf));
+    *outn = 0;
+    memset(tab, 0, sizeof(oq_cross_pair_t) * (size_t)OQ_CROSS_PAIR_MAX);
+    for (cursor = buf; *cursor && *outn < OQ_CROSS_PAIR_MAX; ) {
+        seg = cursor;
+        while (*cursor && *cursor != ',') cursor++;
+        if (*cursor == ',') { *cursor = '\0'; cursor++; }
+        OQ_TrimAsciiInPlace(seg);
+        if (seg[0]) {
+            char* eq = strchr(seg, '=');
+            if (eq) {
+                *eq = '\0';
+                OQ_TrimAsciiInPlace(seg);
+                OQ_TrimAsciiInPlace(eq + 1);
+                if (seg[0] && eq[1])
+                    OQ_CrossGamePairsAdd(tab, outn, seg, eq + 1);
+            }
+        }
+    }
+}
+
+static const char* OQ_CrossGameMapLookup(const oq_cross_pair_t* tab, int n, const char* key) {
+    int i;
+    if (!key || !key[0]) return NULL;
+    for (i = 0; i < n; i++) {
+        if (!q_strcasecmp(tab[i].from, key))
+            return tab[i].to;
+    }
+    return NULL;
+}
+
+static int OQ_ItemGameSourceIsDoom(const char* gs) {
+    return gs && gs[0] && OQ_ContainsNoCase(gs, "doom");
+}
+
+/** Doom rows for cross-game: GameSource contains doom, or Description has add-item suffix "| Source: ODOOM" (WEB4 often omits GameSource on GET). */
+static int OQ_ItemRowIsDoomCrossGame(const char* gs, const char* desc) {
+    if (OQ_ItemGameSourceIsDoom(gs)) return 1;
+    if (desc && desc[0] && (OQ_ContainsNoCase(desc, "Source: ODOOM") || OQ_ContainsNoCase(desc, "Source:ODOOM")))
+        return 1;
+    return 0;
+}
+
+static void OQ_StripStarStorageGameSuffix(const char* name, char* out, size_t outsz) {
+    size_t len;
+    if (!name || !out || outsz < 2) { if (out) out[0] = '\0'; return; }
+    q_strlcpy(out, name, outsz);
+    len = strlen(out);
+    if (len > 8 && !strcmp(out + len - 8, " (ODOOM)")) { out[len - 8] = '\0'; return; }
+    if (len > 9 && !strcmp(out + len - 9, " (OQUAKE)")) { out[len - 9] = '\0'; return; }
+    if (len > 8 && !strcmp(out + len - 8, " (QUAKE)")) { out[len - 8] = '\0'; return; }
+}
+
+/** Cross-game Doom ammo -> Quake: vkQuake `give s|n|r|c <total>` when not deathmatch (Host_Give_f); in deathmatch `give` is disabled — update cl.stats only. Returns 1 if ammo changed. */
+static int OQ_CrossGameApplyQuakeAmmoFromDoom(const char* logical, int qty) {
+    extern client_state_t cl;
+    extern cvar_t deathmatch;
+    extern void Cbuf_AddText(const char* text);
+    int stat_idx = -1;
+    int cap = 200;
+    const char* give_letter = NULL;
+    if (!logical || !logical[0] || qty <= 0) return 0;
+    if (!q_strcasecmp(logical, "Shells")) { stat_idx = STAT_SHELLS; cap = 100; give_letter = "s"; }
+    else if (!q_strcasecmp(logical, "Nails")) { stat_idx = STAT_NAILS; cap = 200; give_letter = "n"; }
+    else if (!q_strcasecmp(logical, "Rockets")) { stat_idx = STAT_ROCKETS; cap = 100; give_letter = "r"; }
+    else if (!q_strcasecmp(logical, "Cells")) { stat_idx = STAT_CELLS; cap = 100; give_letter = "c"; }
+    if (stat_idx < 0 || !give_letter) return 0;
+    {
+        int cur = (int)cl.stats[stat_idx];
+        int n = cur + qty;
+        if (n > cap) n = cap;
+        if (n <= cur) return 0;
+        if (deathmatch.value != 0) {
+            cl.stats[stat_idx] = n;
+        } else {
+            char cmd[40];
+            q_snprintf(cmd, sizeof(cmd), "\ngive %s %d\n", give_letter, n);
+            Cbuf_AddText(cmd);
+        }
+        return 1;
+    }
+}
+
+/** Standard id1 weapon item bits (for STAR sync suppression after cross-game `give`). */
+#define OQ_CROSS_STAR_WEAPON_ITEMS ((unsigned int)(IT_SHOTGUN | IT_SUPER_SHOTGUN | IT_NAILGUN | IT_SUPER_NAILGUN | IT_GRENADE_LAUNCHER | IT_ROCKET_LAUNCHER | IT_LIGHTNING | IT_SUPER_LIGHTNING))
+
+static unsigned int OQ_QuakeItemsBitForWeaponDisplayName(const char* mapped) {
+    if (!mapped || !mapped[0]) return 0;
+    if (!q_strcasecmp(mapped, "Shotgun")) return (unsigned int)IT_SHOTGUN;
+    if (!q_strcasecmp(mapped, "Super Shotgun")) return (unsigned int)IT_SUPER_SHOTGUN;
+    if (!q_strcasecmp(mapped, "Nailgun")) return (unsigned int)IT_NAILGUN;
+    if (!q_strcasecmp(mapped, "Super Nailgun")) return (unsigned int)IT_SUPER_NAILGUN;
+    if (!q_strcasecmp(mapped, "Grenade Launcher")) return (unsigned int)IT_GRENADE_LAUNCHER;
+    if (!q_strcasecmp(mapped, "Rocket Launcher")) return (unsigned int)IT_ROCKET_LAUNCHER;
+    if (!q_strcasecmp(mapped, "Lightning Gun")) return (unsigned int)IT_LIGHTNING;
+    if (!q_strcasecmp(mapped, "Super Lightning")) return (unsigned int)IT_SUPER_LIGHTNING;
+    return 0;
+}
+
+/** vkQuake `give` uses digits 2–8 for id1 weapons (Host_Give_f). */
+static const char* OQ_QuakeGiveArgForWeaponBit(unsigned int bit) {
+    if (bit == (unsigned int)IT_SHOTGUN) return "2";
+    if (bit == (unsigned int)IT_SUPER_SHOTGUN) return "3";
+    if (bit == (unsigned int)IT_NAILGUN) return "4";
+    if (bit == (unsigned int)IT_SUPER_NAILGUN) return "5";
+    if (bit == (unsigned int)IT_GRENADE_LAUNCHER) return "6";
+    if (bit == (unsigned int)IT_ROCKET_LAUNCHER) return "7";
+    if (bit == (unsigned int)IT_LIGHTNING) return "8";
+    if (bit == (unsigned int)IT_SUPER_LIGHTNING) return "8";
+    return NULL;
+}
+
+/** 1 if this frame applied cross-game ammo/weapons from STAR (caller should refresh poll_prev_* baselines). */
+static int OQ_TryApplyCrossGameBeamInTransfers(void) {
+    extern client_state_t cl;
+    extern client_static_t cls;
+    extern server_t sv;
+    star_item_list_t* list = NULL;
+    size_t i;
+    int applied = 0;
+    int weapon_gives_total = 0;
+    if (!g_star_initialized || !g_star_beamed_in) {
+        OQ_CrossGameDbgThrottled("skip: STAR not initialized or not beamed in");
+        return 0;
+    }
+    if (!sv.active || cls.demoplayback) {
+        OQ_CrossGameDbgThrottled("skip: no active server or demo playback");
+        return 0;
+    }
+    if (cls.signon < OQ_VKQUAKE_SIGNONS) {
+        OQ_CrossGameDbgThrottled("skip: signon not ready");
+        return 0;
+    }
+    if (g_oq_cross_game_beam_transfer_done) {
+        if (OQ_CrossGameLogEnabled() && !g_oq_cross_game_logged_done_skip) {
+            g_oq_cross_game_logged_done_skip = 1;
+            OQ_CrossGameDbgPrintf("skip: transfer already done (clears on new map or star beamin/beamout)");
+        }
+        return 0;
+    }
+    if (g_oq_doom_ammo_to_quake_n <= 0)
+        OQ_InitCrossGameMapsToDefaults();
+    if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) {
+        OQ_CrossGameDbgThrottled("skip: star_api_get_inventory failed or null list");
+        return 0;
+    }
+    if (list->count == 0) {
+        g_oq_cross_empty_inventory_wait_frames++;
+        star_api_free_item_list(list);
+        if (g_oq_cross_empty_inventory_wait_frames < 300) {
+            if (OQ_CrossGameLogEnabled() && (g_oq_cross_empty_inventory_wait_frames == 1 || (g_oq_cross_empty_inventory_wait_frames % 60) == 0))
+                OQ_CrossGameDbgPrintf("waiting for inventory (empty list, frame %d/300)", g_oq_cross_empty_inventory_wait_frames);
+            return 0;
+        }
+        g_oq_cross_game_beam_transfer_done = 1;
+        g_oq_cross_empty_inventory_wait_frames = 0;
+        OQ_CrossGameDbgPrintf("gave up: inventory still empty after 300 frames (transfer marked done)");
+        return 0;
+    }
+    g_oq_cross_empty_inventory_wait_frames = 0;
+    if (OQ_CrossGameLogEnabled()) {
+        int doom_rows = 0;
+        for (i = 0; i < list->count; i++) {
+            if (OQ_ItemRowIsDoomCrossGame(list->items[i].game_source, list->items[i].description))
+                doom_rows++;
+        }
+        OQ_CrossGameDbgPrintf("run: map=%s items=%zu doom_rows=%d signon=%d", cl.mapname, list->count, doom_rows, cls.signon);
+        for (i = 0; i < list->count && i < 16; i++) {
+            const char* nm = list->items[i].name ? list->items[i].name : "";
+            const char* gs = list->items[i].game_source ? list->items[i].game_source : "";
+            const char* tp = list->items[i].item_type ? list->items[i].item_type : "";
+            int is_doom = OQ_ItemRowIsDoomCrossGame(list->items[i].game_source, list->items[i].description);
+            OQ_CrossGameDbgPrintf("  [%zu] \"%s\" gs=\"%s\" type=\"%s\" doom=%d", i, nm, gs, tp, is_doom);
+        }
+    }
+    {
+        int ammo_applied = 0;
+        for (i = 0; i < list->count; i++) {
+            const char* gs = list->items[i].game_source;
+            const char* raw_name = list->items[i].name;
+            const char* itype = list->items[i].item_type;
+            char base[256];
+            int qty = list->items[i].quantity;
+            const char* mapped;
+            if (!OQ_ItemRowIsDoomCrossGame(gs, list->items[i].description)) continue;
+            if (!raw_name || !itype || !OQ_ContainsNoCase(itype, "ammo")) continue;
+            if (qty <= 0) qty = 1;
+            OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
+            mapped = OQ_CrossGameMapLookup(g_oq_doom_ammo_to_quake, g_oq_doom_ammo_to_quake_n, base);
+            if (!mapped) continue;
+            if (!OQ_CrossGameApplyQuakeAmmoFromDoom(mapped, qty)) continue;
+            ammo_applied++;
+            applied = 1;
+            if (g_star_debug_logging) {
+                char logb[384];
+                q_snprintf(logb, sizeof(logb), "[OQuake] Cross-game beam-in: +%d %s (from Doom \"%s\") -> local %s", qty, base, raw_name, mapped);
+                star_api_log_to_file(logb);
+            }
+        }
+        if (ammo_applied > 0)
+            g_oq_cross_grant_suppress_ammo_star = 5;
+    }
+    {
+        int weapon_gives = 0;
+        extern cvar_t deathmatch;
+        extern void Cbuf_AddText(const char* text);
+        for (i = 0; i < list->count; i++) {
+            const char* gs = list->items[i].game_source;
+            const char* raw_name = list->items[i].name;
+            char base[256];
+            int qty = list->items[i].quantity;
+            const char* mapped;
+            unsigned int wbit;
+            const char* giv;
+            if (!OQ_ItemRowIsDoomCrossGame(gs, list->items[i].description)) continue;
+            if (!raw_name) continue;
+            if (qty <= 0) qty = 1;
+            (void)qty;
+            OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
+            /* Allowlist is the cross-game map — do not require ItemType to contain "weapon" (API/holons may use Miscellaneous, Armour, etc.). */
+            mapped = OQ_CrossGameMapLookup(g_oq_doom_weapon_to_quake, g_oq_doom_weapon_to_quake_n, base);
+            if (!mapped) {
+                if (OQ_CrossGameLogEnabled()) {
+                    const char* ity = list->items[i].item_type ? list->items[i].item_type : "";
+                    int is_ammo = ity[0] && OQ_ContainsNoCase(ity, "ammo");
+                    if (!is_ammo)
+                        OQ_CrossGameDbgPrintf("doom row no weapon map: base=\"%s\" raw=\"%s\" type=\"%s\"", base, raw_name, ity);
+                }
+                continue;
+            }
+            wbit = OQ_QuakeItemsBitForWeaponDisplayName(mapped);
+            if (!wbit) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("mapped \"%s\" -> \"%s\" but no Quake IT_* bit", base, mapped);
+                continue;
+            }
+            if (((unsigned int)cl.items) & wbit) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("skip weapon already owned: %s (bit ok)", mapped);
+                continue;
+            }
+            giv = OQ_QuakeGiveArgForWeaponBit(wbit);
+            if (!giv) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("no give arg for mapped \"%s\"", mapped);
+                continue;
+            }
+            /* vkQuake Host_Give_f applies on server for non-deathmatch; `give` is a no-op in deathmatch — OR client bits as best effort. */
+            if (deathmatch.value != 0) {
+                cl.items = (int)(((unsigned int)cl.items) | wbit);
+            } else {
+                char cmd[32];
+                q_snprintf(cmd, sizeof(cmd), "\ngive %s\n", giv);
+                Cbuf_AddText(cmd);
+            }
+            weapon_gives++;
+            applied = 1;
+            if (OQ_CrossGameLogEnabled())
+                OQ_CrossGameDbgPrintf("give weapon: \"%s\" -> %s (give %s, dm=%d)", raw_name, mapped, giv, deathmatch.value != 0);
+            if (g_star_debug_logging) {
+                char logb[384];
+                q_snprintf(logb, sizeof(logb), "[OQuake] Cross-game beam-in: weapon \"%s\" -> %s (give %s)", raw_name, mapped, giv);
+                star_api_log_to_file(logb);
+            }
+        }
+        if (weapon_gives > 0)
+            g_oq_cross_grant_suppress_weapon_star = 4;
+        weapon_gives_total = weapon_gives;
+    }
+    g_oq_cross_game_beam_transfer_done = 1;
+    if (OQ_CrossGameLogEnabled())
+        OQ_CrossGameDbgPrintf("transfer finished: applied=%d weapon_gives=%d", applied, weapon_gives_total);
+    star_api_free_item_list(list);
+    return applied;
+}
+
+static void OQ_ReloadCrossGameMapsFromJsonString(const char* json) {
+    char mapbuf[4096];
+    if (!json) return;
+    OQ_InitCrossGameMapsToDefaults();
+    if (OQ_ExtractJsonValue(json, "cross_game_doom_ammo_to_quake", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_doom_ammo_to_quake, &g_oq_doom_ammo_to_quake_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_quake_ammo_to_doom", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_quake_ammo_to_doom, &g_oq_quake_ammo_to_doom_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_doom_weapon_to_quake", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n);
+    if (OQ_ExtractJsonValue(json, "cross_game_quake_weapon_to_doom", mapbuf, sizeof(mapbuf)) && mapbuf[0])
+        OQ_ParseCrossGamePairList(mapbuf, g_oq_quake_weapon_to_doom, &g_oq_quake_weapon_to_doom_n);
+}
+
 /* Load config from oasisstar.json */
 static int OQ_LoadJsonConfig(const char *json_path) {
     FILE *f = fopen(json_path, "r");
     if (!f) {
         return 0;
     }
-    
-    char json[4096] = {0};
-    size_t len = fread(json, 1, sizeof(json) - 1, f);
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return 0;
+    }
+    long fsz = ftell(f);
+    if (fsz < 0 || fsz > (long)(512 * 1024)) {
+        fclose(f);
+        return 0;
+    }
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return 0;
+    }
+    char *json = (char *)malloc((size_t)fsz + 1);
+    if (!json) {
+        fclose(f);
+        return 0;
+    }
+    size_t len = fread(json, 1, (size_t)fsz, f);
     fclose(f);
     if (len == 0) {
+        free(json);
         return 0;
     }
     json[len] = 0;
@@ -1810,6 +2366,14 @@ static int OQ_LoadJsonConfig(const char *json_path) {
     }
     if (OQ_ExtractJsonValue(json, "oasis_api_url", value, sizeof(value))) {
         Cvar_Set("oquake_oasis_api_url", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "star_transport", value, sizeof(value))) {
+        Cvar_Set("oquake_star_transport", value);
+        loaded = 1;
+    }
+    if (OQ_ExtractJsonValue(json, "oasis_dna_path", value, sizeof(value))) {
+        Cvar_Set("oquake_oasis_dna_path", value);
         loaded = 1;
     }
     if (OQ_ExtractJsonValue(json, "config_file", value, sizeof(value))) {
@@ -1897,19 +2461,19 @@ static int OQ_LoadJsonConfig(const char *json_path) {
         Cvar_Set("oquake_star_send_to_address_after_minting", value);
         loaded = 1;
     }
-    /* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility. */
-    if ((OQ_ExtractJsonValue(json, "beamedin_avatar", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_username", value, sizeof(value))) && value[0]) {
-        q_strlcpy(g_oq_saved_username, value, sizeof(g_oq_saved_username));
+    /* Persisted session for autologin (beamedin_avatar + jwt_token). Fallback to old keys for compatibility.
+     * jwt_token / refresh_token must not use value[256]: real JWTs are often 800+ bytes — truncation caused Unauthorized on every STAR call. */
+    if ((OQ_ExtractJsonValue(json, "beamedin_avatar", g_oq_saved_username, sizeof(g_oq_saved_username)) || OQ_ExtractJsonValue(json, "saved_username", g_oq_saved_username, sizeof(g_oq_saved_username))) && g_oq_saved_username[0]) {
         loaded = 1;
     }
-    if ((OQ_ExtractJsonValue(json, "jwt_token", value, sizeof(value)) || OQ_ExtractJsonValue(json, "saved_jwt", value, sizeof(value))) && value[0]) {
-        q_strlcpy(g_oq_saved_jwt, value, sizeof(g_oq_saved_jwt));
+    g_oq_saved_jwt[0] = '\0';
+    if (!OQ_ExtractJsonValue(json, "jwt_token", g_oq_saved_jwt, sizeof(g_oq_saved_jwt)))
+        OQ_ExtractJsonValue(json, "saved_jwt", g_oq_saved_jwt, sizeof(g_oq_saved_jwt));
+    if (g_oq_saved_jwt[0])
         loaded = 1;
-    }
-    if (OQ_ExtractJsonValue(json, "refresh_token", value, sizeof(value)) && value[0]) {
-        q_strlcpy(g_oq_saved_refresh_token, value, sizeof(g_oq_saved_refresh_token));
+    g_oq_saved_refresh_token[0] = '\0';
+    if (OQ_ExtractJsonValue(json, "refresh_token", g_oq_saved_refresh_token, sizeof(g_oq_saved_refresh_token)) && g_oq_saved_refresh_token[0])
         loaded = 1;
-    }
     /* Per-monster mint: mint_monster_oquake_dog, etc. Default 1 if key missing. */
     {
         int i, j;
@@ -1925,17 +2489,53 @@ static int OQ_LoadJsonConfig(const char *json_path) {
             loaded = 1;
         }
     }
+    OQ_ReloadCrossGameMapsFromJsonString(json);
+    free(json);
     return loaded;
 }
 
 /* Save config to oasisstar.json */
 static int OQ_SaveJsonConfig(const char *json_path) {
-    FILE *f = fopen(json_path, "w");
-    if (!f) return 0;
-    
     const char *config_file = oquake_star_config_file.string;
     const char *star_url = oquake_star_api_url.string;
     const char *oasis_url = oquake_oasis_api_url.string;
+    char existing_star_url[256] = {0};
+    char existing_oasis_url[256] = {0};
+    {
+        /* Prevent accidental URL clobber: if cvars still hold fallback/live defaults,
+         * keep explicit local URLs that already exist in oasisstar.json. */
+        FILE *in = fopen(json_path, "rb");
+        if (in) {
+            if (fseek(in, 0, SEEK_END) == 0) {
+                long sz = ftell(in);
+                if (sz > 0 && sz < (long)(1024 * 1024) && fseek(in, 0, SEEK_SET) == 0) {
+                    char *buf = (char *)malloc((size_t)sz + 1);
+                    if (buf) {
+                        size_t n = fread(buf, 1, (size_t)sz, in);
+                        buf[n] = '\0';
+                        (void)OQ_ExtractJsonValue(buf, "star_api_url", existing_star_url, sizeof(existing_star_url));
+                        (void)OQ_ExtractJsonValue(buf, "oasis_api_url", existing_oasis_url, sizeof(existing_oasis_url));
+                        free(buf);
+                    }
+                }
+            }
+            fclose(in);
+        }
+    }
+    if (existing_star_url[0] && (!star_url || !star_url[0] ||
+        strcmp(star_url, "https://oasisweb4.com/api/star") == 0 ||
+        strcmp(star_url, "https://star-api.oasisplatform.world/api") == 0 ||
+        strcmp(star_url, "https://oasisweb4.one/star/api") == 0))
+        star_url = existing_star_url;
+    if (existing_oasis_url[0] && (!oasis_url || !oasis_url[0] ||
+        strcmp(oasis_url, "https://oasisweb4.com") == 0 ||
+        strcmp(oasis_url, "https://api.oasisplatform.world") == 0 ||
+        strcmp(oasis_url, "https://oasisweb4.one/api") == 0))
+        oasis_url = existing_oasis_url;
+
+    FILE *f = fopen(json_path, "w");
+    if (!f) return 0;
+
     int beam_face = (int)oasis_star_beam_face.value;
     const char *s_armor = oquake_star_stack_armor.string;
     const char *s_weapons = oquake_star_stack_weapons.string;
@@ -1955,8 +2555,18 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     
     fprintf(f, "{\n");
     fprintf(f, "  \"config_file\": \"%s\",\n", config_file && config_file[0] ? config_file : "json");
+    fprintf(f, "  \"star_transport\": \"%s\",\n", (oquake_star_transport.string && oquake_star_transport.string[0]) ? oquake_star_transport.string : "remote");
     fprintf(f, "  \"star_api_url\": \"%s\",\n", star_url ? star_url : "");
     fprintf(f, "  \"oasis_api_url\": \"%s\",\n", oasis_url ? oasis_url : "");
+    fprintf(f, "  \"oasis_dna_path\": \"");
+    if (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) {
+        const char* pd;
+        for (pd = oquake_oasis_dna_path.string; *pd; pd++) {
+            if (*pd == '"' || *pd == '\\') fputc('\\', f);
+            fputc((unsigned char)*pd, f);
+        }
+    }
+    fprintf(f, "\",\n");
     fprintf(f, "  \"beam_face\": %d,\n", beam_face);
     fprintf(f, "  \"stack_armor\": %s,\n", (s_armor && atoi(s_armor)) ? "1" : "0");
     fprintf(f, "  \"stack_weapons\": %s,\n", (s_weapons && atoi(s_weapons)) ? "1" : "0");
@@ -2068,39 +2678,6 @@ static int OQ_SaveJsonConfig(const char *json_path) {
     
     fclose(f);
     return 1;
-}
-
-/* Optional Holochain / STAR DNA path file; create empty default next to oasisstar.json (parity with ODOOM). */
-static void OQ_EnsureDefaultOasisstarDna(const char *oasisstar_json_path) {
-    char dna_path[512];
-    if (!oasisstar_json_path || !oasisstar_json_path[0])
-        return;
-    q_strlcpy(dna_path, oasisstar_json_path, sizeof(dna_path));
-    {
-        char *slash = strrchr(dna_path, '\\');
-        if (!slash) slash = strrchr(dna_path, '/');
-        if (slash) {
-            slash[1] = 0;
-            q_strlcat(dna_path, "oasisstar.dna", sizeof(dna_path));
-        } else {
-            q_strlcpy(dna_path, "oasisstar.dna", sizeof(dna_path));
-        }
-    }
-    {
-        FILE *t = fopen(dna_path, "r");
-        if (t) {
-            fclose(t);
-            return;
-        }
-    }
-    {
-        FILE *w = fopen(dna_path, "w");
-        if (!w)
-            return;
-        fprintf(w, "{\n  \"starnet_dna_path\": \"\"\n}\n");
-        fclose(w);
-        Con_Printf("OQuake: Created default oasisstar.dna: %s\n", dna_path);
-    }
 }
 
 /* Create oasisstar.json when no file exists (even if config.cfg alone satisfied config_loaded). */
@@ -2262,6 +2839,8 @@ static int OQ_SaveQuakeConfig(const char *cfg_path) {
         fprintf(f, "set oquake_star_config_file \"%s\"\n", oquake_star_config_file.string ? oquake_star_config_file.string : "json");
         fprintf(f, "set oquake_star_api_url \"%s\"\n", star_url ? star_url : "");
         fprintf(f, "set oquake_oasis_api_url \"%s\"\n", oasis_url ? oasis_url : "");
+        fprintf(f, "set oquake_star_transport \"%s\"\n", oquake_star_transport.string ? oquake_star_transport.string : "remote");
+        fprintf(f, "set oquake_oasis_dna_path \"%s\"\n", oquake_oasis_dna_path.string ? oquake_oasis_dna_path.string : "");
         fprintf(f, "set oasis_star_beam_face \"%d\"\n", (int)oasis_star_beam_face.value);
         fprintf(f, "set oquake_star_stack_armor \"%s\"\n", oquake_star_stack_armor.string);
         fprintf(f, "set oquake_star_stack_weapons \"%s\"\n", oquake_star_stack_weapons.string);
@@ -2425,6 +3004,8 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_config_file); /* Register this first so we can check it */
     Cvar_RegisterVariable(&oquake_star_api_url);
     Cvar_RegisterVariable(&oquake_oasis_api_url);
+    Cvar_RegisterVariable(&oquake_star_transport);
+    Cvar_RegisterVariable(&oquake_oasis_dna_path);
     Cvar_RegisterVariable(&oquake_star_username);
     Cvar_RegisterVariable(&oquake_star_password);
     Cvar_RegisterVariable(&oquake_star_api_key);
@@ -2447,6 +3028,9 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_use_health_on_pickup);
     Cvar_RegisterVariable(&oquake_star_use_armor_on_pickup);
     Cvar_RegisterVariable(&oquake_star_use_powerup_on_pickup);
+    Cvar_RegisterVariable(&oquake_hud_show_xp);
+    Cvar_RegisterVariable(&oquake_hud_show_beamed);
+    Cvar_RegisterVariable(&oquake_star_cross_game_log);
 
     /* Default all monster mint flags to 1 (load from JSON may override) */
     {
@@ -2488,6 +3072,15 @@ void OQuake_STAR_Init(void) {
                 Key_SetBinding(kc, "oquake_use_health");
             if (kf >= 0 && kf < MAX_KEYS && (!keybindings[kf] || !keybindings[kf][0]))
                 Key_SetBinding(kf, "oquake_use_armor");
+        }
+        /* B / X: HUD toggles (ODOOM leaves unbound so raw key works). Do not override custom binds. */
+        {
+            int kb = Key_StringToKeynum("b");
+            int kx = Key_StringToKeynum("x");
+            if (kb >= 0 && kb < MAX_KEYS && (!keybindings[kb] || !keybindings[kb][0]))
+                Key_SetBinding(kb, "");
+            if (kx >= 0 && kx < MAX_KEYS && (!keybindings[kx] || !keybindings[kx][0]))
+                Key_SetBinding(kx, "");
         }
     }
 
@@ -2941,10 +3534,6 @@ void OQuake_STAR_Init(void) {
             Cbuf_AddText("wait 0.5; oasis_reload_config\n");
         }
         OQ_EnsureOasisstarJsonOnDisk();
-        {
-            const char *dna_base = g_json_config_path[0] ? g_json_config_path : (found_json_path[0] ? found_json_path : "oasisstar.json");
-            OQ_EnsureDefaultOasisstarDna(dna_base);
-        }
     }
 
     /* Load config: CVAR first, then env var, then default */
@@ -2974,6 +3563,11 @@ void OQuake_STAR_Init(void) {
     g_star_config.avatar_id = config_avatar_id;
     
     g_star_config.timeout_seconds = 30;
+    {
+        const char *tr = oquake_star_transport.string;
+        g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
+    }
+    g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
 
     printf("\n********** GAME LOAD **********\n");
     result = star_api_init(&g_star_config);
@@ -2987,11 +3581,16 @@ void OQuake_STAR_Init(void) {
             const char *star_url = oquake_star_api_url.string;
             if (oasis_url && oasis_url[0]) {
                 star_api_set_oasis_base_url(oasis_url);
-            } else if (g_oq_saved_jwt[0]) {
-                static int s_logged_oasis_missing;
-                if (!s_logged_oasis_missing) {
-                    s_logged_oasis_missing = 1;
-                    printf("OQuake STAR API: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\": \"http://localhost:5555\" to oasisstar.json for auto-renew.\n");
+            } else {
+                const char *oe = getenv("OASIS_WEB4_API_BASE_URL");
+                if (oe && oe[0])
+                    star_api_set_oasis_base_url(oe);
+                else if (g_oq_saved_jwt[0]) {
+                    static int s_logged_oasis_missing;
+                    if (!s_logged_oasis_missing) {
+                        s_logged_oasis_missing = 1;
+                        printf("OQuake STAR API: oasis_api_url not set; token refresh may fail. Add \"oasis_api_url\" to oasisstar.json or OASIS_WEB4_API_BASE_URL.\n");
+                    }
                 }
             }
             /* Local dev: if STAR API is localhost but OASIS is still production default, use local OASIS so refresh works. */
@@ -3015,6 +3614,7 @@ void OQuake_STAR_Init(void) {
             if (result == STAR_API_SUCCESS) {
                 g_star_initialized = 1;
                 g_star_beamed_in = 1;
+                OQ_ResetCrossGameBeamTransferState();
                 star_api_refresh_avatar_profile();
                 star_api_log_to_file("[OQuake] Init (username+password): beamed_in=1, profile refresh started");
                 printf("OQuake STAR API: Authenticated. Cross-game assets enabled.\n");
@@ -3024,6 +3624,7 @@ void OQuake_STAR_Init(void) {
         } else if (g_star_config.api_key && g_star_config.avatar_id) {
             g_star_initialized = 1;
             g_star_beamed_in = 1;
+            OQ_ResetCrossGameBeamTransferState();
             star_api_refresh_avatar_profile();
             star_api_log_to_file("[OQuake] Init (API key+avatar_id): beamed_in=1, profile refresh started");
             printf("OQuake STAR API: Using API key. Cross-game assets enabled.\n");
@@ -3036,6 +3637,7 @@ void OQuake_STAR_Init(void) {
                 if (g_oq_saved_refresh_token[0])
                     star_api_set_refresh_token(g_oq_saved_refresh_token);
                 g_star_initialized = 1;
+                OQ_ResetCrossGameBeamTransferState();
                 if (g_oq_saved_username[0])
                     q_strlcpy(g_star_username, g_oq_saved_username, sizeof(g_star_username));
                 star_api_restore_session();
@@ -3197,6 +3799,12 @@ void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items
         return;
     if (gained == 0)
         return;
+    if (g_oq_cross_grant_suppress_weapon_star > 0 && (gained & OQ_CROSS_STAR_WEAPON_ITEMS)) {
+        g_oq_cross_grant_suppress_weapon_star--;
+        gained &= ~OQ_CROSS_STAR_WEAPON_ITEMS;
+    }
+    if (gained == 0)
+        return;
     /* Only mint/add after user has beamed in and started a level; avoid minting shells/shotgun at startup. */
     if (!g_star_beamed_in)
         return;
@@ -3221,11 +3829,11 @@ void OQuake_STAR_OnItemsChangedEx(unsigned int old_items, unsigned int new_items
     if (gained & IT_ARMOR2) added += OQ_StackArmor() ? 0 : OQ_AddInventoryUnlockIfMissing("Yellow Armor", "Yellow Armor", "Armor");
     if (gained & IT_ARMOR3) added += OQ_StackArmor() ? 0 : OQ_AddInventoryUnlockIfMissing("Red Armor", "Red Armor", "Armor");
 
-    if (gained & IT_SUPERHEALTH) added += OQ_StackPowerups() ? OQ_AddInventoryEvent("Megahealth", "Megahealth pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing("Megahealth", "Megahealth", "Powerup");
-    if (gained & IT_INVISIBILITY) added += OQ_StackPowerups() ? OQ_AddInventoryEvent("Ring of Shadows", "Ring of Shadows pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing("Ring of Shadows", "Ring of Shadows", "Powerup");
-    if (gained & IT_INVULNERABILITY) added += OQ_StackPowerups() ? OQ_AddInventoryEvent("Pentagram of Protection", "Pentagram of Protection pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing("Pentagram of Protection", "Pentagram of Protection", "Powerup");
-    if (gained & IT_SUIT) added += OQ_StackPowerups() ? OQ_AddInventoryEvent("Biosuit", "Biosuit pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing("Biosuit", "Biosuit", "Powerup");
-    if (gained & IT_QUAD) added += OQ_StackPowerups() ? OQ_AddInventoryEvent("Quad Damage", "Quad Damage pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing("Quad Damage", "Quad Damage", "Powerup");
+    if (gained & IT_SUPERHEALTH) added += OQ_StackPowerups() ? OQ_AddInventoryEvent(OQ_QUAKE_NAME_MEGAHEALTH, "Megahealth pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing(OQ_QUAKE_NAME_MEGAHEALTH, "Megahealth pickup", "Powerup");
+    if (gained & IT_INVISIBILITY) added += OQ_StackPowerups() ? OQ_AddInventoryEvent(OQ_QUAKE_NAME_RING_OF_SHADOWS, "Ring of Shadows pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing(OQ_QUAKE_NAME_RING_OF_SHADOWS, "Ring of Shadows pickup", "Powerup");
+    if (gained & IT_INVULNERABILITY) added += OQ_StackPowerups() ? OQ_AddInventoryEvent(OQ_QUAKE_NAME_PENTAGRAM, "Pentagram of Protection pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing(OQ_QUAKE_NAME_PENTAGRAM, "Pentagram of Protection pickup", "Powerup");
+    if (gained & IT_SUIT) added += OQ_StackPowerups() ? OQ_AddInventoryEvent(OQ_QUAKE_NAME_BIOSUIT, "Biosuit pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing(OQ_QUAKE_NAME_BIOSUIT, "Biosuit pickup", "Powerup");
+    if (gained & IT_QUAD) added += OQ_StackPowerups() ? OQ_AddInventoryEvent(OQ_QUAKE_NAME_QUAD_DAMAGE, "Quad Damage pickup", "Powerup") : OQ_AddInventoryUnlockIfMissing(OQ_QUAKE_NAME_QUAD_DAMAGE, "Quad Damage pickup", "Powerup");
 
     if (gained & IT_SIGIL1) added += OQ_StackSigils() ? OQ_AddInventoryEvent("Sigil Piece 1", "Sigil Piece 1 acquired", "Artifact") : OQ_AddInventoryUnlockIfMissing("Sigil Piece 1", "Sigil Piece 1 acquired", "Artifact");
     if (gained & IT_SIGIL2) added += OQ_StackSigils() ? OQ_AddInventoryEvent("Sigil Piece 2", "Sigil Piece 2 acquired", "Artifact") : OQ_AddInventoryUnlockIfMissing("Sigil Piece 2", "Sigil Piece 2 acquired", "Artifact");
@@ -3270,25 +3878,35 @@ void OQuake_STAR_OnStatsChangedEx(
      * Always add here when stats go up (restores original "used to work" behaviour; touch path often not called). */
 
     /* Ammo: stats path is the one that fires in vkQuake (no touch for ammo boxes). */
-    if (new_shells > old_shells) {
-        q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
-        added += OQ_AddInventoryEvent("Shells", desc, "Ammo");
-        OQ_PickupLog("Stats: Shells +%d -> STAR", new_shells - old_shells);
-    }
-    if (new_nails > old_nails) {
-        q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
-        added += OQ_AddInventoryEvent("Nails", desc, "Ammo");
-        OQ_PickupLog("Stats: Nails +%d -> STAR", new_nails - old_nails);
-    }
-    if (new_rockets > old_rockets) {
-        q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
-        added += OQ_AddInventoryEvent("Rockets", desc, "Ammo");
-        OQ_PickupLog("Stats: Rockets +%d -> STAR", new_rockets - old_rockets);
-    }
-    if (new_cells > old_cells) {
-        q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
-        added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
-        OQ_PickupLog("Stats: Cells +%d -> STAR", new_cells - old_cells);
+    {
+        int ammo_delta = (new_shells > old_shells) || (new_nails > old_nails) || (new_rockets > old_rockets) || (new_cells > old_cells);
+        int skip_ammo_star = 0;
+        if (g_oq_cross_grant_suppress_ammo_star > 0 && ammo_delta) {
+            g_oq_cross_grant_suppress_ammo_star--;
+            skip_ammo_star = 1;
+        }
+        if (!skip_ammo_star) {
+            if (new_shells > old_shells) {
+                q_snprintf(desc, sizeof(desc), "Shells pickup +%d", new_shells - old_shells);
+                added += OQ_AddInventoryEvent("Shells", desc, "Ammo");
+                OQ_PickupLog("Stats: Shells +%d -> STAR", new_shells - old_shells);
+            }
+            if (new_nails > old_nails) {
+                q_snprintf(desc, sizeof(desc), "Nails pickup +%d", new_nails - old_nails);
+                added += OQ_AddInventoryEvent("Nails", desc, "Ammo");
+                OQ_PickupLog("Stats: Nails +%d -> STAR", new_nails - old_nails);
+            }
+            if (new_rockets > old_rockets) {
+                q_snprintf(desc, sizeof(desc), "Rockets pickup +%d", new_rockets - old_rockets);
+                added += OQ_AddInventoryEvent("Rockets", desc, "Ammo");
+                OQ_PickupLog("Stats: Rockets +%d -> STAR", new_rockets - old_rockets);
+            }
+            if (new_cells > old_cells) {
+                q_snprintf(desc, sizeof(desc), "Cells pickup +%d", new_cells - old_cells);
+                added += OQ_AddInventoryEvent("Cells", desc, "Ammo");
+                OQ_PickupLog("Stats: Cells +%d -> STAR", new_cells - old_cells);
+            }
+        }
     }
     /* Armor: add 1 qty with description e.g. "Green Armor (+100)" so use-item applies correct amount. Skip if we just applied armor from overlay (would re-add and qty bounces). */
     if (new_armor > old_armor) {
@@ -3307,11 +3925,14 @@ void OQuake_STAR_OnStatsChangedEx(
     /* Health: add 1 qty with description e.g. "Health (+25)" or "Megahealth (+100)". Skip if we just applied health from overlay (would re-add and qty bounces). */
     if (new_health > old_health) {
         extern double realtime;
-        if (realtime - g_oq_health_applied_from_overlay_time >= 1.0) {
+        /* Respawn: Quake client STAT_HEALTH is 0 while dead; spawn jumps to 100+ — not a world pickup (avoids false quest/inventory). */
+        if (old_health <= 0 && new_health > 0) {
+            OQ_PickupLog("Stats: Health +%d skip (respawn)", new_health - old_health);
+        } else if (realtime - g_oq_health_applied_from_overlay_time >= 1.0) {
             int delta = new_health - old_health;
             if (delta >= 100) {
                 q_snprintf(desc, sizeof(desc), "Megahealth (+%d)", delta);
-                star_api_queue_add_item("Megahealth", desc, "Quake", "Powerup", NULL, 1, 1);
+                star_api_queue_add_item(OQ_QUAKE_NAME_MEGAHEALTH, desc, "Quake", "Powerup", NULL, 1, 1);
                 OQ_PickupLog("Stats: Megahealth +%d -> STAR", delta);
             } else {
                 q_snprintf(desc, sizeof(desc), "Health (+%d)", delta);
@@ -3343,6 +3964,38 @@ void OQuake_STAR_OnStatsChanged(
     OQuake_STAR_OnStatsChangedEx(old_shells, new_shells, old_nails, new_nails,
         old_rockets, new_rockets, old_cells, new_cells,
         old_health, new_health, old_armor, new_armor, 1);
+}
+
+/** K on quest row or while viewing that quest in the objectives panel (ODOOM: Start quest / set tracker). */
+static void OQ_QuestApplyKForQuestRow(const char* quest_id, const char* qstatus, const char* display_name)
+{
+    if (!quest_id || !quest_id[0] || !qstatus)
+        return;
+    if (strcmp(qstatus, "NotStarted") == 0 || strcmp(qstatus, "0") == 0) {
+        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+        g_quest_status_frames = 600;
+        q_strlcpy(g_quest_start_pending_id, quest_id, sizeof(g_quest_start_pending_id));
+        star_api_start_quest(quest_id);
+        return;
+    }
+    if (strcmp(qstatus, "InProgress") == 0 || strcmp(qstatus, "1") == 0 ||
+        strcmp(qstatus, "Completed") == 0 || strcmp(qstatus, "2") == 0) {
+        if (strcmp(quest_id, g_quest_tracker_id) != 0) {
+            g_quest_tracker_active_objective_id[0] = '\0';
+            g_quest_tracker_active_display_index = -1;
+            g_quest_tracker_objective_index = 0;
+        }
+        q_strlcpy(g_quest_tracker_id, quest_id, sizeof(g_quest_tracker_id));
+        q_strlcpy(g_quest_tracker_name, display_name && display_name[0] ? display_name : "", sizeof(g_quest_tracker_name));
+        g_quest_tracker_show = 1;
+        {
+            static char log_buf[512];
+            const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
+            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (K) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
+            star_api_log_to_file(log_buf);
+        }
+        star_api_set_active_quest(g_quest_tracker_id, NULL);
+    }
 }
 
 /** Case-insensitive string equality (for classnames; some engines/mods use different casing). */
@@ -3528,19 +4181,19 @@ int OQuake_STAR_InterceptTouchPickupAtMax(void* item_edict, void* player_edict) 
         int use_powerup = (oquake_star_use_powerup_on_pickup.string && atoi(oquake_star_use_powerup_on_pickup.string)) ? 1 : 0;
         OQ_StarDebugLog("InterceptTouch: megahealth use_powerup=%d", use_powerup);
         if (always_add) {
-            OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
+            OQuake_STAR_OnPickupLeftOnFloor(OQ_QUAKE_NAME_MEGAHEALTH, "Powerup", 1, "Megahealth (+100)");
             if (player_health >= max_h) { OQ_StarDebugLog("InterceptTouch: megahealth always_add at_max -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item)); return OQ_INTERCEPT_RET(first_edict_is_item); }
             OQ_StarDebugLog("InterceptTouch: megahealth always_add below_max -> ret=%d", use_powerup ? 0 : OQ_INTERCEPT_RET(first_edict_is_item));
             return use_powerup ? 0 : OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (player_health >= max_h) {
             if (!allow_pickup_if_max) { OQ_StarDebugLog("InterceptTouch: megahealth at_max !allow -> ret=0"); return 0; }
-            OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
+            OQuake_STAR_OnPickupLeftOnFloor(OQ_QUAKE_NAME_MEGAHEALTH, "Powerup", 1, "Megahealth (+100)");
             OQ_StarDebugLog("InterceptTouch: megahealth at_max allow -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
             return OQ_INTERCEPT_RET(first_edict_is_item);
         }
         if (!use_powerup) {
-            OQuake_STAR_OnPickupLeftOnFloor("Megahealth", "Powerup", 1, "Megahealth (+100)");
+            OQuake_STAR_OnPickupLeftOnFloor(OQ_QUAKE_NAME_MEGAHEALTH, "Powerup", 1, "Megahealth (+100)");
             OQ_StarDebugLog("InterceptTouch: megahealth below_max !use_powerup -> ret=%d", OQ_INTERCEPT_RET(first_edict_is_item));
             return OQ_INTERCEPT_RET(first_edict_is_item);
         }
@@ -3674,6 +4327,23 @@ void OQuake_STAR_OnPickupLeftOnFloor(const char* item_name, const char* item_typ
         OQ_RefreshOverlayFromClient();
 }
 
+/** Snapshot cl.items + combat stats into poll_prev_* without running pickup/quest delta logic. */
+static void OQ_PollCaptureItemStatsBaseline(
+    unsigned int* poll_prev_items,
+    int* poll_prev_shells, int* poll_prev_nails, int* poll_prev_rockets, int* poll_prev_cells,
+    int* poll_prev_health, int* poll_prev_armor, int* poll_prev_valid)
+{
+    extern client_state_t cl;
+    *poll_prev_items = (unsigned int)cl.items;
+    *poll_prev_shells = cl.stats[STAT_SHELLS];
+    *poll_prev_nails = cl.stats[STAT_NAILS];
+    *poll_prev_rockets = cl.stats[STAT_ROCKETS];
+    *poll_prev_cells = cl.stats[STAT_CELLS];
+    *poll_prev_health = cl.stats[STAT_HEALTH];
+    *poll_prev_armor = cl.stats[STAT_ARMOR];
+    *poll_prev_valid = 1;
+}
+
 /* Frame-based item/stats poll so pickups are reported even when sbar isn't drawn. Call from Host_Frame. */
 void OQuake_STAR_PollItems(void) {
     extern client_state_t cl;
@@ -3683,17 +4353,29 @@ void OQuake_STAR_PollItems(void) {
     static int poll_prev_shells = -1, poll_prev_nails = -1, poll_prev_rockets = -1, poll_prev_cells = -1;
     static int poll_prev_health = -1, poll_prev_armor = -1;
     static int poll_prev_valid = 0;
+    static char poll_map_baseline[128];
+    static qboolean poll_need_spawn_baseline = true;
 
     /* Run async completions (auth, inventory, use_item) every frame so e.g. "star beamin" finishes even when console is open. */
     star_sync_pump();
+    /* Keep movement bind capture in sync every frame so closing a popup still restores WASD if the HUD draw path did not run (Linux / loading / menu). */
+    OQ_UpdatePopupInputCapture();
 
-    /* If async auth was started but callback never fired (e.g. hang/timeout), show error once after ~30 s. */
+    /* If async auth was started but callback never fired (hang, or star_sync_pump never runs e.g. missing host.c patch), wall-clock timeout. */
     if (g_star_async_auth_pending) {
-        g_star_async_auth_pending_frames++;
-        if (g_star_async_auth_pending_frames > 35 * 30) {
+        extern double realtime;
+        double elapsed = realtime - g_star_async_auth_start_realtime;
+        if (elapsed > OQ_BEAMIN_ASYNC_TIMEOUT_SEC) {
             g_star_async_auth_pending = 0;
             g_star_auth_timed_out = 1;  /* Ignore late callback from this attempt so retry can proceed */
             star_sync_auth_force_reset();  /* Clear star_sync state so "star beamin" again is allowed */
+            {
+                char logb[512];
+                q_snprintf(logb, sizeof(logb),
+                    "[OQuake] Beamin: TIMEOUT after %.1fs — no main-thread auth callback (star_sync_pump never ran). Fix: OQuake_STAR_PollItems() must run every frame in vkQuake host.c after CL_ReadFromServer (BUILD_OQUAKE.sh unix patch or apply_oquake_to_vkquake.ps1). URIs can be correct; this is not a WEB4/WEB5 port issue.",
+                    elapsed);
+                star_api_log_to_file(logb);
+            }
             Con_Printf("Beam-in failed: timeout (no response from server).\n");
             OQ_SetToastMessage("Beam-in failed: timeout (no response from server).");
         }
@@ -3754,15 +4436,14 @@ void OQuake_STAR_PollItems(void) {
     /* Show STAR log messages in console when star debug is on (quests, XP refresh, monster kill, etc.). */
     {
         char log_buf[1024] = {0};
-        if (g_star_debug_logging) {
-            int i;
-            for (i = 0; i < 25; i++) {
-                if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
-                    break;
+        int i;
+        /* Never spin-drain unbounded logs in one frame; large bursts can stall the game loop. */
+        const int max_logs_per_frame = g_star_debug_logging ? 25 : 64;
+        for (i = 0; i < max_logs_per_frame; i++) {
+            if (!star_api_consume_console_log(log_buf, sizeof(log_buf)))
+                break;
+            if (g_star_debug_logging)
                 Con_Printf("[STAR] %s\n", log_buf);
-            }
-        } else {
-            while (star_api_consume_console_log(log_buf, sizeof(log_buf))) {}
         }
     }
 
@@ -3784,15 +4465,51 @@ void OQuake_STAR_PollItems(void) {
     /* XP refresh is done once in auth-done or API-key path; no delayed second call. */
 
     if (!sv.active || cls.demoplayback) {
-        poll_prev_items = (unsigned int)cl.items;
-        poll_prev_shells = cl.stats[STAT_SHELLS];
-        poll_prev_nails = cl.stats[STAT_NAILS];
-        poll_prev_rockets = cl.stats[STAT_ROCKETS];
-        poll_prev_cells = cl.stats[STAT_CELLS];
-        poll_prev_health = cl.stats[STAT_HEALTH];
-        poll_prev_armor = cl.stats[STAT_ARMOR];
-        poll_prev_valid = 1;
+        /* Leaving a map / demo: close overlays so movement bind capture always restores (Linux stuck WASD if HUD path skipped). */
+        if (g_quest_popup_open) {
+            g_quest_popup_open = false;
+            OQ_OnQuestPopupClosed();
+        }
+        if (g_inventory_open) {
+            g_inventory_open = false;
+            g_inventory_send_popup = OQ_SEND_POPUP_NONE;
+            OQ_UpdateSendPopupBindingCapture();
+        }
+        OQ_UpdatePopupInputCapture();
+        /* Next time we are in-game, do not diff against menu/loading cl.* — that looks like mass pickups (spawn kit). */
+        poll_need_spawn_baseline = true;
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
         return;
+    }
+    /* Mid-signon: cl wiped/filling after serverinfo; never emit pickup deltas vs stale poll_prev. */
+    if (cls.signon < OQ_VKQUAKE_SIGNONS) {
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        return;
+    }
+    /* New map (CL_ParseServerInfo → CL_ClearState) or first frame after menu: baseline = current spawn kit, no fake pickups. */
+    if (poll_need_spawn_baseline || q_strcasecmp(cl.mapname, poll_map_baseline) != 0) {
+        q_strlcpy(poll_map_baseline, cl.mapname, sizeof(poll_map_baseline));
+        poll_need_spawn_baseline = false;
+        /* Retry Doom→Quake grants each map; avoids transfer_done stuck after an early empty inventory. */
+        OQ_ResetCrossGameBeamTransferState();
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        if (OQ_TryApplyCrossGameBeamInTransfers()) {
+            OQ_PollCaptureItemStatsBaseline(
+                &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+                &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
+        }
+        return;
+    }
+    if (OQ_TryApplyCrossGameBeamInTransfers()) {
+        OQ_PollCaptureItemStatsBaseline(
+            &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
+            &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
     }
     OQuake_STAR_OnItemsChangedEx(poll_prev_items, (unsigned int)cl.items, 1);
     poll_prev_items = (unsigned int)cl.items;
@@ -3925,6 +4642,8 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star pickup all <0|1> - 1=always add to STAR even when engine uses it, 0=only when at max\n");
         Con_Printf("  star pickup keycard <silver|gold> - Add key to STAR inventory (admin only)\n");
         Con_Printf("  star debug on|off|status - Toggle STAR debug logging\n");
+        Con_Printf("  CVAR oquake_star_cross_game_log 1 - Log Doom->Quake beam transfer (console + star log)\n");
+        Con_Printf("  Keys X / B - Toggle XP HUD / Beamed In line (like ODOOM; B N/A while quest popup open)\n");
         Con_Printf("  star send_avatar <user> <item_class> - Send item to avatar\n");
         Con_Printf("  star send_clan <clan> <item_class>   - Send item to clan\n");
         Con_Printf("  star beamin <username> <password> - Log in inside Quake\n");
@@ -4154,9 +4873,10 @@ void OQuake_STAR_Console_f(void) {
 
         if (star_initialized() && !runtime_user) { Con_Printf("Already logged in. Use 'star beamout' first.\n"); return; }
         if (star_initialized() && runtime_user) {
-            star_api_cleanup();
-            g_star_initialized = 0;
-            g_star_beamed_in = 0;
+        star_api_cleanup();
+        g_star_initialized = 0;
+        g_star_beamed_in = 0;
+        OQ_ResetCrossGameBeamTransferState();
         }
 
         if (runtime_user && runtime_pass && OQ_IsMockAnorakCredentials(runtime_user, runtime_pass)) {
@@ -4205,14 +4925,27 @@ void OQuake_STAR_Console_f(void) {
         }
         g_star_config.avatar_id = avatar_id;
         g_star_config.timeout_seconds = 30;
+        {
+            const char *tr = oquake_star_transport.string;
+            g_star_config.transport = (tr && q_strcasecmp(tr, "native") == 0) ? 1 : 0;
+        }
+        g_star_config.oasis_dna_path = (oquake_oasis_dna_path.string && oquake_oasis_dna_path.string[0]) ? oquake_oasis_dna_path.string : NULL;
         star_api_result_t r = star_api_init(&g_star_config);
         if (r != STAR_API_SUCCESS) {
             Con_Printf("Beamin failed - init: %s\n", star_api_get_last_error());
             return;
         }
-        /* NFT minting and avatar auth use WEB4 OASIS API; set from oquake_oasis_api_url so mint goes to WEB4 not WEB5. */
-        if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) {
-            star_api_set_oasis_base_url(oquake_oasis_api_url.string);
+        /* SSO POST /api/avatar/authenticate goes to WEB4 (_oasisBaseUrl), not star_api_url (WEB5). Apply from game config when set. */
+        {
+            const char *oasis_apply = NULL;
+            if (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0])
+                oasis_apply = oquake_oasis_api_url.string;
+            else
+                oasis_apply = getenv("OASIS_WEB4_API_BASE_URL");
+            if (oasis_apply && oasis_apply[0])
+                star_api_set_oasis_base_url(oasis_apply);
+            else
+                star_api_log_to_file("[OQuake] Beamin: no oasis_api_url in cvars/json and no OASIS_WEB4_API_BASE_URL; STAR Init may still set WEB4 (e.g. localhost STAR :7777 -> OASIS :8888).");
         }
         /* Load username: runtime -> CVAR -> env */
         const char* username = runtime_user;
@@ -4238,9 +4971,20 @@ void OQuake_STAR_Console_f(void) {
                 return;
             }
             g_star_auth_timed_out = 0;
+            {
+                extern double realtime;
+                g_star_async_auth_start_realtime = realtime;
+            }
             star_sync_auth_start(username, password, OQ_OnAuthDone, NULL);
             g_star_async_auth_pending = 1;
-            g_star_async_auth_pending_frames = 0;
+            {
+                char logb[640];
+                const char *ou = (oquake_oasis_api_url.string && oquake_oasis_api_url.string[0]) ? oquake_oasis_api_url.string : "(not set)";
+                q_snprintf(logb, sizeof(logb),
+                    "[OQuake] Beamin: async SSO user=%s star_api_url=%s oasis_api_url=%s (wall timeout %.0fs; HttpClient %ds). WEB4 POST /api/avatar/authenticate uses oasis, not star_api_url.",
+                    username, api_url, ou, OQ_BEAMIN_ASYNC_TIMEOUT_SEC, g_star_config.timeout_seconds > 0 ? g_star_config.timeout_seconds : 30);
+                star_api_log_to_file(logb);
+            }
             Con_Printf("Authenticating... Please wait...\n");
             if (runtime_user) Cvar_Set("oquake_star_username", runtime_user);
             if (runtime_pass) Cvar_Set("oquake_star_password", runtime_pass);
@@ -4255,6 +4999,7 @@ void OQuake_STAR_Console_f(void) {
             // }
             star_api_refresh_avatar_profile();
             g_star_beamed_in = 1;
+            OQ_ResetCrossGameBeamTransferState();
             star_api_log_to_file("[OQuake] Beamin (API key): profile refresh started");
             // Try to get username from avatar_id or use a default
             if (g_star_config.avatar_id) {
@@ -4279,6 +5024,7 @@ void OQuake_STAR_Console_f(void) {
         star_api_cleanup();
         g_star_initialized = 0;
         g_star_beamed_in = 0;
+        OQ_ResetCrossGameBeamTransferState();
         g_star_refresh_xp_called_this_session = 0;  /* Next beam-in will call refresh once. */
         g_star_username[0] = 0;
         Cvar_SetValueQuick(&oasis_star_anorak_face, 0);
@@ -4513,9 +5259,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (keydown[s_q_key] && !g_quest_key_was_down) {
                 g_quest_popup_open = !g_quest_popup_open;
                 if (g_quest_popup_open) {
-                    star_api_refresh_quest_cache_in_background();
+                    /* STAR: no progress POST/merge and no quest-cache replace from GET while popup open (see star_api_set_quest_popup_open). Cache stays client-merged during play; no GET on open (would be discarded while flag is set). */
+                    star_api_set_quest_popup_open(1);
                     g_quest_popup_sync_to_tracker = 1;  /* Sync selection to tracked quest once list is ready */
                     g_quest_popup_sync_objective_once = 1;  /* Sync objective selection to tracked objective once */
+                    g_quest_popup_suppress_enter_frames = 0;  /* do not block Enter; Q is edge-triggered so accidental Enter is rare */
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
                     g_quest_focus = OQ_QUEST_FOCUS_MAIN;
@@ -4526,15 +5274,34 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     g_quest_subquest_selected = 0;
                     g_quest_subquest_scroll = 0;
                 } else {
-                    g_quest_status_message[0] = '\0';
-                    g_quest_status_frames = 0;
-                    g_quest_start_pending_id[0] = '\0';
+                    OQ_OnQuestPopupClosed();
                 }
                 g_quest_key_was_down = true;
             }
             if (!keydown[s_q_key])
                 g_quest_key_was_down = false;
         }
+    }
+
+    /* I key: poll like Q when 'i' is not bound to oasis_inventory_toggle (menu "reset keys" restores vanilla binds; Q worked because it is polled). */
+    {
+        static int s_i_hud_key = -1;
+        if (s_i_hud_key < 0)
+            s_i_hud_key = Key_StringToKeynum("i");
+        if (s_i_hud_key >= 0 && s_i_hud_key < MAX_KEYS && key_dest != key_message && key_dest != key_console && key_dest != key_menu &&
+            !OQ_KeybindingReferencesCommand(s_i_hud_key, "oasis_inventory_toggle")) {
+            if (keydown[s_i_hud_key] && !g_inventory_i_key_was_down) {
+                g_inventory_i_key_was_down = true;
+                if (g_quest_popup_open) {
+                    g_quest_popup_open = false;
+                    OQ_OnQuestPopupClosed();
+                }
+                OQ_InventoryToggle_f();
+            }
+            if (!keydown[s_i_hud_key])
+                g_inventory_i_key_was_down = false;
+        } else if (s_i_hud_key >= 0 && s_i_hud_key < MAX_KEYS && !keydown[s_i_hud_key])
+            g_inventory_i_key_was_down = false;
     }
 
     /* C = use health, F = use armor (like ODOOM): poll in draw path so they work regardless of key bindings. */
@@ -4554,6 +5321,28 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         if (!(s_f_key >= 0 && s_f_key < MAX_KEYS && keydown[s_f_key]))
             g_f_key_was_down = false;
+    }
+
+    /* X = toggle XP HUD, B = Beamed In line (same as ODOOM raw-key path; B does not toggle while quest popup open). */
+    if (key_dest != key_message && key_dest != key_console && key_dest != key_menu && g_star_initialized) {
+        static int s_hud_x_key = -1, s_hud_b_key = -1;
+        static qboolean s_hud_x_was_down = false, s_hud_b_was_down = false;
+        if (s_hud_x_key < 0) s_hud_x_key = Key_StringToKeynum("x");
+        if (s_hud_b_key < 0) s_hud_b_key = Key_StringToKeynum("b");
+        if (s_hud_x_key >= 0 && s_hud_x_key < MAX_KEYS && keydown[s_hud_x_key] && !s_hud_x_was_down) {
+            int on = (oquake_hud_show_xp.string && atoi(oquake_hud_show_xp.string));
+            Cvar_Set("oquake_hud_show_xp", on ? "0" : "1");
+            s_hud_x_was_down = true;
+        }
+        if (!(s_hud_x_key >= 0 && s_hud_x_key < MAX_KEYS && keydown[s_hud_x_key]))
+            s_hud_x_was_down = false;
+        if (s_hud_b_key >= 0 && s_hud_b_key < MAX_KEYS && keydown[s_hud_b_key] && !s_hud_b_was_down && !g_quest_popup_open) {
+            int on = (oquake_hud_show_beamed.string && atoi(oquake_hud_show_beamed.string));
+            Cvar_Set("oquake_hud_show_beamed", on ? "0" : "1");
+            s_hud_b_was_down = true;
+        }
+        if (!(s_hud_b_key >= 0 && s_hud_b_key < MAX_KEYS && keydown[s_hud_b_key]))
+            s_hud_b_was_down = false;
     }
 
     /* When quest popup is closed: O = cycle tracker (obj 1, 2, 3, ..., All, Hide, then repeat). Same behaviour as ODOOM. */
@@ -4604,7 +5393,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
     }
 
-    /* Update movement-key capture whenever either popup is open (so WASD/arrows are disabled on Linux even if engine cl_input.c was not patched). */
+    /* Placeholder: movement blocking is vkQuake cl_input.c (OQuake patch); do not strip keybindings here (Linux first-load dead WASD). */
     OQ_UpdatePopupInputCapture();
 
     if (g_inventory_open)
@@ -4617,10 +5406,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     /* Refresh list from client every frame while overlay is open (merge is in-memory, so pickups show immediately). */
     OQ_RefreshOverlayFromClient();
 
-    panel_w = q_min(glwidth - 48, 900);
-    panel_h = q_min(glheight - 96, 480);  /* Increased height to prevent text overlap */
-    if (panel_w < 480) panel_w = 480;
-    if (panel_h < 160) panel_h = 160;
+    panel_w = q_min(glwidth - 24, 1440);
+    panel_h = q_min(glheight - 24, 760);
+    if (panel_w < 1000) panel_w = 1000;
+    if (panel_h < 360) panel_h = 360;
     panel_x = (glwidth - panel_w) / 2;
     panel_y = (glheight - panel_h) / 2;
     if (panel_x < 0) panel_x = 0;
@@ -4630,55 +5419,55 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     {
         const char* header = "OASIS INVENTORY ";
         int header_len = strlen(header);
-        int header_x = panel_x + (panel_w - (header_len * 8)) / 2;
+        int header_x = panel_x + (panel_w - OQ_TEXT_W_CHARS(header_len)) / 2;
         if (header_x < panel_x + 6) header_x = panel_x + 6;
-        Draw_String(cbx, header_x, panel_y + 6, header);
+        OQ_DrawStr(cbx, header_x, panel_y + OQ_PY(6), header);
     }
-    tab_y = panel_y + 34;
+    tab_y = panel_y + OQ_PY(34);
     tab_slot_w = (panel_w - 24) / OQ_TAB_COUNT;
     for (tab = 0; tab < OQ_TAB_COUNT; tab++) {
         int slot_x = panel_x + 12 + tab * tab_slot_w;
         const char* tab_name = OQ_TabShortName(tab);
-        int tab_name_w = (int)strlen(tab_name) * 8;
+        int tab_name_w = OQ_TEXT_W_CHARS((int)strlen(tab_name));
         int tab_name_x = slot_x + (tab_slot_w - tab_name_w) / 2;
         if (tab == g_inventory_active_tab)
-            Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, 10, 224, 0.60f);
-        Draw_String(cbx, tab_name_x, tab_y, tab_name);
+            Draw_Fill(cbx, slot_x + 1, tab_y - 1, tab_slot_w - 2, OQ_PY(10), 224, 0.60f);
+        OQ_DrawStr(cbx, tab_name_x, tab_y, tab_name);
     }
-    Draw_String(cbx, panel_x + 6, panel_y + panel_h - 16, "Arrows=Select  E=Use  C=Health  F=Armor  Z/X=Send  I=Toggle  O/P=Tabs");
+    OQ_DrawStr(cbx, panel_x + 6, panel_y + panel_h - OQ_PY(16), "Arrows=Select  E=Use  C=Health  F=Armor  Z/X=Send  I=Toggle  O/P=Tabs");
 
-    draw_y = panel_y + 54;
+    draw_y = panel_y + OQ_PY(54);
     grouped_count = OQ_BuildGroupedRows(
         rep_indices, grouped_labels, grouped_modes, grouped_values, grouped_pending, OQ_MAX_INVENTORY_ITEMS);
     OQ_ClampSelection(grouped_count);
     visible_end = q_min(grouped_count, g_inventory_scroll_row + OQ_MAX_OVERLAY_ROWS);
     for (row = g_inventory_scroll_row; row < visible_end; row++) {
         if (row == g_inventory_selected_row)
-            Draw_Fill(cbx, panel_x + 5, draw_y - 1, panel_w - 10, 10, 224, 0.50f);
+            Draw_Fill(cbx, panel_x + 5, draw_y - 1, panel_w - 10, OQ_PY(10), 224, 0.50f);
         if (grouped_modes[row] == OQ_GROUP_MODE_SUM)
             q_snprintf(line, sizeof(line), "%s +%d", grouped_labels[row], grouped_values[row]);
         else
             q_snprintf(line, sizeof(line), "%s x%d", grouped_labels[row], grouped_values[row]);
         if (grouped_pending[row] && strlen(line) < sizeof(line) - 8)
             q_strlcat(line, " [LOCAL]", sizeof(line));
-        Draw_String(cbx, panel_x + 8, draw_y, line);
-        draw_y += 8;
+        OQ_DrawStr(cbx, panel_x + 8, draw_y, line);
+        draw_y += OQ_PY(8);
     }
 
     /* Draw status message in bottom right corner */
     if (g_inventory_status[0] && strcmp(g_inventory_status, "STAR inventory unavailable.") != 0) {
         int status_len = (int)strlen(g_inventory_status);
-        int status_x = panel_x + panel_w - (status_len * 8) - 6;
-        int status_y = panel_y + panel_h - 16;
-        Draw_String(cbx, status_x, status_y, g_inventory_status);
+        int status_x = panel_x + panel_w - OQ_TEXT_W_CHARS(status_len) - 6;
+        int status_y = panel_y + panel_h - OQ_PY(16);
+        OQ_DrawStr(cbx, status_x, status_y, g_inventory_status);
     }
     
     if (grouped_count == 0)
-        Draw_String(cbx, panel_x + 6, draw_y, "No items");
+        OQ_DrawStr(cbx, panel_x + 6, draw_y, "No items");
 
     if (g_inventory_send_popup != OQ_SEND_POPUP_NONE) {
-        int popup_w = q_min(panel_w - 80, 420);
-        int popup_h = 108;
+        int popup_w = q_min(panel_w - OQ_PY(80), OQ_PY(420));
+        int popup_h = OQ_PY(140);
         int popup_x = panel_x + (panel_w - popup_w) / 2;
         int popup_y = panel_y + (panel_h - popup_h) / 2;
         const char* title = g_inventory_send_popup == OQ_SEND_POPUP_CLAN ? "SEND TO CLAN" : "SEND TO AVATAR";
@@ -4688,7 +5477,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         char send_item_label[OQ_GROUP_LABEL_MAX];
 
         Draw_Fill(cbx, popup_x, popup_y, popup_w, popup_h, 0, 0.9f);
-        Draw_String(cbx, popup_x + 8, popup_y + 8, title);
+        OQ_DrawStr(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(8), title);
         /* Show which item we are sending above the name box */
         send_item_label[0] = '\0';
         if (OQ_GetSelectedItem()) {
@@ -4697,10 +5486,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 q_snprintf(line, sizeof(line), "Sending: %s x%d", send_item_label, g_inventory_send_quantity);
             else
                 q_snprintf(line, sizeof(line), "Sending: %s", send_item_label);
-            Draw_String(cbx, popup_x + 8, popup_y + 18, line);
+            OQ_DrawStr(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(18), line);
         }
         q_snprintf(line, sizeof(line), "%s: %s%s", label, g_inventory_send_target, ((int)(realtime * 2) & 1) ? "_" : "");
-        Draw_String(cbx, popup_x + 8, popup_y + 30, line);
+        OQ_DrawStr(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(30), line);
         OQ_GetSelectedGroupInfo(NULL, &mode, &available, NULL, 0);
         if (mode != OQ_GROUP_MODE_COUNT)
             available = 1;
@@ -4711,22 +5500,25 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_inventory_send_quantity > available)
             g_inventory_send_quantity = available;
         q_snprintf(line, sizeof(line), "Quantity: %d / %d (Up/Down)", g_inventory_send_quantity, available);
-        Draw_String(cbx, popup_x + 8, popup_y + 42, line);
-        Draw_String(cbx, popup_x + 8, popup_y + 54, "Left=Send  Right=Cancel");
+        OQ_DrawStr(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(42), line);
+        OQ_DrawStr(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(54), "Left=Send  Right=Cancel");
 
         if (g_inventory_send_button == 0)
-            Draw_Fill(cbx, popup_x + 8, popup_y + 78, 64, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 16, popup_y + 79, "SEND");
+            Draw_Fill(cbx, popup_x + OQ_PY(8), popup_y + OQ_PY(78), OQ_PY(64), OQ_PY(10), 224, 0.65f);
+        OQ_DrawStr(cbx, popup_x + OQ_PY(16), popup_y + OQ_PY(79), "SEND");
 
         if (g_inventory_send_button == 1)
-            Draw_Fill(cbx, popup_x + 84, popup_y + 78, 72, 10, 224, 0.65f);
-        Draw_String(cbx, popup_x + 92, popup_y + 79, "CANCEL");
+            Draw_Fill(cbx, popup_x + OQ_PY(84), popup_y + OQ_PY(78), OQ_PY(72), OQ_PY(10), 224, 0.65f);
+        OQ_DrawStr(cbx, popup_x + OQ_PY(92), popup_y + OQ_PY(79), "CANCEL");
     }
     } /* end if (g_inventory_open) */
 
-    /* Quest popup (Q key): filter by status (B/N/M), list nav (Home/End/PgUp/PgDn), selection (Up/Down), Enter = Start or Set tracker. */
+    /* Quest popup (Q key): filter (B/N/M), list nav, Enter = focus details (ODOOM), K = Start quest / Set tracker (ODOOM). */
     if (g_quest_popup_open) {
-        static char quest_buf[16384];
+        if (g_quest_popup_suppress_enter_frames > 0)
+            g_quest_popup_suppress_enter_frames--;
+
+        static char quest_buf[65536];
         static char q_id[OQ_QUEST_MAX][64];
         static char q_name[OQ_QUEST_MAX][128];
         static char q_desc[OQ_QUEST_MAX][256];
@@ -4861,9 +5653,22 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         /* No fallback: when filters hide all quests, list stays empty so toggles actually filter the list. */
 
-        /* Sync only when popup opens (g_quest_popup_sync_to_tracker set there). Do NOT re-sync on list refresh:
-         * a mid-session cache refresh can change filtered count and make the same quest id resolve to a different fi,
-         * which then overwrote selection and caused "1 above" when user pressed Enter. */
+        /* ODOOM-style: when the list buffer/filter layout changes, the same filtered row index can point at a different quest after reload/refetch — re-sync highlight to the tracked quest (g_quest_popup_sync_to_tracker). Enter still uses g_quest_selected_index only (no idx_below). */
+        {
+            unsigned sig = OQ_QuestListLayoutSig(quest_buf, n, q_count, q_filtered_count);
+            if (!g_quest_drill_parent_id[0] && s_oq_quest_list_layout_sig_prev != 0u && sig != s_oq_quest_list_layout_sig_prev && g_quest_tracker_id[0] &&
+                s_oq_quest_sel_idx_for_sig >= 0 && g_quest_selected_index == s_oq_quest_sel_idx_for_sig && s_oq_quest_sel_id_for_sig[0]) {
+                int qi_now = -1;
+                if (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count)
+                    qi_now = q_filtered_indices[g_quest_selected_index];
+                {
+                    const char* id_now = (qi_now >= 0 && qi_now < q_count && q_id[qi_now][0]) ? q_id[qi_now] : "";
+                    if (id_now[0] && q_strcasecmp(id_now, s_oq_quest_sel_id_for_sig) != 0)
+                        g_quest_popup_sync_to_tracker = 1;
+                }
+            }
+            s_oq_quest_list_layout_sig_prev = sig;
+        }
 
         /* When tracker was restored from profile (id set, name empty), fill name from quest list once it loads */
         if (g_quest_tracker_id[0] && !g_quest_tracker_name[0]) {
@@ -4877,8 +5682,8 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         /* Drill mode: when g_quest_drill_parent_id is set, left list shows that quest's children (objectives + sub-quests). */
-        static char drill_obj_buf[4096];
-        static char drill_sub_buf[4096];
+        static char drill_obj_buf[16384];
+        static char drill_sub_buf[16384];
         static char drill_q_id[OQ_QUEST_MAX][64];
         static char drill_q_name[OQ_QUEST_MAX][128];
         static char drill_q_desc[OQ_QUEST_MAX][256];
@@ -4976,24 +5781,30 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         /* Compute left list count and sync selection to tracked quest *before* setting panel_quest_id, so right-panel fetch uses the correct quest. */
         int left_list_count = g_quest_drill_parent_id[0] ? drill_q_filtered_count : q_filtered_count;
         static char panel_quest_id[64];
+        static char panel_quest_status[32];
+        static char panel_quest_name[128];
         static int s_key_debounce_frames = 0;  /* ignore Up/Down/Mwheel for this many frames after sync/open so key repeat does not move selection */
         panel_quest_id[0] = '\0';
+        panel_quest_status[0] = '\0';
+        panel_quest_name[0] = '\0';
         if (g_quest_popup_sync_to_tracker && s_key_debounce_frames <= 0)
             s_key_debounce_frames = 3;  /* debounce as soon as popup opened (sync pending) */
         if (s_key_debounce_frames > 0)
             s_key_debounce_frames--;
-        if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
+        /* One-shot list sync to restored tracker. Clear the flag even when there is nothing to sync or the quest is not in the filtered list — otherwise Enter stays blocked forever. */
+        if (g_quest_popup_sync_to_tracker && (!g_quest_tracker_id[0] || left_list_count <= 0))
+            g_quest_popup_sync_to_tracker = 0;
+        else if (g_quest_popup_sync_to_tracker && g_quest_tracker_id[0] && left_list_count > 0) {
             int fi;
-            int found = 0;
             if (g_quest_drill_parent_id[0]) {
                 for (fi = 0; fi < drill_q_filtered_count; fi++) {
                     int di = drill_q_filtered_indices[fi];
                     if (di >= 0 && di < drill_q_count && q_strcasecmp(drill_q_id[di], g_quest_tracker_id) == 0) {
+                        int mr_sync = OQ_QuestPopupListMaxRowsForQh(OQ_QuestPopupPanelQh());
                         g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        g_quest_scroll = (fi >= mr_sync) ? fi - mr_sync + 1 : 0;
                         if (g_quest_scroll < 0) g_quest_scroll = 0;
                         q_strlcpy(panel_quest_id, drill_q_id[di], sizeof(panel_quest_id));
-                        found = 1;
                         s_key_debounce_frames = 3;  /* ignore Up/Down for 3 frames to avoid key repeat moving selection */
                         break;
                     }
@@ -5002,11 +5813,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 for (fi = 0; fi < q_filtered_count; fi++) {
                     int qi = q_filtered_indices[fi];
                     if (qi >= 0 && qi < q_count && q_strcasecmp(q_id[qi], g_quest_tracker_id) == 0) {
+                        int mr_sync = OQ_QuestPopupListMaxRowsForQh(OQ_QuestPopupPanelQh());
                         g_quest_selected_index = fi;
-                        g_quest_scroll = (fi - 6 > 0) ? fi - 6 : 0;
+                        g_quest_scroll = (fi >= mr_sync) ? fi - mr_sync + 1 : 0;
                         if (g_quest_scroll < 0) g_quest_scroll = 0;
                         q_strlcpy(panel_quest_id, q_id[qi], sizeof(panel_quest_id));
-                        found = 1;
                         s_key_debounce_frames = 3;  /* ignore Up/Down for 3 frames to avoid key repeat moving selection */
                         {
                             static char sync_log[128];
@@ -5017,7 +5828,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     }
                 }
             }
-            if (found) g_quest_popup_sync_to_tracker = 0;
+            g_quest_popup_sync_to_tracker = 0;
         }
 
         /* Clear "Starting quest..." when list shows the quest as InProgress (cache updated). */
@@ -5058,11 +5869,31 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                     q_strlcpy(panel_quest_id, q_id[sel_for_panel], sizeof(panel_quest_id));
             }
         }
+        /* Status + display name for panel quest (main list row or drill child); used for ODOOM-parity Enter/K on objectives. */
+        if (panel_quest_id[0]) {
+            int pqi;
+            for (pqi = 0; pqi < q_count; pqi++) {
+                if (strcmp(q_id[pqi], panel_quest_id) == 0) {
+                    q_strlcpy(panel_quest_status, q_status[pqi], sizeof(panel_quest_status));
+                    q_strlcpy(panel_quest_name, q_name[pqi][0] ? q_name[pqi] : "", sizeof(panel_quest_name));
+                    break;
+                }
+            }
+            if (!panel_quest_status[0]) {
+                for (pqi = 0; pqi < drill_q_count; pqi++) {
+                    if (strcmp(drill_q_id[pqi], panel_quest_id) == 0) {
+                        q_strlcpy(panel_quest_status, drill_q_status[pqi], sizeof(panel_quest_status));
+                        q_strlcpy(panel_quest_name, drill_q_name[pqi][0] ? drill_q_name[pqi] : "", sizeof(panel_quest_name));
+                        break;
+                    }
+                }
+            }
+        }
 
         /* Right panel: prereqs and objectives+sub-quests from API for selected quest. Objectives and sub-quests merged into one list; sub-quests get "(SubQuest)" suffix. */
-        static char prereq_buf[4096];
-        static char objectives_buf[4096];
-        static char subquest_buf[4096];
+        static char prereq_buf[16384];
+        static char objectives_buf[16384];
+        static char subquest_buf[16384];
         static char pr_id[OQ_LINKS_MAX][64];
         static char pr_name[OQ_LINKS_MAX][128];
         static char pr_desc[OQ_LINKS_MAX][256];
@@ -5243,9 +6074,11 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
 
         int sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
-        int n_prereq = pr_count;
+        int n_prereq = 0; /* Hide prereq panel per UX parity request. */
         int n_objectives = obj_count;
         int n_subquest_list = sq_count;
+        if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
+            g_quest_focus = (n_objectives > 0) ? OQ_QUEST_FOCUS_OBJECTIVES : OQ_QUEST_FOCUS_MAIN;
 
         /* When right panel shows the tracked quest, sync objective selection to tracked objective once (so popup "remembers" the right objective). */
         if (g_quest_popup_sync_objective_once && g_quest_tracker_id[0] && panel_quest_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 &&
@@ -5258,17 +6091,26 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 }
             }
             g_quest_popup_sync_objective_once = 0;
+        } else if (g_quest_popup_sync_objective_once) {
+            /* No active objective on profile, wrong panel, or no objectives — do not block Enter on objectives row forever. */
+            if (!g_quest_tracker_id[0] || !g_quest_tracker_active_objective_id[0] || n_objectives <= 0 ||
+                !panel_quest_id[0] || strcmp(panel_quest_id, g_quest_tracker_id) != 0)
+                g_quest_popup_sync_objective_once = 0;
         }
 
         /* Key handling: Tab switches between main list and right-side lists (only if at least one has content); Up/Down/Enter act on focused panel. Tab is blocked from engine while popup is open. */
         {
-            static int s_enter_key = -2, s_kp_enter_key = -2, s_tab_key = -2;
-            if (s_enter_key == -2) s_enter_key = Key_StringToKeynum("enter");
-            if (s_kp_enter_key == -2) s_kp_enter_key = Key_StringToKeynum("kp_enter");
+            static int s_tab_key = -2;
+            static int s_k_quest_action = -2;
+            const int q_enter_main = K_ENTER;
+            const int q_enter_kp = K_KP_ENTER;
             if (s_tab_key == -2) s_tab_key = Key_StringToKeynum("tab");
-            if (s_enter_key < 0) s_enter_key = K_ENTER;
-            if (s_kp_enter_key < 0) s_kp_enter_key = K_KP_ENTER;
             if (s_tab_key < 0) s_tab_key = 9;  /* K_TAB fallback if key lookup fails */
+            if (s_k_quest_action == -2) {
+                s_k_quest_action = Key_StringToKeynum("k");
+                if (s_k_quest_action < 0)
+                    s_k_quest_action = 'k';
+            }
             if (g_quest_drill_parent_id[0] && OQ_KeyPressed(K_ESCAPE)) {
                 g_quest_drill_parent_id[0] = '\0';
                 g_quest_selected_index = 0;
@@ -5288,11 +6130,12 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int npr = n_prereq;
             int nobj = n_objectives;
             int nsq = n_subquest_list;
+            const qboolean enter_edge = OQ_QuestEnterRisingEdge(q_enter_main, q_enter_kp);
 
             if (g_quest_focus == OQ_QUEST_FOCUS_PREREQ) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_prereq_selected--; if (g_quest_prereq_selected < 0) g_quest_prereq_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_prereq_selected++; if (g_quest_prereq_selected >= npr) g_quest_prereq_selected = npr > 0 ? npr - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr) {
+                if (enter_edge && npr > 0 && g_quest_prereq_selected >= 0 && g_quest_prereq_selected < npr) {
                     const char* want_id = pr_id[g_quest_prereq_selected];
                     int fi;
                     if (g_quest_drill_parent_id[0]) {
@@ -5318,25 +6161,75 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             } else if (g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_objectives_selected--; if (g_quest_objectives_selected < 0) g_quest_objectives_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_objectives_selected++; if (g_quest_objectives_selected >= nobj) g_quest_objectives_selected = nobj > 0 ? nobj - 1 : 0; }
-                /* Enter = set active objective for tracker (only when detail quest is the tracked quest). */
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj &&
-                    g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0 && obj_id[g_quest_objectives_selected][0]) {
-                    q_strlcpy(g_quest_tracker_active_objective_id, obj_id[g_quest_objectives_selected], sizeof(g_quest_tracker_active_objective_id));
-                    g_quest_tracker_objective_index = g_quest_objectives_selected;
-                    g_quest_tracker_active_display_index = g_quest_objectives_selected;
-                    {
-                        static char log_buf[512];
-                        const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
-                        const char* on = (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < obj_count && obj_name[g_quest_objectives_selected][0]) ? obj_name[g_quest_objectives_selected] : "(none)";
-                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on objective) quest_id=%s objective_id=%s quest_name=%s objective_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn, on);
-                        star_api_log_to_file(log_buf);
+                /* ODOOM: K = Start / Set tracker for the quest you are viewing, even when focus is on objectives. */
+                if (OQ_KeyPressed(s_k_quest_action) && panel_quest_id[0] && panel_quest_status[0])
+                    OQ_QuestApplyKForQuestRow(panel_quest_id, panel_quest_status, panel_quest_name);
+                /* Enter on objective: if tracker quest != panel quest, activate panel quest first (start or track) then objective (odoom_inventory_popup.zs). */
+                if (enter_edge && nobj > 0 && g_quest_objectives_selected >= 0 && g_quest_objectives_selected < nobj && obj_id[g_quest_objectives_selected][0] && panel_quest_id[0]) {
+                    const char* sel_obj = obj_id[g_quest_objectives_selected];
+                    int same_tracked = (g_quest_tracker_id[0] && strcmp(panel_quest_id, g_quest_tracker_id) == 0);
+                    int not_started = (panel_quest_status[0] && (strcmp(panel_quest_status, "NotStarted") == 0 || strcmp(panel_quest_status, "0") == 0));
+                    int inprog = (panel_quest_status[0] && (strcmp(panel_quest_status, "InProgress") == 0 || strcmp(panel_quest_status, "1") == 0));
+                    int can_activate = not_started || inprog;
+                    int used_start_then = 0;
+
+                    if (!same_tracked && can_activate && not_started) {
+                        q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
+                        g_quest_status_frames = 600;
+                        q_strlcpy(g_quest_start_pending_id, panel_quest_id, sizeof(g_quest_start_pending_id));
+                        q_strlcpy(g_quest_tracker_id, panel_quest_id, sizeof(g_quest_tracker_id));
+                        q_strlcpy(g_quest_tracker_name, panel_quest_name, sizeof(g_quest_tracker_name));
+                        g_quest_tracker_show = 1;
+                        g_quest_tracker_objective_index = g_quest_objectives_selected;
+                        g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                        {
+                            char persist_obj[64];
+                            if (OQ_SelectPersistableObjectiveId(panel_quest_id, sel_obj, persist_obj, sizeof(persist_obj)))
+                                q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
+                            else
+                                q_strlcpy(g_quest_tracker_active_objective_id, sel_obj, sizeof(g_quest_tracker_active_objective_id));
+                        }
+                        star_api_start_quest_then_set_active_objective(panel_quest_id, sel_obj);
+                        used_start_then = 1;
+                        star_api_log_to_file("[Quest] Enter objective: start_then_set_active_objective (ODOOM parity)");
+                    } else if (!same_tracked && inprog) {
+                        if (strcmp(panel_quest_id, g_quest_tracker_id) != 0) {
+                            g_quest_tracker_active_objective_id[0] = '\0';
+                            g_quest_tracker_active_display_index = -1;
+                            g_quest_tracker_objective_index = 0;
+                        }
+                        q_strlcpy(g_quest_tracker_id, panel_quest_id, sizeof(g_quest_tracker_id));
+                        q_strlcpy(g_quest_tracker_name, panel_quest_name, sizeof(g_quest_tracker_name));
+                        g_quest_tracker_show = 1;
                     }
-                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
+
+                    if (!used_start_then && (same_tracked || can_activate)) {
+                        q_strlcpy(g_quest_tracker_active_objective_id, sel_obj, sizeof(g_quest_tracker_active_objective_id));
+                        g_quest_tracker_objective_index = g_quest_objectives_selected;
+                        g_quest_tracker_active_display_index = g_quest_objectives_selected;
+                        {
+                            static char log_buf[512];
+                            const char* qn = g_quest_tracker_name[0] ? g_quest_tracker_name : "(none)";
+                            const char* on = (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < obj_count && obj_name[g_quest_objectives_selected][0]) ? obj_name[g_quest_objectives_selected] : "(none)";
+                            q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on objective) quest_id=%s objective_id=%s quest_name=%s objective_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn, on);
+                            star_api_log_to_file(log_buf);
+                        }
+                        {
+                            char persist_obj[64];
+                            const char* persist_ptr = NULL;
+                            if (OQ_SelectPersistableObjectiveId(panel_quest_id, g_quest_tracker_active_objective_id, persist_obj, sizeof(persist_obj))) {
+                                q_strlcpy(g_quest_tracker_active_objective_id, persist_obj, sizeof(g_quest_tracker_active_objective_id));
+                                persist_ptr = g_quest_tracker_active_objective_id;
+                            } else
+                                persist_ptr = g_quest_tracker_active_objective_id;
+                            star_api_set_active_quest(g_quest_tracker_id, persist_ptr);
+                        }
+                    }
                 }
             } else if (g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST) {
                 if (OQ_KeyPressed(K_UPARROW)) { g_quest_subquest_selected--; if (g_quest_subquest_selected < 0) g_quest_subquest_selected = 0; }
                 if (OQ_KeyPressed(K_DOWNARROW)) { g_quest_subquest_selected++; if (g_quest_subquest_selected >= nsq) g_quest_subquest_selected = nsq > 0 ? nsq - 1 : 0; }
-                if ((OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) && nsq > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nsq) {
+                if (enter_edge && nsq > 0 && g_quest_subquest_selected >= 0 && g_quest_subquest_selected < nsq) {
                     q_strlcpy(g_quest_drill_parent_id, sq_id[g_quest_subquest_selected], sizeof(g_quest_drill_parent_id));
                     g_quest_selected_index = 0;
                     g_quest_scroll = 0;
@@ -5356,74 +6249,29 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                             if (g_quest_selected_index >= left_count) g_quest_selected_index = left_count - 1;
                         }
                     }
-                    if (OQ_KeyPressed(s_enter_key) || OQ_KeyPressed(s_kp_enter_key)) {
+                    if (enter_edge) {
+                        /* ODOOM (odoom_inventory_popup.zs): Enter opens detail flow — here focus right panel (objectives / sub-quests). */
+                        if (n_objectives > 0)
+                            g_quest_focus = OQ_QUEST_FOCUS_OBJECTIVES;
+                        else if (n_subquest_list > 0)
+                            g_quest_focus = OQ_QUEST_FOCUS_SUBQUEST;
+                    }
+                    if (OQ_KeyPressed(s_k_quest_action)) {
                         if (g_quest_drill_parent_id[0]) {
                             int di = drill_q_filtered_indices[g_quest_selected_index];
-                            if (di >= 0 && di < drill_q_count && drill_q_id[di][0]) {
-                                if (strcmp(drill_q_status[di], "NotStarted") == 0 || strcmp(drill_q_status[di], "0") == 0) {
-                                    q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                    g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
-                                    q_strlcpy(g_quest_start_pending_id, drill_q_id[di], sizeof(g_quest_start_pending_id));
-                                    star_api_start_quest(drill_q_id[di]);
-                                } else if (strcmp(drill_q_status[di], "InProgress") == 0 || strcmp(drill_q_status[di], "1") == 0) {
-                                    const char* new_quest_id = drill_q_id[di];
-                                    /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
-                                    if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
-                                        g_quest_tracker_active_objective_id[0] = '\0';
-                                        g_quest_tracker_active_display_index = -1;
-                                        g_quest_tracker_objective_index = 0;
-                                    }
-                                    q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                    q_strlcpy(g_quest_tracker_name, drill_q_name[di][0] ? drill_q_name[di] : "", sizeof(g_quest_tracker_name));
-                                    g_quest_tracker_show = 1;
-                                    {
-                                        static char log_buf[512];
-                                        const char* qn = drill_q_name[di][0] ? drill_q_name[di] : "(none)";
-                                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on drill quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
-                                        star_api_log_to_file(log_buf);
-                                    }
-                                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
-                                }
-                            }
+                            if (di >= 0 && di < drill_q_count && drill_q_id[di][0])
+                                OQ_QuestApplyKForQuestRow(drill_q_id[di], drill_q_status[di], drill_q_name[di][0] ? drill_q_name[di] : "");
                         } else {
                             int idx = q_filtered_indices[g_quest_selected_index];
-                            /* If tracked quest is in list and selection is one row above it (display bug), use tracked quest for save */
-                            if (g_quest_tracker_id[0] && g_quest_selected_index + 1 < q_filtered_count) {
-                                int idx_below = q_filtered_indices[g_quest_selected_index + 1];
-                                if (idx_below >= 0 && idx_below < q_count && q_strcasecmp(q_id[idx_below], g_quest_tracker_id) == 0) {
-                                    idx = idx_below;
-                                }
-                            }
-                            if (idx >= 0 && idx < q_count && q_id[idx][0]) {
-                                if (strcmp(q_status[idx], "NotStarted") == 0 || strcmp(q_status[idx], "0") == 0) {
-                                    q_strlcpy(g_quest_status_message, "Starting quest...", sizeof(g_quest_status_message));
-                                    g_quest_status_frames = 600;  /* timeout ~17s; cleared earlier when list updates */
-                                    q_strlcpy(g_quest_start_pending_id, q_id[idx], sizeof(g_quest_start_pending_id));
-                                    star_api_start_quest(q_id[idx]);
-                                } else if (strcmp(q_status[idx], "InProgress") == 0 || strcmp(q_status[idx], "1") == 0) {
-                                    const char* new_quest_id = q_id[idx];
-                                    /* Only clear objective when switching to a different quest; keep current objective if re-selecting same quest */
-                                    if (strcmp(new_quest_id, g_quest_tracker_id) != 0) {
-                                        g_quest_tracker_active_objective_id[0] = '\0';
-                                        g_quest_tracker_active_display_index = -1;
-                                        g_quest_tracker_objective_index = 0;
-                                    }
-                                    q_strlcpy(g_quest_tracker_id, new_quest_id, sizeof(g_quest_tracker_id));
-                                    q_strlcpy(g_quest_tracker_name, q_name[idx][0] ? q_name[idx] : "", sizeof(g_quest_tracker_name));
-                                    g_quest_tracker_show = 1;
-                                    {
-                                        static char log_buf[512];
-                                        const char* qn = q_name[idx][0] ? q_name[idx] : "(none)";
-                                        q_snprintf(log_buf, sizeof(log_buf), "[Quest] SAVE (Enter on top-level quest) quest_id=%s objective_id=%s quest_name=%s", g_quest_tracker_id, g_quest_tracker_active_objective_id, qn);
-                                        star_api_log_to_file(log_buf);
-                                    }
-                                    star_api_set_active_quest(g_quest_tracker_id, g_quest_tracker_active_objective_id);
-                                }
-                            }
+                            if (idx >= 0 && idx < q_count && q_id[idx][0])
+                                OQ_QuestApplyKForQuestRow(q_id[idx], q_status[idx], q_name[idx][0] ? q_name[idx] : "");
                         }
                     }
                 }
             }
+            if (enter_edge)
+                OQ_QuestEnterCommit(q_enter_main, q_enter_kp);
+            OQ_QuestEnterReleaseTick(q_enter_main, q_enter_kp);
             }
         }
         /* Toggles: 1=Not Started, 2=In Progress, 3=Completed */
@@ -5439,12 +6287,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             if (OQ_KeyPressed(s_kn)) g_quest_filter_in_progress = !g_quest_filter_in_progress;
             if (OQ_KeyPressed(s_km)) g_quest_filter_completed = !g_quest_filter_completed;
         }
-        /* List navigation: Home=first, End=last, PgUp/PgDn=one screen */
+        /* List navigation: Home=first, End=last, PgUp/PgDn=one screen (qh/max rows = draw path; ODOOM uses one row count for keys + overlay). */
         if (g_quest_focus == OQ_QUEST_FOCUS_MAIN && left_list_count > 0) {
-            int qh_key = q_min(glheight - 96, 540);
-            if (qh_key < 200) qh_key = 200;
-            int max_rows_key = (qh_key - 96) / 12;
-            if (max_rows_key < 6) max_rows_key = 6;
+            int qh_key = OQ_QuestPopupPanelQh();
+            int max_rows_key = OQ_QuestPopupListMaxRowsForQh(qh_key);
             if (OQ_KeyPressed(K_HOME)) {
                 g_quest_selected_index = 0;
                 g_quest_scroll = 0;
@@ -5470,22 +6316,33 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_quest_selected_index >= left_list_count && left_list_count > 0)
             g_quest_selected_index = left_list_count - 1;
         if (g_quest_selected_index < 0) g_quest_selected_index = 0;
+        /* Track row identity for list-layout drift detection (top-level list only). */
+        if (!g_quest_drill_parent_id[0]) {
+            s_oq_quest_sel_idx_for_sig = g_quest_selected_index;
+            if (g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) {
+                int sqi = q_filtered_indices[g_quest_selected_index];
+                if (sqi >= 0 && sqi < q_count && q_id[sqi][0])
+                    q_strlcpy(s_oq_quest_sel_id_for_sig, q_id[sqi], sizeof(s_oq_quest_sel_id_for_sig));
+                else
+                    s_oq_quest_sel_id_for_sig[0] = '\0';
+            } else
+                s_oq_quest_sel_id_for_sig[0] = '\0';
+        }
         sel_quest_idx = (!g_quest_drill_parent_id[0] && g_quest_selected_index >= 0 && g_quest_selected_index < q_filtered_count) ? q_filtered_indices[g_quest_selected_index] : -1;
         if (g_quest_prereq_selected >= n_prereq && n_prereq > 0) g_quest_prereq_selected = n_prereq - 1;
         if (g_quest_objectives_selected >= n_objectives && n_objectives > 0) g_quest_objectives_selected = n_objectives - 1;
         if (g_quest_subquest_selected >= n_subquest_list && n_subquest_list > 0) g_quest_subquest_selected = n_subquest_list - 1;
 
         /* Draw: same size as inventory (900x480), slightly taller (540) for right panel; left = list (half name col), right = desc + prereq + subquest */
-        int qw = q_min(glwidth - 48, 900);
-        int qh = q_min(glheight - 96, 540);
-        if (qw < 480) qw = 480;
-        if (qh < 200) qh = 200;
+        int qw = q_min(glwidth - 24, 1440);
+        int qh = OQ_QuestPopupPanelQh();
+        if (qw < 1000) qw = 1000;
         int qx = (glwidth - qw) / 2;
-        int qy = (glheight - qh) / 2 - 20;  /* move popup up 20 pixels */
+        int qy = (glheight - qh) / 2;
         if (qx < 0) qx = 0;
         if (qy < 0) qy = 0;
         Draw_Fill(cbx, qx, qy, qw, qh, 0, 0.75f);
-        Draw_String(cbx, qx + (qw - 6*8) / 2, qy + 6, "QUESTS");
+        OQ_DrawStr(cbx, qx + (qw - OQ_TEXT_W_CHARS(6)) / 2, qy + OQ_PY(6), "QUESTS");
         /* Space beneath Quests heading */
 
         /* Toggles always visible, centre-aligned */
@@ -5497,15 +6354,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 g_quest_filter_in_progress ? "[X]" : "[ ]",
                 g_quest_filter_completed ? "[X]" : "[ ]");
             cb_len = (int)strlen(cb);
-            Draw_String(cbx, qx + (qw - cb_len * 8) / 2, qy + 24, cb);
+            OQ_DrawStr(cbx, qx + (qw - OQ_TEXT_W_CHARS(cb_len)) / 2, qy + OQ_PY(24), cb);
         }
 
         if (n >= 9 && memcmp(quest_buf, "Loading...", 9) == 0) {
             const char *load_msg = "Loading quests...";
             int load_len = (int)strlen(load_msg);
-            Draw_String(cbx, qx + (qw - load_len * 8) / 2, qy + (qh - 8) / 2, load_msg);
+            OQ_DrawStr(cbx, qx + (qw - OQ_TEXT_W_CHARS(load_len)) / 2, qy + (qh - OQ_PY(8)) / 2, load_msg);
         } else if (n >= 6 && memcmp(quest_buf, "Error:", 6) == 0) {
-            Draw_String(cbx, qx + 30, qy + 48, "Error loading quests. Check console or star_api.log for details.");
+            OQ_DrawStr(cbx, qx + OQ_PY(30), qy + OQ_PY(48), "Error loading quests. Check console or star_api.log for details.");
         } else if (left_list_count > 0 || g_quest_drill_parent_id[0]) {
             /* Left: table Name | % | Status (half name column: 27 chars) */
             char name_buf[64];
@@ -5515,21 +6372,19 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
             int idx;
             qboolean sel;
             int col1_x, col2_x, col3_x;
-            int list_left_w = 400;  /* left panel width; right panel = desc + prereq + subquest */
-            int col1_chars = 27;    /* half of previous 54 */
+            int col1_chars = 20;    /* 2x text: tighter name column */
             int col2_chars = 6;
-            dy = qy + 48;
-            row_h = 12;
-            max_rows = (qh - 96) / row_h;  /* one fewer row to leave space before bottom hint text */
-            if (max_rows < 6) max_rows = 6;
-            if (max_rows > OQ_QUEST_MAX) max_rows = OQ_QUEST_MAX;
+            int list_left_w = OQ_TEXT_W_CHARS(col1_chars + col2_chars + 14);
+            dy = qy + OQ_PY(48);
+            row_h = OQ_PY(12);
+            max_rows = OQ_QuestPopupListMaxRowsForQh(qh);
             col1_x = qx + 10;
-            col2_x = qx + 10 + col1_chars * 8;
-            col3_x = qx + 10 + (col1_chars + col2_chars) * 8;
+            col2_x = qx + 10 + OQ_TEXT_W_CHARS(col1_chars);
+            col3_x = qx + 10 + OQ_TEXT_W_CHARS(col1_chars + col2_chars);
 
-            Draw_String(cbx, col1_x, dy, "Name");
-            Draw_String(cbx, col2_x, dy, "%");
-            Draw_String(cbx, col3_x, dy, "Status");
+            OQ_DrawStr(cbx, col1_x, dy, "Name");
+            OQ_DrawStr(cbx, col2_x, dy, "%");
+            OQ_DrawStr(cbx, col3_x, dy, "Status");
             dy += row_h;
 
             if (g_quest_selected_index < g_quest_scroll) g_quest_scroll = g_quest_selected_index;
@@ -5560,10 +6415,10 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         name_buf[col1_chars - 2] = '.';
                         name_buf[col1_chars - 1] = '\0';
                     }
-                    Draw_String(cbx, col1_x, dy, name_buf);
+                    OQ_DrawStr(cbx, col1_x, dy, name_buf);
                     q_snprintf(name_buf, sizeof(name_buf), "%s%%", drill_q_pct[idx][0] ? drill_q_pct[idx] : "0");
-                    Draw_String(cbx, col2_x, dy, name_buf);
-                    Draw_String(cbx, col3_x, dy, status_display);
+                    OQ_DrawStr(cbx, col2_x, dy, name_buf);
+                    OQ_DrawStr(cbx, col3_x, dy, status_display);
                 } else {
                     idx = q_filtered_indices[g_quest_scroll + i];
                     sel = (g_quest_scroll + i == g_quest_selected_index);
@@ -5587,33 +6442,34 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         name_buf[col1_chars - 2] = '.';
                         name_buf[col1_chars - 1] = '\0';
                     }
-                    Draw_String(cbx, col1_x, dy, name_buf);
+                    OQ_DrawStr(cbx, col1_x, dy, name_buf);
                     q_snprintf(name_buf, sizeof(name_buf), "%s%%", q_pct[idx][0] ? q_pct[idx] : "0");
-                    Draw_String(cbx, col2_x, dy, name_buf);
-                    Draw_String(cbx, col3_x, dy, status_display);
+                    OQ_DrawStr(cbx, col2_x, dy, name_buf);
+                    OQ_DrawStr(cbx, col3_x, dy, status_display);
                 }
                 dy += row_h;
             }
             if (left_list_count == 0 && g_quest_drill_parent_id[0])
-                Draw_String(cbx, col1_x, dy, "(No objectives or sub-quests)");
+                OQ_DrawStr(cbx, col1_x, dy, "(No objectives or sub-quests)");
 
-            /* Right panel: description + 3 lists (Prerequisites, Objectives, Sub-quests), each 1/4 of height. */
+            /* Right panel: description + objectives + objective progress + sub-quests. */
             int rx = qx + list_left_w + 20;
             int rw = qw - list_left_w - 30;
-            int right_panel_top = qy + 48;
-            int right_panel_height = qh - 48 - 40;
+            int right_panel_top = qy + OQ_PY(48);
+            int right_panel_height = qh - OQ_PY(48) - OQ_PY(40);
             if (right_panel_height < 0) right_panel_height = 0;
-            int line_h = 10;
+            int line_h = OQ_PY(10);
             int section_height = right_panel_height / 4;
             if (section_height < 0) section_height = 0;
             int desc_lines = section_height / line_h;
             if (desc_lines < 1) desc_lines = 1;
-            int pr_list_h = section_height - (line_h + 2);
-            if (pr_list_h < 0) pr_list_h = 0;
-            int pr_vis = pr_list_h / line_h;
-            if (pr_vis < 0) pr_vis = 0;
-            int obj_vis = pr_vis;
-            int sq_vis = pr_vis;
+            int section_list_h = section_height - (line_h + 2);
+            if (section_list_h < 0) section_list_h = 0;
+            int section_vis = section_list_h / line_h;
+            if (section_vis < 0) section_vis = 0;
+            int obj_vis = section_vis;
+            int sq_vis = section_vis;
+            int prog_vis = section_vis;
 
             if (rx + rw <= qx + qw) {
                 int ry = right_panel_top;
@@ -5631,7 +6487,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 } else if (sel_quest_idx >= 0 && sel_quest_idx < q_count && q_desc[sel_quest_idx][0])
                     desc_text = q_desc[sel_quest_idx];
                 {
-                    int chars_per_line = rw / 8;
+                    int chars_per_line = rw / OQ_TEXT_W_CHARS(1);
                     if (chars_per_line < 10) chars_per_line = 10;
                     const char* p = desc_text;
                     int line_num = 0;
@@ -5642,7 +6498,7 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                         if (c > (int)sizeof(line_buf) - 1) c = (int)sizeof(line_buf) - 1;
                         memcpy(line_buf, p, (size_t)c);
                         line_buf[c] = '\0';
-                        Draw_String(cbx, rx, ry + line_num * line_h, line_buf);
+                        OQ_DrawStr(cbx, rx, ry + line_num * line_h, line_buf);
                         p += c;
                         if (*p == '\n') p++;
                         line_num++;
@@ -5650,38 +6506,13 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                 }
                 ry += section_height;
 
-                /* Section 2: Prerequisites – 1/4 height */
+                /* Section 2: Objectives (moved up to prereq position) */
                 {
                     int sect_y = ry;
-                    Draw_String(cbx, rx, sect_y, "Prerequisites (Enter=select in list)");
-                    sect_y += line_h + 2;
-                    if (n_prereq == 0)
-                        Draw_String(cbx, rx, sect_y, "(none)");
-                    else {
-                        int pr_vis_use = pr_vis > n_prereq ? n_prereq : pr_vis;
-                        if (g_quest_prereq_selected < g_quest_prereq_scroll) g_quest_prereq_scroll = g_quest_prereq_selected;
-                        if (g_quest_prereq_selected >= g_quest_prereq_scroll + pr_vis_use && pr_vis_use > 0) g_quest_prereq_scroll = g_quest_prereq_selected - pr_vis_use + 1;
-                        if (g_quest_prereq_scroll + pr_vis_use > n_prereq) g_quest_prereq_scroll = n_prereq - pr_vis_use;
-                        if (g_quest_prereq_scroll < 0) g_quest_prereq_scroll = 0;
-                        for (i = 0; i < pr_vis_use && g_quest_prereq_scroll + i < n_prereq; i++) {
-                            int pi = g_quest_prereq_scroll + i;
-                            const char* pname = pr_name[pi][0] ? pr_name[pi] : (pr_id[pi][0] ? pr_id[pi] : "(unknown)");
-                            if (pi == g_quest_prereq_selected && g_quest_focus == OQ_QUEST_FOCUS_PREREQ)
-                                Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
-                            Draw_String(cbx, rx, sect_y, pname);
-                            sect_y += line_h;
-                        }
-                    }
-                }
-                ry += section_height;
-
-                /* Section 3: Objectives – 1/4 height */
-                {
-                    int sect_y = ry;
-                    Draw_String(cbx, rx, sect_y, "Objectives");
+                    OQ_DrawStr(cbx, rx, sect_y, "Objectives");
                     sect_y += line_h + 2;
                     if (n_objectives == 0)
-                        Draw_String(cbx, rx, sect_y, "(none)");
+                        OQ_DrawStr(cbx, rx, sect_y, "(none)");
                     else {
                         int obj_vis_use = obj_vis > n_objectives ? n_objectives : obj_vis;
                         if (g_quest_objectives_selected < g_quest_objectives_scroll) g_quest_objectives_scroll = g_quest_objectives_selected;
@@ -5697,20 +6528,56 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                                 Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 56, 0.55f);
                             if (oi == g_quest_objectives_selected && g_quest_focus == OQ_QUEST_FOCUS_OBJECTIVES)
                                 Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
-                            Draw_String(cbx, rx, sect_y, oname);
+                            OQ_DrawStr(cbx, rx, sect_y, oname);
                             sect_y += line_h;
                         }
                     }
                 }
                 ry += section_height;
 
-                /* Section 4: Sub-quests (no (SubQuest) suffix; they have their own list) – 1/4 height */
+                /* Section 3: Progress (same data source as tracker / ODOOM objective progress pane). */
                 {
                     int sect_y = ry;
-                    Draw_String(cbx, rx, sect_y, "Sub-quests (Enter=drill down)");
+                    static char progress_buf[2048];
+                    const char* selected_obj_id = NULL;
+                    if (g_quest_objectives_selected >= 0 && g_quest_objectives_selected < n_objectives && obj_id[g_quest_objectives_selected][0])
+                        selected_obj_id = obj_id[g_quest_objectives_selected];
+                    OQ_DrawStr(cbx, rx, sect_y, "Progress");
+                    sect_y += line_h + 2;
+                    progress_buf[0] = '\0';
+                    if (panel_quest_id[0] && selected_obj_id) {
+                        int np = star_api_get_quest_objective_requirements_string(panel_quest_id, selected_obj_id, progress_buf, sizeof(progress_buf));
+                        if (np > 0 && np < (int)sizeof(progress_buf)) progress_buf[np] = '\0';
+                        else progress_buf[0] = '\0';
+                    }
+                    if (!progress_buf[0]) {
+                        OQ_DrawStr(cbx, rx, sect_y, "(none)");
+                    } else {
+                        const char* p = progress_buf;
+                        int shown = 0;
+                        while (*p && shown < prog_vis) {
+                            const char* eol = strchr(p, '\n');
+                            size_t ll = eol ? (size_t)(eol - p) : strlen(p);
+                            char line_buf[256];
+                            if (ll >= sizeof(line_buf)) ll = sizeof(line_buf) - 1;
+                            memcpy(line_buf, p, ll);
+                            line_buf[ll] = '\0';
+                            OQ_DrawStr(cbx, rx, sect_y, line_buf);
+                            sect_y += line_h;
+                            shown++;
+                            p = eol ? eol + 1 : p + ll;
+                        }
+                    }
+                }
+                ry += section_height;
+
+                /* Section 4: Sub-quests (kept). */
+                {
+                    int sect_y = ry;
+                    OQ_DrawStr(cbx, rx, sect_y, "Sub-quests (Enter=drill down)");
                     sect_y += line_h + 2;
                     if (n_subquest_list == 0)
-                        Draw_String(cbx, rx, sect_y, "(none)");
+                        OQ_DrawStr(cbx, rx, sect_y, "(none)");
                     else {
                         int sq_vis_use = sq_vis > n_subquest_list ? n_subquest_list : sq_vis;
                         if (g_quest_subquest_selected < g_quest_subquest_scroll) g_quest_subquest_scroll = g_quest_subquest_selected;
@@ -5722,36 +6589,36 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
                             const char* sq_display = sq_name[si][0] ? sq_name[si] : (sq_id[si][0] ? sq_id[si] : "(unknown)");
                             if (si == g_quest_subquest_selected && g_quest_focus == OQ_QUEST_FOCUS_SUBQUEST)
                                 Draw_Fill(cbx, rx - 2, sect_y - 1, rw + 4, line_h, 180, 0.45f);
-                            Draw_String(cbx, rx, sect_y, sq_display);
+                            OQ_DrawStr(cbx, rx, sect_y, sq_display);
                             sect_y += line_h;
                         }
                     }
                 }
             }
         } else {
-            Draw_String(cbx, qx + 10, qy + 48, "No Quests Found");
+            OQ_DrawStr(cbx, qx + OQ_PY(10), qy + OQ_PY(48), "No Quests Found");
         }
 
         /* Bottom info text: main list = centre minus 10 (left 10); detail/drill = centre plus 10 (right 10) */
         {
             const char* footer = g_quest_drill_parent_id[0]
-                ? "B/N/M=Filter  Tab=Switch  PgUp/PgDn=Page  Home/End  Enter=Start/Set  Escape=Back  Q=Close"
-                : "B/N/M=Filter  Tab=Switch  PgUp/PgDn=Page  Home/End=Top/Bottom  Enter=Start/Set  Q=Close";
+                ? "B/N/M=Filter  Tab=Switch  PgUp/PgDn  Home/End  Enter=Details  K=Start/Set  Esc=Back  Q=Close"
+                : "B/N/M=Filter  Tab=Switch  PgUp/PgDn  Home/End  Enter=Details  K=Start/Set  Q=Close";
             int footer_len = (int)strlen(footer);
-            int footer_x = qx + (qw - footer_len * 8) / 2;
+            int footer_x = qx + (qw - OQ_TEXT_W_CHARS(footer_len)) / 2;
             if (g_quest_drill_parent_id[0])
                 footer_x += 10;   /* detail quest popup: hint right 10 */
             else
                 footer_x -= 10;   /* main list: hint left 10 */
-            Draw_String(cbx, footer_x, qy + qh - 20, footer);
+            OQ_DrawStr(cbx, footer_x, qy + qh - OQ_PY(20), footer);
         }
         /* Status message in bottom-right (e.g. "Starting quest..."); stays until list updates or timeout */
         if (g_quest_status_frames > 0 && g_quest_status_message[0]) {
             int status_len = (int)strlen(g_quest_status_message);
-            int status_x = qx + qw - (status_len * 8) - 8;
-            int status_y = qy + qh - 41;  /* 5px higher than before (was qh - 36) */
+            int status_x = qx + qw - OQ_TEXT_W_CHARS(status_len) - 8;
+            int status_y = qy + qh - OQ_PY(41);  /* 2x text-safe bottom offset */
             if (status_x < qx + 8) status_x = qx + 8;
-            Draw_String(cbx, status_x, status_y, g_quest_status_message);
+            OQ_DrawStr(cbx, status_x, status_y, g_quest_status_message);
             /* Decrement timeout only once per game frame (draw can run multiple times per frame). */
             {
                 extern int host_framecount;
@@ -5771,9 +6638,182 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     }
 }
 
+/** ODOOM OdoomTrackerLineIsCompleted: grey when every " and "-joined segment ends with "(100%)". */
+static qboolean OQ_TrackerLineIsCompleted(const char* line) {
+	const char* p;
+	size_t seglen;
+	if (!line || !line[0])
+		return false;
+	if (!strstr(line, "(100%)"))
+		return false;
+	p = line;
+	for (;;) {
+		const char* andp = strstr(p, " and ");
+		seglen = andp ? (size_t)(andp - p) : strlen(p);
+		while (seglen > 0 && (p[seglen - 1] == ' ' || p[seglen - 1] == '\t'))
+			seglen--;
+		if (seglen < 6 || strncmp(p + seglen - 6, "(100%)", 6) != 0)
+			return false;
+		if (!andp)
+			return true;
+		p = andp + 5;
+	}
+}
+
+/** Q line: append " (pct%)" from last tab field (same as ODOOM_AppendQuestPctFromQLine). */
+static void OQ_AppendQuestPctFromQLine(const char* line, size_t lineLen, char* title, size_t titleSize) {
+	const char* end = line + lineLen;
+	const char* lastTab = NULL;
+	const char* c;
+	size_t pctLen;
+	const char* pctStart;
+	size_t i;
+	if (!title || !title[0] || lineLen < 4 || line[0] != 'Q' || line[1] != '\t')
+		return;
+	for (c = line + 2; c < end; ++c) {
+		if (*c == '\t')
+			lastTab = c;
+	}
+	if (!lastTab || lastTab + 1 >= end)
+		return;
+	pctStart = lastTab + 1;
+	pctLen = (size_t)(end - pctStart);
+	while (pctLen > 0 && (pctStart[pctLen - 1] == ' ' || pctStart[pctLen - 1] == '\r'))
+		pctLen--;
+	if (pctLen == 0)
+		return;
+	for (i = 0; i < pctLen; ++i) {
+		if (pctStart[i] < '0' || pctStart[i] > '9')
+			return;
+	}
+	{
+		char suffix[64];
+		q_snprintf(suffix, sizeof(suffix), " (%.*s%%)", (int)pctLen, pctStart);
+		q_strlcat(title, suffix, titleSize);
+	}
+}
+
+/** Build "Quest: Name (N%)" from top-level quest list Q line (ODOOM odoom_quest_tracker_title parity). */
+static void OQ_BuildTrackerQuestTitleLine(char* out, size_t outsz) {
+	char		 base[160];
+	static char	 qbuf[65536];
+	int			 n;
+	const char*	 p;
+	const char*	 end;
+	if (g_quest_tracker_name[0])
+		q_snprintf(base, sizeof(base), "Quest: %.120s", g_quest_tracker_name);
+	else
+		q_strlcpy(base, "Loading...", sizeof(base));
+	q_strlcpy(out, base, outsz);
+	n = star_api_get_top_level_quests_string(qbuf, sizeof(qbuf));
+	if (n <= 0 || n >= (int)sizeof(qbuf))
+		return;
+	qbuf[n] = '\0';
+	p = qbuf;
+	end = qbuf + n;
+	while (p < end && *p) {
+		const char* lineEnd = strchr(p, '\n');
+		size_t		lineLen = lineEnd ? (size_t)(lineEnd - p) : (size_t)(end - p);
+		if (lineLen >= 2 && p[0] == 'Q' && p[1] == '\t') {
+			char		 qid[64];
+			const char*	 f = p + 2;
+			const char*	 lineEndQ = p + lineLen;
+			const char*	 t0 = (const char*)memchr(f, '\t', (size_t)(lineEndQ - f));
+			if (t0 && t0 - f > 0) {
+				size_t idlen = (size_t)(t0 - f);
+				if (idlen < sizeof(qid)) {
+					memcpy(qid, f, idlen);
+					qid[idlen] = '\0';
+					if (q_strcasecmp(qid, g_quest_tracker_id) == 0) {
+						q_strlcpy(out, base, outsz);
+						OQ_AppendQuestPctFromQLine(p, lineLen, out, outsz);
+						return;
+					}
+				}
+			}
+		}
+		p = lineEnd ? lineEnd + 1 : p + lineLen;
+	}
+}
+
+/* Pick an objective id safe to persist as active: prefer preferred_id if incomplete, else first incomplete objective. */
+static int OQ_SelectPersistableObjectiveId(const char* quest_id, const char* preferred_id, char* out_id, size_t out_size) {
+	static char obj_buf[4096];
+	char		first_incomplete[64];
+	int			no;
+	const char* line;
+	const char* end;
+	first_incomplete[0] = '\0';
+	if (!quest_id || !quest_id[0] || !out_id || out_size == 0)
+		return 0;
+	no = star_api_get_quest_objectives_string(quest_id, obj_buf, sizeof(obj_buf));
+	if (no <= 0 || no >= (int)sizeof(obj_buf))
+		return 0;
+	obj_buf[no] = '\0';
+	line = obj_buf;
+	end = obj_buf + no;
+	while (line < end && *line) {
+		const char* eol = strchr(line, '\n');
+		size_t		line_len = eol ? (size_t)(eol - line) : strlen(line);
+		if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
+			const char* f = line + 2;
+			const char* fe = line + line_len;
+			const char* t = (const char*)memchr(f, '\t', (size_t)(fe - f));
+			char		oid[64];
+			char		status[24];
+			char		pct[8];
+			oid[0] = status[0] = pct[0] = '\0';
+			if (t && t - f > 0) {
+				int len = (int)(t - f);
+				if (len > 63) len = 63;
+				memcpy(oid, f, (size_t)len);
+				oid[len] = '\0';
+				f = t + 1;
+			}
+			t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL; /* name */
+			f = t && t < fe ? t + 1 : fe;
+			t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL; /* desc */
+			f = t && t < fe ? t + 1 : fe;
+			t = f < fe ? (const char*)memchr(f, '\t', (size_t)(fe - f)) : NULL; /* status */
+			if (t && t - f > 0) {
+				int len = (int)(t - f);
+				if (len > 23) len = 23;
+				memcpy(status, f, (size_t)len);
+				status[len] = '\0';
+				f = t + 1;
+			}
+			if (f < fe) {
+				int len = (int)(fe - f);
+				if (len > 7) len = 7;
+				memcpy(pct, f, (size_t)len);
+				pct[len] = '\0';
+			}
+			{
+				qboolean completed = (q_strcasecmp(status, "Completed") == 0 || strcmp(status, "2") == 0 || strcmp(pct, "100") == 0);
+				if (!completed && !first_incomplete[0] && oid[0])
+					q_strlcpy(first_incomplete, oid, sizeof(first_incomplete));
+				if (!completed && preferred_id && preferred_id[0] && oid[0] && q_strcasecmp(oid, preferred_id) == 0) {
+					q_strlcpy(out_id, oid, out_size);
+					return 1;
+				}
+			}
+		}
+		line = eol ? eol + 1 : line + line_len;
+	}
+	if (first_incomplete[0]) {
+		q_strlcpy(out_id, first_incomplete, out_size);
+		return 1;
+	}
+	return 0;
+}
+
 /** Draw current quest tracker on HUD at top-left when user has set a tracked quest. O cycles: single obj 1..n, All, Hide. Same behaviour as ODOOM. */
 void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
+    extern qboolean sb_showscores;
     if (!g_star_initialized || !cbx)
+        return;
+    /* vkQuake sbar.c: +showscores / Tab — same HUD path still calls us; skip duplicate large tracker over the scoreboard. */
+    if (sb_showscores)
         return;
     if (!g_quest_tracker_id[0])
         return;
@@ -5796,108 +6836,117 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
             g_quest_tracker_name[nr] = '\0';
         else
             g_quest_tracker_name[0] = '\0';
-        /* Fallback: parse from top-level quest list string if API did not return name yet. */
-        if (g_quest_tracker_name[0] == '\0') {
-            static char qlist_buf[4096];
-            int nq = star_api_get_top_level_quests_string(qlist_buf, sizeof(qlist_buf));
-            if (nq > 0 && nq < (int)sizeof(qlist_buf)) qlist_buf[nq] = '\0';
-            else qlist_buf[0] = '\0';
-            if (qlist_buf[0] && strstr(qlist_buf, "Loading...") == NULL) {
-                const char* line = qlist_buf;
-                while (line[0]) {
-                    const char* eol = strchr(line, '\n');
-                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                    if (line_len >= 3 && line[0] == 'Q' && line[1] == '\t') {
-                        const char* col0 = line + 2;
-                        const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
-                        if (col1 && (int)(col1 - col0) < 63) {
-                            char id[64];
-                            int len = (int)(col1 - col0);
-                            if (len >= 63) len = 62;
-                            memcpy(id, col0, (size_t)len);
-                            id[len] = '\0';
-                            if (q_strcasecmp(id, g_quest_tracker_id) == 0 && col1 + 1 < line + line_len) {
-                                const char* name_start = col1 + 1;
-                                const char* name_end = (const char*)memchr(name_start, '\t', (size_t)((line + line_len) - name_start));
-                                if (!name_end) name_end = line + line_len;
-                                len = (int)(name_end - name_start);
-                                if (len > 0 && len < (int)sizeof(g_quest_tracker_name)) {
-                                    memcpy(g_quest_tracker_name, name_start, (size_t)len);
-                                    g_quest_tracker_name[len] = '\0';
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    line = eol ? eol + 1 : line + line_len;
-                }
-            }
-        }
     }
 
     if (strcmp(g_quest_tracker_id, g_quest_tracker_last_n_obj_id) != 0)
         g_quest_tracker_last_n_obj = 0;
 
     static char tr_buf[1024];
-    int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
-    if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
-    else tr_buf[0] = '\0';
-
     int n_obj = 0;
-    if (tr_buf[0]) {
-        const char* p = tr_buf;
-        while (*p) { if (*p == '\n') n_obj++; p++; }
-        if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
-    }
+    int active_idx = 0;
+    /* Refresh every frame: STAR client cache is in-memory (ODOOM updates tracker CVars each frame). */
+    {
+        int nr = star_api_get_quest_tracker_objectives_string(g_quest_tracker_id, tr_buf, sizeof(tr_buf));
+        if (nr > 0 && nr < (int)sizeof(tr_buf)) tr_buf[nr] = '\0';
+        else tr_buf[0] = '\0';
 
-    /* Fallback: if tracker API returned no lines (e.g. stub or cache not ready), use quest objectives string and show objective names */
-    if (n_obj == 0) {
-        static char obj_buf[1024];
-        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
-        if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
-        else obj_buf[0] = '\0';
-        if (obj_buf[0]) {
-            char* out = tr_buf;
-            size_t out_left = sizeof(tr_buf);
-            const char* line = obj_buf;
-            n_obj = 0;
-            while (line[0] && out_left > 1) {
-                const char* eol = strchr(line, '\n');
-                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                /* Format: Q\tid\tname\tdesc\tstatus\tpct - take column 2 (name) or 3 (desc) for display */
-                if (line_len >= 3 && (line[0] == 'Q' || line[0] == 'O') && line[1] == '\t') {
-                    const char* col0 = line + 2;
-                    const char* col1 = (const char*)memchr(col0, '\t', line_len - (col0 - line));
-                    const char* col2 = col1 && col1 + 1 < line + line_len ? col1 + 1 : col0;
-                    const char* col2_end = col2;
-                    if (col2_end < line + line_len) {
-                        col2_end = (const char*)memchr(col2, '\t', (size_t)((line + line_len) - col2));
-                        if (!col2_end) col2_end = line + line_len;
-                    }
-                    const char* col3 = (col2_end && col2_end < line + line_len) ? col2_end + 1 : col2;
-                    const char* col3_end = col3;
-                    if (col3 < line + line_len) {
-                        col3_end = (const char*)memchr(col3, '\t', (size_t)((line + line_len) - col3));
-                        if (!col3_end) col3_end = line + line_len;
-                    }
-                    size_t name_len = (size_t)(col2_end - col2);
-                    size_t desc_len = (size_t)(col3_end - col3);
-                    const char* use = col2;
-                    size_t use_len = name_len;
-                    if (use_len == 0 && desc_len > 0) { use = col3; use_len = desc_len; }
-                    if (use_len > 0 && use_len < out_left - 1) {
-                        if (n_obj > 0) { *out++ = '\n'; out_left--; }
-                        if (use_len >= out_left) use_len = out_left - 1;
-                        memcpy(out, use, use_len);
-                        out += use_len;
-                        out_left -= use_len;
-                        n_obj++;
-                    }
-                }
-                line = eol ? eol + 1 : line + line_len;
-            }
-            if (out_left > 0) *out = '\0';
+        if (tr_buf[0]) {
+            const char* p = tr_buf;
+            while (*p) { if (*p == '\n') n_obj++; p++; }
+            if (nr > 0 && p > tr_buf && tr_buf[nr - 1] != '\n') n_obj++;
         }
+
+        /* Fallback: if tracker API returned no lines, use quest objectives string and show objective names. */
+        if (n_obj == 0) {
+            static char obj_buf[1024];
+            int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obj_buf, sizeof(obj_buf));
+            if (no > 0 && no < (int)sizeof(obj_buf)) obj_buf[no] = '\0';
+            else obj_buf[0] = '\0';
+            if (obj_buf[0]) {
+                char* out = tr_buf;
+                size_t out_left = sizeof(tr_buf);
+                const char* line = obj_buf;
+                n_obj = 0;
+                while (line[0] && out_left > 1) {
+                    const char* eol = strchr(line, '\n');
+                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                    if (line_len >= 3 && (line[0] == 'Q' || line[0] == 'O') && line[1] == '\t') {
+                        const char* col0 = line + 2;
+                        const char* col1 = (const char*)memchr(col0, '\t', line_len - (col0 - line));
+                        const char* col2 = col1 && col1 + 1 < line + line_len ? col1 + 1 : col0;
+                        const char* col2_end = col2;
+                        if (col2_end < line + line_len) {
+                            col2_end = (const char*)memchr(col2, '\t', (size_t)((line + line_len) - col2));
+                            if (!col2_end) col2_end = line + line_len;
+                        }
+                        const char* col3 = (col2_end && col2_end < line + line_len) ? col2_end + 1 : col2;
+                        const char* col3_end = col3;
+                        if (col3 < line + line_len) {
+                            col3_end = (const char*)memchr(col3, '\t', (size_t)((line + line_len) - col3));
+                            if (!col3_end) col3_end = line + line_len;
+                        }
+                        size_t name_len = (size_t)(col2_end - col2);
+                        size_t desc_len = (size_t)(col3_end - col3);
+                        const char* use = col2;
+                        size_t use_len = name_len;
+                        if (use_len == 0 && desc_len > 0) { use = col3; use_len = desc_len; }
+                        if (use_len > 0 && use_len < out_left - 1) {
+                            if (n_obj > 0) { *out++ = '\n'; out_left--; }
+                            if (use_len >= out_left) use_len = out_left - 1;
+                            memcpy(out, use, use_len);
+                            out += use_len;
+                            out_left -= use_len;
+                            n_obj++;
+                        }
+                    }
+                    line = eol ? eol + 1 : line + line_len;
+                }
+                if (out_left > 0) *out = '\0';
+            }
+        }
+
+        if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_id[0] &&
+            (g_quest_tracker_active_display_index < 0 || (n_obj > 0 && g_quest_tracker_active_display_index >= n_obj))) {
+            static char obuf[1024];
+            int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obuf, sizeof(obuf));
+            if (no > 0 && no < (int)sizeof(obuf)) obuf[no] = '\0';
+            else obuf[0] = '\0';
+            if (obuf[0]) {
+                const char* line = obuf;
+                int idx = 0;
+                while (line[0]) {
+                    const char* eol = strchr(line, '\n');
+                    size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
+                    if (line_len >= 3 && (line[0] == 'O' || line[0] == 'Q') && line[1] == '\t') {
+                        const char* col0 = line + 2;
+                        const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
+                        if (col1 && (int)(col1 - col0) < 63) {
+                            char oid[64];
+                            int len = (int)(col1 - col0);
+                            if (len >= 63) len = 62;
+                            memcpy(oid, col0, (size_t)len);
+                            oid[len] = '\0';
+                            if (strcmp(oid, g_quest_tracker_active_objective_id) == 0) {
+                                g_quest_tracker_active_display_index = idx;
+                                g_quest_tracker_objective_index = idx;
+                                break;
+                            }
+                        }
+                        idx++;
+                    }
+                    line = eol ? eol + 1 : line + line_len;
+                }
+            }
+        }
+
+        if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
+            active_idx = g_quest_tracker_active_display_index;
+        else {
+            active_idx = star_api_get_quest_tracker_active_objective_index(g_quest_tracker_id);
+            if (active_idx < 0) active_idx = 0;
+            if (active_idx >= n_obj && n_obj > 0) active_idx = n_obj - 1;
+        }
+
     }
 
     if (n_obj > 0) {
@@ -5905,122 +6954,74 @@ void OQuake_STAR_DrawQuestTracker(cb_context_t* cbx) {
         q_strlcpy(g_quest_tracker_last_n_obj_id, g_quest_tracker_id, sizeof(g_quest_tracker_last_n_obj_id));
     }
 
-    /* When tracker was restored from profile (active objective id set, display index not), resolve index from objectives list */
-    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_id[0] &&
-        (g_quest_tracker_active_display_index < 0 || (n_obj > 0 && g_quest_tracker_active_display_index >= n_obj))) {
-        static char obuf[1024];
-        int no = star_api_get_quest_objectives_string(g_quest_tracker_id, obuf, sizeof(obuf));
-        if (no > 0 && no < (int)sizeof(obuf)) obuf[no] = '\0';
-        else obuf[0] = '\0';
-        if (obuf[0]) {
-            const char* line = obuf;
-            int idx = 0;
-            while (line[0]) {
-                const char* eol = strchr(line, '\n');
-                size_t line_len = eol ? (size_t)(eol - line) : strlen(line);
-                if (line_len >= 3 && (line[0] == 'O' || line[0] == 'Q') && line[1] == '\t') {
-                    const char* col0 = line + 2;
-                    const char* col1 = (const char*)memchr(col0, '\t', line_len - 2);
-                    if (col1 && (int)(col1 - col0) < 63) {
-                        char oid[64];
-                        int len = (int)(col1 - col0);
-                        if (len >= 63) len = 62;
-                        memcpy(oid, col0, (size_t)len);
-                        oid[len] = '\0';
-                        if (strcmp(oid, g_quest_tracker_active_objective_id) == 0) {
-                            g_quest_tracker_active_display_index = idx;
-                            g_quest_tracker_objective_index = idx;
-                            break;
-                        }
-                    }
-                    idx++;
-                }
-                line = eol ? eol + 1 : line + line_len;
-            }
-        }
-    }
-
     int disp_idx = g_quest_tracker_objective_index;
     if (disp_idx > n_obj + 1) disp_idx = n_obj + 1;
     if (disp_idx == n_obj + 1) return;  /* Hide */
 
-    int active_idx;
-    if (g_quest_tracker_active_objective_id[0] && g_quest_tracker_active_display_index >= 0 && g_quest_tracker_active_display_index < n_obj)
-        active_idx = g_quest_tracker_active_display_index;
-    else {
-        active_idx = star_api_get_quest_tracker_active_objective_index(g_quest_tracker_id);
-        if (active_idx < 0) active_idx = 0;
-        if (active_idx >= n_obj && n_obj > 0) active_idx = n_obj - 1;
-    }
+    {
+        extern int glwidth, glheight;
+        char	 title_buf[192];
+        int		 line_step = OQ_PY(10);
+        qboolean title_done;
+        int		 y = 8;
+        int		 max_y;
 
-    int y = 8;
-    if (disp_idx >= n_obj) {
-        /* All: quest title with same brown background as inventory selected tab, then each progress line; highlight active in green */
-        char buf[160];
-        if (g_quest_tracker_name[0])
-            q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
+        OQ_BuildTrackerQuestTitleLine(title_buf, sizeof(title_buf));
+        title_done = OQ_TrackerLineIsCompleted(title_buf);
+        if (title_done)
+            OQ_DrawStrCol(cbx, 8, (float)y, title_buf, 110, 110, 110);
         else
-            q_strlcpy(buf, "Loading...", sizeof(buf));
-        {
-            int title_len = (int)strlen(buf);
-            int title_w = title_len * 8 + 4;
-            if (title_w > 320) title_w = 320;
-            Draw_Fill(cbx, 6, y - 1, title_w, 10, 224, 0.60f);  /* same brown as inventory popup selected tab */
-        }
-#ifdef OQUAKE_DRAW_STRING_COLORED
-        Draw_StringColored(cbx, 8, y, OQUAKE_QUEST_TRACKER_TITLE_PALETTE, buf);
-#else
-        Draw_String(cbx, 8, y, buf);
-#endif
-        y += 10;
-        const char* line = tr_buf;
-        int idx = 0;
-        while (line[0] && y < 200) {
-            const char* eol = strchr(line, '\n');
-            size_t len = eol ? (size_t)(eol - line) : strlen(line);
-            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
-            memcpy(buf, line, len);
-            buf[len] = '\0';
-            if (idx == active_idx)
-                Draw_Fill(cbx, 6, y - 1, (int)(len * 8) + 4, 10, 56, 0.55f);
-            Draw_String(cbx, 8, y, buf);
-            y += 10;
-            idx++;
-            line = eol ? eol + 1 : line + len;
-        }
-    } else {
-        /* Single objective: quest title with same brown background as inventory selected tab, then one progress line */
-        char buf[160];
-        if (g_quest_tracker_name[0])
-            q_snprintf(buf, sizeof(buf), "Quest: %.120s", g_quest_tracker_name);
-        else
-            q_strlcpy(buf, "Loading...", sizeof(buf));
-        {
-            int title_len = (int)strlen(buf);
-            int title_w = title_len * 8 + 4;
-            if (title_w > 320) title_w = 320;
-            Draw_Fill(cbx, 6, y - 1, title_w, 10, 224, 0.60f);  /* same brown as inventory popup selected tab */
-        }
-#ifdef OQUAKE_DRAW_STRING_COLORED
-        Draw_StringColored(cbx, 8, y, OQUAKE_QUEST_TRACKER_TITLE_PALETTE, buf);
-#else
-        Draw_String(cbx, 8, y, buf);
-#endif
-        y += 10;
-        const char* line = tr_buf;
-        int idx = 0;
-        while (line[0] && idx <= disp_idx) {
-            const char* eol = strchr(line, '\n');
-            size_t len = eol ? (size_t)(eol - line) : strlen(line);
-            if (len >= sizeof(buf)) len = sizeof(buf) - 1;
-            memcpy(buf, line, len);
-            buf[len] = '\0';
-            if (idx == disp_idx) {
-                Draw_String(cbx, 8, y, buf);
-                break;
+            OQ_DrawStrCol(cbx, 8, (float)y, title_buf, 255, 210, 64);
+        y += line_step;
+
+        max_y = (glheight > 0) ? (int)(glheight * 0.45f) : 200;
+
+        if (disp_idx >= n_obj) {
+            const char* pline = tr_buf;
+            int			idx = 0;
+            while (pline[0] && y < max_y) {
+                const char* eol = strchr(pline, '\n');
+                size_t		len = eol ? (size_t)(eol - pline) : strlen(pline);
+                char		obuf[256];
+                qboolean	done;
+                if (len >= sizeof(obuf)) len = sizeof(obuf) - 1;
+                memcpy(obuf, pline, len);
+                obuf[len] = '\0';
+                done = OQ_TrackerLineIsCompleted(obuf);
+                if (done)
+                    OQ_DrawStrCol(cbx, 8, (float)y, obuf, 110, 110, 110);
+                else if (idx == active_idx)
+                    OQ_DrawStrCol(cbx, 8, (float)y, obuf, 64, 255, 100);
+                else
+                    OQ_DrawStr(cbx, 8, (float)y, obuf);
+                y += line_step;
+                idx++;
+                pline = eol ? eol + 1 : pline + len;
             }
-            idx++;
-            line = eol ? eol + 1 : line + len;
+        } else {
+            const char* pline = tr_buf;
+            int			idx = 0;
+            while (pline[0] && idx <= disp_idx) {
+                const char* eol = strchr(pline, '\n');
+                size_t		len = eol ? (size_t)(eol - pline) : strlen(pline);
+                char		obuf[256];
+                qboolean	done;
+                if (len >= sizeof(obuf)) len = sizeof(obuf) - 1;
+                memcpy(obuf, pline, len);
+                obuf[len] = '\0';
+                if (idx == disp_idx) {
+                    done = OQ_TrackerLineIsCompleted(obuf);
+                    if (done)
+                        OQ_DrawStrCol(cbx, 8, (float)y, obuf, 110, 110, 110);
+                    else if (idx == active_idx)
+                        OQ_DrawStrCol(cbx, 8, (float)y, obuf, 64, 255, 100);
+                    else
+                        OQ_DrawStr(cbx, 8, (float)y, obuf);
+                    break;
+                }
+                idx++;
+                pline = eol ? eol + 1 : pline + len;
+            }
         }
     }
 }
@@ -6044,6 +7045,9 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     /* Quest tracker (when set from quest popup) above "Beamed In" */
     OQuake_STAR_DrawQuestTracker(cbx);
 
+    if (!oquake_hud_show_beamed.string || !atoi(oquake_hud_show_beamed.string))
+        return;
+
     const char* username = OQuake_STAR_GetUsername();
     char status[128];
     if (username && username[0]) {
@@ -6052,7 +7056,7 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
         q_strlcpy(status, "Beamed In Avatar: None", sizeof(status));
     }
     /* Draw at bottom-left; label is "Beamed In Avatar:" (not "Beamed In Avatar 2") */
-    Draw_String(cbx, 8, glheight - 24, status);
+    OQ_DrawStr(cbx, 8, glheight - OQ_PY(24), status);
 }
 
 void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
@@ -6065,14 +7069,14 @@ void OQuake_STAR_DrawVersionStatus(cb_context_t* cbx) {
     if (!cbx || glwidth <= 0 || glheight <= 0)
         return;
 
-    text_w = (int)strlen(text) * 8;
+    text_w = OQ_TEXT_W_CHARS((int)strlen(text));
     x = glwidth - text_w - 8;
-    y = glheight - 24;
+    y = glheight - OQ_PY(24);
     if (x < 8)
         x = 8;
     if (y < 8)
         y = 8;
-    Draw_String(cbx, x, y, text);
+    OQ_DrawStr(cbx, x, y, text);
 }
 
 void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
@@ -6083,16 +7087,21 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
 
     if (!cbx || glwidth <= 0 || glheight <= 0)
         return;
+    if (!oquake_hud_show_xp.string || !atoi(oquake_hud_show_xp.string))
+        return;
     if (!g_star_initialized || !g_star_beamed_in)
         return;
     if (!star_api_get_avatar_xp(&xp))
         return;
     q_snprintf(buf, sizeof(buf), "XP: %d", xp);
     /* Top right: same horizontal alignment as version, a bit below top edge */
-    x = glwidth - (int)strlen(buf) * 8 - 8;
-    y = 12;
+    x = glwidth - OQ_TEXT_W_CHARS((int)strlen(buf)) * 2 - 8;
+    y = OQ_PY(12);
     if (x < 8) x = 8;
-    Draw_String(cbx, x, y, buf);
+    {
+        byte gold[4] = {255, 210, 64, 255};
+        OQ_DrawStrScale(cbx, (float)x, (float)y, OQ_UI_TEXT_SCALE * 2.0f, buf, gold);
+    }
 }
 
 void OQuake_STAR_DrawToast(cb_context_t* cbx) {
@@ -6103,10 +7112,10 @@ void OQuake_STAR_DrawToast(cb_context_t* cbx) {
         return;
     len = (int)strlen(g_oq_toast_message);
     if (len <= 0) return;
-    x = (glwidth - len * 8) / 2;
+    x = (glwidth - OQ_TEXT_W_CHARS(len)) / 2;
     if (x < 8) x = 8;
-    y = 12;
-    Draw_String(cbx, x, y, g_oq_toast_message);
+    y = OQ_PY(12);
+    OQ_DrawStr(cbx, x, y, g_oq_toast_message);
 }
 
 int OQuake_STAR_ShouldUseAnorakFace(void) {

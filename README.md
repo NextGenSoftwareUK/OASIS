@@ -1072,6 +1072,7 @@ Sophisticated tokenomics with:
 ## 📚 Documentation
 
 ### 🚀 **Quick Start Guides**
+- **[OASIS Omniverse — ODOOM, OQuake & STARAPIClient](./OASIS%20Omniverse/README.md)** - Native Doom/Quake integrations and STAR client; full documentation index under `OASIS Omniverse/Docs/`
 - **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide
 - **[OASIS Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Get started with OASIS in 10 minutes
 - **[STARNET Web UI Quick Start](./Docs/Devs/STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI in 5 minutes

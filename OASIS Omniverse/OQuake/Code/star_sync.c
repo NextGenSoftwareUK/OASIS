@@ -84,6 +84,8 @@ static void* auth_thread_proc(void* param) {
     (void)param;
 #ifdef _WIN32
     EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
 #endif
     str_copy(user, g_auth_username_buf, sizeof(user));
     str_copy(pass, g_auth_password_buf, sizeof(pass));

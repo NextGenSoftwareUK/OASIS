@@ -247,6 +247,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverProvidersForCheckIfEmailAlreadyInUse { get; set; }
         public string AutoFailOverProvidersForCheckIfUsernameAlreadyInUse { get; set; }
         public string AutoFailOverProvidersForCheckIfOASISSystemAccountExists { get; set; }
+        /// <summary>When true, <see cref="AutoFailOverLocalProviders"/> is used by native/offline-first hosts to walk local-capable storage providers (e.g. SQLite, MongoDB, LocalFile, HoloOASIS) without treating remote APIs as the next hop.</summary>
+        public bool AutoFailOverLocalProvidersEnabled { get; set; }
+        /// <summary>Comma-separated <see cref="NextGenSoftware.OASIS.API.Core.Enums.ProviderType"/> names tried in order when switching to offline-first / local storage failover (HyperDrive native path).</summary>
+        public string AutoFailOverLocalProviders { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }

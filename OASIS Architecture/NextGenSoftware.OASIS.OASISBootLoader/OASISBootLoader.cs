@@ -217,6 +217,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
                     ProviderManager.Instance.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                    ProviderManager.Instance.IsAutoFailOverLocalProvidersEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProvidersEnabled;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForAvatarLogin = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForAvatarLogin;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfEmailAlreadyInUse;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfUsernameAlreadyInUse;
@@ -1389,6 +1390,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (providerTypesResult != null && !providerTypesResult.IsError)
                 ProviderManager.Instance.SetAutoReplicationForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverLocalProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProviders);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverLocalForProviders(true, providerTypesResult.Result);
             else
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
 

@@ -16,10 +16,11 @@ server int odoom_key_3 = 0;
 server int odoom_key_b = 0;
 server int odoom_key_n = 0;
 server int odoom_key_m = 0;
+server int odoom_key_v = 0;
+server int odoom_key_d = 0;
 server int odoom_key_use = 0;
 server int odoom_key_a = 0;
 server int odoom_key_c = 0;
-server int odoom_key_d = 0;
 server int odoom_key_z = 0;
 server int odoom_key_x = 0;
 server int odoom_key_i = 0;
@@ -83,13 +84,19 @@ server int odoom_quest_tracker_active_index = 0;
 server string odoom_quest_tracker_active_objective_id = "";
 // When 1, C++ persists tracker quest/objective to API then clears this. ZScript sets to 1 only when user presses Enter on objective or K to set tracker (avoids persisting wrong value from UI sync).
 server int odoom_quest_persist_active_now = 0;
-// Quest popup (Q key): full list for ZScript. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tTitle\tDescription\tProgressSummary\tdone\n" per embedded objective, "---\n" between quests.
+// Quest popup (Q key): windowed list for ZScript (like inventory). C++ fills a byte-budget slice; odoom_quest_count = total filtered quests for scroll math. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests.
 server int odoom_quest_popup_open = 0;
 server string odoom_quest_list = "";
+// Total filtered quest rows (matches filter CVars); list CVar may hold only a scroll window.
 server int odoom_quest_count = 0;
+// ZScript sets when jumping from detail to a quest; C++ finds row, adjusts odoom_quest_scroll_offset, sets odoom_quest_pending_select_filtered_index, then clears.
+server string odoom_quest_scroll_to_id = "";
+server int odoom_quest_pending_select_filtered_index = -1;
 // Set active quest from popup: ZScript sets odoom_quest_set_active_id and odoom_quest_set_active_do_it=1; C++ calls star_api_start_quest and clears do_it.
 server string odoom_quest_set_active_id = "";
 server int odoom_quest_set_active_do_it = 0;
+// Not Started + Enter on objective: ZScript sets tracker CVars + odoom_quest_start_then_track_do_it=1; C++ calls star_api_start_quest_then_set_active_objective (start then persist, no race with odoom_quest_persist_active_now).
+server int odoom_quest_start_then_track_do_it = 0;
 // Current selected quest id (main list or detail). ZScript sets every frame when quest popup is open; C++ uses this when K is pressed so Start/Set works reliably.
 server string odoom_quest_selected_id = "";
 // Which quest to show in the HUD tracker (quest id). Empty = use first in list.
@@ -100,7 +107,7 @@ server int odoom_quest_filter_in_progress = 1;
 server int odoom_quest_filter_completed = 1;
 // Quest popup list scroll offset (UI writes here; play context syncs to class field for drawing).
 server int odoom_quest_scroll_offset = 0;
-// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the list CVars from STAR API. P=Prereqs, O=Objectives, S=Subquests (separate views).
+// Quest detail popup (2nd popup): ZScript sets odoom_quest_detail_quest_id when opening; C++ fills the list CVars from STAR API. Tabs: Overview, Objectives, Prereqs, Subquests (D/O/P/S jump; Left/Right cycle).
 server string odoom_quest_detail_quest_id = "";
 server string odoom_quest_detail_prereqs = "";
 server string odoom_quest_detail_objectives = "";

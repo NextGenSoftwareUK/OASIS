@@ -1,6 +1,6 @@
 # Building ODOOM and OQuake on Linux and macOS
 
-Unix (Linux and macOS) equivalents of the Windows batch files **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat**. For a full step-by-step guide, see **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** or **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)**.
+Unix (Linux and macOS) equivalents of the Windows batch files **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat**. For a full step-by-step guide, see **[GettingStarted_Linux.md](GettingStarted_Linux.md)** or **[GettingStarted_Mac.md](GettingStarted_Mac.md)**.
 
 ## Quick start
 
@@ -30,7 +30,7 @@ cd "OASIS Omniverse/OQuake"
 
 ### ODOOM
 
-- **UZDoom source** – clone [UZDoom](https://github.com/coelckers/UZDoom) (or GZDoom/UZDoom) to e.g. `$HOME/Source/UZDoom`.
+- **UZDoom source (`UZDOOM_SRC`)** – **Recommended:** clone **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (OASIS fork of UZDoom) to e.g. `$HOME/Source/UZDoom`. Upstream [UZDoom](https://github.com/UZDoom/UZDoom) works only if build scripts successfully copy/patch integration from this repo.
 - Set `UZDOOM_SRC` if your path is different:
   ```bash
   export UZDOOM_SRC=/path/to/UZDoom
@@ -42,7 +42,7 @@ cd "OASIS Omniverse/OQuake"
 ### OQuake
 
 - **quake-rerelease-qc** – QuakeC source tree at e.g. `$HOME/Source/quake-rerelease-qc`. Set `QUAKE_SRC` if needed.
-- **vkQuake** – clone [vkQuake](https://github.com/Novum/vkQuake) to e.g. `$HOME/Source/vkQuake`. Set `VKQUAKE_SRC` if needed.
+- **vkQuake (`VKQUAKE_SRC`)** – **Recommended:** clone **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (OASIS fork of vkQuake) to e.g. `$HOME/Source/vkQuake`. Set `VKQUAKE_SRC` if needed. Upstream [vkQuake](https://github.com/Novum/vkQuake) is supported only via copy/patch from this repo.
 - **Meson and Ninja** – `sudo apt install meson ninja-build` (or equivalent).
 - **Vulkan SDK** – required to build vkQuake.
 - **Quake game data** – id1 with pak0.pak, pak1.pak. Set `OQUAKE_BASEDIR` to your Quake install (e.g. Steam: `$HOME/.steam/steam/steamapps/common/Quake`).

@@ -2,7 +2,9 @@
 
 This project is **the** STAR API client for ODOOM, OQuake, and other C/C++ games. ODOOM and OQuake use **STARAPIClient only**—do not use NativeWrapper. This C# client implements the C ABI entry points (`star_api_*`) used by game integrations.
 
-**Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../ARCHITECTURE.md)** in the OASIS Omniverse folder for the full architecture and porting checklist.
+**Design:** The client is built so it does **all the heavy lifting** (HTTP, caching, queuing, mint + add_item, background workers). Games only call a small C API and stay minimal; no game-specific logic lives here. This keeps the client generic and makes porting new games quicker. See **[ARCHITECTURE.md](../Docs/ARCHITECTURE.md)** in **OASIS Omniverse/Docs** for the full architecture and porting checklist.
+
+**Quest system (endpoints, `star_api_*`, game hooks):** **`OASIS Omniverse/Docs/STAR_Quest_System_Developer_Guide.md`**. **Players:** **`OASIS Omniverse/Docs/STAR_Games_User_Guide.md`**.
 
 ### Where do StarQuestInfo, StarQuestObjective come from?
 
@@ -45,7 +47,7 @@ The client (and API responses) use these contract DTOs rather than the backend d
 
 **Could star_sync be moved into STARAPIClient?**
 
-- Yes. The same C entry points are implemented in C# in **StarSyncExports.cs** and exported from the client DLL. **By default**, BUILD ODOOM and BUILD_OQUAKE use the in-client implementation (**OASIS_STAR_SYNC_IN_CLIENT=1**); games link the client and do not compile `star_sync.c`. To use the C implementation instead, set **OASIS_STAR_SYNC_IN_CLIENT=0** (or change one line in the build script); see `star_sync.h` and **STAR_INTEGRATION_AUDIT.md** . Background work uses `Task`/async; `star_sync_pump()` calls into C# to run completed callbacks on the “main” thread (the one that called pump).
+- Yes. The same C entry points are implemented in C# in **StarSyncExports.cs** and exported from the client DLL. **By default**, BUILD ODOOM and BUILD_OQUAKE use the in-client implementation (**OASIS_STAR_SYNC_IN_CLIENT=1**); games link the client and do not compile `star_sync.c`. To use the C implementation instead, set **OASIS_STAR_SYNC_IN_CLIENT=0** (or change one line in the build script); see `star_sync.h` and **[STAR_INTEGRATION_AUDIT.md](../Docs/STAR_INTEGRATION_AUDIT.md)**. Background work uses `Task`/async; `star_sync_pump()` calls into C# to run completed callbacks on the “main” thread (the one that called pump).
 
 **Pros of moving star_sync into STARAPIClient (C#)**
 

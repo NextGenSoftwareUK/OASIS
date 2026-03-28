@@ -1,5 +1,12 @@
 # Phase 2: Multi-Game Quest System (WEB5 STAR Quest API)
 
+**Canonical docs (kept up to date):**
+
+- **Developers (API + STARAPIClient + new games):** `OASIS Omniverse/Docs/STAR_Quest_System_Developer_Guide.md`
+- **Players (OQuake / ODOOM keys, beam-in, quests UI):** `OASIS Omniverse/Docs/STAR_Games_User_Guide.md`
+
+---
+
 ## Overview
 
 Phase 2 is the **multi-game quest system** backed by the **WEB5 STAR API** (Quest API). The flow is:
@@ -164,4 +171,4 @@ Quest definitions must use **objective dictionaries** (`NeedToKillMonsters`, `Ne
 - **STARAPIClient** – Talks to WEB5 and exposes **star_api_start_quest**, **star_api_complete_quest_objective**, **star_api_complete_quest** to native games.
 - **ODOOM & OQuake** – Use STARAPIClient (`star_api.dll`) for all quest operations; no direct WEB5 access. They call the C API when the player starts a quest, completes an objective, or completes the quest.
 
-For setup, build, and config (including `star_api_url` for WEB5), see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) and [STARAPIClient/README.md](STARAPIClient/README.md).
+For setup, build, and config (including `star_api_url` for WEB5), see [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md) and [STARAPIClient/README.md](../STARAPIClient/README.md).

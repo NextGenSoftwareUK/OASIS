@@ -5,8 +5,8 @@ Short path to building and running ODOOM and OQuake with the STAR API. For full 
 ## 1. Prerequisites
 
 - **OASIS** repo at e.g. `C:\Source\OASIS-master`
-- **UZDoom** at e.g. `C:\Source\UZDoom` (for ODOOM)
-- **vkQuake** at e.g. `C:\Source\vkQuake` (for OQuake)
+- **Engine for ODOOM** at e.g. `C:\Source\UZDoom` — **recommended:** clone **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** (not only vanilla UZDoom)
+- **Engine for OQuake** at e.g. `C:\Source\vkQuake` — **recommended:** clone **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** (not only vanilla vkQuake)
 - **quake-rerelease-qc** at e.g. `C:\Source\quake-rerelease-qc` (for OQuake)
 - Visual Studio with C++ tools, CMake, Python 3, Vulkan SDK (OQuake), .NET SDK (APIs/STARAPIClient)
 
@@ -56,7 +56,7 @@ From OASIS repo root, in **Developer Command Prompt for VS**:
 "OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"
 ```
 
-Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). Run: `OASIS Omniverse\OQuake\build\OQUAKE.exe` with Quake data (e.g. id1, pak files). See [OQuake/WINDOWS_INTEGRATION.md](OQuake/WINDOWS_INTEGRATION.md).
+Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). Run: `OASIS Omniverse\OQuake\build\OQUAKE.exe` with Quake data (e.g. id1, pak files). See [OQuake/Docs/WINDOWS_INTEGRATION.md](../OQuake/Docs/WINDOWS_INTEGRATION.md).
 
 ## 6. Test
 
@@ -77,4 +77,4 @@ Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). R
 
 - Full setup and config: [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)
 - Integration details: [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
-- ODOOM: [ODOOM/README.md](ODOOM/README.md) | OQuake: [OQuake/README.md](OQuake/README.md)
+- ODOOM: [ODOOM/README.md](../ODOOM/README.md) | OQuake: [OQuake/README.md](../OQuake/README.md)
