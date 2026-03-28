@@ -1,68 +1,159 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0a0a0f;
-  --surface: #111118;
-  --surface2: #18181f;
-  --border: #1e1e2a;
-  --border2: #2a2a38;
-  --text: #e2e2f0;
-  --text2: #9090a8;
-  --text3: #5a5a72;
-  --accent: #6366f1;
-  --accent-dim: #6366f120;
-  --accent-border: #6366f140;
-  --green: #22c55e;
-  --green-dim: #22c55e15;
-  --amber: #f59e0b;
-  --amber-dim: #f59e0b15;
-  --red: #ef4444;
-  --red-dim: #ef444415;
-  --orange: #f97316;
-  --orange-dim: #f9731615;
-  --teal: #14b8a6;
-  --teal-dim: #14b8a615;
-  --purple: #a855f7;
-  --purple-dim: #a855f715;
-  font-family: 'Inter', sans-serif;
+  /* Surfaces */
+  --bg:       #0A0A0A;
+  --sidebar:  #080808;
+  --surface:  #141414;
+  --surface2: #1A1A1A;
+
+  /* Borders — rgba tints like port-dashboard */
+  --border:   rgba(255,255,255,0.07);
+  --border2:  rgba(255,255,255,0.12);
+
+  /* Text */
+  --text:  #E0E0E0;
+  --text2: #6A6A6A;
+  --text3: #424242;
+
+  /* Single accent — teal, borrowed from port-dashboard spirit */
+  --accent:   #2DD4BF;
+  --accent-bg: rgba(45,212,191,0.08);
+  --accent-border: rgba(45,212,191,0.2);
+
+  /* Semantic */
+  --green:  #22C55E;
+  --amber:  #F59E0B;
+  --red:    #EF4444;
+  --blue:   #60A5FA;
+  --purple: #8B5CF6;
+
+  /* Fonts */
+  --font-serif:   'Instrument Serif', Georgia, 'Times New Roman', serif;
+  --font-sans:    'Space Grotesk', -apple-system, system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  font-family: var(--font-sans);
   font-size: 14px;
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
-body { min-height: 100vh; background: var(--bg); }
+html, body, #root { height: 100%; }
 
-.mono { font-family: 'JetBrains Mono', monospace; }
+/* ── Atmospheric background — radial warmth + subtle dot grid ── */
+body {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% -5%, rgba(45,212,191,0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 105%, rgba(96,165,250,0.04) 0%, transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
+/* Fixed dot grid — same technique as port-dashboard, neutral tint */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 40%, black 20%, transparent 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Panel — 0.5px border on desktop (pangea pattern) + hairline top accent ── */
+.panel-card {
+  position: relative;
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.panel-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(45,212,191,0.2), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Scrollbars — port-dashboard style, accent tint ── */
+::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(45,212,191,0.15); border-radius: 99px; }
 
-button {
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.875rem;
-  border: none;
-  outline: none;
-  transition: opacity 0.15s, background 0.15s, box-shadow 0.15s;
-}
-button:disabled { opacity: 0.45; cursor: not-allowed; }
+button { cursor: pointer; font-family: inherit; border: none; outline: none; transition: background 0.12s, color 0.12s, border-color 0.12s, opacity 0.12s; }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 input, textarea, select {
   font-family: inherit;
-  font-size: 0.875rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  font-size: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--border2);
   color: var(--text);
   border-radius: 6px;
   padding: 8px 12px;
   outline: none;
   width: 100%;
-  transition: border-color 0.15s;
+  transition: border-color 0.12s, box-shadow 0.12s;
 }
-input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-select option { background: var(--surface2); }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+input::placeholder, textarea::placeholder { color: var(--text3); }
 
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+/* Primary button — pangea-style inset top highlight */
+.btn-primary {
+  background: var(--accent);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #051210;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 2px rgba(0,0,0,0.3);
+}
+.btn-primary:hover { background: #25C4B0; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Ghost button — inset border highlight */
+.btn-ghost {
+  background: rgba(255,255,255,0.04);
+  color: var(--text2);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.82rem;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.09);
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text); border-color: rgba(255,255,255,0.15); }
+.btn-ghost:active { transform: scale(0.98); }
+
+/* ── Staggered entrance animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.fade-up { animation: fadeUp 0.4s ease both; }
+.fade-up-1  { animation-delay: 0.04s;  opacity: 0; }
+.fade-up-2  { animation-delay: 0.08s;  opacity: 0; }
+.fade-up-3  { animation-delay: 0.12s;  opacity: 0; }
+.fade-up-4  { animation-delay: 0.16s;  opacity: 0; }
+.fade-up-5  { animation-delay: 0.20s;  opacity: 0; }
+.fade-up-6  { animation-delay: 0.24s;  opacity: 0; }
+.fade-up-7  { animation-delay: 0.28s;  opacity: 0; }

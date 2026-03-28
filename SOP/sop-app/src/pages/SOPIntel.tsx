@@ -1,427 +1,231 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  BarChart2, CheckCircle2, AlertTriangle, Sparkles, ChevronRight,
-  ExternalLink, ThumbsUp, ThumbsDown, TrendingUp, Clock, Users, Activity
-} from 'lucide-react'
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  Cell, CartesianGrid
-} from 'recharts'
-import { StatCard } from '../components/Card'
+import { CheckCircle, Warning, Sparkle, ThumbsUp, ThumbsDown, ArrowSquareOut } from '@phosphor-icons/react'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, CartesianGrid, LineChart, Line } from 'recharts'
+import { StatCard, Card, CardHeader } from '../components/Card'
 import { Badge } from '../components/Badge'
 
-// ─── Demo data ───────────────────────────────────────────────────────────────
-
-const SOPS = [
-  'Enterprise Customer Onboarding v3',
-  'Container Gate-In & Customs Clearance',
-  'New Employee Onboarding',
-  'Investment Due Diligence',
-  'Monthly ESG Impact Report',
-]
+const SOPS = ['Enterprise Customer Onboarding v3','Container Gate-In & Customs Clearance','New Employee Onboarding','Investment Due Diligence','Monthly ESG Impact Report']
 
 const STATS = [
-  { label: 'Completion Rate', value: '87%', sub: '94 of 108 runs completed', color: '#22c55e' },
-  { label: 'Avg Duration', value: '42m', sub: 'vs 60m estimated', color: '#6366f1' },
-  { label: 'Deviations / Run', value: '1.2', sub: '23 total · 8 unresolved', color: '#f59e0b' },
-  { label: 'AI Improvements', value: '5', sub: 'Pending your review', color: '#a855f7' },
+  { label: 'Completion Rate', value: '87%', sub: '94 of 108 runs',     trend: { direction: 'up'   as const, label: '+4% vs last month' } },
+  { label: 'Avg Duration',    value: '42m', sub: 'vs 60 min estimated', trend: { direction: 'up'   as const, label: '30% faster' } },
+  { label: 'Deviations / Run',value: '1.2', sub: '23 total · 8 open',  trend: { direction: 'down' as const, label: '−0.3 vs avg' } },
+  { label: 'AI Improvements', value: '5',   sub: 'Pending review' },
 ]
 
-const STEP_DEVIATIONS = [
-  { step: 'Welcome Email', deviations: 2, avgDuration: 5, color: '#22c55e' },
-  { step: 'Discovery Call', deviations: 8, avgDuration: 52, color: '#f59e0b' },
-  { step: 'Complexity Branch', deviations: 1, avgDuration: 2, color: '#22c55e' },
-  { step: 'Setup Guide', deviations: 14, avgDuration: 78, color: '#ef4444' },
-  { step: 'Activation Check', deviations: 11, avgDuration: 95, color: '#ef4444' },
-  { step: 'Go-Live Sign-Off', deviations: 4, avgDuration: 34, color: '#f59e0b' },
-  { step: 'CRM Update', deviations: 0, avgDuration: 1, color: '#22c55e' },
+const STEPS = [
+  { step: 'Welcome Email',    deviations: 2,  avgDuration: 5  },
+  { step: 'Discovery Call',   deviations: 8,  avgDuration: 52 },
+  { step: 'Branch',           deviations: 1,  avgDuration: 2  },
+  { step: 'Setup Guide',      deviations: 14, avgDuration: 78 },
+  { step: 'Activation Check', deviations: 11, avgDuration: 95 },
+  { step: 'Go-Live Sign-Off', deviations: 4,  avgDuration: 34 },
+  { step: 'CRM Update',       deviations: 0,  avgDuration: 1  },
 ]
 
 const AVATARS = [
-  { name: 'Kelly A.', role: 'CustomerSuccessManager', completions: 34, deviations: 3, rate: '91%' },
-  { name: 'Max G.', role: 'SolutionsEngineer', completions: 28, deviations: 7, rate: '79%' },
-  { name: 'Jordan T.', role: 'CustomerSuccessManager', completions: 22, deviations: 2, rate: '94%' },
-  { name: 'Sam R.', role: 'SolutionsEngineer', completions: 18, deviations: 5, rate: '83%' },
-  { name: 'System', role: 'Automated', completions: 108, deviations: 1, rate: '99%' },
+  { name: 'Kelly A.',  runs: 34, completion: '94%', avgDuration: '39m', deviations: 2, role: 'CS Manager'     },
+  { name: 'Max G.',    runs: 21, completion: '71%', avgDuration: '58m', deviations: 7, role: 'Solutions Eng.' },
+  { name: 'Jordan T.', runs: 18, completion: '89%', avgDuration: '43m', deviations: 3, role: 'Onboarding'     },
+  { name: 'System',    runs: 47, completion: '100%',avgDuration: '6m',  deviations: 0, role: 'Automation'     },
 ]
 
-const AI_IMPROVEMENTS = [
-  {
-    id: 'imp-1',
-    step: 'Setup Guide + Zendesk Ticket',
-    issue: 'Step 4 has a 34% deviation rate due to timeout. Avg duration is 78 min vs 60 min timeout.',
-    suggestion: 'Increase TimeoutMinutes from 60 to 120. Add sub-step checklist to ConnectorConfig to break into smaller verifiable actions.',
-    severity: 'High',
-    status: 'pending',
-  },
-  {
-    id: 'imp-2',
-    step: 'Activation Check-In (Day 7)',
-    issue: 'Step 5 has 11 deviations — 8 are MissingEvidence type. Executors are completing without uploading usage data screenshot.',
-    suggestion: 'Set RequiresEvidence to true. Update AIPrompt to explicitly request product usage rate as a numeric input before completion.',
-    severity: 'High',
-    status: 'pending',
-  },
-  {
-    id: 'imp-3',
-    step: 'Technical Discovery Call',
-    issue: 'Step 2 has 8 deviations — 6 are Timeout type. Calls are running long.',
-    suggestion: 'Add a structured discovery template as ConnectorConfig.questionnaireUrl. This reduces call time by giving the SE a pre-filled agenda.',
-    severity: 'Medium',
-    status: 'pending',
-  },
-  {
-    id: 'imp-4',
-    step: 'Go-Live Sign-Off',
-    issue: '3 out of 4 deviations are delayed sign-off — customer admin not responding to wallet sign request.',
-    suggestion: 'Add a fallback branch: if avatar_wallet sign-off is not completed within 24h, automatically switch to docusign path.',
-    severity: 'Medium',
-    status: 'pending',
-  },
-  {
-    id: 'imp-5',
-    step: 'SOP Overall',
-    issue: 'Runs where AI guidance was used have 31% lower deviation rate than runs without.',
-    suggestion: 'Add RequiresAIGuidance flag to Steps 2, 4, and 5. Prompt runner UI to open co-pilot before those steps can be started.',
-    severity: 'Low',
-    status: 'pending',
-  },
+const AI_QUEUE = [
+  { id: 1, step: 'Setup Guide',     suggestion: 'This step has a 58% deviation rate for Enterprise customers. BRAID recommends splitting into two steps: "Send guide" and "Confirm receipt (24h check-in)".', impact: 'High',   accepted: null },
+  { id: 2, step: 'Activation Check',suggestion: 'Average duration is 95 min — 60% over estimate. BRAID suggests automated Zendesk check-in at 48h to flag at-risk accounts before the 7-day window.',              impact: 'High',   accepted: null },
+  { id: 3, step: 'Discovery Call',  suggestion: 'BRAID detected 3 runs where the complexity branch was manually overridden. Recommend adding a scoring rubric (1–5) to reduce subjectivity.',                       impact: 'Medium', accepted: null },
 ]
 
 const RUNS = [
-  { id: 'r-001', date: '2026-03-28', status: 'completed', duration: '47m', avatars: 3, deviations: 0, proof: 'ph-a1b2' },
-  { id: 'r-002', date: '2026-03-27', status: 'completed', duration: '1h 12m', avatars: 2, deviations: 2, proof: 'ph-c3d4' },
-  { id: 'r-003', date: '2026-03-26', status: 'running', duration: '2h 14m', avatars: 3, deviations: 1, proof: null },
-  { id: 'r-004', date: '2026-03-25', status: 'completed', duration: '38m', avatars: 2, deviations: 0, proof: 'ph-e5f6' },
-  { id: 'r-005', date: '2026-03-24', status: 'failed', duration: '4h 02m', avatars: 4, deviations: 5, proof: null },
-  { id: 'r-006', date: '2026-03-23', status: 'completed', duration: '52m', avatars: 2, deviations: 1, proof: 'ph-g7h8' },
+  { id: 'r1', avatar: 'Kelly A.',  status: 'completed', duration: '38m',   deviations: 0, started: 'Mar 24', proof: '0x1a2b…3c4d' },
+  { id: 'r2', avatar: 'Max G.',    status: 'deviation',  duration: '3d 1h', deviations: 2, started: 'Mar 22', proof: '0x5e6f…7a8b' },
+  { id: 'r3', avatar: 'System',    status: 'completed', duration: '44m',   deviations: 0, started: 'Mar 21', proof: '0x9c0d…1e2f' },
+  { id: 'r4', avatar: 'Jordan T.', status: 'completed', duration: '52m',   deviations: 1, started: 'Mar 20', proof: '0x3a4b…5c6d' },
 ]
 
-// ─── Custom tooltip ──────────────────────────────────────────────────────────
+const TREND = [{ week: 'W9', rate: 78 }, { week: 'W10', rate: 81 }, { week: 'W11', rate: 80 }, { week: 'W12', rate: 85 }, { week: 'W13', rate: 87 }]
 
-function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) {
-  if (!active || !payload?.length) return null
-  return (
-    <div style={{ background: '#18181f', border: '1px solid #2a2a38', borderRadius: 6, padding: '10px 14px', fontSize: '0.78rem' }}>
-      <p style={{ color: '#e2e2f0', fontWeight: 600, marginBottom: 4 }}>{label}</p>
-      {payload.map(p => (
-        <p key={p.name} style={{ color: '#9090a8' }}>{p.name}: <span style={{ color: '#e2e2f0' }}>{p.value}</span></p>
-      ))}
-    </div>
-  )
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
+const TT = { contentStyle: { background: '#181818', border: '1px solid #2C2C2C', borderRadius: 5, fontSize: 12, color: '#D4D4D4' }, labelStyle: { color: '#707070' }, cursor: { fill: 'rgba(255,255,255,0.03)' } }
+const TH = { padding: '8px 18px', textAlign: 'left' as const, fontSize: '0.63rem', color: '#454545', textTransform: 'uppercase' as const, letterSpacing: '0.08em', fontWeight: 600 }
+const TD = { padding: '11px 18px', fontSize: '0.82rem' }
 
 export function SOPIntel() {
-  const navigate = useNavigate()
-  const [selectedSOP, setSelectedSOP] = useState(0)
-  const [improvements, setImprovements] = useState(AI_IMPROVEMENTS)
-  const [activeTab, setActiveTab] = useState<'deviations' | 'duration'>('deviations')
-
-  function handleImprovement(id: string, action: 'approve' | 'reject') {
-    setImprovements(prev => prev.map(i => i.id === id ? { ...i, status: action === 'approve' ? 'approved' : 'rejected' } : i))
-  }
-
-  const pendingCount = improvements.filter(i => i.status === 'pending').length
+  const [sop, setSop] = useState(SOPS[0])
+  const [queue, setQueue] = useState(AI_QUEUE)
+  const maxDev = Math.max(...STEPS.map(s => s.deviations))
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 24px' }}>
+    <div style={{ padding: '32px 36px 48px' }}>
+
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '32px' }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <BarChart2 size={18} color="#22c55e" />
-            <h1 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#e2e2f0' }}>SOPIntel</h1>
-          </div>
-          <p style={{ color: '#9090a8', fontSize: '0.85rem' }}>Analytics, deviation heatmaps, and AI-proposed improvements</p>
+                      <h1 style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontSize: '2.4rem', fontWeight: 400, color: '#DCDCDC', letterSpacing: '-0.01em', lineHeight: 1.15, marginBottom: 8 }}>SOPIntel</h1>
+          <p style={{ fontSize: '0.95rem', color: '#636363' }}>Deviation heatmaps, team performance, and AI improvement suggestions.</p>
         </div>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <select
-            value={selectedSOP}
-            onChange={e => setSelectedSOP(Number(e.target.value))}
-            style={{ width: 'auto', minWidth: 260 }}
-          >
-            {SOPS.map((s, i) => <option key={i} value={i}>{s}</option>)}
-          </select>
-          <button
-            onClick={() => navigate('/runner')}
-            style={{ background: '#6366f1', color: '#fff', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}
-          >
-            <Activity size={13} /> Run SOP
-          </button>
-        </div>
+        <select value={sop} onChange={e => setSop(e.target.value)}
+          style={{ width: 'auto', padding: '6px 10px', fontSize: '0.8rem', cursor: 'pointer', background: '#181818', border: '1px solid #2C2C2C', color: '#C4C4C4', borderRadius: 5 }}>
+          {SOPS.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
       </div>
 
-      {/* KPI cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '28px' }}>
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '28px', padding: '20px 22px', background: '#111111', border: '1px solid #1F1F1F', borderRadius: '7px', marginBottom: '14px' }}>
         {STATS.map(s => <StatCard key={s.label} {...s} />)}
       </div>
 
-      {/* Heatmap + Avatar table row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '16px', marginBottom: '20px' }}>
-
-        {/* Heatmap */}
-        <div style={{ background: '#111118', border: '1px solid #1e1e2a', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div>
-              <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e2e2f0', marginBottom: '2px' }}>Step Analysis</h2>
-              <p style={{ fontSize: '0.75rem', color: '#9090a8' }}>Deviations and avg duration per step</p>
-            </div>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              {(['deviations', 'duration'] as const).map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  style={{
-                    padding: '5px 12px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 600,
-                    background: activeTab === tab ? '#1e1e2a' : 'transparent',
-                    color: activeTab === tab ? '#e2e2f0' : '#5a5a72',
-                    border: activeTab === tab ? '1px solid #2a2a38' : '1px solid transparent',
-                  }}
-                >
-                  {tab === 'deviations' ? 'Deviations' : 'Avg Duration'}
-                </button>
-              ))}
-            </div>
+      {/* Trend + Heatmap */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+        <Card>
+          <CardHeader title="Completion Trend" sub="Weekly rate" />
+          <div style={{ padding: '16px 18px' }}>
+            <ResponsiveContainer width="100%" height={140}>
+              <LineChart data={TREND}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" />
+                <XAxis dataKey="week" tick={{ fill: '#454545', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[70, 100]} tick={{ fill: '#454545', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip {...TT} />
+                <Line type="monotone" dataKey="rate" stroke="#22C55E" strokeWidth={1.5} dot={{ fill: '#22C55E', r: 2.5 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
+        </Card>
 
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={STEP_DEVIATIONS} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e1e2a" />
-              <XAxis dataKey="step" tick={{ fill: '#5a5a72', fontSize: 11 }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fill: '#5a5a72', fontSize: 11 }} tickLine={false} axisLine={false} />
-              <Tooltip content={<CustomTooltip />} />
-              <Bar
-                dataKey={activeTab === 'deviations' ? 'deviations' : 'avgDuration'}
-                name={activeTab === 'deviations' ? 'Deviations' : 'Avg Duration (min)'}
-                radius={[4, 4, 0, 0]}
-              >
-                {STEP_DEVIATIONS.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} />
-                ))}
+        <Card>
+          <CardHeader title="Step Deviations" sub="Darker = more deviations" />
+          <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 5 }}>
+            {STEPS.map(s => {
+              const t = maxDev > 0 ? s.deviations / maxDev : 0
+              return (
+                <div key={s.step} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: '0.72rem', color: '#606060', width: 110, flexShrink: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.step}</span>
+                  <div style={{ flex: 1, height: 16, background: '#181818', borderRadius: 3, overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ position: 'absolute', inset: 0, width: `${t * 100}%`, background: t > 0.6 ? '#EF4444' : t > 0.3 ? '#F59E0B' : '#2C2C2C', borderRadius: 3, transition: 'width 0.4s' }} />
+                  </div>
+                  <span style={{ fontSize: '0.68rem', fontFamily: "'JetBrains Mono', monospace", color: '#505050', width: 14, textAlign: 'right' }}>{s.deviations}</span>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      </div>
+
+      {/* Duration chart */}
+      <Card style={{ marginBottom: '14px' }}>
+        <CardHeader title="Step Duration" sub="Average minutes per step" right={<span style={{ fontSize: '0.7rem', color: '#454545' }}>Estimate: 60 min</span>} />
+        <div style={{ padding: '16px 18px' }}>
+          <ResponsiveContainer width="100%" height={155}>
+            <BarChart data={STEPS} barSize={16}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
+              <XAxis dataKey="step" tick={{ fill: '#454545', fontSize: 10 }} axisLine={false} tickLine={false} interval={0} angle={-12} textAnchor="end" height={32} />
+              <YAxis tick={{ fill: '#454545', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip {...TT} formatter={(v: number) => [`${v} min`, 'Duration']} />
+              <Bar dataKey="avgDuration" radius={[3, 3, 0, 0]}>
+                {STEPS.map((s, i) => <Cell key={i} fill={s.avgDuration > 60 ? '#F59E0B' : '#2C2C2C'} />)}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-
-          {/* Legend */}
-          <div style={{ display: 'flex', gap: '16px', marginTop: '12px', justifyContent: 'center' }}>
-            {[['#22c55e', 'Low (0–3)'], ['#f59e0b', 'Medium (4–10)'], ['#ef4444', 'High (11+)']].map(([color, label]) => (
-              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#9090a8' }}>
-                <div style={{ width: 10, height: 10, borderRadius: 2, background: color }} />
-                {label}
-              </div>
-            ))}
-          </div>
         </div>
+      </Card>
 
-        {/* Avatar performance */}
-        <div style={{ background: '#111118', border: '1px solid #1e1e2a', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-            <Users size={14} color="#6366f1" />
-            <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e2e2f0' }}>Avatar Performance</h2>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #1e1e2a' }}>
-                {['Name', 'Steps', 'Dev', 'Rate'].map(h => (
-                  <th key={h} style={{ padding: '6px 8px', textAlign: 'left', fontSize: '0.65rem', color: '#5a5a72', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600 }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {AVATARS.map(a => (
-                <tr key={a.name} style={{ borderBottom: '1px solid #1e1e2a' }}>
-                  <td style={{ padding: '10px 8px' }}>
-                    <div style={{ fontSize: '0.82rem', color: '#e2e2f0', fontWeight: 500 }}>{a.name}</div>
-                    <div style={{ fontSize: '0.68rem', color: '#5a5a72' }}>{a.role}</div>
-                  </td>
-                  <td style={{ padding: '10px 8px', fontSize: '0.8rem', color: '#9090a8', fontFamily: 'JetBrains Mono, monospace' }}>{a.completions}</td>
-                  <td style={{ padding: '10px 8px' }}>
-                    <Badge variant={a.deviations === 0 ? 'success' : a.deviations <= 3 ? 'warning' : 'error'}>
-                      {a.deviations}
-                    </Badge>
-                  </td>
-                  <td style={{ padding: '10px 8px' }}>
-                    <span style={{ fontSize: '0.82rem', color: parseInt(a.rate) >= 90 ? '#22c55e' : parseInt(a.rate) >= 80 ? '#f59e0b' : '#ef4444', fontWeight: 600 }}>
-                      {a.rate}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* AI Improvement Queue + Run History row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-
-        {/* AI improvements */}
-        <div style={{ background: '#111118', border: '1px solid #1e1e2a', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
-              <Sparkles size={14} color="#a855f7" />
-              <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e2e2f0' }}>AI Improvement Queue</h2>
-            </div>
-            {pendingCount > 0 && <Badge variant="purple">{pendingCount} pending</Badge>}
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: 460, overflowY: 'auto' }}>
-            {improvements.map(imp => (
-              <div
-                key={imp.id}
-                style={{
-                  background: '#18181f', border: `1px solid ${imp.status === 'approved' ? '#22c55e30' : imp.status === 'rejected' ? '#2a2a38' : '#a855f720'}`,
-                  borderRadius: '8px', padding: '14px',
-                  opacity: imp.status !== 'pending' ? 0.5 : 1,
-                  transition: 'opacity 0.2s',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 600, color: '#e2e2f0' }}>{imp.step}</span>
-                  <Badge variant={imp.severity === 'High' ? 'error' : imp.severity === 'Medium' ? 'warning' : 'default'}>
-                    {imp.severity}
-                  </Badge>
-                </div>
-                <p style={{ fontSize: '0.76rem', color: '#9090a8', marginBottom: '6px', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#f59e0b' }}>Issue:</strong> {imp.issue}
-                </p>
-                <p style={{ fontSize: '0.76rem', color: '#c0d0c0', marginBottom: '10px', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#a855f7' }}>Suggestion:</strong> {imp.suggestion}
-                </p>
-                {imp.status === 'pending' ? (
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      onClick={() => handleImprovement(imp.id, 'approve')}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: '#22c55e15', border: '1px solid #22c55e30', color: '#22c55e', padding: '6px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 600 }}
-                    >
-                      <ThumbsUp size={11} /> Approve
-                    </button>
-                    <button
-                      onClick={() => handleImprovement(imp.id, 'reject')}
-                      style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', background: '#18181f', border: '1px solid #2a2a38', color: '#9090a8', padding: '6px', borderRadius: '5px', fontSize: '0.75rem' }}
-                    >
-                      <ThumbsDown size={11} /> Reject
-                    </button>
+      {/* Avatar performance */}
+      <Card style={{ marginBottom: '14px' }}>
+        <CardHeader title="Avatar Performance" sub="Individual and automated run statistics" />
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr style={{ borderBottom: '1px solid #1A1A1A' }}>
+            {['Avatar', 'Role', 'Runs', 'Completion', 'Avg Duration', 'Deviations'].map(h => <th key={h} style={TH}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {AVATARS.map(av => (
+              <tr key={av.name} style={{ borderBottom: '1px solid #181818', transition: 'background 0.1s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#161616'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <td style={TD}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#1A1A1A', border: '1px solid #2C2C2C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.55rem', fontWeight: 700, color: '#666', flexShrink: 0 }}>
+                      {av.name.split(' ').map(p => p[0]).join('')}
+                    </div>
+                    <span style={{ color: '#C4C4C4', fontWeight: 500 }}>{av.name}</span>
                   </div>
-                ) : (
-                  <Badge variant={imp.status === 'approved' ? 'success' : 'default'}>
-                    {imp.status === 'approved' ? <><CheckCircle2 size={9} style={{ marginRight: 3 }} />Approved — SOPVersionHolon created</> : 'Rejected'}
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Run history */}
-        <div style={{ background: '#111118', border: '1px solid #1e1e2a', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
-            <TrendingUp size={14} color="#6366f1" />
-            <h2 style={{ fontSize: '0.9rem', fontWeight: 600, color: '#e2e2f0' }}>Run History</h2>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #1e1e2a' }}>
-                {['Date', 'Status', 'Duration', 'Participants', 'Deviations', 'Proof'].map(h => (
-                  <th key={h} style={{ padding: '6px 8px', textAlign: 'left', fontSize: '0.65rem', color: '#5a5a72', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600 }}>
-                    {h}
-                  </th>
-                ))}
+                </td>
+                <td style={{ ...TD, color: '#606060' }}>{av.role}</td>
+                <td style={{ ...TD, color: '#808080', fontFamily: "'JetBrains Mono', monospace" }}>{av.runs}</td>
+                <td style={TD}><span style={{ fontWeight: 600, color: parseFloat(av.completion) >= 90 ? '#22C55E' : parseFloat(av.completion) >= 75 ? '#808080' : '#EF4444', fontFamily: "'JetBrains Mono', monospace" }}>{av.completion}</span></td>
+                <td style={{ ...TD, color: '#606060', fontFamily: "'JetBrains Mono', monospace" }}>{av.avgDuration}</td>
+                <td style={TD}><span style={{ fontWeight: 600, color: av.deviations === 0 ? '#22C55E' : av.deviations > 5 ? '#EF4444' : '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{av.deviations}</span></td>
               </tr>
-            </thead>
-            <tbody>
-              {RUNS.map(run => (
-                <tr
-                  key={run.id}
-                  style={{ borderBottom: '1px solid #1e1e2a', cursor: 'pointer', transition: 'background 0.1s' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#18181f'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-                  onClick={() => navigate(`/runner/${run.id}`)}
-                >
-                  <td style={{ padding: '10px 8px', fontSize: '0.78rem', color: '#9090a8', fontFamily: 'JetBrains Mono, monospace' }}>{run.date}</td>
-                  <td style={{ padding: '10px 8px' }}>
-                    {run.status === 'completed' && <Badge variant="success"><CheckCircle2 size={9} style={{ marginRight: 3 }} />Done</Badge>}
-                    {run.status === 'running' && <Badge variant="info">Running</Badge>}
-                    {run.status === 'failed' && <Badge variant="error">Failed</Badge>}
-                  </td>
-                  <td style={{ padding: '10px 8px' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#9090a8', fontFamily: 'JetBrains Mono, monospace' }}>
-                      <Clock size={10} />{run.duration}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 8px', fontSize: '0.78rem', color: '#9090a8', textAlign: 'center' }}>{run.avatars}</td>
-                  <td style={{ padding: '10px 8px', textAlign: 'center' }}>
-                    {run.deviations > 0
-                      ? <Badge variant="warning"><AlertTriangle size={9} style={{ marginRight: 3 }} />{run.deviations}</Badge>
-                      : <Badge variant="success">0</Badge>
-                    }
-                  </td>
-                  <td style={{ padding: '10px 8px' }}>
-                    {run.proof
-                      ? (
-                        <button
-                          onClick={e => { e.stopPropagation(); window.open(`http://localhost:5001/api/workflow/verify/${run.proof}`, '_blank') }}
-                          style={{ background: '#22c55e15', border: '1px solid #22c55e30', color: '#22c55e', padding: '3px 8px', borderRadius: '4px', fontSize: '0.7rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                        >
-                          <ExternalLink size={9} /> Verify
-                        </button>
-                      )
-                      : <span style={{ fontSize: '0.72rem', color: '#5a5a72' }}>—</span>
-                    }
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div style={{ marginTop: '12px', padding: '10px 12px', background: '#18181f', borderRadius: '6px', fontSize: '0.75rem', color: '#9090a8', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <CheckCircle2 size={12} color="#22c55e" />
-            Proof holons are verifiable at <code style={{ fontFamily: 'JetBrains Mono, monospace', color: '#6366f1', marginLeft: 4 }}>GET /api/workflow/verify/{'{holonId}'}</code>
-          </div>
+            ))}
+          </tbody>
+        </table>
+      </Card>
 
-          {/* Trend mini-chart */}
-          <div style={{ marginTop: '16px' }}>
-            <p style={{ fontSize: '0.72rem', color: '#5a5a72', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: 600, marginBottom: '8px' }}>
-              Completion Rate — Last 30 Days
-            </p>
-            <ResponsiveContainer width="100%" height={80}>
-              <BarChart data={[
-                { day: 'W1', rate: 82 }, { day: 'W2', rate: 88 }, { day: 'W3', rate: 85 }, { day: 'W4', rate: 94 },
-              ]} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
-                <XAxis dataKey="day" tick={{ fill: '#5a5a72', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <YAxis domain={[70, 100]} tick={{ fill: '#5a5a72', fontSize: 10 }} tickLine={false} axisLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="rate" name="Completion %" fill="#6366f1" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      {/* AI Improvement Queue */}
+      <Card style={{ marginBottom: '14px' }}>
+        <CardHeader title="AI Improvement Queue" sub={`${queue.filter(i => i.accepted === null).length} pending — generated by BRAID deviation analysis`} />
+        <div style={{ padding: '0' }}>
+          {queue.map((item, i) => (
+            <div key={item.id} style={{ display: 'flex', gap: 14, padding: '14px 18px', borderBottom: i < queue.length - 1 ? '1px solid #181818' : 'none', background: item.accepted !== null ? 'transparent' : '#111111', opacity: item.accepted !== null ? 0.45 : 1, transition: 'opacity 0.2s' }}>
+              <div style={{ width: 26, height: 26, borderRadius: 5, background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                <Sparkle size={12} weight="fill" color="#8B5CF6" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 4 }}>
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#C4C4C4' }}>{item.step}</span>
+                  <Badge variant={item.impact === 'High' ? 'warning' : 'default'}>{item.impact} impact</Badge>
+                  {item.accepted === true  && <Badge variant="success">Accepted</Badge>}
+                  {item.accepted === false && <Badge>Dismissed</Badge>}
+                </div>
+                <p style={{ fontSize: '0.8rem', color: '#666666', lineHeight: 1.65 }}>{item.suggestion}</p>
+              </div>
+              {item.accepted === null && (
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'flex-start', paddingTop: 2 }}>
+                  <button onClick={() => setQueue(q => q.map(x => x.id === item.id ? { ...x, accepted: true } : x))} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#22C55E', borderColor: 'rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.06)' }}>
+                    <ThumbsUp size={10} /> Accept
+                  </button>
+                  <button onClick={() => setQueue(q => q.map(x => x.id === item.id ? { ...x, accepted: false } : x))} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <ThumbsDown size={10} /> Dismiss
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </div>
+      </Card>
 
-      {/* STARNET CTA */}
-      <div style={{
-        marginTop: '20px', background: '#6366f110', border: '1px solid #6366f130',
-        borderRadius: '10px', padding: '20px 24px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#e2e2f0', marginBottom: '4px' }}>
-            Publish this SOP to STARNET
-          </h3>
-          <p style={{ fontSize: '0.8rem', color: '#9090a8' }}>
-            Make this SOP template discoverable and forkable by other organisations. Choose MIT (free) or Commercial (treasury-gated).
-          </p>
-        </div>
-        <button
-          style={{ background: '#6366f1', color: '#fff', padding: '10px 20px', borderRadius: '8px', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap' }}
-        >
-          Publish to STARNET <ChevronRight size={14} />
-        </button>
-      </div>
+      {/* Run History */}
+      <Card>
+        <CardHeader title="Run History" sub="All executions with immutable proof holon references" />
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead><tr style={{ borderBottom: '1px solid #1A1A1A' }}>
+            {['Started', 'Executed by', 'Status', 'Duration', 'Deviations', 'Proof Holon'].map(h => <th key={h} style={TH}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {RUNS.map(run => (
+              <tr key={run.id} style={{ borderBottom: '1px solid #181818', cursor: 'pointer', transition: 'background 0.1s' }}
+                onMouseEnter={e => e.currentTarget.style.background = '#161616'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                <td style={{ ...TD, color: '#606060' }}>{run.started}</td>
+                <td style={{ ...TD, color: '#C4C4C4', fontWeight: 500 }}>{run.avatar}</td>
+                <td style={TD}>
+                  {run.status === 'completed'
+                    ? <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.77rem', color: '#22C55E', fontWeight: 500 }}><CheckCircle size={11} weight="fill" />Completed</span>
+                    : <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '0.77rem', color: '#F59E0B', fontWeight: 500 }}><Warning size={11} weight="fill" />Deviation</span>
+                  }
+                </td>
+                <td style={{ ...TD, color: '#606060', fontFamily: "'JetBrains Mono', monospace" }}>{run.duration}</td>
+                <td style={TD}><span style={{ fontWeight: 600, color: run.deviations === 0 ? '#22C55E' : '#F59E0B', fontFamily: "'JetBrains Mono', monospace" }}>{run.deviations}</span></td>
+                <td style={TD}>
+                  <a href={`#proof/${run.proof}`} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.72rem', fontFamily: "'JetBrains Mono', monospace", color: '#454545', textDecoration: 'none' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#707070')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#454545')}>
+                    {run.proof}<ArrowSquareOut size={9} weight="bold" />
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
     </div>
   )
 }
