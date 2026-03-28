@@ -1,0 +1,284 @@
+{
+  "$schema": "https://oasisweb4.com/star-oapp-dna/v1",
+  "OAPPId": "a7f3c2e1-5b8d-4a9f-c6e2-3d1b7f4e8a05",
+  "OAPPName": "SOPTemplate",
+  "OAPPDesc": "Holonic Standard Operating Procedures. Transforms static SOPs into living, executable, auditable, AI-native procedures stored as holons on the OASIS COSMIC hierarchy. Supports multi-step workflows with decision branching, Avatar sign-offs, AI (BRAID) guidance, deviation detection, and STARNET publishing. Every run produces an immutable proof holon. Integrates with CRM, ticketing, calendar, messaging, and document-signing systems via webhooks.",
+  "OAPPVersion": "1.0.0",
+  "OAPPType_enum": 5,
+  "OAPPType_name": "OAPPTemplate",
+  "Author": "OASIS_ADMIN",
+  "CreatedOn": "2026-03-26",
+  "Licence": "MIT",
+  "Tags": ["sop", "workflow", "automation", "ai", "compliance", "audit", "braid", "cre", "customer-success", "operations"],
+  "CelestialBodyDNA": {
+    "Zomes": [
+      {
+        "Name": "SOPZome",
+        "Description": "Procedure definitions and version history. The SOPHolon is the master record; SOPVersionHolon captures immutable snapshots on every approved change.",
+        "Holons": [
+          {
+            "Name": "SOPHolon",
+            "Description": "Master definition of a Standard Operating Procedure. Referenced by all run, step, audit, and analytics holons via SOPId FK.",
+            "Fields": [
+              { "Name": "Id",                        "Type": "Guid",     "Description": "Canonical identifier — consistent across all storage providers." },
+              { "Name": "ParentHolonId",             "Type": "Guid",     "Description": "COSMIC parent — typically the OAPPHolon for this organisation's SOP planet." },
+              { "Name": "Name",                      "Type": "string",   "Description": "Human-readable SOP title, e.g. 'Enterprise Customer Onboarding v3'." },
+              { "Name": "Description",               "Type": "string",   "Description": "Detailed description of the SOP's purpose and scope." },
+              { "Name": "Version",                   "Type": "string",   "Description": "Semantic version string, e.g. '3.0.0'. Incremented on approved changes." },
+              { "Name": "Status",                    "Type": "string",   "Enum": ["Draft", "Active", "Deprecated", "Archived"],  "Description": "Current lifecycle state of the SOP." },
+              { "Name": "OwnerAvatarId",             "Type": "Guid",     "Description": "Avatar who owns and is accountable for this SOP." },
+              { "Name": "RequiredRoles",             "Type": "string[]", "Description": "List of role names required to execute this SOP, e.g. ['CustomerSuccessManager', 'SolutionsEngineer']." },
+              { "Name": "EstimatedDurationMinutes",  "Type": "int",      "Description": "Expected wall-clock time to complete one full run." },
+              { "Name": "Category",                  "Type": "string",   "Enum": ["CustomerSuccess", "Operations", "HR", "Compliance", "Finance", "Sales", "Technical", "Other"], "Description": "Primary domain this SOP belongs to." },
+              { "Name": "Tags",                      "Type": "string[]", "Description": "Searchable tags for STARNET discovery." },
+              { "Name": "ParentSOPId",               "Type": "Guid",     "Description": "FK to the SOPHolon this was forked from on STARNET, if applicable." },
+              { "Name": "WorkflowHolonId",           "Type": "Guid",     "Description": "FK to the persisted WorkflowDefinition holon in the CRE workflow engine (api/workflow/save)." },
+              { "Name": "SourcePublicOnSTARNET",     "Type": "bool",     "Description": "Whether this SOP template is publicly discoverable on STARNET." },
+              { "Name": "LicenceType",               "Type": "string",   "Enum": ["MIT", "Commercial", "KarmaGated"],  "Description": "How other organisations can use this SOP template." },
+              { "Name": "CreatedByAvatarId",         "Type": "Guid",     "Description": "Avatar who authored this SOP." },
+              { "Name": "CreatedOn",                 "Type": "DateTime", "Description": "Timestamp of first creation." },
+              { "Name": "LastModifiedOn",            "Type": "DateTime", "Description": "Timestamp of most recent approved change." }
+            ]
+          },
+          {
+            "Name": "SOPVersionHolon",
+            "Description": "Immutable snapshot of a SOPHolon at a specific version. Created automatically when a SOPHolon is approved for increment. Enables full change history and rollback.",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPId",           "Type": "Guid",     "Description": "FK to the parent SOPHolon." },
+              { "Name": "Version",         "Type": "string",   "Description": "The version captured in this snapshot." },
+              { "Name": "SnapshotJson",    "Type": "string",   "Description": "Full JSON snapshot of the SOPHolon and its steps at this version." },
+              { "Name": "ChangeNote",      "Type": "string",   "Description": "Human-readable description of what changed in this version." },
+              { "Name": "ChangedByAvatarId","Type": "Guid",    "Description": "Avatar who approved this version increment." },
+              { "Name": "Status",          "Type": "string",   "Enum": ["Approved", "AIProposed", "Rejected"],  "Description": "AIProposed = generated by BRAID improvement loop, awaiting human review." },
+              { "Name": "SnapshotOn",      "Type": "DateTime", "Description": "When this version snapshot was created." }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "StepZome",
+        "Description": "Step and branching logic definitions. SOPStepHolon is the core instruction unit; SOPDecisionPointHolon and SOPConditionBranchHolon together model if/else branching.",
+        "Holons": [
+          {
+            "Name": "SOPStepHolon",
+            "Description": "A single instruction within an SOP. Defines role, inputs/outputs, AI prompt, connector type (webhook, avatar, holon, braid, etc.), and failure handling.",
+            "Fields": [
+              { "Name": "Id",                   "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPId",                "Type": "Guid",     "Description": "FK to the parent SOPHolon." },
+              { "Name": "StepNumber",           "Type": "int",      "Description": "Ordinal position within the SOP (1-indexed). Steps with equal numbers run in parallel." },
+              { "Name": "Name",                 "Type": "string",   "Description": "Short step title, e.g. 'Send welcome email'." },
+              { "Name": "Description",          "Type": "string",   "Description": "Full instruction text shown to the executor." },
+              { "Name": "AssignedRole",         "Type": "string",   "Description": "Role name responsible for completing this step." },
+              { "Name": "ConnectorType",        "Type": "string",   "Enum": ["holon", "avatar", "braid", "webhook", "condition", "trigger", "agent", "nft", "wallet", "karma", "quest", "delay"], "Description": "CRE connector type that executes this step." },
+              { "Name": "ConnectorAction",      "Type": "string",   "Description": "Specific action on the connector, e.g. 'create', 'update', 'sign', 'notify'." },
+              { "Name": "ConnectorConfig",      "Type": "string",   "Description": "JSON string of connector-specific configuration (webhook URL, holon type, etc.)." },
+              { "Name": "InputSchema",          "Type": "string",   "Description": "JSON schema of required inputs for this step." },
+              { "Name": "OutputSchema",         "Type": "string",   "Description": "JSON schema of outputs produced by this step." },
+              { "Name": "AIPrompt",             "Type": "string",   "Description": "BRAID prompt sent to the AI model when executing this step. May reference {input.*} variables." },
+              { "Name": "RequiresAvatarSignOff","Type": "bool",     "Description": "If true, step cannot be completed without an Avatar wallet signature." },
+              { "Name": "RequiresEvidenceUpload","Type": "bool",    "Description": "If true, executor must upload at least one evidence file before completing." },
+              { "Name": "OnFailure",            "Type": "string",   "Enum": ["abort", "skip", "retry", "escalate"],  "Description": "What the runtime does if this step fails." },
+              { "Name": "MaxRetries",           "Type": "int",      "Description": "Number of automatic retries before escalating." },
+              { "Name": "TimeoutMinutes",       "Type": "int",      "Description": "Maximum time allowed for this step before a deviation is flagged." },
+              { "Name": "IsOptional",           "Type": "bool",     "Description": "Optional steps are skipped without creating a deviation if conditions are not met." },
+              { "Name": "DecisionPointId",      "Type": "Guid",     "Description": "FK to SOPDecisionPointHolon if this step is the entry point of a branch." }
+            ]
+          },
+          {
+            "Name": "SOPDecisionPointHolon",
+            "Description": "A branching node in the SOP graph. Evaluates a condition and routes execution to one of several SOPConditionBranchHolon paths.",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPId",           "Type": "Guid",     "Description": "FK to the parent SOPHolon." },
+              { "Name": "StepNumber",      "Type": "int",      "Description": "Position in the SOP step sequence." },
+              { "Name": "Name",            "Type": "string",   "Description": "Decision label, e.g. 'Complexity Score Branch'." },
+              { "Name": "ConditionField",  "Type": "string",   "Description": "The output field from the preceding step that is evaluated, e.g. 'IntegrationComplexityScore'." },
+              { "Name": "ConditionType",   "Type": "string",   "Enum": ["numeric_threshold", "string_equals", "bool_flag", "ai_evaluated"],  "Description": "How the condition is evaluated. ai_evaluated sends to BRAID for interpretation." },
+              { "Name": "DefaultBranchId", "Type": "Guid",     "Description": "FK to the SOPConditionBranchHolon used if no other branch matches." }
+            ]
+          },
+          {
+            "Name": "SOPConditionBranchHolon",
+            "Description": "A named branch from a decision point. Defines the condition value that triggers this branch and the first SOPStepHolon in the branch.",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "DecisionPointId", "Type": "Guid",     "Description": "FK to the parent SOPDecisionPointHolon." },
+              { "Name": "SOPId",           "Type": "Guid",     "Description": "FK to the parent SOPHolon." },
+              { "Name": "BranchName",      "Type": "string",   "Description": "Human label for this branch, e.g. 'ENTERPRISE PATH'." },
+              { "Name": "ConditionValue",  "Type": "string",   "Description": "The value that triggers this branch, e.g. '>=3' or 'RED' or 'true'." },
+              { "Name": "FirstStepId",     "Type": "Guid",     "Description": "FK to the SOPStepHolon where this branch begins." }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "RunZome",
+        "Description": "Execution instances and evidence. Every time an SOP is run, a SOPRunHolon is created. Every step completion creates a StepCompletionHolon. Deviations detected by AI or timeout create SOPDeviationHolon.",
+        "Holons": [
+          {
+            "Name": "SOPRunHolon",
+            "Description": "A single execution instance of an SOP. Tracks all participants, current step, inputs, outputs, status, and links to the proof holon on completion.",
+            "Fields": [
+              { "Name": "Id",                   "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPId",                "Type": "Guid",     "Description": "FK to the SOPHolon being executed." },
+              { "Name": "WorkflowExecutionId",  "Type": "string",   "Description": "The executionId returned by POST /api/workflow/execute." },
+              { "Name": "Status",               "Type": "string",   "Enum": ["Running", "Completed", "Failed", "Paused", "Abandoned"],  "Description": "Current run state." },
+              { "Name": "InitiatedByAvatarId",  "Type": "Guid",     "Description": "Avatar who started this run (or the system trigger if automated)." },
+              { "Name": "AssignedAvatarIds",    "Type": "string[]", "Description": "All Avatar IDs participating in this run across all roles." },
+              { "Name": "CurrentStepId",        "Type": "Guid",     "Description": "FK to the SOPStepHolon currently active." },
+              { "Name": "ActiveBranchId",       "Type": "Guid",     "Description": "FK to the SOPConditionBranchHolon currently being followed, if branched." },
+              { "Name": "RunInputs",            "Type": "string",   "Description": "JSON string of the trigger inputs that started this run." },
+              { "Name": "RunOutputs",           "Type": "string",   "Description": "JSON string of accumulated outputs as steps complete." },
+              { "Name": "StartedAt",            "Type": "DateTime", "Description": "Run start timestamp." },
+              { "Name": "EndedAt",              "Type": "DateTime", "Description": "Run end timestamp — null if still running." },
+              { "Name": "ProofHolonId",         "Type": "Guid",     "Description": "FK to the tamper-proof audit holon created on successful completion (via /api/workflow/verify)." },
+              { "Name": "ExternalContextId",    "Type": "string",   "Description": "ID from an external system that triggered this run, e.g. Salesforce OpportunityId, Zendesk TicketId." }
+            ]
+          },
+          {
+            "Name": "StepCompletionHolon",
+            "Description": "Evidence record for a single completed step in a run. Stores the completing Avatar, evidence hash, duration, AI output, and signature.",
+            "Fields": [
+              { "Name": "Id",                   "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPRunId",             "Type": "Guid",     "Description": "FK to the parent SOPRunHolon." },
+              { "Name": "SOPStepId",            "Type": "Guid",     "Description": "FK to the SOPStepHolon that was completed." },
+              { "Name": "CompletedByAvatarId",  "Type": "Guid",     "Description": "Avatar who completed this step." },
+              { "Name": "Status",               "Type": "string",   "Enum": ["Completed", "Skipped", "Failed"],  "Description": "Outcome of this step in this run." },
+              { "Name": "StepInputs",           "Type": "string",   "Description": "JSON of actual input values used." },
+              { "Name": "StepOutputs",          "Type": "string",   "Description": "JSON of actual output values produced." },
+              { "Name": "AIGuidanceUsed",       "Type": "bool",     "Description": "Whether the executor consulted AI guidance for this step." },
+              { "Name": "AIOutputSummary",      "Type": "string",   "Description": "Summary of what BRAID returned for this step, if used." },
+              { "Name": "EvidenceFileIds",      "Type": "string[]", "Description": "IDs of files uploaded as evidence (stored via FilesController)." },
+              { "Name": "EvidenceHash",         "Type": "string",   "Description": "SHA-256 of all evidence files concatenated — tamper detection." },
+              { "Name": "AvatarSignature",      "Type": "string",   "Description": "Wallet signature of the completing Avatar, if RequiresAvatarSignOff = true." },
+              { "Name": "DurationSeconds",      "Type": "int",      "Description": "Wall-clock seconds from step start to completion." },
+              { "Name": "CompletedAt",          "Type": "DateTime", "Description": "Timestamp of completion." },
+              { "Name": "Notes",                "Type": "string",   "Description": "Free-text notes added by the executor." }
+            ]
+          },
+          {
+            "Name": "SOPDeviationHolon",
+            "Description": "An anomaly detected during a run — by AI, by timeout, or by a human flag. Drives the SOPIntel deviation heatmap and AI improvement suggestions.",
+            "Fields": [
+              { "Name": "Id",                   "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPRunId",             "Type": "Guid",     "Description": "FK to the SOPRunHolon where this deviation occurred." },
+              { "Name": "SOPStepId",            "Type": "Guid",     "Description": "FK to the SOPStepHolon where the deviation was detected." },
+              { "Name": "SOPId",                "Type": "Guid",     "Description": "FK to the SOPHolon — used for aggregate analytics across runs." },
+              { "Name": "DeviationType",        "Type": "string",   "Enum": ["Timeout", "MissingEvidence", "SkippedRequired", "AIAnomaly", "ManualFlag", "ExternalSystemFailure"],  "Description": "Category of deviation." },
+              { "Name": "Severity",             "Type": "string",   "Enum": ["Low", "Medium", "High", "Critical"],  "Description": "Impact level — Critical deviations can trigger an escalation SOP." },
+              { "Name": "Description",          "Type": "string",   "Description": "Human-readable explanation of what went wrong." },
+              { "Name": "AIAnalysis",           "Type": "string",   "Description": "BRAID's interpretation of why the deviation occurred." },
+              { "Name": "DetectedByAvatarId",   "Type": "Guid",     "Description": "Avatar who flagged this deviation, if manually detected. Null if AI or system detected." },
+              { "Name": "ResolvedByAvatarId",   "Type": "Guid",     "Description": "Avatar who resolved this deviation." },
+              { "Name": "ResolutionNote",       "Type": "string",   "Description": "How the deviation was resolved." },
+              { "Name": "Status",               "Type": "string",   "Enum": ["Open", "Acknowledged", "Resolved", "Escalated"],  "Description": "Current deviation state." },
+              { "Name": "DetectedAt",           "Type": "DateTime", "Description": "When the deviation was first recorded." },
+              { "Name": "ResolvedAt",           "Type": "DateTime", "Description": "When the deviation was resolved." }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "AuditZome",
+        "Description": "Immutable audit logs and aggregated analytics. SOPAuditHolon is the tamper-proof record of a completed run. SOPAnalyticsHolon accumulates metrics across all runs for SOPIntel.",
+        "Holons": [
+          {
+            "Name": "SOPAuditHolon",
+            "Description": "Immutable audit certificate for a completed SOPRunHolon. Created automatically by the workflow engine on run completion and verified via /api/workflow/verify. Suitable for regulatory compliance, LP reporting, and contractual SLA evidence.",
+            "Fields": [
+              { "Name": "Id",                     "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPRunId",               "Type": "Guid",     "Description": "FK to the audited SOPRunHolon." },
+              { "Name": "SOPId",                  "Type": "Guid",     "Description": "FK to the SOPHolon that was executed." },
+              { "Name": "SOPVersion",             "Type": "string",   "Description": "The exact SOP version that was executed in this run." },
+              { "Name": "StartedAt",              "Type": "DateTime", "Description": "Run start timestamp." },
+              { "Name": "CompletedAt",            "Type": "DateTime", "Description": "Run completion timestamp." },
+              { "Name": "DurationSeconds",        "Type": "int",      "Description": "Total wall-clock duration." },
+              { "Name": "Outcome",                "Type": "string",   "Enum": ["Completed", "Failed", "Abandoned"],  "Description": "Final run outcome." },
+              { "Name": "StepsCompleted",         "Type": "int",      "Description": "Number of steps successfully completed." },
+              { "Name": "StepsSkipped",           "Type": "int",      "Description": "Number of optional steps skipped." },
+              { "Name": "DeviationCount",         "Type": "int",      "Description": "Total deviations detected during this run." },
+              { "Name": "CriticalDeviationCount", "Type": "int",      "Description": "Deviations with severity Critical." },
+              { "Name": "AvatarSignatures",       "Type": "string[]", "Description": "All Avatar wallet signatures collected during this run." },
+              { "Name": "EvidenceHashes",         "Type": "string[]", "Description": "All evidence SHA-256 hashes from all StepCompletionHolons in this run." },
+              { "Name": "ProofHolonId",           "Type": "Guid",     "Description": "The tamper-proof holon ID returned by the workflow engine — verifiable on-chain." },
+              { "Name": "ExternalContextId",      "Type": "string",   "Description": "External system reference, e.g. Salesforce OpportunityId." }
+            ]
+          },
+          {
+            "Name": "SOPAnalyticsHolon",
+            "Description": "Aggregated performance metrics across all runs of a SOPHolon. Updated after every completed run. Powers the SOPIntel dashboard. One record per SOP.",
+            "Fields": [
+              { "Name": "Id",                       "Type": "Guid",   "Description": "Canonical identifier." },
+              { "Name": "SOPId",                    "Type": "Guid",   "Description": "FK to the SOPHolon being measured." },
+              { "Name": "TotalRuns",                "Type": "int",    "Description": "All-time run count." },
+              { "Name": "CompletedRuns",            "Type": "int",    "Description": "Runs that reached Completed status." },
+              { "Name": "FailedRuns",               "Type": "int",    "Description": "Runs that reached Failed status." },
+              { "Name": "AbandonedRuns",            "Type": "int",    "Description": "Runs that were abandoned mid-way." },
+              { "Name": "CompletionRate",           "Type": "double", "Description": "CompletedRuns / TotalRuns as a percentage." },
+              { "Name": "AvgDurationSeconds",       "Type": "double", "Description": "Mean wall-clock duration across completed runs." },
+              { "Name": "P95DurationSeconds",       "Type": "double", "Description": "95th percentile duration — used for SLA monitoring." },
+              { "Name": "TotalDeviations",          "Type": "int",    "Description": "All-time deviation count." },
+              { "Name": "DeviationsPerRun",         "Type": "double", "Description": "Mean deviations per run." },
+              { "Name": "MostDeviatedStepId",       "Type": "Guid",   "Description": "FK to the SOPStepHolon with the highest deviation count." },
+              { "Name": "AIImprovementsPending",    "Type": "int",    "Description": "Number of AI-proposed SOPVersionHolons awaiting human review." },
+              { "Name": "LastRunAt",                "Type": "DateTime","Description": "Timestamp of the most recent run." },
+              { "Name": "LastUpdatedAt",            "Type": "DateTime","Description": "When this analytics record was last recalculated." }
+            ]
+          }
+        ]
+      },
+      {
+        "Name": "IntegrationZome",
+        "Description": "External system connections. IntegrationTriggerHolon defines what fires an SOP. WebhookConfigHolon defines outbound connections. ExternalSystemLinkHolon binds a run to a specific external record.",
+        "Holons": [
+          {
+            "Name": "IntegrationTriggerHolon",
+            "Description": "Defines what event fires a new SOPRunHolon. Supports webhooks (inbound from external systems), schedules (cron), manual starts, and holon events (another holon changing state).",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPId",           "Type": "Guid",     "Description": "FK to the SOPHolon this trigger fires." },
+              { "Name": "TriggerType",     "Type": "string",   "Enum": ["Webhook", "Schedule", "Manual", "HolonEvent", "SOPRunComplete"],  "Description": "What activates this trigger." },
+              { "Name": "WebhookUrl",      "Type": "string",   "Description": "The ONODE endpoint that receives the inbound trigger event (if TriggerType = Webhook)." },
+              { "Name": "WebhookSecret",   "Type": "string",   "Description": "HMAC secret for verifying inbound webhook authenticity." },
+              { "Name": "CronExpression",  "Type": "string",   "Description": "Cron schedule string (if TriggerType = Schedule), e.g. '0 9 1 * *' for 1st of month 9am." },
+              { "Name": "SourceSOPRunId",  "Type": "Guid",     "Description": "FK to the SOPRunHolon whose completion fires this trigger (if TriggerType = SOPRunComplete)." },
+              { "Name": "InputMapping",    "Type": "string",   "Description": "JSON mapping of trigger payload fields to SOPRunHolon.RunInputs fields." },
+              { "Name": "IsActive",        "Type": "bool",     "Description": "Whether this trigger is currently active." }
+            ]
+          },
+          {
+            "Name": "WebhookConfigHolon",
+            "Description": "An outbound webhook connection from a step to an external system. One WebhookConfigHolon per step-system connection.",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPStepId",       "Type": "Guid",     "Description": "FK to the SOPStepHolon that sends this webhook." },
+              { "Name": "SOPId",           "Type": "Guid",     "Description": "FK to the parent SOPHolon." },
+              { "Name": "SystemName",      "Type": "string",   "Enum": ["Salesforce", "HubSpot", "Zendesk", "Freshdesk", "Slack", "MicrosoftTeams", "GoogleCalendar", "Outlook", "DocuSign", "HelloSign", "Zapier", "Make", "Jira", "ServiceNow", "Custom"],  "Description": "The external system being called." },
+              { "Name": "EventType",       "Type": "string",   "Description": "The action being performed in the external system, e.g. 'create_ticket', 'update_opportunity_stage', 'send_message'." },
+              { "Name": "EndpointUrl",     "Type": "string",   "Description": "Full URL of the external system API endpoint." },
+              { "Name": "AuthType",        "Type": "string",   "Enum": ["Bearer", "ApiKey", "OAuth2", "HmacSignature", "None"],  "Description": "Authentication method." },
+              { "Name": "AuthSecretRef",   "Type": "string",   "Description": "Reference to the vault secret holding the auth credential (never stored in plain text)." },
+              { "Name": "PayloadTemplate", "Type": "string",   "Description": "JSON template for the outbound payload. Supports {input.*} and {output.*} variable interpolation." },
+              { "Name": "OnSuccess",       "Type": "string",   "Enum": ["Continue", "MapResponse"],  "Description": "What to do with the external system's response." },
+              { "Name": "ResponseMapping", "Type": "string",   "Description": "JSON mapping of external response fields to SOPStepHolon outputs." }
+            ]
+          },
+          {
+            "Name": "ExternalSystemLinkHolon",
+            "Description": "Binds a specific SOPRunHolon to records in external systems. Enables bi-directional lookup: from OASIS find the CRM record, from the CRM find the SOP run.",
+            "Fields": [
+              { "Name": "Id",              "Type": "Guid",     "Description": "Canonical identifier." },
+              { "Name": "SOPRunId",        "Type": "Guid",     "Description": "FK to the SOPRunHolon." },
+              { "Name": "SystemName",      "Type": "string",   "Description": "Name of the external system." },
+              { "Name": "RecordType",      "Type": "string",   "Description": "Type of record in the external system, e.g. 'Opportunity', 'Ticket', 'Deal'." },
+              { "Name": "ExternalId",      "Type": "string",   "Description": "The ID of the record in the external system." },
+              { "Name": "ExternalUrl",     "Type": "string",   "Description": "Direct URL to the record in the external system." },
+              { "Name": "LinkedAt",        "Type": "DateTime", "Description": "When this link was established." }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

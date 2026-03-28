@@ -277,6 +277,16 @@
       "zomes":   ["PatientZome", "ProviderZome", "RecordZome", "PrescriptionZome", "ConsentZome"],
       "apis":    ["VaultController", "FilesController", "HyperDriveController", "NftController", "DataController"],
       "dna":     "STAR_Templates/star_dna/SovereignHealthRecordTemplate.json"
+    },
+    {
+      "name":    "SOPTemplate",
+      "id":      "4a3881fd-0481-46c9-b8ad-6e3497ef97bb",
+      "type":    "OAPPTemplate",
+      "tags":    ["sop", "workflow", "automation", "ai", "compliance", "audit", "braid", "cre", "customer-success", "operations"],
+      "summary": "Holonic Standard Operating Procedures. Transforms static SOPs into living, executable, auditable, AI-native procedures stored as holons. 13 holons across 5 zomes: SOPZome (definition + versioning), StepZome (instructions + branching), RunZome (execution + evidence), AuditZome (certificates + analytics), IntegrationZome (CRM/Slack/Calendar webhooks). Every run produces an immutable on-chain proof holon. BRAID AI guides each step, detects deviations, and proposes improvements.",
+      "zomes":   ["SOPZome", "StepZome", "RunZome", "AuditZome", "IntegrationZome"],
+      "apis":    ["WorkflowController", "BraidController", "HolonManager", "FilesController", "VaultController", "KarmaController", "NftController"],
+      "dna":     "STAR_Templates/star_dna/SOPTemplate.json"
     }
   ],
 
