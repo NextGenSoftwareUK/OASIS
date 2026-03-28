@@ -34,8 +34,9 @@ mkdir C:\Source
 cd C:\Source
 
 git clone <OASIS-repo-url> OASIS-master
-git clone https://github.com/coelckers/UZDoom.git UZDoom
-git clone https://github.com/Novum/vkQuake.git vkQuake
+# Recommended: OASIS forks (upstream UZDoom / vkQuake; see DEVELOPER_ONBOARDING.md)
+git clone https://github.com/NextGenSoftwareUK/ODOOM.git UZDoom
+git clone https://github.com/NextGenSoftwareUK/OQUAKE.git vkQuake
 git clone <quake-rerelease-qc-repo-url> quake-rerelease-qc
 ```
 
