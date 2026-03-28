@@ -1187,19 +1187,33 @@ class OASISInventoryOverlayHandler : EventHandler
 		return "";
 	}
 
+	// Phase-1 powerups: canonical OASIS.* or Doom display names (matches uzdoom_star_integration.cpp).
+	private bool IsPhase1PowerupInventoryName(String n)
+	{
+		if (n == "OASIS.MegaHealth" || n == "OASIS.MegaHealthArmor" || n == "OASIS.QuadDamage"
+			|| n == "OASIS.Invulnerability" || n == "OASIS.EnvironmentSuit" || n == "OASIS.RingShadows")
+			return true;
+		return n == "Soul Sphere" || n == "Mega Sphere" || n == "Invulnerability" || n == "Radiation Suit"
+			|| n == "Blur Sphere" || n == "Quad Damage";
+	}
+
 	private bool IsStarItemInTab(String itemType, String itemName, int tabIndex)
 	{
 		String t = itemType;
 		String n = itemName;
 		if (tabIndex == TAB_KEYS) return t.IndexOf("Key") >= 0 || n.IndexOf("key") >= 0;
-		if (tabIndex == TAB_POWERUPS) return t.IndexOf("Powerup") >= 0 || t == "Powerup";
-		if (tabIndex == TAB_WEAPONS) return t.IndexOf("Weapon") >= 0 || t == "Weapon";
+		if (tabIndex == TAB_POWERUPS) return t.IndexOf("Powerup") >= 0 || t == "Powerup" || IsPhase1PowerupInventoryName(n);
+		if (tabIndex == TAB_WEAPONS) {
+			if (t.IndexOf("Monster") >= 0 || t == "Monster" || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0) return false;
+			return t.IndexOf("Weapon") >= 0 || t == "Weapon";
+		}
 		if (tabIndex == TAB_AMMO) return t.IndexOf("Ammo") >= 0 || t == "Ammo";
 		if (tabIndex == TAB_ARMOR) return t.IndexOf("Armor") >= 0 || t == "Armor";
 		if (tabIndex == TAB_MONSTERS) return t == "Monster" || t.IndexOf("Monster") >= 0 || n.IndexOf("[NFT]") >= 0 || n.IndexOf("[BOSSNFT]") >= 0;
 		// TAB_ITEMS: only items that don't fit Keys, Powerups, Weapons, Ammo, Armor, or Monsters
 		if (tabIndex == TAB_ITEMS)
-			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor") && (t != "Monster" && t.IndexOf("Monster") < 0);
+			return (t.IndexOf("Key") < 0 && n.IndexOf("key") < 0) && (t.IndexOf("Powerup") < 0 && t != "Powerup") && (t.IndexOf("Weapon") < 0 && t != "Weapon") && (t.IndexOf("Ammo") < 0 && t != "Ammo") && (t.IndexOf("Armor") < 0 && t != "Armor") && (t != "Monster" && t.IndexOf("Monster") < 0)
+				&& !IsPhase1PowerupInventoryName(n);
 		return true;
 	}
 

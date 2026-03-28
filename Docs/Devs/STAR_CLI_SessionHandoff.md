@@ -42,6 +42,8 @@
 
 ### User docs
 
+- `Docs/Devs/STAR_CLI_Comprehensive_Guide.md` — hub: users & devs, Light/templating, `IOASISSuperStar`, STARNET store, AI/scripting.
+- `Docs/Devs/STAR_CLI_Implemented_Commands.md` — exhaustive router + STARNET verb inventory; `help full` drift notes.
 - `Docs/Devs/STAR_CLI_NonInteractive.md` — flags, exit codes, beam-in, limitations.
 
 ---

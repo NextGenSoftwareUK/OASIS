@@ -86,7 +86,7 @@ if (-not $StarDll -and (Test-Path (Join-Path $StarPublishDir "star_api.dll"))) {
     if (-not (Test-Path $StarLib)) { $StarLib = $null }
 }
 
-# star_sync: single source of truth is STARAPIClient. Always copy from there so one place to edit.
+# star_sync API is exported from star_api.dll; only header is copied for declarations.
 $starSyncRoot = $STARAPIClientRoot
 $files = @(
     @{ Src = Join-Path $OQuakeCode "oquake_star_integration.c"; Dest = "oquake_star_integration.c" },
@@ -94,7 +94,6 @@ $files = @(
     @{ Src = Join-Path $OQuakeCode "oquake_version.h"; Dest = "oquake_version.h" },
     @{ Src = Join-Path $ScriptDir "pr_ext_oquake.c"; Dest = "pr_ext_oquake.c" },
     @{ Src = Join-Path $STARAPIClientRoot "star_api.h"; Dest = "star_api.h" },
-    @{ Src = Join-Path $starSyncRoot "star_sync.c"; Dest = "star_sync.c" },
     @{ Src = Join-Path $starSyncRoot "star_sync.h"; Dest = "star_sync.h" }
 )
 $copied = 0
@@ -123,17 +122,26 @@ if (-not (Test-Path $faceSource)) {
     elseif (Test-Path (Join-Path $OQuakeRoot "gfx\face_anorak.png")) { $faceSource = Join-Path $OQuakeRoot "gfx\face_anorak.png" }
 }
 if (Test-Path $faceSource) {
+    # Always stage under OQuake/build/id1/gfx (packaged next to OQUAKE; RUN_OQUAKE.sh syncs into real -basedir on Linux).
+    $buildFaceDir = [System.IO.Path]::Combine($OQuakeRoot, "build", "id1", "gfx")
+    try {
+        New-Item -Path $buildFaceDir -ItemType Directory -Force | Out-Null
+        Copy-Item -Path $faceSource -Destination ([System.IO.Path]::Combine($buildFaceDir, "face_anorak.png")) -Force
+        Write-Host "[OQuake] Copied face_anorak.png -> $buildFaceDir (next to OQuake/build/OQUAKE)"
+    } catch {
+        Write-Warning "[OQuake] Failed to copy face_anorak.png to '$buildFaceDir': $($_.Exception.Message)"
+    }
     $faceDestDir = Join-Path $QuakeInstallDir "id1" "gfx"
     if (Test-Path $QuakeInstallDir) {
         try {
             New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null
             Copy-Item -Path $faceSource -Destination (Join-Path $faceDestDir "face_anorak.png") -Force
-            Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir"
+            Write-Host "[OQuake] Copied face_anorak.png -> $faceDestDir (Quake game data for -basedir)"
         } catch {
             Write-Warning "[OQuake] Failed to copy face_anorak.png to '$faceDestDir': $($_.Exception.Message)"
         }
     } else {
-        Write-Warning "[OQuake] Skipping face_anorak.png copy (optional): Quake install dir not found: $QuakeInstallDir. Set OQUAKE_BASEDIR or -QuakeInstallDir to your game data path (e.g. Steam Quake) if you want the anorak face in the HUD when beamed in."
+        Write-Host "[OQuake] Quake game data dir not found ($QuakeInstallDir); face is in OQuake/build/id1/gfx. Linux: RUN_OQUAKE.sh copies it into your -basedir when id1/ exists. Or set OQUAKE_BASEDIR before build."
     }
 } else {
     Write-Warning "[OQuake] face_anorak.png not found. Expected: OQuake\Images\face_anorak.png or OQuake\face_anorak.png"
@@ -863,7 +871,7 @@ if (Test-Path $GlScreenC) {
     }
 }
 
-# Patch vkQuake Visual Studio project: add OQuake sources (integration, pr_ext_oquake, star_sync) + star_api.lib
+# Patch vkQuake Visual Studio project: add OQuake sources (integration, pr_ext_oquake) + star_api.lib
 $vcxprojPaths = @(
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\vkquake.vcxproj"),
     (Join-Path $VkQuakeSrc "Windows\VisualStudio\Quake\Quake.vcxproj")
@@ -888,11 +896,6 @@ foreach ($vcxproj in $vcxprojPaths) {
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
 "@
-    $blockStarSync = @"
-    <ClCompile Include="$pathPrefix`star_sync.c">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-"@
     if ($projContent -notmatch 'oquake_star_integration\.c') {
         $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*pr_ext\.c`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockIntegration`r`n"
         $vcxprojChanged = $true
@@ -910,19 +913,10 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Removed star_api_quest_level_time_stub.c from project (lib now has symbol)" -ForegroundColor Green
     }
-    $useStarSyncInClient = ($env:OASIS_STAR_SYNC_IN_CLIENT -eq "1")
-    if ($useStarSyncInClient) {
-        if ($projContent -match 'star_sync\.c') {
-            $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_sync\.c"[^>]*>\s*\r?\n\s*<PrecompiledHeader>[^<]+</PrecompiledHeader>\s*\r?\n\s*</ClCompile>\s*\r?\n', "`r`n"
-            $vcxprojChanged = $true
-            Write-Host "[OQuake] Removed star_sync.c from project (using star_sync from star_api.dll; OASIS_STAR_SYNC_IN_CLIENT=1)" -ForegroundColor Green
-        }
-    } elseif ($projContent -notmatch 'star_sync\.c') {
-        $anchor = if ($projContent -match 'oquake_star_integration\.c') { 'oquake_star_integration\.c' } else { 'pr_ext_oquake\.c' }
-        if (-not $anchor) { $anchor = 'pr_ext\.c' }
-        $projContent = $projContent -replace "(\r?\n)(\s*<ClCompile\s+Include=`"[^`"]*$anchor`"[^\r\n]*)(\r?\n)", "`$1`$2`$3$blockStarSync`r`n"
+    if ($projContent -match 'star_sync\.c') {
+        $projContent = $projContent -replace '\s*<ClCompile\s+Include="[^"]*star_sync\.c"[^>]*>\s*\r?\n\s*<PrecompiledHeader>[^<]+</PrecompiledHeader>\s*\r?\n\s*</ClCompile>\s*\r?\n', "`r`n"
         $vcxprojChanged = $true
-        Write-Host "[OQuake] Added star_sync.c to project $(Split-Path -Leaf $vcxproj) (PCH disabled)" -ForegroundColor Green
+        Write-Host "[OQuake] Removed star_sync.c from project (use star_sync exports from star_api.dll only)" -ForegroundColor Green
     }
     if ($projContent -notmatch 'star_api\.lib') {
         if ($projContent -match '<AdditionalDependencies>([^<]*)</AdditionalDependencies>') {
@@ -949,19 +943,11 @@ foreach ($vcxproj in $vcxprojPaths) {
         $vcxprojChanged = $true
         Write-Host "[OQuake] Added OASIS_STAR_API to PreprocessorDefinitions in $(Split-Path -Leaf $vcxproj)" -ForegroundColor Green
     }
-    # When OASIS_STAR_SYNC_IN_CLIENT=1, add OASIS_STAR_SYNC_IN_CLIENT so star_sync_* are taken from star_api.dll (no star_sync.c). When 0 or unset, remove the define so star_sync.c is compiled.
-    if ($useStarSyncInClient) {
-        if ($projContent -notmatch 'OASIS_STAR_SYNC_IN_CLIENT') {
-            $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_SYNC_IN_CLIENT;`$2`$3"
-            $vcxprojChanged = $true
-            Write-Host "[OQuake] Added OASIS_STAR_SYNC_IN_CLIENT to PreprocessorDefinitions (star_sync from DLL)" -ForegroundColor Green
-        }
-    } else {
-        if ($projContent -match 'OASIS_STAR_SYNC_IN_CLIENT;?') {
-            $projContent = $projContent -replace 'OASIS_STAR_SYNC_IN_CLIENT;?', ''
-            $vcxprojChanged = $true
-            Write-Host "[OQuake] Removed OASIS_STAR_SYNC_IN_CLIENT from PreprocessorDefinitions (using star_sync.c)" -ForegroundColor Green
-        }
+    # Always use client-exported star_sync_* from star_api.dll (do not compile star_sync.c in engine).
+    if ($projContent -notmatch 'OASIS_STAR_SYNC_IN_CLIENT') {
+        $projContent = $projContent -replace '(<PreprocessorDefinitions>)([^<]+)(</PreprocessorDefinitions>)', "`$1OASIS_STAR_SYNC_IN_CLIENT;`$2`$3"
+        $vcxprojChanged = $true
+        Write-Host "[OQuake] Added OASIS_STAR_SYNC_IN_CLIENT to PreprocessorDefinitions (star_sync from DLL)" -ForegroundColor Green
     }
     # Do NOT define OQUAKE_STAR_API_TRACKER_STUBS so the game uses the real star_api.dll for tracker APIs (star_api_set_active_quest, get_quest_tracker_objectives_string, etc.). If the define is present, remove it so selecting a quest in-game actually persists to the API.
     if ($projContent -match 'OQUAKE_STAR_API_TRACKER_STUBS') {
@@ -993,7 +979,7 @@ if (Test-Path $mesonBuildPath) {
 
 # OQuake (injected by apply_oquake_to_vkquake.ps1): add integration sources + star_api when present
 if import('fs').exists(join_paths(meson.source_root(), 'Quake', 'oquake_star_integration.c'))
-    srcs += ['Quake/oquake_star_integration.c', 'Quake/pr_ext_oquake.c', 'Quake/star_sync.c']
+    srcs += ['Quake/oquake_star_integration.c', 'Quake/pr_ext_oquake.c']
     deps += cc.find_library('star_api', dirs: join_paths(meson.source_root(), 'Quake'), required: true)
     cflags += ['-DOASIS_STAR_API', '-DOQUAKE_STAR_API_SESSION_IMPL', '-DOQUAKE_STAR_API_REFRESH_AVATAR_PROFILE_IMPL']
 endif
