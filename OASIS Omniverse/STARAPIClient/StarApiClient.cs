@@ -5137,6 +5137,21 @@ public sealed class StarApiClient : IDisposable
         return items;
     }
 
+    /// <summary>WEB4 inventory holons often omit GameSource; add-item stores <c>"{desc} | Source: ODOOM"</c> in Description.</summary>
+    private static string? TryExtractGameSourceFromDescription(string? description)
+    {
+        if (string.IsNullOrWhiteSpace(description)) return null;
+        var span = description.AsSpan();
+        ReadOnlySpan<char> key = "Source:";
+        var idx = span.LastIndexOf(key, StringComparison.OrdinalIgnoreCase);
+        if (idx < 0) return null;
+        var tail = span[(idx + key.Length)..].TrimStart();
+        if (tail.Length == 0) return null;
+        var pipe = tail.IndexOf('|');
+        if (pipe >= 0) tail = tail[..pipe].TrimEnd();
+        return tail.Length > 0 ? tail.ToString() : null;
+    }
+
     private InventoryItemResponse? ParseInventoryItemResponse(JsonElement element)
     {
         if (element.ValueKind != JsonValueKind.Object)
@@ -5186,6 +5201,13 @@ public sealed class StarApiClient : IDisposable
         if (quantity < 1) quantity = 1;
         if (string.IsNullOrWhiteSpace(name) && parsedGuid == Guid.Empty)
             return null;
+
+        if (string.IsNullOrWhiteSpace(gameSource))
+        {
+            var extractedGs = TryExtractGameSourceFromDescription(description);
+            if (!string.IsNullOrWhiteSpace(extractedGs))
+                gameSource = extractedGs;
+        }
 
         /* NftId: from root (API may use PascalCase or camelCase) or from MetaData so [NFT] prefix persists after reload / in Quake. */
         var nftId = GetStringProperty(element, "NftId") ?? GetStringProperty(element, "nftId") ?? GetStringProperty(element, "NFTId") ?? GetStringProperty(element, "OASISNFTId")

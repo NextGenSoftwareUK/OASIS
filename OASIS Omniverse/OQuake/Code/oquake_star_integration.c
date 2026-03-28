@@ -405,6 +405,7 @@ static int g_oq_doom_weapon_to_quake_n;
 static oq_cross_pair_t g_oq_quake_weapon_to_doom[OQ_CROSS_PAIR_MAX];
 static int g_oq_quake_weapon_to_doom_n;
 static int g_oq_cross_game_beam_transfer_done = 0;
+static int g_oq_cross_game_logged_done_skip = 0;
 static int g_oq_cross_empty_inventory_wait_frames = 0;
 /** After cross-game `give N` (vkQuake Host_Give_f), skip STAR sync for weapon bit gains for a few frames (avoids duplicate Quake weapon rows). */
 static int g_oq_cross_grant_suppress_weapon_star = 0;
@@ -460,6 +461,11 @@ cvar_t oquake_star_always_add_items_to_inventory = {"oquake_star_always_add_item
 cvar_t oquake_star_use_health_on_pickup = {"oquake_star_use_health_on_pickup", "0", 0};
 cvar_t oquake_star_use_armor_on_pickup = {"oquake_star_use_armor_on_pickup", "0", 0};
 cvar_t oquake_star_use_powerup_on_pickup = {"oquake_star_use_powerup_on_pickup", "0", 0};
+/* HUD toggles (same idea as ODOOM odoom_hud_show_xp / odoom_hud_show_beamed); X / B edge-triggered in draw path. */
+cvar_t oquake_hud_show_xp = {"oquake_hud_show_xp", "1", CVAR_ARCHIVE};
+cvar_t oquake_hud_show_beamed = {"oquake_hud_show_beamed", "1", CVAR_ARCHIVE};
+/* 1 = console + star_api_log cross-game beam transfer diagnostics (set oquake_star_cross_game_log 1). */
+cvar_t oquake_star_cross_game_log = {"oquake_star_cross_game_log", "0", CVAR_ARCHIVE};
 
 enum {
     OQ_TAB_KEYS = 0,
@@ -1925,6 +1931,41 @@ static void OQ_ResetCrossGameBeamTransferState(void) {
     g_oq_cross_empty_inventory_wait_frames = 0;
     g_oq_cross_grant_suppress_weapon_star = 0;
     g_oq_cross_grant_suppress_ammo_star = 0;
+    g_oq_cross_game_logged_done_skip = 0;
+}
+
+static int OQ_CrossGameLogEnabled(void) {
+    return oquake_star_cross_game_log.string && atoi(oquake_star_cross_game_log.string) != 0;
+}
+
+static void OQ_CrossGameDbgThrottled(const char* msg) {
+    extern double realtime;
+    static double t_last = -1e9;
+    static char prev[256];
+    if (!OQ_CrossGameLogEnabled() || !msg) return;
+    if (realtime - t_last < 1.25 && !strcmp(prev, msg)) return;
+    t_last = realtime;
+    q_strlcpy(prev, msg, sizeof(prev));
+    Con_Printf("[OQuake cross-game] %s\n", msg);
+    {
+        char logb[320];
+        q_snprintf(logb, sizeof(logb), "[OQuake cross-game] %s", msg);
+        star_api_log_to_file(logb);
+    }
+}
+
+static void OQ_CrossGameDbgPrintf(const char* fmt, ...) {
+    va_list ap;
+    char buf[512];
+    char logb[560];
+    if (!OQ_CrossGameLogEnabled() || !fmt) return;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    buf[sizeof(buf) - 1] = '\0';
+    Con_Printf("[OQuake cross-game] %s\n", buf);
+    q_snprintf(logb, sizeof(logb), "[OQuake cross-game] %s", buf);
+    star_api_log_to_file(logb);
 }
 
 static void OQ_CrossGamePairsClearTable(oq_cross_pair_t* tab, int* n) {
@@ -1957,6 +1998,10 @@ static void OQ_InitCrossGameMapsToDefaults(void) {
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Plasma Rifle", "Super Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Rocket Launcher", "Rocket Launcher");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Super Shotgun", "Super Shotgun");
+    /* Holon / compact names that do not match ToStarItemName() spacing */
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "RocketLauncher", "Rocket Launcher");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "SuperShotgun", "Super Shotgun");
+    OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "PlasmaRifle", "Plasma Rifle");
     /* Legacy rows from older ToStarItemName() fallback (class OQNailgun -> "Oqnailgun", etc.) */
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqnailgun", "Nailgun");
     OQ_CrossGamePairsAdd(g_oq_doom_weapon_to_quake, &g_oq_doom_weapon_to_quake_n, "Oqsupernailgun", "Super Nailgun");
@@ -2023,6 +2068,14 @@ static const char* OQ_CrossGameMapLookup(const oq_cross_pair_t* tab, int n, cons
 
 static int OQ_ItemGameSourceIsDoom(const char* gs) {
     return gs && gs[0] && OQ_ContainsNoCase(gs, "doom");
+}
+
+/** Doom rows for cross-game: GameSource contains doom, or Description has add-item suffix "| Source: ODOOM" (WEB4 often omits GameSource on GET). */
+static int OQ_ItemRowIsDoomCrossGame(const char* gs, const char* desc) {
+    if (OQ_ItemGameSourceIsDoom(gs)) return 1;
+    if (desc && desc[0] && (OQ_ContainsNoCase(desc, "Source: ODOOM") || OQ_ContainsNoCase(desc, "Source:ODOOM")))
+        return 1;
+    return 0;
 }
 
 static void OQ_StripStarStorageGameSuffix(const char* name, char* out, size_t outsz) {
@@ -2102,22 +2155,61 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
     star_item_list_t* list = NULL;
     size_t i;
     int applied = 0;
-    if (!g_star_initialized || !g_star_beamed_in) return 0;
-    if (!sv.active || cls.demoplayback) return 0;
-    if (cls.signon < OQ_VKQUAKE_SIGNONS) return 0;
-    if (g_oq_cross_game_beam_transfer_done) return 0;
+    int weapon_gives_total = 0;
+    if (!g_star_initialized || !g_star_beamed_in) {
+        OQ_CrossGameDbgThrottled("skip: STAR not initialized or not beamed in");
+        return 0;
+    }
+    if (!sv.active || cls.demoplayback) {
+        OQ_CrossGameDbgThrottled("skip: no active server or demo playback");
+        return 0;
+    }
+    if (cls.signon < OQ_VKQUAKE_SIGNONS) {
+        OQ_CrossGameDbgThrottled("skip: signon not ready");
+        return 0;
+    }
+    if (g_oq_cross_game_beam_transfer_done) {
+        if (OQ_CrossGameLogEnabled() && !g_oq_cross_game_logged_done_skip) {
+            g_oq_cross_game_logged_done_skip = 1;
+            OQ_CrossGameDbgPrintf("skip: transfer already done (clears on new map or star beamin/beamout)");
+        }
+        return 0;
+    }
     if (g_oq_doom_ammo_to_quake_n <= 0)
         OQ_InitCrossGameMapsToDefaults();
-    if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) return 0;
+    if (star_api_get_inventory(&list) != STAR_API_SUCCESS || !list) {
+        OQ_CrossGameDbgThrottled("skip: star_api_get_inventory failed or null list");
+        return 0;
+    }
     if (list->count == 0) {
         g_oq_cross_empty_inventory_wait_frames++;
         star_api_free_item_list(list);
-        if (g_oq_cross_empty_inventory_wait_frames < 300) return 0;
+        if (g_oq_cross_empty_inventory_wait_frames < 300) {
+            if (OQ_CrossGameLogEnabled() && (g_oq_cross_empty_inventory_wait_frames == 1 || (g_oq_cross_empty_inventory_wait_frames % 60) == 0))
+                OQ_CrossGameDbgPrintf("waiting for inventory (empty list, frame %d/300)", g_oq_cross_empty_inventory_wait_frames);
+            return 0;
+        }
         g_oq_cross_game_beam_transfer_done = 1;
         g_oq_cross_empty_inventory_wait_frames = 0;
+        OQ_CrossGameDbgPrintf("gave up: inventory still empty after 300 frames (transfer marked done)");
         return 0;
     }
     g_oq_cross_empty_inventory_wait_frames = 0;
+    if (OQ_CrossGameLogEnabled()) {
+        int doom_rows = 0;
+        for (i = 0; i < list->count; i++) {
+            if (OQ_ItemRowIsDoomCrossGame(list->items[i].game_source, list->items[i].description))
+                doom_rows++;
+        }
+        OQ_CrossGameDbgPrintf("run: map=%s items=%zu doom_rows=%d signon=%d", cl.mapname, list->count, doom_rows, cls.signon);
+        for (i = 0; i < list->count && i < 16; i++) {
+            const char* nm = list->items[i].name ? list->items[i].name : "";
+            const char* gs = list->items[i].game_source ? list->items[i].game_source : "";
+            const char* tp = list->items[i].item_type ? list->items[i].item_type : "";
+            int is_doom = OQ_ItemRowIsDoomCrossGame(list->items[i].game_source, list->items[i].description);
+            OQ_CrossGameDbgPrintf("  [%zu] \"%s\" gs=\"%s\" type=\"%s\" doom=%d", i, nm, gs, tp, is_doom);
+        }
+    }
     {
         int ammo_applied = 0;
         for (i = 0; i < list->count; i++) {
@@ -2127,7 +2219,7 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
             char base[256];
             int qty = list->items[i].quantity;
             const char* mapped;
-            if (!OQ_ItemGameSourceIsDoom(gs)) continue;
+            if (!OQ_ItemRowIsDoomCrossGame(gs, list->items[i].description)) continue;
             if (!raw_name || !itype || !OQ_ContainsNoCase(itype, "ammo")) continue;
             if (qty <= 0) qty = 1;
             OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
@@ -2157,19 +2249,39 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
             const char* mapped;
             unsigned int wbit;
             const char* giv;
-            if (!OQ_ItemGameSourceIsDoom(gs)) continue;
+            if (!OQ_ItemRowIsDoomCrossGame(gs, list->items[i].description)) continue;
             if (!raw_name) continue;
             if (qty <= 0) qty = 1;
             (void)qty;
             OQ_StripStarStorageGameSuffix(raw_name, base, sizeof(base));
             /* Allowlist is the cross-game map — do not require ItemType to contain "weapon" (API/holons may use Miscellaneous, Armour, etc.). */
             mapped = OQ_CrossGameMapLookup(g_oq_doom_weapon_to_quake, g_oq_doom_weapon_to_quake_n, base);
-            if (!mapped) continue;
+            if (!mapped) {
+                if (OQ_CrossGameLogEnabled()) {
+                    const char* ity = list->items[i].item_type ? list->items[i].item_type : "";
+                    int is_ammo = ity[0] && OQ_ContainsNoCase(ity, "ammo");
+                    if (!is_ammo)
+                        OQ_CrossGameDbgPrintf("doom row no weapon map: base=\"%s\" raw=\"%s\" type=\"%s\"", base, raw_name, ity);
+                }
+                continue;
+            }
             wbit = OQ_QuakeItemsBitForWeaponDisplayName(mapped);
-            if (!wbit) continue;
-            if (((unsigned int)cl.items) & wbit) continue;
+            if (!wbit) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("mapped \"%s\" -> \"%s\" but no Quake IT_* bit", base, mapped);
+                continue;
+            }
+            if (((unsigned int)cl.items) & wbit) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("skip weapon already owned: %s (bit ok)", mapped);
+                continue;
+            }
             giv = OQ_QuakeGiveArgForWeaponBit(wbit);
-            if (!giv) continue;
+            if (!giv) {
+                if (OQ_CrossGameLogEnabled())
+                    OQ_CrossGameDbgPrintf("no give arg for mapped \"%s\"", mapped);
+                continue;
+            }
             /* vkQuake Host_Give_f applies on server for non-deathmatch; `give` is a no-op in deathmatch — OR client bits as best effort. */
             if (deathmatch.value != 0) {
                 cl.items = (int)(((unsigned int)cl.items) | wbit);
@@ -2180,6 +2292,8 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
             }
             weapon_gives++;
             applied = 1;
+            if (OQ_CrossGameLogEnabled())
+                OQ_CrossGameDbgPrintf("give weapon: \"%s\" -> %s (give %s, dm=%d)", raw_name, mapped, giv, deathmatch.value != 0);
             if (g_star_debug_logging) {
                 char logb[384];
                 q_snprintf(logb, sizeof(logb), "[OQuake] Cross-game beam-in: weapon \"%s\" -> %s (give %s)", raw_name, mapped, giv);
@@ -2188,8 +2302,11 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
         }
         if (weapon_gives > 0)
             g_oq_cross_grant_suppress_weapon_star = 4;
+        weapon_gives_total = weapon_gives;
     }
     g_oq_cross_game_beam_transfer_done = 1;
+    if (OQ_CrossGameLogEnabled())
+        OQ_CrossGameDbgPrintf("transfer finished: applied=%d weapon_gives=%d", applied, weapon_gives_total);
     star_api_free_item_list(list);
     return applied;
 }
@@ -2911,6 +3028,9 @@ void OQuake_STAR_Init(void) {
     Cvar_RegisterVariable(&oquake_star_use_health_on_pickup);
     Cvar_RegisterVariable(&oquake_star_use_armor_on_pickup);
     Cvar_RegisterVariable(&oquake_star_use_powerup_on_pickup);
+    Cvar_RegisterVariable(&oquake_hud_show_xp);
+    Cvar_RegisterVariable(&oquake_hud_show_beamed);
+    Cvar_RegisterVariable(&oquake_star_cross_game_log);
 
     /* Default all monster mint flags to 1 (load from JSON may override) */
     {
@@ -2952,6 +3072,15 @@ void OQuake_STAR_Init(void) {
                 Key_SetBinding(kc, "oquake_use_health");
             if (kf >= 0 && kf < MAX_KEYS && (!keybindings[kf] || !keybindings[kf][0]))
                 Key_SetBinding(kf, "oquake_use_armor");
+        }
+        /* B / X: HUD toggles (ODOOM leaves unbound so raw key works). Do not override custom binds. */
+        {
+            int kb = Key_StringToKeynum("b");
+            int kx = Key_StringToKeynum("x");
+            if (kb >= 0 && kb < MAX_KEYS && (!keybindings[kb] || !keybindings[kb][0]))
+                Key_SetBinding(kb, "");
+            if (kx >= 0 && kx < MAX_KEYS && (!keybindings[kx] || !keybindings[kx][0]))
+                Key_SetBinding(kx, "");
         }
     }
 
@@ -4365,6 +4494,8 @@ void OQuake_STAR_PollItems(void) {
     if (poll_need_spawn_baseline || q_strcasecmp(cl.mapname, poll_map_baseline) != 0) {
         q_strlcpy(poll_map_baseline, cl.mapname, sizeof(poll_map_baseline));
         poll_need_spawn_baseline = false;
+        /* Retry Doom→Quake grants each map; avoids transfer_done stuck after an early empty inventory. */
+        OQ_ResetCrossGameBeamTransferState();
         OQ_PollCaptureItemStatsBaseline(
             &poll_prev_items, &poll_prev_shells, &poll_prev_nails, &poll_prev_rockets, &poll_prev_cells,
             &poll_prev_health, &poll_prev_armor, &poll_prev_valid);
@@ -4511,6 +4642,8 @@ void OQuake_STAR_Console_f(void) {
         Con_Printf("  star pickup all <0|1> - 1=always add to STAR even when engine uses it, 0=only when at max\n");
         Con_Printf("  star pickup keycard <silver|gold> - Add key to STAR inventory (admin only)\n");
         Con_Printf("  star debug on|off|status - Toggle STAR debug logging\n");
+        Con_Printf("  CVAR oquake_star_cross_game_log 1 - Log Doom->Quake beam transfer (console + star log)\n");
+        Con_Printf("  Keys X / B - Toggle XP HUD / Beamed In line (like ODOOM; B N/A while quest popup open)\n");
         Con_Printf("  star send_avatar <user> <item_class> - Send item to avatar\n");
         Con_Printf("  star send_clan <clan> <item_class>   - Send item to clan\n");
         Con_Printf("  star beamin <username> <password> - Log in inside Quake\n");
@@ -5188,6 +5321,28 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         }
         if (!(s_f_key >= 0 && s_f_key < MAX_KEYS && keydown[s_f_key]))
             g_f_key_was_down = false;
+    }
+
+    /* X = toggle XP HUD, B = Beamed In line (same as ODOOM raw-key path; B does not toggle while quest popup open). */
+    if (key_dest != key_message && key_dest != key_console && key_dest != key_menu && g_star_initialized) {
+        static int s_hud_x_key = -1, s_hud_b_key = -1;
+        static qboolean s_hud_x_was_down = false, s_hud_b_was_down = false;
+        if (s_hud_x_key < 0) s_hud_x_key = Key_StringToKeynum("x");
+        if (s_hud_b_key < 0) s_hud_b_key = Key_StringToKeynum("b");
+        if (s_hud_x_key >= 0 && s_hud_x_key < MAX_KEYS && keydown[s_hud_x_key] && !s_hud_x_was_down) {
+            int on = (oquake_hud_show_xp.string && atoi(oquake_hud_show_xp.string));
+            Cvar_Set("oquake_hud_show_xp", on ? "0" : "1");
+            s_hud_x_was_down = true;
+        }
+        if (!(s_hud_x_key >= 0 && s_hud_x_key < MAX_KEYS && keydown[s_hud_x_key]))
+            s_hud_x_was_down = false;
+        if (s_hud_b_key >= 0 && s_hud_b_key < MAX_KEYS && keydown[s_hud_b_key] && !s_hud_b_was_down && !g_quest_popup_open) {
+            int on = (oquake_hud_show_beamed.string && atoi(oquake_hud_show_beamed.string));
+            Cvar_Set("oquake_hud_show_beamed", on ? "0" : "1");
+            s_hud_b_was_down = true;
+        }
+        if (!(s_hud_b_key >= 0 && s_hud_b_key < MAX_KEYS && keydown[s_hud_b_key]))
+            s_hud_b_was_down = false;
     }
 
     /* When quest popup is closed: O = cycle tracker (obj 1, 2, 3, ..., All, Hide, then repeat). Same behaviour as ODOOM. */
@@ -6890,6 +7045,9 @@ void OQuake_STAR_DrawBeamedInStatus(cb_context_t* cbx) {
     /* Quest tracker (when set from quest popup) above "Beamed In" */
     OQuake_STAR_DrawQuestTracker(cbx);
 
+    if (!oquake_hud_show_beamed.string || !atoi(oquake_hud_show_beamed.string))
+        return;
+
     const char* username = OQuake_STAR_GetUsername();
     char status[128];
     if (username && username[0]) {
@@ -6928,6 +7086,8 @@ void OQuake_STAR_DrawXpStatus(cb_context_t* cbx) {
     int x, y;
 
     if (!cbx || glwidth <= 0 || glheight <= 0)
+        return;
+    if (!oquake_hud_show_xp.string || !atoi(oquake_hud_show_xp.string))
         return;
     if (!g_star_initialized || !g_star_beamed_in)
         return;
