@@ -49,7 +49,7 @@ When something fails or behaves wrong, **fix why it fails**, not a parallel “m
    - Prefer a loud script error + doc link over game code that “works” on half the installs.
 
 4. **Two-tree / copy-step problems are fixed by sync and docs, not by forks in game logic.**  
-   - ODOOM canonical sources live under `OASIS Omniverse/ODOOM/`; the running engine is built from `UZDOOM_SRC` after copy. See `Docs/Devs/ODOOM_UZDoom_Build_Sync.md`.  
+   - ODOOM canonical sources live under `OASIS Omniverse/ODOOM/`; the running engine is built from `UZDOOM_SRC` after copy. See `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md`.  
    - The fix is: run the official build, fix the script if it’s wrong, document the step — not “if file A missing read file B.”
 
 5. **Async ordering bugs are fixed by sequencing in the right layer** (e.g. C# chain after `StartQuestAsync` completes), not by “try persist again later” guesses in the client unless that retry is a specified, tested protocol.
@@ -72,7 +72,7 @@ If yes, implement **that** — do not add a second path that hides the break.
 
 | Situation | Root-cause fix (not a workaround) |
 |-----------|-------------------------------------|
-| Missing `star_api_*` symbol at launch | Rebuild/deploy STARAPIClient; full `BUILD_ODOOM.sh` / packaging; see `ODOOM_UZDoom_Build_Sync.md` (STAR native library section). If publish was skipped as “up to date”, ensure **`REQUIRED_STAR_EXPORTS`** in `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` includes the new symbol so the script forces publish. **Also check `ODOOM/build/libstar_api.so`:** the game loads **`libstar_api.so`**, not only `star_api.so`; a stale `libstar_api.so` beside a new `star_api.so` causes this error (see `ODOOM_UZDoom_Build_Sync.md`). |
+| Missing `star_api_*` symbol at launch | Rebuild/deploy STARAPIClient; full `BUILD_ODOOM.sh` / packaging; see `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md` (STAR native library section). If publish was skipped as “up to date”, ensure **`REQUIRED_STAR_EXPORTS`** in `STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh` includes the new symbol so the script forces publish. **Also check `ODOOM/build/libstar_api.so`:** the game loads **`libstar_api.so`**, not only `star_api.so`; a stale `libstar_api.so` beside a new `star_api.so` causes this error (see `OASIS Omniverse/Docs/ODOOM_UZDoom_Build_Sync.md`). |
 | ZScript / HUD “ignored” | Copy step + pk3 rebuild; same doc. |
 | Quest / cache feels stale | Fix invalidation and single source of truth in STAR client / API; don’t duplicate cache logic “just in case.” |
 | API returns wrong shape | Fix serializer or DTO in ONODE/WebAPI; don’t add a third parser in the game client. |

@@ -30,6 +30,21 @@ public class StarApiClientUnitTests
     }
 
     [Fact]
+    public void Init_WithNativeTransport_ReturnsInitFailed()
+    {
+        using var client = new StarApiClient();
+
+        var result = client.Init(new StarApiConfig
+        {
+            Transport = StarApiTransport.Native,
+            Web5StarApiBaseUrl = "https://example.com/api"
+        });
+
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InitFailed).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
     public async Task Methods_WhenNotInitialized_ReturnNotInitialized()
     {
         using var client = new StarApiClient();

@@ -990,7 +990,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Applies in-game progress (kills, pickups, XP, level time) to the quest's incomplete objectives.
         /// Updates progress dictionaries; completes objectives when thresholds are met; completes the quest when all objectives are done.
-        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set; otherwise by Order then Id.
+        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order (active objective first when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set); every incomplete row receives the delta bundle and <see cref="ApplyDeltaToObjective"/> only applies matching Need* fields (same idea as the STAR client merge).
         /// </summary>
         public async Task<OASISResult<QuestProgressApplyResult>> ApplyQuestProgressAsync(Guid avatarId, Guid questId, string gameSource, QuestProgressDelta delta)
         {
@@ -1026,7 +1026,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.Objectives == null)
                     quest.Objectives = new List<Objective>();
                 int completedThisRound = 0;
-                foreach (var objective in OrderIncompleteObjectivesForProgress(quest.Objectives, delta.ActiveObjectiveId))
+                /* Match STAR client MergeQuestProgressIntoLocalCache: process every incomplete objective (active first when
+                   ActiveObjectiveId is set). Each objective only absorbs deltas that match its Need* rows — e.g. kills on
+                   the kill objective, health pickups on the health objective. Applying to active only dropped health/armor/etc.
+                   when the profile pointed at a different incomplete row than the one carrying NeedToCollectHealth. */
+                Guid? orderByActive = delta.ActiveObjectiveId.HasValue && delta.ActiveObjectiveId.Value != Guid.Empty
+                    ? delta.ActiveObjectiveId
+                    : null;
+                IEnumerable<Objective> progressTargets = OrderIncompleteObjectivesForProgress(quest.Objectives, orderByActive);
+                foreach (var objective in progressTargets)
                 {
                     ApplyDeltaToObjective(objective, gs, delta);
                     objective.InvalidateObjectiveString();
@@ -1249,13 +1257,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
         }
 
+        /// <summary>True if this objective has at least one Need* row resolvable for <paramref name="gs"/> (avoids vacuous completion when all OkNeed branches are "no requirement").</summary>
+        private static bool ObjectiveHasAnyRequirementForGame(Objective o, string gs)
+        {
+            if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
+            if (o.NeedToKillMonsters != null && o.NeedToKillMonsters.Count > 0 && ResolveDictGameKey(o.NeedToKillMonsters, gs) != null) return true;
+            if (o.NeedToEarnXP != null && o.NeedToEarnXP.Count > 0 && ResolveDictGameKey(o.NeedToEarnXP, gs) != null) return true;
+            if (o.NeedToCollectKeys != null && o.NeedToCollectKeys.Count > 0 && ResolveDictGameKey(o.NeedToCollectKeys, gs) != null) return true;
+            if (o.NeedToCollectArmor != null && o.NeedToCollectArmor.Count > 0 && ResolveDictGameKey(o.NeedToCollectArmor, gs) != null) return true;
+            if (o.NeedToCollectHealth != null && o.NeedToCollectHealth.Count > 0 && ResolveDictGameKey(o.NeedToCollectHealth, gs) != null) return true;
+            if (o.NeedToCollectWeapons != null && o.NeedToCollectWeapons.Count > 0 && ResolveDictGameKey(o.NeedToCollectWeapons, gs) != null) return true;
+            if (o.NeedToCollectPowerups != null && o.NeedToCollectPowerups.Count > 0 && ResolveDictGameKey(o.NeedToCollectPowerups, gs) != null) return true;
+            if (o.NeedToCollectAmmo != null && o.NeedToCollectAmmo.Count > 0 && ResolveDictGameKey(o.NeedToCollectAmmo, gs) != null) return true;
+            if (o.NeedToCollectItems != null && o.NeedToCollectItems.Count > 0 && ResolveDictGameKey(o.NeedToCollectItems, gs) != null) return true;
+            return false;
+        }
+
         private static bool IsObjectiveRequirementsMet(Objective o, string gs)
         {
+            if (!ObjectiveHasAnyRequirementForGame(o, gs))
+                return false;
             bool OkNeed(IDictionary<string, IList<string>> need, IDictionary<string, IList<string>> prog)
             {
                 if (need == null || need.Count == 0) return true;
                 var key = ResolveDictGameKey(need, gs);
-                if (key == null) return true;
+                /* Need dict exists but no row for this gameSource — not satisfied (was wrongly treated as met). */
+                if (key == null) return false;
                 if (!need.TryGetValue(key, out var nlist) || nlist == null || nlist.Count == 0) return true;
                 if (!int.TryParse(nlist[0], out var needN) || needN <= 0) return true;
                 return GetDictInt(prog, key) >= needN;
@@ -1264,7 +1291,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (o.NeedToCollectItems == null) return true;
                 var key = ResolveDictGameKey(o.NeedToCollectItems, gs);
-                if (key == null) return true;
+                if (key == null) return false;
                 if (!o.NeedToCollectItems.TryGetValue(key, out var items) || items == null || items.Count == 0)
                     return true;
                 if (int.TryParse(items[0], out var needCount) && needCount > 0)
@@ -1279,7 +1306,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             if (!OkNeed(o.NeedToCollectWeapons, o.WeaponsCollected)) return false;
             if (!OkNeed(o.NeedToCollectPowerups, o.PowerupsCollected)) return false;
             if (!OkNeed(o.NeedToCollectAmmo, o.AmmoCollected)) return false;
-            if (o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs) && !OkItems()) return false;
+            if (o.NeedToCollectItems != null && o.NeedToCollectItems.Count > 0 && ResolveDictGameKey(o.NeedToCollectItems, gs) != null && !OkItems()) return false;
             return true;
         }
 

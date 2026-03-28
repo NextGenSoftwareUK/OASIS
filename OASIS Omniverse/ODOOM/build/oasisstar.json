@@ -1,6 +1,8 @@
 {
+  "star_transport": "remote",
   "star_api_url": "http://localhost:8888",
   "oasis_api_url": "http://localhost:7777",
+  "oasis_dna_path": "",
   "beam_face": 1,
   "star_debug": 1,
   "quest_progress_refresh": "client",
@@ -52,7 +54,7 @@
   "mint_monster_oquake_scrag": 1,
   "mint_monster_oquake_shub": 1,
   "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDQ5NzU5NywiZXhwIjoxNzc0NDk4NDk3LCJpYXQiOjE3NzQ0OTc1OTd9.pq5cY1SZ3Eef7kJ8CjMc_vwCM_sFzDLgG-9b0D4INAA",
-  "refresh_token": "C729CA66EAD7AE91205763F72DDA2B6EEDEA81F9AA55DAAF381615B7510F943BA1DBE107A33F0CF0"
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDY4NDcxMywiZXhwIjoxNzc0Njg1NjEzLCJpYXQiOjE3NzQ2ODQ3MTN9.ju6FornRBVXd0gy2wpy52yaDLM905_QmtZ93eWrcrkQ",
+  "refresh_token": "C21D87BB2A696ECFC98D40DB6C31D3F6784BF183D9ACA04C4654053A8735C7EF748AE3401B1CBDAC"
 
 }

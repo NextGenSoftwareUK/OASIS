@@ -2,7 +2,7 @@
 
 This guide helps new developers set up a full local environment to work on **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the **OASIS** backend and APIs. It covers cloning all required repos, installing tools, building, running, and choosing between local APIs or the live OASIS APIs.
 
-**Supported platforms:** ODOOM and OQuake are built for **Windows**, **macOS**, and **Linux**. Use the platform-specific Getting Started guide for your OS: [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md).
+**Supported platforms:** ODOOM and OQuake are built for **Windows**, **macOS**, and **Linux**. Use the platform-specific Getting Started guide for your OS: [Windows](GettingStarted_Windows.md) · [Linux](GettingStarted_Linux.md) · [macOS](GettingStarted_Mac.md).
 
 ---
 
@@ -24,9 +24,20 @@ Clone the following into a common parent (e.g. `C:\Source\`). Paths below assume
 | Repository | Purpose | Suggested path |
 |------------|---------|----------------|
 | **OASIS** (this repo) | Backend, ONODE/WEB4, STAR/WEB5, STARAPIClient, ODOOM/OQuake integration code | `C:\Source\OASIS-master` |
-| **UZDoom** | Doom engine used by ODOOM | `C:\Source\UZDoom` |
-| **vkQuake** | Quake engine used by OQuake (Vulkan) | `C:\Source\vkQuake` |
+| **Engine for ODOOM** | UZDoom-based tree that `BUILD_ODOOM` compiles (`UZDOOM_SRC`) | `C:\Source\UZDoom` |
+| **Engine for OQuake** | vkQuake-based tree that `BUILD_OQUAKE` compiles (`VKQUAKE_SRC`) | `C:\Source\vkQuake` |
 | **quake-rerelease-qc** | QuakeC source (maps, progs) used by OQuake | `C:\Source\quake-rerelease-qc` |
+
+### Recommended engine repositories (forks)
+
+Integration originally targeted **upstream [UZDoom](https://github.com/UZDoom/UZDoom)** and **[vkQuake](https://github.com/Novum/vkQuake)**. For day-to-day work, **clone the maintained OASIS forks** so the engine tree already matches what the OASIS Omniverse build scripts expect:
+
+| Engine role | Recommended clone (OASIS fork) | Upstream (reference only) |
+|-------------|--------------------------------|---------------------------|
+| **`UZDOOM_SRC` / ODOOM** | **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** | UZDoom |
+| **`VKQUAKE_SRC` / OQuake** | **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** | vkQuake (Novum) |
+
+You can still point `UZDOOM_SRC` / `VKQUAKE_SRC` at a vanilla upstream checkout if you apply the same patches the build scripts copy from this repo—but that is easy to get wrong; **prefer the forks above**.
 
 ### Clone commands (examples)
 
@@ -34,11 +45,11 @@ Clone the following into a common parent (e.g. `C:\Source\`). Paths below assume
 # OASIS (main repo – contains ODOOM/OQuake integration, APIs, scripts)
 git clone <OASIS-repo-url> C:\Source\OASIS-master
 
-# UZDoom – engine for ODOOM
-git clone https://github.com/UZDoom/UZDoom.git C:\Source\UZDoom
+# Engine for ODOOM (recommended: OASIS fork of UZDoom)
+git clone https://github.com/NextGenSoftwareUK/ODOOM.git C:\Source\UZDoom
 
-# vkQuake – engine for OQuake
-git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
+# Engine for OQuake (recommended: OASIS fork of vkQuake)
+git clone https://github.com/NextGenSoftwareUK/OQUAKE.git C:\Source\vkQuake
 
 # QuakeC (quake-rerelease-qc) – game data / progs for OQuake
 git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
@@ -101,7 +112,7 @@ Install these before building ODOOM, OQuake, or the OASIS APIs.
 - **Build and run:** Run:
   - `"OASIS Omniverse\OQuake\RUN OQUAKE.bat"`
 - Set **VKQUAKE_SRC** (e.g. `C:\Source\vkQuake`) and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** in the script if needed. Run from **Developer Command Prompt for VS** so MSBuild is in PATH.
-- Output: `OASIS Omniverse\OQuake\build\` (OQUAKE.exe and star_api.dll). Quake game data (id1, pak0.pak, pak1.pak, gfx.wad) must be available (e.g. via `-basedir` or next to the exe). See `OQuake\WINDOWS_INTEGRATION.md`.
+- Output: `OASIS Omniverse\OQuake\build\` (OQUAKE.exe and star_api.dll). Quake game data (id1, pak0.pak, pak1.pak, gfx.wad) must be available (e.g. via `-basedir` or next to the exe). See `OQuake\Docs\WINDOWS_INTEGRATION.md`.
 
 ### STAR API client (C layer)
 
@@ -231,10 +242,10 @@ Summary:
 
 ### More detail
 
-- **Architecture & porting:** `OASIS Omniverse\ARCHITECTURE.md` – client-centric design, minimal game hooks, how to port new games.
-- **Integration (items, quests, APIs):** `OASIS Omniverse\INTEGRATION_GUIDE.md`
+- **Architecture & porting:** `OASIS Omniverse\Docs\ARCHITECTURE.md` – client-centric design, minimal game hooks, how to port new games.
+- **Integration (items, quests, APIs):** `OASIS Omniverse\Docs\INTEGRATION_GUIDE.md`
 - **ODOOM:** `OASIS Omniverse\ODOOM\WINDOWS_INTEGRATION.md`, `ODOOM\README.md`
-- **OQuake:** `OASIS Omniverse\OQuake\WINDOWS_INTEGRATION.md`, `OQuake\README.md`
+- **OQuake:** `OASIS Omniverse\OQuake\Docs\WINDOWS_INTEGRATION.md`, `OQuake\README.md`
 - **APIs and scripts:** `Scripts\README.md`
 - **STARAPIClient:** `OASIS Omniverse\STARAPIClient\README.md`
 
