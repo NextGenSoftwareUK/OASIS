@@ -95,8 +95,11 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - Solana Superteam UK: AR World Phygital game with geo-cached Solana NFTs
 
 ### **STAR CLI - Revolutionary Interoperable Low/No Code Generator**
-- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI guide
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - **Hub doc**: users & devs, Light/templating, `IOASISSuperStar` / NativeCodeGenesis, STARNET store, non-interactive & AI/MCP scripting (links out to detail docs)
+- **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete STAR CLI command tables and reference
 - **[STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md)** - Quick start tutorial
+- **[STAR CLI: Non-interactive & JSON](./STAR_CLI_NonInteractive.md)** - `--non-interactive`, `--json`, scripted create, exit codes, contributor patterns
+- **[STAR CLI: AI session handoff](./STAR_CLI_SessionHandoff.md)** - File map and build command when context is lost
 - **Features**: Interoperable Low/No Code Generator, OASIS Omniverse unification, asset/app store backend
 - **Benefits**: Create entire metaverses with minimal coding, unify all platforms, power Our World game
 
@@ -150,6 +153,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[STAR OAPP Builder](./API%20Documentation/STAR_OAPP_Builder_Documentation.md)** - OAPP Builder guide
 
 ### **STAR CLI & DNA System**
+- **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)** - Architecture hub (Light, templates, providers, automation)
 - **[STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md)** - Complete CLI reference
 - **[DNA System Guide](./DNA_SYSTEM_GUIDE.md)** - STARNETHolon dependency management
 - **[Dependency Management Guide](./DEPENDENCY_MANAGEMENT_GUIDE.md)** - Advanced dependency management
