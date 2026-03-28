@@ -22,6 +22,10 @@ typedef struct {
     int timeout_seconds;
     /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
     const char* client_game_source;
+    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a star_api build that embeds HyperDrive; default library returns STAR_API_ERROR_INIT_FAILED). */
+    int32_t transport;
+    /* Optional: UTF-8 path to OASIS_DNA.json for native transport (for future native host). */
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {
@@ -135,6 +139,8 @@ int star_api_get_quest_tracker_active_objective_index(const char* quest_id);
 void star_api_invalidate_quest_cache(void);
 /** Start a background refresh of the quest cache without clearing it. Show existing cache in the UI immediately; list updates when the callback returns. */
 void star_api_refresh_quest_cache_in_background(void);
+/** 1 = in-game quest list popup is open, 0 = closed. While open, quest progress (POST/merge) and applying GET all-for-avatar into the cache are skipped. List uses the same in-memory cache updated by progress merge during gameplay. */
+void star_api_set_quest_popup_open(int is_open);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);

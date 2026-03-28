@@ -101,12 +101,21 @@ link_args : ['-lstar_api']  # or the path to star_api.lib
 
 ## 4a. host.c – item/stats poll (recommended; apply script does this)
 
-So that pickups (armor, ammo, keys, etc.) are reported to STAR **every frame**, the apply script patches **host.c** to call **`OQuake_STAR_PollItems()`** right after `CL_ReadFromServer()`. That way items are tracked even if the status bar (sbar) is never drawn or your build doesn’t patch sbar.c.
+So that pickups (armor, ammo, keys, etc.) are reported to STAR **every frame**, the apply script patches **host.c** to call **`OQuake_STAR_PollItems()`** after the **`CL_ReadFromServer ();`** block and **before** the `// update video` comment in **`_Host_Frame`** (outside `if (cls.state == ca_connected)`, so the menu/console still pumps `star_sync_pump`).
 
-If you apply OQuake manually, add this in **`_Host_Frame`** (in host.c), right after `CL_ReadFromServer ();`:
+**Do not** place the call only *inside* the same block as `CL_ReadFromServer` only, and **do not** insert it immediately before `SCR_UpdateScreen (true);` next to `if (host_speeds.value)` — that layout can trigger **GCC `-Werror=misleading-indentation`** on Linux builds.
+
+If you patch by hand, in **`_Host_Frame`** (same indent as the `// update video` line):
 
 ```c
-OQuake_STAR_PollItems ();
+ if (cls.state == ca_connected)
+ CL_ReadFromServer ();
+
+ OQuake_STAR_PollItems ();
+
+ // update video
+ if (host_speeds.value)
+ time1 = Sys_DoubleTime ();
 ```
 
 Ensure **`#include "oquake_star_integration.h"`** is at the top of host.c (needed for `OQuake_STAR_Init` and `OQuake_STAR_PollItems`).
@@ -137,13 +146,13 @@ So that the player **does not move** and **arrow keys, HOME, PGDOWN, etc. do not
 
 When you run **BUILD_OQUAKE.bat** (or the apply script directly), it **automatically** does everything (like ODOOM):
 
-1. **Copies** into `VkQuakeSrc\Quake\`: `oquake_star_integration.c/h`, `oquake_version.h`, `pr_ext_oquake.c`, `star_sync.c/h`, `star_api.h`, `star_api.dll`, `star_api.lib`.
+1. **Copies** into `VkQuakeSrc\Quake\`: `oquake_star_integration.c/h`, `oquake_version.h`, `pr_ext_oquake.c`, `star_sync.h`, `star_api.h`, `star_api.dll`, `star_api.lib`.
 2. **Patches host.c**: adds `#include "oquake_version.h"` and `#include "oquake_star_integration.h"`, calls **OQuake_STAR_Init()** after PR_Init, **OQuake_STAR_Cleanup()** at shutdown, **OQuake_STAR_PollItems()** after CL_ReadFromServer, and the **pr_engine** version string (OQuake 1.0 (Build 1) (vkQuake …)).
 3. **Patches pr_ext.c**: adds **extern** declarations for the four OQuake builtins and adds them to the **extensionbuiltins** table (`ex_OQuake_OnKeyPickup`, `ex_OQuake_CheckDoorAccess`, `ex_OQuake_OnBossKilled`, `ex_OQuake_OnMonsterKilled`).
 4. **Patches sbar.c**: adds `#include "oquake_star_integration.h"`, **sb_face_anorak**, loads it in Sbar_LoadPics, and draws the anorak face when **OQuake_STAR_ShouldUseAnorakFace()** is true.
 5. **Patches gl_screen.c**: adds `#include "oquake_star_integration.h"` and calls **OQuake_STAR_DrawBeamedInStatus**, **OQuake_STAR_DrawXpStatus**, **OQuake_STAR_DrawVersionStatus**, **OQuake_STAR_DrawInventoryOverlay** in the HUD path (after SCR_DrawClock).
 6. **Patches cl_input.c**: adds `#include "oquake_star_integration.h"`; in **CL_BaseMove** returns early when **OQuake_STAR_IsQuestPopupOpen()** or **OQuake_STAR_IsInventoryPopupOpen()** is true (so no movement); in **CL_AdjustAngles** returns early when either popup is open (so END/PGUP/PGDN/HOME and +lookup/+lookdown/+left/+right do not pan the view). Keys work after closing.
-7. **Patches the Visual Studio project**: adds **oquake_star_integration.c**, **pr_ext_oquake.c**, and **star_sync.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies.
+7. **Patches the Visual Studio project**: adds **oquake_star_integration.c** and **pr_ext_oquake.c** to the Quake target (with PrecompiledHeader disabled) if missing, and adds **star_api.lib** to the linker’s AdditionalDependencies. `star_sync_*` comes from `star_api.dll` exports (client implementation), not engine `star_sync.c`.
 
 No manual one-time setup is required. On a fresh vkQuake clone, run the script once (or BUILD_OQUAKE.bat); then build. Every subsequent run just copies the latest OQuake/STAR code and re-applies the patches.
 

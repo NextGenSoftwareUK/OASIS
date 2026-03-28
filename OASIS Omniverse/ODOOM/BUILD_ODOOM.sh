@@ -364,7 +364,7 @@ mkdir -p "$UZDOOM_SRC/build/src"
 for destdir in "$UZDOOM_SRC/build" "$UZDOOM_SRC/build/src"; do
   cp -f "$STAR_LIB_SRC" "$destdir/$STAR_LIB_NAME"
 done
-# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile star_sync.c (C). See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+# OASIS_STAR_SYNC_IN_CLIENT: 1 = use star_sync from star_api (C#); 0 = compile star_sync.c (C). See star_sync.h / OASIS Omniverse/Docs/STAR_INTEGRATION_AUDIT.md.
 if [[ "${OASIS_STAR_SYNC_IN_CLIENT:-1}" == "0" ]]; then
   CMAKE_STAR_SYNC="-DOASIS_STAR_SYNC_IN_CLIENT=OFF"
   echo "[ODOOM][INFO] Compiling star_sync.c - C implementation"
