@@ -162,6 +162,16 @@ if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c"
     [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_DIR/"
     cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_DIR/"
   fi
+  # Stage anorak HUD face (same as apply script): Images/ is canonical; pwsh path may be skipped above.
+  if [[ -f "$HERE/Images/face_anorak.png" ]]; then
+    mkdir -p "$HERE/build/id1/gfx"
+    cp -f "$HERE/Images/face_anorak.png" "$HERE/build/id1/gfx/face_anorak.png"
+    echo "[OQuake] Staged face_anorak.png -> build/id1/gfx/"
+  elif [[ -f "$HERE/face_anorak.png" ]]; then
+    mkdir -p "$HERE/build/id1/gfx"
+    cp -f "$HERE/face_anorak.png" "$HERE/build/id1/gfx/face_anorak.png"
+    echo "[OQuake] Staged face_anorak.png -> build/id1/gfx/"
+  fi
   # OQuake_STAR_PollItems must run every frame (including menu/console). If host.c already contains the call
   # (e.g. vkQuake was patched on Windows with apply_oquake_to_vkquake.ps1), the unix script skips edits.
   HOST_C="$VKQUAKE_SRC/Quake/host.c"
@@ -221,6 +231,20 @@ if [[ -n "$QUAKE_ENGINE_EXE" && -f "$QUAKE_ENGINE_EXE" ]]; then
   for d in "$EXE_DIR"/*.so "$EXE_DIR"/*.dylib; do
     [[ -f "$d" ]] && cp -f "$d" "$OQUAKE_INTEGRATION/build/" || true
   done
+  # Ensure anorak face is next to OQUAKE (Images/ or prior staging)
+  if [[ -f "$HERE/Images/face_anorak.png" ]]; then
+    mkdir -p "$OQUAKE_INTEGRATION/build/id1/gfx"
+    cp -f "$HERE/Images/face_anorak.png" "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png"
+  elif [[ -f "$HERE/face_anorak.png" ]]; then
+    mkdir -p "$OQUAKE_INTEGRATION/build/id1/gfx"
+    cp -f "$HERE/face_anorak.png" "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png"
+  fi
+  # If game data path exists, install face there too (same as Windows apply → Steam id1/gfx)
+  if [[ -f "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png" && -d "$OQUAKE_BASEDIR/id1" ]]; then
+    mkdir -p "$OQUAKE_BASEDIR/id1/gfx"
+    cp -f "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png" "$OQUAKE_BASEDIR/id1/gfx/face_anorak.png" && \
+      echo "[OQuake] Copied face_anorak.png -> $OQUAKE_BASEDIR/id1/gfx/"
+  fi
   echo "  Output: $OQUAKE_INTEGRATION/build/OQUAKE"
 fi
 

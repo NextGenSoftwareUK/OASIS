@@ -444,7 +444,7 @@ printf("Last error: %s\n", error);
 
 ## Support
 
-- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](ODOOM/README.md), [OQuake/README.md](OQuake/README.md), [STARAPIClient/README.md](STARAPIClient/README.md)
+- **Setup and build:** [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md), [ODOOM/README.md](../ODOOM/README.md), [OQuake/README.md](../OQuake/README.md), [STARAPIClient/README.md](../STARAPIClient/README.md)
 - **Troubleshooting:** Game-specific WINDOWS_INTEGRATION.md files; STAR API logs (e.g. `star_api.log` in game exe folder)
 
 ## License

@@ -56,7 +56,7 @@ From OASIS repo root, in **Developer Command Prompt for VS**:
 "OASIS Omniverse\OQuake\BUILD_OQUAKE.bat"
 ```
 
-Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). Run: `OASIS Omniverse\OQuake\build\OQUAKE.exe` with Quake data (e.g. id1, pak files). See [OQuake/WINDOWS_INTEGRATION.md](OQuake/WINDOWS_INTEGRATION.md).
+Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). Run: `OASIS Omniverse\OQuake\build\OQUAKE.exe` with Quake data (e.g. id1, pak files). See [OQuake/Docs/WINDOWS_INTEGRATION.md](../OQuake/Docs/WINDOWS_INTEGRATION.md).
 
 ## 6. Test
 
@@ -77,4 +77,4 @@ Set **VKQUAKE_SRC** (and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** if needed). R
 
 - Full setup and config: [DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)
 - Integration details: [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)
-- ODOOM: [ODOOM/README.md](ODOOM/README.md) | OQuake: [OQuake/README.md](OQuake/README.md)
+- ODOOM: [ODOOM/README.md](../ODOOM/README.md) | OQuake: [OQuake/README.md](../OQuake/README.md)

@@ -203,7 +203,7 @@ No new client code is required for a new game; the client remains generic and do
 
 ### Move star_sync into the C# client
 
-**Status:** Done. star_sync is implemented in C# in **StarSyncExports.cs** and exported from star_api.dll. BUILD ODOOM and BUILD_OQUAKE default to **OASIS_STAR_SYNC_IN_CLIENT=1**, so games use the client’s star_sync and do not compile `star_sync.c`. The C file **star_sync.c** remains in STARAPIClient so you can switch back (set `OASIS_STAR_SYNC_IN_CLIENT=0` or change one line in the build script). See **STAR_INTEGRATION_AUDIT.md** (“Star_sync: in-client (C#) default vs C implementation”) and **star_sync.h** for how to switch back.
+**Status:** Done. star_sync is implemented in C# in **StarSyncExports.cs** and exported from star_api.dll. BUILD ODOOM and BUILD_OQUAKE default to **OASIS_STAR_SYNC_IN_CLIENT=1**, so games use the client’s star_sync and do not compile `star_sync.c`. The C file **star_sync.c** remains in STARAPIClient so you can switch back (set `OASIS_STAR_SYNC_IN_CLIENT=0` or change one line in the build script). See **[STAR_INTEGRATION_AUDIT.md](./STAR_INTEGRATION_AUDIT.md)** (“Star_sync: in-client (C#) default vs C implementation”) and **star_sync.h** for how to switch back.
 
 **Goal:** Implement all of **star_sync** (async auth, async inventory refresh, async send item, async use item, init/cleanup/pump) inside the C# STARAPIClient and export the same `star_sync_*` C API from the client DLL. Then remove the C implementation (`star_sync.c`) from ODOOM and OQuake builds; keep `star_sync.h` for the API declarations; games link only the client and call the client’s exports.
 
@@ -223,5 +223,5 @@ No new client code is required for a new game; the client remains generic and do
 ## Related docs
 
 - **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** – Cross-game item sharing, quests, setup.
-- **[STARAPIClient/README.md](STARAPIClient/README.md)** – C# client behaviour, cache, queues, build.
+- **[STARAPIClient/README.md](../STARAPIClient/README.md)** – C# client behaviour, cache, queues, build.
 - **[DEVELOPER_ONBOARDING.md](DEVELOPER_ONBOARDING.md)** – Repo setup, build, config.

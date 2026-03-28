@@ -1,6 +1,6 @@
 # Building ODOOM and OQuake on Linux and macOS
 
-Unix (Linux and macOS) equivalents of the Windows batch files **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat**. For a full step-by-step guide, see **[Docs/GettingStarted_Linux.md](Docs/GettingStarted_Linux.md)** or **[Docs/GettingStarted_Mac.md](Docs/GettingStarted_Mac.md)**.
+Unix (Linux and macOS) equivalents of the Windows batch files **BUILD ODOOM.bat** and **BUILD_OQUAKE.bat**. For a full step-by-step guide, see **[GettingStarted_Linux.md](GettingStarted_Linux.md)** or **[GettingStarted_Mac.md](GettingStarted_Mac.md)**.
 
 ## Quick start
 

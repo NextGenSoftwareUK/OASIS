@@ -2,7 +2,7 @@
 
 This guide helps new developers set up a full local environment to work on **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the **OASIS** backend and APIs. It covers cloning all required repos, installing tools, building, running, and choosing between local APIs or the live OASIS APIs.
 
-**Supported platforms:** ODOOM and OQuake are built for **Windows**, **macOS**, and **Linux**. Use the platform-specific Getting Started guide for your OS: [Windows](Docs/GettingStarted_Windows.md) · [Linux](Docs/GettingStarted_Linux.md) · [macOS](Docs/GettingStarted_Mac.md).
+**Supported platforms:** ODOOM and OQuake are built for **Windows**, **macOS**, and **Linux**. Use the platform-specific Getting Started guide for your OS: [Windows](GettingStarted_Windows.md) · [Linux](GettingStarted_Linux.md) · [macOS](GettingStarted_Mac.md).
 
 ---
 
@@ -101,7 +101,7 @@ Install these before building ODOOM, OQuake, or the OASIS APIs.
 - **Build and run:** Run:
   - `"OASIS Omniverse\OQuake\RUN OQUAKE.bat"`
 - Set **VKQUAKE_SRC** (e.g. `C:\Source\vkQuake`) and **OQUAKE_BASEDIR** / **QUAKE_ENGINE_EXE** in the script if needed. Run from **Developer Command Prompt for VS** so MSBuild is in PATH.
-- Output: `OASIS Omniverse\OQuake\build\` (OQUAKE.exe and star_api.dll). Quake game data (id1, pak0.pak, pak1.pak, gfx.wad) must be available (e.g. via `-basedir` or next to the exe). See `OQuake\WINDOWS_INTEGRATION.md`.
+- Output: `OASIS Omniverse\OQuake\build\` (OQUAKE.exe and star_api.dll). Quake game data (id1, pak0.pak, pak1.pak, gfx.wad) must be available (e.g. via `-basedir` or next to the exe). See `OQuake\Docs\WINDOWS_INTEGRATION.md`.
 
 ### STAR API client (C layer)
 
@@ -231,10 +231,10 @@ Summary:
 
 ### More detail
 
-- **Architecture & porting:** `OASIS Omniverse\ARCHITECTURE.md` – client-centric design, minimal game hooks, how to port new games.
-- **Integration (items, quests, APIs):** `OASIS Omniverse\INTEGRATION_GUIDE.md`
+- **Architecture & porting:** `OASIS Omniverse\Docs\ARCHITECTURE.md` – client-centric design, minimal game hooks, how to port new games.
+- **Integration (items, quests, APIs):** `OASIS Omniverse\Docs\INTEGRATION_GUIDE.md`
 - **ODOOM:** `OASIS Omniverse\ODOOM\WINDOWS_INTEGRATION.md`, `ODOOM\README.md`
-- **OQuake:** `OASIS Omniverse\OQuake\WINDOWS_INTEGRATION.md`, `OQuake\README.md`
+- **OQuake:** `OASIS Omniverse\OQuake\Docs\WINDOWS_INTEGRATION.md`, `OQuake\README.md`
 - **APIs and scripts:** `Scripts\README.md`
 - **STARAPIClient:** `OASIS Omniverse\STARAPIClient\README.md`
 
