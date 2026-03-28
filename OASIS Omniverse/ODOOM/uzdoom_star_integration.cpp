@@ -724,7 +724,7 @@ static void ODOOM_ApplyCrossGameAmmo(player_t* player, const char* logicalDoomAm
 		/* Deathmatch: console `give` often requires sv_cheats; still try — if it fails, direct Amount add runs only when inventory exists after pickup. */
 		FString cmd;
 		cmd.Format("give %s", invClass);
-		C_DoCommand(cmd);
+		C_DoCommand(cmd.GetChars());
 		a = player->mo->FindInventory(fn, true);
 	}
 	if (!a) {
@@ -745,7 +745,7 @@ static void ODOOM_GiveWeaponClassIfMissing(player_t* player, const char* classNa
 	if (player->mo->FindInventory(fn, true)) return;
 	FString cmd;
 	cmd.Format("give %s", className);
-	C_DoCommand(cmd);
+	C_DoCommand(cmd.GetChars());
 	if (!player->mo->FindInventory(fn, true) && ODOOM_InDeathmatch() && g_star_debug_logging)
 		Printf(PRINT_HIGH, "[STAR] Cross-game weapon: `give %s` did not apply (deathmatch / netgame may block cheats).\n", className);
 }
@@ -1363,7 +1363,12 @@ static bool ODOOM_ItemMatchesTab(const char* item_type, const char* name, int ta
 	if (tab == ODOOM_TAB_KEYS) return containsKey(item_type) || containsKey(name);
 	if (tab == ODOOM_TAB_POWERUPS)
 		return contains(item_type, "Powerup") || ODOOM_ItemNameIsCanonicalPhase1Powerup(name);
-	if (tab == ODOOM_TAB_WEAPONS) return contains(item_type, "Weapon");
+	if (tab == ODOOM_TAB_WEAPONS) {
+		/* Holon ItemType from API may be *Weapon* for monster NFTs; monster kills use "Monster defeated in ..." description (normalized in STARAPI GetNativeItemType). */
+		if (contains(item_type, "Monster") || (name && (std::strstr(name, "[NFT]") != nullptr || std::strstr(name, "[BOSSNFT]") != nullptr)))
+			return false;
+		return contains(item_type, "Weapon");
+	}
 	if (tab == ODOOM_TAB_AMMO) return contains(item_type, "Ammo");
 	if (tab == ODOOM_TAB_ARMOR) return contains(item_type, "Armor");
 	if (tab == ODOOM_TAB_MONSTERS) return contains(item_type, "Monster") || (name && (std::strstr(name, "[NFT]") != nullptr || std::strstr(name, "[BOSSNFT]") != nullptr));
@@ -2828,7 +2833,8 @@ void ODOOM_InventoryInputCaptureFrame(void)
 	}
 		else if (!anyPopupOpen && g_odoom_inventory_bindings_captured)
 	{
-		/* Restore bindings for keys we cleared when opening overlay or quest popup. Do not touch 0-9; game handles weapon slots by default. */
+		/* Restore bindings for keys we cleared when opening overlay or quest popup.
+		 * Engine default is "slot N" (see commonbinds.txt / menudef), not "weapon N" — the latter is not a CCMD and poisons saved binds. */
 		C_DoCommand("bind uparrow \"+forward\"");
 		C_DoCommand("bind downarrow \"+back\"");
 		C_DoCommand("bind leftarrow \"+left\"");
@@ -2855,9 +2861,9 @@ void ODOOM_InventoryInputCaptureFrame(void)
 		C_DoCommand("bind pgdn \"\"");
 		C_DoCommand("bind home \"\"");
 		C_DoCommand("bind end \"\"");
-		C_DoCommand("bind \"1\" \"weapon 1\"");
-		C_DoCommand("bind \"2\" \"weapon 2\"");
-		C_DoCommand("bind \"3\" \"weapon 3\"");
+		C_DoCommand("bind \"1\" \"slot 1\"");
+		C_DoCommand("bind \"2\" \"slot 2\"");
+		C_DoCommand("bind \"3\" \"slot 3\"");
 		g_odoom_inventory_bindings_captured = false;
 	}
 

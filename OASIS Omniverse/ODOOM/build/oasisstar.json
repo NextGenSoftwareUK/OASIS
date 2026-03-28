@@ -23,10 +23,6 @@
   "use_health_on_pickup": 0,
   "use_armor_on_pickup": 0,
   "use_powerup_on_pickup": 0,
-  "cross_game_doom_ammo_to_quake": "Bullets=Nails,Shells=Shells,Rockets=Rockets,Cells=Cells",
-  "cross_game_quake_ammo_to_doom": "Nails=Bullets,Shells=Shells,Rockets=Rockets,Cells=Cells",
-  "cross_game_doom_weapon_to_quake": "Chaingun=Nailgun,Shotgun=Shotgun,BFG9000=Lightning Gun,Plasma Rifle=Super Nailgun,Rocket Launcher=Rocket Launcher,Super Shotgun=Super Shotgun",
-  "cross_game_quake_weapon_to_doom": "Nailgun=Chaingun,Shotgun=Shotgun,Super Nailgun=PlasmaRifle,Lightning Gun=BFG9000,Grenade Launcher=PlasmaRifle,Rocket Launcher=RocketLauncher,Super Shotgun=SuperShotgun",
   "mint_monster_odoom_zombieman": 1,
   "mint_monster_odoom_shotgunguy": 1,
   "mint_monster_odoom_chaingunguy": 1,
@@ -58,7 +54,7 @@
   "mint_monster_oquake_scrag": 1,
   "mint_monster_oquake_shub": 1,
   "beamedin_avatar": "dellams",
-  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDY2ODI5MywiZXhwIjoxNzc0NjY5MTkzLCJpYXQiOjE3NzQ2NjgyOTN9.SwgtRndExZHwY7spWDkV5D6Z3Mbq1Z1YG0KyTMUfghg",
-  "refresh_token": "5C26CFFD4D52FC9553AA60D60647473951E146FBA0639722D3A90F597DE066238F661E29177118ED"
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NDY3OTM3NiwiZXhwIjoxNzc0NjgwMjc2LCJpYXQiOjE3NzQ2NzkzNzZ9.gJpwkwwLCu5mihksz59uuSimF3W-zVb7MK-gSpcEb1Q",
+  "refresh_token": "AAD75EC130977677EE64E8A15EFCE0AFDCF60C32CCAF51D77D3B8756D39E900820E4A65CB4E01BA2"
 
 }
