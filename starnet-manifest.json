@@ -287,6 +287,16 @@
       "zomes":   ["SOPZome", "StepZome", "RunZome", "AuditZome", "IntegrationZome"],
       "apis":    ["WorkflowController", "BraidController", "HolonManager", "FilesController", "VaultController", "KarmaController", "NftController"],
       "dna":     "STAR_Templates/star_dna/SOPTemplate.json"
+    },
+    {
+      "name":    "OrgStructureTemplate",
+      "id":      "b2c4d6e8-f0a2-4b6c-d8e0-f2a4b6c8d0e2",
+      "type":    "OAPPTemplate",
+      "tags":    ["org", "team", "roles", "identity", "sso", "invite", "permissions", "sop", "avatar", "enterprise"],
+      "summary": "Organisation, team, and role management for OASIS. Required infrastructure for multi-party SOP execution: resolves SOP step AssignedRole fields to real Avatar identities, manages team membership, controls SOP authoring/running permissions, and handles Avatar invite flows for external parties (e.g. customers signing a go-live step). 4 holons across 2 zomes: OrgZome (OrgHolon + OrgRoleHolon), MemberZome (OrgMemberHolon + OrgInviteHolon). Supports SSO (Google, Microsoft, Okta, SAML), external party invites, and white-label SOPRunner theming.",
+      "zomes":   ["OrgZome", "MemberZome"],
+      "apis":    ["AvatarController", "HolonManager", "WorkflowController", "KarmaController"],
+      "dna":     "STAR_Templates/star_dna/OrgStructureTemplate.json"
     }
   ],
 
