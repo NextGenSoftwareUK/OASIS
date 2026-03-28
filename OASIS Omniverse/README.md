@@ -1,6 +1,6 @@
 # OASIS Omniverse
 
-OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across classic FPS games.
+OASIS Omniverse brings **ODOOM** (Doom + OASIS STAR API), **OQuake** (Quake + OASIS STAR API), and the shared STAR API client and tooling into one place. It enables cross-game inventory, quests, and avatar/SSO auth across all games.
 
 **All Markdown guides for this area live under [`Docs/`](Docs/).** This README is the **entry point and full index**; use the tables below to jump to what you need.
 
@@ -43,6 +43,7 @@ Choose your platform for a clear, step-by-step setup:
 |----------|----------------|
 | [Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md) | Client-centric design, layers, porting checklist, `star_sync` notes |
 | [Docs/INTEGRATION_GUIDE.md](Docs/INTEGRATION_GUIDE.md) | Cross-game items, quests, API usage, phases, troubleshooting |
+| [Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md](Docs/CROSS_GAME_POWERUP_WEAPON_MAP.md) | Doom ↔ Quake powerup/weapon canonical IDs and mapping phases |
 | [Docs/STAR_INTEGRATION_AUDIT.md](Docs/STAR_INTEGRATION_AUDIT.md) | Integration audit (e.g. in-client `star_sync` vs C implementation) |
 
 ### Quests, players, and ODOOM UI behaviour
@@ -90,16 +91,18 @@ To build ODOOM and OQuake you need the OASIS repo plus the game engines and Quak
 | Repository | Purpose |
 |------------|---------|
 | **OASIS** (this repo) | Backend, STARAPIClient, ODOOM/OQuake integration |
-| **UZDoom** | Doom engine used by ODOOM |
-| **vkQuake** | Quake engine used by OQuake (Vulkan) |
+| **Engine for ODOOM** (`UZDOOM_SRC`) | UZDoom-based tree the ODOOM build compiles |
+| **Engine for OQuake** (`VKQUAKE_SRC`) | vkQuake-based tree the OQuake build compiles |
 | **quake-rerelease-qc** | QuakeC source used by OQuake |
+
+**Recommended:** although upstream is **UZDoom** and **vkQuake**, use the OASIS-maintained forks **[NextGenSoftwareUK/ODOOM](https://github.com/NextGenSoftwareUK/ODOOM)** and **[NextGenSoftwareUK/OQUAKE](https://github.com/NextGenSoftwareUK/OQUAKE)** for `UZDOOM_SRC` and `VKQUAKE_SRC` so the engine already tracks OASIS integration; vanilla upstream requires you to rely entirely on copy/patch steps from this repo.
 
 Example clone commands (see [Docs/DEVELOPER_ONBOARDING.md](Docs/DEVELOPER_ONBOARDING.md) for full setup):
 
 ```bash
 git clone <OASIS-repo-url> C:\Source\OASIS-master
-git clone https://github.com/UZDoom/UZDoom.git C:\Source\UZDoom
-git clone https://github.com/Novum/vkQuake.git C:\Source\vkQuake
+git clone https://github.com/NextGenSoftwareUK/ODOOM.git C:\Source\UZDoom
+git clone https://github.com/NextGenSoftwareUK/OQUAKE.git C:\Source\vkQuake
 git clone <quake-rerelease-qc-repo-url> C:\Source\quake-rerelease-qc
 ```
 
