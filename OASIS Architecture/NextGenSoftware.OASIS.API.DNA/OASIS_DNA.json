@@ -300,7 +300,164 @@
                 "ArchiveAccount": "rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
             }
         },
+        "OASISHyperDriveConfig": null,
+        "HyperDriveMode": "Legacy",
+        "ReplicationRules":
+        {
+            "Mode": "Auto",
+            "IsEnabled": true,
+            "MaxReplicationsPerMonth": 1000,
+            "CostThreshold": 10.00,
+            "FreeProvidersOnly": true,
+            "GasFeeThreshold": 0.01,
+            "ReplicationTriggers":
+            [],
+            "ProviderRules":
+            [],
+            "DataTypeRules":
+            [],
+            "ScheduleRules":
+            [],
+            "CostOptimization":
+            {
+                "IsEnabled": true,
+                "MaxCostPerReplication": 0.01,
+                "MaxCostPerMonth": 10.00,
+                "PreferredFreeProviders":
+                [],
+                "AvoidHighGasProviders": true,
+                "GasFeeThreshold": 0.01,
+                "CostAlertThreshold": 5.00
+            },
+            "IntelligentSelection":
+            {
+                "IsEnabled": true,
+                "Algorithm": "Intelligent",
+                "Weights":
+                {
+                    "Cost": 0.3,
+                    "Performance": 0.3,
+                    "Reliability": 0.2,
+                    "Security": 0.1,
+                    "Geographic": 0.05,
+                    "Availability": 0.05
+                },
+                "LearningEnabled": true,
+                "AdaptationSpeed": "Medium",
+                "OptimizationGoals":
+                []
+            }
+        },
+        "FailoverRules":
+        {
+            "Mode": "Auto",
+            "IsEnabled": true,
+            "MaxFailoversPerMonth": 100,
+            "CostThreshold": 5.00,
+            "FreeProvidersOnly": true,
+            "GasFeeThreshold": 0.01,
+            "FailoverTriggers":
+            [],
+            "ProviderRules":
+            [],
+            "IntelligentSelection":
+            {
+                "IsEnabled": true,
+                "Algorithm": "Intelligent",
+                "Weights":
+                {
+                    "Cost": 0.3,
+                    "Performance": 0.3,
+                    "Reliability": 0.2,
+                    "Security": 0.1,
+                    "Geographic": 0.05,
+                    "Availability": 0.05
+                },
+                "LearningEnabled": true,
+                "AdaptationSpeed": "Medium",
+                "OptimizationGoals":
+                []
+            },
+            "EscalationRules":
+            []
+        },
+        "SubscriptionConfig":
+        {
+            "PlanType": "Free",
+            "MaxReplicationsPerMonth": 100,
+            "MaxFailoversPerMonth": 10,
+            "MaxStorageGB": 1,
+            "PayAsYouGoEnabled": false,
+            "CostPerReplication": 0.01,
+            "CostPerFailover": 0.05,
+            "CostPerGB": 0.10,
+            "Currency": "USD",
+            "BillingCycle": "Monthly",
+            "UsageAlerts":
+            [],
+            "QuotaNotifications":
+            []
+        },
+        "DataPermissions":
+        {
+            "AvatarPermissions":
+            {
+                "IsEnabled": true,
+                "Fields":
+                [],
+                "DefaultPermission": "Read",
+                "ProviderOverrides":
+                {}
+            },
+            "HolonPermissions":
+            {
+                "IsEnabled": true,
+                "HolonTypes":
+                [],
+                "DefaultPermission": "Read",
+                "ProviderOverrides":
+                {}
+            },
+            "ProviderPermissions":
+            {
+                "IsEnabled": true,
+                "Providers":
+                []
+            },
+            "FieldLevelPermissions":
+            {
+                "IsEnabled": true,
+                "Rules":
+                []
+            },
+            "AccessControl":
+            {
+                "IsEnabled": true,
+                "AuthenticationRequired": true,
+                "AuthorizationLevel": "Authenticated",
+                "EncryptionLevel": "Standard",
+                "AuditLogging": true,
+                "AccessPolicies":
+                []
+            }
+        },
+        "IntelligentMode":
+        {
+            "IsEnabled": true,
+            "AutoOptimization": true,
+            "CostAwareness": true,
+            "PerformanceOptimization": true,
+            "SecurityOptimization": true,
+            "LearningEnabled": true,
+            "AdaptationSpeed": "Medium",
+            "OptimizationGoals":
+            []
+        },
         "OASISSystemAccountId": "",
-        "OASISAPIURL": "https://oasisweb4.one/api"
+        "OASISAPIURL": "https://api.oasisweb4.one",
+        "NetworkId": "onet01",
+        "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
+        "StatsCacheEnabled": false,
+        "StatsCacheTtlSeconds": 45
     }
 }
