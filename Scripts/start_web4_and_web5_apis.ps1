@@ -161,8 +161,10 @@ function Remove-ProcessState {
 function Stop-ProcessesOnPort {
     param([Parameter(Mandatory = $true)][int]$Port)
 
+    # $IsLinux / $IsMacOS exist only in PowerShell 6+; PS 5.1 + StrictMode errors if they are read.
+    $useLsof = ($PSVersionTable.PSVersion.Major -ge 6) -and ($IsLinux -or $IsMacOS)
     $killed = $false
-    if ($IsLinux -or $IsMacOS)
+    if ($useLsof)
     {
         try
         {
