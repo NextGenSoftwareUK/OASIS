@@ -24,7 +24,7 @@ REM Stop any process already using port 7777 so dotnet run can build and copy DL
 echo Checking for existing WEB4 OASIS API on port 7777...
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 7777 -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped existing process on port 7777 (pid' $_.OwningProcess ')' }"
 if %ERRORLEVEL% NEQ 0 (
-    echo Port check completed (or PowerShell unavailable).
+    echo Port check completed ^(or PowerShell unavailable^).
 )
 
 echo.
