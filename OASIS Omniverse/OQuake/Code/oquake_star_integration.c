@@ -28,6 +28,17 @@
 #include <unistd.h>
 #endif
 
+/* MSVC does not support GCC __attribute__ syntax; suppress it. */
+#ifdef _MSC_VER
+#  define __attribute__(x)
+#endif
+
+/* Forward declaration for vkQuake draw function (MSVC treats implicit as error). */
+#ifndef Draw_StringScaled
+struct cb_context_s;
+extern void Draw_StringScaled(struct cb_context_s* cbx, float x, float y, float scale, const char* str, const unsigned char* rgba);
+#endif
+
 #if defined(_MSC_VER) || !defined(__GLIBC__)
 /* memmem is GNU-specific; provide fallback for MSVC and non-GNU. */
 static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle, size_t needlelen) {
