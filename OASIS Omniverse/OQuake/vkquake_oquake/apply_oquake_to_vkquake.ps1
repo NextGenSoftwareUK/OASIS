@@ -131,7 +131,7 @@ if (Test-Path $faceSource) {
     } catch {
         Write-Warning "[OQuake] Failed to copy face_anorak.png to '$buildFaceDir': $($_.Exception.Message)"
     }
-    $faceDestDir = Join-Path $QuakeInstallDir "id1" "gfx"
+    $faceDestDir = Join-Path (Join-Path $QuakeInstallDir "id1") "gfx"
     if (Test-Path $QuakeInstallDir) {
         try {
             New-Item -Path $faceDestDir -ItemType Directory -Force | Out-Null

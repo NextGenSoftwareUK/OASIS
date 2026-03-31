@@ -48,6 +48,15 @@ extern "C" void star_sync_inventory_deliver_result(star_item_list_t* list, star_
 #include <map>
 #include <thread>
 #include <mutex>
+
+// Windows / MSVC portability
+#ifdef _MSC_VER
+#  ifndef NOMINMAX
+#    define NOMINMAX  // prevent windows.h from defining min/max macros
+#  endif
+#  define strcasecmp  _stricmp
+#  define strncasecmp _strnicmp
+#endif
 #include <atomic>
 
 /* ODOOM (UZDoom) headers for key detection */
