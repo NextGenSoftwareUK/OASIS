@@ -1,0 +1,15 @@
+<testsuites>
+  <testsuite name="NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests.dll" tests="1" skipped="0" failures="0" errors="0" time="0.9452449" timestamp="2026-02-17T07:58:16" hostname="OASIS-LAPPY" id="0" package="NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests.dll">
+    <properties />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests.StarApiClientIntegrationTests" name="FullWorkflow_ExercisesAllClientEndpoints_AndSucceeds" time="0.9452449" />
+    <system-out>
+Test Framework Informational Messages:
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.23)
+[xUnit.net 00:00:00.38]   Discovering: NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests
+[xUnit.net 00:00:00.50]   Discovered:  NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests
+[xUnit.net 00:00:00.51]   Starting:    NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests
+[xUnit.net 00:00:01.70]   Finished:    NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests
+</system-out>
+    <system-err></system-err>
+  </testsuite>
+</testsuites>
