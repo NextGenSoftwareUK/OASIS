@@ -85,8 +85,8 @@ if (!$needBuild -and (Test-Path $dllPath)) {
 }
 
 # Resolve DLL: prefer publish; if copy to publish failed (file in use), use native folder so we can still generate .lib and deploy
-$nativeDllDefault = Join-Path $projectDir "bin/Release/net9.0/$Runtime/native/star_api.dll"
-$nativeDllX64 = Join-Path $projectDir "bin/x64/Release/net9.0/$Runtime/native/star_api.dll"
+$nativeDllDefault = Join-Path $projectDir "bin/Release/net10.0/$Runtime/native/star_api.dll"
+$nativeDllX64 = Join-Path $projectDir "bin/x64/Release/net10.0/$Runtime/native/star_api.dll"
 $dllPath = $null
 foreach ($candidate in @($dllPathDefault, $dllPathX64, $nativeDllX64, $nativeDllDefault)) {
     if (Test-Path $candidate) { $dllPath = $candidate; break }
