@@ -101,8 +101,8 @@ if [[ -z "$STAR_SO" ]]; then
     *)      RID="linux-x64" ;;
   esac
   for name in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
-    if [[ -f "$STARAPICLIENT/bin/Release/net8.0/$RID/publish/$name" ]]; then
-      STAR_SO="$STARAPICLIENT/bin/Release/net8.0/$RID/publish/$name"
+    if [[ -f "$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name" ]]; then
+      STAR_SO="$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name"
       break
     fi
   done
