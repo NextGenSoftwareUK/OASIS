@@ -34,8 +34,10 @@
   <Target Name="FixApiContractsReferencePath" AfterTargets="ResolveAssemblyReferences" BeforeTargets="CoreCompile" Condition="'$(PublishAot)' != 'false'">
     <PropertyGroup>
       <!--<_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/$(Configuration)/netstandard2.1/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>-->
-	<_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/x64/$(Configuration)/net10.0/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>
+  <!--<_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/x64/$(Configuration)/net10.0/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>-->
+    <_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/$(Configuration)/net10.0/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>
     </PropertyGroup>
+
     <ItemGroup>
       <ReferencePath Remove="@(ReferencePath)" Condition="'%(Filename)' == 'NextGenSoftware.OASIS.API.Contracts'" />
       <ReferencePath Include="$(_ContractsDll)" />
