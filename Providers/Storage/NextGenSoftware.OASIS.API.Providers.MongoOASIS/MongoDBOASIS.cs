@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -67,11 +69,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             BsonSerializer.RegisterSerializer(objectSerializer);
             //BsonClassMap.RegisterClassMap<OAPPDNA>();
 
-            /*
-            ConventionRegistry.Register(
-                   "DictionaryRepresentationConvention",
-                   new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
-                   _ => true);*/
+            try
+            {
+                ConventionRegistry.Register(
+                    "DictionaryRepresentationConvention",
+                    new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
+                    _ => true);
+            }
+            catch
+            {
+                // Convention may already be registered in long-lived host processes.
+            }
         }
 
         public override OASISResult<bool> ActivateProvider()

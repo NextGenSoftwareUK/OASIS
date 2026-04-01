@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -192,7 +193,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         /// <summary>Promote MetaData to strongly-typed Quest properties so API returns quests with Objectives (and Status) populated on first load.
         /// Status: prefer "Status" (HolonManager.MapMetaData), fallback "QuestStatus".
-        /// Objectives: (1) promote from MetaData so all-for-avatar response includes them; (2) if still empty, populate from Children so "objectives" in JSON matches what the client sees in "children".</summary>
+        /// Objectives: deserialize <c>MetaData["Objectives"]</c> JSON when the quest has no objectives yet; if still empty, synthesize from child <see cref="Quest"/> holons.</summary>
         private static void PromoteQuestMetaDataToProperties(Quest q)
         {
             if (q == null) return;
@@ -216,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         var raw = q.MetaData[objectivesKey];
                         if (raw is string jsonStr)
                         {
-                            var list = System.Text.Json.JsonSerializer.Deserialize<List<Objective>>(jsonStr);
+                            var list = DeserializeObjectivesFromMetaDataJsonString(jsonStr);
                             if (list != null && list.Count > 0)
                                 q.Objectives = list;
                         }
@@ -238,10 +239,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             Id = cq.Id,
                             Order = i,
                             IsCompleted = cq.CompletedOn != default,
-                            ObjectiveText = cq.Description ?? cq.Name ?? string.Empty
+                            Title = cq.Name ?? string.Empty,
+                            Description = cq.Description ?? string.Empty
                         });
                     }
                 }
+            }
+
+            if (q.Objectives != null)
+            {
+                foreach (var o in q.Objectives)
+                    o?.EnsureAuthoredStringsFromComputedProgress();
+            }
+        }
+
+        private static readonly JsonSerializerOptions ObjectiveMetaDataJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        /// <summary>Deserialize persisted <c>Objectives</c> array from MetaData; JSON matches <see cref="Objective"/> (Title, Description, ProgressSummary, dictionaries).</summary>
+        private static List<Objective>? DeserializeObjectivesFromMetaDataJsonString(string jsonStr)
+        {
+            try
+            {
+                var list = JsonSerializer.Deserialize<List<Objective>>(jsonStr, ObjectiveMetaDataJsonOptions);
+                return list != null && list.Count > 0 ? list : null;
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -675,20 +702,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult(questResult, result);
 
             if (questResult != null && questResult.Result != null && !questResult.IsError)
-            {
-                // Update quest statistics in settings system whenever quests change
-                try
-                {
-                    await UpdateQuestStatisticsAsync(avatarId);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but don't fail the main operation
-                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
-                }
-
                 result.Result = questResult.Result;
-            }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An error occured saving the quest with QuestManager.Update. Reason: {questResult.Message}");
 
@@ -823,7 +837,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
                 result.Message = $"Quest started and saved (QuestId={questId}). If status does not update in the client, ensure the storage provider persists (e.g. MongoDB).";
             }
@@ -888,14 +901,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             await UpdateAsync(avatarId, quest);
                         }
 
-                        await UpdateQuestStatisticsAsync(avatarId);
                         result.Result = true;
                         result.Message = allComplete ? "Quest objective completed and quest is now complete." : "Quest objective completed successfully";
                         return result;
                     }
                 }
 
-                // Fallback: legacy objectives as child Quests
+                // Fallback: objectives stored as child Quest holons
                 if (quest.Quests == null || quest.Quests.Count == 0)
                 {
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest has no objectives to complete.");
@@ -945,7 +957,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.Result = true;
                 result.Message = quest.Status == QuestStatus.Completed
                     ? "Quest objective completed and quest is now complete."
@@ -959,9 +970,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
+        /// <summary>Incomplete objectives in apply order: <paramref name="activeObjectiveId"/> first if present on the quest, then by <see cref="Objective.Order"/> and Id. Same ordering intent as STAR client <c>MergeQuestProgressIntoLocalCache</c>.</summary>
+        private static IEnumerable<Objective> OrderIncompleteObjectivesForProgress(IList<Objective>? objectives, Guid? activeObjectiveId)
+        {
+            if (objectives == null || objectives.Count == 0) yield break;
+            var incomplete = objectives.Where(o => !o.IsCompleted).ToList();
+            Objective? activeFirst = null;
+            if (activeObjectiveId.HasValue && activeObjectiveId.Value != Guid.Empty)
+                activeFirst = incomplete.FirstOrDefault(o => o.Id == activeObjectiveId.Value);
+            if (activeFirst != null)
+            {
+                yield return activeFirst;
+                incomplete.Remove(activeFirst);
+            }
+            foreach (var o in incomplete.OrderBy(x => x.Order).ThenBy(x => x.Id))
+                yield return o;
+        }
+
         /// <summary>
         /// Applies in-game progress (kills, pickups, XP, level time) to the quest's incomplete objectives.
         /// Updates progress dictionaries; completes objectives when thresholds are met; completes the quest when all objectives are done.
+        /// Objectives are processed in <see cref="OrderIncompleteObjectivesForProgress"/> order (active objective first when <see cref="QuestProgressDelta.ActiveObjectiveId"/> is set); every incomplete row receives the delta bundle and <see cref="ApplyDeltaToObjective"/> only applies matching Need* fields (same idea as the STAR client merge).
         /// </summary>
         public async Task<OASISResult<QuestProgressApplyResult>> ApplyQuestProgressAsync(Guid avatarId, Guid questId, string gameSource, QuestProgressDelta delta)
         {
@@ -997,10 +1026,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (quest.Objectives == null)
                     quest.Objectives = new List<Objective>();
                 int completedThisRound = 0;
-                foreach (var objective in quest.Objectives)
+                /* Match STAR client MergeQuestProgressIntoLocalCache: process every incomplete objective (active first when
+                   ActiveObjectiveId is set). Each objective only absorbs deltas that match its Need* rows — e.g. kills on
+                   the kill objective, health pickups on the health objective. Applying to active only dropped health/armor/etc.
+                   when the profile pointed at a different incomplete row than the one carrying NeedToCollectHealth. */
+                Guid? orderByActive = delta.ActiveObjectiveId.HasValue && delta.ActiveObjectiveId.Value != Guid.Empty
+                    ? delta.ActiveObjectiveId
+                    : null;
+                IEnumerable<Objective> progressTargets = OrderIncompleteObjectivesForProgress(quest.Objectives, orderByActive);
+                foreach (var objective in progressTargets)
                 {
-                    if (objective.IsCompleted)
-                        continue;
                     ApplyDeltaToObjective(objective, gs, delta);
                     objective.InvalidateObjectiveString();
                     if (IsObjectiveRequirementsMet(objective, gs))
@@ -1041,8 +1076,61 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 result.Result.ObjectivesCompleted = completedThisRound;
                 result.Result.PercentComplete = pct;
                 result.Result.Message = allDone ? "Quest completed." : $"Progress updated ({pct}% complete).";
-                await UpdateQuestStatisticsAsync(avatarId);
                 result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex.Message}");
+            }
+            return result;
+        }
+
+        /// <summary>Clears every embedded objective’s progress dictionaries and quest-level progress; does not change Need* requirements.
+        /// Resets completion flags and 0% approx; if the quest was Completed, sets status back to InProgress.</summary>
+        public async Task<OASISResult<Quest>> ResetObjectiveProgressAsync(Guid avatarId, Guid questId)
+        {
+            OASISResult<Quest> result = new OASISResult<Quest>();
+            const string errorMessage = "Error occurred in QuestManager.ResetObjectiveProgressAsync. Reason:";
+            try
+            {
+                var questResult = await LoadAsync(avatarId, questId);
+                if (questResult.IsError || questResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Quest not found. Reason: {questResult.Message}");
+                    return result;
+                }
+                var quest = questResult.Result;
+                if (quest.Objectives != null)
+                {
+                    foreach (var o in quest.Objectives)
+                        o.ResetProgressDictionariesOnly();
+                }
+                quest.ResetQuestLevelProgressDictionariesOnly();
+                if (quest.Status == QuestStatus.Completed)
+                {
+                    quest.Status = QuestStatus.InProgress;
+                    quest.CompletedOn = DateTime.MinValue;
+                    quest.CompletedBy = Guid.Empty;
+                }
+                if (quest.MetaData == null)
+                    quest.MetaData = new Dictionary<string, object>();
+                quest.MetaData["Status"] = quest.Status.ToString();
+                var pct = ComputeQuestPercent(quest);
+                quest.ProgressPercent = pct;
+                quest.MetaData["ProgressPercent"] = pct.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (quest.Objectives != null)
+                {
+                    foreach (var obj in quest.Objectives)
+                        obj.ProgressPercent = obj.IsCompleted ? 100 : ObjectiveApproximatePercent(obj);
+                }
+                var updateResult = await UpdateAsync(avatarId, quest);
+                if (updateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Failed to save. Reason: {updateResult.Message}");
+                    return result;
+                }
+                result.Result = quest;
+                result.Message = "Objective progress reset to 0%; requirement (Need*) dictionaries unchanged.";
             }
             catch (Exception ex)
             {
@@ -1095,34 +1183,72 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return scores.Sum() / scores.Count;
         }
 
+        /// <summary>Resolve which game key in a need dict matches the incoming <paramref name="gs"/> (ODOOM vs Doom, OQUAKE vs Quake).</summary>
+        private static string? ResolveDictGameKey(IDictionary<string, IList<string>>? need, string gs)
+        {
+            if (need == null || need.Count == 0) return null;
+            if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
+            if (need.ContainsKey(gs)) return gs;
+            foreach (var k in need.Keys)
+            {
+                if (GameKeysAliasForProgress(k, gs)) return k;
+            }
+            return null;
+        }
+
+        private static bool GameKeysAliasForProgress(string a, string b)
+        {
+            if (string.Equals(a, b, StringComparison.OrdinalIgnoreCase)) return true;
+            static string Norm(string s) =>
+                (s ?? "").Replace(" ", "", StringComparison.Ordinal).Replace("_", "", StringComparison.Ordinal);
+            var na = Norm(a);
+            var nb = Norm(b);
+            if (na.Equals(nb, StringComparison.OrdinalIgnoreCase)) return true;
+            var aDoom = na.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || na.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+            var bDoom = nb.Equals("DOOM", StringComparison.OrdinalIgnoreCase) || nb.Equals("ODOOM", StringComparison.OrdinalIgnoreCase);
+            if (aDoom && bDoom) return true;
+            var aQ = na.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || na.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+            var bQ = nb.Equals("QUAKE", StringComparison.OrdinalIgnoreCase) || nb.Equals("OQUAKE", StringComparison.OrdinalIgnoreCase);
+            return aQ && bQ;
+        }
+
         private static void ApplyDeltaToObjective(Objective o, string gs, QuestProgressDelta d)
         {
-            if (d.MonstersKilledDelta != 0 && o.NeedToKillMonsters != null && o.NeedToKillMonsters.ContainsKey(gs))
-                AddDictInt(o.MonstersKilled, gs, d.MonstersKilledDelta);
-            if (d.XpEarnedDelta != 0 && o.NeedToEarnXP != null && o.NeedToEarnXP.ContainsKey(gs))
-                AddDictInt(o.XPEarnt, gs, d.XpEarnedDelta);
-            if (d.KeysCollectedDelta != 0 && o.NeedToCollectKeys != null && o.NeedToCollectKeys.ContainsKey(gs))
-                AddDictInt(o.KeysCollected, gs, d.KeysCollectedDelta);
-            if (d.ArmorCollectedDelta != 0 && o.NeedToCollectArmor != null && o.NeedToCollectArmor.ContainsKey(gs))
-                AddDictInt(o.ArmorCollected, gs, d.ArmorCollectedDelta);
-            if (d.HealthCollectedDelta != 0 && o.NeedToCollectHealth != null && o.NeedToCollectHealth.ContainsKey(gs))
-                AddDictInt(o.HealthCollected, gs, d.HealthCollectedDelta);
-            if (d.WeaponsCollectedDelta != 0 && o.NeedToCollectWeapons != null && o.NeedToCollectWeapons.ContainsKey(gs))
-                AddDictInt(o.WeaponsCollected, gs, d.WeaponsCollectedDelta);
-            if (d.PowerupsCollectedDelta != 0 && o.NeedToCollectPowerups != null && o.NeedToCollectPowerups.ContainsKey(gs))
-                AddDictInt(o.PowerupsCollected, gs, d.PowerupsCollectedDelta);
-            if (d.AmmoCollectedDelta != 0 && o.NeedToCollectAmmo != null && o.NeedToCollectAmmo.ContainsKey(gs))
-                AddDictInt(o.AmmoCollected, gs, d.AmmoCollectedDelta);
-            if (!string.IsNullOrWhiteSpace(d.ItemCollectedName) && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
+            var mk = ResolveDictGameKey(o.NeedToKillMonsters, gs);
+            if (d.MonstersKilledDelta != 0 && mk != null)
+                AddDictInt(o.MonstersKilled, mk, d.MonstersKilledDelta);
+            var xpk = ResolveDictGameKey(o.NeedToEarnXP, gs);
+            if (d.XpEarnedDelta != 0 && xpk != null)
+                AddDictInt(o.XPEarnt, xpk, d.XpEarnedDelta);
+            var kk = ResolveDictGameKey(o.NeedToCollectKeys, gs);
+            if (d.KeysCollectedDelta != 0 && kk != null)
+                AddDictInt(o.KeysCollected, kk, d.KeysCollectedDelta);
+            var ak = ResolveDictGameKey(o.NeedToCollectArmor, gs);
+            if (d.ArmorCollectedDelta != 0 && ak != null)
+                AddDictInt(o.ArmorCollected, ak, d.ArmorCollectedDelta);
+            var hk = ResolveDictGameKey(o.NeedToCollectHealth, gs);
+            if (d.HealthCollectedDelta != 0 && hk != null)
+                AddDictInt(o.HealthCollected, hk, d.HealthCollectedDelta);
+            var wk = ResolveDictGameKey(o.NeedToCollectWeapons, gs);
+            if (d.WeaponsCollectedDelta != 0 && wk != null)
+                AddDictInt(o.WeaponsCollected, wk, d.WeaponsCollectedDelta);
+            var pk = ResolveDictGameKey(o.NeedToCollectPowerups, gs);
+            if (d.PowerupsCollectedDelta != 0 && pk != null)
+                AddDictInt(o.PowerupsCollected, pk, d.PowerupsCollectedDelta);
+            var amk = ResolveDictGameKey(o.NeedToCollectAmmo, gs);
+            if (d.AmmoCollectedDelta != 0 && amk != null)
+                AddDictInt(o.AmmoCollected, amk, d.AmmoCollectedDelta);
+            var itk = ResolveDictGameKey(o.NeedToCollectItems, gs);
+            if (!string.IsNullOrWhiteSpace(d.ItemCollectedName) && itk != null)
             {
                 var name = d.ItemCollectedName.Trim();
-                var reqs = o.NeedToCollectItems[gs];
+                var reqs = o.NeedToCollectItems![itk];
                 var matched = reqs.Any(r => string.Equals(r, name, StringComparison.OrdinalIgnoreCase));
                 if (matched || (reqs.Count > 0 && int.TryParse(reqs[0], out _)))
-                    AddDictInt(o.ItemsCollected, gs, 1);
+                    AddDictInt(o.ItemsCollected, itk, 1);
             }
-            else if (d.GenericItemPickup != 0 && o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs))
-                AddDictInt(o.ItemsCollected, gs, d.GenericItemPickup);
+            else if (d.GenericItemPickup != 0 && itk != null)
+                AddDictInt(o.ItemsCollected, itk, d.GenericItemPickup);
             if (d.LevelTimeSeconds.HasValue)
             {
                 SetDictInt(o.TimeTaken, gs, d.LevelTimeSeconds.Value);
@@ -1131,22 +1257,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
         }
 
+        /// <summary>True if this objective has at least one Need* row resolvable for <paramref name="gs"/> (avoids vacuous completion when all OkNeed branches are "no requirement").</summary>
+        private static bool ObjectiveHasAnyRequirementForGame(Objective o, string gs)
+        {
+            if (string.IsNullOrWhiteSpace(gs)) gs = "ODOOM";
+            if (o.NeedToKillMonsters != null && o.NeedToKillMonsters.Count > 0 && ResolveDictGameKey(o.NeedToKillMonsters, gs) != null) return true;
+            if (o.NeedToEarnXP != null && o.NeedToEarnXP.Count > 0 && ResolveDictGameKey(o.NeedToEarnXP, gs) != null) return true;
+            if (o.NeedToCollectKeys != null && o.NeedToCollectKeys.Count > 0 && ResolveDictGameKey(o.NeedToCollectKeys, gs) != null) return true;
+            if (o.NeedToCollectArmor != null && o.NeedToCollectArmor.Count > 0 && ResolveDictGameKey(o.NeedToCollectArmor, gs) != null) return true;
+            if (o.NeedToCollectHealth != null && o.NeedToCollectHealth.Count > 0 && ResolveDictGameKey(o.NeedToCollectHealth, gs) != null) return true;
+            if (o.NeedToCollectWeapons != null && o.NeedToCollectWeapons.Count > 0 && ResolveDictGameKey(o.NeedToCollectWeapons, gs) != null) return true;
+            if (o.NeedToCollectPowerups != null && o.NeedToCollectPowerups.Count > 0 && ResolveDictGameKey(o.NeedToCollectPowerups, gs) != null) return true;
+            if (o.NeedToCollectAmmo != null && o.NeedToCollectAmmo.Count > 0 && ResolveDictGameKey(o.NeedToCollectAmmo, gs) != null) return true;
+            if (o.NeedToCollectItems != null && o.NeedToCollectItems.Count > 0 && ResolveDictGameKey(o.NeedToCollectItems, gs) != null) return true;
+            return false;
+        }
+
         private static bool IsObjectiveRequirementsMet(Objective o, string gs)
         {
+            if (!ObjectiveHasAnyRequirementForGame(o, gs))
+                return false;
             bool OkNeed(IDictionary<string, IList<string>> need, IDictionary<string, IList<string>> prog)
             {
                 if (need == null || need.Count == 0) return true;
-                if (!need.TryGetValue(gs, out var nlist) || nlist == null || nlist.Count == 0) return true;
+                var key = ResolveDictGameKey(need, gs);
+                /* Need dict exists but no row for this gameSource — not satisfied (was wrongly treated as met). */
+                if (key == null) return false;
+                if (!need.TryGetValue(key, out var nlist) || nlist == null || nlist.Count == 0) return true;
                 if (!int.TryParse(nlist[0], out var needN) || needN <= 0) return true;
-                return GetDictInt(prog, gs) >= needN;
+                return GetDictInt(prog, key) >= needN;
             }
             bool OkItems()
             {
-                if (o.NeedToCollectItems == null || !o.NeedToCollectItems.TryGetValue(gs, out var items) || items == null || items.Count == 0)
+                if (o.NeedToCollectItems == null) return true;
+                var key = ResolveDictGameKey(o.NeedToCollectItems, gs);
+                if (key == null) return false;
+                if (!o.NeedToCollectItems.TryGetValue(key, out var items) || items == null || items.Count == 0)
                     return true;
                 if (int.TryParse(items[0], out var needCount) && needCount > 0)
-                    return GetDictInt(o.ItemsCollected, gs) >= needCount;
-                return GetDictInt(o.ItemsCollected, gs) >= items.Count;
+                    return GetDictInt(o.ItemsCollected, key) >= needCount;
+                return GetDictInt(o.ItemsCollected, key) >= items.Count;
             }
             if (!OkNeed(o.NeedToKillMonsters, o.MonstersKilled)) return false;
             if (!OkNeed(o.NeedToEarnXP, o.XPEarnt)) return false;
@@ -1156,7 +1306,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             if (!OkNeed(o.NeedToCollectWeapons, o.WeaponsCollected)) return false;
             if (!OkNeed(o.NeedToCollectPowerups, o.PowerupsCollected)) return false;
             if (!OkNeed(o.NeedToCollectAmmo, o.AmmoCollected)) return false;
-            if (o.NeedToCollectItems != null && o.NeedToCollectItems.ContainsKey(gs) && !OkItems()) return false;
+            if (o.NeedToCollectItems != null && o.NeedToCollectItems.Count > 0 && ResolveDictGameKey(o.NeedToCollectItems, gs) != null && !OkItems()) return false;
             return true;
         }
 
@@ -1226,17 +1376,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // Update quest statistics in settings system whenever quests change
-                try
-                {
-                    await UpdateQuestStatisticsAsync(avatarId);
-                }
-                catch (Exception ex)
-                {
-                    // Log the error but don't fail the main operation
-                    Console.WriteLine($"Warning: Failed to update quest statistics: {ex.Message}");
-                }
-
                 result.Result = true;
                 result.Message = "Quest completed successfully";
             }
@@ -1246,39 +1385,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Updates quest statistics in the settings system whenever quests change
-        /// </summary>
-        /// <param name="avatarId">The avatar ID</param>
-        private async Task UpdateQuestStatisticsAsync(Guid avatarId)
-        {
-            try
-            {
-                // Load all quests for the avatar
-                var questsResult = await LoadAllForAvatarAsync(avatarId);
-                if (questsResult.IsError || questsResult.Result == null)
-                    return;
-
-                var quests = questsResult.Result;
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalQuests"] = quests.Count(),
-                    ["completedQuests"] = quests.Count(q => q.Status == QuestStatus.Completed),
-                    ["activeQuests"] = quests.Count(q => q.Status == QuestStatus.InProgress),
-                    ["pendingQuests"] = quests.Count(q => q.Status == QuestStatus.NotStarted),
-                    ["totalKarmaEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardKarma),
-                    ["totalXPEarnt"] = quests.Where(q => q.Status == QuestStatus.Completed).Sum(q => q.RewardXP),
-                };
-
-                // Save all statistics to the settings system in one operation
-                await HolonManager.Instance.SaveSettingsAsync(avatarId, "quests", stats);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating quest statistics: {ex.Message}");
-            }
         }
 
         /// <summary>
@@ -1768,6 +1874,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     /// <summary>In-game progress delta for ApplyQuestProgressAsync (kills, XP, pickups by type, level time). Matches Objective progress dictionaries: ArmorCollected, HealthCollected, WeaponsCollected, PowerupsCollected, AmmoCollected, ItemsCollected, KeysCollected.</summary>
     public class QuestProgressDelta
     {
+        /// <summary>Optional profile active objective; when set, that incomplete objective is updated before others (then Order, Id). Omit when the caller does not specify one.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
         public int MonstersKilledDelta { get; set; }
         public int XpEarnedDelta { get; set; }
         public int KeysCollectedDelta { get; set; }

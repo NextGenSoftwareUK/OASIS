@@ -30,3 +30,17 @@ sudo apt install -y pkg-config
 #   ~/.local/share/games/odoom
 # Copy your IWAD file there, or into the ODOOM build folder (same folder as the ODOOM binary).
 # To show hidden folders in Files: Ctrl+H, or menu ⋮ → Show Hidden Files.
+
+# --- No sound ---
+# If you have no sound or music:
+# 1. Install OpenAL (required by UZDoom for sound): sudo apt install -y libopenal-dev
+# 2. In game: Options → Sound Options → ensure "Sound" is enabled and volume sliders are up.
+# 3. If still silent, try: Options → Sound Options → change output device if listed.
+# 4. Run from a terminal and check for "Sound init failed" or OpenAL errors in the output.
+
+# --- "Could not find patch set" / "Falling back to System Default" (MIDI) ---
+# These console messages are harmless. The engine tries several MIDI backends (WildMidi, FluidSynth, GUS, Timidity++)
+# and looks for soundfonts (e.g. "odoom" or /usr/share/sounds/sf2/FluidR3_GS.sf2). If not found, it falls back to
+# System Default and music still plays. To reduce or remove the messages:
+# - Install a soundfont so the engine finds it: sudo apt install -y fluid-soundfont-gm
+# - Or in game: Options → Sound Options → MIDI device / Soundfont: choose a valid device or leave as default.

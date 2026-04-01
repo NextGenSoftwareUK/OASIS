@@ -6,6 +6,20 @@
 
 set -e
 
+
+# OASIS: pause before exit when run from GUI (CI: OASIS_SCRIPT_NO_PAUSE=1)
+if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
+  _OASIS_TD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  while [[ "$_OASIS_TD" != "/" ]]; do
+    if [[ -f "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh" ]]; then
+      # shellcheck disable=SC1091
+      source "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh"
+      break
+    fi
+    _OASIS_TD="$(dirname "$_OASIS_TD")"
+  done
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 HEADER_PATH="$PROJECT_DIR/star_api.h"
@@ -56,12 +70,13 @@ fi
 case "$RUNTIME" in
   linux-x64)
     LIB_EXT=".so"
-    LIB_NAMES=("libstar_api.so" "star_api.so")
+    # NativeAOT uses AssemblyName (star_api) → star_api.so. Prefer it over any leftover libstar_api.*.
+    LIB_NAMES=("star_api.so" "libstar_api.so")
     PLATFORM_LABEL="Linux"
     ;;
   osx-x64|osx-arm64)
     LIB_EXT=".dylib"
-    LIB_NAMES=("libstar_api.dylib" "star_api.dylib")
+    LIB_NAMES=("star_api.dylib" "libstar_api.dylib")
     PLATFORM_LABEL="macOS ($RUNTIME)"
     ;;
   *)
@@ -70,8 +85,8 @@ case "$RUNTIME" in
     ;;
 esac
 
-PUBLISH_DIR="$PROJECT_DIR/bin/Release/net9.0/$RUNTIME/publish"
-NATIVE_DIR="$PROJECT_DIR/bin/Release/net9.0/$RUNTIME/native"
+PUBLISH_DIR="$PROJECT_DIR/bin/Release/net10.0/$RUNTIME/publish"
+NATIVE_DIR="$PROJECT_DIR/bin/Release/net10.0/$RUNTIME/native"
 
 # Find existing native library for timestamp check
 STAR_LIB=""
@@ -86,9 +101,44 @@ for name in "${LIB_NAMES[@]}"; do
   fi
 done
 
+# Symbols games link against must exist in the .so; file mtimes lie (git checkout, touch, clock skew) so we never trust "up to date" alone.
+oasis_star_lib_exports_symbol() {
+  local lib="$1" sym="$2"
+  [[ -f "$lib" ]] || return 1
+  if command -v nm >/dev/null 2>&1; then
+    nm -D "$lib" 2>/dev/null | grep -qF "$sym" && return 0
+    nm -gU "$lib" 2>/dev/null | grep -qF "$sym" && return 0
+  fi
+  if command -v objdump >/dev/null 2>&1; then
+    objdump -T "$lib" 2>/dev/null | grep -qF "$sym" && return 0
+  fi
+  if command -v readelf >/dev/null 2>&1; then
+    readelf -Ws "$lib" 2>/dev/null | grep -qF "$sym" && return 0
+  fi
+  return 1
+}
+# Append here whenever you add a new UnmanagedCallersOnly export used by ODOOM/OQuake (keeps publish from skipping when only header/lib contract advanced).
+REQUIRED_STAR_EXPORTS=(star_api_start_quest_then_set_active_objective)
+
 need_build=$FORCE_BUILD
 if [[ $need_build -eq 0 && -n "$STAR_LIB" && -f "$STAR_LIB" ]]; then
-  if [[ -n "$(find "$PROJECT_DIR" -maxdepth 1 \( -name "*.cs" -o -name "*.csproj" \) -newer "$STAR_LIB" 2>/dev/null)" ]]; then
+  if command -v nm >/dev/null 2>&1 || command -v objdump >/dev/null 2>&1 || command -v readelf >/dev/null 2>&1; then
+    for req in "${REQUIRED_STAR_EXPORTS[@]}"; do
+      if ! oasis_star_lib_exports_symbol "$STAR_LIB" "$req"; then
+        echo "[STARAPI] Existing native library is missing export '$req' (star_api.h / game newer than this build). Forcing rebuild — do not trust mtime-only 'up to date'."
+        need_build=1
+        break
+      fi
+    done
+  else
+    echo "[STARAPI] ERROR: none of nm, objdump, readelf found (install binutils: e.g. sudo apt install binutils)."
+    echo "[STARAPI] Cannot verify exports; refusing to skip publish (would copy stale star_api${LIB_EXT} → undefined symbol at ODOOM launch)."
+    need_build=1
+  fi
+fi
+if [[ $need_build -eq 0 && -n "$STAR_LIB" && -f "$STAR_LIB" ]]; then
+  # Match Windows: .cs / .csproj / star_api.def newer than native lib triggers rebuild.
+  if [[ -n "$(find "$PROJECT_DIR" \( -path "*/bin/*" -o -path "*/obj/*" \) -prune -o \( -name "*.cs" -o -name "*.csproj" -o -name "star_api.def" \) -type f -newer "$STAR_LIB" -print 2>/dev/null | head -1)" ]]; then
     need_build=1
   fi
   if [[ $need_build -eq 0 && -f "$HEADER_PATH" ]] && [[ "$HEADER_PATH" -nt "$STAR_LIB" ]]; then
@@ -106,6 +156,14 @@ if [[ $need_build -eq 0 && -n "$STAR_LIB" && -f "$STAR_LIB" ]]; then
 else
   if [[ ! -f "$STAR_LIB" ]]; then
     echo "STARAPIClient not built yet or output missing; building..."
+  fi
+  # Mirror Windows (publish_and_deploy_star_api.ps1): STARAPIClient AOT references API.Contracts as pre-built DLL; build it first. Windows script already does this; Unix was missing it hence Linux failed until we added this step. Do not remove or Windows/Unix will diverge.
+  CONTRACTS_PROJECT="$OMNIVERSE_ROOT/../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/NextGenSoftware.OASIS.API.Contracts.csproj"
+  if [[ -f "$CONTRACTS_PROJECT" ]]; then
+    echo "Building NextGenSoftware.OASIS.API.Contracts (Release)..."
+    dotnet build "$CONTRACTS_PROJECT" -c Release --no-restore -v q
+  else
+    echo "WARN: API.Contracts project not found at $CONTRACTS_PROJECT; publish may fail if DLL is missing."
   fi
   echo "Publishing NativeAOT WEB5 STAR API wrapper for $RUNTIME..."
   dotnet publish "$PROJECT_PATH" -c Release -r "$RUNTIME" -p:PublishAot=true -p:SelfContained=true -p:NoWarn=NU1605
@@ -125,7 +183,7 @@ for name in "${LIB_NAMES[@]}"; do
 done
 
 if [[ -z "$STAR_LIB" || ! -f "$STAR_LIB" ]]; then
-  echo "ERROR: Build did not produce ${LIB_NAMES[0]} in publish/native dir." >&2
+  echo "ERROR: Build did not produce star_api${LIB_EXT} (or libstar_api${LIB_EXT}) in publish/native dir." >&2
   echo "  Checked: $PUBLISH_DIR, $NATIVE_DIR" >&2
   exit 1
 fi
@@ -146,6 +204,27 @@ for target in "$ODOOM_DIR" "$OQUAKE_DIR"; do
     fi
   fi
 done
+# Drop stale linker-named copies so BUILD_ODOOM / BUILD_OQUAKE never pick an old libstar_api.* over fresh star_api.*.
+for stale in "$ODOOM_DIR/libstar_api.so" "$ODOOM_DIR/libstar_api.dylib" "$OQUAKE_DIR/libstar_api.so" "$OQUAKE_DIR/libstar_api.dylib" "$OQUAKE_DIR/Code/libstar_api.so" "$OQUAKE_DIR/Code/libstar_api.dylib"; do
+  [[ -f "$stale" ]] && rm -f "$stale"
+done
+
+# Post-publish guard: built .so/.dylib must export everything games link against.
+if command -v nm >/dev/null 2>&1 || command -v objdump >/dev/null 2>&1 || command -v readelf >/dev/null 2>&1; then
+  for req in "${REQUIRED_STAR_EXPORTS[@]}"; do
+    if ! oasis_star_lib_exports_symbol "$STAR_LIB" "$req"; then
+      echo "ERROR: Published native library does not export required symbol: $req" >&2
+      echo "  File: $STAR_LIB" >&2
+      echo "  Fix UnmanagedCallersOnly / star_api.def, rebuild publish, or check NativeAOT output." >&2
+      exit 1
+    fi
+  done
+  echo "[STARAPI] Verified native exports: ${REQUIRED_STAR_EXPORTS[*]}"
+else
+  echo "ERROR: nm, objdump, and readelf missing; cannot verify star_api native exports after publish." >&2
+  echo "  Install binutils (Debian/Ubuntu: sudo apt install binutils)." >&2
+  exit 1
+fi
 
 echo ""
 echo "WEB5 STAR API wrapper publish/deploy complete ($PLATFORM_LABEL)."

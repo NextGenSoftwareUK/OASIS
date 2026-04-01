@@ -14,7 +14,7 @@ internal static class Program
 
     private static async Task Main()
     {
-        // Default: real APIs (WEB5/WEB4 localhost:5556/5555) with credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_HARNESS_USE_FAKE_SERVER=true or STARAPI_HARNESS_MODE=fake to use in-process fake servers.
+        // Default: real APIs (WEB5/WEB4 localhost:8888/7777) with credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_HARNESS_USE_FAKE_SERVER=true or STARAPI_HARNESS_MODE=fake to use in-process fake servers.
         var harnessMode = GetEnv("STARAPI_HARNESS_MODE", "real").Trim().ToLowerInvariant();
         var useFakeServer = harnessMode == "fake" ||
                             GetEnv("STARAPI_HARNESS_USE_FAKE_SERVER", "false").Equals("true", StringComparison.OrdinalIgnoreCase);
@@ -158,8 +158,8 @@ internal static class Program
 
             if (!string.IsNullOrEmpty(questIdStr))
             {
-                Check("AddSubQuestAsync", await client.AddSubQuestAsync(questIdStr, "Harness sub-quest for 3-list UI test", name: "Harness SubQuest", gameSource: "Harness", itemRequired: "Level", order: 0));
-                Check("AddQuestObjectiveAsync", await client.AddQuestObjectiveAsync(questIdStr, "Harness extra objective", name: "Extra Obj", gameSource: "Harness", order: 2));
+                Check("AddSubQuestAsync", await client.AddSubQuestAsync(questIdStr, "Harness sub-quest for 3-list UI test", name: "Harness SubQuest", gameSource: "Harness", order: 0));
+                Check("AddQuestObjectiveAsync", await client.AddQuestObjectiveAsync(questIdStr, "Extra Obj", "Harness extra objective", gameSource: "Harness", order: 2, dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Harness"] = new List<string> { "1" } } }));
                 Check("StartQuestAsync", await client.StartQuestAsync(questIdStr));
                 if (!string.IsNullOrEmpty(obj1Str) && obj1Str != questIdStr)
                 {

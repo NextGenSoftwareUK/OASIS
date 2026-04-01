@@ -90,10 +90,15 @@ if (Test-Path $sharedSbarCpp) {
 		double yVersion = twod->GetHeight() - 18;
 		double xVersion = twod->GetWidth() - SmallFont->StringWidth(verText.GetChars()) * CleanXfac - 4;
 		DrawText(twod, SmallFont, CR_TAN, xVersion, yVersion, verText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		FBaseCVar *showBeamedHudVar = FindCVar("odoom_hud_show_beamed", nullptr);
+		int showBeamedHud = (showBeamedHudVar && showBeamedHudVar->GetRealType() == CVAR_Int) ? showBeamedHudVar->GetGenericRep(CVAR_Int).Int : 1;
+		if (showBeamedHud)
+		{
 		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
 		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		}
 	}
 #endif
 
@@ -104,10 +109,15 @@ if (Test-Path $sharedSbarCpp) {
     }
     if ($content -match 'OASIS_STAR_API' -and $content -match 'verText' -and $content -notmatch 'Beamed In') {
         $content = $content -replace '(\t\tDrawText\(twod, SmallFont, CR_TAN, x, y, verText\.GetChars\(\), DTA_CleanNoMove, true, TAG_DONE\);\r?\n)(\t\})', @"
-`$1		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
+`$1		FBaseCVar *showBeamedHudVar = FindCVar("odoom_hud_show_beamed", nullptr);
+		int showBeamedHud = (showBeamedHudVar && showBeamedHudVar->GetRealType() == CVAR_Int) ? showBeamedHudVar->GetGenericRep(CVAR_Int).Int : 1;
+		if (showBeamedHud)
+		{
+		FBaseCVar *starUserVar = FindCVar("odoom_star_username", nullptr);
 		const char *starUser = (starUserVar && starUserVar->GetRealType() == CVAR_String) ? starUserVar->GetGenericRep(CVAR_String).String : nullptr;
 		FString beamedText = (starUser && *starUser) ? FString("Beamed In: ") + starUser : "Beamed In: None";
 		DrawText(twod, SmallFont, CR_TAN, 4, 2, beamedText.GetChars(), DTA_CleanNoMove, true, TAG_DONE);
+		}
 `$2
 "@
         $sbarChanged = $true
@@ -793,6 +803,10 @@ if (Test-Path $zscriptTxt) {
     if (-not ($content -match 'zscript/ui/statusbar/odoom_inventory_popup\.zs')) {
         $content = $content -replace '(#include "zscript/ui/statusbar/doom_sbar\.zs")', "`$1`r`n#include `"zscript/ui/statusbar/odoom_inventory_popup.zs`""
     }
+    # Duplicate #include of odoom_inventory_popup.zs causes redefinition / weird double registration in some merge scenarios.
+    while ($content -match '#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*\r?\n\s*#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"') {
+        $content = $content -replace '(#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*\r?\n)\s*#include "zscript/ui/statusbar/odoom_inventory_popup\.zs"\s*(\r?\n)', '$1$2'
+    }
     Set-Content -Path $zscriptTxt -Value $content -NoNewline
 }
 
@@ -801,6 +815,10 @@ if (Test-Path $commonMapinfo) {
     $content = Get-Content $commonMapinfo -Raw
     if (-not ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"')) {
         $content = $content -replace '(Gameinfo\s*\{[\s\S]*?)(\r?\n\})', "`$1`r`n`tAddEventHandlers = `"OASISInventoryOverlayHandler`"`$2"
+    }
+    # Two AddEventHandlers lines for the same class = two handler instances = duplicate HUD (e.g. two level timers). Collapse repeats.
+    while ($content -match 'AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*\r?\n[^\S\r\n]*AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"') {
+        $content = $content -replace '(AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*\r?\n)[^\S\r\n]*AddEventHandlers\s*=\s*"OASISInventoryOverlayHandler"\s*(\r?\n)', '$1$2'
     }
     Set-Content -Path $commonMapinfo -Value $content -NoNewline
 }

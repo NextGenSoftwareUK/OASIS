@@ -178,6 +178,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     OASISDNAManager.OASISDNA = OASISDNA;
+
+                    OASISResult<bool> secretKeyResult = await OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync();
+                    if (secretKeyResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}{secretKeyResult.Message}");
+                        IsOASISBooting = false;
+                        return result;
+                    }
+
+                    if (secretKeyResult.IsWarning && !string.IsNullOrEmpty(secretKeyResult.Message))
+                        OASISErrorHandling.HandleWarning(ref result, secretKeyResult.Message);
+
                     LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
 
                     switch (LoggingManager.CurrentLoggingFramework)
@@ -205,6 +217,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
                     ProviderManager.Instance.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                    ProviderManager.Instance.IsAutoFailOverLocalProvidersEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProvidersEnabled;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForAvatarLogin = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForAvatarLogin;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfEmailAlreadyInUse;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfUsernameAlreadyInUse;
@@ -336,6 +349,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($".NET VERSION:          v{DotNetVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
+
+                        OASISResult<bool> jwtReady = await OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuthAsync();
+                        if (jwtReady.IsWarning && !string.IsNullOrEmpty(jwtReady.Message))
+                            LoggingManager.Log(jwtReady.Message, LogType.Warning);
+                        if (jwtReady.IsError)
+                            OASISErrorHandling.HandleWarning(ref result, jwtReady.Message ?? "EnsureJwtSecretKeyReadyForAvatarAuth failed.");
+                        try
+                        {
+                            ProviderManager.Instance.OASISDNA = OASISDNA;
+                        }
+                        catch
+                        {
+                            // non-fatal
+                        }
                     }
 
                     IsOASISBooting = false;
@@ -1363,6 +1390,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (providerTypesResult != null && !providerTypesResult.IsError)
                 ProviderManager.Instance.SetAutoReplicationForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverLocalProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProviders);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverLocalForProviders(true, providerTypesResult.Result);
             else
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
 

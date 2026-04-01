@@ -44,6 +44,8 @@ Name: "addpath"; Description: "Add STAR CLI to system PATH"; GroupDescription: "
 Source: "{#PublishDir}\{#MyAppExe}"; DestDir: "{app}"; Flags: ignoreversion
 ; DNA folder next to star.exe (only JSON files; populated at publish by CLI csproj)
 Source: "{#PublishDir}\DNA\*"; DestDir: "{app}\DNA"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
+; DNATemplates (C#, Rust, etc. templates; populated at publish by CLI csproj)
+Source: "{#PublishDir}\DNATemplates\*"; DestDir: "{app}\DNATemplates"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
 
 [Registry]
 ; Add install dir to PATH (only if task selected). Uses {olddata} to append.

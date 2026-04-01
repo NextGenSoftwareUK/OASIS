@@ -92,7 +92,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/avatar/current")
+            if (method == "GET" && (path == "/api/avatar/current" || path == "/api/avatar/get-logged-in-avatar-with-xp"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
@@ -103,7 +103,8 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                         Username = "harness_user",
                         Email = "harness@example.com",
                         FirstName = "Harness",
-                        LastName = "User"
+                        LastName = "User",
+                        XP = 0
                     }
                 }).ConfigureAwait(false);
                 return;
@@ -153,7 +154,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "POST" && (path == "/api/inventoryitems" || path == "/api/inventoryitems/create"))
+            if (method == "POST" && (path == "/api/inventoryitems" || path == "/api/inventoryitems/create" || path == "/api/avatar/inventory"))
             {
                 var body = await ReadBodyAsync(request).ConfigureAwait(false);
                 using var doc = JsonDocument.Parse(body);
@@ -161,8 +162,10 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 var id = Guid.NewGuid();
                 var name = GetProperty(root, "Name")?.GetString() ?? "Unnamed";
                 var description = GetProperty(root, "Description")?.GetString() ?? string.Empty;
-                var gameSource = GetProperty(GetProperty(root, "MetaData"), "GameSource")?.GetString() ?? "Unknown";
-                var itemType = GetProperty(GetProperty(root, "MetaData"), "ItemType")?.GetString() ?? "KeyItem";
+                var gameSource = GetProperty(root, "GameSource")?.GetString()
+                    ?? GetProperty(GetProperty(root, "MetaData"), "GameSource")?.GetString() ?? "Unknown";
+                var itemType = GetProperty(root, "ItemType")?.GetString()
+                    ?? GetProperty(GetProperty(root, "MetaData"), "ItemType")?.GetString() ?? "KeyItem";
 
                 lock (_sync)
                     _inventory.Add(new InventoryItemRecord(id, name, description, gameSource, itemType));
@@ -204,6 +207,12 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
+            if (method == "POST" && string.Equals(path, "/api/quests/objectives/complete", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
             if (method == "POST" && path.StartsWith("/api/quests/", StringComparison.OrdinalIgnoreCase) && path.Contains("/objectives/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/complete", StringComparison.OrdinalIgnoreCase))
             {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
@@ -222,7 +231,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/by-status/InProgress")
+            if (method == "GET" && (path == "/api/quests/by-status/InProgress" || path == "/api/quests/by-status/InProgress/game"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
@@ -235,7 +244,7 @@ internal sealed class FakeHarnessApiServer : IAsyncDisposable
                             Name = "Harness Quest",
                             Description = "Quest from harness mock",
                             Status = "InProgress",
-                            Objectives = new[] { new { Description = "Obj", GameSource = "Harness", ItemRequired = "Key", IsCompleted = false } }
+                            Objectives = new[] { new { Title = "Obj", Description = "Obj", GameSource = "Harness", IsCompleted = false } }
                         }
                     }
                 }).ConfigureAwait(false);

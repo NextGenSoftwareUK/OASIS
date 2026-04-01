@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -1038,9 +1039,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private string GenerateJWTToken(IAvatar account)
         {
-            //TODO: Replace exception with OASISResult ASAP.
-            if (string.IsNullOrEmpty(OASISDNA.OASIS.Security.SecretKey))
-                throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey", "OASISDNA.OASIS.Security.SecretKey is missing, please generate a unique secret key from two GUID's.");
+            OASISResult<bool> jwtReady = OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuth();
+            if (jwtReady.IsError || OASISDNAManager.OASISDNA == null || string.IsNullOrEmpty(OASISDNAManager.OASISDNA.OASIS?.Security?.SecretKey))
+                throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey",
+                    string.IsNullOrEmpty(jwtReady.Message)
+                        ? "OASISDNA.OASIS.Security.SecretKey is missing and could not be generated. Check DNA/OASIS_DNA.json exists next to STAR CLI."
+                        : jwtReady.Message);
+
+            OASISDNA = OASISDNAManager.OASISDNA;
+            try
+            {
+                ProviderManager.Instance.OASISDNA = OASISDNAManager.OASISDNA;
+            }
+            catch
+            {
+                // non-fatal
+            }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);

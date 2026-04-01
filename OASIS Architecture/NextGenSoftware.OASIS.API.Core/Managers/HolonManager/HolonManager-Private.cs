@@ -20,6 +20,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class HolonManager : OASISManager
     {
+        /// <summary>
+        /// Used when hydrating holon MetaData JSON into CLR types (e.g. quest objectives list).
+        /// Must be case-insensitive: persisted rows often use Pascal <c>Title</c>/<c>Description</c> while the ONODE objective type maps JSON names <c>title</c>/<c>description</c>;
+        /// default System.Text.Json would leave authored strings empty while requirement dictionaries may still deserialize.
+        /// </summary>
+        private static readonly JsonSerializerOptions MetaDataComplexTypeDeserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         private Dictionary<Guid, IOmiverse> _parentOmiverse = new Dictionary<Guid, IOmiverse>();
         private Dictionary<Guid, IDimension> _parentDimension = new Dictionary<Guid, IDimension>();
         private Dictionary<Guid, IMultiverse> _parentMultiverse = new Dictionary<Guid, IMultiverse>();
@@ -581,12 +591,39 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         var underlyingGuid = Nullable.GetUnderlyingType(propInfo.PropertyType);
                         var isNullableGuid = underlyingGuid == typeof(Guid);
                         if (propInfo.PropertyType == typeof(Guid))
-                            propInfo.SetValue(holon, new Guid(holon.MetaData[key].ToString()));
+                        {
+                            var gRaw = holon.MetaData[key];
+                            if (gRaw is JsonElement jeG && jeG.ValueKind == JsonValueKind.String && Guid.TryParse(jeG.GetString(), out var gj))
+                                propInfo.SetValue(holon, gj);
+                            else if (gRaw is Guid gDirect)
+                                propInfo.SetValue(holon, gDirect);
+                            else if (gRaw != null && Guid.TryParse(gRaw.ToString(), out var gp))
+                                propInfo.SetValue(holon, gp);
+                        }
                         else if (isNullableGuid)
                         {
-                            if (holon.MetaData[key] == null || string.IsNullOrWhiteSpace(holon.MetaData[key].ToString()))
+                            /* MetaData values are often JsonElement (STJ) or BSON-deserialized types; ToString() alone breaks Guid.TryParse for JsonElement. */
+                            var raw = holon.MetaData[key];
+                            if (raw == null)
                                 propInfo.SetValue(holon, null);
-                            else if (Guid.TryParse(holon.MetaData[key].ToString(), out var guidVal))
+                            else if (raw is JsonElement je)
+                            {
+                                if (je.ValueKind == JsonValueKind.Null || je.ValueKind == JsonValueKind.Undefined)
+                                    propInfo.SetValue(holon, null);
+                                else if (je.ValueKind == JsonValueKind.String)
+                                {
+                                    var js = je.GetString();
+                                    if (string.IsNullOrWhiteSpace(js))
+                                        propInfo.SetValue(holon, null);
+                                    else if (Guid.TryParse(js, out var guidFromJe))
+                                        propInfo.SetValue(holon, guidFromJe);
+                                }
+                            }
+                            else if (raw is Guid gBox)
+                                propInfo.SetValue(holon, gBox == Guid.Empty ? null : gBox);
+                            else if (string.IsNullOrWhiteSpace(raw.ToString()))
+                                propInfo.SetValue(holon, null);
+                            else if (Guid.TryParse(raw.ToString(), out var guidVal))
                                 propInfo.SetValue(holon, guidVal);
                         }
                         else if (holon.MetaData[key] != null)
@@ -642,18 +679,42 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             else if (propInfo.PropertyType == typeof(string))
                                 propInfo.SetValue(holon, holon.MetaData[key].ToString());
 
-                            else if (holon.MetaData[key] is string jsonStr && propInfo.PropertyType != typeof(string))
+                            else if (propInfo.PropertyType != typeof(string))
                             {
+                                /* Complex types: MetaData may store a JSON string, or a JsonElement (array/object/string) from STJ/BSON providers. */
+                                var rawMeta = holon.MetaData[key];
                                 try
                                 {
-                                    var deserialized = JsonSerializer.Deserialize(jsonStr, propInfo.PropertyType);
-                                    if (deserialized != null)
-                                        propInfo.SetValue(holon, deserialized);
+                                    if (rawMeta is string jsonStr)
+                                    {
+                                        var deserialized = JsonSerializer.Deserialize(jsonStr, propInfo.PropertyType, MetaDataComplexTypeDeserializeOptions);
+                                        if (deserialized != null)
+                                            propInfo.SetValue(holon, deserialized);
+                                    }
+                                    else if (rawMeta is JsonElement je)
+                                    {
+                                        if (je.ValueKind == JsonValueKind.String)
+                                        {
+                                            var inner = je.GetString();
+                                            if (!string.IsNullOrEmpty(inner))
+                                            {
+                                                var deserialized = JsonSerializer.Deserialize(inner, propInfo.PropertyType, MetaDataComplexTypeDeserializeOptions);
+                                                if (deserialized != null)
+                                                    propInfo.SetValue(holon, deserialized);
+                                            }
+                                        }
+                                        else if (je.ValueKind is JsonValueKind.Object or JsonValueKind.Array)
+                                        {
+                                            var deserialized = JsonSerializer.Deserialize(je.GetRawText(), propInfo.PropertyType, MetaDataComplexTypeDeserializeOptions);
+                                            if (deserialized != null)
+                                                propInfo.SetValue(holon, deserialized);
+                                        }
+                                    }
+                                    else
+                                        propInfo.SetValue(holon, rawMeta);
                                 }
                                 catch { /* leave property unchanged if JSON deserialize fails */ }
                             }
-                            else
-                                propInfo.SetValue(holon, holon.MetaData[key]);
                         }
                     }
                 }
