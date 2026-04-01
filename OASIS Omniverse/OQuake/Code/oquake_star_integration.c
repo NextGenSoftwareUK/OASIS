@@ -2,7 +2,7 @@
  * OQuake - OASIS STAR API Integration Implementation
  *
  * Integrates Quake with the OASIS STAR API so keys collected in ODOOM
- * can open doors in OQuake and vice versa.
+ * can open doors in OQuake and vice versa and enable cross-game quests, inventory/assets/weapons/powerups, SSO & more!
  *
  * Integration Points:
  * 1. Key pickup -> add to STAR inventory (silver_key, gold_key)
@@ -2214,9 +2214,9 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
         }
         OQ_CrossGameDbgPrintf("run: map=%s items=%zu doom_rows=%d signon=%d", cl.mapname, list->count, doom_rows, cls.signon);
         for (i = 0; i < list->count && i < 16; i++) {
-            const char* nm = list->items[i].name ? list->items[i].name : "";
-            const char* gs = list->items[i].game_source ? list->items[i].game_source : "";
-            const char* tp = list->items[i].item_type ? list->items[i].item_type : "";
+            const char* nm = list->items[i].name;
+            const char* gs = list->items[i].game_source;
+            const char* tp = list->items[i].item_type;
             int is_doom = OQ_ItemRowIsDoomCrossGame(list->items[i].game_source, list->items[i].description);
             OQ_CrossGameDbgPrintf("  [%zu] \"%s\" gs=\"%s\" type=\"%s\" doom=%d", i, nm, gs, tp, is_doom);
         }
@@ -2269,7 +2269,7 @@ static int OQ_TryApplyCrossGameBeamInTransfers(void) {
             mapped = OQ_CrossGameMapLookup(g_oq_doom_weapon_to_quake, g_oq_doom_weapon_to_quake_n, base);
             if (!mapped) {
                 if (OQ_CrossGameLogEnabled()) {
-                    const char* ity = list->items[i].item_type ? list->items[i].item_type : "";
+                    const char* ity = list->items[i].item_type;
                     int is_ammo = ity[0] && OQ_ContainsNoCase(ity, "ammo");
                     if (!is_ammo)
                         OQ_CrossGameDbgPrintf("doom row no weapon map: base=\"%s\" raw=\"%s\" type=\"%s\"", base, raw_name, ity);
