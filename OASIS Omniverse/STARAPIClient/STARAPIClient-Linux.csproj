@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>star_api</AssemblyName>
+    <!-- NativeAOT: required for native publish; NETSDK1207 fix when using SDK 9 -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Keep session/JWT exports in the DLL so OQuake/ODOOM forwarders can GetProcAddress them (autologin + saved_username/saved_jwt in oasisstar.json). -->
+    <IlcTrimMode>copy</IlcTrimMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <TrimmerRootDescriptor Include="star_api_trimmer.xml" />
+    <TrimmerRootAssembly Include="star_api" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <!-- NativeAOT: cannot project-reference netstandard2.1 Contracts (NETSDK1207). Use pre-built DLL; BuildApiContractsForAot keeps it in sync with source.
+         MSBuild $(PublishAot) is often "True" (capital T); string tests == 'true' break and wrongly add ProjectReference while skipping HintPath. -->
+    <ProjectReference Condition="'$(PublishAot)' == 'false'" Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+
+  <!-- Without this, AOT HintPath points at a stale Contracts.dll → CS1061 after DTO changes. $(PublishAot) may be True/true. -->
+  <Target Name="BuildApiContractsForAot" BeforeTargets="ResolveAssemblyReferences" Condition="'$(PublishAot)' != 'false'">
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Contracts\NextGenSoftware.OASIS.API.Contracts.csproj" Targets="Build" Properties="Configuration=$(Configuration);PublishAot=false;RuntimeIdentifier=;RuntimeIdentifiers=" />
+  </Target>
+
+  <!-- RAR picks TestProjects\DemoQuestSeed\bin\...\NextGenSoftware.OASIS.API.Contracts.dll (net9 copy-local) over netstandard2.1 HintPath when both exist — stale → CS1061 on new DTO members. Force the built Contracts output. -->
+  <Target Name="FixApiContractsReferencePath" AfterTargets="ResolveAssemblyReferences" BeforeTargets="CoreCompile" Condition="'$(PublishAot)' != 'false'">
+    <PropertyGroup>
+      <!--<_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/$(Configuration)/netstandard2.1/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>-->
+	<!--<_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/x64/$(Configuration)/net10.0/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>-->
+    <_ContractsDll>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../../OASIS Architecture/NextGenSoftware.OASIS.API.Contracts/bin/$(Configuration)/net10.0/NextGenSoftware.OASIS.API.Contracts.dll'))</_ContractsDll>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(Filename)' == 'NextGenSoftware.OASIS.API.Contracts'" />
+      <ReferencePath Include="$(_ContractsDll)" />
+      <!-- Same stale copy-local DLL was fed to ILC → missing DisplayName at native compile. -->
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)' == 'NextGenSoftware.OASIS.API.Contracts'" />
+      <ReferenceCopyLocalPaths Include="$(_ContractsDll)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="System.Collections" Version="4.3.0" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="TestProjects\**\*.cs" />
+    <None Include="TestProjects\**\*" />
+  </ItemGroup>
+
+</Project>
+
