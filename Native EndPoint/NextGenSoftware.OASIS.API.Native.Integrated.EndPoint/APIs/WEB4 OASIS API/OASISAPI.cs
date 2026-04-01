@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -582,6 +582,8 @@ namespace NextGenSoftware.OASIS.API.Native.EndPoint
             // Set OASIS DNA and boot status
             OASISDNA = OASISBootLoader.OASISBootLoader.OASISDNA;
             IsOASISBooted = true;
+
+            NextGenSoftware.OASIS.API.ONODE.Core.Managers.QuestStatsStatsManagerIntegration.RegisterWithStatsManager();
 
             // All managers are now lazily initialized when accessed
             // This provides better performance and memory usage

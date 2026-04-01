@@ -26,3 +26,10 @@ if exist "%HERE%build\config.cfg" (
     if not errorlevel 1 echo [Config] Copied config.cfg to basedir successfully
 )
 start "" "%QUAKE_ENGINE_EXE%" -basedir "%OQUAKE_BASEDIR%"
+
+REM OASIS: Explorer pause (OASIS_BAT_NO_PAUSE=1 skips)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul

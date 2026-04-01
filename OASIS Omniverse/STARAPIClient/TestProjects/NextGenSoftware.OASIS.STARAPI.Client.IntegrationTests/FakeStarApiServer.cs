@@ -118,7 +118,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/avatar/current")
+            /* Client calls WEB4 GET get-logged-in-avatar-with-xp directly (STAR WebAPI used to expose this as GET /api/avatar/current). */
+            if (method == "GET" && (path == "/api/avatar/current" || path == "/api/avatar/get-logged-in-avatar-with-xp"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
@@ -259,6 +260,12 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
+            if (method == "POST" && string.Equals(path, "/api/quests/objectives/complete", StringComparison.OrdinalIgnoreCase))
+            {
+                await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
+                return;
+            }
+
             if (method == "POST" && path.StartsWith("/api/quests/", StringComparison.OrdinalIgnoreCase) && path.Contains("/objectives/", StringComparison.OrdinalIgnoreCase) && path.EndsWith("/complete", StringComparison.OrdinalIgnoreCase))
             {
                 await WriteJsonAsync(response, 200, new { IsError = false, Result = true }).ConfigureAwait(false);
@@ -290,8 +297,8 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                         Status = "NotStarted",
                         Objectives = new[]
                         {
-                            new { Id = "obj-fake-1", Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false },
-                            new { Id = "obj-fake-2", Description = "Objective 2", GameSource = "Doom", ItemRequired = "BossKill", IsCompleted = false }
+                            new { Id = "obj-fake-1", Title = "Objective 1", Description = "Objective 1", GameSource = "Doom", IsCompleted = false },
+                            new { Id = "obj-fake-2", Title = "Objective 2", Description = "Objective 2", GameSource = "Doom", IsCompleted = false }
                         }
                     }
                 }).ConfigureAwait(false);
@@ -322,7 +329,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/all-for-avatar")
+            if (method == "GET" && (path == "/api/quests/all-for-avatar" || path == "/api/quests/all-for-avatar/game"))
             {
                 /* Return quests with objectives and a sub-quest (flat list with parentQuestId) so client objectives/subquests parsing can be tested. */
                 object[] objectivesParent = new object[]
@@ -339,7 +346,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                 return;
             }
 
-            if (method == "GET" && path == "/api/quests/by-status/InProgress")
+            if (method == "GET" && (path == "/api/quests/by-status/InProgress" || path == "/api/quests/by-status/InProgress/game"))
             {
                 await WriteJsonAsync(response, 200, new
                 {
@@ -354,7 +361,7 @@ internal sealed class FakeStarApiServer : IAsyncDisposable
                             Status = "InProgress",
                             Objectives = new[]
                             {
-                                new { Description = "Objective 1", GameSource = "Doom", ItemRequired = "Key", IsCompleted = false }
+                                new { Title = "Objective 1", Description = "Objective 1", GameSource = "Doom", IsCompleted = false }
                             }
                         }
                     }

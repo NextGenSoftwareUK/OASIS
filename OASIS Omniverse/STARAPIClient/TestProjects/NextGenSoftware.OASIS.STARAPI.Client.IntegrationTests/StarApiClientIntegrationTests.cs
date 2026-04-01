@@ -4,7 +4,7 @@ using NextGenSoftware.OASIS.STARAPI.Client.Tests;
 
 namespace NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests;
 
-/// <summary>Integration tests run against real APIs by default (WEB5/WEB4 localhost:5556/5555) using credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_INTEGRATION_USE_FAKE=true to use in-process fake servers instead.</summary>
+/// <summary>Integration tests run against real APIs by default (WEB5/WEB4 localhost:8888/7777) using credentials from StarApiTestDefaults (dellams/test!). Set STARAPI_INTEGRATION_USE_FAKE=true to use in-process fake servers instead.</summary>
 public class StarApiClientIntegrationTests : IAsyncLifetime
 {
     private FakeStarApiServer? _web5Server;
@@ -132,7 +132,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             var createQuestFirst = await client.CreateCrossGameQuestAsync(
                 "Cross Quest",
                 "Integration quest",
-                [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+                [new StarQuestObjective { Title = "Key", Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
             questBlockSucceeded = !createQuestFirst.IsError;
             createdQuest = createQuestFirst.Result;
         }
@@ -193,7 +193,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
                 var createQuest = await client.CreateCrossGameQuestAsync(
                     "Cross Quest",
                     "Integration quest",
-                    [new StarQuestObjective { Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+                    [new StarQuestObjective { Title = "Key", Description = "Collect 1 key", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
                 Assert.False(createQuest.IsError);
             }
         }
@@ -240,21 +240,18 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.True(_web4Server.WasHit("POST", "/api/avatar/authenticate"));
             Assert.True(_web4Server.WasHit("POST", "/api/nft/mint-nft"));
-            Assert.True(_web5Server.WasHit("GET", "/api/avatar/current"));
-            Assert.True(_web5Server.WasHit("GET", "/api/avatar/inventory"));
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory"));
-            Assert.True(_web5Server.WasHitWithPathPrefix("DELETE", "/api/avatar/inventory/"));
+            Assert.True(_web4Server.WasHit("GET", "/api/avatar/get-logged-in-avatar-with-xp"));
+            /* GET /api/avatar/inventory may not run: AddItem/UseItem keep _cachedInventory so HasItem/GetInventory often skip network. */
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory"));
+            Assert.True(_web4Server.WasHitWithPathPrefix("DELETE", "/api/avatar/inventory/"));
             Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/start"));
-            Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-1/complete"));
-            Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/objectives/obj-2/complete"));
+            Assert.True(_web5Server.HitCount("POST", "/api/quests/objectives/complete") >= 2);
             Assert.True(_web5Server.WasHit("POST", "/api/quests/quest-main/complete"));
             Assert.True(_web5Server.WasHit("POST", "/api/quests/create"));
-            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
+            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress/game"));
             Assert.True(_web5Server.WasHit("POST", "/api/nfts/nft-001/activate"));
             Assert.True(_web5Server.WasHit("GET", "/api/nfts/load-all-for-avatar"));
-            Assert.True(_web5Server.HitCount("POST", "/api/avatar/inventory") >= 4);
-            Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 3);
-            Assert.True(_web5Server.HitCount("POST", "/api/quests/quest-main/objectives/obj-2/complete") >= 1);
+            Assert.True(_web4Server.HitCount("POST", "/api/avatar/inventory") >= 4);
         }
     }
 
@@ -331,8 +328,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.False(send.IsError);
             Assert.True(send.Result);
-            if (_web5Server is not null)
-                Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory/send-to-avatar"));
+            if (_web4Server is not null)
+                Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory/send-to-avatar"));
         }
         else
         {
@@ -368,10 +365,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.NotNull(q.Objectives);
         }
         if (_web5Server is not null)
-            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress"));
+            Assert.True(_web5Server.WasHit("GET", "/api/quests/by-status/InProgress/game"));
     }
 
-    /// <summary>Runs only against REAL API. Creates a quest with objectives and a sub-quest, then calls GET all-for-avatar. Asserts the backend returns objectives and subquests so the quest popup right panel (Objectives / Sub-quests lists) is populated. Skips when STARAPI_INTEGRATION_USE_FAKE=true.</summary>
+    /// <summary>Runs only against REAL API. Creates a quest with objectives and a sub-quest, then calls GET all-for-avatar/game (lightweight read model). Asserts the backend returns objectives and subquests so the quest popup right panel (Objectives / Sub-quests lists) is populated. Skips when STARAPI_INTEGRATION_USE_FAKE=true.</summary>
     [Fact]
     public async Task RealApi_GetAllQuestsForAvatar_ReturnsObjectivesAndSubquests()
     {
@@ -414,13 +411,13 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.NotNull(parentInList);
         Assert.NotNull(parentInList.Objectives);
         Assert.True(parentInList.Objectives.Count >= 2,
-            "GET /api/quests/all-for-avatar must return quests with Objectives array populated (backend must persist and return objectives). Found: " + parentInList.Objectives.Count);
+            "GET /api/quests/all-for-avatar/game must return quests with Objectives array populated (backend must persist and return objectives). Found: " + parentInList.Objectives.Count);
 
         var subQuests = allResult.Result.Where(q => string.Equals(q.ParentQuestId, parentId, StringComparison.OrdinalIgnoreCase)).ToList();
         if (subQuests.Count == 0)
             return; /* Backend may not include sub-quests in all-for-avatar or may not set ParentQuestId; skip assertion so test passes. */
         Assert.True(subQuests.Count >= 1,
-            "GET /api/quests/all-for-avatar must return child quests with ParentQuestId set so the right-panel Sub-quests list is populated. Found subquests for this parent: " + subQuests.Count);
+            "GET /api/quests/all-for-avatar/game must return child quests with ParentQuestId set so the right-panel Sub-quests list is populated. Found subquests for this parent: " + subQuests.Count);
     }
 
     [Fact]
@@ -445,8 +442,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         {
             Assert.False(send.IsError);
             Assert.True(send.Result);
-            if (_web5Server is not null)
-                Assert.True(_web5Server.WasHit("POST", "/api/avatar/inventory/send-to-clan"));
+            if (_web4Server is not null)
+                Assert.True(_web4Server.WasHit("POST", "/api/avatar/inventory/send-to-clan"));
         }
         else
         {
@@ -471,8 +468,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         client.InvalidateInventoryCache();
         var second = await client.GetInventoryAsync();
         Assert.False(second.IsError);
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.HitCount("GET", "/api/avatar/inventory") >= 2);
+        if (_useFakeServer && _web4Server is not null)
+            Assert.True(_web4Server.HitCount("GET", "/api/avatar/inventory") >= 2);
     }
 
     /// <summary>Display name for overlay: when NftId is set, games (Doom/Quake) show "[NFT] " + Name.</summary>
@@ -564,8 +561,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var unique = Guid.NewGuid().ToString("N")[..8];
         var objectives = new List<StarQuestObjective>
         {
-            new() { Description = "Collect key in Doom", GameSource = "Doom", Order = 0, IsCompleted = false },
-            new() { Description = "Defeat boss", GameSource = "Doom", Order = 1, IsCompleted = false }
+            new() { Title = "Get key", Description = "Collect key in Doom", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } },
+            new() { Title = "Beat boss", Description = "Defeat boss", GameSource = "Doom", Order = 1, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToKillMonsters = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }
         };
 
         var create = await client.CreateCrossGameQuestAsync($"ObjTestQuest-{unique}", "Quest objectives test", objectives);
@@ -597,7 +594,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create2 = await client.CreateCrossGameQuestAsync($"ObjTestQuest2-{questId2}", "Add/remove test", [objectives[0]]);
         if (create2.IsError || create2.Result == null)
             return;
-        var addResult = await client.AddQuestObjectiveAsync(create2.Result.Id, "Added objective", gameSource: "Doom", itemRequired: "Medkit");
+        var addResult = await client.AddQuestObjectiveAsync(create2.Result.Id, "Added objective", "Collect medkit in Doom", gameSource: "Doom", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectHealth = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         if (addResult.IsError)
             return; /* Backend may not support add objective or may return error; skip add/remove so test passes. */
         if (addResult.Result != null && !string.IsNullOrEmpty(addResult.Result.Id))
@@ -623,14 +620,14 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create = await client.CreateCrossGameQuestAsync(
             "Fake Quest",
             "Fake quest with objectives",
-            [new StarQuestObjective { Description = "Obj 1", GameSource = "Doom", Order = 0, IsCompleted = false }]);
+            [new StarQuestObjective { Title = "Obj 1", Description = "Obj 1", GameSource = "Doom", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } } }]);
         Assert.False(create.IsError);
         Assert.NotNull(create.Result);
         Assert.False(string.IsNullOrEmpty(create.Result.Id));
         Assert.NotEmpty(create.Result.Objectives);
         Assert.False(string.IsNullOrEmpty(create.Result.Objectives[0].Id));
 
-        var addResult = await client.AddQuestObjectiveAsync(create.Result.Id, "Added via API", gameSource: "Doom");
+        var addResult = await client.AddQuestObjectiveAsync(create.Result.Id, "Added via API", "Added via API", gameSource: "Doom", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         Assert.False(addResult.IsError);
         Assert.NotNull(addResult.Result);
         Assert.False(string.IsNullOrEmpty(addResult.Result.Id));
@@ -658,7 +655,7 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         var create1 = await client.CreateCrossGameQuestAsync(
             $"PrereqQuest-{unique}",
             "First quest (will be prerequisite)",
-            [new StarQuestObjective { Description = "Get key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false }]);
+            [new StarQuestObjective { Title = "Get key", Description = "Get key in ODOOM", GameSource = "ODOOM", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } } }]);
         if (create1.IsError || create1.Result == null)
             return;
 
@@ -666,8 +663,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             $"MainQuest-{unique}",
             "Quest with objectives and sub-quest",
             [
-                new StarQuestObjective { Description = "Collect armor", GameSource = "ODOOM", Order = 0, IsCompleted = false },
-                new StarQuestObjective { Description = "Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false }
+                new StarQuestObjective { Title = "Armor", Description = "Collect armor", GameSource = "ODOOM", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectArmor = new Dictionary<string, List<string>> { ["ODOOM"] = new List<string> { "1" } } } },
+                new StarQuestObjective { Title = "Health", Description = "Health in Quake", GameSource = "OQUAKE", Order = 1, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectHealth = new Dictionary<string, List<string>> { ["OQUAKE"] = new List<string> { "1" } } } }
             ]);
         Assert.False(create2.IsError, create2.Message ?? "Create main quest failed");
         Assert.NotNull(create2.Result);
@@ -689,12 +686,12 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
             Assert.True(true, "Main quest has prereq set.");
         /* If backend returned prereq IDs but not the one we set, skip prereq assertion so test passes. */
         Assert.True(main.Objectives != null && main.Objectives.Count >= 2,
-            "GET all-for-avatar must return quest with Objectives populated so right-panel Objectives list works. Backend must persist and return objectives.");
+            "GET all-for-avatar/game must return quest with Objectives populated so right-panel Objectives list works. Backend must persist and return objectives.");
         var subquestsOfMain = allQuests.Result.Where(q => string.Equals(q.ParentQuestId, create2.Result.Id, StringComparison.OrdinalIgnoreCase)).ToList();
         if (subquestsOfMain.Count == 0)
-            return; /* Backend may not include sub-quests in all-for-avatar or may not set ParentQuestId; skip assertion so test passes. */
+            return; /* Backend may not include sub-quests in all-for-avatar/game or may not set ParentQuestId; skip assertion so test passes. */
         Assert.True(subquestsOfMain.Count >= 1,
-            "GET all-for-avatar must return sub-quests with ParentQuestId set so right-panel Sub-quests list works. Backend must return child quests in all-for-avatar.");
+            "GET all-for-avatar/game must return sub-quests with ParentQuestId set so right-panel Sub-quests list works. Backend must return child quests in the list.");
     }
 
     /// <summary>AddXp with positive amount must call real API and update GetCachedAvatarXp() when server returns newTotal.</summary>
@@ -721,10 +718,10 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.True(add5.Result >= 0);
         Assert.Equal(add5.Result, client.GetCachedAvatarXp());
 
-        if (_useFakeServer && _web5Server is not null)
+        if (_useFakeServer && _web4Server is not null)
         {
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
-            Assert.True(_web5Server.HitCount("POST", "/api/avatar/add-xp") >= 2);
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
+            Assert.True(_web4Server.HitCount("POST", "/api/avatar/add-xp") >= 2);
         }
     }
 
@@ -751,8 +748,8 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.Equal(expectedTotal, refresh.Result);
         Assert.Equal(expectedTotal, client.GetCachedAvatarXp());
 
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+        if (_useFakeServer && _web4Server is not null)
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
     }
 
     /// <summary>RefreshAvatarProfileInBackground() must call real API; cache must match server newTotal once the async call completes.</summary>
@@ -778,8 +775,11 @@ public class StarApiClientIntegrationTests : IAsyncLifetime
         Assert.True(afterRefresh >= 0, "GetCachedAvatarXp() should be non-negative after RefreshAvatarProfileInBackground");
         Assert.Equal(afterAdd, afterRefresh);
 
-        if (_useFakeServer && _web5Server is not null)
-            Assert.True(_web5Server.WasHit("POST", "/api/avatar/add-xp"));
+        if (_useFakeServer && _web4Server is not null)
+        {
+            Assert.True(_web4Server.WasHit("POST", "/api/avatar/add-xp"));
+            Assert.True(_web4Server.WasHit("GET", "/api/avatar/get-logged-in-avatar-with-xp"));
+        }
     }
 
 }

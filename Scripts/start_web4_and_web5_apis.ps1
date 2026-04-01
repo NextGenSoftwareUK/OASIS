@@ -158,10 +158,59 @@ function Remove-ProcessState {
     }
 }
 
+function Stop-ProcessesOnPort {
+    param([Parameter(Mandatory = $true)][int]$Port)
+
+    # $IsLinux / $IsMacOS exist only in PowerShell 6+; PS 5.1 + StrictMode errors if they are read.
+    $useLsof = ($PSVersionTable.PSVersion.Major -ge 6) -and ($IsLinux -or $IsMacOS)
+    $killed = $false
+    if ($useLsof)
+    {
+        try
+        {
+            $pids = & lsof -ti ":$Port" 2>$null
+            if ($pids)
+            {
+                $pids | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+                $killed = $true
+            }
+        }
+        catch { }
+    }
+    else
+    {
+        try
+        {
+            $conns = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue
+            foreach ($c in $conns)
+            {
+                if ($null -ne $c.OwningProcess -and $c.OwningProcess -ne 0)
+                {
+                    Stop-Process -Id $c.OwningProcess -Force -ErrorAction SilentlyContinue
+                    $killed = $true
+                }
+            }
+        }
+        catch { }
+    }
+    if ($killed)
+    {
+        Write-Host "Stopped existing process on port $Port."
+        Start-Sleep -Milliseconds 500
+    }
+}
+
 try
 {
     $resolvedWeb4Target = Normalize-ApiBaseUrl -Url $Web4OasisApiBaseUrl
     $resolvedWeb5Target = Normalize-ApiBaseUrl -Url $Web5StarApiBaseUrl
+
+    $web4Port = [System.Uri]::new($resolvedWeb4Target).Port
+    $web5Port = [System.Uri]::new($resolvedWeb5Target).Port
+
+    Write-Host "Checking for existing processes on ports $web4Port (WEB4) and $web5Port (WEB5)..."
+    Stop-ProcessesOnPort -Port $web4Port
+    Stop-ProcessesOnPort -Port $web5Port
 
     Write-Host "Starting local WEB4 OASIS API (serial: first)..."
     $web4Process = Start-LocalApi -ProjectPath $web4Project -Urls $resolvedWeb4Target

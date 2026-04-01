@@ -84,6 +84,8 @@ static void* auth_thread_proc(void* param) {
     (void)param;
 #ifdef _WIN32
     EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
 #endif
     str_copy(user, g_auth_username_buf, sizeof(user));
     str_copy(pass, g_auth_password_buf, sizeof(pass));
@@ -130,6 +132,15 @@ void star_sync_auth_start(const char* username, const char* password, star_sync_
     pthread_mutex_lock(&g_auth_lock);
 #endif
     if (g_auth_in_progress) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_auth_lock);
+#else
+        pthread_mutex_unlock(&g_auth_lock);
+#endif
+        return;
+    }
+    /* Thread finished but star_sync_pump() has not run the on_done callback yet — do not clear buffers or start a second SSO. */
+    if (g_auth_has_result) {
 #ifdef _WIN32
         LeaveCriticalSection(&g_auth_lock);
 #else
@@ -240,6 +251,21 @@ int star_sync_auth_in_progress(void) {
     pthread_mutex_unlock(&g_auth_lock);
 #endif
     return in_progress;
+}
+
+void star_sync_auth_force_reset(void) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
+#endif
+    g_auth_in_progress = 0;
+    g_auth_has_result = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_unlock(&g_auth_lock);
+#endif
 }
 
 /* ---------------------------------------------------------------------------

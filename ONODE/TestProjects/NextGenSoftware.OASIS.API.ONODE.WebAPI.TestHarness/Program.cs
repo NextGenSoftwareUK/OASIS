@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Linq;
 
-var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:5555").TrimEnd('/');
+var baseUrl = (Environment.GetEnvironmentVariable("OASIS_WEBAPI_BASE_URL") ?? "http://localhost:7777").TrimEnd('/');
 // Single place for test user: set env OASIS_WEBAPI_USERNAME / OASIS_WEBAPI_PASSWORD or change defaults below
 HarnessConfig.Username = Environment.GetEnvironmentVariable("OASIS_WEBAPI_USERNAME") ?? "dellams";
 HarnessConfig.Password = Environment.GetEnvironmentVariable("OASIS_WEBAPI_PASSWORD") ?? "test!";

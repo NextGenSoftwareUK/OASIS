@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Drawing.Text;
 using System.Linq;
 using ADRaffy.ENSNormalize;
@@ -84,6 +86,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         {
             OASISResult<T1> result = new OASISResult<T1>();
 
+            if (TryReadScriptedNonInteractiveCreate(createOptions, out string scriptedName, out string scriptedDesc, out string scriptedSubType, out string scriptedParentFolder))
+            {
+                if (showHeaderAndInro)
+                    ShowHeader();
+
+                return await CreateAsyncScriptedNonInteractiveAsync(result, createOptions, scriptedName, scriptedDesc ?? "", scriptedSubType, scriptedParentFolder, showHeaderAndInro, addDependencies, providerType);
+            }
+
             if (showHeaderAndInro)
                 ShowHeader();
 
@@ -118,10 +128,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 //Type STARNETHolonType = (Type)value;
                 string holonPath = "";
 
-                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     holonPath = SourcePath;
                 else
-                    holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                    holonPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
                 (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
 
@@ -179,6 +189,109 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             else
                 OASISErrorHandling.HandleError(ref result, "holonSubType is null!");
+
+            return result;
+        }
+
+        /// <summary>Reads scripted-create fields from <c>CustomCreateParams</c> (<see cref="StarCliNonInteractiveCreateKeys"/>), populated by <see cref="StarnetUiScriptedCreateCli"/> from argv.</summary>
+        private static bool TryReadScriptedNonInteractiveCreate(ISTARNETCreateOptions<T1, T4> createOptions, out string scriptedName, out string scriptedDesc, out string scriptedSubType, out string scriptedParentFolder)
+        {
+            scriptedName = null;
+            scriptedDesc = null;
+            scriptedSubType = null;
+            scriptedParentFolder = null;
+
+            if (createOptions?.CustomCreateParams == null)
+                return false;
+
+            Dictionary<string, object> p = createOptions.CustomCreateParams;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object flagObj) || flagObj is not bool scripted || !scripted)
+                return false;
+
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Name, out object n) || n == null || string.IsNullOrWhiteSpace(n.ToString()))
+                return false;
+
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.SubType, out object st) || st == null || string.IsNullOrWhiteSpace(st.ToString()))
+                return false;
+
+            p.TryGetValue(StarCliNonInteractiveCreateKeys.Description, out object d);
+            scriptedName = n.ToString().Trim();
+            scriptedDesc = d?.ToString() ?? "";
+            scriptedSubType = st.ToString().Trim();
+
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.ParentFolder, out object pf) && pf != null && !string.IsNullOrWhiteSpace(pf.ToString()))
+                scriptedParentFolder = pf.ToString().Trim();
+
+            return true;
+        }
+
+        private async Task<OASISResult<T1>> CreateAsyncScriptedNonInteractiveAsync(
+            OASISResult<T1> result,
+            ISTARNETCreateOptions<T1, T4> createOptions,
+            string holonName,
+            string holonDesc,
+            string subTypeToken,
+            string parentFolderOpt,
+            bool showUiDetails,
+            bool addDependencies,
+            ProviderType providerType)
+        {
+            object parsedSubType;
+            try
+            {
+                parsedSubType = Enum.Parse(STARNETManager.STARNETCategory.GetType(), subTypeToken, ignoreCase: true);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Invalid category '{subTypeToken}' for {STARNETManager.STARNETHolonUIName}. Expected a {STARNETManager.STARNETCategory.GetType().Name} value. {ex.Message}");
+                return result;
+            }
+
+            string holonPath;
+            if (!string.IsNullOrWhiteSpace(parentFolderOpt))
+                holonPath = Path.Combine(Path.GetFullPath(parentFolderOpt), holonName);
+            else
+            {
+                string baseFolder;
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
+                    baseFolder = SourcePath;
+                else
+                    baseFolder = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
+
+                holonPath = Path.Combine(baseFolder, holonName);
+            }
+
+            if (Directory.Exists(holonPath))
+            {
+                OASISErrorHandling.HandleError(ref result, $"Directory already exists: {holonPath}. Remove it or choose a different name.");
+                return result;
+            }
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Generating {STARNETManager.STARNETHolonUIName}...");
+            result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, holonName, holonDesc, parsedSubType, holonPath, createOptions: createOptions, providerType: providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                CLIEngine.ShowSuccessMessage($"{STARNETManager.STARNETHolonUIName} Successfully Generated.");
+
+                if (showUiDetails)
+                {
+                    await ShowAsync(result.Result);
+                    Console.WriteLine("");
+                }
+
+                if (addDependencies)
+                    await AddDependenciesAsync(result.Result.STARNETDNA, providerType);
+
+                Console.WriteLine("");
+            }
+            else if (result != null && result.IsError)
+            {
+                CLIEngine.ShowErrorMessage(result.Message);
+            }
+            else
+                CLIEngine.ShowErrorMessage("Unknown Error Occured.");
 
             return result;
         }
@@ -1370,13 +1483,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             bool generateOAPP = true;
             bool uploadOAPPToCloud = true;
             ProviderType OAPPBinaryProviderType = ProviderType.None;
-            string launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
+            string launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin/launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
             result.Result.SimpleWizard = CLIEngine.GetConfirmation("Do you wish to launch the Simple or Advanced Wizard? The Simple Wizard will use defaults (recommended) but the Advanced Wizard will allow greater control and customisation. Press 'Y' for Simple or 'N' for Advanced.");
 
             if (string.IsNullOrEmpty(sourcePath))
             {
                 Console.WriteLine("");
-                //launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin\\launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
+                //launchTargetQuestion = $"What is the relative path (from the root of the path given above, e.g bin/launch.exe) to the launch target for the {STARNETManager.STARNETHolonUIName}? (This could be the exe or batch file for a desktop or console app, or the index.html page for a website, etc)";
                 sourcePath = CLIEngine.GetValidFolder($"What is the full path to the {STARNETManager.STARNETHolonUIName} directory?", false);
             }
 
@@ -1495,10 +1608,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             OASISResult<string> result = new OASISResult<string>();
             string publishPath = "";
 
-            if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(PublishedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 publishPath = PublishedPath;
             else
-                publishPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, PublishedPath);
+                publishPath = Path.Combine(STAR.STARDNA.STARNETBasePath, PublishedPath);
 
             if (!simpleWizard)
             {
@@ -1647,16 +1760,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (installMode == InstallMode.DownloadOnly)
                 operation = "download";
 
-            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 downloadPath = DownloadedPath;
             else
-                downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, DownloadedPath);
+                downloadPath = Path.Combine(STAR.STARDNA.STARNETBasePath, DownloadedPath);
 
 
-            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 installPath = InstalledPath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, InstalledPath);
+                installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, InstalledPath);
 
             Console.WriteLine("");
 
@@ -1780,16 +1893,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             string downloadPath = "";
             string installPath = "";
 
-            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(DownloadedPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 downloadPath = SourcePath;
             else
-                downloadPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, DownloadedPath);
+                downloadPath = Path.Combine(STAR.STARDNA.STARNETBasePath, DownloadedPath);
 
 
-            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(InstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 installPath = SourcePath;
             else
-                installPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, InstalledPath);
+                installPath = Path.Combine(STAR.STARDNA.STARNETBasePath, InstalledPath);
 
             Console.WriteLine("");
 
@@ -2130,7 +2243,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
-        public virtual async Task SearchAsync(string searchTerm = "", Guid parentId = default, bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default)
+        public virtual async Task SearchAsync(string searchTerm = "", Guid parentId = default, bool showAllVersions = false, bool showForAllAvatars = true, ProviderType providerType = ProviderType.Default, int maxResults = 0)
         {
             if (string.IsNullOrEmpty(searchTerm) || searchTerm == "forallavatars" || searchTerm == "forallavatars")
             {
@@ -2138,9 +2251,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 searchTerm = CLIEngine.GetValidInput($"What is the name of the {STARNETManager.STARNETHolonUIName} you wish to search for?");
             }
 
+            // 0 = unlimited (all rows from provider). Per-command maxResults wins; else CLIEngine.MaxHolonSearchResults if > 0.
+            int cap = maxResults > 0 ? maxResults : (CLIEngine.MaxHolonSearchResults > 0 ? CLIEngine.MaxHolonSearchResults : 0);
+
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage($"Searching {STARNETManager.STARNETHolonUIName}'s...");
-            ListStarHolons(await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, showAllVersions, 0, providerType));
+            OASISResult<IEnumerable<T1>> r = await STARNETManager.SearchAsync<T1>(STAR.BeamedInAvatar.Id, searchTerm, parentId, null, MetaKeyValuePairMatchMode.All, !showForAllAvatars, showAllVersions, 0, providerType);
+            if (cap > 0 && r != null && r.Result != null)
+                r.Result = r.Result.Take(cap).ToList();
+            ListStarHolons(r);
         }
 
         public virtual async Task ShowAsync(string idOrName = "", bool showDetailed = false, ProviderType providerType = ProviderType.Default)
@@ -2424,6 +2543,29 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 DisplayProperty("Meta Tag Mappings", string.Concat(metaTagMappings != null && metaTagMappings.Count > 0 ? metaTagMappings.Count.ToString() : "None", metaTagMappings != null && metaTagMappings.Count > 0 ? " (use show/list detailed to view)" : ""), displayFieldLength);
         }
 
+        /// <summary>Non-interactive find by name matched multiple holons; list GUID — name rows (all by default; cap with CLIEngine.MaxHolonSearchResults / --search-limit).</summary>
+        private string BuildNonInteractiveMultipleMatchDetails(IEnumerable<T1> matches, string idOrName, string holonUiName)
+        {
+            if (matches == null)
+                return $"Multiple matches for '{idOrName}' ({holonUiName}). Use a GUID in non-interactive mode.";
+
+            IList<T1> list = matches as IList<T1> ?? matches.ToList();
+            int total = list.Count;
+            int maxList = CLIEngine.MaxHolonSearchResults > 0 ? CLIEngine.MaxHolonSearchResults : total;
+            var rows = new List<string>(Math.Min(maxList, total));
+            for (int i = 0; i < list.Count && i < maxList; i++)
+            {
+                T1 h = list[i];
+                ISTARNETDNA dna = h?.STARNETDNA;
+                string nm = string.IsNullOrWhiteSpace(dna?.Name) ? "(unnamed)" : dna.Name;
+                Guid gid = dna != null ? dna.Id : Guid.Empty;
+                rows.Add($"  {gid} — {nm}");
+            }
+
+            string more = total > maxList ? $"{Environment.NewLine}  ... and {total - maxList} more." : "";
+            return $"Multiple matches ({total}) for '{idOrName}' ({holonUiName}). Use a GUID in non-interactive mode.{Environment.NewLine}Candidates:{Environment.NewLine}{string.Join(Environment.NewLine, rows)}{more}";
+        }
+
         public async Task<OASISResult<T1>> FindAsync(string operationName, string idOrName = "", Guid parentId = default, bool showOnlyForCurrentAvatar = false, bool addSpace = true, string STARNETHolonUIName = "Default", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();
@@ -2439,6 +2581,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (string.IsNullOrEmpty(idOrName))
                 {
+                    if (CLIEngine.NonInteractive)
+                        throw new CLIEngineNonInteractiveInputRequiredException(
+                            $"Non-interactive mode requires a GUID or name for this operation. Example: '<command> {operationName} <idOrName>' (entity: {STARNETHolonUIName}).");
+
                     bool cont = true;
                     OASISResult<IEnumerable<T1>> starHolonsResult = null;
 
@@ -2496,6 +2642,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (searchResults.Result.Count() > 1)
                         {
+                            if (CLIEngine.NonInteractive)
+                                throw new CLIEngineNonInteractiveInputRequiredException(
+                                    BuildNonInteractiveMultipleMatchDetails(searchResults.Result, idOrName, STARNETHolonUIName));
+
                             ListStarHolons(searchResults, true);
 
                             if (CLIEngine.GetConfirmation("Are any of these correct?"))
@@ -2537,39 +2687,42 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
-                        //if (((operationName == "view" || operationName == "use") && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                        //    (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
-                        if (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version}) or do you wish to view all the versions? Press 'Y' for latest version or 'N' for all versions."))
+                        if (!CLIEngine.NonInteractive)
                         {
-                            Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName} Versions...");
-                            OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(result.Result.STARNETDNA.Id, providerType);
-                            ListStarHolons(versionsResult);
-
-                            if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
+                            //if (((operationName == "view" || operationName == "use") && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                            //    (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
+                            if (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version}) or do you wish to view all the versions? Press 'Y' for latest version or 'N' for all versions."))
                             {
-                                bool versionSelected = false;
+                                Console.WriteLine("");
+                                CLIEngine.ShowWorkingMessage($"Loading {STARNETHolonUIName} Versions...");
+                                OASISResult<IEnumerable<T1>> versionsResult = await STARNETManager.LoadVersionsAsync(result.Result.STARNETDNA.Id, providerType);
+                                ListStarHolons(versionsResult);
 
-                                do
+                                if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
                                 {
-                                    int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
+                                    bool versionSelected = false;
 
-                                    if (version > 0 && version <= versionsResult.Result.Count())
+                                    do
                                     {
-                                        versionSelected = true;
-                                        result.Result = versionsResult.Result.ElementAt(version - 1);
-                                    }
-                                    else
-                                        CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
+                                        int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
 
-                                    if (version == 0)
-                                        break;
+                                        if (version > 0 && version <= versionsResult.Result.Count())
+                                        {
+                                            versionSelected = true;
+                                            result.Result = versionsResult.Result.ElementAt(version - 1);
+                                        }
+                                        else
+                                            CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
 
-                                } while (!versionSelected);
+                                        if (version == 0)
+                                            break;
+
+                                    } while (!versionSelected);
+                                }
                             }
+                            else
+                                Console.WriteLine("");
                         }
-                        else
-                            Console.WriteLine("");
 
                         if (operationName != "view")
                             await ShowAsync(result.Result);
@@ -2581,7 +2734,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && operationName != "view")
                 {
-                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETHolonUIName}?"))
+                    if (CLIEngine.NonInteractive || CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETHolonUIName}?"))
                     {
                         if (operationName == "install")
                         {
@@ -2648,6 +2801,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 if (string.IsNullOrEmpty(idOrName))
                 {
+                    if (CLIEngine.NonInteractive)
+                        throw new CLIEngineNonInteractiveInputRequiredException(
+                            $"Non-interactive mode requires a GUID or name for this operation. Example: '<command> {operationName} <idOrName>' (entity: {STARNETManager.STARNETHolonUIName}).");
+
                     if (!CLIEngine.GetConfirmation($"Do you know the GUID/ID or Name of the {STARNETManager.STARNETHolonUIName} you wish to {operationName}? Press 'Y' for Yes or 'N' for No."))
                     {
                         Console.WriteLine("");
@@ -2690,6 +2847,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         if (searchResults.Result.Count() > 1)
                         {
+                            if (CLIEngine.NonInteractive)
+                                throw new CLIEngineNonInteractiveInputRequiredException(
+                                    BuildNonInteractiveMultipleMatchDetails(searchResults.Result, idOrName, STARNETManager.STARNETHolonUIName));
+
                             ListStarHolons(searchResults, true);
 
                             do
@@ -2721,38 +2882,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                     if (result.Result.STARNETDNA.NumberOfVersions > 1)
                     {
-                        if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
-                            (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
+                        if (!CLIEngine.NonInteractive)
                         {
-                            Console.WriteLine("");
-                            CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName} Versions...");
-                            OASISResult<IEnumerable<T1>> versionsResult = STARNETManager.LoadVersions(result.Result.STARNETDNA.Id, providerType);
-                            ListStarHolons(versionsResult);
-
-                            if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
+                            if ((operationName == "view" && CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to view the other versions?")) ||
+                                (!CLIEngine.GetConfirmation($"{result.Result.STARNETDNA.NumberOfVersions} versions were found. Do you wish to {operationName} the latest version ({result.Result.STARNETDNA.Version})?")))
                             {
-                                bool versionSelected = false;
+                                Console.WriteLine("");
+                                CLIEngine.ShowWorkingMessage($"Loading {STARNETManager.STARNETHolonUIName} Versions...");
+                                OASISResult<IEnumerable<T1>> versionsResult = STARNETManager.LoadVersions(result.Result.STARNETDNA.Id, providerType);
+                                ListStarHolons(versionsResult);
 
-                                do
+                                if (operationName != "view" && versionsResult != null && versionsResult.Result != null && !versionsResult.IsError && versionsResult.Result.Count() > 0)
                                 {
-                                    int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
+                                    bool versionSelected = false;
 
-                                    if (version > 0 && version <= versionsResult.Result.Count())
+                                    do
                                     {
-                                        versionSelected = true;
-                                        result.Result = versionsResult.Result.ElementAt(version - 1);
-                                    }
-                                    else
-                                        CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
+                                        int version = CLIEngine.GetValidInputForInt($"Which version do you wish to {operationName}? (Enter the Version Sequence that corresponds to the relevant template)");
 
-                                    if (version == 0)
-                                        break;
+                                        if (version > 0 && version <= versionsResult.Result.Count())
+                                        {
+                                            versionSelected = true;
+                                            result.Result = versionsResult.Result.ElementAt(version - 1);
+                                        }
+                                        else
+                                            CLIEngine.ShowErrorMessage("Invalid version entered. Please try again.");
 
-                                } while (!versionSelected);
+                                        if (version == 0)
+                                            break;
+
+                                    } while (!versionSelected);
+                                }
                             }
+                            else
+                                Console.WriteLine("");
                         }
-                        else
-                            Console.WriteLine("");
 
                         if (operationName != "view")
                             ShowAsync(result.Result);
@@ -2764,7 +2928,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 if (result.Result != null && operationName != "view")
                 {
-                    if (CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETManager.STARNETHolonUIName}?"))
+                    if (CLIEngine.NonInteractive || CLIEngine.GetConfirmation($"Please confirm you wish to {operationName} this {STARNETManager.STARNETHolonUIName}?"))
                     {
                         if (operationName == "install")
                         {
@@ -2926,12 +3090,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return result;
         }
 
+        /// <summary>
+        /// Clones a STARNET holon via <see cref="ISTARNETManagerBase{T1,T2,T3,T4}.CloneAsync"/>.
+        /// <paramref name="options"/> may be a source id or name string (non-interactive argv); when null/empty in interactive mode, <see cref="FindAsync"/> prompts.
+        /// </summary>
         public async Task<OASISResult<T1>> CloneAsync(object options = null)
         {
             OASISResult<T1> result = new OASISResult<T1>();
-            
-            //TODO: Implement ASAP! ;-)
+            string idOrName = options != null ? options.ToString()?.Trim() : null;
+            if (string.IsNullOrEmpty(idOrName))
+                idOrName = "";
 
+            OASISResult<T1> findResult = await FindAsync("clone", idOrName, default, true, providerType: ProviderType.Default);
+            if (findResult == null || findResult.IsError || findResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, findResult?.Message ?? $"Could not find {STARNETManager.STARNETHolonUIName} to clone.");
+                return result;
+            }
+
+            T1 source = findResult.Result;
+            if (source.STARNETDNA == null || source.STARNETDNA.Id == Guid.Empty)
+            {
+                OASISErrorHandling.HandleError(ref result, "Source holon has no STARNET DNA id; cannot clone.");
+                return result;
+            }
+
+            string newName = null;
+            if (!CLIEngine.NonInteractive)
+            {
+                if (CLIEngine.GetConfirmation($"Do you wish to give the clone a custom name? (No = append \" - Clone\" to '{source.STARNETDNA.Name}')"))
+                    newName = CLIEngine.GetValidInput($"New name for the cloned {STARNETManager.STARNETHolonUIName}:");
+            }
+
+            OASISResult<T1> cloneResult = await STARNETManager.CloneAsync(STAR.BeamedInAvatar.Id, source.STARNETDNA.Id, newName, ProviderType.Default);
+            if (cloneResult != null && !cloneResult.IsError && cloneResult.Result != null)
+            {
+                if (!CLIEngine.JsonOutput)
+                    CLIEngine.ShowSuccessMessage(cloneResult.Message ?? "Clone completed.");
+                // JSON / non-interactive: avoid dumping the full holon UI to stdout (use follow-up show <id> if needed).
+                if (!CLIEngine.NonInteractive && !CLIEngine.JsonOutput)
+                    await ShowAsync(cloneResult.Result);
+                return cloneResult;
+            }
+
+            if (cloneResult != null && !string.IsNullOrEmpty(cloneResult.Message))
+                OASISErrorHandling.HandleError(ref result, cloneResult.Message);
+            else
+                OASISErrorHandling.HandleError(ref result, "Clone failed.");
             return result;
         }
 

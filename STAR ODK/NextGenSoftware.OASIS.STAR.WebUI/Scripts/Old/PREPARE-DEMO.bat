@@ -70,7 +70,11 @@ if %ERRORLEVEL% EQU 0 (
     echo ✅ Web UI frontend dependencies installed
 ) else (
     echo ❌ Web UI frontend dependency installation failed
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 

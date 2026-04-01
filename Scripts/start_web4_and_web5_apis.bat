@@ -16,5 +16,10 @@ if not exist "start_web4_and_web5_apis.ps1" (
 )
 
 powershell -ExecutionPolicy Bypass -File "start_web4_and_web5_apis.ps1"
-
-pause
+set EXITCODE=%ERRORLEVEL%
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+pause >nul
+exit /b %EXITCODE%

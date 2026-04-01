@@ -30,6 +30,21 @@ public class StarApiClientUnitTests
     }
 
     [Fact]
+    public void Init_WithNativeTransport_ReturnsInitFailed()
+    {
+        using var client = new StarApiClient();
+
+        var result = client.Init(new StarApiConfig
+        {
+            Transport = StarApiTransport.Native,
+            Web5StarApiBaseUrl = "https://example.com/api"
+        });
+
+        Assert.True(result.IsError);
+        Assert.Equal(((int)StarApiResultCode.InitFailed).ToString(), result.ErrorCode);
+    }
+
+    [Fact]
     public async Task Methods_WhenNotInitialized_ReturnNotInitialized()
     {
         using var client = new StarApiClient();
@@ -52,8 +67,8 @@ public class StarApiClientUnitTests
         var queueObjective = await client.QueueCompleteQuestObjectiveAsync("quest", "objective", "game");
         var flushObjective = await client.FlushQuestObjectiveJobsAsync();
         var completeQuest = await client.CompleteQuestAsync("quest");
-        var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Description = "x", GameSource = "g", Order = 0, IsCompleted = false }]);
-        var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Objective desc", gameSource: "Doom");
+        var createQuest = await client.CreateCrossGameQuestAsync("quest", "desc", [new StarQuestObjective { Title = "t", Description = "x", GameSource = "g", Order = 0, IsCompleted = false, Dictionaries = new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["g"] = new List<string> { "1" } } } }]);
+        var addObjective = await client.AddQuestObjectiveAsync("quest-id", "Title", "Objective desc", gameSource: "Doom", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         var removeObjective = await client.RemoveQuestObjectiveAsync("quest-id", "objective-id");
         var addSubQuest = await client.AddSubQuestAsync("quest-id", "Sub-quest desc", gameSource: "ODOOM");
         var setPrereqs = await client.SetQuestPrerequisitesAsync("quest-id", new[] { "prereq-id" });
@@ -229,8 +244,8 @@ public class StarApiClientUnitTests
                 Status = "InProgress",
                 Objectives = new List<StarQuestObjective>
                 {
-                    new() { Id = "o1", Description = "Objective 1", IsCompleted = false },
-                    new() { Id = "o2", Description = "Objective 2", IsCompleted = true }
+                    new() { Id = "o1", Title = "Objective 1", Description = "Objective 1", IsCompleted = false },
+                    new() { Id = "o2", Title = "Objective 2", Description = "Objective 2", IsCompleted = true }
                 }
             }
         };
@@ -261,8 +276,8 @@ public class StarApiClientUnitTests
     public async Task AddQuestObjectiveAsync_WhenQuestIdEmpty_ReturnsInvalidParam()
     {
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
-        var result = await client.AddQuestObjectiveAsync("", "Objective description");
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:8888", Web4OasisApiBaseUrl = "http://localhost:7777" });
+        var result = await client.AddQuestObjectiveAsync("", "T", "Objective description", dictionaries: new StarQuestObjectiveDictionaries { NeedToCollectKeys = new Dictionary<string, List<string>> { ["Doom"] = new List<string> { "1" } } });
         Assert.True(result.IsError);
         Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);
     }
@@ -271,7 +286,7 @@ public class StarApiClientUnitTests
     public async Task RemoveQuestObjectiveAsync_WhenQuestIdOrObjectiveIdEmpty_ReturnsInvalidParam()
     {
         using var client = new StarApiClient();
-        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:5556", Web4OasisApiBaseUrl = "http://localhost:5555" });
+        client.Init(new StarApiConfig { Web5StarApiBaseUrl = "http://localhost:8888", Web4OasisApiBaseUrl = "http://localhost:7777" });
         var result = await client.RemoveQuestObjectiveAsync("quest-id", "");
         Assert.True(result.IsError);
         Assert.Equal(((int)StarApiResultCode.InvalidParam).ToString(), result.ErrorCode);

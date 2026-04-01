@@ -47,6 +47,7 @@ int main(int argc, char** argv)
     config.api_key = api_key;
     config.avatar_id = avatar_id;
     config.timeout_seconds = 60;  /* Increased timeout for slow Web4 responses */
+    config.client_game_source = NULL;
 
     star_api_set_callback(on_star_callback, NULL);
 

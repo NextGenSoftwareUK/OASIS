@@ -14,7 +14,7 @@ Install the STAR CLI via the **official installer** (build from repo) or **manua
 | **Linux** | [STAR CLI Getting Started — Linux](./STAR_CLI_GettingStarted_Linux.md) |
 | **macOS** | [STAR CLI Getting Started — macOS](./STAR_CLI_GettingStarted_Mac.md) |
 
-After installation, see the [STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md) and [STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md).
+After installation, see the [STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md) (hub for users, devs, scripting, and templating), then the [STAR CLI Quick Start Guide](./STAR_CLI_QUICK_START_GUIDE.md) and [STAR CLI Documentation](./STAR_CLI_DOCUMENTATION.md). For automation, read [STAR CLI Non-interactive & JSON](./STAR_CLI_NonInteractive.md).
 
 ---
 

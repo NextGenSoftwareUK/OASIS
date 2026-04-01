@@ -1,13 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
+    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj" />
+    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj" />
   </ItemGroup>
 
   <!-- Exclude any test files accidentally placed in this library folder -->

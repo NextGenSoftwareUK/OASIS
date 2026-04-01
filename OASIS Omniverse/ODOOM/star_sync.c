@@ -137,6 +137,15 @@ void star_sync_auth_start(const char* username, const char* password, star_sync_
 #endif
         return;
     }
+    /* Thread finished but star_sync_pump() has not run the on_done callback yet — do not clear buffers or start a second SSO. */
+    if (g_auth_has_result) {
+#ifdef _WIN32
+        LeaveCriticalSection(&g_auth_lock);
+#else
+        pthread_mutex_unlock(&g_auth_lock);
+#endif
+        return;
+    }
     g_auth_has_result = 0;
     g_auth_on_done = on_done;
     g_auth_on_done_user = user_data;
@@ -240,6 +249,21 @@ int star_sync_auth_in_progress(void) {
     pthread_mutex_unlock(&g_auth_lock);
 #endif
     return in_progress;
+}
+
+void star_sync_auth_force_reset(void) {
+#ifdef _WIN32
+    EnterCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_lock(&g_auth_lock);
+#endif
+    g_auth_in_progress = 0;
+    g_auth_has_result = 0;
+#ifdef _WIN32
+    LeaveCriticalSection(&g_auth_lock);
+#else
+    pthread_mutex_unlock(&g_auth_lock);
+#endif
 }
 
 /* ---------------------------------------------------------------------------

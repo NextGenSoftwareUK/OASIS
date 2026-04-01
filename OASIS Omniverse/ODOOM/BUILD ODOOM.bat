@@ -48,7 +48,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "$v=$env:VERSION_DISPLAY;
 set "DO_FULL_CLEAN=0"
 set "DO_SPRITE_REGEN=1"
 set "SKIP_SPRITE_PROMPT=0"
-REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / STAR_INTEGRATION_AUDIT.md.
+REM Default: use star_sync from star_api.dll (C#). Set to 0 to compile star_sync.c (C) instead. See star_sync.h / OASIS Omniverse\Docs\STAR_INTEGRATION_AUDIT.md.
 if not defined OASIS_STAR_SYNC_IN_CLIENT set "OASIS_STAR_SYNC_IN_CLIENT=1"
 set "OQ_MONSTER_PAD=0"
 set "OQ_ITEM_PAD=0"
@@ -133,6 +133,7 @@ echo [ODOOM][STEP] Installing integration files...
 echo [ODOOM][INFO] OASIS sprite source: %OASIS_SPRITES_SRC%
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.cpp" "%UZDOOM_SRC%\src\uzdoom_star_integration.cpp" >nul
 copy /Y "%ODOOM_INTEGRATION%uzdoom_star_integration.h" "%UZDOOM_SRC%\src\uzdoom_star_integration.h" >nul
+copy /Y "%STARAPICLIENT%\star_api.h" "%UZDOOM_SRC%\src\star_api.h" >nul
 if exist "%ODOOM_INTEGRATION%star_sync.c" copy /Y "%ODOOM_INTEGRATION%star_sync.c" "%UZDOOM_SRC%\src\star_sync.c" >nul
 if exist "%ODOOM_INTEGRATION%star_sync.h" copy /Y "%ODOOM_INTEGRATION%star_sync.h" "%UZDOOM_SRC%\src\star_sync.h" >nul
 copy /Y "%ODOOM_INTEGRATION%odoom_branding.h" "%UZDOOM_SRC%\src\odoom_branding.h" >nul
@@ -291,7 +292,11 @@ if not defined OQM_COUNT set "OQM_COUNT=0"
 echo [ODOOM][INFO] Sprite counts: OQW=%OQW_COUNT% OQH=%OQH_COUNT% OQM=%OQM_COUNT%
 if "%REQ_OQ_MISSING%"=="1" (
     echo "[ODOOM][ERROR] Required OQ sprites are missing. Re-run with sprite regeneration enabled."
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 echo [ODOOM][DONE] OQ runtime sprite verification passed.
@@ -325,7 +330,7 @@ echo [ODOOM][INFO] CMake STAR_API_DIR="%STAR_API_DIR_CMAKE%"
 echo [ODOOM][INFO] CMake STAR_API_LIB_DIR="%STAR_API_LIB_DIR_CMAKE%"
 echo [ODOOM][INFO] CMake Python3_EXECUTABLE="%PYTHON3_EXE_CMAKE%"
 if "%OASIS_STAR_SYNC_IN_CLIENT%"=="0" (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=OFF" & echo [ODOOM][INFO] Compiling star_sync.c - C implementation) else (set "CMAKE_STAR_SYNC=-DOASIS_STAR_SYNC_IN_CLIENT=ON" & echo [ODOOM][INFO] Using star_sync from star_api.dll - default)
-cmake .. -G "Visual Studio 17 2022" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%" %CMAKE_STAR_SYNC%
+cmake .. -G "Visual Studio 18 2026" -A x64 -DOASIS_STAR_API=ON -DSTAR_API_DIR:PATH="%STAR_API_DIR_CMAKE%" -DSTAR_API_LIB_DIR:PATH="%STAR_API_LIB_DIR_CMAKE%" -DPython3_EXECUTABLE:FILEPATH="%PYTHON3_EXE_CMAKE%" %CMAKE_STAR_SYNC%
 if errorlevel 1 (echo "[ODOOM][ERROR] CMake failed." & pause & exit /b 1)
 
 echo.

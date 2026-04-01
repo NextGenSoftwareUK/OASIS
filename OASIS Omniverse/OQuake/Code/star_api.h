@@ -20,6 +20,12 @@ typedef struct {
     const char* api_key;
     const char* avatar_id;
     int timeout_seconds;
+    /* Optional: which game binary is running (e.g. "ODOOM", "OQUAKE") for cross-game quest tracker rows. NULL = use quest/objective metadata + last progress only. */
+    const char* client_game_source;
+    /* 0 = remote (HTTP WEB5/WEB4). 1 = native in-process OASIS (requires a star_api build that embeds HyperDrive; default library returns STAR_API_ERROR_INIT_FAILED). */
+    int32_t transport;
+    /* Optional: UTF-8 path to OASIS_DNA.json for native transport (for future native host). */
+    const char* oasis_dna_path;
 } star_api_config_t;
 
 typedef struct {
@@ -52,9 +58,11 @@ typedef void (*star_api_callback_t)(star_api_result_t result, void* user_data);
 /** Operation type for star_api_set_operation_callback. Game can run "profile loaded" only when type is STAR_API_OP_PROFILE_LOADED. Other values (1-27) identify get_avatar_id, has_item, get_inventory, etc.; see StarApiClient.cs StarApiOp* constants. */
 #define STAR_API_OP_PROFILE_LOADED 0
 #define STAR_API_OP_GET_INVENTORY 3
+#define STAR_API_OP_QUESTS_CACHE_REFRESHED 28
 typedef void (*star_api_operation_callback_t)(star_api_result_t result, int operation_type, void* user_data);
 
 star_api_result_t star_api_init(const star_api_config_t* config);
+void star_api_set_quest_progress_cache_refresh(int mode);
 star_api_result_t star_api_authenticate(const char* username, const char* password);
 /** Same as star_api_authenticate but on success writes JWT to jwt_buf (for oasisstar.json). jwt_buf can be NULL. */
 star_api_result_t star_api_authenticate_with_jwt_out(const char* username, const char* password, char* jwt_buf, size_t jwt_size);
@@ -94,10 +102,16 @@ void star_api_queue_add_item(const char* item_name, const char* description, con
 /** Queue pickup with optional mint; C# client does mint (if do_mint) then add_item in background. Same pattern as queue_add_item. */
 #define STAR_API_HAS_QUEUE_PICKUP_WITH_MINT 1
 void star_api_queue_pickup_with_mint(const char* item_name, const char* description, const char* game_source, const char* item_type, int do_mint, const char* provider, const char* send_to_address_after_minting, int quantity);
+/** Queue quest progress only (no inventory add). Use when the engine consumed health/armor on pickup so add_item is skipped but objectives must still advance. */
+#define STAR_API_HAS_QUEUE_QUEST_PROGRESS_FROM_PICKUP 1
+void star_api_queue_quest_progress_from_pickup(const char* game_source, const char* item_type, const char* item_name);
 star_api_result_t star_api_flush_add_item_jobs(void);
 void star_api_queue_use_item(const char* item_name, const char* context);
 star_api_result_t star_api_flush_use_item_jobs(void);
 star_api_result_t star_api_start_quest(const char* quest_id);
+/** Queue start quest; when that succeeds, persist active quest + objective on avatar (same as star_api_set_active_quest). Use from game when user picks an objective on a Not Started quest so set-active runs after start completes (avoids racing the async start). objective_id required. */
+#define STAR_API_HAS_START_QUEST_THEN_SET_ACTIVE_OBJECTIVE 1
+star_api_result_t star_api_start_quest_then_set_active_objective(const char* quest_id, const char* objective_id);
 star_api_result_t star_api_complete_quest_objective(const char* quest_id, const char* objective_id, const char* game_source);
 star_api_result_t star_api_complete_quest(const char* quest_id);
 /** Write serialized quest list (all quests for avatar) to buf for game UI. Returns bytes written, or negative star_api_result_t on error. Format: "Q\tid\tname\tdesc\tstatus\tpct\n" per quest, "O\tid\tdesc\tdone\n" per objective, "---\n" between quests. Filter by status (Not Started, In Progress, Completed) in UI with checkboxes. Uses cache; never blocks. */
@@ -110,6 +124,9 @@ int star_api_get_tracker_quest_name(char* buf, size_t buf_size);
 int star_api_get_quest_sub_quests_string(const char* parent_quest_id, char* buf, size_t buf_size);
 /** Write serialized objectives from the quest's Objectives collection for parent_quest_id to buf for right panel. Same format as star_api_get_quests_string. parent_quest_id must be non-NULL. */
 int star_api_get_quest_objectives_string(const char* parent_quest_id, char* buf, size_t buf_size);
+/** Incremented when on-demand objective fetch merges into cache; games may re-fetch objectives when this changes. */
+#define STAR_API_HAS_QUEST_OBJECTIVES_CACHE_VERSION 1
+int star_api_get_quest_objectives_cache_version(void);
 /** Write serialized prerequisite quests (id, name, desc) for the given quest_id to buf for right panel. Same format as star_api_get_quests_string. quest_id must be non-NULL. */
 int star_api_get_quest_prereqs_string(const char* quest_id, char* buf, size_t buf_size);
 /** Write requirement/progress lines for quest (and optional objective_id) to buf. One line per requirement e.g. "Killed 3/10 monsters in ODOOM". objective_id may be NULL for quest-level only. */
@@ -122,6 +139,8 @@ int star_api_get_quest_tracker_active_objective_index(const char* quest_id);
 void star_api_invalidate_quest_cache(void);
 /** Start a background refresh of the quest cache without clearing it. Show existing cache in the UI immediately; list updates when the callback returns. */
 void star_api_refresh_quest_cache_in_background(void);
+/** 1 = in-game quest list popup is open, 0 = closed. While open, quest progress (POST/merge) and applying GET all-for-avatar into the cache are skipped. List uses the same in-memory cache updated by progress merge during gameplay. */
+void star_api_set_quest_popup_open(int is_open);
 /** provider: NFT provider (e.g. SolanaOASIS); NULL/empty = use default. Same as nft_provider in oasisstar.json. */
 star_api_result_t star_api_create_monster_nft(const char* monster_name, const char* description, const char* game_source, const char* monster_stats, const char* provider, char* nft_id_out);
 star_api_result_t star_api_deploy_boss_nft(const char* nft_id, const char* target_game, const char* location);

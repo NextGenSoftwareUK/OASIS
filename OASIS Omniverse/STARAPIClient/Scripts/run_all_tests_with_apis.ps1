@@ -35,7 +35,7 @@ try {
     Write-Host "========================================" -ForegroundColor Cyan
     Write-Host ""
 
-    & $startPs1 -NoWait -Web4OasisApiBaseUrl "http://localhost:5555" -Web5StarApiBaseUrl "http://localhost:5556"
+    & $startPs1 -NoWait -Web4OasisApiBaseUrl "http://localhost:7777" -Web5StarApiBaseUrl "http://localhost:8888"
 
     Write-Host ""
     Write-Host "Waiting a few seconds for APIs to be ready..." -ForegroundColor Yellow
@@ -50,12 +50,12 @@ try {
         $unitExit = $LASTEXITCODE
 
         Write-Host ""
-        Write-Host "========== 2/3 Integration tests (real APIs :5556, :5555) ==========" -ForegroundColor Cyan
+        Write-Host "========== 2/3 Integration tests (real APIs :8888, :7777) ==========" -ForegroundColor Cyan
         dotnet test "TestProjects\NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests\NextGenSoftware.OASIS.STARAPI.Client.IntegrationTests.csproj" -c $Configuration --no-restore
         $intExit = $LASTEXITCODE
 
         Write-Host ""
-        Write-Host "========== 3/3 Test harness (real APIs :5556, :5555) ==========" -ForegroundColor Cyan
+        Write-Host "========== 3/3 Test harness (real APIs :8888, :7777) ==========" -ForegroundColor Cyan
         dotnet run --project "TestProjects\NextGenSoftware.OASIS.STARAPI.Client.TestHarness\NextGenSoftware.OASIS.STARAPI.Client.TestHarness.csproj" -c $Configuration
         $harnessExit = $LASTEXITCODE
 

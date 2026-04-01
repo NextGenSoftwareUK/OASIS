@@ -13,8 +13,8 @@ Use the same environment variables as the Test Harness:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `STARAPI_WEB5_BASE_URL` | STAR API base URL | `http://localhost:5556` |
-| `STARAPI_WEB4_BASE_URL` | OASIS API base URL (auth) | `http://localhost:5555` |
+| `STARAPI_WEB5_BASE_URL` | STAR API base URL | `http://localhost:8888` |
+| `STARAPI_WEB4_BASE_URL` | OASIS API base URL (auth) | `http://localhost:7777` |
 | `STARAPI_USERNAME` | Avatar username | `dellams` |
 | `STARAPI_PASSWORD` | Avatar password | `test!` |
 
