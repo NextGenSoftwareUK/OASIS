@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>NextGenSoftware.OASIS.API.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
@@ -67,7 +67,7 @@
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <!-- Removed Utilities reference as it may not exist or cause circular dependency -->
-    <!-- <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" /> -->
+    <!-- <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj" /> -->
   </ItemGroup>
 
   

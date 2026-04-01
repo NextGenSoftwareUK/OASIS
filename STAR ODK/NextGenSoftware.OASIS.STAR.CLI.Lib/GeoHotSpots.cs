@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Objects;
 using NextGenSoftware.OASIS.STAR.DNA;
+using System.Globalization;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -33,6 +34,39 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<GeoHotSpot>> CreateAsync(ISTARNETCreateOptions<GeoHotSpot, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<GeoHotSpot> result = new OASISResult<GeoHotSpot>();
+
+            if (createOptions?.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb
+                && createOptions.CustomCreateParams.ContainsKey(StarCliNonInteractiveCreateKeys.GeoHotSpotLat))
+            {
+                if (createOptions.STARNETHolon == null)
+                    createOptions.STARNETHolon = new GeoHotSpot();
+
+                Dictionary<string, object> p = createOptions.CustomCreateParams;
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotLat, out object latO))
+                    createOptions.STARNETHolon.Lat = Convert.ToDouble(latO, CultureInfo.InvariantCulture);
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotLong, out object longO))
+                    createOptions.STARNETHolon.Long = Convert.ToDouble(longO, CultureInfo.InvariantCulture);
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotRadiusMetres, out object radO))
+                    createOptions.STARNETHolon.HotSpotRadiusInMetres = Convert.ToInt32(radO, CultureInfo.InvariantCulture);
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotTriggeredType, out object trO)
+                    && trO != null
+                    && Enum.TryParse<GeoHotSpotTriggeredType>(trO.ToString(), ignoreCase: true, out GeoHotSpotTriggeredType trig))
+                {
+                    createOptions.STARNETHolon.TriggerType = trig;
+                    if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotTimeSeconds, out object tsO))
+                    {
+                        int ts = Convert.ToInt32(tsO, CultureInfo.InvariantCulture);
+                        if (trig == GeoHotSpotTriggeredType.WhenAtGeoLocationForXSeconds)
+                            createOptions.STARNETHolon.TimeInSecondsNeedToBeAtLocationToTriggerHotSpot = ts;
+                        else if (trig == GeoHotSpotTriggeredType.WhenLookingAtObjectOrImageForXSecondsInARMode)
+                            createOptions.STARNETHolon.TimeInSecondsNeedToLookAt3DObjectOr2DImageToTriggerHotSpot = ts;
+                    }
+                }
+
+                return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
+            }
 
             //if (CLIEngine.GetConfirmation("Does this GeoHotSpot belong to a quest?"))
             //{

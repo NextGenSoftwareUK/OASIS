@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -82,17 +82,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.H
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Holochain.HoloNET.ORM", "..\holochain-client-csharp\NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj", "{87D2B286-A7DE-400C-9323-5D7943ECE4BE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Logging", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj", "{3B18F704-4887-4417-AA08-89400DCCC849}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Logging", "..\NextGenSoftware-Libraries\NextGenSoftware.Logging\NextGenSoftware.Logging.csproj", "{3B18F704-4887-4417-AA08-89400DCCC849}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Logging.NLog", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj", "{5851FB26-AE01-4009-9E61-AC99CF929FA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Logging.NLog", "..\NextGenSoftware-Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj", "{5851FB26-AE01-4009-9E61-AC99CF929FA2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.WebSocket", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj", "{9671F258-E397-49D2-B8EC-30D265355D79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.WebSocket", "..\NextGenSoftware-Libraries\NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj", "{9671F258-E397-49D2-B8EC-30D265355D79}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR ODK", "STAR ODK", "{ECBEF6E7-0E8F-42AF-836F-180B187D8BA6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.ErrorHandling", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj", "{6AE749AB-5960-44BD-9AED-A0BA6A682C35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.ErrorHandling", "..\NextGenSoftware-Libraries\NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj", "{6AE749AB-5960-44BD-9AED-A0BA6A682C35}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.CLI.Engine", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj", "{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.CLI.Engine", "..\NextGenSoftware-Libraries\NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj", "{9D9AEA62-DB3B-4B1E-9AA6-8FB63AAAC4D0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Runtimes", "Runtimes", "{7979158A-A329-4FDA-BA2B-A496AF8A9D78}"
 EndProject
@@ -108,7 +108,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "STAR Runtime", "STAR Runtim
 		Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip = Runtimes\STAR Runtime\STAR Runtime (With Holochain Conductors Embedded) v3.1.0.zip
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Utilities", "..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj", "{DBBCDB6A-17D0-4F0B-A779-90BCF7B8A93C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.Utilities", "..\NextGenSoftware-Libraries\NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj", "{DBBCDB6A-17D0-4F0B-A779-90BCF7B8A93C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS", "Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj", "{8A99F2F7-47C3-46AA-9C9C-6CBAEDF2349C}"
 EndProject

@@ -172,5 +172,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         public IDictionary<string, IList<string>> GeoHotSpotsArrived { get; set; } = new Dictionary<string, IList<string>>();
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> LevelsCompleted { get; set; } = new Dictionary<string, IList<string>>();
+
+        /// <summary>Clears quest-level progress dictionaries only (not Need*; not <see cref="Objectives"/>).</summary>
+        public void ResetQuestLevelProgressDictionariesOnly()
+        {
+            QuestObjectiveProgressDictionaryHelper.ClearProgressOnly(this);
+        }
     }
 }

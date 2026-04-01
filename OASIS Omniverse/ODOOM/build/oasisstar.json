@@ -1,7 +1,11 @@
 {
+  "star_transport": "remote",
   "star_api_url": "http://localhost:8888",
   "oasis_api_url": "http://localhost:7777",
+  "oasis_dna_path": "",
   "beam_face": 1,
+  "star_debug": 1,
+  "quest_progress_refresh": "client",
   "stack_armor": 1,
   "stack_weapons": 1,
   "stack_powerups": 1,
@@ -12,9 +16,13 @@
   "mint_keys": 1,
   "nft_provider": "SolanaOASIS",
   "send_to_address_after_minting": "",
-  "always_allow_pickup": 1,
+  "always_allow_pickup_if_max": 1,
+  "always_add_items_to_inventory": 0,
   "max_health": 200,
   "max_armor": 200,
+  "use_health_on_pickup": 0,
+  "use_armor_on_pickup": 0,
+  "use_powerup_on_pickup": 0,
   "mint_monster_odoom_zombieman": 1,
   "mint_monster_odoom_shotgunguy": 1,
   "mint_monster_odoom_chaingunguy": 1,
@@ -44,5 +52,9 @@
   "mint_monster_oquake_spawn": 1,
   "mint_monster_oquake_knight": 1,
   "mint_monster_oquake_scrag": 1,
-  "mint_monster_oquake_shub": 1
+  "mint_monster_oquake_shub": 1,
+  "beamedin_avatar": "dellams",
+  "jwt_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjE3NTViOWFhLWZiYmQtNDA3OS04OTM0LWRkNWVkYmU5MjYyNCIsIm5iZiI6MTc3NTAwMzkwNCwiZXhwIjoxNzc1MDA0ODA0LCJpYXQiOjE3NzUwMDM5MDR9.7qaG7Aduy176yi0-VxXplt-PaJU8sn7GW2fcvpd8qqQ",
+  "refresh_token": "A57D7A2090537A7E1094A260691EEF5F1BBD14E6E7B15719089A2AF2A735E07D3877B7E3FA8AEF7C"
+
 }

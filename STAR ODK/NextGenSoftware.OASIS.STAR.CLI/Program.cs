@@ -16,6 +16,9 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.STAR.Enums;
@@ -23,13 +26,16 @@ using NextGenSoftware.OASIS.STAR.CLI.Lib;
 using NextGenSoftware.OASIS.STAR.CLI.Lib.Enums;
 using NextGenSoftware.OASIS.STAR.ErrorEventArgs;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects.Game;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.DNA;
 using System.IO;
+using System.Reflection;
 
 namespace NextGenSoftware.OASIS.STAR.CLI
 { //test
@@ -48,14 +54,60 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static bool _inMainMenu = false;
         private static Dictionary<string, Process> _webApiProcesses = new Dictionary<string, Process>();
 
+        private static async Task<bool> TryBootBeamInAsync(StarCliInvocation inv, string beamUser, string beamPass)
+        {
+            // Same skip list as STAR_CLI_NonInteractive.md — do not require avatar for these verbs (interactive or -n).
+            bool skipBeamIn = _args.Length > 0 && StarCliInvocation.CommandSkipsAvatarBeamIn(_args[0]);
+            if (skipBeamIn)
+                return true;
+
+            if (!inv.NonInteractive)
+            {
+                await STARCLI.Avatars.BeamInAvatar();
+                return true;
+            }
+
+            if (string.IsNullOrWhiteSpace(beamUser) || string.IsNullOrWhiteSpace(beamPass))
+            {
+                StarCliShellOutput.WriteError(inv.JsonOutput, 2,
+                    "Non-interactive mode requires credentials for this command: set STAR_CLI_USERNAME and STAR_CLI_PASSWORD, or use --username / --password, or prefix: avatar beamin <username> <password>",
+                    null);
+                return false;
+            }
+
+            string verifyToken = Environment.GetEnvironmentVariable("STAR_CLI_EMAIL_VERIFY_TOKEN");
+            await STARCLI.Avatars.BeamInWithCredentialsAsync(beamUser, beamPass, verifyToken);
+            return true;
+        }
+
         static async Task Main(string[] args)
         {
             try
             {
+                StarCliInvocation inv = StarCliInvocation.Parse(args);
+                CLIEngine.NonInteractive = inv.NonInteractive;
+                CLIEngine.JsonOutput = inv.JsonOutput;
+                CLIEngine.Quiet = inv.Quiet;
+                CLIEngine.AssumeYes = inv.AssumeYes;
+                CLIEngine.MaxHolonSearchResults = inv.MaxHolonSearchResults;
+
+                _args = inv.GetCommandArgsAfterOptionalAvatarBeamIn(out string beamUser, out string beamPass);
+
+                if (inv.NonInteractive && _args.Length == 0 && (string.IsNullOrWhiteSpace(beamUser) || string.IsNullOrWhiteSpace(beamPass)))
+                {
+                    StarCliShellOutput.WriteError(inv.JsonOutput, 2,
+                        "No command specified. Examples: star --non-interactive version | star --non-interactive --username USER --password PASS (beam-in only)",
+                        null);
+                    return;
+                }
+
                 //ConsoleHelper.SetCurrentFont("Consolas", 8);
-                _args = args;
+                // DNA is published next to star; paths are relative to CWD. Launching from another folder
+                // (e.g. ./Scripts/STAR\ CLI/RUN_STAR_CLI.sh from repo root) breaks File.Exists("DNA/OASIS_DNA.json").
+                EnsureWorkingDirectoryNextToStarExecutableWhenDnaNotInCwd();
                 ShowHeader();
-                CLIEngine.ShowMessage("", false);
+                if (!CLIEngine.Quiet)
+                    CLIEngine.ShowMessage("", false);
                 Console.CancelKeyPress += Console_CancelKeyPress;
 
                 // TODO: Not sure what events should expose on Star, StarCore and HoloNETClient?
@@ -119,25 +171,110 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 OASISResult<IOmiverse> result = STAR.IgniteStar();
 
                 if (result.IsError)
-                    CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
-                else
                 {
-                    DEFAULT_DNA_FOLDER = STAR.STARDNA.OAPPMetaDataDNAFolder;
-                    DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
-
-                    await STARCLI.Avatars.BeamInAvatar();
-                    
-                    // Scan and load installed plugins at boot time
-                    await ScanAndLoadPluginsAtBoot();
-                    
-                    await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
+                    if (CLIEngine.JsonOutput)
+                        StarCliShellOutput.WriteError(true, 1, "Failed to ignite STAR.", result.Message);
+                    else
+                        CLIEngine.ShowErrorMessage(string.Concat("Error Igniting STAR. Error Message: ", result.Message));
+                    return;
                 }
+
+                DEFAULT_DNA_FOLDER = STAR.STARDNA.OAPPMetaDataDNAFolder;
+                DEFAULT_GENESIS_FOLDER = STAR.STARDNA.DefaultOAPPsSourcePath;
+
+                if (!await TryBootBeamInAsync(inv, beamUser, beamPass))
+                    return;
+
+                // Scan and load installed plugins at boot time
+                await ScanAndLoadPluginsAtBoot();
+
+                if (inv.NonInteractive && _args.Length == 0)
+                {
+                    StarCliShellOutput.WriteSuccess(CLIEngine.JsonOutput, "Beam-in completed.",
+                        STAR.BeamedInAvatar != null
+                            ? new { username = STAR.BeamedInAvatar.Username }
+                            : null);
+                    return;
+                }
+
+                await ReadyPlayerOne(); //TODO: May allow this to be called with a different provider in future.
+            }
+            catch (CLIEngineNonInteractiveInputRequiredException niex)
+            {
+                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 3, niex.Message, null);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("");
-                CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
-                //AnsiConsole.WriteException(ex, ExceptionFormats.ShortenEverything);
+                if (CLIEngine.JsonOutput)
+                    StarCliShellOutput.WriteError(true, 1, ex.Message, ex.ToString());
+                else
+                {
+                    Console.WriteLine("");
+                    CLIEngine.ShowErrorMessage(string.Concat("An unknown error has occurred. Error Details: ", ex.ToString()));
+                }
+            }
+        }
+
+        /// <summary>
+        /// If <c>DNA/OASIS_DNA.json</c> is not found from the current directory but exists beside the
+        /// STAR CLI binary (publish or <c>dotnet run</c> output), set CWD to that directory so boot
+        /// and file-manager-style paths behave consistently.
+        /// </summary>
+        private static void EnsureWorkingDirectoryNextToStarExecutableWhenDnaNotInCwd()
+        {
+            try
+            {
+                string oasisInCwd = Path.Combine(Environment.CurrentDirectory, "DNA", "OASIS_DNA.json");
+                if (File.Exists(oasisInCwd))
+                    return;
+
+                // dotnet run: host is "dotnet"; DNA is next to star.dll under bin/Release/net8.0/
+                try
+                {
+                    string loc = Assembly.GetExecutingAssembly().Location;
+                    if (!string.IsNullOrEmpty(loc))
+                    {
+                        string dllDir = Path.GetDirectoryName(loc);
+                        if (!string.IsNullOrEmpty(dllDir))
+                        {
+                            string oasisByDll = Path.Combine(dllDir, "DNA", "OASIS_DNA.json");
+                            if (File.Exists(oasisByDll))
+                            {
+                                Environment.CurrentDirectory = dllDir;
+                                return;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // non-fatal
+                }
+
+                // Single-file publish: BaseDirectory is the extract temp folder (no DNA). DNA/ is next to the real `star` binary.
+                string proc = Environment.ProcessPath;
+                if (!string.IsNullOrEmpty(proc))
+                {
+                    string starDir = Path.GetDirectoryName(proc);
+                    if (!string.IsNullOrEmpty(starDir))
+                    {
+                        string oasisNextToStar = Path.Combine(starDir, "DNA", "OASIS_DNA.json");
+                        if (File.Exists(oasisNextToStar))
+                        {
+                            Environment.CurrentDirectory = starDir;
+                            return;
+                        }
+                    }
+                }
+
+                string exeDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                string oasisNextToExe = Path.Combine(exeDir, "DNA", "OASIS_DNA.json");
+                if (File.Exists(oasisNextToExe))
+                    Environment.CurrentDirectory = exeDir;
+            }
+            catch
+            {
+                // Non-fatal; IgniteStar will surface a clear DNA load error if paths are still wrong.
             }
         }
 
@@ -148,7 +285,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 var pluginLoader = new PluginLoader();
                 var scanResult = await pluginLoader.ScanAndLoadPluginsAsync();
                 
-                if (scanResult != null && !scanResult.IsError && scanResult.Result != null && scanResult.Result.Count > 0)
+                if (!CLIEngine.Quiet && scanResult != null && !scanResult.IsError && scanResult.Result != null && scanResult.Result.Count > 0)
                 {
                     CLIEngine.ShowMessage($"", false);
                     CLIEngine.ShowSuccessMessage($"Loaded {scanResult.Result.Count} installed plugin(s) at boot time.");
@@ -162,22 +299,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
-            //e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-            //_exiting = !e.Cancel;
-
-             e.Cancel = true;
-
-            //if (_inMainMenu)
-            //    e.Cancel = !CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
-            //else
-            //    e.Cancel = true;
-
-            ////Console.WriteLine("\nThe read operation has been interrupted.");
-            ////Console.WriteLine($"  Key pressed: {e.SpecialKey}");
-            ////Console.WriteLine($"  Cancel property: {e.Cancel}");
-
-            //if (e.Cancel)
-            //    ReadyPlayerOne();
+            // Allow default: Ctrl+C terminates the process. (e.Cancel = true would swallow SIGINT and trap the user.)
+            e.Cancel = false;
         }
 
         private static void STAR_OnDefaultCeletialBodyInit(object sender, EventArgs.DefaultCelestialBodyInitEventArgs e)
@@ -195,9 +318,11 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //ShowAvatarStats(); //TODO: Temp, put back in after testing! ;-)
 
             CLIEngine.ShowMessage("", false);
-            CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
-
-            CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            if (!CLIEngine.Quiet)
+            {
+                CLIEngine.WriteAsciMessage(" READY PLAYER ONE?", Color.Green);
+                CLIEngine.ShowMessage("Please help support us by making a donation here: https://opencollective.com/oasis-web4 or consider buying some virtual land NFT's (OLAND) here: https://www.panxpan.com/projects/guardians-of-infinite-reality or buying one of our meta brick NFT's here: https://metabricks.xyz, thank you! :)");
+            }
             
             //CLIEngine.ShowMessage("", false);
 
@@ -205,6 +330,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             //await Test(celestialBodyDNAFolder, geneisFolder);
 
             bool exit = false;
+            bool shellMode = _args != null && _args.Length > 0;
+            bool shellModeCommandConsumed = false;
             do
             {
                 try
@@ -213,18 +340,27 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     if (_exiting)
                         exit = true;
 
-                    _inMainMenu = true;
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("");
-                    CLIEngine.ShowMessage("STAR: ", false, true);
-                    string input = Console.ReadLine();
-
-                    if (!string.IsNullOrEmpty(input))
+                    string[] inputArgs = null;
+                    if (shellMode && !shellModeCommandConsumed)
                     {
-                        string[] inputArgs = input.Split(" ");
+                        // Non-interactive shell invocation: star <command> [subcommand] [params...]
+                        inputArgs = _args;
+                        shellModeCommandConsumed = true;
+                    }
+                    else
+                    {
+                        _inMainMenu = true;
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                        Console.WriteLine("");
+                        CLIEngine.ShowMessage("STAR: ", false, true);
+                        string input = Console.ReadLine();
 
-                        if (inputArgs.Length > 0)
-                        {
+                        if (!string.IsNullOrEmpty(input))
+                            inputArgs = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                    }
+
+                    if (inputArgs != null && inputArgs.Length > 0)
+                    {
                             switch (inputArgs[0].ToLower())
                             {
                                 case "ignite":
@@ -247,7 +383,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "help":
                                     {
-                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true,
+                                                "Human-readable command reference: run without --json or see Docs/Devs/STAR_CLI_NonInteractive.md",
+                                                new { shellFlags = new[] { "--non-interactive (-n)", "--json", "--quiet (-q)", "--yes (-y)", "--username", "--password" } });
+                                        }
+                                        else if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "full")
                                             ShowCommands(true);
                                         else
                                             ShowCommands(false);
@@ -256,31 +398,71 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "version":
                                     {
-                                        Console.WriteLine("");
-                                        CLIEngine.ShowMessage($"OASIS RUNTIME VERSION:   v{OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS API VERSION:       v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"COSMIC ORM VERSION:      v{OASISBootLoader.OASISBootLoader.COSMICVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR RUNTIME VERSION:    v{OASISBootLoader.OASISBootLoader.STARRuntimeVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR ODK VERSION:        v{OASISBootLoader.OASISBootLoader.STARODKVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STARNET VERSION:         v{OASISBootLoader.OASISBootLoader.STARNETVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"STAR API VERSION:        v{OASISBootLoader.OASISBootLoader.STARAPIVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($".NET VERSION:            v{OASISBootLoader.OASISBootLoader.DotNetVersion}.", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS PROVIDER VERSIONS: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true, null, new
+                                            {
+                                                oasisRuntime = OASISBootLoader.OASISBootLoader.OASISRuntimeVersion,
+                                                oasisApi = OASISBootLoader.OASISBootLoader.OASISAPIVersion,
+                                                cosmicOrm = OASISBootLoader.OASISBootLoader.COSMICVersion,
+                                                starRuntime = OASISBootLoader.OASISBootLoader.STARRuntimeVersion,
+                                                starOdk = OASISBootLoader.OASISBootLoader.STARODKVersion,
+                                                starnet = OASISBootLoader.OASISBootLoader.STARNETVersion,
+                                                starApi = OASISBootLoader.OASISBootLoader.STARAPIVersion,
+                                                dotNet = OASISBootLoader.OASISBootLoader.DotNetVersion,
+                                                oasisProviderVersions = "Coming Soon"
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowMessage($"OASIS RUNTIME VERSION:   v{OASISBootLoader.OASISBootLoader.OASISRuntimeVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS API VERSION:       v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"COSMIC ORM VERSION:      v{OASISBootLoader.OASISBootLoader.COSMICVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR RUNTIME VERSION:    v{OASISBootLoader.OASISBootLoader.STARRuntimeVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR ODK VERSION:        v{OASISBootLoader.OASISBootLoader.STARODKVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STARNET VERSION:         v{OASISBootLoader.OASISBootLoader.STARNETVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"STAR API VERSION:        v{OASISBootLoader.OASISBootLoader.STARAPIVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($".NET VERSION:            v{OASISBootLoader.OASISBootLoader.DotNetVersion}.", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS PROVIDER VERSIONS: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        }
                                     }
                                     break;
 
                                 case "status":
                                     {
+                                        if (CLIEngine.JsonOutput)
+                                        {
+                                            StarCliShellOutput.WriteSuccess(true, null, new
+                                            {
+                                                starOdkStatus = Enum.GetName(typeof(StarStatus), STAR.Status),
+                                                cosmicOrmStatus = "Online",
+                                                oasisRuntimeStatus = "Online",
+                                                oasisProviderStatus = "Coming Soon"
+                                            });
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("");
+                                            CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
+                                            CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                            Console.WriteLine("");
+                                            ShowDNAPaths();
+                                        }
+                                    }
+                                    break;
+
+                                case "dna":
+                                    {
                                         Console.WriteLine("");
-                                        CLIEngine.ShowMessage($"STAR ODK Status: {Enum.GetName(typeof(StarStatus), STAR.Status)}", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"COSMIC ORM Status: Online", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Runtime Status: Online", ConsoleColor.Green, false);
-                                        CLIEngine.ShowMessage($"OASIS Provider Status: Coming Soon...", ConsoleColor.Green, false); //TODO Implement ASAP.
+                                        ShowDNAPaths();
                                     }
                                     break;
 
                                 case "exit":
-                                    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
+                                    exit = CLIEngine.NonInteractive || CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                                     break;
 
                                 case "light":
@@ -300,10 +482,94 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         if (inputArgs.Length > 1)
                                         {
                                             if (inputArgs[1].ToLower() == "wiz")
-                                                await STARCLI.OAPPs.LightWizardAsync(null);
+                                            {
+                                                if (CLIEngine.NonInteractive)
+                                                {
+                                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                        "Command 'light wiz' is interactive-only. Use `light ./LightRequest.json`, `light json <file>`, or full positional `light` arguments.",
+                                                        "Example: star --non-interactive --json light ./LightRequest.json");
+                                                    if (shellMode)
+                                                        Environment.ExitCode = 2;
+                                                }
+                                                else
+                                                    await STARCLI.OAPPs.LightWizardAsync(null);
+                                            }
                                             else
                                             {
-                                                CLIEngine.ShowWorkingMessage("Generating OAPP...");
+                                                string lightJsonPath = null;
+                                                bool skipPositionalLight = false;
+
+                                                // Primary: star light ./LightRequest.json (path must exist; .json extension)
+                                                if (inputArgs.Length == 2
+                                                    && string.Equals(Path.GetExtension(inputArgs[1]), ".json", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    if (File.Exists(inputArgs[1]))
+                                                        lightJsonPath = inputArgs[1];
+                                                    else
+                                                    {
+                                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                            $"Light JSON file not found: {inputArgs[1]}",
+                                                            "Example: star --non-interactive --json light ./LightRequest.json");
+                                                        if (shellMode)
+                                                            Environment.ExitCode = 2;
+                                                        skipPositionalLight = true;
+                                                    }
+                                                }
+                                                // Alias: star light json <file>
+                                                else if (string.Equals(inputArgs[1], "json", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    if (inputArgs.Length < 3)
+                                                    {
+                                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                            "light json requires a path to LightRequest JSON.",
+                                                            "Prefer: star --non-interactive --json light ./LightRequest.json");
+                                                        if (shellMode)
+                                                            Environment.ExitCode = 2;
+                                                        skipPositionalLight = true;
+                                                    }
+                                                    else if (!File.Exists(inputArgs[2]))
+                                                    {
+                                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                            $"Light JSON file not found: {inputArgs[2]}",
+                                                            "See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                                                        if (shellMode)
+                                                            Environment.ExitCode = 2;
+                                                        skipPositionalLight = true;
+                                                    }
+                                                    else
+                                                        lightJsonPath = inputArgs[2];
+                                                }
+
+                                                if (lightJsonPath != null)
+                                                {
+                                                    lightResult = await STARCLI.OAPPs.LightFromJsonFileAsync(lightJsonPath, providerType);
+                                                    if (CLIEngine.JsonOutput)
+                                                    {
+                                                        object lightData = null;
+                                                        if (lightResult != null && !lightResult.IsError && lightResult.Result != null)
+                                                        {
+                                                            lightData = new
+                                                            {
+                                                                celestialBodyId = lightResult.Result.CelestialBody?.Id,
+                                                                celestialBodyName = lightResult.Result.CelestialBody?.Name,
+                                                                oappId = lightResult.Result.OAPP?.STARNETDNA?.Id,
+                                                                oappName = lightResult.Result.OAPP?.STARNETDNA?.Name
+                                                            };
+                                                        }
+
+                                                        EmitNiJsonForOasisResult(lightResult, "light", lightData);
+                                                    }
+                                                    else if (lightResult != null)
+                                                    {
+                                                        if (!lightResult.IsError && lightResult.Result != null)
+                                                            CLIEngine.ShowSuccessMessage($"OAPP Successfully Generated. ({lightResult.Message})");
+                                                        else
+                                                            CLIEngine.ShowErrorMessage($"Error Occurred: {lightResult.Message}");
+                                                    }
+                                                }
+                                                else if (!skipPositionalLight)
+                                                {
+                                                    CLIEngine.ShowWorkingMessage("Generating OAPP...");
 
                                                 if (inputArgs.Length > 2 && Enum.TryParse(typeof(OAPPType), inputArgs[3], true, out oappTypeObj))
                                                 {
@@ -365,36 +631,55 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         CLIEngine.ShowErrorMessage($"Error Occurred: {lightResult.Message}");
                                                 }
                                             }
+                                            }
                                         }
                                         else
                                         {
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowMessage("LIGHT SUBCOMMAND:", ConsoleColor.Green);
-                                            Console.WriteLine("");
-                                            CLIEngine.ShowMessage("OAPPName               The name of the OAPP.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage($"OAPPType               The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("DnaFolder              The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("GenesisFolder          The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("GenesisNameSpace       The namespace of the OAPP to generate.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage($"GenesisType            The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("ParentCelestialBodyId  The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
-                                            CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
-
-                                            if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                            if (CLIEngine.NonInteractive)
                                             {
-                                                Console.WriteLine("");
-                                                await STARCLI.OAPPs.LightWizardAsync(null);
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    "Non-interactive mode requires full 'light' arguments, `light ./LightRequest.json`, or `light json <file>`.",
+                                                    "See Docs/Devs/STAR_CLI_NonInteractive.md and existing 'light' positional parameter help in ShowCommands.");
+                                                if (shellMode)
+                                                    Environment.ExitCode = 2;
                                             }
                                             else
+                                            {
                                                 Console.WriteLine("");
+                                                CLIEngine.ShowMessage("LIGHT SUBCOMMAND:", ConsoleColor.Green);
+                                                Console.WriteLine("");
+                                                CLIEngine.ShowMessage("OAPPName               The name of the OAPP.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage($"OAPPType               The type of the OAPP, which can be any of the following: {EnumHelper.GetEnumValues(typeof(OAPPType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("DnaFolder              The path to the DNA Folder which will be used to generate the OAPP from.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("GenesisFolder          The path to the Genesis Folder where the OAPP will be created.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("GenesisNameSpace       The namespace of the OAPP to generate.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage($"GenesisType            The Genesis Type can be any of the following: {EnumHelper.GetEnumValues(typeof(GenesisType), EnumHelperListType.ItemsSeperatedByComma)}.", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("ParentCelestialBodyId  The ID (GUID) of the Parent CelestialBody the generated OAPP will belong to. (optional)", ConsoleColor.Green, false);
+                                                CLIEngine.ShowMessage("NOTE: Use 'light wiz' to start the light wizard.", ConsoleColor.Green);
 
-                                            Console.ForegroundColor = ConsoleColor.Yellow;
+                                                if (CLIEngine.GetConfirmation("Do you wish to start the wizard?"))
+                                                {
+                                                    Console.WriteLine("");
+                                                    await STARCLI.OAPPs.LightWizardAsync(null);
+                                                }
+                                                else
+                                                    Console.WriteLine("");
+
+                                                Console.ForegroundColor = ConsoleColor.Yellow;
+                                            }
                                         }
                                     }
                                     break;
 
                                 case "bang":
                                     {
+                                        if (CLIEngine.NonInteractive)
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2, "Command 'bang' is interactive-only. Omit --non-interactive or use a scripted workflow.", null);
+                                            if (shellMode)
+                                                Environment.ExitCode = 2;
+                                            break;
+                                        }
                                         _inMainMenu = false;
                                         object value = CLIEngine.GetValidInputForEnum("What type of metaverse do you wish to create?", typeof(MetaverseType));
 
@@ -407,6 +692,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                                 case "wiz":
                                     {
+                                        if (CLIEngine.NonInteractive)
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2, "Command 'wiz' is interactive-only. Use 'light <args>' with full parameters or interactive mode.", null);
+                                            if (shellMode)
+                                                Environment.ExitCode = 2;
+                                            break;
+                                        }
                                         _inMainMenu = false;
                                         OASISResult<CoronalEjection> lightResult = null;
                                         string OAPPName = CLIEngine.GetValidInput("What is the name of the OAPP?");
@@ -597,6 +889,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                         if (inputArgs.Length > 3 && inputArgs[3].ToLower() == "dotnetpublish")
                                                             dotNetPublish = true;
 
+                                                        if (CLIEngine.NonInteractive && string.IsNullOrWhiteSpace(oappPath))
+                                                        {
+                                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                                "Non-interactive oapp publish requires a source path.",
+                                                                "Example: star --non-interactive oapp publish /path/to/oapp/source [dotnetpublish]");
+                                                            break;
+                                                        }
+
                                                         await STARCLI.OAPPs.PublishAsync(oappPath, dotNetPublish);
                                                     }
                                                     break;
@@ -606,12 +906,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                                     break;
 
                                                 default:
-                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                                    await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPs.CloneAsync, providerType: providerType);
                                                     break;
                                             }
                                         }
                                         else
-                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<OAPP>(inputArgs, "OAPP", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPs.CloneAsync, providerType: providerType);
 
                                         break;
                                     }
@@ -640,20 +940,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         //TODO: Make a hAPP STARManager ASAP! ;-) I think!
-                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                        await ShowSubCommandAsync<OAPP>(inputArgs, "hApp", "", STARCLI.OAPPs.CreateAsync, STARCLI.OAPPs.UpdateAsync, STARCLI.OAPPs.DeleteAsync, STARCLI.OAPPs.DownloadAndInstallAsync, STARCLI.OAPPs.UninstallAsync, STARCLI.OAPPs.PublishAsync, STARCLI.OAPPs.UnpublishAsync, STARCLI.OAPPs.RepublishAsync, STARCLI.OAPPs.ActivateAsync, STARCLI.OAPPs.DeactivateAsync, STARCLI.OAPPs.ShowAsync, STARCLI.OAPPs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.OAPPs.ListAllAsync, STARCLI.OAPPs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.OAPPs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.OAPPs.SearchAsync, STARCLI.OAPPs.AddDependencyAsync, STARCLI.OAPPs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPs.CloneAsync, providerType: providerType);
                                         break;
                                     }
 
                                 case "runtime":
-                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.UpdateAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchAsync, STARCLI.Runtimes.AddDependencyAsync, STARCLI.Runtimes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Runtime>(inputArgs, "runtime", "runtimes", STARCLI.Runtimes.CreateAsync, STARCLI.Runtimes.UpdateAsync, STARCLI.Runtimes.DeleteAsync, STARCLI.Runtimes.DownloadAndInstallAsync, STARCLI.Runtimes.UninstallAsync, STARCLI.Runtimes.PublishAsync, STARCLI.Runtimes.UnpublishAsync, STARCLI.Runtimes.RepublishAsync, STARCLI.Runtimes.ActivateAsync, STARCLI.Runtimes.DeactivateAsync, STARCLI.Runtimes.ShowAsync, STARCLI.Runtimes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Runtimes.ListAllAsync, STARCLI.Runtimes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Runtimes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Runtimes.SearchAsync, STARCLI.Runtimes.AddDependencyAsync, STARCLI.Runtimes.RemoveDependencyAsync, clonePredicate: STARCLI.Runtimes.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "lib":
-                                    await ShowSubCommandAsync<Library>(inputArgs, "library", "libs", STARCLI.Libs.CreateAsync, STARCLI.Libs.UpdateAsync, STARCLI.Libs.DeleteAsync, STARCLI.Libs.DownloadAndInstallAsync, STARCLI.Libs.UninstallAsync, STARCLI.Libs.PublishAsync, STARCLI.Libs.UnpublishAsync, STARCLI.Libs.RepublishAsync, STARCLI.Libs.ActivateAsync, STARCLI.Libs.DeactivateAsync, STARCLI.Libs.ShowAsync, STARCLI.Libs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Libs.ListAllAsync, STARCLI.Libs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Libs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Libs.SearchAsync, STARCLI.Libs.AddDependencyAsync, STARCLI.Libs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Library>(inputArgs, "library", "libs", STARCLI.Libs.CreateAsync, STARCLI.Libs.UpdateAsync, STARCLI.Libs.DeleteAsync, STARCLI.Libs.DownloadAndInstallAsync, STARCLI.Libs.UninstallAsync, STARCLI.Libs.PublishAsync, STARCLI.Libs.UnpublishAsync, STARCLI.Libs.RepublishAsync, STARCLI.Libs.ActivateAsync, STARCLI.Libs.DeactivateAsync, STARCLI.Libs.ShowAsync, STARCLI.Libs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Libs.ListAllAsync, STARCLI.Libs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Libs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Libs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Libs.SearchAsync, STARCLI.Libs.AddDependencyAsync, STARCLI.Libs.RemoveDependencyAsync, clonePredicate: STARCLI.Libs.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "celestialspace":
-                                    await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space", "celestial spaces", STARCLI.CelestialSpaces.CreateAsync, STARCLI.CelestialSpaces.UpdateAsync, STARCLI.CelestialSpaces.DeleteAsync, STARCLI.CelestialSpaces.DownloadAndInstallAsync, STARCLI.CelestialSpaces.UninstallAsync, STARCLI.CelestialSpaces.PublishAsync, STARCLI.CelestialSpaces.UnpublishAsync, STARCLI.CelestialSpaces.RepublishAsync, STARCLI.CelestialSpaces.ActivateAsync, STARCLI.CelestialSpaces.DeactivateAsync, STARCLI.CelestialSpaces.ShowAsync, STARCLI.CelestialSpaces.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllAsync, STARCLI.CelestialSpaces.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.SearchAsync, STARCLI.CelestialSpaces.AddDependencyAsync, STARCLI.CelestialSpaces.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<STARCelestialSpace>(inputArgs, "celestial space", "celestial spaces", STARCLI.CelestialSpaces.CreateAsync, STARCLI.CelestialSpaces.UpdateAsync, STARCLI.CelestialSpaces.DeleteAsync, STARCLI.CelestialSpaces.DownloadAndInstallAsync, STARCLI.CelestialSpaces.UninstallAsync, STARCLI.CelestialSpaces.PublishAsync, STARCLI.CelestialSpaces.UnpublishAsync, STARCLI.CelestialSpaces.RepublishAsync, STARCLI.CelestialSpaces.ActivateAsync, STARCLI.CelestialSpaces.DeactivateAsync, STARCLI.CelestialSpaces.ShowAsync, STARCLI.CelestialSpaces.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllAsync, STARCLI.CelestialSpaces.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialSpaces.SearchAsync, STARCLI.CelestialSpaces.AddDependencyAsync, STARCLI.CelestialSpaces.RemoveDependencyAsync, clonePredicate: STARCLI.CelestialSpaces.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "celestialbody":
@@ -667,9 +967,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<CelestialBodyMetaDataDNA>(inputArgs, "celestial body metadata", "celestial body metadata", STARCLI.CelestialBodiesMetaDataDNA.CreateAsync, STARCLI.CelestialBodiesMetaDataDNA.UpdateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeleteAsync, STARCLI.CelestialBodiesMetaDataDNA.DownloadAndInstallAsync, STARCLI.CelestialBodiesMetaDataDNA.UninstallAsync, STARCLI.CelestialBodiesMetaDataDNA.PublishAsync, STARCLI.CelestialBodiesMetaDataDNA.UnpublishAsync, STARCLI.CelestialBodiesMetaDataDNA.RepublishAsync, STARCLI.CelestialBodiesMetaDataDNA.ActivateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeactivateAsync, STARCLI.CelestialBodiesMetaDataDNA.ShowAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.SearchAsync, STARCLI.CelestialBodiesMetaDataDNA.AddDependencyAsync, STARCLI.CelestialBodiesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<CelestialBodyMetaDataDNA>(inputArgs, "celestial body metadata", "celestial body metadata", STARCLI.CelestialBodiesMetaDataDNA.CreateAsync, STARCLI.CelestialBodiesMetaDataDNA.UpdateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeleteAsync, STARCLI.CelestialBodiesMetaDataDNA.DownloadAndInstallAsync, STARCLI.CelestialBodiesMetaDataDNA.UninstallAsync, STARCLI.CelestialBodiesMetaDataDNA.PublishAsync, STARCLI.CelestialBodiesMetaDataDNA.UnpublishAsync, STARCLI.CelestialBodiesMetaDataDNA.RepublishAsync, STARCLI.CelestialBodiesMetaDataDNA.ActivateAsync, STARCLI.CelestialBodiesMetaDataDNA.DeactivateAsync, STARCLI.CelestialBodiesMetaDataDNA.ShowAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.CelestialBodiesMetaDataDNA.SearchAsync, STARCLI.CelestialBodiesMetaDataDNA.AddDependencyAsync, STARCLI.CelestialBodiesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.CelestialBodiesMetaDataDNA.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies", STARCLI.CelestialBodies.CreateAsync, STARCLI.CelestialBodies.UpdateAsync, STARCLI.CelestialBodies.DeleteAsync, STARCLI.CelestialBodies.DownloadAndInstallAsync, STARCLI.CelestialBodies.UninstallAsync, STARCLI.CelestialBodies.PublishAsync, STARCLI.CelestialBodies.UnpublishAsync, STARCLI.CelestialBodies.RepublishAsync, STARCLI.CelestialBodies.ActivateAsync, STARCLI.CelestialBodies.DeactivateAsync, STARCLI.CelestialBodies.ShowAsync, STARCLI.CelestialBodies.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodies.ListAllAsync, STARCLI.CelestialBodies.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARCelestialBody>(inputArgs, "celestial body", "celestial bodies", STARCLI.CelestialBodies.CreateAsync, STARCLI.CelestialBodies.UpdateAsync, STARCLI.CelestialBodies.DeleteAsync, STARCLI.CelestialBodies.DownloadAndInstallAsync, STARCLI.CelestialBodies.UninstallAsync, STARCLI.CelestialBodies.PublishAsync, STARCLI.CelestialBodies.UnpublishAsync, STARCLI.CelestialBodies.RepublishAsync, STARCLI.CelestialBodies.ActivateAsync, STARCLI.CelestialBodies.DeactivateAsync, STARCLI.CelestialBodies.ShowAsync, STARCLI.CelestialBodies.ListAllCreatedByBeamedInAvatarAsync, STARCLI.CelestialBodies.ListAllAsync, STARCLI.CelestialBodies.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.CelestialBodies.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
@@ -684,9 +984,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<ZomeMetaDataDNA>(inputArgs, "zome metadata", "zome metadata", STARCLI.ZomesMetaDataDNA.CreateAsync, STARCLI.ZomesMetaDataDNA.UpdateAsync, STARCLI.ZomesMetaDataDNA.DeleteAsync, STARCLI.ZomesMetaDataDNA.DownloadAndInstallAsync, STARCLI.ZomesMetaDataDNA.UninstallAsync, STARCLI.ZomesMetaDataDNA.PublishAsync, STARCLI.ZomesMetaDataDNA.UnpublishAsync, STARCLI.ZomesMetaDataDNA.RepublishAsync, STARCLI.ZomesMetaDataDNA.ActivateAsync, STARCLI.ZomesMetaDataDNA.DeactivateAsync, STARCLI.ZomesMetaDataDNA.ShowAsync, STARCLI.ZomesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllAsync, STARCLI.ZomesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.SearchAsync, STARCLI.ZomesMetaDataDNA.AddDependencyAsync, STARCLI.ZomesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<ZomeMetaDataDNA>(inputArgs, "zome metadata", "zome metadata", STARCLI.ZomesMetaDataDNA.CreateAsync, STARCLI.ZomesMetaDataDNA.UpdateAsync, STARCLI.ZomesMetaDataDNA.DeleteAsync, STARCLI.ZomesMetaDataDNA.DownloadAndInstallAsync, STARCLI.ZomesMetaDataDNA.UninstallAsync, STARCLI.ZomesMetaDataDNA.PublishAsync, STARCLI.ZomesMetaDataDNA.UnpublishAsync, STARCLI.ZomesMetaDataDNA.RepublishAsync, STARCLI.ZomesMetaDataDNA.ActivateAsync, STARCLI.ZomesMetaDataDNA.DeactivateAsync, STARCLI.ZomesMetaDataDNA.ShowAsync, STARCLI.ZomesMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllAsync, STARCLI.ZomesMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.ZomesMetaDataDNA.SearchAsync, STARCLI.ZomesMetaDataDNA.AddDependencyAsync, STARCLI.ZomesMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.ZomesMetaDataDNA.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARZome>(inputArgs, "zome", "zomes", STARCLI.Zomes.CreateAsync, STARCLI.Zomes.UpdateAsync, STARCLI.Zomes.DeleteAsync, STARCLI.Zomes.DownloadAndInstallAsync, STARCLI.Zomes.UninstallAsync, STARCLI.Zomes.PublishAsync, STARCLI.Zomes.UnpublishAsync, STARCLI.Zomes.RepublishAsync, STARCLI.Zomes.ActivateAsync, STARCLI.Zomes.DeactivateAsync, STARCLI.Zomes.ShowAsync, STARCLI.Zomes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Zomes.ListAllAsync, STARCLI.Zomes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARZome>(inputArgs, "zome", "zomes", STARCLI.Zomes.CreateAsync, STARCLI.Zomes.UpdateAsync, STARCLI.Zomes.DeleteAsync, STARCLI.Zomes.DownloadAndInstallAsync, STARCLI.Zomes.UninstallAsync, STARCLI.Zomes.PublishAsync, STARCLI.Zomes.UnpublishAsync, STARCLI.Zomes.RepublishAsync, STARCLI.Zomes.ActivateAsync, STARCLI.Zomes.DeactivateAsync, STARCLI.Zomes.ShowAsync, STARCLI.Zomes.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Zomes.ListAllAsync, STARCLI.Zomes.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Zomes.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Zomes.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Zomes.SearchAsync, STARCLI.Zomes.AddDependencyAsync, STARCLI.Zomes.RemoveDependencyAsync, clonePredicate: STARCLI.Zomes.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
@@ -701,22 +1001,22 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                         }
 
                                         if (showSubCommand)
-                                            await ShowSubCommandAsync<HolonMetaDataDNA>(inputArgs, "holon metadata", "holon metadata", STARCLI.HolonsMetaDataDNA.CreateAsync, STARCLI.HolonsMetaDataDNA.UpdateAsync, STARCLI.HolonsMetaDataDNA.DeleteAsync, STARCLI.HolonsMetaDataDNA.DownloadAndInstallAsync, STARCLI.HolonsMetaDataDNA.UninstallAsync, STARCLI.HolonsMetaDataDNA.PublishAsync, STARCLI.HolonsMetaDataDNA.UnpublishAsync, STARCLI.HolonsMetaDataDNA.RepublishAsync, STARCLI.HolonsMetaDataDNA.ActivateAsync, STARCLI.HolonsMetaDataDNA.DeactivateAsync, STARCLI.HolonsMetaDataDNA.ShowAsync, STARCLI.HolonsMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllAsync, STARCLI.HolonsMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.SearchAsync, STARCLI.HolonsMetaDataDNA.AddDependencyAsync, STARCLI.HolonsMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<HolonMetaDataDNA>(inputArgs, "holon metadata", "holon metadata", STARCLI.HolonsMetaDataDNA.CreateAsync, STARCLI.HolonsMetaDataDNA.UpdateAsync, STARCLI.HolonsMetaDataDNA.DeleteAsync, STARCLI.HolonsMetaDataDNA.DownloadAndInstallAsync, STARCLI.HolonsMetaDataDNA.UninstallAsync, STARCLI.HolonsMetaDataDNA.PublishAsync, STARCLI.HolonsMetaDataDNA.UnpublishAsync, STARCLI.HolonsMetaDataDNA.RepublishAsync, STARCLI.HolonsMetaDataDNA.ActivateAsync, STARCLI.HolonsMetaDataDNA.DeactivateAsync, STARCLI.HolonsMetaDataDNA.ShowAsync, STARCLI.HolonsMetaDataDNA.ListAllCreatedByBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllAsync, STARCLI.HolonsMetaDataDNA.ListAllInstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.HolonsMetaDataDNA.SearchAsync, STARCLI.HolonsMetaDataDNA.AddDependencyAsync, STARCLI.HolonsMetaDataDNA.RemoveDependencyAsync, clonePredicate: STARCLI.HolonsMetaDataDNA.CloneAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARHolon>(inputArgs, "holon", "holons", STARCLI.Holons.CreateAsync, STARCLI.Holons.UpdateAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchAsync, STARCLI.Holons.AddDependencyAsync, STARCLI.Holons.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARHolon>(inputArgs, "holon", "holons", STARCLI.Holons.CreateAsync, STARCLI.Holons.UpdateAsync, STARCLI.Holons.DeleteAsync, STARCLI.Holons.DownloadAndInstallAsync, STARCLI.Holons.UninstallAsync, STARCLI.Holons.PublishAsync, STARCLI.Holons.UnpublishAsync, STARCLI.Holons.RepublishAsync, STARCLI.Holons.ActivateAsync, STARCLI.Holons.DeactivateAsync, STARCLI.Holons.ShowAsync, STARCLI.Holons.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Holons.ListAllAsync, STARCLI.Holons.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Holons.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Holons.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Holons.SearchAsync, STARCLI.Holons.AddDependencyAsync, STARCLI.Holons.RemoveDependencyAsync, clonePredicate: STARCLI.Holons.CloneAsync, providerType: providerType);
                                     }
                                     break;
 
                                 case "chapter":
-                                    await ShowSubCommandAsync<Chapter>(inputArgs, "chapter", "chapters", STARCLI.Chapters.CreateAsync, STARCLI.Chapters.UpdateAsync, STARCLI.Chapters.DeleteAsync, STARCLI.Chapters.DownloadAndInstallAsync, STARCLI.Chapters.UninstallAsync, STARCLI.Chapters.PublishAsync, STARCLI.Chapters.UnpublishAsync, STARCLI.Chapters.RepublishAsync, STARCLI.Chapters.ActivateAsync, STARCLI.Chapters.DeactivateAsync, STARCLI.Chapters.ShowAsync, STARCLI.Chapters.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Chapters.ListAllAsync, STARCLI.Chapters.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Chapters.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Chapters.SearchAsync, STARCLI.Chapters.AddDependencyAsync, STARCLI.Chapters.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Chapter>(inputArgs, "chapter", "chapters", STARCLI.Chapters.CreateAsync, STARCLI.Chapters.UpdateAsync, STARCLI.Chapters.DeleteAsync, STARCLI.Chapters.DownloadAndInstallAsync, STARCLI.Chapters.UninstallAsync, STARCLI.Chapters.PublishAsync, STARCLI.Chapters.UnpublishAsync, STARCLI.Chapters.RepublishAsync, STARCLI.Chapters.ActivateAsync, STARCLI.Chapters.DeactivateAsync, STARCLI.Chapters.ShowAsync, STARCLI.Chapters.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Chapters.ListAllAsync, STARCLI.Chapters.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Chapters.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Chapters.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Chapters.SearchAsync, STARCLI.Chapters.AddDependencyAsync, STARCLI.Chapters.RemoveDependencyAsync, clonePredicate: STARCLI.Chapters.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "mission":
-                                    await ShowSubCommandAsync<Mission>(inputArgs, "mission", "missions", STARCLI.Missions.CreateAsync, STARCLI.Missions.UpdateAsync, STARCLI.Missions.DeleteAsync, STARCLI.Missions.DownloadAndInstallAsync, STARCLI.Missions.UninstallAsync, STARCLI.Missions.PublishAsync, STARCLI.Missions.UnpublishAsync, STARCLI.Missions.RepublishAsync, STARCLI.Missions.ActivateAsync, STARCLI.Missions.DeactivateAsync, STARCLI.Missions.ShowAsync, STARCLI.Missions.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Missions.ListAllAsync, STARCLI.Missions.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Missions.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Missions.SearchAsync, STARCLI.Missions.AddDependencyAsync, STARCLI.Missions.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Mission>(inputArgs, "mission", "missions", STARCLI.Missions.CreateAsync, STARCLI.Missions.UpdateAsync, STARCLI.Missions.DeleteAsync, STARCLI.Missions.DownloadAndInstallAsync, STARCLI.Missions.UninstallAsync, STARCLI.Missions.PublishAsync, STARCLI.Missions.UnpublishAsync, STARCLI.Missions.RepublishAsync, STARCLI.Missions.ActivateAsync, STARCLI.Missions.DeactivateAsync, STARCLI.Missions.ShowAsync, STARCLI.Missions.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Missions.ListAllAsync, STARCLI.Missions.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Missions.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Missions.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Missions.SearchAsync, STARCLI.Missions.AddDependencyAsync, STARCLI.Missions.RemoveDependencyAsync, clonePredicate: STARCLI.Missions.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "quest":
-                                    await ShowSubCommandAsync<Quest>(inputArgs, "quest", "quests", STARCLI.Quests.CreateAsync, STARCLI.Quests.UpdateAsync, STARCLI.Quests.DeleteAsync, STARCLI.Quests.DownloadAndInstallAsync, STARCLI.Quests.UninstallAsync, STARCLI.Quests.PublishAsync, STARCLI.Quests.UnpublishAsync, STARCLI.Quests.RepublishAsync, STARCLI.Quests.ActivateAsync, STARCLI.Quests.DeactivateAsync, STARCLI.Quests.ShowAsync, STARCLI.Quests.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Quests.ListAllAsync, STARCLI.Quests.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Quests.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Quests.SearchAsync, STARCLI.Quests.AddDependencyAsync, STARCLI.Quests.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Quest>(inputArgs, "quest", "quests", STARCLI.Quests.CreateAsync, STARCLI.Quests.UpdateAsync, STARCLI.Quests.DeleteAsync, STARCLI.Quests.DownloadAndInstallAsync, STARCLI.Quests.UninstallAsync, STARCLI.Quests.PublishAsync, STARCLI.Quests.UnpublishAsync, STARCLI.Quests.RepublishAsync, STARCLI.Quests.ActivateAsync, STARCLI.Quests.DeactivateAsync, STARCLI.Quests.ShowAsync, STARCLI.Quests.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Quests.ListAllAsync, STARCLI.Quests.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Quests.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Quests.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Quests.SearchAsync, STARCLI.Quests.AddDependencyAsync, STARCLI.Quests.RemoveDependencyAsync, clonePredicate: STARCLI.Quests.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "game":
@@ -836,12 +1136,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             // Standard STARNET commands (create, update, delete, publish, etc.)
                                             else
                                             {
-                                                await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                                await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.Games.CloneAsync, providerType: providerType);
                                             }
                                         }
                                         else
                                         {
-                                            await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<Game>(inputArgs, "game", "games", STARCLI.Games.CreateAsync, STARCLI.Games.UpdateAsync, STARCLI.Games.DeleteAsync, STARCLI.Games.DownloadAndInstallAsync, STARCLI.Games.UninstallAsync, STARCLI.Games.PublishAsync, STARCLI.Games.UnpublishAsync, STARCLI.Games.RepublishAsync, STARCLI.Games.ActivateAsync, STARCLI.Games.DeactivateAsync, STARCLI.Games.ShowAsync, STARCLI.Games.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Games.ListAllAsync, STARCLI.Games.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Games.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Games.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Games.SearchAsync, STARCLI.Games.AddDependencyAsync, STARCLI.Games.RemoveDependencyAsync, clonePredicate: STARCLI.Games.CloneAsync, providerType: providerType);
                                         }
                                     }
                                     break;
@@ -849,8 +1149,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 case "nft":
                                     {
                                        if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
-                                            //await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.UpdateAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4Predicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, deleteWeb4Predicate: STARCLI.NFTCollections.DeleteWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4Predicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4Predicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
-                                            await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.UpdateAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4Predicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4Predicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4Predicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
+                                            //await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.UpdateAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.NFTCollections.CloneAsync, createWeb4Predicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4Predicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, deleteWeb4Predicate: STARCLI.NFTCollections.DeleteWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4Predicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4Predicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARNFTCollection>(inputArgs, "nft collection", "nft collection's", STARCLI.NFTCollections.CreateAsync, STARCLI.NFTCollections.UpdateAsync, STARCLI.NFTCollections.DeleteAsync, STARCLI.NFTCollections.DownloadAndInstallAsync, STARCLI.NFTCollections.UninstallAsync, STARCLI.NFTCollections.PublishAsync, STARCLI.NFTCollections.UnpublishAsync, STARCLI.NFTCollections.RepublishAsync, STARCLI.NFTCollections.ActivateAsync, STARCLI.NFTCollections.DeactivateAsync, STARCLI.NFTCollections.ShowAsync, STARCLI.NFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllAsync, STARCLI.NFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTCollections.SearchAsync, STARCLI.NFTCollections.AddDependencyAsync, STARCLI.NFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.NFTCollections.CloneAsync, createWeb4Predicate: STARCLI.NFTCollections.CreateWeb4NFTCollectionAsync, updateWeb4Predicate: STARCLI.NFTCollections.UpdateWeb4NFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.NFTCollections.AddWeb4NFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.NFTCollections.RemoveWeb4NFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.NFTCollections.ListAllWeb4NFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTCollections.ListWeb4NFTCollectionsForAvatar, showWeb4Predicate: STARCLI.NFTCollections.ShowWeb4NFTCollectionAsync, searchWeb4Predicate: STARCLI.NFTCollections.SearchWeb4NFTCollectionAsync, providerType: providerType);
                                         else
                                             //await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.UpdateAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, clonePredicate: STARCLI.NFTs.CloneAsync, mintPredicate: STARCLI.NFTs.MintNFTAsync, burnPredicate: STARCLI.NFTs.BurnNFTAsync, importPredicate: STARCLI.NFTs.ImportNFTAsync, exportPredicate: STARCLI.NFTs.ExportNFTAsync,  convertPredicate: STARCLI.NFTs.ConvertNFTAsync, updateWeb4Predicate: STARCLI.NFTs.UpdateWeb4NFTAsync, deleteWeb4Predicate: STARCLI.NFTs.DeleteWeb4NFTAsync, listAllWeb4Predicate: STARCLI.NFTs.ListAllWeb4NFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, showWeb4Predicate: STARCLI.NFTs.ShowWeb4NFTAsync, searchWeb4Predicate: STARCLI.NFTs.SearchWeb4NFTAsync, showWeb3Predicate: STARCLI.NFTs.ShowWeb3NFTAsync, searchWeb3Predicate: STARCLI.NFTs.SearchWeb3NFTAsync, listAllWeb3Predicate: STARCLI.NFTs.ListAllWeb3NFTsAsync, listWeb3ForBeamedInAvatarPredicate: STARCLI.NFTs.ListAllWeb3NFTForAvatarsAsync, updateWeb3Predicate: STARCLI.NFTs.UpdateWeb3NFTAsync, deleteWeb3Predicate: STARCLI.NFTs.DeleteWeb3NFTAsync, providerType: providerType);
                                             await ShowSubCommandAsync<STARNFT>(inputArgs, "nft", "nft's", STARCLI.NFTs.CreateAsync, STARCLI.NFTs.UpdateAsync, STARCLI.NFTs.DeleteAsync, STARCLI.NFTs.DownloadAndInstallAsync, STARCLI.NFTs.UninstallAsync, STARCLI.NFTs.PublishAsync, STARCLI.NFTs.UnpublishAsync, STARCLI.NFTs.RepublishAsync, STARCLI.NFTs.ActivateAsync, STARCLI.NFTs.DeactivateAsync, STARCLI.NFTs.ShowAsync, STARCLI.NFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.NFTs.ListAllAsync, STARCLI.NFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.NFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.NFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.NFTs.SearchAsync, STARCLI.NFTs.AddDependencyAsync, STARCLI.NFTs.RemoveDependencyAsync, clonePredicate: STARCLI.NFTs.CloneAsync, mintPredicate: STARCLI.NFTs.MintNFTAsync, burnPredicate: STARCLI.NFTs.BurnNFTAsync, importPredicate: STARCLI.NFTs.ImportNFTAsync, exportPredicate: STARCLI.NFTs.ExportNFTAsync, convertPredicate: STARCLI.NFTs.ConvertNFTAsync, updateWeb4Predicate: STARCLI.NFTs.UpdateWeb4NFTAsync, listAllWeb4Predicate: STARCLI.NFTs.ListAllWeb4NFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.NFTs.ListAllWeb4NFTForAvatarsAsync, showWeb4Predicate: STARCLI.NFTs.ShowWeb4NFTAsync, searchWeb4Predicate: STARCLI.NFTs.SearchWeb4NFTAsync, updateWeb3Predicate: STARCLI.NFTs.UpdateWeb3NFTAsync, deleteWeb3Predicate: STARCLI.NFTs.DeleteWeb3NFTAsync, listAllWeb3Predicate: STARCLI.NFTs.ListAllWeb3NFTsAsync, listWeb3ForBeamedInAvatarPredicate: STARCLI.NFTs.ListAllWeb3NFTForAvatarsAsync, showWeb3Predicate: STARCLI.NFTs.ShowWeb3NFTAsync, searchWeb3Predicate: STARCLI.NFTs.SearchWeb3NFTAsync, providerType: providerType);
@@ -860,24 +1160,24 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 case "geonft":
                                     {
                                         if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "collection")
-                                            //await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.UpdateAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4Predicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, deleteWeb4Predicate: STARCLI.GeoNFTCollections.DeleteWeb4GeoNFTCollectionAsync, listAllWeb4Predicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4Predicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4Predicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
-                                            await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.UpdateAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, createWeb4Predicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4Predicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4Predicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4Predicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
+                                            //await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.UpdateAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.GeoNFTCollections.CloneAsync, createWeb4Predicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4Predicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, deleteWeb4Predicate: STARCLI.GeoNFTCollections.DeleteWeb4GeoNFTCollectionAsync, listAllWeb4Predicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4Predicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4Predicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARGeoNFTCollection>(inputArgs, "geo-nft collection", "geo-nft collection's", STARCLI.GeoNFTCollections.CreateAsync, STARCLI.GeoNFTCollections.UpdateAsync, STARCLI.GeoNFTCollections.DeleteAsync, STARCLI.GeoNFTCollections.DownloadAndInstallAsync, STARCLI.GeoNFTCollections.UninstallAsync, STARCLI.GeoNFTCollections.PublishAsync, STARCLI.GeoNFTCollections.UnpublishAsync, STARCLI.GeoNFTCollections.RepublishAsync, STARCLI.GeoNFTCollections.ActivateAsync, STARCLI.GeoNFTCollections.DeactivateAsync, STARCLI.GeoNFTCollections.ShowAsync, STARCLI.GeoNFTCollections.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllAsync, STARCLI.GeoNFTCollections.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTCollections.SearchAsync, STARCLI.GeoNFTCollections.AddDependencyAsync, STARCLI.GeoNFTCollections.RemoveDependencyAsync, clonePredicate: STARCLI.GeoNFTCollections.CloneAsync, createWeb4Predicate: STARCLI.GeoNFTCollections.CreateWeb4GeoNFTCollectionAsync, updateWeb4Predicate: STARCLI.GeoNFTCollections.UpdateWeb4GeoNFTCollectionAsync, addWeb4NFTToCollectionPredicate: STARCLI.GeoNFTCollections.AddWeb4GeoNFTToCollectionAsync, removeWeb4NFTFromCollectionPredicate: STARCLI.GeoNFTCollections.RemoveWeb4GeoNFTFromCollectionAsync, listAllWeb4Predicate: STARCLI.GeoNFTCollections.ListAllWeb4GeoNFTCollections, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTCollections.ListWeb4GeoNFTCollectionsForAvatar, showWeb4Predicate: STARCLI.GeoNFTCollections.ShowWeb4GeoNFTCollectionAsync, searchWeb4Predicate: STARCLI.GeoNFTCollections.SearchWeb4GeoNFTCollectionAsync, providerType: providerType);
                                         else
-                                            await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.UpdateAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, mintPredicate: STARCLI.GeoNFTs.MintGeoNFTAsync, burnPredicate: STARCLI.GeoNFTs.BurnGeoNFTAsync, importPredicate: STARCLI.GeoNFTs.ImportGeoNFTAsync, exportPredicate: STARCLI.GeoNFTs.ExportGeoNFTAsync, convertPredicate: STARCLI.GeoNFTs.ConvertGeoNFTAsync, updateWeb4Predicate: STARCLI.GeoNFTs.UpdateWeb4GeoNFTAsync, listAllWeb4Predicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, showWeb4Predicate: STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, searchWeb4Predicate: STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
-                                        //await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.UpdateAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, mintPredicate: STARCLI.GeoNFTs.MintGeoNFTAsync, burnPredicate: STARCLI.GeoNFTs.BurnGeoNFTAsync, importPredicate: STARCLI.GeoNFTs.ImportGeoNFTAsync, exportPredicate: STARCLI.GeoNFTs.ExportGeoNFTAsync, convertPredicate: STARCLI.GeoNFTs.ConvertGeoNFTAsync, updateWeb4Predicate: STARCLI.GeoNFTs.UpdateWeb4GeoNFTAsync, deleteWeb4Predicate: STARCLI.GeoNFTs.DeleteWeb4GeoNFTAsync, listAllWeb4Predicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, showWeb4Predicate: STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, searchWeb4Predicate: STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                            await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.UpdateAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, clonePredicate: STARCLI.GeoNFTs.CloneAsync, mintPredicate: STARCLI.GeoNFTs.MintGeoNFTAsync, burnPredicate: STARCLI.GeoNFTs.BurnGeoNFTAsync, importPredicate: STARCLI.GeoNFTs.ImportGeoNFTAsync, exportPredicate: STARCLI.GeoNFTs.ExportGeoNFTAsync, convertPredicate: STARCLI.GeoNFTs.ConvertGeoNFTAsync, updateWeb4Predicate: STARCLI.GeoNFTs.UpdateWeb4GeoNFTAsync, listAllWeb4Predicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, showWeb4Predicate: STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, searchWeb4Predicate: STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
+                                        //await ShowSubCommandAsync<STARGeoNFT>(inputArgs, "geo-nft", "geo-nft's", STARCLI.GeoNFTs.CreateAsync, STARCLI.GeoNFTs.UpdateAsync, STARCLI.GeoNFTs.DeleteAsync, STARCLI.GeoNFTs.DownloadAndInstallAsync, STARCLI.GeoNFTs.UninstallAsync, STARCLI.GeoNFTs.PublishAsync, STARCLI.GeoNFTs.UnpublishAsync, STARCLI.GeoNFTs.RepublishAsync, STARCLI.GeoNFTs.ActivateAsync, STARCLI.GeoNFTs.DeactivateAsync, STARCLI.GeoNFTs.ShowAsync, STARCLI.GeoNFTs.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllAsync, STARCLI.GeoNFTs.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoNFTs.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoNFTs.SearchAsync, STARCLI.GeoNFTs.AddDependencyAsync, STARCLI.GeoNFTs.RemoveDependencyAsync, clonePredicate: STARCLI.GeoNFTs.CloneAsync, mintPredicate: STARCLI.GeoNFTs.MintGeoNFTAsync, burnPredicate: STARCLI.GeoNFTs.BurnGeoNFTAsync, importPredicate: STARCLI.GeoNFTs.ImportGeoNFTAsync, exportPredicate: STARCLI.GeoNFTs.ExportGeoNFTAsync, convertPredicate: STARCLI.GeoNFTs.ConvertGeoNFTAsync, updateWeb4Predicate: STARCLI.GeoNFTs.UpdateWeb4GeoNFTAsync, deleteWeb4Predicate: STARCLI.GeoNFTs.DeleteWeb4GeoNFTAsync, listAllWeb4Predicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTsAsync, listWeb4ForBeamedInAvatarPredicate: STARCLI.GeoNFTs.ListAllWeb4GeoNFTForAvatarsAsync, showWeb4Predicate: STARCLI.GeoNFTs.ShowWeb4GeoNFTAsync, searchWeb4Predicate: STARCLI.GeoNFTs.SearchWeb4GeoNFTAsync, providerType: providerType);
                                     }
                                     break;
 
                                 case "geohotspot":
-                                    await ShowSubCommandAsync<GeoHotSpot>(inputArgs, "geo-hotspot", "geo-hotspots", STARCLI.GeoHotSpots.CreateAsync, STARCLI.GeoHotSpots.UpdateAsync, STARCLI.GeoHotSpots.DeleteAsync, STARCLI.GeoHotSpots.DownloadAndInstallAsync, STARCLI.GeoHotSpots.UninstallAsync, STARCLI.GeoHotSpots.PublishAsync, STARCLI.GeoHotSpots.UnpublishAsync, STARCLI.GeoHotSpots.RepublishAsync, STARCLI.GeoHotSpots.ActivateAsync, STARCLI.GeoHotSpots.DeactivateAsync, STARCLI.GeoHotSpots.ShowAsync, STARCLI.GeoHotSpots.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllAsync, STARCLI.GeoHotSpots.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.SearchAsync, STARCLI.GeoHotSpots.AddDependencyAsync, STARCLI.GeoHotSpots.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<GeoHotSpot>(inputArgs, "geo-hotspot", "geo-hotspots", STARCLI.GeoHotSpots.CreateAsync, STARCLI.GeoHotSpots.UpdateAsync, STARCLI.GeoHotSpots.DeleteAsync, STARCLI.GeoHotSpots.DownloadAndInstallAsync, STARCLI.GeoHotSpots.UninstallAsync, STARCLI.GeoHotSpots.PublishAsync, STARCLI.GeoHotSpots.UnpublishAsync, STARCLI.GeoHotSpots.RepublishAsync, STARCLI.GeoHotSpots.ActivateAsync, STARCLI.GeoHotSpots.DeactivateAsync, STARCLI.GeoHotSpots.ShowAsync, STARCLI.GeoHotSpots.ListAllCreatedByBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllAsync, STARCLI.GeoHotSpots.ListAllInstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.GeoHotSpots.SearchAsync, STARCLI.GeoHotSpots.AddDependencyAsync, STARCLI.GeoHotSpots.RemoveDependencyAsync, clonePredicate: STARCLI.GeoHotSpots.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "inventoryitem":
-                                    await ShowSubCommandAsync<InventoryItem>(inputArgs, "inventoryitem", "inventoryitem", STARCLI.InventoryItems.CreateAsync, STARCLI.InventoryItems.UpdateAsync, STARCLI.InventoryItems.DeleteAsync, STARCLI.InventoryItems.DownloadAndInstallAsync, STARCLI.InventoryItems.UninstallAsync, STARCLI.InventoryItems.PublishAsync, STARCLI.InventoryItems.UnpublishAsync, STARCLI.InventoryItems.RepublishAsync, STARCLI.InventoryItems.ActivateAsync, STARCLI.InventoryItems.DeactivateAsync, STARCLI.InventoryItems.ShowAsync, STARCLI.InventoryItems.ListAllCreatedByBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllAsync, STARCLI.InventoryItems.ListAllInstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.InventoryItems.SearchAsync, STARCLI.InventoryItems.AddDependencyAsync, STARCLI.InventoryItems.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<InventoryItem>(inputArgs, "inventoryitem", "inventoryitem", STARCLI.InventoryItems.CreateAsync, STARCLI.InventoryItems.UpdateAsync, STARCLI.InventoryItems.DeleteAsync, STARCLI.InventoryItems.DownloadAndInstallAsync, STARCLI.InventoryItems.UninstallAsync, STARCLI.InventoryItems.PublishAsync, STARCLI.InventoryItems.UnpublishAsync, STARCLI.InventoryItems.RepublishAsync, STARCLI.InventoryItems.ActivateAsync, STARCLI.InventoryItems.DeactivateAsync, STARCLI.InventoryItems.ShowAsync, STARCLI.InventoryItems.ListAllCreatedByBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllAsync, STARCLI.InventoryItems.ListAllInstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.InventoryItems.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.InventoryItems.SearchAsync, STARCLI.InventoryItems.AddDependencyAsync, STARCLI.InventoryItems.RemoveDependencyAsync, clonePredicate: STARCLI.InventoryItems.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "plugin":
-                                    await ShowSubCommandAsync<Plugin>(inputArgs, "plugin", "plugin", STARCLI.Plugins.CreateAsync, STARCLI.Plugins.UpdateAsync, STARCLI.Plugins.DeleteAsync, STARCLI.Plugins.DownloadAndInstallAsync, STARCLI.Plugins.UninstallAsync, STARCLI.Plugins.PublishAsync, STARCLI.Plugins.UnpublishAsync, STARCLI.Plugins.RepublishAsync, STARCLI.Plugins.ActivateAsync, STARCLI.Plugins.DeactivateAsync, STARCLI.Plugins.ShowAsync, STARCLI.Plugins.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Plugins.ListAllAsync, STARCLI.Plugins.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Plugins.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Plugins.SearchAsync, STARCLI.Plugins.AddDependencyAsync, STARCLI.Plugins.RemoveDependencyAsync, clonePredicate: STARCLI.OAPPTemplates.CloneAsync, providerType: providerType);
+                                    await ShowSubCommandAsync<Plugin>(inputArgs, "plugin", "plugin", STARCLI.Plugins.CreateAsync, STARCLI.Plugins.UpdateAsync, STARCLI.Plugins.DeleteAsync, STARCLI.Plugins.DownloadAndInstallAsync, STARCLI.Plugins.UninstallAsync, STARCLI.Plugins.PublishAsync, STARCLI.Plugins.UnpublishAsync, STARCLI.Plugins.RepublishAsync, STARCLI.Plugins.ActivateAsync, STARCLI.Plugins.DeactivateAsync, STARCLI.Plugins.ShowAsync, STARCLI.Plugins.ListAllCreatedByBeamedInAvatarAsync, STARCLI.Plugins.ListAllAsync, STARCLI.Plugins.ListAllInstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUninstalledForBeamedInAvatarAsync, STARCLI.Plugins.ListAllUnpublishedForBeamedInAvatarAsync, STARCLI.Plugins.ListAllDeactivatedForBeamedInAvatarAsync, STARCLI.Plugins.SearchAsync, STARCLI.Plugins.AddDependencyAsync, STARCLI.Plugins.RemoveDependencyAsync, clonePredicate: STARCLI.Plugins.CloneAsync, providerType: providerType);
                                     break;
 
                                 case "avatar":
@@ -983,10 +1283,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                     break;
 
                                 default:
-                                    CLIEngine.ShowErrorMessage("Command Unknown.");
+                                    if (CLIEngine.JsonOutput)
+                                        StarCliShellOutput.WriteError(true, 1, "Command unknown.", inputArgs[0]);
+                                    else
+                                        CLIEngine.ShowErrorMessage("Command Unknown.");
+                                    if (shellMode)
+                                        Environment.ExitCode = 1;
                                     break;
                             }
-                        }
+
+                        // In shell mode, execute a single command and then exit.
+                        if (shellMode)
+                            exit = true;
                     }
                     else
                     {
@@ -996,6 +1304,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         //    exit = CLIEngine.GetConfirmation("STAR: Are you sure you wish to exit?");
                     }
                 }
+                catch (CLIEngineNonInteractiveInputRequiredException niex)
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 3, niex.Message, null);
+                    if (shellMode)
+                    {
+                        Environment.ExitCode = 3;
+                        exit = true;
+                    }
+                    else
+                        OASISErrorHandling.HandleError($"STAR CLI: {niex.Message}", niex);
+                }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError($"An unknown error occurred in STARCLI.ReadyPlayerOne. Reason: {ex}", ex);
@@ -1003,8 +1322,26 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             while (!exit);
 
-            CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
+            if (!CLIEngine.Quiet)
+                CLIEngine.ShowMessage("Thank you for using STAR & The OASIS! We hope you enjoyed your stay, have a nice day! :)");
             Console.ForegroundColor = ConsoleColor.White;
+        }
+
+        /// <summary>When <see cref="CLIEngine.JsonOutput"/> is true, emit one JSON line for a holon operation result (non-interactive NFT/GeoNFT paths: mint, burn, import, export, remint, convert, place, send; STARNET holon <c>clone</c>; OAPP <c>light</c> JSON create).</summary>
+        private static void EmitNiJsonForOasisResult<T>(OASISResult<T> r, string operationLabel, object successData = null)
+        {
+            if (!CLIEngine.JsonOutput)
+                return;
+            if (r == null)
+            {
+                StarCliShellOutput.WriteError(true, 1, $"{operationLabel}: null result", null);
+                return;
+            }
+
+            if (r.IsError)
+                StarCliShellOutput.WriteError(true, 1, r.Message ?? $"{operationLabel} failed", null);
+            else
+                StarCliShellOutput.WriteSuccess(true, string.IsNullOrEmpty(r.Message) ? $"{operationLabel} completed." : r.Message, successData);
         }
 
         private static async Task ShowSubCommandAsync<T>(string[] inputArgs, 
@@ -1028,10 +1365,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Func<ProviderType, Task> listUninstalledPredicate = null,
             Func<ProviderType, Task> listUnpublishedPredicate = null,
             Func<ProviderType, Task> listDeactivatedPredicate = null,
-            Func<string, Guid, bool, bool, ProviderType, Task> searchPredicate = null,
+            Func<string, Guid, bool, bool, ProviderType, int, Task> searchPredicate = null,
             Func<string, ISTARNETDNA, string, string, ProviderType, Task> addDependencyPredicate = null,
             Func<string, string, string, ProviderType, Task> removeDependencyPredicate = null,
-            Func<object, Task> clonePredicate = null,
+            Func<object, Task<OASISResult<T>>> clonePredicate = null,
             Func<object, Task> mintPredicate = null, //WEB4 Commands
             Func<object, Task> burnPredicate = null,
             Func<object, Task> importPredicate = null,
@@ -1121,23 +1458,340 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 web3 = subCommandParam == "web3" || subCommandParam2 == "web3" || subCommandParam3 == "web3" || subCommandParam4 == "web3" ? true : false;
                 web4 = subCommandParam == "web4" || subCommandParam2 == "web4" || subCommandParam3 == "web4" || subCommandParam4 == "web4" ? true : false;
 
+                if (CLIEngine.NonInteractive && StarCliStarnetNonInteractiveGuard.IsWizardOnlySubcommand(subCommandParam))
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                        $"Subcommand '{subCommandParam}' is interactive-only (wizard). Omit --non-interactive for wizards.",
+                        $"Entity: {subCommand}. Scriptable flows: list, show/update/delete/install/... with explicit id or GUID; oapp publish <path>; search <term>. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                    return;
+                }
+
+                if (CLIEngine.NonInteractive &&
+                    StarCliStarnetNonInteractiveGuard.WriteHolonSubCommandViolationIfNeeded(
+                        CLIEngine.JsonOutput,
+                        subCommand,
+                        subCommandParam,
+                        id,
+                        inputArgs,
+                        subCommandParam3,
+                        subCommandParam4,
+                        web3,
+                        web4,
+                        mintPredicate != null,
+                        burnPredicate != null,
+                        clonePredicate != null,
+                        convertPredicate != null,
+                        importPredicate != null,
+                        exportPredicate != null,
+                        addWeb4NFTToCollectionPredicate != null,
+                        removeWeb4NFTFromCollectionPredicate != null,
+                        addDependencyPredicate != null,
+                        removeDependencyPredicate != null))
+                    return;
+
                 switch (subCommandParam)
                 {
+                    case "light":
+                        {
+                            if (!(string.Equals(subCommand, "OAPP", StringComparison.OrdinalIgnoreCase)
+                                  || string.Equals(subCommand, "hApp", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                CLIEngine.ShowErrorMessage("Command Unknown.");
+                                break;
+                            }
+
+                            if (!showCreate)
+                            {
+                                CLIEngine.ShowErrorMessage("Command not supported.");
+                                break;
+                            }
+
+                            if (!StarnetUiScriptedCreateCli.TryParseOappLightDirectArgv(inputArgs, out string oappLightOnlyJson, out string oappLightOnlyErr))
+                            {
+                                CLIEngine.ShowErrorMessage("Command Unknown.");
+                                break;
+                            }
+
+                            if (!string.IsNullOrEmpty(oappLightOnlyErr))
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    oappLightOnlyErr,
+                                    "Example: star --non-interactive --json oapp light ./LightRequest.json");
+                                break;
+                            }
+
+                            if (!File.Exists(oappLightOnlyJson))
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    $"Light JSON file not found: {oappLightOnlyJson}",
+                                    "See Docs/Devs/STAR_CLI_NonInteractive.md (Light JSON schema).");
+                                break;
+                            }
+
+                            var oappLightOnlyOpts = new STARNETCreateOptions<OAPP, STARNETDNA>
+                            {
+                                STARNETHolon = new OAPP(),
+                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildOappLightJsonCustomCreateParams(oappLightOnlyJson)
+                            };
+                            OASISResult<OAPP> lightOnlyRes = await STARCLI.OAPPs.CreateAsync(oappLightOnlyOpts, null, false, false, providerType);
+                            if (CLIEngine.JsonOutput)
+                                EmitNiJsonForOasisResult(lightOnlyRes, $"{subCommand} light",
+                                    lightOnlyRes.Result != null ? new { id = lightOnlyRes.Result.STARNETDNA?.Id, name = lightOnlyRes.Result.STARNETDNA?.Name } : null);
+                        }
+                        break;
+
                     case "create":
                         {
                             if (showCreate)
                             {
                                 if (web4)
                                 {
-                                    if (createWeb4Predicate != null)
-                                        await createWeb4Predicate(null, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    if (CLIEngine.NonInteractive)
+                                    {
+                                        if (createWeb4Predicate != null)
+                                            await createWeb4Predicate(null, providerType);
+                                        else if (createPredicate != null && !StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate(subCommand))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseCreateArgv(inputArgs, subCommand, out string w4Name, out string w4Desc, out string w4Cat, out string w4LibLang, out string w4Parent, out string w4Err))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    w4Err ?? "Invalid create arguments.",
+                                                    "web4 flag with no web4-specific create: using same argv as web5 scripted create.");
+                                                break;
+                                            }
+
+                                            var w4Opts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildScriptedCustomCreateParams(w4Name, w4Desc, w4Cat, w4Parent, w4LibLang)
+                                            };
+                                            await createPredicate(w4Opts, null, false, false, providerType);
+                                        }
+                                        else
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                "Non-interactive web4 create is not available for this entity.",
+                                                "Omit web4 keyword or use a holon with scripted create. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                                        }
+                                    }
+                                    else if (createWeb4Predicate != null)
+                                        await createWeb4Predicate(null, providerType);
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
                                 else
                                 {
-                                    if (createPredicate != null)
-                                        await createPredicate(null, null, true, true, providerType); //TODO: Pass in params in a object or dynamic obj.
+                                    if (CLIEngine.NonInteractive)
+                                    {
+                                        if (StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate(subCommand))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                $"Non-interactive scripted create is not available for '{subCommand}' (this holon type does not delegate to STARNETUIBase scripted create).",
+                                                "See StarnetUiScriptedCreateCli.HolonLabelBypassesBaseScriptedCreate in STAR.CLI.Lib and Docs/Devs/STAR_CLI_NonInteractive.md (Generic design).");
+                                            break;
+                                        }
+
+                                        STARNETCreateOptions<T, STARNETDNA> scriptedOpts;
+                                        if (string.Equals(subCommand, "geo-hotspot", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseGeoHotSpotCreateArgv(inputArgs, out string ghName, out string ghDesc, out string ghType, out double ghLat, out double ghLon, out int ghRad, out string ghTrig, out int? ghTime, out string ghParent, out string ghErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    ghErr ?? "Invalid geo-hotspot create arguments.",
+                                                    "Example: geo-hotspot create MyHS \"Desc\" AR 51.5 -0.1 25 WhenArrivedAtGeoLocation /optional/parent");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildGeoHotSpotScriptedCustomCreateParams(ghName, ghDesc, ghType, ghLat, ghLon, ghRad, ghTrig, ghTime, ghParent)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "nft collection", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (StarnetUiScriptedCreateCli.TryParseNewWeb4NftCollectionCreateArgv(inputArgs, out string newCollName, out string newCollDesc, out string newCollErr))
+                                            {
+                                                if (!string.IsNullOrEmpty(newCollErr))
+                                                {
+                                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                        newCollErr,
+                                                        "Example: nft collection create \"MyColl\" \"Description\"");
+                                                    break;
+                                                }
+
+                                                scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                                {
+                                                    STARNETHolon = new T(),
+                                                    CustomCreateParams = StarnetUiScriptedCreateCli.BuildMinimalWeb4NFTCollectionScriptedParams(newCollName, newCollDesc)
+                                                };
+                                            }
+                                            else if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CollectionCreateArgv(inputArgs, out string wrapCollId, out string collErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    collErr ?? "Invalid nft collection create arguments.",
+                                                    "Wrap: nft collection create <web4CollectionGuidOrName>  |  New: nft collection create <name> <description>");
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                                {
+                                                    STARNETHolon = new T(),
+                                                    CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4NFTCollectionScriptedParams(wrapCollId)
+                                                };
+                                            }
+                                        }
+                                        else if (string.Equals(subCommand, "geo-nft collection", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (StarnetUiScriptedCreateCli.TryParseNewWeb4GeoNftCollectionCreateArgv(inputArgs, out string newGeoCollName, out string newGeoCollDesc, out string newGeoCollErr))
+                                            {
+                                                if (!string.IsNullOrEmpty(newGeoCollErr))
+                                                {
+                                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                        newGeoCollErr,
+                                                        "Example: geo-nft collection create \"MyColl\" \"Description\"");
+                                                    break;
+                                                }
+
+                                                scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                                {
+                                                    STARNETHolon = new T(),
+                                                    CustomCreateParams = StarnetUiScriptedCreateCli.BuildMinimalWeb4GeoNFTCollectionScriptedParams(newGeoCollName, newGeoCollDesc)
+                                                };
+                                            }
+                                            else if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CollectionCreateArgv(inputArgs, out string wrapGeoCollId, out string gcollErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    gcollErr ?? "Invalid geo-nft collection create arguments.",
+                                                    "Wrap: geo-nft collection create <web4CollectionGuidOrName>  |  New: geo-nft collection create <name> <description>");
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                                {
+                                                    STARNETHolon = new T(),
+                                                    CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4GeoNFTCollectionScriptedParams(wrapGeoCollId)
+                                                };
+                                            }
+                                        }
+                                        else if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CreateArgv(inputArgs, out string wrapNftId, out string wErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    wErr ?? "Invalid nft create arguments.",
+                                                    "Example: nft create <web4NftGuid>");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4NftScriptedParams(wrapNftId)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParseWrapOnlyWeb4CreateArgv(inputArgs, out string wrapGeoId, out string wgErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    wgErr ?? "Invalid geo-nft create arguments.",
+                                                    "Example: geo-nft create <web4GeoNftGuid>");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildWrapWeb4GeoSpatialNftScriptedParams(wrapGeoId)
+                                            };
+                                        }
+                                        else if (string.Equals(subCommand, "plugin", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            if (!StarnetUiScriptedCreateCli.TryParsePluginCreateArgv(inputArgs, out string plugName, out string plugDesc, out string plugParent, out string plugErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    plugErr ?? "Invalid plugin create arguments.",
+                                                    "Example: plugin create \"MyPlugin\" \"Description\" [/optional/parent/dir]");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildPluginScriptedCustomCreateParams(plugName, plugDesc, plugParent)
+                                            };
+                                        }
+                                        else if ((string.Equals(subCommand, "OAPP", StringComparison.OrdinalIgnoreCase)
+                                                 || string.Equals(subCommand, "hApp", StringComparison.OrdinalIgnoreCase))
+                                                 && StarnetUiScriptedCreateCli.TryParseOappLightJsonCreateArgv(inputArgs, out string oappLightJson, out string oappLightErr))
+                                        {
+                                            if (!string.IsNullOrEmpty(oappLightErr))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    oappLightErr,
+                                                    "Example: star --non-interactive --json oapp light ./LightRequest.json");
+                                                break;
+                                            }
+
+                                            if (!System.IO.File.Exists(oappLightJson))
+                                            {
+                                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                    $"Light JSON file not found: {oappLightJson}",
+                                                    "See Docs/Devs/STAR_CLI_NonInteractive.md (Light JSON schema).");
+                                                break;
+                                            }
+
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildOappLightJsonCustomCreateParams(oappLightJson)
+                                            };
+                                        }
+                                        else if (!StarnetUiScriptedCreateCli.TryParseCreateArgv(inputArgs, subCommand, out string cName, out string cDesc, out string cCat, out string cLibLang, out string cParent, out string cErr))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                cErr ?? "Invalid create arguments.",
+                                                "Example: star --non-interactive oapp template create \"MyTpl\" \"Desc\" Console /optional/parent/dir");
+                                            break;
+                                        }
+                                        else
+                                        {
+                                            scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
+                                            {
+                                                STARNETHolon = new T(),
+                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildScriptedCustomCreateParams(cName, cDesc, cCat, cParent, cLibLang)
+                                            };
+                                        }
+
+                                        if (createPredicate != null)
+                                        {
+                                            bool lightFromJson = scriptedOpts.CustomCreateParams != null
+                                                && scriptedOpts.CustomCreateParams.ContainsKey(StarCliNonInteractiveCreateKeys.LightRequestJsonPath);
+                                            if (lightFromJson && typeof(T) == typeof(OAPP))
+                                            {
+                                                var oappLightOpts = new STARNETCreateOptions<OAPP, STARNETDNA>
+                                                {
+                                                    STARNETHolon = new OAPP(),
+                                                    CustomCreateParams = scriptedOpts.CustomCreateParams
+                                                };
+                                                if (scriptedOpts.STARNETDNA != null)
+                                                    oappLightOpts.STARNETDNA = scriptedOpts.STARNETDNA;
+                                                OASISResult<OAPP> lightCreateRes = await STARCLI.OAPPs.CreateAsync(oappLightOpts, null, false, false, providerType);
+                                                if (CLIEngine.JsonOutput)
+                                                    EmitNiJsonForOasisResult(lightCreateRes, $"{subCommand} light",
+                                                        lightCreateRes.Result != null ? new { id = lightCreateRes.Result.STARNETDNA?.Id, name = lightCreateRes.Result.STARNETDNA?.Name } : null);
+                                            }
+                                            else
+                                                await createPredicate(scriptedOpts, null, false, false, providerType);
+                                        }
+                                        else
+                                            CLIEngine.ShowMessage("Coming Soon...");
+                                    }
+                                    else if (createPredicate != null)
+                                        await createPredicate(null, null, true, true, providerType);
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -1150,7 +1804,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "mint":
                         {
                             if (mintPredicate != null)
-                                await mintPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetMintRequestJsonPath(inputArgs, out string mintJson, out string mintErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            mintErr ?? "Invalid mint arguments.",
+                                            "Example: nft mint /path/to/MintWeb4NFTRequest.json");
+                                        break;
+                                    }
+
+                                    if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        OASISResult<IWeb4NFT> mintRes = await STARCLI.NFTs.MintNFTAsync(mintJson);
+                                        EmitNiJsonForOasisResult(mintRes, "nft mint",
+                                            mintRes.Result != null ? new { web4NftId = mintRes.Result.Id.ToString() } : null);
+                                    }
+                                    else if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        OASISResult<IWeb4GeoSpatialNFT> mintGeo = await STARCLI.GeoNFTs.MintGeoNFTAsync(mintJson);
+                                        EmitNiJsonForOasisResult(mintGeo, "geo-nft mint",
+                                            mintGeo.Result != null ? new { web4GeoNftId = mintGeo.Result.Id.ToString() } : null);
+                                    }
+                                    else
+                                        await mintPredicate(mintJson);
+                                }
+                                else
+                                    await mintPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
                         }
@@ -1158,12 +1840,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "remint":
                         {
-                            if (subCommand.ToUpper() == "NFT")
-                                await STARCLI.NFTs.RemintNFTAsync();
+                            bool isNftEntity = string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase);
+                            bool isGeoNftEntity = string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase);
+                            string remintTarget = null;
 
-                            else if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.RemintGeoNFTAsync();
+                            if (CLIEngine.NonInteractive)
+                            {
+                                if (!StarCliNftStructuredArgv.TryGetRemintTargetId(inputArgs, out remintTarget, out string remintErr))
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        remintErr ?? "remint requires a target id.",
+                                        "Example: nft remint <web4NftGuid>");
+                                    break;
+                                }
+                            }
 
+                            if (isNftEntity)
+                            {
+                                OASISResult<IWeb4NFT> remintRes = await STARCLI.NFTs.RemintNFTAsync(remintTarget);
+                                EmitNiJsonForOasisResult(remintRes, "nft remint",
+                                    remintRes.Result != null ? new { web4NftId = remintRes.Result.Id.ToString() } : null);
+                            }
+                            else if (isGeoNftEntity)
+                            {
+                                OASISResult<IWeb4GeoSpatialNFT> remintGeo = await STARCLI.GeoNFTs.RemintGeoNFTAsync(remintTarget);
+                                EmitNiJsonForOasisResult(remintGeo, "geo-nft remint",
+                                    remintGeo.Result != null ? new { web4GeoNftId = remintGeo.Result.Id.ToString() } : null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported.");
                         }
@@ -1171,17 +1874,60 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "place":
                         {
-                            if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.PublishAsync();
+                            if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetPlaceGeoJsonPath(inputArgs, out string placeJson, out string placeErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            placeErr ?? "Invalid place arguments.",
+                                            "Example: geo-nft place /path/to/PlaceWeb4GeoSpatialNFTRequest.json");
+                                        break;
+                                    }
+
+                                    OASISResult<IWeb4GeoSpatialNFT> placeRes = await STARCLI.GeoNFTs.PlaceGeoNFTFromJsonFileAsync(placeJson);
+                                    EmitNiJsonForOasisResult(placeRes, "geo-nft place",
+                                        placeRes.Result != null ? new { web4GeoNftId = placeRes.Result.Id.ToString() } : null);
+                                }
+                                else
+                                    await STARCLI.GeoNFTs.PlaceGeoNFTAsync();
+                            }
                             else
-                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft'.");
+                                CLIEngine.ShowWarningMessage("place with JSON is supported for 'geo-nft' (WEB4).");
                         }
                         break;
 
                     case "burn":
                         {
                             if (burnPredicate != null)
-                                await burnPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetBurnRequestJsonPath(inputArgs, out string burnJson, out string burnErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            burnErr ?? "Invalid burn arguments.",
+                                            "Example: nft burn /path/to/BurnWeb3NFTRequest.json");
+                                        break;
+                                    }
+
+                                    if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        OASISResult<IWeb4NFT> burnRes = await STARCLI.NFTs.BurnNFTAsync(burnJson);
+                                        EmitNiJsonForOasisResult(burnRes, "nft burn", null);
+                                    }
+                                    else if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        OASISResult<IWeb4GeoSpatialNFT> burnGeo = await STARCLI.GeoNFTs.BurnGeoNFTAsync(burnJson);
+                                        EmitNiJsonForOasisResult(burnGeo, "geo-nft burn", null);
+                                    }
+                                    else
+                                        await burnPredicate(burnJson);
+                                }
+                                else
+                                    await burnPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1190,7 +1936,66 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "import":
                         {
                             if (importPredicate != null)
-                                await importPredicate(web3);
+                            {
+                                bool niWeb4NftImport = CLIEngine.NonInteractive
+                                    && (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase));
+
+                                if (niWeb4NftImport)
+                                {
+                                    if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (!StarCliNftStructuredArgv.TryResolveNftNonInteractiveImport(inputArgs, out string nftImpPath, out StarCliNftStructuredArgv.NftNonInteractiveImportKind nftImpKind, out string nftImpErr))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                nftImpErr ?? "Invalid import arguments.",
+                                                "Example: nft import /path/to/file.json  (JSON shape selects WEB3 mint vs token vs WEB4 file). Legacy: nft import web3-mint <file> | nft import web3-token <file>.");
+                                            break;
+                                        }
+
+                                        switch (nftImpKind)
+                                        {
+                                            case StarCliNftStructuredArgv.NftNonInteractiveImportKind.Web3MintFromJson:
+                                                {
+                                                    OASISResult<IWeb4NFT> w3m = await STARCLI.NFTs.ImportNFTWeb3MintFromJsonFileAsync(nftImpPath);
+                                                    EmitNiJsonForOasisResult(w3m, "nft import",
+                                                        w3m.Result != null ? new { web4NftId = w3m.Result.Id.ToString() } : null);
+                                                }
+                                                break;
+                                            case StarCliNftStructuredArgv.NftNonInteractiveImportKind.Web3TokenFromJson:
+                                                {
+                                                    OASISResult<IWeb4NFT> w3t = await STARCLI.NFTs.ImportNFTWeb3TokenFromJsonFileAsync(nftImpPath);
+                                                    EmitNiJsonForOasisResult(w3t, "nft import",
+                                                        w3t.Result != null ? new { web4NftId = w3t.Result.Id.ToString() } : null);
+                                                }
+                                                break;
+                                            default:
+                                                {
+                                                    OASISResult<IWeb4NFT> impNft = await STARCLI.NFTs.ImportNFTAsync(nftImpPath);
+                                                    EmitNiJsonForOasisResult(impNft, "nft import",
+                                                        impNft.Result != null ? new { web4NftId = impNft.Result.Id.ToString() } : null);
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    else if (string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (!StarCliNftStructuredArgv.TryGetImportPath(inputArgs, out string importPath, out string importErr))
+                                        {
+                                            StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                                importErr ?? "Invalid import arguments.",
+                                                "Example: geo-nft import /path/to/file");
+                                            break;
+                                        }
+
+                                        OASISResult<IWeb4GeoSpatialNFT> impGeo = await STARCLI.GeoNFTs.ImportGeoNFTAsync(importPath);
+                                        EmitNiJsonForOasisResult(impGeo, "geo-nft import",
+                                            impGeo.Result != null ? new { web4GeoNftId = impGeo.Result.Id.ToString() } : null);
+                                    }
+                                }
+                                else
+                                    await importPredicate(web3);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1199,7 +2004,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "export":
                         {
                             if (exportPredicate != null)
-                                await exportPredicate(null);
+                            {
+                                bool niWeb4NftExport = CLIEngine.NonInteractive
+                                    && (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase)
+                                        || string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase));
+
+                                if (niWeb4NftExport)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetExportDest(inputArgs, out string exId, out string exPath, out string exErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            exErr ?? "Invalid export arguments.",
+                                            "Example: nft export <idOrGuid> /dest/path  |  geo-nft export <idOrGuid> /dest/path");
+                                        break;
+                                    }
+
+                                    if (string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        OASISResult<IWeb4NFT> exNft = await STARCLI.NFTs.ExportNFTNonInteractiveAsync(exId, exPath, providerType);
+                                        EmitNiJsonForOasisResult(exNft, "nft export",
+                                            exNft.Result != null ? new { web4NftId = exNft.Result.Id.ToString(), destinationPath = exPath } : null);
+                                    }
+                                    else
+                                    {
+                                        OASISResult<IWeb4GeoSpatialNFT> exGeo = await STARCLI.GeoNFTs.ExportGeoNFTNonInteractiveAsync(exId, exPath, providerType);
+                                        EmitNiJsonForOasisResult(exGeo, "geo-nft export",
+                                            exGeo.Result != null ? new { web4GeoNftId = exGeo.Result.Id.ToString(), destinationPath = exPath } : null);
+                                    }
+                                }
+                                else
+                                    await exportPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1208,7 +2043,37 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "clone":
                         {
                             if (clonePredicate != null)
-                                await clonePredicate(null);
+                            {
+                                object cloneArg = null;
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetFirstTokenAfterVerb(inputArgs, "clone", out string cloneSourceId, out string cloneErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            cloneErr ?? "clone requires a source id or name.",
+                                            $"Example: {subCommand} clone <sourceIdOrName>");
+                                        break;
+                                    }
+
+                                    cloneArg = cloneSourceId;
+                                }
+
+                                OASISResult<T> cloneRes = await clonePredicate(cloneArg);
+                                if (CLIEngine.JsonOutput)
+                                {
+                                    object cloneSuccessData = null;
+                                    if (cloneRes != null && !cloneRes.IsError && cloneRes.Result != null)
+                                    {
+                                        cloneSuccessData = new
+                                        {
+                                            id = cloneRes.Result.STARNETDNA?.Id,
+                                            name = cloneRes.Result.STARNETDNA?.Name
+                                        };
+                                    }
+
+                                    EmitNiJsonForOasisResult(cloneRes, $"{subCommand} clone", cloneSuccessData);
+                                }
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
                         }
@@ -1217,9 +2082,91 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     case "convert":
                         {
                             if (convertPredicate != null)
-                                await convertPredicate(null);
+                            {
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    if (!StarCliNftStructuredArgv.TryGetFirstTokenAfterVerb(inputArgs, "convert", out string convertSourceId, out string convertErr))
+                                    {
+                                        StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                            convertErr ?? "convert requires a source id or name.",
+                                            $"Example: {subCommand} convert <sourceIdOrName>");
+                                        break;
+                                    }
+
+                                    bool isNftConvert = string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase);
+                                    bool isGeoConvert = string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase);
+                                    if (isNftConvert)
+                                    {
+                                        OASISResult<IWeb4NFT> cv = await STARCLI.NFTs.ConvertNFTAsync(convertSourceId);
+                                        EmitNiJsonForOasisResult(cv, "nft convert", null);
+                                    }
+                                    else if (isGeoConvert)
+                                    {
+                                        OASISResult<IWeb4GeoSpatialNFT> cvGeo = await STARCLI.GeoNFTs.ConvertGeoNFTAsync(convertSourceId);
+                                        EmitNiJsonForOasisResult(cvGeo, "geo-nft convert", null);
+                                    }
+                                    else
+                                        await convertPredicate(convertSourceId);
+                                }
+                                else
+                                    await convertPredicate(null);
+                            }
                             else
                                 CLIEngine.ShowErrorMessage("Command not supported or comming soon...");
+                        }
+                        break;
+
+                    case "send":
+                        {
+                            bool isNftSend = string.Equals(subCommand, "nft", StringComparison.OrdinalIgnoreCase);
+                            bool isGeoNftSend = string.Equals(subCommand, "geo-nft", StringComparison.OrdinalIgnoreCase);
+
+                            if (CLIEngine.NonInteractive)
+                            {
+                                if (!StarCliNftStructuredArgv.TryGetSendArgs(inputArgs, out string sFrom, out string sTo, out string sTok, out string sMemo, out string sendErr))
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        sendErr ?? "Invalid send arguments.",
+                                        "Example: nft send <fromWallet> <toWallet> <tokenAddress> <memo>");
+                                    break;
+                                }
+
+                                if (isNftSend)
+                                {
+                                    OASISResult<ISendWeb4NFTResponse> sendNft = await STARCLI.NFTs.SendNFTAsync(sFrom, sTo, sTok, sMemo);
+                                    EmitNiJsonForOasisResult(sendNft, "nft send",
+                                        sendNft.Result != null
+                                            ? new
+                                            {
+                                                bridgeOrderId = sendNft.Result.BridgeOrderId,
+                                                sendTransactionResult = sendNft.Result.SendTransactionResult
+                                            }
+                                            : null);
+                                }
+                                else if (isGeoNftSend)
+                                {
+                                    OASISResult<ISendWeb4NFTResponse> sendGeo = await STARCLI.GeoNFTs.SendGeoNFTAsync(sFrom, sTo, sTok, sMemo);
+                                    EmitNiJsonForOasisResult(sendGeo, "geo-nft send",
+                                        sendGeo.Result != null
+                                            ? new
+                                            {
+                                                bridgeOrderId = sendGeo.Result.BridgeOrderId,
+                                                sendTransactionResult = sendGeo.Result.SendTransactionResult
+                                            }
+                                            : null);
+                                }
+                                else
+                                    CLIEngine.ShowErrorMessage("Command not supported.");
+                            }
+                            else
+                            {
+                                if (isNftSend)
+                                    await STARCLI.NFTs.SendNFTAsync();
+                                else if (isGeoNftSend)
+                                    await STARCLI.GeoNFTs.SendGeoNFTAsync();
+                                else
+                                    CLIEngine.ShowErrorMessage("Command not supported.");
+                            }
                         }
                         break;
 
@@ -1506,19 +2453,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
-                    case "send":
-                        {
-                            if (subCommand.ToUpper() == "NFT")
-                                await STARCLI.NFTs.SendNFTAsync();
-
-                            else if (subCommand.ToUpper() == "GEONFT")
-                                await STARCLI.GeoNFTs.SendGeoNFTAsync();
-                            
-                            else
-                                CLIEngine.ShowWarningMessage("This sub-command is only supported for the command 'geonft' or 'nft'.");
-                        }
-                        break;
-
                     case "add":
                         {
                             if (addWeb4NFTToCollectionPredicate != null)
@@ -1635,25 +2569,53 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "search":
                         {
+                            string searchCriteria;
+                            int searchMax = 0;
+                            if (StarCliStarnetSearchArgv.TryParse(inputArgs, out string parsedCriteria, out int parsedMax, out _))
+                            {
+                                searchCriteria = parsedCriteria;
+                                searchMax = parsedMax;
+                            }
+                            else
+                            {
+                                searchCriteria = !string.IsNullOrWhiteSpace(subCommandParam3) ? subCommandParam3 : subCommandParam2;
+                                if (CLIEngine.NonInteractive)
+                                {
+                                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                        "search requires explicit criteria in non-interactive mode.",
+                                        $"Example: {subCommand} search <criteria> [<maxResults>]  |  Global: --search-limit N");
+                                    break;
+                                }
+                            }
+
+                            if (CLIEngine.NonInteractive && string.IsNullOrWhiteSpace(searchCriteria))
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    "search requires a criteria token (name fragment or id). Example: oapp search MyOAPP 25",
+                                    $"Entity: {subCommand}. Optional trailing integer limits rows (or use --search-limit N).");
+                                break;
+                            }
+
+                            int effectiveSearchMax = searchMax > 0 ? searchMax : CLIEngine.MaxHolonSearchResults;
+
                             if (web3)
                             {
                                 if (searchWeb3Predicate != null)
-                                    await searchWeb3Predicate(subCommandParam3, showForAllAvatars, providerType);
+                                    await searchWeb3Predicate(searchCriteria, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else if (web4)
                             {
-                                if (showWeb4Predicate != null)
-                                    await searchWeb4Predicate(subCommandParam3, showForAllAvatars, providerType);
+                                if (searchWeb4Predicate != null)
+                                    await searchWeb4Predicate(searchCriteria, showForAllAvatars, providerType);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
                             else
                             {
                                 if (searchPredicate != null)
-                                    //TODO: add support to pass parentId in later...
-                                    await searchPredicate(subCommandParam3, default, showAllVersions, showForAllAvatars, providerType);
+                                    await searchPredicate(searchCriteria, default, showAllVersions, showForAllAvatars, providerType, effectiveSearchMax);
                                 else
                                     CLIEngine.ShowMessage("Coming Soon...");
                             }
@@ -1667,6 +2629,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
             else
             {
+                if (CLIEngine.NonInteractive)
+                {
+                    StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                        $"Non-interactive mode requires an explicit subcommand and arguments for '{subCommand}'.",
+                        "Examples: oapp list | runtime show <idOrName> | holon list. See Docs/Devs/STAR_CLI_NonInteractive.md.");
+                    return;
+                }
+
                 if (string.IsNullOrEmpty(subCommandPlural))
                     subCommandPlural = $"{subCommand}'s";
 
@@ -1831,10 +2801,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     case "beamin":
                         {
-                            if (STAR.BeamedInAvatar == null)
-                                await STARCLI.Avatars.BeamInAvatar();
-                            else
+                            if (STAR.BeamedInAvatar != null)
+                            {
                                 CLIEngine.ShowErrorMessage($"Avatar {STAR.BeamedInAvatar.Username} Already Beamed In. Please Beam Out First!");
+                                break;
+                            }
+
+                            if (CLIEngine.NonInteractive && inputArgs.Length >= 4)
+                            {
+                                string verify = Environment.GetEnvironmentVariable("STAR_CLI_EMAIL_VERIFY_TOKEN");
+                                await STARCLI.Avatars.BeamInWithCredentialsAsync(inputArgs[2], inputArgs[3], verify);
+                            }
+                            else if (CLIEngine.NonInteractive)
+                            {
+                                StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
+                                    "Non-interactive beam-in requires: avatar beamin <username> <password>",
+                                    "Or set STAR_CLI_USERNAME / STAR_CLI_PASSWORD before boot (see STAR_CLI_NonInteractive.md).");
+                            }
+                            else
+                                await STARCLI.Avatars.BeamInAvatar();
                         }
                         break;
 
@@ -2265,6 +3250,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
+        private static bool IsReservedWalletImportKind(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                return true;
+            if (string.Equals(token, "all", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (string.Equals(token, "privatekey", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(token, "publickey", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(token, "secretphase", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(token, "json", StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
+        }
+
         private static async Task ShowWalletSubCommandAsync(string[] inputArgs, ProviderType providerType = ProviderType.Default)
         {
             bool? showOnlyDefault = null;
@@ -2329,6 +3328,28 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "import":
                         {
+                            if (inputArgs.Length >= 3 && !string.IsNullOrWhiteSpace(inputArgs[2]))
+                            {
+                                string importTok = inputArgs[2].Trim();
+                                if (string.Equals(importTok, "all", StringComparison.OrdinalIgnoreCase) && inputArgs.Length >= 4)
+                                {
+                                    string bulkJson = inputArgs[3]?.Trim();
+                                    if (!string.IsNullOrEmpty(bulkJson) && File.Exists(bulkJson)
+                                        && string.Equals(Path.GetExtension(bulkJson), ".json", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        await STARCLI.Wallets.ImportAllWalletsUsingJSONFileAsync(bulkJson, providerType);
+                                        break;
+                                    }
+                                }
+                                else if (!IsReservedWalletImportKind(importTok)
+                                         && File.Exists(importTok)
+                                         && string.Equals(Path.GetExtension(importTok), ".json", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    await STARCLI.Wallets.ImportWalletUsingJSONFileAsync(importTok, providerType);
+                                    break;
+                                }
+                            }
+
                             if (inputArgs.Length > 2 && !string.IsNullOrEmpty(inputArgs[2]))
                             {
                                 switch (inputArgs[2])
@@ -2423,7 +3444,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    import privateKey  {privatekey}                                     Imports a wallet using the privateKey.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import publicKey   {publickey}                                      Imports a wallet using the publicKey.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    import secretPhase {secretPhase}                                    Imports a wallet using the secretPhase.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    import json        [all] {jsonFile}                                 Imports all/a wallet(s) using the jsonFile.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import             {file.json}                                      Imports one wallet from export JSON (shorthand for import json).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import all         {jsonFile}                                       Imports all wallets from export-all JSON.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    import json        [all] {jsonFile}                                 Same as import / import all (legacy).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    export             [all] {walletId}                                 Exports all/a wallet(s) to a json file.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    list               [default] [showprivatekeys] [showsecretwords]    Lists the wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    balance                                                             Gets the total balance for all wallets for the currently beamed in avatar.", ConsoleColor.Green, false);
@@ -3060,10 +4083,23 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task ShowConfigSubCommandAsync(string[] inputArgs)
         {
+            Console.WriteLine("");
+            if (inputArgs.Length > 1 && inputArgs[1].ToLower() == "dna")
+            {
+                ShowDNAPaths();
+                Console.WriteLine("");
+                return;
+            }
+            ShowDNAPaths();
+            Console.WriteLine("");
             if (inputArgs.Length > 1)
             {
                 switch (inputArgs[1].ToLower())
                 {
+                    case "dna":
+                        // Handled above
+                        break;
+
                     case "cosmicdetailedoutput":
                         { 
                             if (inputArgs.Length > 2)
@@ -3206,6 +4242,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 Console.WriteLine("");
                 CLIEngine.ShowMessage($"CONFIG SUBCOMMANDS:", ConsoleColor.Green);
                 Console.WriteLine("");
+                CLIEngine.ShowMessage("    dna                       Shows paths to DNATemplates, OASIS DNA and STAR DNA.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    cosmicdetailedoutput     [enable/disable/status] Enables/disables COSMIC Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    starstatusdetailedoutput [enable/disable/status] Enables/disables STAR ODK Detailed Output.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    logproviderswitching     [enable/disable/status] Enables/disables OASIS Hyperdrive Provider Switching Logging.", ConsoleColor.Green, false);
@@ -3547,6 +4584,14 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static void ShowHeader()
         {
+            if (CLIEngine.Quiet)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"STAR ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} (non-interactive)");
+                Console.ResetColor();
+                return;
+            }
+
             // Console.SetWindowSize(300, Console.WindowHeight);
             Console.WriteLine("");
             Console.ForegroundColor = ConsoleColor.Green;
@@ -3654,13 +4699,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\n USAGE:");
             Console.WriteLine("    star {SUBCOMMAND}");
+            Console.WriteLine("    star [--non-interactive|-n] [--json] [--quiet|-q] [--yes|-y] [--username U] [--password P] {SUBCOMMAND} ...");
+            Console.WriteLine("         (automation flags may appear anywhere; see Docs/Devs/STAR_CLI_NonInteractive.md)");
             Console.WriteLine("");
             Console.WriteLine(" FLAGS:");
+            DisplaySummary("--non-interactive (-n)", "Script/CI: no stdin prompts; omit for interactive wizards.");
+            DisplaySummary("--json", "Machine-readable JSON on stdout where supported; quieter startup.");
             DisplaySummary("ignite", "Ignite STAR & Boot The OASIS");
             DisplaySummary("extinguish", "Extinguish STAR & Shutdown The OASIS");
             DisplaySummary("help [full]", "Show this help page. If the [full] flag is omitted it will show only the top level sub-commands, if [full] is included it will show every option for each sub-command.");
             DisplaySummary("version", "Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers...");
             DisplaySummary("status", "Show the status of STAR ODK.");
+            DisplaySummary("dna", "Show paths to DNATemplates, OASIS DNA and STAR DNA.");
             DisplaySummary("exit", "Exit the STAR CLI.");
 
             //Console.WriteLine("    ignite           Ignite STAR & Boot The OASIS");
@@ -3681,6 +4731,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("", "{parentCelestialBodyId}", "");
                 DisplayCommand("light", "", "Displays more detail on how to use this command and optionally launches the Light Wizard.");
                 DisplayCommand("light wiz", "", "Start the Light Wizard.");
+                DisplayCommand("light", "{LightRequest.json}", "Non-interactive / scripted: full Light from StarCliLightRequest JSON. Same as: oapp light <file> / oapp create light <file>. Alias: light json <file>.");
                 DisplayCommand("light transmute", "{hAppDNA} {geneisFolder}", "Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
                 DisplayCommand("bang", "", "Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
                 DisplayCommand("wiz", "", "Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
@@ -3731,13 +4782,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("wallet import privateKey", "{privateKey}", "Imports a wallet using the privateKey.");
                 DisplayCommand("wallet import publicKey", "{publicKey}", "Imports a wallet using the publicKey.");
                 DisplayCommand("wallet import secretPhase", "{secretPhase}", "Imports a wallet using the secretPhase.");
-                DisplayCommand("wallet import json", "{jsonFile}", "Imports a wallet using the jsonFile.");
+                DisplayCommand("wallet import", "{file.json}", "Import one wallet from JSON (export file). Alias: wallet import json <file>.");
+                DisplayCommand("wallet import all", "{jsonFile}", "Import all wallets from JSON. Alias: wallet import json all <file>.");
+                DisplayCommand("wallet import json", "{jsonFile}", "Legacy alias for wallet import <file.json>.");
                 DisplayCommand("wallet add", "", "Adds a wallet for the currently beamed in avatar.");
                 DisplayCommand("wallet list", "", "Lists the wallets for the currently beamed in avatar.");
                 DisplayCommand("wallet balance", "{walletId}", "Gets the balance for the given wallet for the currently beamed in avatar.");
                 DisplayCommand("wallet balance", "", "Gets the total balance for all wallets for the currently beamed in avatar.");
                 DisplayCommand("search", "", "Searches The OASIS for the given search parameters.");
                 DisplaySTARNETHolonCommands("oapp", createDesc: "Shortcut to the light sub-command.", publishDesc: "Shortcut to the seed sub-command.", unpublishDesc: "Shortcut to the un-seed sub-command.", republishDesc: "Shortcut to the re-seed sub-command.");
+                DisplayCommand("oapp light", "{LightRequest.json}", "Non-interactive / scripted: full Light from StarCliLightRequest (alias: oapp create light <file>).");
                 DisplaySTARNETHolonCommands("oapp template");
                 DisplaySTARNETHolonCommands("runtime");
                 DisplaySTARNETHolonCommands("lib");
@@ -3860,6 +4914,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
 
                 //Config Commands
+                DisplayCommand("config dna", "", "Shows paths to DNATemplates, OASIS DNA and STAR DNA.");
                 DisplayCommand("config cosmicdetailedoutput", "{enable/disable/status}", "Enables/disables COSMIC Detailed Output.");
                 DisplayCommand("config starstatusdetailedoutput", "{enable/disable/status}", "Enables/disables STAR ODK Detailed Output.");
 
@@ -4001,6 +5056,40 @@ namespace NextGenSoftware.OASIS.STAR.CLI
         private static void STAR_OnStarIgnited(object sender, System.EventArgs e)
         {
             //CLIEngine.ShowSuccessMessage("STAR IGNITED");
+            Console.WriteLine("");
+            ShowDNAPaths();
+        }
+
+        /// <summary>
+        /// Resolves a path to a full path (relative paths are resolved against CurrentDirectory).
+        /// </summary>
+        private static string ResolveFullPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path)) return path ?? "";
+            return Path.IsPathRooted(path)
+                ? Path.GetFullPath(path)
+                : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, path.Replace('\\', Path.DirectorySeparatorChar)));
+        }
+
+        /// <summary>
+        /// Shows the paths STAR is using for DNATemplates, OASIS DNA and STAR DNA (used at boot and by status/config/dna commands).
+        /// </summary>
+        private static void ShowDNAPaths()
+        {
+            string oasisPath = ResolveFullPath(STAR.OASISDNAPath);
+            string starPath = ResolveFullPath(STAR.STARDNAPath);
+            CLIEngine.ShowMessage("DNA paths in use:", ConsoleColor.Cyan, false);
+            CLIEngine.ShowMessage($"  OASIS DNA:   {oasisPath}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  STAR DNA:    {starPath}", ConsoleColor.White, false);
+            if (STAR.IsStarIgnited && STAR.STARDNA != null)
+            {
+                string dnatemplatesPath = string.IsNullOrEmpty(STAR.STARDNA.STARBasePath)
+                    ? "(N/A)"
+                    : Path.GetFullPath(Path.Combine(STAR.STARDNA.STARBasePath, "DNATemplates"));
+                CLIEngine.ShowMessage($"  DNATemplates: {dnatemplatesPath}", ConsoleColor.White, false);
+            }
+            else
+                CLIEngine.ShowMessage("  DNATemplates: (N/A — STAR not ignited)", ConsoleColor.Gray, false);
         }
 
         private static void STAR_OnStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
