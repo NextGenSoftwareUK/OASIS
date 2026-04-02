@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Text.Json;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
@@ -9,6 +11,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class Avatars
     {
+        private static readonly JsonSerializerOptions AvatarInventoryJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
         public Avatars(Guid avatarId)
         {
 
@@ -800,6 +808,102 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading Avatar's.");
 
             return avatarsResult;
+        }
+
+        /// <summary>
+        /// Lists inventory items for the beamed-in avatar via <c>STAR.OASISAPI.Avatars.GetAvatarInventoryAsync</c> (same data as WEB4 GET /api/avatar/inventory).
+        /// </summary>
+        public async Task ShowAvatarInventoryAsync(ProviderType providerType = ProviderType.Default)
+        {
+            if (STAR.BeamedInAvatar == null)
+            {
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 2;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 2, error = "No Avatar Is Beamed In!", detail = (string?)null }, AvatarInventoryJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                return;
+            }
+
+            if (!CLIEngine.JsonOutput)
+                CLIEngine.ShowWorkingMessage("Loading avatar inventory...");
+
+            CLIEngine.SupressConsoleLogging = true;
+            OASISResult<IEnumerable<IInventoryItem>> inventoryResult =
+                await STAR.OASISAPI.Avatars.GetAvatarInventoryAsync(STAR.BeamedInAvatar.Id, providerType);
+            CLIEngine.SupressConsoleLogging = false;
+
+            if (inventoryResult == null || inventoryResult.IsError)
+            {
+                string msg = inventoryResult?.Message ?? "Failed to load avatar inventory.";
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 1;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 1, error = msg, detail = (string?)null }, AvatarInventoryJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage($"Error loading avatar inventory: {msg}");
+                return;
+            }
+
+            List<IInventoryItem> items = inventoryResult.Result?.ToList() ?? new List<IInventoryItem>();
+
+            if (CLIEngine.JsonOutput)
+            {
+                var payload = items.Select(i => new
+                {
+                    id = i.Id,
+                    name = i.Name,
+                    description = i.Description,
+                    quantity = i.Quantity,
+                    gameSource = i.GameSource,
+                    itemType = i.ItemType,
+                    nftId = i.NftId
+                }).ToList();
+
+                Console.Out.WriteLine(JsonSerializer.Serialize(new
+                {
+                    success = true,
+                    message = inventoryResult.Message,
+                    data = new { count = payload.Count, items = payload }
+                }, AvatarInventoryJsonOptions));
+                return;
+            }
+
+            Console.WriteLine("");
+            CLIEngine.ShowMessage(
+                $"{items.Count} inventory item(s) for {STAR.BeamedInAvatar.Username}:",
+                ConsoleColor.Green);
+
+            if (items.Count == 0)
+            {
+                CLIEngine.ShowWarningMessage("Inventory is empty.");
+                return;
+            }
+
+            CLIEngine.ShowDivider();
+            foreach (IInventoryItem item in items)
+            {
+                int qty = item.Quantity > 0 ? item.Quantity : 1;
+                string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                CLIEngine.ShowMessage(
+                    $"  {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
+                    ConsoleColor.Green,
+                    false);
+                if (!string.IsNullOrWhiteSpace(item.Description))
+                    CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
+                if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                    CLIEngine.ShowMessage(
+                        $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                        ConsoleColor.Green,
+                        false);
+            }
+
+            CLIEngine.ShowDivider();
         }
     }
 }

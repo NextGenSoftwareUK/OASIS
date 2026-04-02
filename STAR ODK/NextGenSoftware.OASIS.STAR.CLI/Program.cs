@@ -2891,6 +2891,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         }
                         break;
 
+                    case "inventory":
+                        {
+                            await STARCLI.Avatars.ShowAvatarInventoryAsync();
+                        }
+                        break;
+
                     case "forgotpassword":
                         {
                             await STARCLI.Avatars.ForgotPasswordAsync();
@@ -2921,6 +2927,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    list          [detailed]     Lists all avatars. If [detailed] is included it will list detailed stats also.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    search                       Search avatars that match the given seach parameters.", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    inventory                    List inventory items for the currently beamed-in avatar (WEB4 avatar API).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    forgotpassword               Send a Forgot Password email to your email account containing a Reset Token.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    resetpassword                Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
@@ -4762,6 +4769,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("avatar edit", "", "Edit the currently beamed in avatar.");
                 DisplayCommand("avatar list", "[detailed]", "Lists all avatars. If [detailed] is included it will list detailed stats also.");
                 DisplayCommand("avatar search", "", "Search avatars that match the given search parameters (public fields only such as level, karma, username & any fields the player has set to public).");
+                DisplayCommand("avatar inventory", "", "List inventory items for the currently beamed-in avatar (WEB4 avatar API via OASISAPI).");
                 DisplayCommand("avatar forgotpassword", "", "Send a Forgot Password email to your email account containing a Reset Token.");
                 DisplayCommand("avatar resetpassword", "", "Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
                 DisplayCommand("karma list", "", "Display the karma thresholds.");

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Text.Json;
 using System.Drawing.Text;
 using System.Linq;
 using ADRaffy.ENSNormalize;
@@ -34,6 +36,34 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         where T4 : ISTARNETDNA, new()
     {
         protected const int DEFAULT_FIELD_LENGTH = 35;
+
+        /// <summary>STARNET DNA category can deserialize as <see cref="JsonElement"/> or other CLR types; avoid printing <c>ValueKind=...</c> to the user.</summary>
+        private static string FormatStarnetDnaCategoryForDisplay(object? raw)
+        {
+            if (raw == null) return "None";
+            if (raw is JsonElement je)
+            {
+                switch (je.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return je.GetString() ?? "None";
+                    case JsonValueKind.Number:
+                        if (je.TryGetInt32(out var i32))
+                            return i32.ToString(CultureInfo.InvariantCulture);
+                        if (je.TryGetInt64(out var i64))
+                            return i64.ToString(CultureInfo.InvariantCulture);
+                        return je.GetRawText();
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return "None";
+                    default:
+                        return je.GetRawText();
+                }
+            }
+
+            var s = raw.ToString();
+            return string.IsNullOrEmpty(s) ? "None" : s;
+        }
 
         public virtual ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager { get; set; }
         public virtual bool IsInit { get; set; }
@@ -2295,7 +2325,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage(string.Concat($"Name:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Name) ? starHolon.STARNETDNA.Name : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Description:".PadRight(displayFieldLength), !string.IsNullOrEmpty(starHolon.STARNETDNA.Description) ? starHolon.STARNETDNA.Description : "None"), false);
             CLIEngine.ShowMessage(string.Concat($"Type:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETHolonType), false);
-            CLIEngine.ShowMessage(string.Concat($"Category:".PadRight(displayFieldLength), starHolon.STARNETDNA.STARNETCategory), false);
+            CLIEngine.ShowMessage(string.Concat($"Category:".PadRight(displayFieldLength), FormatStarnetDnaCategoryForDisplay(starHolon.STARNETDNA.STARNETCategory)), false);
             
             // Display Language (STARNETSubCategory) for libraries
             if (starHolon.STARNETDNA.STARNETSubCategory != null)
