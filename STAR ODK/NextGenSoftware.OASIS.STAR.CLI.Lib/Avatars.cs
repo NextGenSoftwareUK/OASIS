@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using NextGenSoftware.Utilities;
@@ -813,7 +814,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         /// <summary>
         /// Lists inventory items for the beamed-in avatar via <c>STAR.OASISAPI.Avatars.GetAvatarInventoryAsync</c> (same data as WEB4 GET /api/avatar/inventory).
         /// </summary>
-        public async Task ShowAvatarInventoryAsync(ProviderType providerType = ProviderType.Default)
+        public async Task ShowAvatarInventoryAsync(bool showDetailedInfo = false, ProviderType providerType = ProviderType.Default)
         {
             if (STAR.BeamedInAvatar == null)
             {
@@ -854,22 +855,90 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (CLIEngine.JsonOutput)
             {
-                var payload = items.Select(i => new
+                object BuildInventoryItemJson(IInventoryItem i)
                 {
-                    id = i.Id,
-                    name = i.Name,
-                    description = i.Description,
-                    quantity = i.Quantity,
-                    gameSource = i.GameSource,
-                    itemType = i.ItemType,
-                    nftId = i.NftId
-                }).ToList();
+                    if (!showDetailedInfo)
+                    {
+                        return new
+                        {
+                            id = i.Id,
+                            name = i.Name,
+                            description = i.Description,
+                            quantity = i.Quantity,
+                            gameSource = i.GameSource,
+                            itemType = i.ItemType,
+                            nftId = i.NftId
+                        };
+                    }
+
+                    var dna = i.STARNETDNA;
+                    return new
+                    {
+                        id = i.Id,
+                        name = i.Name,
+                        description = i.Description,
+                        quantity = i.Quantity,
+                        gameSource = i.GameSource,
+                        itemType = i.ItemType,
+                        nftId = i.NftId,
+                        starnetDNA = dna == null ? null : new
+                        {
+                            id = dna.Id,
+                            name = dna.Name,
+                            description = dna.Description,
+                            starnetHolonType = dna.STARNETHolonType,
+                            starnetCategory = FormatStarnetDnaJsonValue(dna.STARNETCategory),
+                            starnetSubCategory = FormatStarnetDnaJsonValue(dna.STARNETSubCategory),
+                            version = dna.Version,
+                            versionSequence = dna.VersionSequence,
+                            createdOn = dna.CreatedOn,
+                            createdByAvatarUsername = dna.CreatedByAvatarUsername,
+                            publishedOn = dna.PublishedOn,
+                            publishedProviderType = dna.PublishedProviderType,
+                            launchTarget = dna.LaunchTarget,
+                        }
+                    };
+                }
+
+                var jsonGroupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
+                var jsonGrouped = items
+                    .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var groupsPayload = new List<object>();
+                foreach (string tab in jsonGroupsOrdered)
+                {
+                    if (!jsonGrouped.TryGetValue(tab, out List<IInventoryItem>? groupItems) || groupItems == null || groupItems.Count == 0)
+                        continue;
+
+                    groupsPayload.Add(new
+                    {
+                        type = tab,
+                        count = groupItems.Count,
+                        items = groupItems.Select(BuildInventoryItemJson).ToList()
+                    });
+                }
+
+                foreach (var extraTab in jsonGrouped.Keys.Except(jsonGroupsOrdered).OrderBy(x => x))
+                {
+                    List<IInventoryItem>? groupItems = jsonGrouped[extraTab];
+                    if (groupItems == null || groupItems.Count == 0) continue;
+
+                    groupsPayload.Add(new
+                    {
+                        type = extraTab,
+                        count = groupItems.Count,
+                        items = groupItems.Select(BuildInventoryItemJson).ToList()
+                    });
+                }
+
+                var payload = items.Select(BuildInventoryItemJson).ToList();
 
                 Console.Out.WriteLine(JsonSerializer.Serialize(new
                 {
                     success = true,
                     message = inventoryResult.Message,
-                    data = new { count = payload.Count, items = payload }
+                    data = new { count = items.Count, items = payload, groups = groupsPayload }
                 }, AvatarInventoryJsonOptions));
                 return;
             }
@@ -885,25 +954,180 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 return;
             }
 
+            var groupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
+            var grouped = items
+                .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             CLIEngine.ShowDivider();
-            foreach (IInventoryItem item in items)
+            foreach (string tab in groupsOrdered)
             {
-                int qty = item.Quantity > 0 ? item.Quantity : 1;
-                string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
-                CLIEngine.ShowMessage(
-                    $"  {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
-                    ConsoleColor.Green,
-                    false);
-                if (!string.IsNullOrWhiteSpace(item.Description))
-                    CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
-                if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                if (!grouped.TryGetValue(tab, out List<IInventoryItem>? groupItems) || groupItems == null || groupItems.Count == 0)
+                    continue;
+
+                CLIEngine.ShowMessage($"  {tab}:", ConsoleColor.Yellow, false);
+                Console.WriteLine("");
+
+                foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
+                {
+                    int qty = item.Quantity > 0 ? item.Quantity : 1;
+                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
                     CLIEngine.ShowMessage(
-                        $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                        $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
                         ConsoleColor.Green,
                         false);
+
+                    if (!string.IsNullOrWhiteSpace(item.Description))
+                        CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
+
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                        CLIEngine.ShowMessage(
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            ConsoleColor.Green,
+                            false);
+
+                    if (showDetailedInfo)
+                    {
+                        await STARCLI.InventoryItems.ShowAsync(
+                            item,
+                            showHeader: false,
+                            showFooter: false,
+                            showNumbers: false,
+                            number: 0,
+                            showDetailedInfo: true);
+                        CLIEngine.ShowDivider();
+                    }
+
+                    // Spacing between entries (matches the overall UX of other detailed lists).
+                    Console.WriteLine("");
+                }
+            }
+
+            foreach (var extraTab in grouped.Keys.Except(groupsOrdered).OrderBy(x => x))
+            {
+                List<IInventoryItem>? groupItems = grouped[extraTab];
+                if (groupItems == null || groupItems.Count == 0) continue;
+
+                CLIEngine.ShowMessage($"  {extraTab}:", ConsoleColor.Yellow, false);
+                Console.WriteLine("");
+
+                foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
+                {
+                    int qty = item.Quantity > 0 ? item.Quantity : 1;
+                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                    CLIEngine.ShowMessage(
+                        $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
+                        ConsoleColor.Green,
+                        false);
+
+                    if (!string.IsNullOrWhiteSpace(item.Description))
+                        CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
+
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                        CLIEngine.ShowMessage(
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            ConsoleColor.Green,
+                            false);
+
+                    if (showDetailedInfo)
+                    {
+                        await STARCLI.InventoryItems.ShowAsync(
+                            item,
+                            showHeader: false,
+                            showFooter: false,
+                            showNumbers: false,
+                            number: 0,
+                            showDetailedInfo: true);
+                        CLIEngine.ShowDivider();
+                    }
+
+                    // Spacing between entries (matches the overall UX of other detailed lists).
+                    Console.WriteLine("");
+                }
             }
 
             CLIEngine.ShowDivider();
+        }
+
+        private static string GetInventoryTabLabel(string? itemType)
+        {
+            if (string.IsNullOrWhiteSpace(itemType))
+                return "Other";
+
+            string lower = itemType.Trim().ToLowerInvariant();
+
+            // Match in priority order (e.g. KeyItem contains "item").
+            if (lower.Contains("key"))
+                return "Keys";
+            if (lower.Contains("weapon"))
+                return "Weapons";
+            if (lower.Contains("ammo"))
+                return "Ammo";
+            if (lower.Contains("armour") || lower.Contains("armor"))
+                return "Armor";
+            if (lower.Contains("monster"))
+                return "Monsters";
+            if (lower.Contains("powerup") || lower.Contains("power-up") || lower.Contains("health"))
+                return "Items";
+            if (lower.Contains("item"))
+                return "Items";
+
+            return "Other";
+        }
+
+        private static string FormatStarnetDnaJsonValue(object? raw)
+        {
+            if (raw == null)
+                return "None";
+
+            // Prevent serializing JsonElement as `{ "ValueKind": 3 }` in JSON output.
+            if (raw is JsonElement je)
+            {
+                switch (je.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return je.GetString() ?? "None";
+                    case JsonValueKind.Number:
+                        if (je.TryGetInt32(out var i32))
+                            return i32.ToString(CultureInfo.InvariantCulture);
+                        if (je.TryGetInt64(out var i64))
+                            return i64.ToString(CultureInfo.InvariantCulture);
+                        return je.GetRawText();
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return "None";
+                    default:
+                        return je.GetRawText();
+                }
+            }
+
+            // Some code paths end up storing a JsonElement-ish string like `{"ValueKind":3}`.
+            // Convert that into a plain number/string.
+            try
+            {
+                string s = raw.ToString();
+                if (string.IsNullOrWhiteSpace(s))
+                    return "None";
+
+                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal))
+                {
+                    using var doc = JsonDocument.Parse(s);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
+                    {
+                        if (vk.ValueKind == JsonValueKind.Number)
+                            return vk.GetRawText();
+                        if (vk.ValueKind == JsonValueKind.String)
+                            return vk.GetString() ?? "None";
+                    }
+                }
+
+                return s;
+            }
+            catch
+            {
+                return raw.ToString() ?? "None";
+            }
         }
     }
 }
