@@ -559,5 +559,41 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 [StarCliNonInteractiveCreateKeys.LightRequestJsonPath] = jsonPath
             };
+
+        /// <summary>Scans argv for <c>--objectives-json &lt;path&gt;</c> (scripted <c>quest create</c> / <c>quest update</c>).</summary>
+        public static bool TryParseOptionalQuestObjectivesJsonPath(string[] inputArgs, out string objectivesJsonPath)
+        {
+            objectivesJsonPath = null;
+            if (inputArgs == null)
+                return false;
+
+            for (int i = 0; i < inputArgs.Length - 1; i++)
+            {
+                if (string.Equals(inputArgs[i], "--objectives-json", StringComparison.OrdinalIgnoreCase))
+                {
+                    objectivesJsonPath = inputArgs[i + 1]?.Trim();
+                    return !string.IsNullOrWhiteSpace(objectivesJsonPath);
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>Non-interactive <c>quest update &lt;id&gt; --objectives-json &lt;path&gt;</c>: replaces authored objectives from JSON.</summary>
+        public static bool TryParseQuestUpdateArgv(string[] inputArgs, out QuestCliEditParams editParams)
+        {
+            editParams = null;
+            if (!TryParseOptionalQuestObjectivesJsonPath(inputArgs, out string path) || string.IsNullOrWhiteSpace(path))
+                return false;
+
+            editParams = new QuestCliEditParams { ObjectivesJsonPath = path };
+            return true;
+        }
+    }
+
+    /// <summary>Non-interactive <see cref="Quests.UpdateAsync"/> payload (e.g. <c>--objectives-json</c>).</summary>
+    public sealed class QuestCliEditParams
+    {
+        public string ObjectivesJsonPath { get; set; }
     }
 }

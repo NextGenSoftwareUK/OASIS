@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Console = System.Console;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Text;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
@@ -332,6 +333,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             bool exit = false;
             bool shellMode = _args != null && _args.Length > 0;
             bool shellModeCommandConsumed = false;
+            var commandHistory = new List<string>();
             do
             {
                 try
@@ -353,7 +355,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("");
                         CLIEngine.ShowMessage("STAR: ", false, true);
-                        string input = Console.ReadLine();
+                        int startLeft = Console.CursorLeft;
+                        int startTop = Console.CursorTop;
+                        int historyIndex = commandHistory.Count; // position after last item
+                        string input = ReadLineWithCommandHistory(commandHistory, ref historyIndex, startLeft, startTop);
+
+                        if (!string.IsNullOrWhiteSpace(input))
+                        {
+                            string trimmed = input.Trim();
+                            if (commandHistory.Count == 0 || !string.Equals(commandHistory[commandHistory.Count - 1], trimmed, StringComparison.Ordinal))
+                                commandHistory.Add(trimmed);
+                        }
 
                         if (!string.IsNullOrEmpty(input))
                             inputArgs = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -1327,6 +1339,87 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             Console.ForegroundColor = ConsoleColor.White;
         }
 
+        private static string ReadLineWithCommandHistory(List<string> commandHistory, ref int historyIndex, int startLeft, int startTop)
+        {
+            // Basic line reader with Up/Down arrow history. No left/right editing; typing/backspace always operate at the end.
+            var buffer = new StringBuilder();
+            int prevRenderLen = 0;
+            int maxLen = Math.Max(0, Console.BufferWidth - startLeft);
+
+            void Render()
+            {
+                Console.SetCursorPosition(startLeft, startTop);
+                string text = buffer.ToString();
+                Console.Write(text);
+                if (prevRenderLen > text.Length)
+                    Console.Write(new string(' ', prevRenderLen - text.Length));
+                prevRenderLen = text.Length;
+            }
+
+            historyIndex = commandHistory.Count;
+            Render();
+
+            while (true)
+            {
+                ConsoleKeyInfo key = Console.ReadKey(intercept: true);
+
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine();
+                    return buffer.ToString();
+                }
+
+                if (key.Key == ConsoleKey.UpArrow)
+                {
+                    if (commandHistory.Count > 0 && historyIndex > 0)
+                    {
+                        historyIndex--;
+                        buffer.Clear();
+                        buffer.Append(commandHistory[historyIndex]);
+                        Render();
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.DownArrow)
+                {
+                    if (commandHistory.Count > 0)
+                    {
+                        if (historyIndex < commandHistory.Count - 1)
+                        {
+                            historyIndex++;
+                            buffer.Clear();
+                            buffer.Append(commandHistory[historyIndex]);
+                        }
+                        else
+                        {
+                            historyIndex = commandHistory.Count;
+                            buffer.Clear();
+                        }
+                        Render();
+                    }
+                    continue;
+                }
+
+                if (key.Key == ConsoleKey.Backspace)
+                {
+                    if (buffer.Length > 0)
+                    {
+                        buffer.Length--;
+                        Render();
+                    }
+                    continue;
+                }
+
+                char c = key.KeyChar;
+                if (!char.IsControl(c) && buffer.Length < maxLen)
+                {
+                    buffer.Append(c);
+                    Render();
+                }
+            }
+        }
+
         /// <summary>When <see cref="CLIEngine.JsonOutput"/> is true, emit one JSON line for a holon operation result (non-interactive NFT/GeoNFT paths: mint, burn, import, export, remint, convert, place, send; STARNET holon <c>clone</c>; OAPP <c>light</c> JSON create).</summary>
         private static void EmitNiJsonForOasisResult<T>(OASISResult<T> r, string operationLabel, object successData = null)
         {
@@ -1766,6 +1859,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             };
                                         }
 
+                                        if (string.Equals(subCommand, "quest", StringComparison.OrdinalIgnoreCase)
+                                            && StarnetUiScriptedCreateCli.TryParseOptionalQuestObjectivesJsonPath(inputArgs, out string questObjJsonPath))
+                                        {
+                                            scriptedOpts.CustomCreateParams ??= new Dictionary<string, object>();
+                                            scriptedOpts.CustomCreateParams[StarCliNonInteractiveCreateKeys.QuestObjectivesJsonPath] = questObjJsonPath;
+                                        }
+
                                         if (createPredicate != null)
                                         {
                                             bool lightFromJson = scriptedOpts.CustomCreateParams != null
@@ -2201,7 +2301,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                 else
                                 {
                                     if (updatePredicate != null)
-                                        await updatePredicate(id, null, true, providerType);
+                                    {
+                                        object questEditParams = null;
+                                        if (CLIEngine.NonInteractive && string.Equals(subCommand, "quest", StringComparison.OrdinalIgnoreCase)
+                                            && StarnetUiScriptedCreateCli.TryParseQuestUpdateArgv(inputArgs, out QuestCliEditParams qEdit))
+                                        {
+                                            questEditParams = qEdit;
+                                        }
+
+                                        await updatePredicate(id, questEditParams, true, providerType);
+                                    }
                                     else
                                         CLIEngine.ShowMessage("Coming Soon...");
                                 }
@@ -2893,7 +3002,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
                     case "inventory":
                         {
-                            await STARCLI.Avatars.ShowAvatarInventoryAsync();
+                            bool detailed = inputArgs.Length > 2 && inputArgs[2].ToLower() == "detailed";
+                            await STARCLI.Avatars.ShowAvatarInventoryAsync(detailed);
                         }
                         break;
 
@@ -2927,7 +3037,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 CLIEngine.ShowMessage("    edit                         Edit the currently beamed in avatar.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    list          [detailed]     Lists all avatars. If [detailed] is included it will list detailed stats also.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    search                       Search avatars that match the given seach parameters.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    inventory                    List inventory items for the currently beamed-in avatar (WEB4 avatar API).", ConsoleColor.Green, false);
+                CLIEngine.ShowMessage("    inventory [detailed]       List inventory items for the currently beamed-in avatar (WEB4 avatar API).", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    forgotpassword               Send a Forgot Password email to your email account containing a Reset Token.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage("    resetpassword                Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.", ConsoleColor.Green, false);
                 CLIEngine.ShowMessage($"NOTES:", ConsoleColor.Green);
@@ -4769,7 +4879,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 DisplayCommand("avatar edit", "", "Edit the currently beamed in avatar.");
                 DisplayCommand("avatar list", "[detailed]", "Lists all avatars. If [detailed] is included it will list detailed stats also.");
                 DisplayCommand("avatar search", "", "Search avatars that match the given search parameters (public fields only such as level, karma, username & any fields the player has set to public).");
-                DisplayCommand("avatar inventory", "", "List inventory items for the currently beamed-in avatar (WEB4 avatar API via OASISAPI).");
+                DisplayCommand("avatar inventory", "[detailed]", "List inventory items for the currently beamed-in avatar (WEB4 avatar API via OASISAPI). If [detailed] is included it will list full holon + STARNET DNA data also.");
                 DisplayCommand("avatar forgotpassword", "", "Send a Forgot Password email to your email account containing a Reset Token.");
                 DisplayCommand("avatar resetpassword", "", "Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
                 DisplayCommand("karma list", "", "Display the karma thresholds.");
