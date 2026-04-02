@@ -62,7 +62,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             var s = raw.ToString();
-            return string.IsNullOrEmpty(s) ? "None" : s;
+            if (string.IsNullOrEmpty(s))
+                return "None";
+
+            // Some JSON deserialization/serialization paths end up stringifying JsonElement
+            // as an object like `{ "ValueKind": 3 }` (losing the actual value).
+            // Convert this into a readable JsonValueKind name instead of printing the blob.
+            try
+            {
+                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal) && s.TrimStart().StartsWith("{"))
+                {
+                    using var doc = JsonDocument.Parse(s);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
+                    {
+                        if (vk.ValueKind == JsonValueKind.Number && vk.TryGetInt32(out int i))
+                            return ((JsonValueKind)i).ToString();
+                        if (vk.ValueKind == JsonValueKind.String)
+                            return vk.GetString() ?? "None";
+                    }
+                }
+            }
+            catch
+            {
+                // Fall through to raw string output.
+            }
+
+            return s;
         }
 
         public virtual ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager { get; set; }
@@ -224,7 +250,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         }
 
         /// <summary>Reads scripted-create fields from <c>CustomCreateParams</c> (<see cref="StarCliNonInteractiveCreateKeys"/>), populated by <see cref="StarnetUiScriptedCreateCli"/> from argv.</summary>
-        private static bool TryReadScriptedNonInteractiveCreate(ISTARNETCreateOptions<T1, T4> createOptions, out string scriptedName, out string scriptedDesc, out string scriptedSubType, out string scriptedParentFolder)
+        protected static bool TryReadScriptedNonInteractiveCreate(ISTARNETCreateOptions<T1, T4> createOptions, out string scriptedName, out string scriptedDesc, out string scriptedSubType, out string scriptedParentFolder)
         {
             scriptedName = null;
             scriptedDesc = null;
@@ -443,6 +469,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 else
                     Console.WriteLine("");
 
+                await OnExtraUpdateFieldsAsync(loadResult, ref changesMade, providerType);
+
                 if (changesMade)
                 {
                     OASISResult<T1> result = await STARNETManager.EditAsync(STAR.BeamedInAvatar.Id, loadResult.Result, (T4)loadResult.Result.STARNETDNA, providerType);
@@ -471,6 +499,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"An error occured loading the {STARNETManager.STARNETHolonUIName}. Reason: {loadResult.Message}");
             }
         }
+
+        /// <summary>Override in derived types (e.g. <see cref="Quests"/>) to edit holon-specific fields after name/description/category/launch prompts.</summary>
+        protected virtual Task OnExtraUpdateFieldsAsync(OASISResult<T1> loadResult, ref bool changesMade, ProviderType providerType)
+        {
+            return Task.CompletedTask;
+        }
+
         public virtual async Task<OASISResult<T1>> AddDependencyAsync(string idOrNameOfParent = "", ISTARNETDNA parentSTARNETDNA = null, string idOrNameOfDependency = "", string dependencyType = "", ProviderType providerType = ProviderType.Default)
         {
             OASISResult<T1> result = new OASISResult<T1>();

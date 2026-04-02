@@ -49,5 +49,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         /// <summary>When <c>true</c> with <see cref="Scripted"/>, <see cref="Name"/>, <see cref="Description"/>: create a new WEB4 Geo-NFT collection via API then WEB5 wrap (non-interactive).</summary>
         public const string CreateMinimalGeoNftCollection = "star.cli.createMinimalGeoNftCollection";
+
+        /// <summary>Optional path to JSON array of quest objectives for scripted <c>quest create</c> (<c>--objectives-json</c>).</summary>
+        public const string QuestObjectivesJsonPath = "star.cli.questObjectivesJsonPath";
     }
 }

@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Globalization;
 using System.Text.Json;
+using System.Threading.Tasks;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -40,8 +43,33 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultQuestsInstalledPath, "DefaultQuestsInstalledPath")
         { }
 
+        public override async Task UpdateAsync(string idOrName = "", object editParams = null, bool editLaunchTarget = true, ProviderType providerType = ProviderType.Default)
+        {
+            if (CLIEngine.NonInteractive && editParams is QuestCliEditParams qep && !string.IsNullOrWhiteSpace(qep.ObjectivesJsonPath))
+            {
+                await UpdateQuestObjectivesFromJsonFileAsync(idOrName, qep.ObjectivesJsonPath, providerType);
+                return;
+            }
+
+            await base.UpdateAsync(idOrName, editParams, editLaunchTarget, providerType);
+        }
+
         public override async Task<OASISResult<Quest>> CreateAsync(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
+            if (TryReadScriptedNonInteractiveCreate(createOptions, out _, out _, out _, out _))
+            {
+                if (createOptions == null)
+                    createOptions = new STARNETCreateOptions<Quest, STARNETDNA>() { STARNETHolon = new Quest() };
+                else if (createOptions.STARNETHolon == null)
+                    createOptions.STARNETHolon = new Quest();
+
+                OASISResult<Quest> objErr = TryApplyQuestObjectivesFromScriptedParams(createOptions);
+                if (objErr != null && objErr.IsError)
+                    return objErr;
+
+                return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
+            }
+
             OASISResult<Quest> result = new OASISResult<Quest>();
             Mission parentMission = null;
             Quest parentQuest = null;
@@ -94,6 +122,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 createOptions.STARNETHolon.ParentQuestId = parentQuest.Id;
 
             createOptions.STARNETHolon.Order = order;
+
+            InteractiveAppendObjectivesBeforeCreate(createOptions.STARNETHolon);
 
             result = await base.CreateAsync(createOptions, holonSubType, false, false, providerType: providerType);
 
@@ -196,6 +226,262 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
             
             return result;
+        }
+
+        protected override Task OnExtraUpdateFieldsAsync(OASISResult<Quest> loadResult, ref bool changesMade, ProviderType providerType)
+        {
+            if (CLIEngine.NonInteractive || loadResult?.Result == null)
+                return Task.CompletedTask;
+
+            if (!CLIEngine.GetConfirmation("Do you wish to edit quest objectives (checklist items: add or remove)?"))
+            {
+                Console.WriteLine("");
+                return Task.CompletedTask;
+            }
+
+            InteractiveEditQuestObjectives(loadResult.Result, ref changesMade);
+            return Task.CompletedTask;
+        }
+
+        private static void InteractiveAppendObjectivesBeforeCreate(Quest quest)
+        {
+            if (CLIEngine.NonInteractive || quest == null)
+                return;
+
+            quest.Objectives ??= new List<Objective>();
+            if (!CLIEngine.GetConfirmation("Do you want to add checklist objectives (title and description) to this quest now?"))
+            {
+                Console.WriteLine("");
+                return;
+            }
+
+            int nextOrder = quest.Objectives.Count == 0 ? 0 : quest.Objectives.Max(o => o.Order) + 1;
+            do
+            {
+                Console.WriteLine("");
+                string title = CLIEngine.GetValidInput("Objective title?");
+                if (title == "exit")
+                    break;
+                string desc = CLIEngine.GetValidInput("Objective description?");
+                if (desc == "exit")
+                    break;
+                quest.Objectives.Add(new Objective
+                {
+                    Id = Guid.NewGuid(),
+                    Order = nextOrder++,
+                    Title = title,
+                    Description = desc
+                });
+            }
+            while (CLIEngine.GetConfirmation("Add another objective?"));
+
+            Console.WriteLine("");
+        }
+
+        private static void InteractiveEditQuestObjectives(Quest quest, ref bool changesMade)
+        {
+            quest.Objectives ??= new List<Objective>();
+
+            while (true)
+            {
+                Console.WriteLine("");
+                if (quest.Objectives.Count == 0)
+                    CLIEngine.ShowMessage("No objectives yet.", ConsoleColor.DarkGray, false);
+                else
+                {
+                    CLIEngine.ShowMessage("Current objectives:", ConsoleColor.Green, false);
+                    foreach (Objective o in quest.Objectives.OrderBy(x => x.Order))
+                        CLIEngine.ShowMessage($"  [{o.Order}] {o.Title}  ({o.Id})", ConsoleColor.Green, false);
+                }
+
+                Console.WriteLine("");
+                string action = CLIEngine.GetValidInput("Objectives: type 'add' to add one, 'remove' to remove by order number, or 'done' to finish.").Trim().ToLowerInvariant();
+                if (action == "exit" || action == "done")
+                    break;
+
+                if (action == "add")
+                {
+                    string title = CLIEngine.GetValidInput("Objective title?");
+                    if (title == "exit")
+                        break;
+                    string desc = CLIEngine.GetValidInput("Objective description?");
+                    if (desc == "exit")
+                        break;
+                    int next = quest.Objectives.Count == 0 ? 0 : quest.Objectives.Max(x => x.Order) + 1;
+                    quest.Objectives.Add(new Objective
+                    {
+                        Id = Guid.NewGuid(),
+                        Order = next,
+                        Title = title,
+                        Description = desc
+                    });
+                    changesMade = true;
+                }
+                else if (action == "remove")
+                {
+                    string ordStr = CLIEngine.GetValidInput("Order number to remove (as shown in [brackets])?");
+                    if (ordStr == "exit")
+                        break;
+                    if (int.TryParse(ordStr, out int ord))
+                    {
+                        Objective rem = quest.Objectives.FirstOrDefault(x => x.Order == ord);
+                        if (rem != null)
+                        {
+                            quest.Objectives.Remove(rem);
+                            changesMade = true;
+                        }
+                        else
+                            CLIEngine.ShowWarningMessage("No objective with that order.");
+                    }
+                }
+            }
+
+            Console.WriteLine("");
+        }
+
+        private async Task UpdateQuestObjectivesFromJsonFileAsync(string idOrName, string jsonPath, ProviderType providerType)
+        {
+            OASISResult<Quest> loadResult = await FindAsync("update", idOrName, default, true, providerType: providerType);
+            if (loadResult == null || loadResult.IsError || loadResult.Result == null)
+            {
+                CLIEngine.ShowErrorMessage($"Could not load quest to update. Reason: {loadResult?.Message}");
+                return;
+            }
+
+            if (!File.Exists(jsonPath))
+            {
+                CLIEngine.ShowErrorMessage($"Objectives JSON file not found: {jsonPath}");
+                return;
+            }
+
+            string json = await File.ReadAllTextAsync(jsonPath).ConfigureAwait(false);
+            OASISResult<List<Objective>> parsed = ParseObjectivesFromJsonContent(json);
+            if (parsed.IsError || parsed.Result == null)
+            {
+                CLIEngine.ShowErrorMessage(parsed.Message ?? "Failed to parse objectives JSON.");
+                return;
+            }
+
+            loadResult.Result.Objectives = parsed.Result;
+            OASISResult<Quest> result = await STARNETManager.EditAsync(STAR.BeamedInAvatar.Id, loadResult.Result, (STARNETDNA)loadResult.Result.STARNETDNA, providerType);
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage("Saving quest...");
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                (result, bool saveResult) = ErrorHandling.HandleResponse(result, await STARNETManager.WriteDNAAsync(result.Result.STARNETDNA, result.Result.STARNETDNA.SourcePath).ConfigureAwait(false), "Error occured saving the STARNETDNA. Reason: ", "Quest Successfully Updated.");
+
+                if (saveResult)
+                    await ShowAsync(result.Result);
+            }
+            else
+                CLIEngine.ShowErrorMessage($"An error occured updating the quest. Reason: {result?.Message}");
+        }
+
+        private static OASISResult<Quest> TryApplyQuestObjectivesFromScriptedParams(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions)
+        {
+            OASISResult<Quest> r = new OASISResult<Quest>();
+            if (createOptions?.CustomCreateParams == null)
+                return r;
+
+            if (!createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.QuestObjectivesJsonPath, out object pathObj) || pathObj == null)
+                return r;
+
+            string path = pathObj.ToString()?.Trim();
+            if (string.IsNullOrWhiteSpace(path))
+                return r;
+
+            if (!File.Exists(path))
+            {
+                OASISErrorHandling.HandleError(ref r, $"Quest objectives JSON file not found: {path}");
+                return r;
+            }
+
+            try
+            {
+                string json = File.ReadAllText(path);
+                OASISResult<List<Objective>> parsed = ParseObjectivesFromJsonContent(json);
+                if (parsed.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref r, parsed.Message);
+                    return r;
+                }
+
+                createOptions.STARNETHolon.Objectives = parsed.Result ?? new List<Objective>();
+                return r;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref r, $"Failed to read quest objectives JSON: {ex.Message}");
+                return r;
+            }
+        }
+
+        private sealed class QuestObjectiveCliJson
+        {
+            public Guid? Id { get; set; }
+            public int? Order { get; set; }
+            public string Title { get; set; }
+            public string Description { get; set; }
+        }
+
+        private static OASISResult<List<Objective>> ParseObjectivesFromJsonContent(string json)
+        {
+            OASISResult<List<Objective>> r = new OASISResult<List<Objective>>();
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                List<QuestObjectiveCliJson> dtos;
+
+                using (JsonDocument doc = JsonDocument.Parse(json))
+                {
+                    if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                        dtos = JsonSerializer.Deserialize<List<QuestObjectiveCliJson>>(json, opts);
+                    else if (doc.RootElement.TryGetProperty("objectives", out JsonElement arr) && arr.ValueKind == JsonValueKind.Array)
+                        dtos = JsonSerializer.Deserialize<List<QuestObjectiveCliJson>>(arr.GetRawText(), opts);
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref r, "Quest objectives JSON must be a JSON array or an object with an \"objectives\" array.");
+                        return r;
+                    }
+                }
+
+                if (dtos == null)
+                {
+                    r.Result = new List<Objective>();
+                    return r;
+                }
+
+                var list = new List<Objective>();
+                for (int j = 0; j < dtos.Count; j++)
+                {
+                    QuestObjectiveCliJson d = dtos[j];
+                    if (d == null)
+                        continue;
+
+                    if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.Description))
+                    {
+                        OASISErrorHandling.HandleError(ref r, "Each objective requires non-empty title and description.");
+                        return r;
+                    }
+
+                    list.Add(new Objective
+                    {
+                        Id = d.Id ?? Guid.NewGuid(),
+                        Order = d.Order ?? j,
+                        Title = d.Title.Trim(),
+                        Description = d.Description.Trim()
+                    });
+                }
+
+                r.Result = list;
+                return r;
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref r, $"Invalid quest objectives JSON: {ex.Message}");
+                return r;
+            }
         }
 
         //public async Task<OASISResult<IQuest>> AddGeoNFTToQuestAsync(string idOrNameOfQuest, string idOrNameOfGeoNFT, ProviderType providerType = ProviderType.Default)
@@ -341,7 +627,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             CLIEngine.ShowMessage($"{list.Count} quest(s) for {STAR.BeamedInAvatar.Username}:", ConsoleColor.Green);
             CLIEngine.ShowDivider();
             foreach (IQuest iq in list)
+            {
                 WriteRuntimeQuestToConsole(iq, showDetailedInfo);
+
+                // In "list detailed", include full STARNET holon + STARNET DNA info (mirrors the base list/show output).
+                if (showDetailedInfo && iq != null)
+                {
+                    Console.WriteLine("");
+                    await ShowAsync(iq, showHeader: false, showFooter: false, showNumbers: false, number: 0, showDetailedInfo: true);
+                    Console.WriteLine("");
+                }
+            }
 
             CLIEngine.ShowDivider();
         }
@@ -375,7 +671,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 id = q.Id,
                 name = q.Name ?? string.Empty,
-                description = showDetailed ? (q.Description ?? string.Empty) : null,
+                description = q.Description ?? string.Empty,
                 questType = GetRuntimeQuestTypeLabel(q),
                 status = q.Status.ToString(),
                 progressPercent = GetQuestProgressPercent(q),
@@ -385,7 +681,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 rewardKarma = showDetailed ? q.RewardKarma : (long?)null,
                 rewardXP = showDetailed ? q.RewardXP : (long?)null,
                 prerequisiteQuestIds = prereq,
-                objectives
+                objectives,
+                starnetDNA = showDetailed && q.STARNETDNA != null ? new
+                {
+                    id = q.STARNETDNA.Id,
+                    name = q.STARNETDNA.Name,
+                    description = q.STARNETDNA.Description,
+                    starnetHolonType = q.STARNETDNA.STARNETHolonType,
+                    starnetCategory = FormatStarnetDnaJsonValue(q.STARNETDNA.STARNETCategory),
+                    starnetSubCategory = FormatStarnetDnaJsonValue(q.STARNETDNA.STARNETSubCategory),
+                    version = q.STARNETDNA.Version,
+                    versionSequence = q.STARNETDNA.VersionSequence,
+                    createdOn = q.STARNETDNA.CreatedOn,
+                    createdByAvatarUsername = q.STARNETDNA.CreatedByAvatarUsername,
+                    publishedOn = q.STARNETDNA.PublishedOn,
+                    publishedProviderType = q.STARNETDNA.PublishedProviderType,
+                    launchTarget = q.STARNETDNA.LaunchTarget,
+                    dependencies = q.STARNETDNA.Dependencies,
+                    metaTagMappings = q.STARNETDNA.MetaTagMappings
+                } : null
             };
             return row;
         }
@@ -402,7 +716,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 ConsoleColor.Green,
                 false);
 
-            if (showDetailed && !string.IsNullOrWhiteSpace(q.Description))
+            if (!string.IsNullOrWhiteSpace(q.Description))
                 CLIEngine.ShowMessage($"      {q.Description}", ConsoleColor.Green, false);
 
             if (!string.IsNullOrWhiteSpace(q.GameSource))
@@ -428,6 +742,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     false);
                 if (!string.IsNullOrWhiteSpace(line))
                     CLIEngine.ShowMessage($"            {line}", ConsoleColor.DarkGray, false);
+
+                // Spacing between objective "items" (matches the inventory detailed UX).
+                Console.WriteLine("");
             }
 
             Console.WriteLine("");
@@ -460,6 +777,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (quest.Status == QuestStatus.NotStarted)
                 return "NotStarted";
             return "InProgress";
+        }
+
+        private static string FormatStarnetDnaJsonValue(object? raw)
+        {
+            if (raw == null)
+                return "None";
+
+            if (raw is JsonElement je)
+            {
+                switch (je.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return je.GetString() ?? "None";
+                    case JsonValueKind.Number:
+                        if (je.TryGetInt32(out var i32))
+                            return i32.ToString(CultureInfo.InvariantCulture);
+                        if (je.TryGetInt64(out var i64))
+                            return i64.ToString(CultureInfo.InvariantCulture);
+                        return je.GetRawText();
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return "None";
+                    default:
+                        return je.GetRawText();
+                }
+            }
+
+            try
+            {
+                string s = raw.ToString();
+                if (string.IsNullOrWhiteSpace(s))
+                    return "None";
+
+                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal))
+                {
+                    using var doc = JsonDocument.Parse(s);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
+                    {
+                        if (vk.ValueKind == JsonValueKind.Number)
+                            return vk.GetRawText();
+                        if (vk.ValueKind == JsonValueKind.String)
+                            return vk.GetString() ?? "None";
+                    }
+                }
+
+                return s;
+            }
+            catch
+            {
+                return raw.ToString() ?? "None";
+            }
         }
     }
 }
