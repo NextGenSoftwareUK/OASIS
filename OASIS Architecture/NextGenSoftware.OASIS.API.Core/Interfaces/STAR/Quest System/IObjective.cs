@@ -17,5 +17,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         bool IsCompleted { get; set; }
         DateTime? CompletedAt { get; set; }
         Guid? CompletedBy { get; set; }
+        /// <summary>Optional GeoHotSpot to visit or trigger for this objective (e.g. media/text/link hotspot).</summary>
+        Guid? LinkedGeoHotSpotId { get; set; }
+        /// <summary>Optional URI for cross-app handoff (STAR CLI, OPortal, Telegram, web task, etc.).</summary>
+        string ExternalHandoffUri { get; set; }
     }
 }

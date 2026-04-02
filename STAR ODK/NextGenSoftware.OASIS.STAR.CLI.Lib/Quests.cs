@@ -423,6 +423,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             public int? Order { get; set; }
             public string Title { get; set; }
             public string Description { get; set; }
+            public Guid? LinkedGeoHotSpotId { get; set; }
+            public string ExternalHandoffUri { get; set; }
         }
 
         private static OASISResult<List<Objective>> ParseObjectivesFromJsonContent(string json)
@@ -470,7 +472,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         Id = d.Id ?? Guid.NewGuid(),
                         Order = d.Order ?? j,
                         Title = d.Title.Trim(),
-                        Description = d.Description.Trim()
+                        Description = d.Description.Trim(),
+                        LinkedGeoHotSpotId = d.LinkedGeoHotSpotId,
+                        ExternalHandoffUri = d.ExternalHandoffUri?.Trim() ?? string.Empty
                     });
                 }
 
@@ -656,6 +660,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         order = o.Order,
                         title = o.Title ?? string.Empty,
                         description = o.Description ?? string.Empty,
+                        linkedGeoHotSpotId = o is Objective obj && obj.LinkedGeoHotSpotId.HasValue ? obj.LinkedGeoHotSpotId.Value.ToString() : (string?)null,
+                        externalHandoffUri = o is Objective obj2 && !string.IsNullOrWhiteSpace(obj2.ExternalHandoffUri) ? obj2.ExternalHandoffUri : (string?)null,
                         status = FormatObjectiveUiStatus(q, o),
                         progressPercent = GetObjectiveProgressPercent(o),
                         progressSummary = o.ProgressSummary ?? string.Empty
@@ -678,6 +684,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 gameSource = q.GameSource ?? string.Empty,
                 parentQuestId = q.ParentQuestId == Guid.Empty ? (string?)null : q.ParentQuestId.ToString(),
                 parentMissionId = q.ParentMissionId == Guid.Empty ? (string?)null : q.ParentMissionId.ToString(),
+                linkedGeoHotSpotId = q is Quest ql && ql.LinkedGeoHotSpotId.HasValue ? ql.LinkedGeoHotSpotId.Value.ToString() : (string?)null,
+                externalHandoffUri = q is Quest qh && !string.IsNullOrWhiteSpace(qh.ExternalHandoffUri) ? qh.ExternalHandoffUri : (string?)null,
                 rewardKarma = showDetailed ? q.RewardKarma : (long?)null,
                 rewardXP = showDetailed ? q.RewardXP : (long?)null,
                 prerequisiteQuestIds = prereq,

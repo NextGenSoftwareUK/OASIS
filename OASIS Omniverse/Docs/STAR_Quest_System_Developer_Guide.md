@@ -10,6 +10,7 @@ This document explains how **quests** flow from the **WEB5 STAR API** through **
 | ODOOM quest list invariants (UI/CVar pipeline) | `OASIS Omniverse/Docs/ODOOM_Quest_List_STAR.md` |
 | WEB5 quest endpoint catalog (reference style) | `Docs/Devs/API Documentation/WEB5 STAR API/Quests-API.md` |
 | STAR + WEB5 overview | `Docs/Devs/API Documentation/WEB5_STAR_API_Documentation.md` (Quests section) |
+| **OGEngine (WEB4 + WEB5 + STARAPIClient)** | `OASIS Omniverse/Docs/OGEngine_Overview.md` |
 | STARAPIClient design | `OASIS Omniverse/STARAPIClient/README.md` |
 | End-user keys / `star` commands | `OASIS Omniverse/Docs/STAR_Games_User_Guide.md` |
 | Contract DTOs | `NextGenSoftware.OASIS.API.Contracts` — quest/objective types used by client + API |
@@ -85,6 +86,15 @@ Responses are **flat JSON** suited for clients (not full holon graphs). Implemen
 
 - **`StarApiConfig.ClientGameSource`** / native **`client_game_source`** in `star_api_config_t` (e.g. ODOOM sets `"ODOOM"`), and
 - Per-call arguments on pickups / kills / objective completion.
+
+### 2.6 GeoHotSpots, quest linkage, and cross-app handoff
+
+- **GeoHotSpot holon** (`GeoHotSpotType`): includes **Map, AR, VR, IR** and media types **Audio, Video, Text, WebsiteLink**. Payload fields: `AudioUrl`, `VideoUrl`, `TextContent`, `WebsiteUrl` (see `ONODE` holon + `GeoHotSpotsController`). Subtype is stored in STARNET DNA as **`GeoHotSpotType`**.
+- **Quest** optional fields: `LinkedGeoHotSpotId`, `ExternalHandoffUri`.
+- **Objective** optional fields: `LinkedGeoHotSpotId`, `ExternalHandoffUri`.
+- **Create / add objective** requests accept the same (`CreateQuestRequest`, `QuestObjectiveRequest`, `AddQuestObjectiveRequest`). An objective **must** have either at least one **Need\*** dictionary entry **or** a **LinkedGeoHotSpotId** **or** **ExternalHandoffUri** (in addition to title and description).
+- **Game DTOs** (`GameQuestSummaryLite`, `GameQuestObjectiveLite`) expose `linkedGeoHotSpotId` and `externalHandoffUri` for thin JSON in clients.
+- **Roadmap**: clients (Our World, OPortal, ODOOM, OQUAKE) should load the hotspot by id when present and **play / show** media or open links on trigger; **handoff URIs** are opaque until routing schemes are standardized (STAR CLI, OPortal, Telegram, Discord, WhatsApp, web). See **`OGEngine_Overview.md`**.
 
 ---
 
@@ -183,3 +193,4 @@ OQuake uses **`star_api_set_quest_progress_cache_refresh`** from loaded config w
 | Date | Note |
 |------|------|
 | 2026-03-27 | Initial consolidated developer guide (API + STARAPIClient + extension points). |
+| 2026-04-02 | GeoHotSpot media types (Audio/Video/Text/WebsiteLink); quest/objective `LinkedGeoHotSpotId` / `ExternalHandoffUri`; see `OGEngine_Overview.md`. |

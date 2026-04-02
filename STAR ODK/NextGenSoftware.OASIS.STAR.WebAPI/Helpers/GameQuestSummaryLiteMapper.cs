@@ -26,6 +26,8 @@ internal static class GameQuestSummaryLiteMapper
                     Description = o.Description ?? string.Empty,
                     ProgressSummary = progress,
                     GameSource = InferObjectiveGameSource(o),
+                    LinkedGeoHotSpotId = o.LinkedGeoHotSpotId.HasValue ? o.LinkedGeoHotSpotId.Value.ToString("D") : null,
+                    ExternalHandoffUri = string.IsNullOrWhiteSpace(o.ExternalHandoffUri) ? null : o.ExternalHandoffUri,
                     Dictionaries = BuildObjectiveDictionariesLite(o)
                 });
             }
@@ -47,6 +49,8 @@ internal static class GameQuestSummaryLiteMapper
             Requirements = q.Requirements != null ? new List<string>(q.Requirements) : new List<string>(),
             PrerequisiteQuestIds = q.PrerequisiteQuestIds != null ? new List<string>(q.PrerequisiteQuestIds) : new List<string>(),
             CompletionNotes = q.CompletionNotes,
+            LinkedGeoHotSpotId = q.LinkedGeoHotSpotId.HasValue ? q.LinkedGeoHotSpotId.Value.ToString("D") : null,
+            ExternalHandoffUri = string.IsNullOrWhiteSpace(q.ExternalHandoffUri) ? null : q.ExternalHandoffUri,
             Objectives = objectives
         };
     }
