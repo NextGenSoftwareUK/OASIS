@@ -1,5 +1,9 @@
-﻿using NextGenSoftware.CLI.Engine;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
@@ -12,6 +16,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
     //public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest, QuestDNA>
     public class Quests : STARNETUIBase<Quest, DownloadedQuest, InstalledQuest, STARNETDNA>
     {
+        private static readonly JsonSerializerOptions QuestListJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
         public Quests(Guid avatarId, STARDNA STARDNA) : base(new API.ONODE.Core.Managers.QuestManager(avatarId, STARDNA),
             "Welcome to the Quest Wizard", new List<string> 
             {
@@ -267,5 +277,189 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
         //    return result;
         //}
+
+        /// <summary>
+        /// Lists **avatar quest state** (same data as ODOOM/OQuake / STAR API client): objectives, progress lines, and quest type — not STARNET published .oquest metadata.
+        /// </summary>
+        public override async Task ListAllCreatedByBeamedInAvatarAsync(bool showAllVersions = false, bool showDetailedInfo = false, ProviderType providerType = ProviderType.Default)
+        {
+            if (STAR.BeamedInAvatar == null)
+            {
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 2;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 2, error = "No Avatar Is Beamed In. Please Beam In First!", detail = (string?)null }, QuestListJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In. Please Beam In First!");
+                return;
+            }
+
+            Console.WriteLine("");
+            if (!CLIEngine.JsonOutput)
+                CLIEngine.ShowWorkingMessage("Loading quests for your avatar (OASIS quest state)...");
+
+            CLIEngine.SupressConsoleLogging = true;
+            OASISResult<IEnumerable<IQuest>> result = await STAR.STARAPI.Quests.LoadAllQuestsForAvatarAsync(STAR.BeamedInAvatar.Id, showAllVersions, version: 0, providerType);
+            CLIEngine.SupressConsoleLogging = false;
+
+            if (result == null || result.IsError)
+            {
+                string msg = result?.Message ?? "Failed to load quests.";
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 1;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 1, error = msg, detail = (string?)null }, QuestListJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage($"Error loading quests: {msg}");
+                return;
+            }
+
+            List<IQuest> list = result.Result?.Where(q => q != null).OrderBy(q => q.Order).ToList() ?? new List<IQuest>();
+
+            if (CLIEngine.JsonOutput)
+            {
+                var payload = list.Select(q => BuildQuestListJsonObject(q, showDetailedInfo)).ToList();
+                Console.Out.WriteLine(JsonSerializer.Serialize(new
+                {
+                    success = true,
+                    message = result.Message,
+                    data = new { count = payload.Count, quests = payload }
+                }, QuestListJsonOptions));
+                return;
+            }
+
+            if (list.Count == 0)
+            {
+                CLIEngine.ShowWarningMessage("No quests found for this avatar.");
+                return;
+            }
+
+            CLIEngine.ShowMessage($"{list.Count} quest(s) for {STAR.BeamedInAvatar.Username}:", ConsoleColor.Green);
+            CLIEngine.ShowDivider();
+            foreach (IQuest iq in list)
+                WriteRuntimeQuestToConsole(iq, showDetailedInfo);
+
+            CLIEngine.ShowDivider();
+        }
+
+        private static object BuildQuestListJsonObject(IQuest q, bool showDetailed)
+        {
+            var objectives = new List<object>();
+            if (q.Objectives != null)
+            {
+                foreach (var o in q.Objectives.OrderBy(x => x.Order))
+                {
+                    if (o == null) continue;
+                    objectives.Add(new
+                    {
+                        id = o.Id,
+                        order = o.Order,
+                        title = o.Title ?? string.Empty,
+                        description = o.Description ?? string.Empty,
+                        status = FormatObjectiveUiStatus(q, o),
+                        progressPercent = GetObjectiveProgressPercent(o),
+                        progressSummary = o.ProgressSummary ?? string.Empty
+                    });
+                }
+            }
+
+            List<string>? prereq = null;
+            if (showDetailed && q is Quest qq && qq.PrerequisiteQuestIds != null && qq.PrerequisiteQuestIds.Count > 0)
+                prereq = qq.PrerequisiteQuestIds.ToList();
+
+            var row = new
+            {
+                id = q.Id,
+                name = q.Name ?? string.Empty,
+                description = showDetailed ? (q.Description ?? string.Empty) : null,
+                questType = GetRuntimeQuestTypeLabel(q),
+                status = q.Status.ToString(),
+                progressPercent = GetQuestProgressPercent(q),
+                gameSource = q.GameSource ?? string.Empty,
+                parentQuestId = q.ParentQuestId == Guid.Empty ? (string?)null : q.ParentQuestId.ToString(),
+                parentMissionId = q.ParentMissionId == Guid.Empty ? (string?)null : q.ParentMissionId.ToString(),
+                rewardKarma = showDetailed ? q.RewardKarma : (long?)null,
+                rewardXP = showDetailed ? q.RewardXP : (long?)null,
+                prerequisiteQuestIds = prereq,
+                objectives
+            };
+            return row;
+        }
+
+        private static void WriteRuntimeQuestToConsole(IQuest q, bool showDetailed)
+        {
+            string typeLabel = GetRuntimeQuestTypeLabel(q);
+            string parentNote = q.ParentQuestId != Guid.Empty
+                ? $"  (sub-quest of {q.ParentQuestId})"
+                : string.Empty;
+
+            CLIEngine.ShowMessage(
+                $"  {q.Name ?? "(unnamed)"}  [{typeLabel}]  {q.Status}  {GetQuestProgressPercent(q)}%{parentNote}",
+                ConsoleColor.Green,
+                false);
+
+            if (showDetailed && !string.IsNullOrWhiteSpace(q.Description))
+                CLIEngine.ShowMessage($"      {q.Description}", ConsoleColor.Green, false);
+
+            if (!string.IsNullOrWhiteSpace(q.GameSource))
+                CLIEngine.ShowMessage($"      GameSource: {q.GameSource}", ConsoleColor.Green, false);
+
+            if (q.Objectives == null || q.Objectives.Count == 0)
+            {
+                CLIEngine.ShowMessage("      Objectives: (none)", ConsoleColor.DarkGray, false);
+                Console.WriteLine("");
+                return;
+            }
+
+            CLIEngine.ShowMessage("      Objectives:", ConsoleColor.Green, false);
+            foreach (IObjective o in q.Objectives.OrderBy(x => x.Order))
+            {
+                if (o == null) continue;
+                string st = FormatObjectiveUiStatus(q, o);
+                int pct = GetObjectiveProgressPercent(o);
+                string line = o.ProgressSummary ?? string.Empty;
+                CLIEngine.ShowMessage(
+                    $"        [{o.Order}] {o.Title}  |  {st}  |  {pct}%",
+                    ConsoleColor.Green,
+                    false);
+                if (!string.IsNullOrWhiteSpace(line))
+                    CLIEngine.ShowMessage($"            {line}", ConsoleColor.DarkGray, false);
+            }
+
+            Console.WriteLine("");
+        }
+
+        private static string GetRuntimeQuestTypeLabel(IQuest q)
+        {
+            if (q.QuestType != default(QuestType))
+                return q.QuestType.ToString();
+            return q.Type.ToString();
+        }
+
+        private static int GetQuestProgressPercent(IQuest q)
+        {
+            if (q is Quest qq)
+                return qq.ProgressPercent;
+            return 0;
+        }
+
+        private static int GetObjectiveProgressPercent(IObjective o)
+        {
+            if (o is Objective oj)
+                return oj.ProgressPercent;
+            return o.IsCompleted ? 100 : 0;
+        }
+
+        private static string FormatObjectiveUiStatus(IQuest quest, IObjective obj)
+        {
+            if (obj.IsCompleted) return "Completed";
+            if (quest.Status == QuestStatus.NotStarted)
+                return "NotStarted";
+            return "InProgress";
+        }
     }
 }
