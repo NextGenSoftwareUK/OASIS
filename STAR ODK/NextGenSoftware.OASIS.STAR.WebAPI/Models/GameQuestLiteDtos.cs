@@ -53,6 +53,10 @@ public sealed class GameQuestObjectiveLite
     /// <summary>Computed progress line from requirement/progress dictionaries (<c>Objective.ProgressSummary</c>).</summary>
     public string ProgressSummary { get; set; } = string.Empty;
     public string GameSource { get; set; } = string.Empty;
+    /// <summary>Optional GeoHotSpot id for this objective.</summary>
+    public string? LinkedGeoHotSpotId { get; set; }
+    /// <summary>Optional cross-app handoff URI for this objective.</summary>
+    public string? ExternalHandoffUri { get; set; }
     /// <summary>Optional nested dictionaries (also serialized for JSON parsers that unwrap <c>MetaData</c> / <c>Dictionaries</c>).</summary>
     public GameQuestObjectiveDictionariesLite? Dictionaries { get; set; }
 }
@@ -74,5 +78,9 @@ public sealed class GameQuestSummaryLite
     public List<string> Requirements { get; set; } = new();
     public List<string> PrerequisiteQuestIds { get; set; } = new();
     public string? CompletionNotes { get; set; }
+    /// <summary>Optional quest-level GeoHotSpot id.</summary>
+    public string? LinkedGeoHotSpotId { get; set; }
+    /// <summary>Optional cross-app handoff URI.</summary>
+    public string? ExternalHandoffUri { get; set; }
     public List<GameQuestObjectiveLite> Objectives { get; set; } = new();
 }

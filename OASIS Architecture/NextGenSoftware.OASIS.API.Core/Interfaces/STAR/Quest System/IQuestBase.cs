@@ -28,5 +28,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.STAR
         public IList<IQuest> Quests { get; set; } //TODO: Dont think is needed now because it is stored in the Dependencies.
         /// <summary>Objectives belonging to this quest (Option B: own class, not child Quests). Persisted as part of the Quest holon.</summary>
         public IList<IObjective> Objectives { get; set; }
+        /// <summary>Optional GeoHotSpot tied to this quest (quest-level anchor; objectives may add their own).</summary>
+        Guid? LinkedGeoHotSpotId { get; set; }
+        /// <summary>Optional URI for cross-app / cross-game handoff (OPortal, CLI, messaging, web).</summary>
+        string ExternalHandoffUri { get; set; }
     }
 }

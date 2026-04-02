@@ -7,6 +7,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 ## 🏗️ **Architecture Overview**
 
 ### **Omniverse games (OQuake, ODOOM) + STAR**
+- **[OGEngine overview (WEB4 + WEB5 + STARAPIClient)](./OGEngine_Overview.md)** — Omniverse Game Engine: APIs, diagrams, GeoHotSpots, cross-app quest handoff roadmap
 - **[STAR Quest System — Developer Guide](./STAR_Quest_System_Developer_Guide.md)** — WEB5 quest API, STARAPIClient, `star_api_*`, extending games
 - **[STAR Games — User Guide](./STAR_Games_User_Guide.md)** — Beam-in, inventory, quest UI keys for OQuake / ODOOM
 - **[ODOOM quest list + STAR](./ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)

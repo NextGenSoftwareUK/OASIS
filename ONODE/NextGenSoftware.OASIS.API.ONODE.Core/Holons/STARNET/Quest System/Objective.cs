@@ -38,6 +38,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [JsonPropertyName("description")]
         public string Description { get; set; } = string.Empty;
 
+        /// <summary>Optional GeoHotSpot to associate with this objective (visit or trigger).</summary>
+        [CustomOASISProperty()]
+        public Guid? LinkedGeoHotSpotId { get; set; }
+
+        /// <summary>Optional URI for cross-app handoff (next step outside current game).</summary>
+        [CustomOASISProperty()]
+        public string ExternalHandoffUri { get; set; }
+
         /// <summary>Computed progress text from Need* + progress dictionaries.</summary>
         [JsonPropertyName("ProgressSummary")]
         public string ProgressSummary

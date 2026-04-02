@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     /// <summary>
     /// Geo-HotSpots management endpoints for creating, updating, and managing STAR geo-hotspots.
     /// Geo-hotspots represent geographical locations of interest, events, or activities within the OASIS Omniverse/Our World and can optionally contain AR content.
+    /// Hotspot <see cref="GeoHotSpotType"/> includes Map, AR, VR, IR, and media types: <see cref="GeoHotSpotType.Audio"/>, <see cref="GeoHotSpotType.Video"/>, <see cref="GeoHotSpotType.Text"/>, <see cref="GeoHotSpotType.WebsiteLink"/> (use <see cref="GeoHotSpot.AudioUrl"/>, <see cref="GeoHotSpot.VideoUrl"/>, <see cref="GeoHotSpot.TextContent"/>, <see cref="GeoHotSpot.WebsiteUrl"/> on the holon; subtype is stored in STARNET DNA category).
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
