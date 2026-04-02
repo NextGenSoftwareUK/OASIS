@@ -95,6 +95,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty(StoreAsJsonString = true)]
         public List<string> PrerequisiteQuestIds { get; set; } = new List<string>();
 
+        /// <summary>Optional GeoHotSpot id for this quest (e.g. visit or trigger media/text/link at a place).</summary>
+        [CustomOASISProperty()]
+        public Guid? LinkedGeoHotSpotId { get; set; }
+
+        /// <summary>Optional URI for cross-app handoff (STAR CLI, OPortal, Telegram, web task, etc.).</summary>
+        [CustomOASISProperty()]
+        public string ExternalHandoffUri { get; set; }
+
         /// <summary>Objectives belonging to this quest (Option B). Persisted as part of the Quest holon via MetaData (CustomOASISProperty + StoreAsJsonString).</summary>
         [CustomOASISProperty(StoreAsJsonString = true)]
         public List<Objective> Objectives { get; set; } = new List<Objective>();

@@ -738,6 +738,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 if (result.IsError)
                     return BadRequest(result);
 
+                if (result.Result != null && (request.LinkedGeoHotSpotId.HasValue || !string.IsNullOrWhiteSpace(request.ExternalHandoffUri)))
+                {
+                    result.Result.LinkedGeoHotSpotId = request.LinkedGeoHotSpotId;
+                    result.Result.ExternalHandoffUri = request.ExternalHandoffUri?.Trim() ?? string.Empty;
+                    var linkUpdate = await _starAPI.Quests.UpdateAsync(AvatarId, result.Result);
+                    if (linkUpdate.IsError)
+                        return BadRequest(new OASISResult<Quest> { IsError = true, Message = $"Failed to save quest GeoHotSpot/handoff fields: {linkUpdate.Message}" });
+                    result = linkUpdate;
+                }
+
                 // Add objectives (Option B: IObjective on Quest.Objectives) if provided.
                 if (request.Objectives != null && request.Objectives.Count > 0 && result.Result != null)
                 {
@@ -807,7 +817,9 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Description = request.Description,
                     GameSource = request.GameSource,
                     Order = request.Order,
-                    Dictionaries = request.Dictionaries
+                    Dictionaries = request.Dictionaries,
+                    LinkedGeoHotSpotId = request.LinkedGeoHotSpotId,
+                    ExternalHandoffUri = request.ExternalHandoffUri
                 }, quest.Objectives.Count);
 
                 quest.Objectives.Add((Objective)objective);
@@ -1844,7 +1856,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             return false;
         }
 
-        /// <summary>Creates an Objective (Option B) from a create/add objective request: Title, Description, and explicit Need*/progress dictionaries only.</summary>
+        /// <summary>Creates an Objective (Option B) from a create/add objective request: Title, Description, optional Need*/progress dictionaries, optional <see cref="QuestObjectiveRequest.LinkedGeoHotSpotId"/> / <see cref="QuestObjectiveRequest.ExternalHandoffUri"/>.</summary>
         private static IObjective CreateObjectiveFromRequest(QuestObjectiveRequest request, int order)
         {
             var title = request.Title?.Trim() ?? string.Empty;
@@ -1853,8 +1865,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 throw new ArgumentException("Objective title is required.");
             if (string.IsNullOrWhiteSpace(description))
                 throw new ArgumentException("Objective description is required.");
-            if (request.Dictionaries == null || !HasAtLeastOneNeedDefinition(request.Dictionaries))
-                throw new ArgumentException("At least one Need* dictionary definition is required.");
+            if (!HasObjectiveRequirement(request))
+                throw new ArgumentException("Objective requires at least one Need* dictionary definition, LinkedGeoHotSpotId, or ExternalHandoffUri.");
 
             var objective = new Objective
             {
@@ -1864,10 +1876,22 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 Description = description,
                 IsCompleted = request.IsCompleted,
                 CompletedAt = request.CompletedAt,
-                CompletedBy = request.CompletedBy
+                CompletedBy = request.CompletedBy,
+                LinkedGeoHotSpotId = request.LinkedGeoHotSpotId,
+                ExternalHandoffUri = request.ExternalHandoffUri?.Trim() ?? string.Empty
             };
-            CopyDictionariesToObjective(request.Dictionaries, objective);
+            if (request.Dictionaries != null)
+                CopyDictionariesToObjective(request.Dictionaries, objective);
             return objective;
+        }
+
+        private static bool HasObjectiveRequirement(QuestObjectiveRequest request)
+        {
+            if (request.LinkedGeoHotSpotId.HasValue)
+                return true;
+            if (!string.IsNullOrWhiteSpace(request.ExternalHandoffUri))
+                return true;
+            return request.Dictionaries != null && HasAtLeastOneNeedDefinition(request.Dictionaries);
         }
 
         private static bool HasAtLeastOneNeedDefinition(QuestObjectiveDictionariesRequest dictionaries) =>
@@ -1933,6 +1957,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public HolonType HolonSubType { get; set; } = HolonType.Quest;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
+        /// <summary>Optional quest-level GeoHotSpot (e.g. visit or trigger media/text/link).</summary>
+        public Guid? LinkedGeoHotSpotId { get; set; }
+        /// <summary>Optional cross-app handoff URI (OPortal, CLI, web, messaging).</summary>
+        public string? ExternalHandoffUri { get; set; }
         /// <summary>Optional list of objectives (sub-quests) to create with the quest. Each gets a distinct ID so CompleteQuestObjective can be used.</summary>
         public List<QuestObjectiveRequest>? Objectives { get; set; }
     }
@@ -1984,6 +2012,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public bool IsCompleted { get; set; }
         public DateTime? CompletedAt { get; set; }
         public Guid? CompletedBy { get; set; }
+        public Guid? LinkedGeoHotSpotId { get; set; }
+        public string? ExternalHandoffUri { get; set; }
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
@@ -1993,6 +2023,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         public string Description { get; set; } = "";
         public string GameSource { get; set; } = "";
         public int Order { get; set; } = -1;
+        public Guid? LinkedGeoHotSpotId { get; set; }
+        public string? ExternalHandoffUri { get; set; }
         public QuestObjectiveDictionariesRequest? Dictionaries { get; set; }
     }
 
