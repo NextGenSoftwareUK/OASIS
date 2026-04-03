@@ -52,11 +52,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty()]
         public IList<string> RewardIds { get; set; }
 
-        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Audio"/>: URL to audio (https stream, file, or app-resolved asset).</summary>
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Audio"/>: binary audio on the holon; takes precedence over <see cref="AudioUrl"/> when non-empty.</summary>
+        [CustomOASISProperty]
+        public byte[] AudioData { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Audio"/>: URL to audio when <see cref="AudioData"/> is null or empty.</summary>
         [CustomOASISProperty]
         public string AudioUrl { get; set; }
 
-        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Video"/>: URL to video.</summary>
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Video"/>: binary video on the holon; takes precedence over <see cref="VideoUrl"/> when non-empty.</summary>
+        [CustomOASISProperty]
+        public byte[] VideoData { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Video"/>: URL to video when <see cref="VideoData"/> is null or empty.</summary>
         [CustomOASISProperty]
         public string VideoUrl { get; set; }
 

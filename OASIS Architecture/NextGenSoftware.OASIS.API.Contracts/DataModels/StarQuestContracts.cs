@@ -60,6 +60,10 @@ namespace NextGenSoftware.OASIS.API.Contracts
         public bool IsCompleted { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string CompletedBy { get; set; }
+        /// <summary>Optional GeoHotSpot id (GUID string) for this objective. Matches backend <c>Objective.LinkedGeoHotSpotId</c>.</summary>
+        public string LinkedGeoHotSpotId { get; set; }
+        /// <summary>Optional cross-app handoff URI (OPortal, messaging, web task). Matches backend <c>Objective.ExternalHandoffUri</c>.</summary>
+        public string ExternalHandoffUri { get; set; }
         /// <summary>Requirement and progress dictionaries keyed by game id (e.g. ODOOM, OQUAKE). Matches backend Objective.</summary>
         public StarQuestObjectiveDictionaries Dictionaries { get; set; }
 
@@ -116,6 +120,11 @@ namespace NextGenSoftware.OASIS.API.Contracts
             AddKeyed("Earned", "karma", Dictionaries.NeedToEarnKarma, Dictionaries.KarmaEarnt);
             AddKeyed("Completed", "levels", Dictionaries.NeedToCompleteLevel, Dictionaries.LevelsCompleted);
 
+            if (!string.IsNullOrWhiteSpace(LinkedGeoHotSpotId))
+                lines.Add("Linked GeoHotSpot");
+            if (!string.IsNullOrWhiteSpace(ExternalHandoffUri))
+                lines.Add($"Handoff: {ExternalHandoffUri.Trim()}");
+
             if (lines.Count > 0)
                 return string.Join(" and ", lines);
 
@@ -142,7 +151,28 @@ namespace NextGenSoftware.OASIS.API.Contracts
         public string ParentQuestId { get; set; } = string.Empty;
         public List<StarQuestObjective> Objectives { get; set; } = new List<StarQuestObjective>();
         public List<string> PrerequisiteQuestIds { get; set; } = new List<string>();
+        /// <summary>Optional quest-level GeoHotSpot id (GUID string). Matches backend <c>QuestBase.LinkedGeoHotSpotId</c>.</summary>
+        public string LinkedGeoHotSpotId { get; set; }
+        /// <summary>Optional quest-level cross-app handoff URI.</summary>
+        public string ExternalHandoffUri { get; set; }
         /// <summary>Quest-level requirement/progress dictionaries (key = game id). Matches backend QuestBase.</summary>
         public StarQuestObjectiveDictionaries Dictionaries { get; set; }
+    }
+
+    /// <summary>
+    /// GeoHotSpot fields exposed for HTTP clients (e.g. <c>GET /api/GeoHotSpots/{id}</c>). Matches <c>GeoHotSpot</c> holon JSON.
+    /// Prefer <see cref="AudioData"/> / <see cref="VideoData"/> when non-null and non-empty; otherwise use <see cref="AudioUrl"/> / <see cref="VideoUrl"/>.
+    /// </summary>
+    public sealed class StarGeoHotSpotDetails
+    {
+        public string Id { get; set; } = string.Empty;
+        public double Lat { get; set; }
+        public double Long { get; set; }
+        public string AudioUrl { get; set; }
+        public string VideoUrl { get; set; }
+        public byte[] AudioData { get; set; }
+        public byte[] VideoData { get; set; }
+        public string TextContent { get; set; }
+        public string WebsiteUrl { get; set; }
     }
 }
