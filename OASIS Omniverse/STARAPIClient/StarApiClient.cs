@@ -1246,6 +1246,8 @@ public sealed class StarApiClient : IDisposable
                     GameSource = o.GameSource ?? string.Empty,
                     Objectives = new List<StarQuestObjective>(),
                     ParentQuestId = id,
+                    LinkedGeoHotSpotId = o.LinkedGeoHotSpotId,
+                    ExternalHandoffUri = o.ExternalHandoffUri,
                     Dictionaries = o.Dictionaries
                 });
             }
@@ -1463,6 +1465,8 @@ public sealed class StarApiClient : IDisposable
                 ParentQuestId = q.ParentQuestId ?? string.Empty,
                 Objectives = objectives,
                 PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                LinkedGeoHotSpotId = q.LinkedGeoHotSpotId,
+                ExternalHandoffUri = q.ExternalHandoffUri,
                 Dictionaries = q.Dictionaries
             };
             _cachedQuestList[i] = updated;
@@ -3706,7 +3710,7 @@ public sealed class StarApiClient : IDisposable
     public Task<OASISResult<bool>> QueueCompleteQuestAsync(string questId, CancellationToken cancellationToken = default) =>
         RunOnWorkerAsync(DedicatedWorker.Quests, ct => CompleteQuestAsync(questId, ct), cancellationToken);
 
-    public async Task<OASISResult<StarQuestInfo?>> CreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarQuestInfo?>> CreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, string? questLinkedGeoHotSpotId = null, string? questExternalHandoffUri = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<StarQuestInfo?>("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -3717,8 +3721,8 @@ public sealed class StarApiClient : IDisposable
         {
             if (string.IsNullOrWhiteSpace(o.Title) || string.IsNullOrWhiteSpace(o.Description))
                 return FailAndCallback<StarQuestInfo?>("Each objective requires Title and Description.", StarApiResultCode.InvalidParam);
-            if (!HasAtLeastOneNeedDefinition(o.Dictionaries))
-                return FailAndCallback<StarQuestInfo?>("Each objective requires at least one Need* dictionary definition.", StarApiResultCode.InvalidParam);
+            if (!ObjectiveHasAuthoringRequirements(o))
+                return FailAndCallback<StarQuestInfo?>("Each objective requires at least one Need* dictionary definition, a valid LinkedGeoHotSpotId, or ExternalHandoffUri.", StarApiResultCode.InvalidParam);
         }
 
         var avatarIdResult = await EnsureAvatarIdAsync(cancellationToken).ConfigureAwait(false);
@@ -3737,6 +3741,10 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("Description", description);
             writer.WriteNumber("HolonSubType", 8); /* HolonType.Quest */
             writer.WriteString("SourceFolderPath", string.Empty);
+            if (!string.IsNullOrWhiteSpace(questLinkedGeoHotSpotId) && Guid.TryParse(questLinkedGeoHotSpotId.Trim(), out var questGh))
+                writer.WriteString("LinkedGeoHotSpotId", questGh.ToString("D"));
+            if (!string.IsNullOrWhiteSpace(questExternalHandoffUri))
+                writer.WriteString("ExternalHandoffUri", questExternalHandoffUri.Trim());
             writer.WritePropertyName("CreateOptions");
             writer.WriteNullValue();
             writer.WritePropertyName("MetaData");
@@ -3762,6 +3770,10 @@ public sealed class StarApiClient : IDisposable
                 writer.WriteBoolean("IsCompleted", o.IsCompleted);
                 if (o.CompletedAt.HasValue) writer.WriteString("CompletedAt", o.CompletedAt.Value.ToString("O"));
                 if (!string.IsNullOrEmpty(o.CompletedBy)) writer.WriteString("CompletedBy", o.CompletedBy);
+                if (!string.IsNullOrWhiteSpace(o.LinkedGeoHotSpotId) && Guid.TryParse(o.LinkedGeoHotSpotId.Trim(), out var objGh))
+                    writer.WriteString("LinkedGeoHotSpotId", objGh.ToString("D"));
+                if (!string.IsNullOrWhiteSpace(o.ExternalHandoffUri))
+                    writer.WriteString("ExternalHandoffUri", o.ExternalHandoffUri.Trim());
                 if (o.Dictionaries != null)
                 {
                     writer.WritePropertyName("Dictionaries");
@@ -3815,12 +3827,22 @@ public sealed class StarApiClient : IDisposable
                dictionaries.NeedToSurviveMins?.Count > 0;
     }
 
+    /// <summary>True when an objective is valid for create/add: at least one Need* row, a parseable linked GeoHotSpot id, or a non-empty handoff URI (matches STAR WebAPI rules).</summary>
+    private static bool ObjectiveHasAuthoringRequirements(StarQuestObjective? o)
+    {
+        if (o == null) return false;
+        if (HasAtLeastOneNeedDefinition(o.Dictionaries)) return true;
+        if (!string.IsNullOrWhiteSpace(o.LinkedGeoHotSpotId) && Guid.TryParse(o.LinkedGeoHotSpotId.Trim(), out _)) return true;
+        if (!string.IsNullOrWhiteSpace(o.ExternalHandoffUri)) return true;
+        return false;
+    }
+
     /// <summary>Run create-cross-game-quest on the background worker so the calling thread does not block.</summary>
-    public Task<OASISResult<StarQuestInfo?>> QueueCreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => CreateCrossGameQuestAsync(questName, description, objectives, ct), cancellationToken);
+    public Task<OASISResult<StarQuestInfo?>> QueueCreateCrossGameQuestAsync(string questName, string description, List<StarQuestObjective> objectives, string? questLinkedGeoHotSpotId = null, string? questExternalHandoffUri = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => CreateCrossGameQuestAsync(questName, description, objectives, questLinkedGeoHotSpotId, questExternalHandoffUri, ct), cancellationToken);
 
     /// <summary>Adds an objective to an existing quest (Title, Description, explicit Dictionaries with at least one Need*).</summary>
-    public async Task<OASISResult<StarQuestInfo?>> AddQuestObjectiveAsync(string questId, string title, string description, string? gameSource = null, int order = -1, StarQuestObjectiveDictionaries? dictionaries = null, CancellationToken cancellationToken = default)
+    public async Task<OASISResult<StarQuestInfo?>> AddQuestObjectiveAsync(string questId, string title, string description, string? gameSource = null, int order = -1, StarQuestObjectiveDictionaries? dictionaries = null, string? linkedGeoHotSpotId = null, string? externalHandoffUri = null, CancellationToken cancellationToken = default)
     {
         if (!IsInitialized())
             return FailAndCallback<StarQuestInfo?>("Client is not initialized.", StarApiResultCode.NotInitialized);
@@ -3834,8 +3856,9 @@ public sealed class StarApiClient : IDisposable
         if (string.IsNullOrWhiteSpace(description))
             return FailAndCallback<StarQuestInfo?>("Description is required.", StarApiResultCode.InvalidParam);
 
-        if (!HasAtLeastOneNeedDefinition(dictionaries))
-            return FailAndCallback<StarQuestInfo?>("At least one Need* dictionary definition is required.", StarApiResultCode.InvalidParam);
+        var probe = new StarQuestObjective { Dictionaries = dictionaries, LinkedGeoHotSpotId = linkedGeoHotSpotId, ExternalHandoffUri = externalHandoffUri };
+        if (!ObjectiveHasAuthoringRequirements(probe))
+            return FailAndCallback<StarQuestInfo?>("At least one Need* dictionary definition, a valid LinkedGeoHotSpotId, or ExternalHandoffUri is required.", StarApiResultCode.InvalidParam);
 
         var payload = BuildJson(writer =>
         {
@@ -3844,6 +3867,10 @@ public sealed class StarApiClient : IDisposable
             writer.WriteString("Description", description);
             writer.WriteString("GameSource", gameSource ?? string.Empty);
             writer.WriteNumber("Order", order);
+            if (!string.IsNullOrWhiteSpace(linkedGeoHotSpotId) && Guid.TryParse(linkedGeoHotSpotId.Trim(), out var gh))
+                writer.WriteString("LinkedGeoHotSpotId", gh.ToString("D"));
+            if (!string.IsNullOrWhiteSpace(externalHandoffUri))
+                writer.WriteString("ExternalHandoffUri", externalHandoffUri.Trim());
             if (dictionaries != null)
             {
                 writer.WritePropertyName("Dictionaries");
@@ -3874,8 +3901,47 @@ public sealed class StarApiClient : IDisposable
     }
 
     /// <summary>Run add-quest-objective on the background worker so the calling thread does not block.</summary>
-    public Task<OASISResult<StarQuestInfo?>> QueueAddQuestObjectiveAsync(string questId, string title, string description, string? gameSource = null, int order = -1, StarQuestObjectiveDictionaries? dictionaries = null, CancellationToken cancellationToken = default) =>
-        RunOnBackgroundAsync(ct => AddQuestObjectiveAsync(questId, title, description, gameSource, order, dictionaries, ct), cancellationToken);
+    public Task<OASISResult<StarQuestInfo?>> QueueAddQuestObjectiveAsync(string questId, string title, string description, string? gameSource = null, int order = -1, StarQuestObjectiveDictionaries? dictionaries = null, string? linkedGeoHotSpotId = null, string? externalHandoffUri = null, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => AddQuestObjectiveAsync(questId, title, description, gameSource, order, dictionaries, linkedGeoHotSpotId, externalHandoffUri, ct), cancellationToken);
+
+    /// <summary>Loads a GeoHotSpot by id from STAR WebAPI (<c>GET /api/GeoHotSpots/{id}</c>). Deserializes <c>audioData</c>/<c>videoData</c> when the API returns base64-encoded bytes.</summary>
+    public async Task<OASISResult<StarGeoHotSpotDetails?>> GetGeoHotSpotAsync(string geoHotSpotId, CancellationToken cancellationToken = default)
+    {
+        if (!IsInitialized())
+            return FailAndCallback<StarGeoHotSpotDetails?>("Client is not initialized.", StarApiResultCode.NotInitialized);
+
+        if (string.IsNullOrWhiteSpace(geoHotSpotId) || !Guid.TryParse(geoHotSpotId.Trim(), out var ghId))
+            return FailAndCallback<StarGeoHotSpotDetails?>("A valid GeoHotSpot id (GUID) is required.", StarApiResultCode.InvalidParam);
+
+        var response = await SendRawAsync(HttpMethod.Get, $"{_baseApiUrl}/api/GeoHotSpots/{ghId:D}", null, cancellationToken).ConfigureAwait(false);
+        if (response.IsError)
+            return FailAndCallback<StarGeoHotSpotDetails?>(response.Message, ParseCode(response.ErrorCode, StarApiResultCode.ApiError), response.Exception);
+
+        var parseResult = ParseEnvelopeOrPayload(response.Result, out var resultElement, out var parseErrorCode, out var parseErrorMessage);
+        if (!parseResult)
+            return FailAndCallback<StarGeoHotSpotDetails?>(parseErrorMessage, parseErrorCode);
+
+        if (resultElement.ValueKind != JsonValueKind.Object)
+            return FailAndCallback<StarGeoHotSpotDetails?>("GeoHotSpot response was not a JSON object.", StarApiResultCode.ApiError);
+
+        StarGeoHotSpotDetails? details;
+        try
+        {
+            var serializerOpts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, MaxDepth = 1024 };
+            details = JsonSerializer.Deserialize<StarGeoHotSpotDetails>(resultElement.GetRawText(), serializerOpts);
+        }
+        catch (Exception ex)
+        {
+            return FailAndCallback<StarGeoHotSpotDetails?>($"Could not parse GeoHotSpot JSON: {ex.Message}", StarApiResultCode.ApiError, ex);
+        }
+
+        InvokeCallback(StarApiResultCode.Success);
+        return Success(details, StarApiResultCode.Success, "GeoHotSpot loaded.");
+    }
+
+    /// <summary>Run <see cref="GetGeoHotSpotAsync"/> on the background worker.</summary>
+    public Task<OASISResult<StarGeoHotSpotDetails?>> QueueGetGeoHotSpotAsync(string geoHotSpotId, CancellationToken cancellationToken = default) =>
+        RunOnBackgroundAsync(ct => GetGeoHotSpotAsync(geoHotSpotId, ct), cancellationToken);
 
     /// <summary>Removes an objective from a quest.</summary>
     public async Task<OASISResult<bool>> RemoveQuestObjectiveAsync(string questId, string objectiveId, CancellationToken cancellationToken = default)
@@ -4099,6 +4165,8 @@ public sealed class StarApiClient : IDisposable
                     ParentQuestId = q.ParentQuestId ?? string.Empty,
                     Objectives = q.Objectives ?? new List<StarQuestObjective>(),
                     PrerequisiteQuestIds = q.PrerequisiteQuestIds ?? new List<string>(),
+                    LinkedGeoHotSpotId = q.LinkedGeoHotSpotId,
+                    ExternalHandoffUri = q.ExternalHandoffUri,
                     Dictionaries = q.Dictionaries
                 };
                 _cachedQuestList[i] = updated;
@@ -5736,6 +5804,8 @@ public sealed class StarApiClient : IDisposable
                 var isCompleted = GetBoolProperty(objective, "IsCompleted") || GetBoolProperty(objective, "isCompleted");
                 var completedAt = GetDateTimeProperty(objective, "CompletedAt") ?? GetDateTimeProperty(objective, "completedAt");
                 var completedBy = GetStringProperty(objective, "CompletedBy") ?? GetStringProperty(objective, "completedBy");
+                var linkedGh = GetStringProperty(objective, "LinkedGeoHotSpotId") ?? GetStringProperty(objective, "linkedGeoHotSpotId");
+                var handoff = GetStringProperty(objective, "ExternalHandoffUri") ?? GetStringProperty(objective, "externalHandoffUri");
                 var dicts = ParseObjectiveDictionaries(objective);
                 objectives.Add(new StarQuestObjective
                 {
@@ -5747,6 +5817,8 @@ public sealed class StarApiClient : IDisposable
                     IsCompleted = isCompleted,
                     CompletedAt = completedAt,
                     CompletedBy = completedBy,
+                    LinkedGeoHotSpotId = string.IsNullOrWhiteSpace(linkedGh) ? null : linkedGh.Trim(),
+                    ExternalHandoffUri = string.IsNullOrWhiteSpace(handoff) ? null : handoff.Trim(),
                     Dictionaries = dicts
                 });
                 index++;
@@ -6831,6 +6903,8 @@ public sealed class StarApiClient : IDisposable
                     {
                         if (sub.ValueKind != JsonValueKind.Object) continue;
                         ParseObjectiveStringsFromJsonObject(sub, out var title, out var desc);
+                        var qLg = GetStringProperty(sub, "LinkedGeoHotSpotId") ?? GetStringProperty(sub, "linkedGeoHotSpotId");
+                        var qHo = GetStringProperty(sub, "ExternalHandoffUri") ?? GetStringProperty(sub, "externalHandoffUri");
                         objectives.Add(new StarQuestObjective
                         {
                             Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
@@ -6839,6 +6913,8 @@ public sealed class StarApiClient : IDisposable
                             GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                             Order = GetIntProperty(sub, "Order") ?? idx,
                             IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                            LinkedGeoHotSpotId = string.IsNullOrWhiteSpace(qLg) ? null : qLg.Trim(),
+                            ExternalHandoffUri = string.IsNullOrWhiteSpace(qHo) ? null : qHo.Trim(),
                             Dictionaries = ParseObjectiveDictionaries(sub)
                         });
                         idx++;
@@ -6891,6 +6967,8 @@ public sealed class StarApiClient : IDisposable
                 ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
                 Objectives = objectives,
                 PrerequisiteQuestIds = prereqIds,
+                LinkedGeoHotSpotId = ReadLinkedGeoHotSpotIdFromQuestJson(questElement),
+                ExternalHandoffUri = ReadExternalHandoffUriFromQuestJson(questElement),
                 Dictionaries = ParseObjectiveDictionaries(questElement)
             });
 
@@ -6950,6 +7028,8 @@ public sealed class StarApiClient : IDisposable
                         ParentQuestId = parentId,
                         Objectives = childObj,
                         PrerequisiteQuestIds = childPrereqIds,
+                        LinkedGeoHotSpotId = ReadLinkedGeoHotSpotIdFromQuestJson(childEl),
+                        ExternalHandoffUri = ReadExternalHandoffUriFromQuestJson(childEl),
                         Dictionaries = ParseObjectiveDictionaries(childEl)
                     });
                 }
@@ -6957,6 +7037,30 @@ public sealed class StarApiClient : IDisposable
         }
 
         return quests;
+    }
+
+    private static string? ReadLinkedGeoHotSpotIdFromQuestJson(JsonElement element)
+    {
+        var s = GetStringProperty(element, "LinkedGeoHotSpotId") ?? GetStringProperty(element, "linkedGeoHotSpotId");
+        if (!string.IsNullOrWhiteSpace(s)) return s.Trim();
+        if ((TryGetProperty(element, "MetaData", out var meta) || TryGetProperty(element, "metaData", out meta)) && meta.ValueKind == JsonValueKind.Object)
+        {
+            s = GetStringProperty(meta, "LinkedGeoHotSpotId") ?? GetStringProperty(meta, "linkedGeoHotSpotId");
+            if (!string.IsNullOrWhiteSpace(s)) return s.Trim();
+        }
+        return null;
+    }
+
+    private static string? ReadExternalHandoffUriFromQuestJson(JsonElement element)
+    {
+        var s = GetStringProperty(element, "ExternalHandoffUri") ?? GetStringProperty(element, "externalHandoffUri");
+        if (!string.IsNullOrWhiteSpace(s)) return s.Trim();
+        if ((TryGetProperty(element, "MetaData", out var meta) || TryGetProperty(element, "metaData", out meta)) && meta.ValueKind == JsonValueKind.Object)
+        {
+            s = GetStringProperty(meta, "ExternalHandoffUri") ?? GetStringProperty(meta, "externalHandoffUri");
+            if (!string.IsNullOrWhiteSpace(s)) return s.Trim();
+        }
+        return null;
     }
 
     private static StarQuestInfo? ParseSingleQuestInfo(JsonElement element)
@@ -6974,6 +7078,8 @@ public sealed class StarApiClient : IDisposable
                 if (sub.ValueKind != JsonValueKind.Object) continue;
                 ParseObjectiveStringsFromJsonObject(sub, out var title, out var desc);
                 if (string.IsNullOrEmpty(desc)) continue; /* Skip items that look like full quests (no Description/Objective). */
+                var subLg = GetStringProperty(sub, "LinkedGeoHotSpotId") ?? GetStringProperty(sub, "linkedGeoHotSpotId");
+                var subHo = GetStringProperty(sub, "ExternalHandoffUri") ?? GetStringProperty(sub, "externalHandoffUri");
                 objectives.Add(new StarQuestObjective
                 {
                     Id = GetStringProperty(sub, "Id") ?? GetStringProperty(sub, "id") ?? string.Empty,
@@ -6982,6 +7088,8 @@ public sealed class StarApiClient : IDisposable
                     GameSource = GetStringProperty(sub, "GameSource") ?? GetStringProperty(sub, "gameSource") ?? string.Empty,
                     Order = GetIntProperty(sub, "Order") ?? GetIntProperty(sub, "order") ?? 0,
                     IsCompleted = GetBoolProperty(sub, "IsCompleted") || GetBoolProperty(sub, "isCompleted"),
+                    LinkedGeoHotSpotId = string.IsNullOrWhiteSpace(subLg) ? null : subLg.Trim(),
+                    ExternalHandoffUri = string.IsNullOrWhiteSpace(subHo) ? null : subHo.Trim(),
                     Dictionaries = ParseObjectiveDictionaries(sub)
                 });
             }
@@ -7013,6 +7121,8 @@ public sealed class StarApiClient : IDisposable
             ParentQuestId = (parentQuestId ?? string.Empty).Trim(),
             Objectives = objectives,
             PrerequisiteQuestIds = prereqIds,
+            LinkedGeoHotSpotId = ReadLinkedGeoHotSpotIdFromQuestJson(element),
+            ExternalHandoffUri = ReadExternalHandoffUriFromQuestJson(element),
             Dictionaries = ParseObjectiveDictionaries(element)
         };
     }
