@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
@@ -65,6 +67,66 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     }
                 }
 
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotAudioUrl, out object audioO) && audioO != null)
+                    createOptions.STARNETHolon.AudioUrl = audioO.ToString()?.Trim() ?? string.Empty;
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotVideoUrl, out object videoO) && videoO != null)
+                    createOptions.STARNETHolon.VideoUrl = videoO.ToString()?.Trim() ?? string.Empty;
+
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotAudioFilePath, out object audioPathO) && audioPathO != null)
+                {
+                    string ap = audioPathO.ToString()?.Trim();
+                    if (!string.IsNullOrEmpty(ap))
+                    {
+                        if (!File.Exists(ap))
+                        {
+                            result.IsError = true;
+                            result.Message = $"Geo-hotspot audio file not found: {ap}";
+                            return result;
+                        }
+                        try
+                        {
+                            createOptions.STARNETHolon.AudioData = File.ReadAllBytes(ap);
+                            createOptions.STARNETHolon.AudioUrl = null;
+                        }
+                        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                        {
+                            result.IsError = true;
+                            result.Message = $"Could not read geo-hotspot audio file: {ex.Message}";
+                            return result;
+                        }
+                    }
+                }
+
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotVideoFilePath, out object videoPathO) && videoPathO != null)
+                {
+                    string vp = videoPathO.ToString()?.Trim();
+                    if (!string.IsNullOrEmpty(vp))
+                    {
+                        if (!File.Exists(vp))
+                        {
+                            result.IsError = true;
+                            result.Message = $"Geo-hotspot video file not found: {vp}";
+                            return result;
+                        }
+                        try
+                        {
+                            createOptions.STARNETHolon.VideoData = File.ReadAllBytes(vp);
+                            createOptions.STARNETHolon.VideoUrl = null;
+                        }
+                        catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+                        {
+                            result.IsError = true;
+                            result.Message = $"Could not read geo-hotspot video file: {ex.Message}";
+                            return result;
+                        }
+                    }
+                }
+
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotTextContent, out object textO) && textO != null)
+                    createOptions.STARNETHolon.TextContent = textO.ToString()?.Trim() ?? string.Empty;
+                if (p.TryGetValue(StarCliNonInteractiveCreateKeys.GeoHotSpotWebsiteUrl, out object webO) && webO != null)
+                    createOptions.STARNETHolon.WebsiteUrl = webO.ToString()?.Trim() ?? string.Empty;
+
                 return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
             }
 
@@ -89,6 +151,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //if (parentQuest != null)
             //    newHolon.ParentQuestId = parentQuest.Id;
 
+            object hotspotTypeObj = CLIEngine.GetValidInputForEnum("Select the GeoHotSpot type (Map, AR, VR, IR for map/AR assets; Audio, Video, Text, WebsiteLink for media or links):", typeof(GeoHotSpotType));
+            if (hotspotTypeObj == null || hotspotTypeObj.ToString() == "exit")
+            {
+                result.Message = "User Exited";
+                return result;
+            }
+
+            var hotspotType = (GeoHotSpotType)hotspotTypeObj;
+            bool isMediaType = hotspotType == GeoHotSpotType.Audio || hotspotType == GeoHotSpotType.Video
+                || hotspotType == GeoHotSpotType.Text || hotspotType == GeoHotSpotType.WebsiteLink;
+
             createOptions.STARNETHolon.Lat = CLIEngine.GetValidInputForDouble("Enter the latitude co-ordinates for the GeoHotSpot (i.e. the north-south position): ");
             createOptions.STARNETHolon.Long = CLIEngine.GetValidInputForDouble("Enter the longitude co-ordinates for the GeoHotSpot (i.e. the east-west position): ");
             createOptions.STARNETHolon.HotSpotRadiusInMetres = CLIEngine.GetValidInputForInt("Enter the radius in metres for the GeoHotSpot (i.e. how close you need to be to the lat/long co-ords to trigger the hot-spot): ");
@@ -108,23 +181,88 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
             }
 
-            OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("GeoHotSpot");
-
-            if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
+            if (isMediaType)
             {
-                createOptions.STARNETHolon.Image2D = imageObjectResult.Result.Image2D;
-                createOptions.STARNETHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
-                createOptions.STARNETHolon.Object3D = imageObjectResult.Result.Object3D;
-                createOptions.STARNETHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
+                Console.WriteLine("");
+                CLIEngine.ShowMessage("Media / link hotspots: provide the payload for the selected type (empty skips that field).", ConsoleColor.DarkCyan, false);
+                switch (hotspotType)
+                {
+                    case GeoHotSpotType.Audio:
+                        Console.WriteLine("");
+                        if (CLIEngine.GetConfirmation("Use a local audio file (Y) or a streaming / HTTPS URL (N)?"))
+                        {
+                            Console.WriteLine("");
+                            string audioPath = CLIEngine.GetValidFile("What is the full path to the local audio file?");
+                            if (audioPath == "exit")
+                            {
+                                result.Message = "User Exited";
+                                return result;
+                            }
+                            if (!string.IsNullOrWhiteSpace(audioPath))
+                            {
+                                createOptions.STARNETHolon.AudioData = File.ReadAllBytes(audioPath);
+                                createOptions.STARNETHolon.AudioUrl = null;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            createOptions.STARNETHolon.AudioUrl = CLIEngine.GetValidInput("What is the URL to the audio (https or stream)? Leave empty to skip.")?.Trim() ?? string.Empty;
+                            createOptions.STARNETHolon.AudioData = null;
+                        }
+                        break;
+                    case GeoHotSpotType.Video:
+                        Console.WriteLine("");
+                        if (CLIEngine.GetConfirmation("Use a local video file (Y) or a streaming / HTTPS URL (N)?"))
+                        {
+                            Console.WriteLine("");
+                            string videoPath = CLIEngine.GetValidFile("What is the full path to the local video file?");
+                            if (videoPath == "exit")
+                            {
+                                result.Message = "User Exited";
+                                return result;
+                            }
+                            if (!string.IsNullOrWhiteSpace(videoPath))
+                            {
+                                createOptions.STARNETHolon.VideoData = File.ReadAllBytes(videoPath);
+                                createOptions.STARNETHolon.VideoUrl = null;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("");
+                            createOptions.STARNETHolon.VideoUrl = CLIEngine.GetValidInput("What is the URL to the video? Leave empty to skip.")?.Trim() ?? string.Empty;
+                            createOptions.STARNETHolon.VideoData = null;
+                        }
+                        break;
+                    case GeoHotSpotType.Text:
+                        createOptions.STARNETHolon.TextContent = CLIEngine.GetValidInput("Text to display when triggered:")?.Trim() ?? string.Empty;
+                        break;
+                    case GeoHotSpotType.WebsiteLink:
+                        createOptions.STARNETHolon.WebsiteUrl = CLIEngine.GetValidInput("Website or deep-link URL:")?.Trim() ?? string.Empty;
+                        break;
+                }
             }
             else
             {
-                result.IsError = true;
-                result.Message = "Error processing image or object!";
-                return result;
+                OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("GeoHotSpot");
+
+                if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)
+                {
+                    createOptions.STARNETHolon.Image2D = imageObjectResult.Result.Image2D;
+                    createOptions.STARNETHolon.Image2DURI = imageObjectResult.Result.Image2DURI;
+                    createOptions.STARNETHolon.Object3D = imageObjectResult.Result.Object3D;
+                    createOptions.STARNETHolon.Object3DURI = imageObjectResult.Result.Object3DURI;
+                }
+                else
+                {
+                    result.IsError = true;
+                    result.Message = "Error processing image or object!";
+                    return result;
+                }
             }
 
-            result = await base.CreateAsync(createOptions, holonSubType, false, false, providerType);
+            result = await base.CreateAsync(createOptions, hotspotType, false, false, providerType);
 
             if (result != null)
             {

@@ -7,9 +7,9 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         AR,
         VR,
         IR, //If in AR Mode this means you need to reach out with your hand and touch it, otherwise it means tapping on it on the map.
-        /// <summary>Play streamed or file audio when the hotspot is triggered (see <c>AudioUrl</c> on the holon).</summary>
+        /// <summary>Play audio when triggered (holon <c>AudioData</c> or <c>AudioUrl</c>).</summary>
         Audio,
-        /// <summary>Play video (stream or file) when triggered (see <c>VideoUrl</c>).</summary>
+        /// <summary>Play video when triggered (holon <c>VideoData</c> or <c>VideoUrl</c>).</summary>
         Video,
         /// <summary>Show authored text (see <c>TextContent</c>).</summary>
         Text,

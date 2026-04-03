@@ -30,6 +30,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public const string GeoHotSpotRadiusMetres = "star.cli.geoHotSpotRadiusMetres";
         public const string GeoHotSpotTriggeredType = "star.cli.geoHotSpotTriggeredType";
         public const string GeoHotSpotTimeSeconds = "star.cli.geoHotSpotTimeSeconds";
+        /// <summary>Optional media/link fields for scripted <c>geohotspot create</c> (Audio, Video, Text, WebsiteLink types).</summary>
+        public const string GeoHotSpotAudioUrl = "star.cli.geoHotSpotAudioUrl";
+        public const string GeoHotSpotVideoUrl = "star.cli.geoHotSpotVideoUrl";
+        /// <summary>Local filesystem path; non-interactive geo-hotspot create reads bytes into holon <c>AudioData</c> (overrides <c>--audio-url</c> when present).</summary>
+        public const string GeoHotSpotAudioFilePath = "star.cli.geoHotSpotAudioFilePath";
+        /// <summary>Local path; bytes stored in holon <c>VideoData</c> (overrides <c>--video-url</c> when present).</summary>
+        public const string GeoHotSpotVideoFilePath = "star.cli.geoHotSpotVideoFilePath";
+        public const string GeoHotSpotTextContent = "star.cli.geoHotSpotTextContent";
+        public const string GeoHotSpotWebsiteUrl = "star.cli.geoHotSpotWebsiteUrl";
+
+        /// <summary>Optional quest-level GeoHotSpot id (GUID string) for scripted <c>quest create</c> (<c>--linked-geo-hotspot-id</c>).</summary>
+        public const string QuestLinkedGeoHotSpotId = "star.cli.questLinkedGeoHotSpotId";
+        /// <summary>Optional quest-level handoff URI for scripted <c>quest create</c> (<c>--external-handoff-uri</c>).</summary>
+        public const string QuestExternalHandoffUri = "star.cli.questExternalHandoffUri";
 
         /// <summary>Optional plugin namespace for scripted <c>plugin create</c>; default NextGenSoftware.OASIS.Plugins.&lt;Name&gt;.</summary>
         public const string PluginNamespace = "star.cli.pluginNamespace";
