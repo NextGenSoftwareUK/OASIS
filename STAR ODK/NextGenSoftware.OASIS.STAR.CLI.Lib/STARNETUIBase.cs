@@ -36,61 +36,6 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         where T4 : ISTARNETDNA, new()
     {
         protected const int DEFAULT_FIELD_LENGTH = 35;
-
-        /// <summary>STARNET DNA category can deserialize as <see cref="JsonElement"/> or other CLR types; avoid printing <c>ValueKind=...</c> to the user.</summary>
-        private static string FormatStarnetDnaCategoryForDisplay(object? raw)
-        {
-            if (raw == null) return "None";
-            if (raw is JsonElement je)
-            {
-                switch (je.ValueKind)
-                {
-                    case JsonValueKind.String:
-                        return je.GetString() ?? "None";
-                    case JsonValueKind.Number:
-                        if (je.TryGetInt32(out var i32))
-                            return i32.ToString(CultureInfo.InvariantCulture);
-                        if (je.TryGetInt64(out var i64))
-                            return i64.ToString(CultureInfo.InvariantCulture);
-                        return je.GetRawText();
-                    case JsonValueKind.Null:
-                    case JsonValueKind.Undefined:
-                        return "None";
-                    default:
-                        return je.GetRawText();
-                }
-            }
-
-            var s = raw.ToString();
-            if (string.IsNullOrEmpty(s))
-                return "None";
-
-            // Some JSON deserialization/serialization paths end up stringifying JsonElement
-            // as an object like `{ "ValueKind": 3 }` (losing the actual value).
-            // Convert this into a readable JsonValueKind name instead of printing the blob.
-            try
-            {
-                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal) && s.TrimStart().StartsWith("{"))
-                {
-                    using var doc = JsonDocument.Parse(s);
-                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
-                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
-                    {
-                        if (vk.ValueKind == JsonValueKind.Number && vk.TryGetInt32(out int i))
-                            return ((JsonValueKind)i).ToString();
-                        if (vk.ValueKind == JsonValueKind.String)
-                            return vk.GetString() ?? "None";
-                    }
-                }
-            }
-            catch
-            {
-                // Fall through to raw string output.
-            }
-
-            return s;
-        }
-
         public virtual ISTARNETManagerBase<T1, T2, T3, T4> STARNETManager { get; set; }
         public virtual bool IsInit { get; set; }
         public virtual string CreateHeader { get; set; }
@@ -731,7 +676,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     {
                         Console.WriteLine("");
                         DependencyInstallMode dependencyInstallMode = DependencyInstallMode.Nested;
-                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum($"Do you wish to install the dependency in the root of the {STARNETManager.STARNETHolonUIName}, in the Dependencies sub-folder (Nested)? (Recommended) or would you like to flatten the dependencies so all sub-dependencies are placed in the same level?", typeof(DependencyInstallMode));
+                        object dependencyInstallModeObj = CLIEngine.GetValidInputForEnum($"Do you wish to install the dependency in the root of the {STARNETManager.STARNETHolonUIName}, in the Dependencies (Smartbricks) sub-folder (Nested)? (Recommended) or would you like to flatten the dependencies so all sub-dependencies are placed in the same level?", typeof(DependencyInstallMode));
 
                         if (dependencyInstallModeObj != null)
                             dependencyInstallMode = (DependencyInstallMode)dependencyInstallModeObj;
@@ -871,7 +816,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (!depSelected)
             {
-                object depType = CLIEngine.GetValidInputForEnum("What type of dependency do you wish to remove?", typeof(DependencyType));
+                object depType = CLIEngine.GetValidInputForEnum("What type of dependency (Smartbrick) do you wish to remove?", typeof(DependencyType));
                 if (depType != null)
                 {
                     if (depType.ToString() == "exit" || depType.ToString() == "None")
@@ -1251,7 +1196,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             //Console.WriteLine("");
 
-            if (CLIEngine.GetConfirmation($"Do you wish to add any dependencies to the {STARNETDNA.STARNETHolonType} with name '{STARNETDNA.Name}'? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
+            if (CLIEngine.GetConfirmation($"Do you wish to add any dependencies (Smartbricks) to the {STARNETDNA.STARNETHolonType} with name '{STARNETDNA.Name}'? (you do not need to add the OASIS or STAR runtimes, they are added automatically)"))
             {
                 do
                 {
@@ -1627,7 +1572,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         }
                     }
 
-                    if (!result.Result.SimpleWizard && STARNETManager.GetNumberOfDependendies(DNAResult.Result) > 0 && CLIEngine.GetConfirmation($"Do you wish to embed any of the dependencies? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your {STARNETManager.STARNETHolonUIName}. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the {STARNETManager.STARNETHolonUIName} to be fully self-contained with no external dependencies (useful if you wish to install it offline from the {STARNETManager.STARNETHolonFileExtention} file)."))
+                    if (!result.Result.SimpleWizard && STARNETManager.GetNumberOfDependendies(DNAResult.Result) > 0 && CLIEngine.GetConfirmation($"Do you wish to embed any of the dependencies (Smartbricks)? It is not recommended because will increase the storage space/cost & upload/download time. If you choose 'N' then they will be automatically downloaded and installed when someone installs your {STARNETManager.STARNETHolonUIName}. Only choose 'Y' if you want them embedded in case there is an issue downloading/installing them seperatley later (unlikely) or if you want the {STARNETManager.STARNETHolonUIName} to be fully self-contained with no external dependencies (Smartbricks) (useful if you wish to install it offline from the {STARNETManager.STARNETHolonFileExtention} file)."))
                     {
                         if (DNAResult.Result.Dependencies.Templates.Count > 0)
                             result.Result.EmbedTemplates = CLIEngine.GetConfirmation("Do you wish to embed the sub-templates?");
@@ -2490,7 +2435,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             //    tip = "(use show/list detailed to view)";
 
             Console.WriteLine("");
-            DisplayProperty("DEPENDENCIES", "", displayFieldLength, false);
+            DisplayProperty("DEPENDENCIES (SMART BRICKS)", "", displayFieldLength, false);
             Console.WriteLine("");
             DisplayDependencyType("OAPPs", starHolon.STARNETDNA.Dependencies.OAPPs, tip, showDetailed, displayFieldLength);
             DisplayDependencyType("Runtimes", starHolon.STARNETDNA.Dependencies.Runtimes, tip, showDetailed, displayFieldLength);
@@ -4149,6 +4094,60 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             return result;
         }
+        
+        /// <summary>STARNET DNA category can deserialize as <see cref="JsonElement"/> or other CLR types; avoid printing <c>ValueKind=...</c> to the user.</summary>
+        private static string FormatStarnetDnaCategoryForDisplay(object? raw)
+        {
+            if (raw == null) return "None";
+            if (raw is JsonElement je)
+            {
+                switch (je.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return je.GetString() ?? "None";
+                    case JsonValueKind.Number:
+                        if (je.TryGetInt32(out var i32))
+                            return i32.ToString(CultureInfo.InvariantCulture);
+                        if (je.TryGetInt64(out var i64))
+                            return i64.ToString(CultureInfo.InvariantCulture);
+                        return je.GetRawText();
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return "None";
+                    default:
+                        return je.GetRawText();
+                }
+            }
+
+            var s = raw.ToString();
+            if (string.IsNullOrEmpty(s))
+                return "None";
+
+            // Some JSON deserialization/serialization paths end up stringifying JsonElement
+            // as an object like `{ "ValueKind": 3 }` (losing the actual value).
+            // Convert this into a readable JsonValueKind name instead of printing the blob.
+            try
+            {
+                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal) && s.TrimStart().StartsWith("{"))
+                {
+                    using var doc = JsonDocument.Parse(s);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
+                    {
+                        if (vk.ValueKind == JsonValueKind.Number && vk.TryGetInt32(out int i))
+                            return ((JsonValueKind)i).ToString();
+                        if (vk.ValueKind == JsonValueKind.String)
+                            return vk.GetString() ?? "None";
+                    }
+                }
+            }
+            catch
+            {
+                // Fall through to raw string output.
+            }
+
+            return s;
+        }
 
         private T1 ConvertFromT3ToT1(T3 holon)
         {
@@ -4204,7 +4203,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     break;
 
                 case STARNETHolonInstallStatus.InstallingDependencies:
-                    CLIEngine.ShowWorkingMessage("Installing Dependencies...");
+                    CLIEngine.ShowWorkingMessage("Installing Dependencies (Smartbricks)...");
                     break;
 
                 case STARNETHolonInstallStatus.InstallingRuntimes:
