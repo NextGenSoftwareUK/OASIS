@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -67,6 +68,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (objErr != null && objErr.IsError)
                     return objErr;
 
+                TryApplyQuestHandoffFromScriptedKeys(createOptions);
+
                 return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
             }
 
@@ -124,6 +127,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             createOptions.STARNETHolon.Order = order;
 
             InteractiveAppendObjectivesBeforeCreate(createOptions.STARNETHolon);
+            InteractiveAppendQuestLevelGeoAndHandoffForCreate(createOptions.STARNETHolon);
 
             result = await base.CreateAsync(createOptions, holonSubType, false, false, providerType: providerType);
 
@@ -233,6 +237,13 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             if (CLIEngine.NonInteractive || loadResult?.Result == null)
                 return Task.CompletedTask;
 
+            if (CLIEngine.GetConfirmation("Do you wish to edit quest-level linked GeoHotSpot or external handoff URI?"))
+            {
+                Console.WriteLine("");
+                PromptQuestLevelGeoAndHandoffFields(loadResult.Result, withIntroConfirmation: false);
+                changesMade = true;
+            }
+
             if (!CLIEngine.GetConfirmation("Do you wish to edit quest objectives (checklist items: add or remove)?"))
             {
                 Console.WriteLine("");
@@ -265,17 +276,35 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 string desc = CLIEngine.GetValidInput("Objective description?");
                 if (desc == "exit")
                     break;
-                quest.Objectives.Add(new Objective
+                var obj = new Objective
                 {
                     Id = Guid.NewGuid(),
                     Order = nextOrder++,
                     Title = title,
                     Description = desc
-                });
+                };
+                PromptOptionalObjectiveLinks(obj);
+                quest.Objectives.Add(obj);
             }
             while (CLIEngine.GetConfirmation("Add another objective?"));
 
             Console.WriteLine("");
+        }
+
+        private static void PromptOptionalObjectiveLinks(Objective obj)
+        {
+            if (CLIEngine.NonInteractive || obj == null)
+                return;
+
+            string gh = CLIEngine.GetValidInput("Optional: linked GeoHotSpot id (GUID) for this objective (blank = skip):")?.Trim();
+            if (!string.IsNullOrEmpty(gh) && gh != "exit" && Guid.TryParse(gh, out Guid g))
+                obj.LinkedGeoHotSpotId = g;
+            else if (!string.IsNullOrEmpty(gh) && gh != "exit")
+                CLIEngine.ShowWarningMessage("Invalid GUID; objective GeoHotSpot link skipped.");
+
+            string uri = CLIEngine.GetValidInput("Optional: external handoff URI for this objective (blank = skip):")?.Trim();
+            if (!string.IsNullOrEmpty(uri) && uri != "exit")
+                obj.ExternalHandoffUri = uri;
         }
 
         private static void InteractiveEditQuestObjectives(Quest quest, ref bool changesMade)
@@ -308,13 +337,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (desc == "exit")
                         break;
                     int next = quest.Objectives.Count == 0 ? 0 : quest.Objectives.Max(x => x.Order) + 1;
-                    quest.Objectives.Add(new Objective
+                    var newObj = new Objective
                     {
                         Id = Guid.NewGuid(),
                         Order = next,
                         Title = title,
                         Description = desc
-                    });
+                    };
+                    PromptOptionalObjectiveLinks(newObj);
+                    quest.Objectives.Add(newObj);
                     changesMade = true;
                 }
                 else if (action == "remove")
@@ -355,14 +386,25 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             string json = await File.ReadAllTextAsync(jsonPath).ConfigureAwait(false);
-            OASISResult<List<Objective>> parsed = ParseObjectivesFromJsonContent(json);
+            OASISResult<QuestObjectivesJsonParseResult> parsed = ParseQuestObjectivesJsonFile(json, allowObjectivesOmitted: true);
             if (parsed.IsError || parsed.Result == null)
             {
                 CLIEngine.ShowErrorMessage(parsed.Message ?? "Failed to parse objectives JSON.");
                 return;
             }
 
-            loadResult.Result.Objectives = parsed.Result;
+            if (parsed.Result.Objectives == null && !parsed.Result.QuestLinkedGeoHotSpotId.HasValue && string.IsNullOrWhiteSpace(parsed.Result.QuestExternalHandoffUri))
+            {
+                CLIEngine.ShowErrorMessage("JSON must include an \"objectives\" array and/or linkedGeoHotSpotId and/or externalHandoffUri.");
+                return;
+            }
+
+            if (parsed.Result.Objectives != null)
+                loadResult.Result.Objectives = parsed.Result.Objectives;
+            if (parsed.Result.QuestLinkedGeoHotSpotId.HasValue)
+                loadResult.Result.LinkedGeoHotSpotId = parsed.Result.QuestLinkedGeoHotSpotId;
+            if (!string.IsNullOrWhiteSpace(parsed.Result.QuestExternalHandoffUri))
+                loadResult.Result.ExternalHandoffUri = parsed.Result.QuestExternalHandoffUri.Trim();
             OASISResult<Quest> result = await STARNETManager.EditAsync(STAR.BeamedInAvatar.Id, loadResult.Result, (STARNETDNA)loadResult.Result.STARNETDNA, providerType);
             Console.WriteLine("");
             CLIEngine.ShowWorkingMessage("Saving quest...");
@@ -400,14 +442,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             try
             {
                 string json = File.ReadAllText(path);
-                OASISResult<List<Objective>> parsed = ParseObjectivesFromJsonContent(json);
+                OASISResult<QuestObjectivesJsonParseResult> parsed = ParseQuestObjectivesJsonFile(json, allowObjectivesOmitted: false);
                 if (parsed.IsError)
                 {
                     OASISErrorHandling.HandleError(ref r, parsed.Message);
                     return r;
                 }
 
-                createOptions.STARNETHolon.Objectives = parsed.Result ?? new List<Objective>();
+                createOptions.STARNETHolon.Objectives = parsed.Result.Objectives;
+                if (parsed.Result.QuestLinkedGeoHotSpotId.HasValue)
+                    createOptions.STARNETHolon.LinkedGeoHotSpotId = parsed.Result.QuestLinkedGeoHotSpotId;
+                if (!string.IsNullOrWhiteSpace(parsed.Result.QuestExternalHandoffUri))
+                    createOptions.STARNETHolon.ExternalHandoffUri = parsed.Result.QuestExternalHandoffUri.Trim();
                 return r;
             }
             catch (Exception ex)
@@ -427,58 +473,173 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             public string ExternalHandoffUri { get; set; }
         }
 
-        private static OASISResult<List<Objective>> ParseObjectivesFromJsonContent(string json)
+        /// <summary>Result of parsing <c>--objectives-json</c> file: objectives plus optional quest-level GeoHotSpot / handoff (wrapper object).</summary>
+        private sealed class QuestObjectivesJsonParseResult
         {
-            OASISResult<List<Objective>> r = new OASISResult<List<Objective>>();
+            /// <summary>Null when JSON object omitted <c>objectives</c> (update-only: do not replace existing objectives).</summary>
+            public List<Objective> Objectives { get; set; }
+            public Guid? QuestLinkedGeoHotSpotId { get; set; }
+            public string QuestExternalHandoffUri { get; set; }
+        }
+
+        private static void TryApplyQuestHandoffFromScriptedKeys(ISTARNETCreateOptions<Quest, STARNETDNA> createOptions)
+        {
+            if (createOptions?.CustomCreateParams == null || createOptions.STARNETHolon == null)
+                return;
+
+            Dictionary<string, object> p = createOptions.CustomCreateParams;
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.QuestLinkedGeoHotSpotId, out object lg) && lg != null)
+            {
+                string s = lg.ToString()?.Trim();
+                if (!string.IsNullOrEmpty(s) && Guid.TryParse(s, out Guid g))
+                    createOptions.STARNETHolon.LinkedGeoHotSpotId = g;
+            }
+
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.QuestExternalHandoffUri, out object ho) && ho != null)
+            {
+                string s = ho.ToString()?.Trim();
+                if (!string.IsNullOrEmpty(s))
+                    createOptions.STARNETHolon.ExternalHandoffUri = s;
+            }
+        }
+
+        private static void InteractiveAppendQuestLevelGeoAndHandoffForCreate(Quest quest) =>
+            PromptQuestLevelGeoAndHandoffFields(quest, withIntroConfirmation: true);
+
+        /// <param name="withIntroConfirmation">When true (quest create wizard), ask whether to set fields at all; when false (quest update), caller already confirmed.</param>
+        private static void PromptQuestLevelGeoAndHandoffFields(Quest quest, bool withIntroConfirmation)
+        {
+            if (CLIEngine.NonInteractive || quest == null)
+                return;
+
+            Console.WriteLine("");
+            if (withIntroConfirmation && !CLIEngine.GetConfirmation("Set optional quest-level linked GeoHotSpot or external handoff (OPortal, web, messaging)?"))
+                return;
+
+            string gh = CLIEngine.GetValidInput("Linked GeoHotSpot id (GUID), or leave blank to skip:")?.Trim();
+            if (!string.IsNullOrEmpty(gh) && gh != "exit")
+            {
+                if (Guid.TryParse(gh, out Guid g))
+                    quest.LinkedGeoHotSpotId = g;
+                else
+                    CLIEngine.ShowWarningMessage("Invalid GUID; skipped quest-level GeoHotSpot link.");
+            }
+
+            string uri = CLIEngine.GetValidInput("External handoff URI (optional, blank to skip):")?.Trim();
+            if (!string.IsNullOrEmpty(uri) && uri != "exit")
+                quest.ExternalHandoffUri = uri;
+        }
+
+        private static OASISResult<QuestObjectivesJsonParseResult> ParseQuestObjectivesJsonFile(string json, bool allowObjectivesOmitted = false)
+        {
+            OASISResult<QuestObjectivesJsonParseResult> r = new OASISResult<QuestObjectivesJsonParseResult>();
             try
             {
                 var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 List<QuestObjectiveCliJson> dtos;
+                Guid? questLinked = null;
+                string questHandoff = null;
+                bool objectivesSpecified = true;
 
                 using (JsonDocument doc = JsonDocument.Parse(json))
                 {
                     if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                    {
                         dtos = JsonSerializer.Deserialize<List<QuestObjectiveCliJson>>(json, opts);
-                    else if (doc.RootElement.TryGetProperty("objectives", out JsonElement arr) && arr.ValueKind == JsonValueKind.Array)
-                        dtos = JsonSerializer.Deserialize<List<QuestObjectiveCliJson>>(arr.GetRawText(), opts);
+                    }
+                    else if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                    {
+                        JsonElement root = doc.RootElement;
+                        if (root.TryGetProperty("linkedGeoHotSpotId", out JsonElement lgEl) || root.TryGetProperty("LinkedGeoHotSpotId", out lgEl))
+                        {
+                            if (lgEl.ValueKind == JsonValueKind.String)
+                            {
+                                string gs = lgEl.GetString()?.Trim();
+                                if (!string.IsNullOrEmpty(gs))
+                                {
+                                    if (Guid.TryParse(gs, out Guid g))
+                                        questLinked = g;
+                                    else
+                                    {
+                                        OASISErrorHandling.HandleError(ref r, "Invalid linkedGeoHotSpotId in JSON (expected a GUID).");
+                                        return r;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (root.TryGetProperty("externalHandoffUri", out JsonElement hoEl) || root.TryGetProperty("ExternalHandoffUri", out hoEl))
+                        {
+                            if (hoEl.ValueKind == JsonValueKind.String)
+                                questHandoff = hoEl.GetString()?.Trim();
+                        }
+
+                        if (root.TryGetProperty("objectives", out JsonElement arr))
+                        {
+                            if (arr.ValueKind != JsonValueKind.Array)
+                            {
+                                OASISErrorHandling.HandleError(ref r, "Property \"objectives\" must be a JSON array.");
+                                return r;
+                            }
+
+                            dtos = JsonSerializer.Deserialize<List<QuestObjectiveCliJson>>(arr.GetRawText(), opts);
+                        }
+                        else
+                        {
+                            objectivesSpecified = false;
+                            dtos = new List<QuestObjectiveCliJson>();
+                        }
+                    }
                     else
                     {
-                        OASISErrorHandling.HandleError(ref r, "Quest objectives JSON must be a JSON array or an object with an \"objectives\" array.");
+                        OASISErrorHandling.HandleError(ref r, "Quest objectives JSON must be a JSON array or an object with optional linkedGeoHotSpotId, externalHandoffUri, and objectives array.");
                         return r;
                     }
                 }
 
-                if (dtos == null)
+                if (!objectivesSpecified && !allowObjectivesOmitted)
                 {
-                    r.Result = new List<Objective>();
+                    OASISErrorHandling.HandleError(ref r, "Quest objectives JSON object must include an \"objectives\" array.");
                     return r;
                 }
 
-                var list = new List<Objective>();
-                for (int j = 0; j < dtos.Count; j++)
+                if (dtos == null)
+                    dtos = new List<QuestObjectiveCliJson>();
+
+                List<Objective> list = null;
+                if (objectivesSpecified)
                 {
-                    QuestObjectiveCliJson d = dtos[j];
-                    if (d == null)
-                        continue;
-
-                    if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.Description))
+                    list = new List<Objective>();
+                    for (int j = 0; j < dtos.Count; j++)
                     {
-                        OASISErrorHandling.HandleError(ref r, "Each objective requires non-empty title and description.");
-                        return r;
+                        QuestObjectiveCliJson d = dtos[j];
+                        if (d == null)
+                            continue;
+
+                        if (string.IsNullOrWhiteSpace(d.Title) || string.IsNullOrWhiteSpace(d.Description))
+                        {
+                            OASISErrorHandling.HandleError(ref r, "Each objective requires non-empty title and description.");
+                            return r;
+                        }
+
+                        list.Add(new Objective
+                        {
+                            Id = d.Id ?? Guid.NewGuid(),
+                            Order = d.Order ?? j,
+                            Title = d.Title.Trim(),
+                            Description = d.Description.Trim(),
+                            LinkedGeoHotSpotId = d.LinkedGeoHotSpotId,
+                            ExternalHandoffUri = d.ExternalHandoffUri?.Trim() ?? string.Empty
+                        });
                     }
-
-                    list.Add(new Objective
-                    {
-                        Id = d.Id ?? Guid.NewGuid(),
-                        Order = d.Order ?? j,
-                        Title = d.Title.Trim(),
-                        Description = d.Description.Trim(),
-                        LinkedGeoHotSpotId = d.LinkedGeoHotSpotId,
-                        ExternalHandoffUri = d.ExternalHandoffUri?.Trim() ?? string.Empty
-                    });
                 }
 
-                r.Result = list;
+                r.Result = new QuestObjectivesJsonParseResult
+                {
+                    Objectives = list,
+                    QuestLinkedGeoHotSpotId = questLinked,
+                    QuestExternalHandoffUri = questHandoff
+                };
                 return r;
             }
             catch (Exception ex)

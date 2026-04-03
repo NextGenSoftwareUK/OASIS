@@ -311,6 +311,58 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return d;
         }
 
+        /// <summary>Reads optional <c>--audio-url</c>, <c>--video-url</c>, <c>--audio-file</c>, <c>--video-file</c>, <c>--text-content</c>, <c>--website-url</c> from full argv (non-interactive geo-hotspot create).</summary>
+        public static void ApplyGeoHotSpotMediaOptionalArgs(string[] inputArgs, IDictionary<string, object> customParams)
+        {
+            if (inputArgs == null || customParams == null) return;
+            if (TryGetDoubleDashArg(inputArgs, "--audio-url", out string au))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotAudioUrl] = au;
+            if (TryGetDoubleDashArg(inputArgs, "--video-url", out string vu))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotVideoUrl] = vu;
+            if (TryGetDoubleDashArg(inputArgs, "--audio-file", out string af))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotAudioFilePath] = af;
+            if (TryGetDoubleDashArg(inputArgs, "--video-file", out string vf))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotVideoFilePath] = vf;
+            if (TryGetDoubleDashArg(inputArgs, "--text-content", out string tx))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotTextContent] = tx;
+            if (TryGetDoubleDashArg(inputArgs, "--website-url", out string wu))
+                customParams[StarCliNonInteractiveCreateKeys.GeoHotSpotWebsiteUrl] = wu;
+        }
+
+        private static bool TryGetDoubleDashArg(string[] args, string flag, out string value)
+        {
+            value = null;
+            if (args == null || args.Length < 2) return false;
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (string.Equals(args[i]?.Trim(), flag, StringComparison.OrdinalIgnoreCase))
+                {
+                    value = args[i + 1]?.Trim();
+                    return !string.IsNullOrEmpty(value);
+                }
+            }
+            return false;
+        }
+
+        /// <summary>Optional <c>--linked-geo-hotspot-id &lt;guid&gt;</c> and <c>--external-handoff-uri &lt;uri&gt;</c> on scripted <c>quest create</c>.</summary>
+        public static bool TryParseOptionalQuestLinkedHandoffArgv(string[] inputArgs, out string linkedGeoHotSpotId, out string externalHandoffUri)
+        {
+            linkedGeoHotSpotId = null;
+            externalHandoffUri = null;
+            bool any = false;
+            if (TryGetDoubleDashArg(inputArgs, "--linked-geo-hotspot-id", out var lg))
+            {
+                linkedGeoHotSpotId = lg;
+                any = true;
+            }
+            if (TryGetDoubleDashArg(inputArgs, "--external-handoff-uri", out var ho))
+            {
+                externalHandoffUri = ho;
+                any = true;
+            }
+            return any;
+        }
+
         /// <summary><c>nft collection create &lt;web4CollectionIdOrName&gt;</c> / <c>geo-nft collection create &lt;idOrName&gt;</c>.</summary>
         public static bool TryParseWrapOnlyWeb4CollectionCreateArgv(string[] inputArgs, out string wrapCollectionId, out string errorMessage)
         {
@@ -560,7 +612,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 [StarCliNonInteractiveCreateKeys.LightRequestJsonPath] = jsonPath
             };
 
-        /// <summary>Scans argv for <c>--objectives-json &lt;path&gt;</c> (scripted <c>quest create</c> / <c>quest update</c>).</summary>
+        /// <summary>Scans argv for <c>--objectives-json &lt;path&gt;</c> (scripted <c>quest create</c> / <c>quest update</c>). File may be a JSON array of objectives or an object with <c>objectives</c>, optional <c>linkedGeoHotSpotId</c>, <c>externalHandoffUri</c> (create requires <c>objectives</c>; update may omit <c>objectives</c> to only set handoff fields).</summary>
         public static bool TryParseOptionalQuestObjectivesJsonPath(string[] inputArgs, out string objectivesJsonPath)
         {
             objectivesJsonPath = null;

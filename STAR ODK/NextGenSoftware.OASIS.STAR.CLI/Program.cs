@@ -1691,14 +1691,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             {
                                                 StarCliShellOutput.WriteError(CLIEngine.JsonOutput, 2,
                                                     ghErr ?? "Invalid geo-hotspot create arguments.",
-                                                    "Example: geo-hotspot create MyHS \"Desc\" AR 51.5 -0.1 25 WhenArrivedAtGeoLocation /optional/parent");
+                                                    "Example: geo-hotspot create MyHS \"Desc\" Audio 51.5 -0.1 25 WhenArrivedAtGeoLocation [parentFolder] --audio-url https://example.com/a.mp3  |  --audio-file /path/to/local.mp3");
                                                 break;
                                             }
 
+                                            var ghParams = StarnetUiScriptedCreateCli.BuildGeoHotSpotScriptedCustomCreateParams(ghName, ghDesc, ghType, ghLat, ghLon, ghRad, ghTrig, ghTime, ghParent);
+                                            StarnetUiScriptedCreateCli.ApplyGeoHotSpotMediaOptionalArgs(inputArgs, ghParams);
                                             scriptedOpts = new STARNETCreateOptions<T, STARNETDNA>
                                             {
                                                 STARNETHolon = new T(),
-                                                CustomCreateParams = StarnetUiScriptedCreateCli.BuildGeoHotSpotScriptedCustomCreateParams(ghName, ghDesc, ghType, ghLat, ghLon, ghRad, ghTrig, ghTime, ghParent)
+                                                CustomCreateParams = ghParams
                                             };
                                         }
                                         else if (string.Equals(subCommand, "nft collection", StringComparison.OrdinalIgnoreCase))
@@ -1859,11 +1861,18 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                                             };
                                         }
 
-                                        if (string.Equals(subCommand, "quest", StringComparison.OrdinalIgnoreCase)
-                                            && StarnetUiScriptedCreateCli.TryParseOptionalQuestObjectivesJsonPath(inputArgs, out string questObjJsonPath))
+                                        if (string.Equals(subCommand, "quest", StringComparison.OrdinalIgnoreCase))
                                         {
                                             scriptedOpts.CustomCreateParams ??= new Dictionary<string, object>();
-                                            scriptedOpts.CustomCreateParams[StarCliNonInteractiveCreateKeys.QuestObjectivesJsonPath] = questObjJsonPath;
+                                            if (StarnetUiScriptedCreateCli.TryParseOptionalQuestObjectivesJsonPath(inputArgs, out string questObjJsonPath))
+                                                scriptedOpts.CustomCreateParams[StarCliNonInteractiveCreateKeys.QuestObjectivesJsonPath] = questObjJsonPath;
+                                            if (StarnetUiScriptedCreateCli.TryParseOptionalQuestLinkedHandoffArgv(inputArgs, out string qLinked, out string qHandoff))
+                                            {
+                                                if (!string.IsNullOrWhiteSpace(qLinked))
+                                                    scriptedOpts.CustomCreateParams[StarCliNonInteractiveCreateKeys.QuestLinkedGeoHotSpotId] = qLinked.Trim();
+                                                if (!string.IsNullOrWhiteSpace(qHandoff))
+                                                    scriptedOpts.CustomCreateParams[StarCliNonInteractiveCreateKeys.QuestExternalHandoffUri] = qHandoff.Trim();
+                                            }
                                         }
 
                                         if (createPredicate != null)
