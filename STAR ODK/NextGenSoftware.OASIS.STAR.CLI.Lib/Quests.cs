@@ -790,21 +790,21 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             CLIEngine.ShowMessage($"{list.Count} quest(s) for {STAR.BeamedInAvatar.Username}:", ConsoleColor.Green);
-            CLIEngine.ShowDivider();
+            Console.WriteLine("");
             foreach (IQuest iq in list)
             {
-                WriteRuntimeQuestToConsole(iq, showDetailedInfo);
+                WriteRuntimeQuestToConsole(iq, !showDetailedInfo);
 
                 // In "list detailed", include full STARNET holon + STARNET DNA info (mirrors the base list/show output).
                 if (showDetailedInfo && iq != null)
                 {
-                    Console.WriteLine("");
-                    await ShowAsync(iq, showHeader: false, showFooter: false, showNumbers: false, number: 0, showDetailedInfo: true);
+                    //Console.WriteLine("");
+                    await ShowAsync(iq, showHeader: false, showFooter: true, showNumbers: false, number: 0, showDetailedInfo: true);
                     Console.WriteLine("");
                 }
             }
 
-            CLIEngine.ShowDivider();
+            //CLIEngine.ShowDivider();
         }
 
         private static object BuildQuestListJsonObject(IQuest q, bool showDetailed)
@@ -873,7 +873,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             return row;
         }
 
-        private static void WriteRuntimeQuestToConsole(IQuest q, bool showDetailed)
+        private static void WriteRuntimeQuestToConsole(IQuest q, bool includeExtraPaddingInFooter = true)
         {
             string typeLabel = GetRuntimeQuestTypeLabel(q);
             string parentNote = q.ParentQuestId != Guid.Empty
@@ -916,7 +916,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
             }
 
-            Console.WriteLine("");
+            if (includeExtraPaddingInFooter)
+                Console.WriteLine("");
         }
 
         private static string GetRuntimeQuestTypeLabel(IQuest q)
