@@ -12,6 +12,16 @@ using NextGenSoftware.OASIS.OASISBootLoader;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.STAR.WebAPI.Middleware;
 
+//const string VERSION = "WEB 5 STAR API v1.3.0";
+
+//private string VERSION
+//{
+//    get
+//    {
+//        return $"WEB 5 STAR API v{OASISBootLoader.OASISBootLoader.STARAPIVersion}";
+//    }
+//}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Ensure OASIS_DNA.json is resolved from the app output directory in local runs.
@@ -177,7 +187,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB 5 STAR API v1.0.0");
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB5 STAR API v", OASISBootLoader.STARAPIVersion));
     c.ConfigObject.AdditionalItems["syntaxHighlight"] = new Dictionary<string, object>
     {
         ["activated"] = false

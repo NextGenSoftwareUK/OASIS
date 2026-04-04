@@ -21,6 +21,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        private string VERSION
+        {
+            get
+            {
+                return $"WEB 4 OASIS API v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}";
+            }
+        }
+
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
@@ -31,9 +39,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.4.4";
-        //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
