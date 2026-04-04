@@ -135,9 +135,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //}
 
                     //No need to show error message because the CheckIfUsernameIsAlreadyInUse function already shows this! ;-)
-                    if (checkIfUsernameAlreadyInUseResult.Result)
-                        CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
-                    else
+                    if (!checkIfUsernameAlreadyInUseResult.Result)
+                    //    CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
+                    //else
                     {
                         usernameValid = true;
                         CLIEngine.Spinner.Stop();

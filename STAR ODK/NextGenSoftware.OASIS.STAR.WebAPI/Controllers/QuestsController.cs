@@ -726,7 +726,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 await EnsureStarApiBootedAsync();
                 EnsureLoggedInAvatar();
 
-                var result = await _starAPI.Quests.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
+                var result = await _starAPI.Quests.CreateAsync(AvatarId, request.Name, request.Description, request.QuestType, request.SourceFolderPath, request.CreateOptions);
                 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
@@ -1954,7 +1954,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.Quest;
+        //public HolonType HolonSubType { get; set; } = HolonType.Quest;
+        public QuestType QuestType { get; set; } = QuestType.MainQuest;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<Quest, STARNETDNA>? CreateOptions { get; set; } = null;
         /// <summary>Optional quest-level GeoHotSpot (e.g. visit or trigger media/text/link).</summary>
