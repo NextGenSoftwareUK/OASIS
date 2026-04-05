@@ -4,7 +4,7 @@
 
 #define MyAppName "OASIS STAR CLI"
 #define MyAppId "OASIS.STAR.CLI"
-#define MyAppVersion "3.4.0"
+#define MyAppVersion "3.5.0"
 #define MyAppPublisher "NextGen Software Ltd"
 #define MyAppURL "https://github.com/NextGenSoftware/OASIS"
 #define MyAppExe "star.exe"

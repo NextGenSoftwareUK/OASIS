@@ -51,6 +51,7 @@
     <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\IntDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
     <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\LongDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
     <Content Include="..\NextGenSoftware.OASIS.STAR\DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" Link="DNATemplates\MetaDataDNATemplates\Types\StringDNA.cs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
+	<Content Include="..\NextGenSoftware.OASIS.STAR.STARDNA\DNA\OASIS_DNA.json" Link="DNA\OASIS_DNA.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Visible="false" ExcludeFromSingleFile="true" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="installers\DNATemplates\CSharpDNATemplates\CelestialBodyDNATemplate.cs" />
