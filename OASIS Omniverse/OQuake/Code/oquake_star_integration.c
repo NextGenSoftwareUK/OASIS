@@ -55,7 +55,13 @@ static inline void* OQ_memmem(const void* hay, size_t haylen, const void* needle
 #endif
 
 /* OQuake overlay: 2x conchar size (ODOOM-style readability). */
-#define OQ_UI_TEXT_SCALE 2.0f
+
+#ifdef _WIN32
+        #define OQ_UI_TEXT_SCALE 1.0f
+#else
+        #define OQ_UI_TEXT_SCALE 2.0f
+#endif
+
 #define OQ_TEXT_W_CHARS(n) ((int)((float)(n) * 8.0f * OQ_UI_TEXT_SCALE))
 #define OQ_PY(px) ((int)((float)(px) * OQ_UI_TEXT_SCALE))
 
@@ -610,9 +616,15 @@ int OQuake_STAR_IsInventoryPopupOpen(void)
 /** Quest panel height: same clamps for key handling and draw (matches ODOOM single max-row source). */
 static int OQ_QuestPopupPanelQh(void)
 {
+#ifdef _WIN32
+    int qh = q_min(glheight - 24, 450);
+    if (qh < 210)
+        qh = 210;
+#else
     int qh = q_min(glheight - 24, 900);
     if (qh < 420)
         qh = 420;
+#endif
     return qh;
 }
 
@@ -5417,10 +5429,17 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
     /* Refresh list from client every frame while overlay is open (merge is in-memory, so pickups show immediately). */
     OQ_RefreshOverlayFromClient();
 
+#ifdef _WIN32
+    panel_w = q_min(glwidth - 24, 720);
+    panel_h = q_min(glheight - 24, 380);
+    if (panel_w < 500) panel_w = 500;
+    if (panel_h < 180) panel_h = 180;
+#else
     panel_w = q_min(glwidth - 24, 1440);
     panel_h = q_min(glheight - 24, 760);
     if (panel_w < 1000) panel_w = 1000;
     if (panel_h < 360) panel_h = 360;
+#endif
     panel_x = (glwidth - panel_w) / 2;
     panel_y = (glheight - panel_h) / 2;
     if (panel_x < 0) panel_x = 0;
@@ -6345,9 +6364,15 @@ void OQuake_STAR_DrawInventoryOverlay(cb_context_t* cbx) {
         if (g_quest_subquest_selected >= n_subquest_list && n_subquest_list > 0) g_quest_subquest_selected = n_subquest_list - 1;
 
         /* Draw: same size as inventory (900x480), slightly taller (540) for right panel; left = list (half name col), right = desc + prereq + subquest */
+#ifdef _WIN32
+        int qw = q_min(glwidth - 24, 720);
+        int qh = OQ_QuestPopupPanelQh();
+        if (qw < 500) qw = 500;
+#else
         int qw = q_min(glwidth - 24, 1440);
         int qh = OQ_QuestPopupPanelQh();
         if (qw < 1000) qw = 1000;
+#endif
         int qx = (glwidth - qw) / 2;
         int qy = (glheight - qh) / 2;
         if (qx < 0) qx = 0;
