@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
@@ -49,6 +49,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool HideRefreshTokens { get; set; }
         public string SecretKey { get; set; }
         public int RemoveOldRefreshTokensAfterXDays { set; get; }
+        /// <summary>JWT (access token) expiration in minutes. Industry standard 5–60; default 15. Used when issuing tokens on authenticate/refresh.</summary>
+        public int JwtTokenExpirationMinutes { get; set; } = 15;
+        /// <summary>Refresh token expiration in days. Industry standard 1–30; default 7. Used when issuing refresh tokens and setting auth cookie expiry.</summary>
+        public int RefreshTokenExpirationDays { get; set; } = 7;
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
     }
@@ -222,6 +226,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class StorageProviderSettings
     {
+        //public bool LogSwitchingProvidersToConsole { get; set; } = true;
+        //public bool LogSwitchingProvidersToFile { get; set; } = true;
+        public bool LogSwitchingProviders { get; set; } = true;
         public int ProviderMethodCallTimeOutSeconds { get; set; } = 10;
         public int ActivateProviderTimeOutSeconds { get; set; } = 10;
         public int DectivateProviderTimeOutSeconds { get; set; } = 10;
@@ -240,6 +247,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverProvidersForCheckIfEmailAlreadyInUse { get; set; }
         public string AutoFailOverProvidersForCheckIfUsernameAlreadyInUse { get; set; }
         public string AutoFailOverProvidersForCheckIfOASISSystemAccountExists { get; set; }
+        /// <summary>When true, <see cref="AutoFailOverLocalProviders"/> is used by native/offline-first hosts to walk local-capable storage providers (e.g. SQLite, MongoDB, LocalFile, HoloOASIS) without treating remote APIs as the next hop.</summary>
+        public bool AutoFailOverLocalProvidersEnabled { get; set; }
+        /// <summary>Comma-separated <see cref="NextGenSoftware.OASIS.API.Core.Enums.ProviderType"/> names tried in order when switching to offline-first / local storage failover (HyperDrive native path).</summary>
+        public string AutoFailOverLocalProviders { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
@@ -331,20 +342,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string LocalNodeURI {  get; set; }
         public bool HoloNETORMUseReflection { get; set; }
         
-        // Rust DNA Template Configuration (moved from STARDNA)
-        public string RustDNARSMTemplateFolder { get; set; } = @"DNATemplates\RustDNATemplates\RSM";  //Rust DNA Templates that hAPPs are built from (relative to BaseSTARPath).
-        public string RustTemplateLib { get; set; } = @"core\lib.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateHolon { get; set; } = @"core\holon.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateValidation { get; set; } = @"core\validation.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateCreate { get; set; } = @"crud\create.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateRead { get; set; } = @"crud\read.rs";  //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateUpdate { get; set; } = @"crud\update.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateDelete { get; set; } = @"crud\delete.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateList { get; set; } = @"crud\list.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateInt { get; set; } = @"types\int.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateString { get; set; } = @"types\string.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string RustTemplateBool { get; set; } = @"types\bool.rs"; //relative to RustDNARSMTemplateFolder above.
-        public string BaseSTARPath { get; set; } = @"C:\Source\OASIS2\STAR ODK\Releases\STAR_ODK_v3.0.0"; //Base path for STAR templates (if blank then RustDNARSMTemplateFolder is absolute).
+        // Rust DNA Template Configuration (moved from STARDNA). Paths use forward slashes for cross-platform; .NET Path.Combine normalizes.
+        public string STARBasePath { get; set; } = ""; // Base path for STAR/Rust templates. Blank = resolve at runtime (e.g. same folder as app); then Rust paths below are relative to this or absolute.
+        public string RustDNARSMTemplateFolder { get; set; } = "DNATemplates/RustDNATemplates/RSM";  // Rust DNA Templates that hAPPs are built from (relative to STARBasePath).
+        public string RustTemplateLib { get; set; } = "core/lib.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateHolon { get; set; } = "core/holon.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateValidation { get; set; } = "core/validation.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateCreate { get; set; } = "crud/create.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateRead { get; set; } = "crud/read.rs";  // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateUpdate { get; set; } = "crud/update.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateDelete { get; set; } = "crud/delete.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateList { get; set; } = "crud/list.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateInt { get; set; } = "types/int.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateString { get; set; } = "types/string.rs"; // relative to RustDNARSMTemplateFolder above.
+        public string RustTemplateBool { get; set; } = "types/bool.rs"; // relative to RustDNARSMTemplateFolder above.
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
@@ -865,6 +876,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.mainnet.aptoslabs.com/v1";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "1";
+        public string PrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "0x1";
     }
 
     public class TRONOASISProviderSettings : ProviderSettingsBase
@@ -886,6 +899,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.avax.network/ext/bc/C/rpc";
         public string NetworkId { get; set; } = "43114";
         public string ChainId { get; set; } = "0xa86a";
+        public string ChainPrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
@@ -907,6 +922,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://mainnet.base.org";
         public string NetworkId { get; set; } = "8453";
         public string ChainId { get; set; } = "0x2105";
+        public string ChainPrivateKey { get; set; } = "";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
@@ -914,6 +931,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "mainnet";
+        public string ContractAddress { get; set; } = "";
     }
 
     public class MoralisOASISProviderSettings : ProviderSettingsBase

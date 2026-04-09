@@ -1,14 +1,16 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.STAR.DNA;
@@ -35,10 +37,17 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultPluginsInstalledPath, "DefaultPluginsInstalledPath")
         { }
 
-        public override async Task<OASISResult<Plugin>> CreateAsync(ISTARNETCreateOptions<Plugin, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<Plugin>> CreateAsync(ISTARNETCreateOptions<Plugin, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Plugin> result = new OASISResult<Plugin>();
-            
+
+            if (CLIEngine.NonInteractive
+                && createOptions?.CustomCreateParams != null
+                && TryReadScriptedPluginCreate(createOptions.CustomCreateParams, out string scriptedPluginName, out string scriptedPluginDesc, out string scriptedParentFolder))
+            {
+                return await CreatePluginScriptedNonInteractiveAsync(createOptions, scriptedPluginName, scriptedPluginDesc, scriptedParentFolder, showHeaderAndInro, providerType);
+            }
+
             if (showHeaderAndInro)
                 ShowHeader();
 
@@ -109,10 +118,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             // Get folder path - use plugin name as subdirectory
             string basePluginPath = "";
-            if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+            if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                 basePluginPath = SourcePath;
             else
-                basePluginPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                basePluginPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
             // Create plugin-specific subdirectory
             string pluginPath = Path.Combine(basePluginPath, pluginName.Replace(" ", "_"));
@@ -143,6 +152,106 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
 
             return result;
+        }
+
+        private async Task<OASISResult<Plugin>> CreatePluginScriptedNonInteractiveAsync(
+            ISTARNETCreateOptions<Plugin, STARNETDNA> createOptions,
+            string pluginName,
+            string pluginDesc,
+            string scriptedParentFolder,
+            bool showHeaderAndInro,
+            ProviderType providerType)
+        {
+            OASISResult<Plugin> result = new OASISResult<Plugin>();
+
+            if (showHeaderAndInro)
+                ShowHeader();
+
+            string pluginNamespace = ReadOptionalCustomParamString(createOptions.CustomCreateParams, StarCliNonInteractiveCreateKeys.PluginNamespace);
+            if (string.IsNullOrEmpty(pluginNamespace))
+                pluginNamespace = $"NextGenSoftware.OASIS.Plugins.{pluginName.Replace(" ", "")}";
+
+            string managerClassName = ReadOptionalCustomParamString(createOptions.CustomCreateParams, StarCliNonInteractiveCreateKeys.PluginManagerClassName);
+            if (string.IsNullOrEmpty(managerClassName))
+                managerClassName = $"{pluginName.Replace(" ", "")}Manager";
+
+            string cliClassName = ReadOptionalCustomParamString(createOptions.CustomCreateParams, StarCliNonInteractiveCreateKeys.PluginCliClassName);
+            if (string.IsNullOrEmpty(cliClassName))
+                cliClassName = $"{pluginName.Replace(" ", "")}CLI";
+
+            List<string> cliCommands = new List<string>();
+            string cmdCsv = ReadOptionalCustomParamString(createOptions.CustomCreateParams, StarCliNonInteractiveCreateKeys.PluginCliCommandsCsv);
+            if (!string.IsNullOrWhiteSpace(cmdCsv))
+            {
+                foreach (string part in cmdCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    string t = part.Trim();
+                    if (!string.IsNullOrEmpty(t))
+                        cliCommands.Add(t);
+                }
+            }
+
+            string basePluginPath;
+            if (!string.IsNullOrWhiteSpace(scriptedParentFolder))
+            {
+                if (Path.IsPathRooted(scriptedParentFolder))
+                    basePluginPath = scriptedParentFolder;
+                else if (!string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
+                    basePluginPath = Path.Combine(STAR.STARDNA.STARNETBasePath, scriptedParentFolder);
+                else
+                    basePluginPath = scriptedParentFolder;
+            }
+            else if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
+                basePluginPath = SourcePath;
+            else
+                basePluginPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
+
+            string pluginPath = Path.Combine(basePluginPath, pluginName.Replace(" ", "_"));
+
+            (result, pluginPath) = GetValidFolder(result, pluginPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, "");
+            if (result.IsError)
+                return result;
+
+            Console.WriteLine("");
+            CLIEngine.ShowWorkingMessage($"Generating Plugin...");
+            result = await STARNETManager.CreateAsync(STAR.BeamedInAvatar.Id, pluginName, pluginDesc, null, pluginPath, createOptions: createOptions, providerType: providerType);
+
+            if (result != null && !result.IsError && result.Result != null)
+            {
+                await GeneratePluginCodeAsync(pluginPath, pluginName, pluginDesc, pluginNamespace, managerClassName, cliClassName, cliCommands);
+                await GenerateSTARDNAPartialAsync(pluginPath, pluginName);
+                CLIEngine.ShowSuccessMessage("Plugin Successfully Generated.");
+                await ShowAsync(result.Result);
+                Console.WriteLine("");
+            }
+
+            return result;
+        }
+
+        private static bool TryReadScriptedPluginCreate(Dictionary<string, object> p, out string name, out string desc, out string parentFolder)
+        {
+            name = desc = parentFolder = null;
+            if (p == null)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object flagObj) || flagObj is not bool scripted || !scripted)
+                return false;
+            if (!p.TryGetValue(StarCliNonInteractiveCreateKeys.Name, out object nameObj) || nameObj is not string nameStr || string.IsNullOrWhiteSpace(nameStr))
+                return false;
+            name = nameStr.Trim();
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.Description, out object descObj) && descObj is string descStr)
+                desc = descStr ?? "";
+            else
+                desc = "";
+            if (p.TryGetValue(StarCliNonInteractiveCreateKeys.ParentFolder, out object parentObj) && parentObj is string parentStr && !string.IsNullOrWhiteSpace(parentStr))
+                parentFolder = parentStr.Trim();
+            return true;
+        }
+
+        private static string ReadOptionalCustomParamString(Dictionary<string, object> p, string key)
+        {
+            if (p == null || !p.TryGetValue(key, out object o) || o == null)
+                return null;
+            return o.ToString()?.Trim();
         }
 
         private async Task GeneratePluginCodeAsync(string pluginPath, string pluginName, string pluginDesc, string pluginNamespace, string managerClassName, string cliClassName, List<string> cliCommands)
@@ -202,13 +311,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 sb.AppendLine("    // 4. Paste this JSON into the Plugins section");
                 sb.AppendLine("    // 5. Save the file");
                 sb.AppendLine("    //");
-                sb.AppendLine("    // Note: These paths are relative to BaseSTARNETPath in your STARDNA.json");
+                sb.AppendLine("    // Note: These paths are relative to STARNETBasePath in your STARDNA.json");
                 sb.AppendLine("    // =========================================");
                 sb.AppendLine();
-                sb.AppendLine($"    \"{pluginFolderName}PluginSourcePath\": \"Plugins\\\\Source\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginPublishedPath\": \"Plugins\\\\Published\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginDownloadedPath\": \"Plugins\\\\Downloaded\\\\{pluginFolderName}\",");
-                sb.AppendLine($"    \"{pluginFolderName}PluginInstalledPath\": \"Plugins\\\\Installed\\\\{pluginFolderName}\"");
+                // Path.Combine so Windows gets backslashes, Linux forward slashes; JsonSerializer escapes for valid JSON.
+                string j(string path) => JsonSerializer.Serialize(path);
+                sb.AppendLine($"    \"{pluginFolderName}PluginSourcePath\": {j(Path.Combine("Plugins", "Source", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginPublishedPath\": {j(Path.Combine("Plugins", "Published", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginDownloadedPath\": {j(Path.Combine("Plugins", "Downloaded", pluginFolderName))},");
+                sb.AppendLine($"    \"{pluginFolderName}PluginInstalledPath\": {j(Path.Combine("Plugins", "Installed", pluginFolderName))}");
                 sb.AppendLine("}");
 
                 string stardnaPath = Path.Combine(pluginPath, "STARDNA_Partial.json");

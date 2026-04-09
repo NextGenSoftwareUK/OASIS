@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.Json;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -306,6 +306,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
             hcAvatarDetail.Version = avatarDetail.Version;
             hcAvatarDetail.VersionId = avatarDetail.VersionId;
             hcAvatarDetail.XP = avatarDetail.XP;
+            hcAvatarDetail.ActiveQuestId = avatarDetail.ActiveQuestId;
+            hcAvatarDetail.ActiveObjectiveId = avatarDetail.ActiveObjectiveId;
 
             return hcAvatarDetail;
         }
@@ -377,7 +379,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 UmaJson = hcAvatarDetail.UmaJson,
                 Version = hcAvatarDetail.Version,
                 VersionId = hcAvatarDetail.VersionId,
-                XP = hcAvatarDetail.XP
+                XP = hcAvatarDetail.XP,
+                ActiveQuestId = hcAvatarDetail.ActiveQuestId,
+                ActiveObjectiveId = hcAvatarDetail.ActiveObjectiveId
             };
 
             avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = hcAvatarDetail.EntryHash;
@@ -446,7 +450,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 SuperPowers = (IAvatarSuperPowers)JsonSerializer.Deserialize(keyValuePair["super_powers"], typeof(IAvatarSuperPowers)),
                 Town = keyValuePair["town"],
                 UmaJson = keyValuePair["uma_json"],
-                XP = Convert.ToInt32(keyValuePair["xp"])
+                XP = Convert.ToInt32(keyValuePair["xp"]),
+                ActiveQuestId = keyValuePair.ContainsKey("active_quest_id") && !string.IsNullOrEmpty(keyValuePair["active_quest_id"]) ? Guid.Parse(keyValuePair["active_quest_id"]) : null,
+                ActiveObjectiveId = keyValuePair.ContainsKey("active_objective_id") && !string.IsNullOrEmpty(keyValuePair["active_objective_id"]) ? Guid.Parse(keyValuePair["active_objective_id"]) : null
             };
 
             //avatarDetail.ProviderUniqueStorageKey[ProviderType.HoloOASIS] = keyValuePair["entry_hash"]; //TODO: Dont think this is needed?
@@ -515,7 +521,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Helpers
                 super_powers = avatar.SuperPowers,
                 town = avatar.Town,
                 uma_json = avatar.UmaJson,
-                xp = avatar.XP
+                xp = avatar.XP,
+                active_quest_id = avatar.ActiveQuestId?.ToString(),
+                active_objective_id = avatar.ActiveObjectiveId?.ToString()
             };
         }
 

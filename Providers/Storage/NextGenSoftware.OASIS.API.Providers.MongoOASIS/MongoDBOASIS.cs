@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Options;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
@@ -15,6 +17,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Singleton;
 using DataHelper = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers.DataHelper;
 using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
@@ -66,11 +69,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             BsonSerializer.RegisterSerializer(objectSerializer);
             //BsonClassMap.RegisterClassMap<OAPPDNA>();
 
-            /*
-            ConventionRegistry.Register(
-                   "DictionaryRepresentationConvention",
-                   new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
-                   _ => true);*/
+            try
+            {
+                ConventionRegistry.Register(
+                    "DictionaryRepresentationConvention",
+                    new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
+                    _ => true);
+            }
+            catch
+            {
+                // Convention may already be registered in long-lived host processes.
+            }
         }
 
         public override OASISResult<bool> ActivateProvider()
@@ -82,6 +91,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 if (Database == null)
                 {
                     Database = new MongoDbContext(ConnectionString, DBName);
+                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);
@@ -138,6 +150,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 if (Database == null)
                 {
                     Database = new MongoDbContext(ConnectionString, DBName);
+                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
+                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
+                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
                     _avatarRepository = new AvatarRepository(Database);
                     _holonRepository = new HolonRepository(Database);
                     _searchRepository = new SearchRepository(Database);
@@ -902,7 +917,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, avatarLat, avatarLong);
                             if (distance <= radiusInMeters)
                             {
-                                nearbyAvatars.Add(holon as IAvatar);
+                                nearbyAvatars.Add(new Avatar
+                                {
+                                    Id = holon.Id,
+                                    Username = holon.MetaData?.ContainsKey("Username") == true ? holon.MetaData["Username"]?.ToString() : holon.Name,
+                                    Email = holon.MetaData?.ContainsKey("Email") == true ? holon.MetaData["Email"]?.ToString() : null,
+                                    CreatedDate = holon.CreatedDate,
+                                    ModifiedDate = holon.ModifiedDate
+                                });
                             }
                         }
                     }
@@ -947,8 +969,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importedCount = 0;
@@ -999,8 +1025,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar
@@ -1023,8 +1053,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar username
@@ -1047,8 +1081,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar email
@@ -1071,8 +1109,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "MongoDB provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate MongoDB provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons

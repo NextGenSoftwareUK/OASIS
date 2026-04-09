@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -94,64 +94,135 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IKeyPairAndWallet> GenerateKeyPairWithWalletAddress(ProviderType providerType)
         {
             OASISResult<IKeyPairAndWallet> result = new OASISResult<IKeyPairAndWallet>();
-            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            return result;
-        }
 
-        public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType)
-        {
-            string prefix = "";
-
-            //TODO: Need to look up and add all prefixes here!
-            switch (providerType)
+            try
             {
-                case ProviderType.EthereumOASIS:
-                    prefix = "1";
-                    break;
+                IOASISProvider provider = ProviderManager.Instance.GetProvider(providerType);
+                IOASISBlockchainStorageProvider blockchainStorageProvider = provider as IOASISBlockchainStorageProvider;
 
-                case ProviderType.SolanaOASIS: 
-                    prefix = "2"; 
-                    break;
-            }
+                if (blockchainStorageProvider != null)
+                {
+                    try
+                    {
+                        result = blockchainStorageProvider.GenerateKeyPair();
 
-            return GenerateKeyPair(prefix);
-        }
-
-        public OASISResult<KeyPair> GenerateKeyPair(string prefix)
-        {
-            OASISResult<KeyPair> result = new OASISResult<KeyPair>(new KeyPair());
-
-            //// Create RSA instance
-            //RSA rsa = RSA.Create();
-
-            //// Export keys
-            //string publicKeyXml = rsa.ToXmlString(false);
-            //string privateKeyXml = rsa.ToXmlString(true);
-
-
-
-            byte[] privateKey = Secp256K1Manager.GenerateRandomKey();
-
-            OASISResult<string> privateWifResult = GetPrivateWif(privateKey);
-
-            if (!privateWifResult.IsError && privateWifResult.Result != null)
-            {
-                result.Result.PrivateKey = privateWifResult.Result;
-
-                byte[] publicKey = Secp256K1Manager.GetPublicKey(privateKey, true);
-
-                OASISResult<string> publicWifResult = GetPublicWif(publicKey, prefix);
-
-                if (!publicWifResult.IsError && publicWifResult.Result != null)
-                    result.Result.PublicKey = publicWifResult.Result;
+                        if (result.IsError || result.Result == null || (result.Result != null && (string.IsNullOrEmpty(result.Result.PublicKey) || string.IsNullOrEmpty(result.Result.PrivateKey) || string.IsNullOrEmpty(result.Result.WalletAddressLegacy))))
+                        {
+                            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                            result.IsError = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPairWithWalletAddress calling provider {Enum.GetName(typeof(ProviderType), providerType)} GenerateKeyPair(): {ex.Message}", ex);
+                        result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                    }
+                    return result;
+                }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPair generating public WIF. Reason: {publicWifResult.Message}");
+                    result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             }
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPair generating private WIF. Reason: {privateWifResult.Message}");
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in GenerateKeyPairWithWalletAddress for providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
+            }
 
             return result;
         }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairWithWalletAddressAsync(ProviderType providerType)
+        {
+            OASISResult<IKeyPairAndWallet> result = new OASISResult<IKeyPairAndWallet>();
+
+            try
+            {
+                IOASISProvider provider = ProviderManager.Instance.GetProvider(providerType);
+                IOASISBlockchainStorageProvider blockchainStorageProvider = provider as IOASISBlockchainStorageProvider;
+
+                if (blockchainStorageProvider != null)
+                {
+                    try
+                    {
+                        result = await blockchainStorageProvider.GenerateKeyPairAsync();
+
+                        if (result.IsError || result.Result == null || (result.Result != null && (string.IsNullOrEmpty(result.Result.PublicKey) || string.IsNullOrEmpty(result.Result.PrivateKey) || string.IsNullOrEmpty(result.Result.WalletAddressLegacy))))
+                        {
+                            result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                            result.IsError = false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPairWithWalletAddressAsync calling provider {Enum.GetName(typeof(ProviderType), providerType)} GenerateKeyPair(): {ex.Message}", ex);
+                        result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                    }
+                    return result;
+                }
+                else
+                    result.Result = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+            }
+            catch (Exception e)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in GenerateKeyPairWithWalletAddressAsync for providerType {Enum.GetName(typeof(ProviderType), providerType)}: {e.Message}");
+            }
+
+            return result;
+        }
+
+        //public OASISResult<KeyPair> GenerateKeyPair(ProviderType providerType)
+        //{
+        //    string prefix = "";
+
+        //    //TODO: Need to look up and add all prefixes here!
+        //    switch (providerType)
+        //    {
+        //        case ProviderType.EthereumOASIS:
+        //            prefix = "1";
+        //            break;
+
+        //        case ProviderType.SolanaOASIS: 
+        //            prefix = "2"; 
+        //            break;
+        //    }
+
+        //    return GenerateKeyPair(prefix);
+        //}
+
+        //public OASISResult<KeyPair> GenerateKeyPair(string prefix)
+        //{
+        //    OASISResult<KeyPair> result = new OASISResult<KeyPair>(new KeyPair());
+
+        //    //// Create RSA instance
+        //    //RSA rsa = RSA.Create();
+
+        //    //// Export keys
+        //    //string publicKeyXml = rsa.ToXmlString(false);
+        //    //string privateKeyXml = rsa.ToXmlString(true);
+
+
+
+        //    byte[] privateKey = Secp256K1Manager.GenerateRandomKey();
+
+        //    OASISResult<string> privateWifResult = GetPrivateWif(privateKey);
+
+        //    if (!privateWifResult.IsError && privateWifResult.Result != null)
+        //    {
+        //        result.Result.PrivateKey = privateWifResult.Result;
+
+        //        byte[] publicKey = Secp256K1Manager.GetPublicKey(privateKey, true);
+
+        //        OASISResult<string> publicWifResult = GetPublicWif(publicKey, prefix);
+
+        //        if (!publicWifResult.IsError && publicWifResult.Result != null)
+        //            result.Result.PublicKey = publicWifResult.Result;
+        //        else
+        //            OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPair generating public WIF. Reason: {publicWifResult.Message}");
+        //    }
+        //    else
+        //        OASISErrorHandling.HandleError(ref result, $"Error occured in GenerateKeyPair generating private WIF. Reason: {privateWifResult.Message}");
+
+        //    return result;
+        //}
 
         public OASISResult<bool> ClearCache()
         {
@@ -282,7 +353,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderWalletAddressToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string walletAddress, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             try
             {
                 if (!avatar.ProviderWallets.ContainsKey(providerTypeToLinkTo))
@@ -302,7 +377,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             CreatedDate = DateTime.Now,
                             WalletAddress = walletAddress,
                             ProviderType = providerTypeToLinkTo,
-                            SecretRecoveryPhrase = string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words)
+                            SecretRecoveryPhrase = Rijndael.Encrypt(string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words), OASISDNA.OASIS.Security.OASISProviderPrivateKeys.Rijndael256Key, KeySize.Aes256)
+                            //SecretRecoveryPhrase = string.Join(" ", new Mnemonic(Wordlist.English, WordCount.Twelve).Words)
                         };
 
                         result.Result = newWallet;
@@ -432,6 +508,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderPublicKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerKey, string walletAddress, string walletAddressSegwitP2SH = null, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             string secret = "";
 
             try
@@ -529,137 +610,137 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarById(Guid avatarId, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+        //public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarById(Guid avatarId, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
-            try
-            {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, false, providerToLoadAvatarFrom);
+        //    try
+        //    {
+        //        OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(avatarId, true, false, providerToLoadAvatarFrom);
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                    result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarById loading avatar for id {avatarId}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarById for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
-            }
+        //        if (!avatarResult.IsError && avatarResult.Result != null)
+        //            result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
+        //        else
+        //            OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarById loading avatar for id {avatarId}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarById for avatar {avatarId} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        // Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
-        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(string username, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+        //// Could be used as the public key for private/public key pairs. Could also be a username/accountname/unique id/etc, etc.
+        //public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(string username, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
-            try
-            {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, false, providerToLoadAvatarFrom);
+        //    try
+        //    {
+        //        OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatar(username, true, false, providerToLoadAvatarFrom);
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                    result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername loading avatar for username {username}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername for username {username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
-            }
+        //        if (!avatarResult.IsError && avatarResult.Result != null)
+        //            result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
+        //        else
+        //            OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername loading avatar for username {username}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername for username {username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(string email, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+        //public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(string email, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
-            try
-            {
-                OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatarByEmail(email, true, false, providerToLoadAvatarFrom);
+        //    try
+        //    {
+        //        OASISResult<IAvatar> avatarResult = AvatarManager.LoadAvatarByEmail(email, true, false, providerToLoadAvatarFrom);
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                    result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
-                else
-                    OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername loading avatar for email {email}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername for email {email} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
-            }
+        //        if (!avatarResult.IsError && avatarResult.Result != null)
+        //            result = GenerateKeyPairAndLinkProviderKeysToAvatar(avatarResult.Result, providerTypeToLinkTo, showPublicKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
+        //        else
+        //            OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername loading avatar for email {email}. Reason: {avatarResult.Message}", avatarResult.DetailedMessage);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"An unknown error occured in GenerateKeyPairAndLinkProviderKeysToAvatarByUsername for email {email} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
-        {
-            OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
+        //public OASISResult<IProviderWallet> GenerateKeyPairAndLinkProviderKeysToAvatar(IAvatar avatar, ProviderType providerTypeToLinkTo, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
+        //{
+        //    OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
 
-            if (avatar == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar. The avatar passed in is null.");
-                return result;
-            }
+        //    if (avatar == null)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, "An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar. The avatar passed in is null.");
+        //        return result;
+        //    }
 
-            try
-            {
-                OASISResult<KeyPair> keyPairResult = GenerateKeyPair(providerTypeToLinkTo);
+        //    try
+        //    {
+        //        OASISResult<KeyPair> keyPairResult = GenerateKeyPair(providerTypeToLinkTo);
 
-                if (!keyPairResult.IsError && keyPairResult.Result != null)
-                {
-                    //Backup the wallets before the private keys get blanked out in LinkProviderPublicKeyToAvatar.
-                    Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
-                    OASISResult<IProviderWallet> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, keyPairResult.Result.PublicKey, null, null, showSecretRecoveryWords, providerToLoadAvatarFrom);
+        //        if (!keyPairResult.IsError && keyPairResult.Result != null)
+        //        {
+        //            //Backup the wallets before the private keys get blanked out in LinkProviderPublicKeyToAvatar.
+        //            Dictionary<ProviderType, List<IProviderWallet>> wallets = WalletManager.Instance.CopyProviderWallets(avatar.ProviderWallets);
+        //            OASISResult<IProviderWallet> publicKeyResult = LinkProviderPublicKeyToAvatar(Guid.Empty, avatar, providerTypeToLinkTo, keyPairResult.Result.PublicKey, null, null, showSecretRecoveryWords, providerToLoadAvatarFrom);
 
-                    if (!publicKeyResult.IsError)
-                    {
-                        //Need to restore wallet private keys because the LinkProviderPublicKeyToAvatar calls Save() on the avatar object, which then blanks all private keys for extra security.
-                        foreach (ProviderType pType in avatar.ProviderWallets.Keys)
-                        {
-                            foreach (IProviderWallet wallet in avatar.ProviderWallets[pType])
-                            {
-                                //if (wallets.ContainsKey(pType) && wallets[pType].Any(x => x.WalletId == wallet.Id))
-                                if (wallets.ContainsKey(pType))
-                                {
-                                    IProviderWallet backedUpWallet = wallets[pType].FirstOrDefault(x => x.WalletId == wallet.Id);
+        //            if (!publicKeyResult.IsError)
+        //            {
+        //                //Need to restore wallet private keys because the LinkProviderPublicKeyToAvatar calls Save() on the avatar object, which then blanks all private keys for extra security.
+        //                foreach (ProviderType pType in avatar.ProviderWallets.Keys)
+        //                {
+        //                    foreach (IProviderWallet wallet in avatar.ProviderWallets[pType])
+        //                    {
+        //                        //if (wallets.ContainsKey(pType) && wallets[pType].Any(x => x.WalletId == wallet.Id))
+        //                        if (wallets.ContainsKey(pType))
+        //                        {
+        //                            IProviderWallet backedUpWallet = wallets[pType].FirstOrDefault(x => x.WalletId == wallet.Id);
 
-                                    if (backedUpWallet != null)
-                                        wallet.PrivateKey = backedUpWallet.PrivateKey;
-                                }
-                            }
-                        }
+        //                            if (backedUpWallet != null)
+        //                                wallet.PrivateKey = backedUpWallet.PrivateKey;
+        //                        }
+        //                    }
+        //                }
 
-                        //avatar.ProviderWallets = wallets;
+        //                //avatar.ProviderWallets = wallets;
                         
-                        OASISResult<IProviderWallet> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result.Id, avatar, providerTypeToLinkTo, keyPairResult.Result.PrivateKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
+        //                OASISResult<IProviderWallet> privateKeyResult = LinkProviderPrivateKeyToAvatar(publicKeyResult.Result.Id, avatar, providerTypeToLinkTo, keyPairResult.Result.PrivateKey, showPrivateKey, showSecretRecoveryWords, providerToLoadAvatarFrom);
 
-                        if (!privateKeyResult.IsError)
-                        {
-                            result.Message = "KeyPair Generated & Linked To Avatar.";
-                            result.Result = privateKeyResult.Result;
+        //                if (!privateKeyResult.IsError)
+        //                {
+        //                    result.Message = "KeyPair Generated & Linked To Avatar.";
+        //                    result.Result = privateKeyResult.Result;
 
-                            if (!showPublicKey)
-                                result.Result.PublicKey = null;
+        //                    if (!showPublicKey)
+        //                        result.Result.PublicKey = null;
 
-                            if (!showPrivateKey)
-                                result.Result.PrivateKey = null;
-                        }
-                        else
-                            OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar whilst linking the generated private key to the avatar {avatar.Id} - {avatar.Username}. Reason: {privateKeyResult.Message}", privateKeyResult.DetailedMessage);
-                    }
-                    else
-                        OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar whilst linking the generated public key to the avatar {avatar.Id} - {avatar.Username}. Reason: {publicKeyResult.Message}", publicKeyResult.DetailedMessage);
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Unknown error occured in LinkProviderPublicKeyToAvatar for avatar {avatar.Id} {avatar.Username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
-            }
+        //                    if (!showPrivateKey)
+        //                        result.Result.PrivateKey = null;
+        //                }
+        //                else
+        //                    OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar whilst linking the generated private key to the avatar {avatar.Id} - {avatar.Username}. Reason: {privateKeyResult.Message}", privateKeyResult.DetailedMessage);
+        //            }
+        //            else
+        //                OASISErrorHandling.HandleError(ref result, $"An error occured in GenerateKeyPairAndLinkProviderKeysToAvatar whilst linking the generated public key to the avatar {avatar.Id} - {avatar.Username}. Reason: {publicKeyResult.Message}", publicKeyResult.DetailedMessage);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        OASISErrorHandling.HandleError(ref result, $"Unknown error occured in LinkProviderPublicKeyToAvatar for avatar {avatar.Id} {avatar.Username} and providerType {Enum.GetName(typeof(ProviderType), providerToLoadAvatarFrom)}: {ex.Message}");
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
         public OASISResult<IProviderWallet> GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(Guid avatarId, ProviderType providerTypeToLinkTo, bool showWalletAddress = true, bool showPublicKey = true, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
@@ -870,7 +951,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         public OASISResult<IProviderWallet> LinkProviderPrivateKeyToAvatar(Guid walletId, IAvatar avatar, ProviderType providerTypeToLinkTo, string providerPrivateKey, bool showPrivateKey = false, bool showSecretRecoveryWords = false, ProviderType providerToLoadAvatarFrom = ProviderType.Default)
         {
             OASISResult<IProviderWallet> result = new OASISResult<IProviderWallet>();
-
+            if (avatar == null)
+            {
+                OASISErrorHandling.HandleError(ref result, "The avatar is required. Please provide a valid avatar object.");
+                return result;
+            }
             try
             {
                 if (!avatar.ProviderWallets.ContainsKey(providerTypeToLinkTo))
@@ -2238,221 +2323,222 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<List<Key>>> GetAllKeysAsync(Guid avatarId)
-        {
-            var result = new OASISResult<List<Key>>();
-            try
-            {
-                if (_avatarKeys.TryGetValue(avatarId, out var keys))
-                {
-                    result.Result = keys.ToList();
-                    result.Message = "Keys retrieved successfully.";
-                }
-                else
-                {
-                    result.Result = new List<Key>();
-                    result.Message = "No keys found for this avatar.";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error retrieving keys: {ex.Message}";
-                result.Exception = ex;
-            }
-            return await Task.FromResult(result);
-        }
+        //TODO: Key Management System (KMS) to be implemented in future release.
+        //public async Task<OASISResult<List<Key>>> GetAllKeysAsync(Guid avatarId)
+        //{
+        //    var result = new OASISResult<List<Key>>();
+        //    try
+        //    {
+        //        if (_avatarKeys.TryGetValue(avatarId, out var keys))
+        //        {
+        //            result.Result = keys.ToList();
+        //            result.Message = "Keys retrieved successfully.";
+        //        }
+        //        else
+        //        {
+        //            result.Result = new List<Key>();
+        //            result.Message = "No keys found for this avatar.";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.IsError = true;
+        //        result.Message = $"Error retrieving keys: {ex.Message}";
+        //        result.Exception = ex;
+        //    }
+        //    return await Task.FromResult(result);
+        //}
 
-        public async Task<OASISResult<Key>> GenerateKeyAsync(Guid avatarId, KeyType keyType, string name = null, Dictionary<string, object> metadata = null)
-        {
-            var result = new OASISResult<Key>();
-            try
-            {
-                var key = new Key
-                {
-                    Id = Guid.NewGuid(),
-                    AvatarId = avatarId,
-                    KeyType = keyType,
-                    Name = name ?? $"{keyType} Key {DateTime.UtcNow:yyyy-MM-dd}",
-                    PublicKey = GeneratePublicKey(),
-                    PrivateKey = GeneratePrivateKey(),
-                    CreatedAt = DateTime.UtcNow,
-                    IsActive = true,
-                    UsageCount = 0,
-                    Metadata = metadata ?? new Dictionary<string, object>()
-                };
+        //public async Task<OASISResult<Key>> GenerateKeyAsync(Guid avatarId, KeyType keyType, string name = null, Dictionary<string, object> metadata = null)
+        //{
+        //    var result = new OASISResult<Key>();
+        //    try
+        //    {
+        //        var key = new Key
+        //        {
+        //            Id = Guid.NewGuid(),
+        //            AvatarId = avatarId,
+        //            KeyType = keyType,
+        //            Name = name ?? $"{keyType} Key {DateTime.UtcNow:yyyy-MM-dd}",
+        //            PublicKey = GeneratePublicKey(),
+        //            PrivateKey = GeneratePrivateKey(),
+        //            CreatedAt = DateTime.UtcNow,
+        //            IsActive = true,
+        //            UsageCount = 0,
+        //            Metadata = metadata ?? new Dictionary<string, object>()
+        //        };
 
-                lock (_lockObject)
-                {
-                    if (!_avatarKeys.ContainsKey(avatarId))
-                    {
-                        _avatarKeys[avatarId] = new List<Key>();
-                    }
-                    _avatarKeys[avatarId].Add(key);
-                }
+        //        lock (_lockObject)
+        //        {
+        //            if (!_avatarKeys.ContainsKey(avatarId))
+        //            {
+        //                _avatarKeys[avatarId] = new List<Key>();
+        //            }
+        //            _avatarKeys[avatarId].Add(key);
+        //        }
 
-                result.Result = key;
-                result.Message = "Key generated successfully.";
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Result = null;
-                result.Message = $"Error generating key: {ex.Message}";
-                result.Exception = ex;
-            }
-            return await Task.FromResult(result);
-        }
+        //        result.Result = key;
+        //        result.Message = "Key generated successfully.";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.IsError = true;
+        //        result.Result = null;
+        //        result.Message = $"Error generating key: {ex.Message}";
+        //        result.Exception = ex;
+        //    }
+        //    return await Task.FromResult(result);
+        //}
 
-        public async Task<OASISResult<bool>> UseKeyAsync(Guid avatarId, Guid keyId, string purpose = null)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (_avatarKeys.TryGetValue(avatarId, out var keys))
-                {
-                    var key = keys.FirstOrDefault(k => k.Id == keyId);
-                    if (key != null && key.IsActive)
-                    {
-                        key.UsageCount++;
-                        key.LastUsedAt = DateTime.UtcNow;
+        //public async Task<OASISResult<bool>> UseKeyAsync(Guid avatarId, Guid keyId, string purpose = null)
+        //{
+        //    var result = new OASISResult<bool>();
+        //    try
+        //    {
+        //        if (_avatarKeys.TryGetValue(avatarId, out var keys))
+        //        {
+        //            var key = keys.FirstOrDefault(k => k.Id == keyId);
+        //            if (key != null && key.IsActive)
+        //            {
+        //                key.UsageCount++;
+        //                key.LastUsedAt = DateTime.UtcNow;
 
-                        // Record usage
-                        var usage = new KeyUsage
-                        {
-                            Id = Guid.NewGuid(),
-                            KeyId = keyId,
-                            AvatarId = avatarId,
-                            Purpose = purpose,
-                            UsedAt = DateTime.UtcNow
-                        };
+        //                // Record usage
+        //                var usage = new KeyUsage
+        //                {
+        //                    Id = Guid.NewGuid(),
+        //                    KeyId = keyId,
+        //                    AvatarId = avatarId,
+        //                    Purpose = purpose,
+        //                    UsedAt = DateTime.UtcNow
+        //                };
 
-                        lock (_lockObject)
-                        {
-                            if (!_keyUsage.ContainsKey(avatarId))
-                            {
-                                _keyUsage[avatarId] = new List<KeyUsage>();
-                            }
-                            _keyUsage[avatarId].Add(usage);
-                        }
+        //                lock (_lockObject)
+        //                {
+        //                    if (!_keyUsage.ContainsKey(avatarId))
+        //                    {
+        //                        _keyUsage[avatarId] = new List<KeyUsage>();
+        //                    }
+        //                    _keyUsage[avatarId].Add(usage);
+        //                }
 
-                        result.Result = true;
-                        result.Message = "Key used successfully.";
-                    }
-                    else
-                    {
-                        result.IsError = true;
-                        result.Result = false;
-                        result.Message = "Key not found or inactive.";
-                    }
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Result = false;
-                    result.Message = "No keys found for this avatar.";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Result = false;
-                result.Message = $"Error using key: {ex.Message}";
-                result.Exception = ex;
-            }
-            return await Task.FromResult(result);
-        }
+        //                result.Result = true;
+        //                result.Message = "Key used successfully.";
+        //            }
+        //            else
+        //            {
+        //                result.IsError = true;
+        //                result.Result = false;
+        //                result.Message = "Key not found or inactive.";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Result = false;
+        //            result.Message = "No keys found for this avatar.";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.IsError = true;
+        //        result.Result = false;
+        //        result.Message = $"Error using key: {ex.Message}";
+        //        result.Exception = ex;
+        //    }
+        //    return await Task.FromResult(result);
+        //}
 
-        public async Task<OASISResult<bool>> DeactivateKeyAsync(Guid avatarId, Guid keyId)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (_avatarKeys.TryGetValue(avatarId, out var keys))
-                {
-                    var key = keys.FirstOrDefault(k => k.Id == keyId);
-                    if (key != null)
-                    {
-                        key.IsActive = false;
-                        key.DeactivatedAt = DateTime.UtcNow;
+        //public async Task<OASISResult<bool>> DeactivateKeyAsync(Guid avatarId, Guid keyId)
+        //{
+        //    var result = new OASISResult<bool>();
+        //    try
+        //    {
+        //        if (_avatarKeys.TryGetValue(avatarId, out var keys))
+        //        {
+        //            var key = keys.FirstOrDefault(k => k.Id == keyId);
+        //            if (key != null)
+        //            {
+        //                key.IsActive = false;
+        //                key.DeactivatedAt = DateTime.UtcNow;
 
-                        result.Result = true;
-                        result.Message = "Key deactivated successfully.";
-                    }
-                    else
-                    {
-                        result.IsError = true;
-                        result.Result = false;
-                        result.Message = "Key not found.";
-                    }
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Result = false;
-                    result.Message = "No keys found for this avatar.";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Result = false;
-                result.Message = $"Error deactivating key: {ex.Message}";
-                result.Exception = ex;
-            }
-            return await Task.FromResult(result);
-        }
+        //                result.Result = true;
+        //                result.Message = "Key deactivated successfully.";
+        //            }
+        //            else
+        //            {
+        //                result.IsError = true;
+        //                result.Result = false;
+        //                result.Message = "Key not found.";
+        //            }
+        //        }
+        //        else
+        //        {
+        //            result.IsError = true;
+        //            result.Result = false;
+        //            result.Message = "No keys found for this avatar.";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.IsError = true;
+        //        result.Result = false;
+        //        result.Message = $"Error deactivating key: {ex.Message}";
+        //        result.Exception = ex;
+        //    }
+        //    return await Task.FromResult(result);
+        //}
 
-        public async Task<OASISResult<List<KeyUsage>>> GetKeyUsageHistoryAsync(Guid avatarId, int limit = 50, int offset = 0)
-        {
-            var result = new OASISResult<List<KeyUsage>>();
-            try
-            {
-                if (_keyUsage.TryGetValue(avatarId, out var usage))
-                {
-                    result.Result = usage
-                        .OrderByDescending(u => u.UsedAt)
-                        .Skip(offset)
-                        .Take(limit)
-                        .ToList();
-                    result.Message = "Key usage history retrieved successfully.";
-                }
-                else
-                {
-                    result.Result = new List<KeyUsage>();
-                    result.Message = "No key usage history found for this avatar.";
-                }
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error retrieving key usage history: {ex.Message}";
-                result.Exception = ex;
-            }
-            return await Task.FromResult(result);
-        }
+        //public async Task<OASISResult<List<KeyUsage>>> GetKeyUsageHistoryAsync(Guid avatarId, int limit = 50, int offset = 0)
+        //{
+        //    var result = new OASISResult<List<KeyUsage>>();
+        //    try
+        //    {
+        //        if (_keyUsage.TryGetValue(avatarId, out var usage))
+        //        {
+        //            result.Result = usage
+        //                .OrderByDescending(u => u.UsedAt)
+        //                .Skip(offset)
+        //                .Take(limit)
+        //                .ToList();
+        //            result.Message = "Key usage history retrieved successfully.";
+        //        }
+        //        else
+        //        {
+        //            result.Result = new List<KeyUsage>();
+        //            result.Message = "No key usage history found for this avatar.";
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        result.IsError = true;
+        //        result.Message = $"Error retrieving key usage history: {ex.Message}";
+        //        result.Exception = ex;
+        //    }
+        //    return await Task.FromResult(result);
+        //}
 
-        #region Competition Tracking
+        //#region Competition Tracking
 
-        private async Task UpdateKeyCompetitionScoresAsync(Guid avatarId, KeyType keyType)
-        {
-            try
-            {
-                var competitionManager = CompetitionManager.Instance;
+        //private async Task UpdateKeyCompetitionScoresAsync(Guid avatarId, KeyType keyType)
+        //{
+        //    try
+        //    {
+        //        var competitionManager = CompetitionManager.Instance;
 
-                // Calculate score based on key type and usage
-                var score = CalculateKeyScore(keyType);
+        //        // Calculate score based on key type and usage
+        //        var score = CalculateKeyScore(keyType);
 
-                // Update social activity competition scores
-                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Daily, score);
-                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Weekly, score);
-                await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Monthly, score);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error updating key competition scores: {ex.Message}");
-            }
-        }
+        //        // Update social activity competition scores
+        //        await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Daily, score);
+        //        await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Weekly, score);
+        //        await competitionManager.UpdateAvatarScoreAsync(avatarId, CompetitionType.SocialActivity, SeasonType.Monthly, score);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Error updating key competition scores: {ex.Message}");
+        //    }
+        //}
 
         private long CalculateKeyScore(KeyType keyType)
         {
@@ -2505,23 +2591,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return await Task.FromResult(result);
         }
 
-        #endregion
+        //#endregion
 
-        #region Helper Methods
+        //#region Helper Methods
 
-        private string GeneratePublicKey()
-        {
-            // In a real implementation, this would generate a proper cryptographic key
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        }
+        //private string GeneratePublicKey()
+        //{
+        //    // In a real implementation, this would generate a proper cryptographic key
+        //    return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        //}
 
-        private string GeneratePrivateKey()
-        {
-            // In a real implementation, this would generate a proper cryptographic key
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
-        }
+        //private string GeneratePrivateKey()
+        //{
+        //    // In a real implementation, this would generate a proper cryptographic key
+        //    return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        //}
 
-        #endregion
+        //#endregion
 
         private OASISResult<string> GetProviderUniqueStorageKeyForAvatar(IAvatar avatar, string key, Dictionary<string, string> dictionaryCache, ProviderType providerType = ProviderType.Default)
         {

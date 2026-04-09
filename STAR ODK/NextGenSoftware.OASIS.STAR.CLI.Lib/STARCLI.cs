@@ -230,6 +230,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             }
         }
 
+        public static Games Games
+        {
+            get
+            {
+                if (!IsSTARIgnited)
+                    IgniteSTAR();
+                return new Games(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
+            }
+        }
+
         //public static NFTs NFTs { get; } = new NFTs(STAR.BeamedInAvatar?.Id ?? Guid.Empty, STAR.STARDNA);
 
         public static NFTs NFTs

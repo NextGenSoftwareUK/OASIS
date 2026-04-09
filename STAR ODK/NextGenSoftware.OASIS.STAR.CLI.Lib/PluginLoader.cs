@@ -36,10 +36,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             try
             {
                 string installedPath = "";
-                if (Path.IsPathRooted(STAR.STARDNA.DefaultPluginsInstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(STAR.STARDNA.DefaultPluginsInstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     installedPath = STAR.STARDNA.DefaultPluginsInstalledPath;
                 else
-                    installedPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultPluginsInstalledPath);
+                    installedPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultPluginsInstalledPath);
 
                 if (!Directory.Exists(installedPath))
                 {
@@ -108,7 +108,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         {
                             Name = starNetDNA.Name ?? Path.GetFileName(pluginFolder),
                             Description = starNetDNA.Description,
-                            Version = starNetDNA.Version,
+                            Version = int.TryParse(starNetDNA.Version, out var version) ? version : 0,
                             Id = starNetDNA.Id != Guid.Empty ? starNetDNA.Id : Guid.NewGuid(),
                             STARNETDNA = starNetDNA
                         };
@@ -149,10 +149,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             {
                 // Find plugin folder
                 string installedPath = "";
-                if (Path.IsPathRooted(STAR.STARDNA.DefaultPluginsInstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(STAR.STARDNA.DefaultPluginsInstalledPath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     installedPath = STAR.STARDNA.DefaultPluginsInstalledPath;
                 else
-                    installedPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, STAR.STARDNA.DefaultPluginsInstalledPath);
+                    installedPath = Path.Combine(STAR.STARDNA.STARNETBasePath, STAR.STARDNA.DefaultPluginsInstalledPath);
 
                 string pluginFolder = Path.Combine(installedPath, plugin.Name.Replace(" ", "_"));
                 

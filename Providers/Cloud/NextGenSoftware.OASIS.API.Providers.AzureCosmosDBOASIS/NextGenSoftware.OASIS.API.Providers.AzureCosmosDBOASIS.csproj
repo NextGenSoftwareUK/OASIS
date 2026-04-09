@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API AzureCosmosDB OASIS Provider</Product>
@@ -34,8 +34,7 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.21.0" />
-    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.16.1" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -6,7 +6,11 @@
   </PropertyGroup>
     
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <UseRidGraph>true</UseRidGraph>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>

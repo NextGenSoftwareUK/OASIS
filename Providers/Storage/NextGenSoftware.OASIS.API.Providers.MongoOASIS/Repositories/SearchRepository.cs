@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -410,6 +410,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 {
                     avatars = avatars.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();
                     holons = holons.Where(x => x.CreatedByAvatarId == searchParams.AvatarId.ToString()).ToList();
+                }
+
+                if (searchParams.FilterByMetaData != null)
+                {
+                    List<Holon> matchedHolons = new List<Holon>();
+
+                    foreach (Holon holon in holons)
+                    {
+                        if (holon.MetaData == null)
+                            continue;
+                        int matchedKeys = 0;
+                        foreach (KeyValuePair<string, string> metaKeyValuePair in searchParams.FilterByMetaData)
+                        {
+                            if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
+                            {
+                                if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                    matchedHolons.Add(holon);
+                                else
+                                    matchedKeys++;
+                            }
+                        }
+
+                        if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == searchParams.FilterByMetaData.Count)
+                            matchedHolons.Add(holon);
+                    }
+
+                    holons = matchedHolons;
                 }
 
                 result.Result = new SearchResults();

@@ -62,9 +62,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             STAR.STARDNA.DefaultOAPPTemplatesInstalledPath, "DefaultOAPPTemplatesInstalledPath")
         { }
 
-        public override async Task<OASISResult<OAPPTemplate>> CreateAsync(ISTARNETCreateOptions<OAPPTemplate, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, ProviderType providerType = ProviderType.Default)
+        public override async Task<OASISResult<OAPPTemplate>> CreateAsync(ISTARNETCreateOptions<OAPPTemplate, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
-            OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, providerType);
+            OASISResult<OAPPTemplate> createResult = await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies: false, providerType: providerType);
 
             if (createResult != null && createResult.Result != null && !createResult.IsError)
             {

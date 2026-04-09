@@ -60,7 +60,7 @@ const setupResponseInterceptor = (client: AxiosInstance) => {
   client.interceptors.response.use(
     (response: AxiosResponse) => {
       // Log successful requests in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env?.DEV ?? process.env.NODE_ENV === 'development') {
         console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status}`);
       }
       return response;

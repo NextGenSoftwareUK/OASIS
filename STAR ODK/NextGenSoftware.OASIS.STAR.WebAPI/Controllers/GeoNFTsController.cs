@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class GeoNFTsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all geo NFTs in the system.
@@ -38,16 +41,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoNFTs.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testGeoNFTs = new List<STARGeoNFT>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARGeoNFT>>(testGeoNFTs, "Geo NFTs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading geo NFTs: {ex.Message}",
-                    Exception = ex
-                });
+                    var testGeoNFTs = new List<STARGeoNFT>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARGeoNFT>>(testGeoNFTs, "Geo NFTs retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARGeoNFT>>(ex, "GetAllGeoNFTs");
             }
         }
 
@@ -66,16 +78,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.GeoNFTs.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<STARGeoNFT>(null, "Geo NFT retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<STARGeoNFT>(null, "Geo NFT retrieved successfully (using test data)"));
+                }
+                return HandleException<STARGeoNFT>(ex, "GetGeoNFT");
             }
         }
 
@@ -98,12 +117,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "creating geo NFT");
             }
         }
 
@@ -128,12 +142,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error updating geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "updating geo NFT");
             }
         }
 
@@ -156,12 +165,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting geo NFT");
             }
         }
 
@@ -274,19 +278,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARGeoNFT>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateGeoNFTWithOptions([FromBody] CreateGeoNFTRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARGeoNFT> { IsError = true, Message = "The request body is required." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<STARGeoNFT>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.GeoNFTs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error creating geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "creating geo NFT");
             }
         }
 
@@ -306,18 +314,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.GeoNFTs.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "loading geo NFT");
             }
         }
 
@@ -336,18 +341,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.GeoNFTs.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo NFT from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "loading geo NFT from path");
             }
         }
 
@@ -370,12 +372,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo NFT from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "loading geo NFT from published file");
             }
         }
 
@@ -437,12 +434,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error publishing geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "publishing geo NFT");
             }
         }
 
@@ -468,12 +460,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error downloading geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARGeoNFT>(ex, "downloading geo NFT");
             }
         }
 
@@ -525,12 +512,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error loading geo NFT version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "loading geo NFT version");
             }
         }
 
@@ -554,12 +536,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error editing geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "editing geo NFT");
             }
         }
 
@@ -583,12 +560,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "unpublishing geo NFT");
             }
         }
 
@@ -612,12 +584,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error republishing geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "republishing geo NFT");
             }
         }
 
@@ -641,12 +608,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error activating geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "activating geo NFT");
             }
         }
 
@@ -670,12 +632,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARGeoNFT>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating geo NFT: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARGeoNFT>(ex, "deactivating geo NFT");
             }
         }
     }
@@ -684,7 +641,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     {
         public string Name { get; set; } = "";
         public string Description { get; set; } = "";
-        public HolonType HolonSubType { get; set; } = HolonType.GeoNFT;
+        public HolonType HolonSubType { get; set; } = HolonType.Web5GeoNFT;
         public string SourceFolderPath { get; set; } = "";
         public ISTARNETCreateOptions<STARGeoNFT, STARNETDNA> CreateOptions { get; set; } = null;
     }

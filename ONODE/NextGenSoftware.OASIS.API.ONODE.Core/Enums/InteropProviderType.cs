@@ -64,6 +64,81 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Enums
         Com,
 
         /// <summary>
+        /// TypeScript libraries
+        /// </summary>
+        TypeScript,
+
+        /// <summary>
+        /// Ruby libraries
+        /// </summary>
+        Ruby,
+
+        /// <summary>
+        /// PHP libraries
+        /// </summary>
+        Php,
+
+        /// <summary>
+        /// PHP libraries (alias)
+        /// </summary>
+        PHP,
+
+        /// <summary>
+        /// Lua libraries
+        /// </summary>
+        Lua,
+
+        /// <summary>
+        /// Perl libraries
+        /// </summary>
+        Perl,
+
+        /// <summary>
+        /// Kotlin libraries (JVM)
+        /// </summary>
+        Kotlin,
+
+        /// <summary>
+        /// Scala libraries (JVM)
+        /// </summary>
+        Scala,
+
+        /// <summary>
+        /// Groovy libraries (JVM)
+        /// </summary>
+        Groovy,
+
+        /// <summary>
+        /// Clojure libraries (JVM)
+        /// </summary>
+        Clojure,
+
+        /// <summary>
+        /// Dart libraries
+        /// </summary>
+        Dart,
+
+        /// <summary>
+        /// R libraries
+        /// </summary>
+        R,
+
+        /// <summary>
+        /// Julia libraries
+        /// </summary>
+        Julia,
+
+        /// <summary>
+        /// Shell script libraries
+        /// </summary>
+        ShellScript,
+
+        /// <summary>
+        /// PowerShell libraries
+        /// </summary>
+        PowerShell,
+
+        /// <summary>
         /// Auto-detect based on file extension
         /// </summary>
         Auto

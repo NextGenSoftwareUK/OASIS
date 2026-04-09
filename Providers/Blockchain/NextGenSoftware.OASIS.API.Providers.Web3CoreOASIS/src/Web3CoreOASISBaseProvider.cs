@@ -45,6 +45,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -61,6 +62,19 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
     private Nethereum.Web3.Web3? _web3Client;
 
     public bool IsVersionControlEnabled { get; set; }
+
+    //public Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
+    //{
+    //    this.ProviderName = "Web3CoreOASISBaseProvider";
+    //    this.ProviderDescription = "Web3CoreOASISBaseProvider";
+    //    this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EthereumOASIS);
+    //    this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+    //    this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+    //    this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+    //    this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+    //    this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+    //    this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+    //}
 
     public override Task<OASISResult<bool>> ActivateProviderAsync()
     {
@@ -2081,10 +2095,10 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         
         // Get wallet addresses from avatars
         var fromWalletAddress = fromAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
-            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            ? fromAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.PublicKey 
             : null;
         var toWalletAddress = toAvatarResult.Result.ProviderWallets?.ContainsKey(this.ProviderType.Value) == true 
-            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.Address 
+            ? toAvatarResult.Result.ProviderWallets[this.ProviderType.Value]?.FirstOrDefault()?.PublicKey 
             : null;
         
         if (string.IsNullOrWhiteSpace(fromWalletAddress) || string.IsNullOrWhiteSpace(toWalletAddress))
@@ -2151,7 +2165,8 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         OASISResult<List<string>> receiverAvatarAddressesResult = KeyManager.Instance.GetProviderPublicKeysForAvatarByUsername(toAvatarUsername, this.ProviderType.Value);
 
         string senderAvatarPrivateKey = senderAvatarPrivateKeysResult.Result[0];
-        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, toWalletAddress, amount);
+        string receiverWalletAddress = receiverAvatarAddressesResult.Result[0];
+        result = await SendTransactionBaseAsync(senderAvatarPrivateKey, receiverWalletAddress, amount);
 
         if (result.IsError)
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, result.Message), result.Exception);
@@ -2892,12 +2907,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         string errorMessage = "Error in GenerateKeyPairAsync method in Web3CoreOASIS. Reason: ";
@@ -2914,17 +2929,12 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
-            // Use KeyHelper to generate key pair with wallet address
-            var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-            if (keyPair != null)
+            result.Result = new KeyPairAndWallet
             {
-                // Override with Ethereum-specific values
-                keyPair.PrivateKey = privateKey;
-                keyPair.PublicKey = publicKey;
-                keyPair.WalletAddressLegacy = publicKey;
-            }
-
-            result.Result = keyPair;
+                PrivateKey = privateKey,
+                PublicKey = publicKey,
+                WalletAddressLegacy = publicKey //TODO: Generate proper ethereum address format if needed
+            };
             result.IsError = false;
             result.Message = "Key pair generated successfully.";
         }
@@ -3049,7 +3059,7 @@ public class Web3CoreOASISBaseProvider(string hostUri, string chainPrivateKey, s
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Web3CoreOASISBaseProviderHelper.CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4458,4 +4468,17 @@ file static class Web3CoreOASISBaseProviderHelper
     }
   ]
 ";
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        public static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 }
