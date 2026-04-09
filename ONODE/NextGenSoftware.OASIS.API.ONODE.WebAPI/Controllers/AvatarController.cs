@@ -771,7 +771,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-id/{id:guid}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id, ProviderType providerType, bool setGlobally = false)
         {
@@ -785,7 +785,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="email"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
@@ -801,7 +801,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-email/{email}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email, ProviderType providerType, bool setGlobally = false)
         {
@@ -815,7 +815,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="username"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
@@ -831,7 +831,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-username/{username}/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username, ProviderType providerType, bool setGlobally = false)
         {
