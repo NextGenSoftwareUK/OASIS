@@ -735,7 +735,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet("get-avatar-detail-by-id/{id:guid}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetail(Guid id)
         {

@@ -37,6 +37,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             try
             {
+                Console.WriteLine($"JwtMiddleware: Validating JWT Token... Token: {token}");
+                Console.WriteLine($"URI: {context.Connection.LocalIpAddress}:{context.Connection.LocalPort}");
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.SecretKey);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters

@@ -19,16 +19,16 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public string ToAvatarUsername { get; set; }
         public string ToAvatarEmail { get; set; }
         public bool WaitTillNFTSent { get; set; } = true;
-        public int WaitForNFTToSendInSeconds { get; set; } = 60;
+        public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendNFTEveryXSeconds { get; set; } = 5;
         public bool WaitTillNFTLocked { get; set; } = true;
-        public int WaitForNFTToLockInSeconds { get; set; } = 60;
+        public int WaitForNFTToLockInSeconds { get; set; } = 180;
         public int AttemptToLockEveryXSeconds { get; set; } = 5;
         public bool WaitTillNFTBurnt { get; set; } = true;
-        public int WaitForNFTToBurnInSeconds { get; set; } = 60;    
+        public int WaitForNFTToBurnInSeconds { get; set; } = 180;
         public int AttemptToBurnEveryXSeconds { get; set; } = 5;
         public bool WaitTillNFTUnlocked { get; set; } = true;
-        public int WaitForNFTToUnlockInSeconds { get; set; } = 60;
+        public int WaitForNFTToUnlockInSeconds { get; set; } = 180;
         public int AttemptToUnlockEveryXSeconds { get; set; } = 5;
     }
 }

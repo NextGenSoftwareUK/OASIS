@@ -1,20 +1,21 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using NextGenSoftware.Utilities;
-using NextGenSoftware.OASIS.Common;
+using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
-using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -42,6 +43,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public NftController()
         {
            
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("collect-nft")]
+        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(ICollectGeoNFTRequest request)
+        {
+            return await NFTManager.CollectNFTAsync(request);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("collect-nft/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IInventoryItem>> CollectNFTAsync(ICollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
+        {
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return await CollectNFTAsync(request);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("collect-geo-nft")]
+        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(ICollectGeoNFTRequest request)
+        {
+            return await NFTManager.CollectNFTAsync(request);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Route("collect-geo-nft/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IInventoryItem>> CollectGeoNFTAsync(ICollectGeoNFTRequest request, ProviderType providerType, bool setGlobally = false)
+        {
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return await CollectGeoNFTAsync(request);
         }
 
 
@@ -208,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await LoadAllGeoNFTsForMintAddressAsync(mintWalletAddress);
         }
 
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet]
         [Route("load-all-nfts")]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsAsync()
@@ -216,7 +251,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await NFTManager.LoadAllWeb4NFTsAsync();
         }
 
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet]
         [Route("load-all-nfts/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IWeb4NFT>>> LoadAllWeb4NFTsAsync(ProviderType providerType, bool setGlobally = false)
@@ -225,15 +260,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await LoadAllWeb4NFTsAsync();
         }
 
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts")]
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> LoadAllGeoNFTsAsync()
         {
+            Console.WriteLine("ROUTE: load-all-geo-nfts");
             return await NFTManager.LoadAllWeb4GeoNFTsAsync();
         }
 
-        [Authorize(AvatarType.Wizard)]
+        [Authorize]
         [HttpGet]
         [Route("load-all-geo-nfts/{providerType}/{setGlobally}")]
         public async Task<OASISResult<IEnumerable<IWeb4GeoSpatialNFT>>> LoadAllWeb4GeoNFTsAsync(ProviderType providerType, bool setGlobally = false)
