@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
     {
         public EnumValue<ProviderType> ProviderType { get; set; }
         public bool WaitTillNFTBurnt { get; set; } = true;
-        public int WaitForNFTToBurnInSeconds { get; set; } = 60;
+        public int WaitForNFTToBurnInSeconds { get; set; } = 180;
         public int AttemptToBurnEveryXSeconds { get; set; } = 5;
     }
 }

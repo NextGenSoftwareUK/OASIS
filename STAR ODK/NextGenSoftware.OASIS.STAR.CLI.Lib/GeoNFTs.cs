@@ -1287,6 +1287,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
             request.Lat = CLIEngine.GetValidInputForLong("What is the lat geo-location you wish for your NFT to appear in Our World/AR World?");
             request.Long = CLIEngine.GetValidInputForLong("What is the long geo-location you wish for your NFT to appear in Our World/AR World?");
 
+            //if (CLIEngine.GetConfirmation("Would you like to use the NFT Thumbnail to represent the GeoNFT in Our World/OAPPs?")
             OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("Geo-NFT");
 
             if (imageObjectResult != null && imageObjectResult.Result != null && !imageObjectResult.IsError)

@@ -1,169 +1,593 @@
 {
-    "OASIS": {
-        "Terms": "Please be kind and respectful to everyone including animals and nature and work hard to co-create a better world for all! Enjoy your stay! :)",
-        "Logging": {
-            "LoggingFramework": "Default",
-            "AlsoUseDefaultLogProvider": false,
-            "FileLoggingMode": 0,
-            "ConsoleLoggingMode": 1,
-            "LogToConsole": true,
-            "ShowColouredLogs": true,
-            "DebugColour": 15,
-            "InfoColour": 10,
-            "WarningColour": 14,
-            "ErrorColour": 12,
-            "LogToFile": false,
-            "LogPath": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
-            "LogFileName": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
-            "MaxLogFileSize": 1000000,
-            "NumberOfRetriesToLogToFile": 3,
-            "RetryLoggingToFileEverySeconds": 1,
-            "InsertExtraNewLineAfterLogMessage": false,
-            "IndentLogMessagesBy": 1
+  "OASIS": {
+    "Terms": "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n",
+    "Logging": {
+      "LoggingFramework": "Default",
+      "AlsoUseDefaultLogProvider": false,
+      "FileLoggingMode": 0,
+      "ConsoleLoggingMode": 1,
+      "LogToConsole": true,
+      "ShowColouredLogs": true,
+      "DebugColour": 15,
+      "InfoColour": 10,
+      "WarningColour": 14,
+      "ErrorColour": 12,
+      "LogToFile": false,
+      "LogPath": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
+      "LogFileName": "C:\\Users\\USER\\AppData\\Roaming\\NextGenSoftware\\OASIS",
+      "MaxLogFileSize": 1000000,
+      "NumberOfRetriesToLogToFile": 3,
+      "RetryLoggingToFileEverySeconds": 1,
+      "InsertExtraNewLineAfterLogMessage": false,
+      "IndentLogMessagesBy": 1
+    },
+    "ErrorHandling": {
+      "ShowStackTrace": false,
+      "ThrowExceptionsOnErrors": false,
+      "ThrowExceptionsOnWarnings": false,
+      "LogAllErrors": true,
+      "LogAllWarnings": true,
+      "ErrorHandlingBehaviour": 1,
+      "WarningHandlingBehaviour": 1
+    },
+    "Security": {
+      "HideVerificationToken": true,
+      "HideRefreshTokens": true,
+      "SecretKey": "J9U1G9P9TDbrlzHEbJJeWGP0h4ArOtSs605FE694-FA48-41AF-9A22-CB90F0FF5D6A6JnD6vHofJDcHqBiyufIz3dsbcy1A0KH",
+      "RemoveOldRefreshTokensAfterXDays": 0,
+      "JwtTokenExpirationMinutes": 15,
+      "RefreshTokenExpirationDays": 7,
+      "AvatarPassword": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "Wp@<)6];$#w(fMJumXM{!zv[z]XvX/~L@PCwYJwNke~:9uSDnx[Sz$ZN,qF=,v?=rq`GQZ$9Mj3R<bg!sF]nwQUb`Yp]=h+j~#/6t=V*9cM$YrS[J)B%rvV(U(-7XL*VMfnJY8`PBjpsS>Us]c84]9%xsysaHzWKjJ2aQK7d:P&tQmMC5h%*_g:]6@J~A<'q6AA,!R?2n{`HC?EhNA#-He?SA!mSuWL88z6ZT]')M8kNH3Pyxs)t]?]K6QWmWXyav(sn-$_sL)?wXV*=Y7=.ez>NC7~8VVn6_%8=Ua-,UK^4dGLKBB<C>LY)JwSt}tPq//j!_W`Pkm>.8(/(5KPC#{:>`n:@BPP#rT@smQWJ:D'BK`{S-37Es7P*JJJP4wqS7V2C/xeR5s/{dNSQ@Eg3'g{~H.<p!:j5)z.tycA}LU`ycnAM>3<2}-72W^d]gwm%.GZEc)#sexa$aFaf-#/HZMw^)d<N7E^.!twvg,DU5tvU?Xxx3J$&=:wD_7P!%QQ:x3>!?C;yREU-S}RFu",
+        "QuantumEncryptionEnabled": true
+      },
+      "OASISProviderPrivateKeys": {
+        "BCryptEncryptionEnabled": true,
+        "Rijndael256EncryptionEnabled": true,
+        "Rijndael256Key": "uT!<W4LZ'cKfzY[pX{,}Emd9e(VJHwM+tU3%8gx*.?BA=;h^/kEcB8{A%:=-UH2qX?mW3+C>).phJVv5;(^wyn#'uQD}z*sZYMa$MjA!$n*d>qHt`E5xe2cUSu[+bgG#87Q/B-^Ys?ah6NW.k=K'C_A/xB_k4Hy[d3WU#X]{YfV@!F+n^mj'D&SL?;wa$Nq%7P`psT~bA{_?-m7;`YU[ypb#,>kQqfhZSd.*a]$gc!WzVX9Cuj4~B<%}rLH(B8GE?[6VK!upW)9ek3a-C],.~Q<nbg*t7%2AFxD;}>_MrdcskD[j+}BL7KpJe?MFPSy{8xwhg-]_VR$)u(sX'U5v`~NbdC;=ft",
+        "QuantumEncryptionEnabled": true
+      }
+    },
+    "Email": {
+      "EmailFrom": "anorak@theoasisplatform.world",
+      "SmtpHost": "mailuk2.promailserver.com",
+      "SmtpPort": 25,
+      "SmtpUser": "anorak@oasisweb4.one",
+      "SmtpPass": "`ipmq0jrcebwoa3fugyvdkhnlsz+xt",
+      "DisableAllEmails": true,
+      "SendVerificationEmail": true,
+      "OASISWebSiteURL": "https://oasisweb4.one/#"
+    },
+    "StorageProviders": {
+      "LogSwitchingProviders": true,
+      "ProviderMethodCallTimeOutSeconds": 99,
+      "ActivateProviderTimeOutSeconds": 10,
+      "DectivateProviderTimeOutSeconds": 10,
+      "AutoReplicationEnabled": false,
+      "AutoFailOverEnabled": true,
+      "AutoLoadBalanceEnabled": true,
+      "AutoLoadBalanceReadPollIntervalMins": 10,
+      "AutoLoadBalanceWritePollIntervalMins": 10,
+      "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoLoadBalanceProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProviders": "MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
+      "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
+      "AutoFailOverProvidersForCheckIfOASISSystemAccountExists": "MongoDBOASIS",
+      "OASISProviderBootType": "Warm",
+      "AzureCosmosDBOASIS": {
+        "ServiceEndpoint": "",
+        "AuthKey": "",
+        "DBName": "",
+        "CollectionNames": "avatars, avatarDetails, holons"
+      },
+      "HoloOASIS": {
+        "UseLocalNode": true,
+        "UseHoloNetwork": true,
+        "HoloNetworkURI": "https://holo.host/",
+        "LocalNodeURI": "ws://localhost:8888",
+        "HoloNETORMUseReflection": false,
+        "RustDNARSMTemplateFolder": "DNATemplates\\RustDNATemplates\\RSM",
+        "RustTemplateLib": "core\\lib.rs",
+        "RustTemplateHolon": "core\\holon.rs",
+        "RustTemplateValidation": "core\\validation.rs",
+        "RustTemplateCreate": "crud\\create.rs",
+        "RustTemplateRead": "crud\\read.rs",
+        "RustTemplateUpdate": "crud\\update.rs",
+        "RustTemplateDelete": "crud\\delete.rs",
+        "RustTemplateList": "crud\\list.rs",
+        "RustTemplateInt": "types\\int.rs",
+        "RustTemplateString": "types\\string.rs",
+        "RustTemplateBool": "types\\bool.rs",
+        "BaseSTARPath": "C:\\Source\\OASIS2\\STAR ODK\\Releases\\STAR_ODK_v3.0.0"
+      },
+      "MongoDBOASIS": {
+        "DBName": "OASISAPI_DEV",
+        "ConnectionString": "mongodb://localhost:27017"
+      },
+      "EOSIOOASIS": {
+        "AccountName": "oasis",
+        "AccountPrivateKey": "5KUm4te3kPbR6Fmrmr5WwCw3pfkymVxdh44x1b9QFYhm66uwYsP",
+        "ChainId": "8a34ec7df1b8cd06ff4a8abbaa7cc50300823350cadc59ab296cb00d104d2b8f",
+        "ConnectionString": "http://localhost:8888"
+      },
+      "TelosOASIS": {
+        "RpcEndpoint": "https://api.telos.net",
+        "Network": "mainnet",
+        "ChainId": "4667b205c6838ef70ff7988f6e8257e8be0e1284a2f59699054a018f743b1d11",
+        "ConnectionString": "https://node.hypha.earth"
+      },
+      "SEEDSOASIS": { "ConnectionString": "https://node.hypha.earth" },
+      "ThreeFoldOASIS": { "ConnectionString": "" },
+      "EthereumOASIS": {
+        "ChainPrivateKey": "0x7580e7fb49df1c861f0050fae31c2224c6aba908e116b8da44ee8cd927b990b0",
+        "ChainId": 444444444500,
+        "ContractAddress": "0x06a2dabf7fec27d27f9283cb2de1cd328685510c",
+        "ConnectionString": "http://testchain.nethereum.com:8545"
+      },
+      "ArbitrumOASIS": {
+        "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
+        "ChainId": 421614,
+        "ContractAddress": "0x299440d24Cd0e8Ca6425ae92cE66032E58B8c436",
+        "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
+      },
+      "RootstockOASIS": {
+        "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
+        "ContractAddress": "0xd6e25f0a709ac99886c96267B23c3d2335550031",
+        "Abi": null,
+        "ConnectionString": "https://public-node.testnet.rsk.co"
+      },
+      "PolygonOASIS": {
+        "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
+        "ContractAddress": "0xd6e25f0a709ac99886c96267B23c3d2335550031",
+        "Abi": null,
+        "ConnectionString": "https://rpc-amoy.polygon.technology/"
+      },
+      "SQLLiteDBOASIS": { "ConnectionString": "Data Source=OASISSQLLiteDB.db" },
+      "IPFSOASIS": {
+        "LookUpIPFSAddress": "QmV7AwEXdAG8r7CTjXRYpDk55aaSbWuNR9kpyycLkjLFE9",
+        "ConnectionString": "http://localhost:5001"
+      },
+      "Neo4jOASIS": {
+        "Username": "neo4j",
+        "Password": "letthereb@light!",
+        "ConnectionString": "bolt://localhost:7687"
+      },
+      "SolanaOASIS": {
+        "WalletMnemonicWords": "bullet nothing diamond universe detail east dinner code plunge charge poem ball cable clog spray purpose renew above clay brand control shallow turtle similar",
+        "PrivateKey": "59ja99AKzRU5w1KbbQbSSCuK54bMjkhq2aVv5iBn1qCQUP2grn7mUJGaLEqpwAkgYhiEbAP39MweDPnk43NDbLMQ",
+        "PublicKey": "AfpSpMjNyoHTZWMWkog6Znf57KV82MGzkpDUUjLtmHwG",
+        "ConnectionString": "https://api.devnet.solana.com"
+      },
+      "CargoOASIS": {
+        "SingingMessage": "",
+        "PrivateKey": "",
+        "HostUrl": "",
+        "ConnectionString": ""
+      },
+      "LocalFileOASIS": { "FilePath": "wallets.json" },
+      "PinataOASIS": { "ConnectionString": "https://api.pinata.cloud?apiKey=4514c39ca5d1b9e62929&secretKey=80744b7c9f41d100c7ddac919da7df2436e26840e4fb99f66144177401c29817&jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiIzMGI3NjllNS1hMjJmLTQxN2UtOWEwYi1mZTQ2NzE5MjgzNzgiLCJlbWFpbCI6ImRhdmlkZWxsYW1zQGhvdG1haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjQ1MTRjMzljYTVkMWI5ZTYyOTI5Iiwic2NvcGVkS2V5U2VjcmV0IjoiODA3NDRiN2M5ZjQxZDEwMGM3ZGRhYzkxOWRhN2RmMjQzNmUyNjg0MGU0ZmI5OWY2NjE0NDE3NzQwMWMyOTgxNyIsImV4cCI6MTgwNzc2MDk1OX0.MXVWPe1iqxN-5H-pGySlouhDQxSAlLim9Unavi8QPVg" },
+      "BitcoinOASIS": null,
+      "CardanoOASIS": null,
+      "PolkadotOASIS": null,
+      "BNBChainOASIS": null,
+      "FantomOASIS": null,
+      "OptimismOASIS": null,
+      "ChainLinkOASIS": null,
+      "ElrondOASIS": null,
+      "AptosOASIS": null,
+      "TRONOASIS": null,
+      "HashgraphOASIS": null,
+      "AvalancheOASIS": null,
+      "CosmosBlockChainOASIS": null,
+      "NEAROASIS": null,
+      "BaseOASIS": null,
+      "SuiOASIS": null,
+      "MoralisOASIS": null,
+      "ActivityPubOASIS": null,
+      "GoogleCloudOASIS": null
+    },
+    "OASISHyperDriveConfig": {
+      "IsEnabled": true,
+      "DefaultStrategy": "Auto",
+      "AutoFailoverEnabled": true,
+      "AutoReplicationEnabled": true,
+      "AutoLoadBalancingEnabled": true,
+      "MaxRetryAttempts": 3,
+      "RequestTimeoutMs": 5000,
+      "HealthCheckIntervalMs": 30000,
+      "MaxConcurrentRequests": 100,
+      "PerformanceWeight": 0.4,
+      "CostWeight": 0.3,
+      "GeographicWeight": 0.2,
+      "AvailabilityWeight": 0.1,
+      "LatencyWeight": 0.5,
+      "ThroughputWeight": 0.3,
+      "ReliabilityWeight": 0.2,
+      "MaxLatencyThresholdMs": 200,
+      "MaxErrorRateThreshold": 0.05,
+      "MinUptimeThreshold": 99.0,
+      "EnabledProviders": [ "MongoDBOASIS", "SQLLiteDBOASIS", "EthereumOASIS", "IPFSOASIS" ],
+      "AutoFailoverProviders": [ "MongoDBOASIS", "SQLLiteDBOASIS" ],
+      "AutoReplicationProviders": [ "EthereumOASIS", "IPFSOASIS" ],
+      "LoadBalancingProviders": [ "MongoDBOASIS", "SQLLiteDBOASIS", "EthereumOASIS", "IPFSOASIS" ],
+      "ProviderConfigs": {
+        "MongoDBOASIS": {
+          "ProviderType": "MongoDBOASIS",
+          "IsEnabled": true,
+          "Weight": 80,
+          "TimeoutMs": 5000,
+          "MaxConnections": 100,
+          "ErrorThreshold": 0.05,
+          "MinUptime": 99.0,
+          "MaxLatencyMs": 200,
+          "Endpoint": null,
+          "ApiKey": null,
+          "SecretKey": null,
+          "CustomSettings": {}
         },
-        "ErrorHandling": {
-            "ShowStackTrace": false,
-            "ThrowExceptionsOnErrors": false,
-            "ThrowExceptionsOnWarnings": false,
-            "LogAllErrors": true,
-            "LogAllWarnings": true,
-            "ErrorHandlingBehaviour": 1,
-            "WarningHandlingBehaviour": 1
+        "SQLLiteDBOASIS": {
+          "ProviderType": "SQLLiteDBOASIS",
+          "IsEnabled": true,
+          "Weight": 90,
+          "TimeoutMs": 3000,
+          "MaxConnections": 50,
+          "ErrorThreshold": 0.02,
+          "MinUptime": 99.5,
+          "MaxLatencyMs": 100,
+          "Endpoint": null,
+          "ApiKey": null,
+          "SecretKey": null,
+          "CustomSettings": {}
         },
-        "Security": {
-            "HideVerificationToken": true,
-            "HideRefreshTokens": true,
-            "SecretKey": "",
-            "RemoveOldRefreshTokensAfterXDays": 0,
-            "AvatarPassword": {
-                "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
-                "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
-            },
-            "OASISProviderPrivateKeys": {
-                "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
-                "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
-            }
+        "EthereumOASIS": {
+          "ProviderType": "EthereumOASIS",
+          "IsEnabled": true,
+          "Weight": 70,
+          "TimeoutMs": 10000,
+          "MaxConnections": 20,
+          "ErrorThreshold": 0.1,
+          "MinUptime": 95.0,
+          "MaxLatencyMs": 1000,
+          "Endpoint": null,
+          "ApiKey": null,
+          "SecretKey": null,
+          "CustomSettings": {}
         },
-        "Email": {
-            "EmailFrom": "",
-            "SmtpHost": "",
-            "SmtpPort": 25,
-            "SmtpUser": "",
-            "SmtpPass": "",
-            "DisableAllEmails": true,
-            "SendVerificationEmail": true,
-            "OASISWebSiteURL": "https://oasisweb4.one/#"
+        "IPFSOASIS": {
+          "ProviderType": "IPFSOASIS",
+          "IsEnabled": true,
+          "Weight": 75,
+          "TimeoutMs": 8000,
+          "MaxConnections": 30,
+          "ErrorThreshold": 0.08,
+          "MinUptime": 97.0,
+          "MaxLatencyMs": 500,
+          "Endpoint": null,
+          "ApiKey": null,
+          "SecretKey": null,
+          "CustomSettings": {}
+        }
+      },
+      "GeographicConfig": {
+        "IsEnabled": true,
+        "DefaultRegion": "Global",
+        "UserLocation": "Unknown",
+        "MaxDistanceKm": 500.0,
+        "MaxNetworkHops": 10,
+        "MaxLatencyMs": 200,
+        "Regions": {
+          "US-East": {
+            "Name": "US-East",
+            "Country": "United States",
+            "City": "New York",
+            "Latitude": 40.7128,
+            "Longitude": -74.006,
+            "TimeZone": "EST",
+            "MaxLatencyMs": 100.0,
+            "MaxNetworkHops": 5
+          },
+          "US-West": {
+            "Name": "US-West",
+            "Country": "United States",
+            "City": "San Francisco",
+            "Latitude": 37.7749,
+            "Longitude": -122.4194,
+            "TimeZone": "PST",
+            "MaxLatencyMs": 100.0,
+            "MaxNetworkHops": 5
+          },
+          "Europe": {
+            "Name": "Europe",
+            "Country": "United Kingdom",
+            "City": "London",
+            "Latitude": 51.5074,
+            "Longitude": -0.1278,
+            "TimeZone": "GMT",
+            "MaxLatencyMs": 150.0,
+            "MaxNetworkHops": 7
+          },
+          "Asia": {
+            "Name": "Asia",
+            "Country": "Japan",
+            "City": "Tokyo",
+            "Latitude": 35.6762,
+            "Longitude": 139.6503,
+            "TimeZone": "JST",
+            "MaxLatencyMs": 200.0,
+            "MaxNetworkHops": 10
+          }
+        }
+      },
+      "CostConfig": {
+        "IsEnabled": true,
+        "Currency": "USD",
+        "MaxCostPerOperation": 1.0,
+        "MaxStorageCostPerGB": 0.1,
+        "MaxComputeCostPerHour": 0.5,
+        "MaxNetworkCostPerGB": 0.05,
+        "ProviderCosts": {
+          "MongoDBOASIS": {
+            "ProviderType": "MongoDBOASIS",
+            "StorageCostPerGB": 0.05,
+            "ComputeCostPerHour": 0.1,
+            "NetworkCostPerGB": 0.02,
+            "TransactionCost": 0.001,
+            "ApiCallCost": 0.0001,
+            "TotalCost": 0.15,
+            "Currency": "USD",
+            "LastUpdated": "2026-02-25T20:56:14.2892476Z",
+            "CostEfficiencyScore": 85
+          },
+          "SQLLiteDBOASIS": {
+            "ProviderType": "SQLLiteDBOASIS",
+            "StorageCostPerGB": 0.01,
+            "ComputeCostPerHour": 0.05,
+            "NetworkCostPerGB": 0.0,
+            "TransactionCost": 0.0001,
+            "ApiCallCost": 1E-05,
+            "TotalCost": 0.06,
+            "Currency": "USD",
+            "LastUpdated": "2026-02-25T20:56:14.2892886Z",
+            "CostEfficiencyScore": 95
+          },
+          "EthereumOASIS": {
+            "ProviderType": "EthereumOASIS",
+            "StorageCostPerGB": 0.2,
+            "ComputeCostPerHour": 0.5,
+            "NetworkCostPerGB": 0.1,
+            "TransactionCost": 0.01,
+            "ApiCallCost": 0.001,
+            "TotalCost": 0.81,
+            "Currency": "USD",
+            "LastUpdated": "2026-02-25T20:56:14.2892889Z",
+            "CostEfficiencyScore": 60
+          },
+          "IPFSOASIS": {
+            "ProviderType": "IPFSOASIS",
+            "StorageCostPerGB": 0.03,
+            "ComputeCostPerHour": 0.15,
+            "NetworkCostPerGB": 0.01,
+            "TransactionCost": 0.0005,
+            "ApiCallCost": 0.0001,
+            "TotalCost": 0.19,
+            "Currency": "USD",
+            "LastUpdated": "2026-02-25T20:56:14.2892892Z",
+            "CostEfficiencyScore": 80
+          }
+        }
+      },
+      "PerformanceConfig": {
+        "IsEnabled": true,
+        "MaxResponseTimeMs": 1000,
+        "MaxErrorRate": 0.05,
+        "MinUptime": 99.0,
+        "MinThroughputMbps": 10,
+        "MaxConcurrentConnections": 100,
+        "QueueDepthThreshold": 50,
+        "MaxCpuUsage": 80.0,
+        "MaxMemoryUsage": 80.0
+      },
+      "SecurityConfig": {
+        "IsEnabled": true,
+        "RequireEncryption": true,
+        "RequireAuthentication": true,
+        "RequireAuthorization": true,
+        "MaxRetryAttempts": 3,
+        "SessionTimeoutMs": 300000,
+        "MaxConcurrentSessions": 10,
+        "AllowedIPs": [],
+        "BlockedIPs": [],
+        "SecurityHeaders": {
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "DENY",
+          "X-XSS-Protection": "1; mode=block"
+        }
+      },
+      "MonitoringConfig": {
+        "IsEnabled": true,
+        "MetricsCollectionIntervalMs": 30000,
+        "MaxMetricsHistory": 100,
+        "AlertThreshold": 5,
+        "EnableRealTimeMonitoring": true,
+        "EnablePerformanceProfiling": true,
+        "EnableCostTracking": true,
+        "EnableGeographicTracking": true,
+        "MonitoringEndpoints": [],
+        "CustomMetrics": {}
+      }
+    },
+    "HyperDriveMode": "Legacy",
+    "ReplicationRules": {
+      "Mode": "Auto",
+      "IsEnabled": true,
+      "MaxReplicationsPerMonth": 1000,
+      "CostThreshold": 0.0,
+      "FreeProvidersOnly": false,
+      "GasFeeThreshold": 0.01,
+      "ReplicationTriggers": [
+        {
+          "Id": "b8b629bc-555f-4189-8f6e-8ab3f0d903cd",
+          "Name": "Test",
+          "Condition": null,
+          "Priority": "Medium",
+          "IsEnabled": true,
+          "Action": null
+        }
+      ],
+      "ProviderRules": [],
+      "DataTypeRules": [],
+      "ScheduleRules": [
+        {
+          "Name": "Test",
+          "IsEnabled": true,
+          "Schedule": null,
+          "DataTypes": [],
+          "Providers": [],
+          "Permissions": null
+        }
+      ],
+      "CostOptimization": {
+        "IsEnabled": true,
+        "MaxCostPerReplication": 0.01,
+        "MaxCostPerMonth": 10.00,
+        "PreferredFreeProviders": [],
+        "AvoidHighGasProviders": true,
+        "GasFeeThreshold": 0.01,
+        "CostAlertThreshold": 5.00
+      },
+      "IntelligentSelection": {
+        "IsEnabled": true,
+        "Algorithm": "Intelligent",
+        "Weights": {
+          "Cost": 0.3,
+          "Performance": 0.3,
+          "Reliability": 0.2,
+          "Security": 0.1,
+          "Geographic": 0.05,
+          "Availability": 0.05
         },
-        "StorageProviders": {
-            "ProviderMethodCallTimeOutSeconds": 99,
-            "ActivateProviderTimeOutSeconds": 10,
-            "DectivateProviderTimeOutSeconds": 10,
-            "AutoReplicationEnabled": false,
-            "AutoFailOverEnabled": true,
-            "AutoLoadBalanceEnabled": true,
-            "AutoLoadBalanceReadPollIntervalMins": 10,
-            "AutoLoadBalanceWritePollIntervalMins": 10,
-            "AutoReplicationProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-            "AutoLoadBalanceProviders": "MongoDBOASIS, ArbitrumOASIS, PolygonOASIS, RootstockOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-            "AutoFailOverProviders": "MongoDBOASIS, ArbitrumOASIS, LocalFileOASIS, SQLLiteDBOASIS, Neo4jOASIS, IPFSOASIS, HoloOASIS, SolanaOASIS, TelosOASIS, EOSIOOASIS, EthereumOASIS, ThreeFoldOASIS",
-            "AutoFailOverProvidersForAvatarLogin": "MongoDBOASIS",
-            "AutoFailOverProvidersForCheckIfEmailAlreadyInUse": "MongoDBOASIS",
-            "AutoFailOverProvidersForCheckIfUsernameAlreadyInUse": "MongoDBOASIS",
-            "AutoFailOverProvidersForCheckIfOASISSystemAccountExists": "MongoDBOASIS",
-            "OASISProviderBootType": "Warm",
-            "AzureCosmosDBOASIS": {
-                "ServiceEndpoint": "",
-                "AuthKey": "",
-                "DBName": "",
-                "CollectionNames": "avatars, avatarDetails, holons"
-            },
-            "HoloOASIS": {
-                "UseLocalNode": true,
-                "UseHoloNetwork": true,
-                "HoloNetworkURI": "https://holo.host/",
-                "LocalNodeURI": "ws://localhost:8888",
-                "HoloNETORMUseReflection": false,
-                "STARBasePath": "",
-                "RustDNARSMTemplateFolder": "DNATemplates/RustDNATemplates/RSM",
-                "RustTemplateLib": "core/lib.rs",
-                "RustTemplateHolon": "core/holon.rs",
-                "RustTemplateValidation": "core/validation.rs",
-                "RustTemplateCreate": "crud/create.rs",
-                "RustTemplateRead": "crud/read.rs",
-                "RustTemplateUpdate": "crud/update.rs",
-                "RustTemplateDelete": "crud/delete.rs",
-                "RustTemplateList": "crud/list.rs",
-                "RustTemplateInt": "types/int.rs",
-                "RustTemplateString": "types/string.rs",
-                "RustTemplateBool": "types/bool.rs"
-            },
-            "MongoDBOASIS": {
-                "DBName": "OASISAPI_DEV",
-                "ConnectionString": "mongodb://localhost:27017"
-            },
-            "EOSIOOASIS": {
-                "AccountName": "oasis",
-                "AccountPrivateKey": "",
-                "ChainId": "",
-                "ConnectionString": "http://localhost:8888"
-            },
-            "TelosOASIS": { "ConnectionString": "https://node.hypha.earth" },
-            "SEEDSOASIS": { "ConnectionString": "https://node.hypha.earth" },
-            "ThreeFoldOASIS": { "ConnectionString": "" },
-            "EthereumOASIS": {
-                "ChainPrivateKey": "",
-                "ChainId": 0,
-                "ContractAddress": "",
-                "ConnectionString": "http://testchain.nethereum.com:8545"
-            },
-            "ArbitrumOASIS": {
-                "ChainPrivateKey": "",
-                "ChainId": 0,
-                "ContractAddress": "",
-                "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
-            },
-            "RootstockOASIS": {
-                "ChainPrivateKey": "",
-                "ContractAddress": "",
-                "Abi": null,
-                "ConnectionString": "https://public-node.testnet.rsk.co"
-            },
-            "PolygonOASIS": {
-                "ChainPrivateKey": "",
-                "ContractAddress": "",
-                "Abi": null,
-                "ConnectionString": "https://rpc-amoy.polygon.technology/"
-            },
-            "SQLLiteDBOASIS": { "ConnectionString": "Data Source=OASISSQLLiteDB.db" },
-            "IPFSOASIS": {
-                "LookUpIPFSAddress": "QmV7AwEXdAG8r7CTjXRYpDk55aaSbWuNR9kpyycLkjLFE9",
-                "ConnectionString": "http://localhost:5001"
-            },
-            "Neo4jOASIS": {
-                "Username": "neo4j",
-                "Password": "",
-                "ConnectionString": "bolt://localhost:7687"
-            },
-            "SolanaOASIS": {
-                "WalletMnemonicWords": "",
-                "PrivateKey": "",
-                "PublicKey": "",
-                "ConnectionString": "https://api.devnet.solana.com"
-            },
-            "CargoOASIS": {
-                "SingingMessage": "",
-                "PrivateKey": "",
-                "HostUrl": "",
-                "ConnectionString": ""
-            },
-            "LocalFileOASIS": { "FilePath": "wallets.json" },
-            "PinataOASIS": { "ConnectionString": "" }
+        "LearningEnabled": true,
+        "AdaptationSpeed": "Medium",
+        "OptimizationGoals": []
+      }
+    },
+    "FailoverRules": {
+      "Mode": "Auto",
+      "IsEnabled": true,
+      "MaxFailoversPerMonth": 100,
+      "CostThreshold": 0.0,
+      "FreeProvidersOnly": false,
+      "GasFeeThreshold": 0.01,
+      "FailoverTriggers": [
+        {
+          "Id": "9d8f6f93-bb6b-4bb4-8a37-0b3238f4a3ea",
+          "Name": "Test",
+          "Condition": null,
+          "Priority": "Medium",
+          "IsEnabled": true,
+          "Action": null
+        }
+      ],
+      "ProviderRules": [],
+      "IntelligentSelection": {
+        "IsEnabled": true,
+        "Algorithm": "Intelligent",
+        "Weights": {
+          "Cost": 0.3,
+          "Performance": 0.3,
+          "Reliability": 0.2,
+          "Security": 0.1,
+          "Geographic": 0.05,
+          "Availability": 0.05
         },
-        "OASISSystemAccountId": "",
-        "OASISAPIURL": "https://oasisweb4.one"
-    }
+        "LearningEnabled": true,
+        "AdaptationSpeed": "Medium",
+        "OptimizationGoals": []
+      },
+      "EscalationRules": []
+    },
+    "SubscriptionConfig": {
+      "PlanType": null,
+      "MaxReplicationsPerMonth": 100,
+      "MaxFailoversPerMonth": 10,
+      "MaxStorageGB": 1,
+      "PayAsYouGoEnabled": false,
+      "CostPerReplication": 0.0,
+      "CostPerFailover": 0.0,
+      "CostPerGB": 0.0,
+      "Currency": "USD",
+      "BillingCycle": "Monthly",
+      "UsageAlerts": [
+        {
+          "Id": "0b26cda7-c660-45d2-a967-eaf956918b93",
+          "Name": "Test",
+          "Threshold": 0.0,
+          "ThresholdType": "Percentage",
+          "NotificationChannels": [],
+          "IsEnabled": true
+        }
+      ],
+      "QuotaNotifications": [
+        {
+          "Id": "cb33bf9d-e96f-4578-883d-71404ca0873a",
+          "Name": "Test",
+          "QuotaType": null,
+          "Threshold": 0.0,
+          "NotificationChannels": [],
+          "Actions": [],
+          "IsEnabled": true
+        }
+      ]
+    },
+    "DataPermissions": {
+      "AvatarPermissions": {
+        "IsEnabled": true,
+        "Fields": [],
+        "DefaultPermission": "Read",
+        "ProviderOverrides": {}
+      },
+      "HolonPermissions": {
+        "IsEnabled": true,
+        "HolonTypes": [],
+        "DefaultPermission": "Read",
+        "ProviderOverrides": {}
+      },
+      "ProviderPermissions": {
+        "IsEnabled": true,
+        "Providers": []
+      },
+      "FieldLevelPermissions": {
+        "IsEnabled": true,
+        "Rules": []
+      },
+      "AccessControl": {
+        "IsEnabled": true,
+        "AuthenticationRequired": true,
+        "AuthorizationLevel": "Authenticated",
+        "EncryptionLevel": "Standard",
+        "AuditLogging": true,
+        "AccessPolicies": []
+      }
+    },
+    "IntelligentMode": {
+      "IsEnabled": true,
+      "AutoOptimization": true,
+      "CostAwareness": true,
+      "PerformanceOptimization": true,
+      "SecurityOptimization": true,
+      "LearningEnabled": true,
+      "AdaptationSpeed": "Medium",
+      "OptimizationGoals": []
+    },
+    "OASISSystemAccountId": "40361570-4d60-467a-92f7-213e93698369",
+    "OASISAPIURL": "https://oasisweb4.one/api",
+    "NetworkId": "onet-network",
+    "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
+    "StatsCacheEnabled": false,
+    "StatsCacheTtlSeconds": 45
+  }
 }

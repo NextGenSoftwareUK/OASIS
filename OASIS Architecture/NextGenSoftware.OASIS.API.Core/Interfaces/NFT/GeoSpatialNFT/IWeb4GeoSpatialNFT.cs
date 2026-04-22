@@ -11,8 +11,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT
         EnumValue<ProviderType> GeoNFTMetaDataProvider { get; set; }
         //EnumValue<ProviderType> OriginalOASISNFTProviderType { get; set; }
         DateTime PlacedOn { get; set; }
-        long Lat { get; set; }
-        long Long { get; set; }
+        double Lat { get; set; }
+        double Long { get; set; }
         bool AllowOtherPlayersToAlsoCollect { get; set; }
         bool PermSpawn { get; set; }
         int GlobalSpawnQuantity { get; set; }

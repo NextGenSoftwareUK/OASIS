@@ -20,10 +20,10 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public decimal Discount { get; set; }
         public int? RoyaltyPercentage { get; set; }
         public bool WaitTillNFTMinted { get; set; } = true;
-        public int WaitForNFTToMintInSeconds { get; set; } = 60;
+        public int WaitForNFTToMintInSeconds { get; set; } = 180;
         public int AttemptToMintEveryXSeconds { get; set; } = 1;
         public bool WaitTillNFTSent { get; set; } = true;
-        public int WaitForNFTToSendInSeconds { get; set; } = 60;
+        public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
     }
 }

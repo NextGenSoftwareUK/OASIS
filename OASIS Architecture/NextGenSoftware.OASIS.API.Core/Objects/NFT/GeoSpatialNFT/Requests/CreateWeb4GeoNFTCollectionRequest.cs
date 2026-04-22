@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
 {

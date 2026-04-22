@@ -24,9 +24,11 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         /// <summary>Game/source that added this item (e.g. Quake, OQUAKE). Persisted on the holon.</summary>
         public string GameSource { get; set; }
         /// <summary>Category of item (e.g. Ammo, Armor, Weapon, KeyItem). Persisted on the holon.</summary>
-        public string ItemType { get; set; }
+        //public string ItemType { get; set; }
+        public InventoryItemType ItemType { get; set; }
         /// <summary>NFT ID when this item was minted (e.g. from WEB4 NFTHolon). Persisted so clients can show [NFT] prefix in overlays.</summary>
-        public string NftId { get; set; }
+        //public string NftId { get; set; }
+        public Guid NftId { get; set; }
         //public InventoryItemType InventoryItemType { get; set; }
     }
 }

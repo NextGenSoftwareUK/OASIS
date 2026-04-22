@@ -15,8 +15,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         //public EnumValue<ProviderType> GeoNFTMetaDataOffChainProvider { get; set; }
         public EnumValue<ProviderType> GeoNFTMetaDataProvider { get; set; }
         public DateTime PlacedOn { get; set; }
-        public long Lat { get; set; }
-        public long Long { get; set; }
+        public double Lat { get; set; }
+        public double Long { get; set; }
 
         /// <summary>
         /// If true this NFT will still be visible for other players to collect even if another player has already collected it.
