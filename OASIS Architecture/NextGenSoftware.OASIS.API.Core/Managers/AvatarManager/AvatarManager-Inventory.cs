@@ -20,16 +20,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (detail?.Inventory == null) return;
             foreach (var item in detail.Inventory)
             {
-                if (!string.IsNullOrWhiteSpace(item.NftId)) continue;
+                if (item.NftId != Guid.Empty) continue;
+
                 if (item is IHolonBase hb && hb.MetaData != null)
                 {
                     if (hb.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
-                        item.NftId = nftObj.ToString();
+                        item.NftId = Guid.Parse(nftObj.ToString());
                     else if (hb.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
-                        item.NftId = nftObj.ToString();
+                        item.NftId = Guid.Parse(nftObj.ToString());
                 }
             }
         }
+        //private static void PromoteInventoryNftIdFromMetaData(IAvatarDetail detail)
+        //{
+        //    if (detail?.Inventory == null) return;
+        //    foreach (var item in detail.Inventory)
+        //    {
+        //        if (!string.IsNullOrWhiteSpace(item.NftId)) continue;
+        //        if (item is IHolonBase hb && hb.MetaData != null)
+        //        {
+        //            if (hb.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+        //                item.NftId = nftObj.ToString();
+        //            else if (hb.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+        //                item.NftId = nftObj.ToString();
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Gets all inventory items owned by the avatar
@@ -82,24 +98,45 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 result.Message = "The inventory item is required. Please provide a valid Inventory Item object in the request body.";
                 return result;
             }
+
             // Promote MetaData to first-class GameSource/ItemType/NftId so the holon persists them (STAR client may send only MetaData)
+            //if (item is IHolonBase holonBase && holonBase.MetaData != null)
+            //{
+            //    if (string.IsNullOrWhiteSpace(item.ItemType) && holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
+            //        item.ItemType = typeObj.ToString();
+            //    if (string.IsNullOrWhiteSpace(item.GameSource) && holonBase.MetaData.TryGetValue("GameSource", out var gsObj) && gsObj != null)
+            //        item.GameSource = gsObj.ToString();
+            //    if (string.IsNullOrWhiteSpace(item.NftId))
+            //    {
+            //        if (holonBase.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+            //            item.NftId = nftObj.ToString();
+            //        else if (holonBase.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
+            //            item.NftId = nftObj.ToString();
+            //    }
+            //}
+
             if (item is IHolonBase holonBase && holonBase.MetaData != null)
             {
-                if (string.IsNullOrWhiteSpace(item.ItemType) && holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
-                    item.ItemType = typeObj.ToString();
+                if (holonBase.MetaData.TryGetValue("ItemType", out var typeObj) && typeObj != null)
+                    item.ItemType = (InventoryItemType)Enum.Parse(typeof(InventoryItemType), typeObj.ToString());
+
                 if (string.IsNullOrWhiteSpace(item.GameSource) && holonBase.MetaData.TryGetValue("GameSource", out var gsObj) && gsObj != null)
                     item.GameSource = gsObj.ToString();
-                if (string.IsNullOrWhiteSpace(item.NftId))
+
+                if (item.NftId == Guid.Empty)
                 {
                     if (holonBase.MetaData.TryGetValue("NFTId", out var nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
-                        item.NftId = nftObj.ToString();
+                        item.NftId = new Guid(nftObj.ToString());
+
                     else if (holonBase.MetaData.TryGetValue("NftId", out nftObj) && nftObj != null && !string.IsNullOrWhiteSpace(nftObj.ToString()))
-                        item.NftId = nftObj.ToString();
+                        item.NftId = new Guid(nftObj.ToString());
                 }
             }
+
             /* Ensure NftId is in MetaData so providers that persist custom fields via MetaData return it on GET (Quake/Doom [NFT] prefix). */
-            if (!string.IsNullOrWhiteSpace(item.NftId) && item is IHolonBase hb && hb.MetaData != null)
+            if (item.NftId != Guid.Empty && item is IHolonBase hb && hb.MetaData != null)
                 hb.MetaData["NFTId"] = item.NftId;
+
             try
             {
                 var avatarDetailResult = await LoadAvatarDetailAsync(avatarId, providerType);
@@ -134,6 +171,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 // If same name exists: stack = increment quantity; !stack = return error
                 var existingByName = avatarDetail.Inventory.FirstOrDefault(i =>
                     i.Name?.Equals(item.Name, StringComparison.OrdinalIgnoreCase) == true);
+
                 if (existingByName != null)
                 {
                     if (!stack)

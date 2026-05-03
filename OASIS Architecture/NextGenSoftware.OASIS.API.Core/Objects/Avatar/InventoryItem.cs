@@ -1,7 +1,8 @@
-using System;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects
 {
@@ -15,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
 
         public byte[] Image2D { get; set; }
         public Uri Image2DURI { get; set; }
+        //public string ThumbnailUrl { get; set; }
         public byte[] Object3D { get; set; }
         public Uri Object3DURI { get; set; }
         /// <summary>Stack size. When adding with Stack=true, API increments this if item exists; otherwise new item gets this quantity. Default 1.</summary>
@@ -30,5 +32,15 @@ namespace NextGenSoftware.OASIS.API.Core.Objects
         //public string NftId { get; set; }
         public Guid NftId { get; set; }
         //public InventoryItemType InventoryItemType { get; set; }
+
+        public string Rarity { get; set; }
+        public int MaxQuantity { get; set; }
+        public float Weight { get; set; }
+        public bool IsUsable { get; set; }
+        public bool IsTradeable { get; set; }
+        //public string OwnerAvatarId { get; set; }
+        public DateTime AcquiredOn { get; set; }
+        public DateTime LastUsedOn { get; set; }
+        public Dictionary<string, object> Properties { get; set; }
     }
 }

@@ -134,6 +134,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
         [CustomOASISProperty(StoreAsJsonString = true)]
         public IDictionary<string, IList<string>> LevelsCompleted { get; set; } = new Dictionary<string, IList<string>>();
 
+        [CustomOASISProperty]
+        public string CompletedMessage { get; set; }
+
         public Objective()
         {
             Id = Guid.NewGuid();
