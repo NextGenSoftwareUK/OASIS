@@ -11,9 +11,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
         //public InventoryItemType ItemType { get; set; }
         public string GameSource { get; set; }
         public byte[] Image2D { get; set; }
-        public string Image2DURI { get; set; }
+        public Uri Image2DURI { get; set; }
         public byte[] Object3D { get; set; }
-        public string Object3DURI { get; set; }
+        public Uri Object3DURI { get; set; }
         public int Quantity { get; set; }
         public bool Stack { get; set; }
     }

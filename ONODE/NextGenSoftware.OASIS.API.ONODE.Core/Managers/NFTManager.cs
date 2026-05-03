@@ -3776,7 +3776,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                         {
                             if (string.IsNullOrEmpty(mergedRequest.JSONMetaDataURL))
                             {
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONUrl cannot be empty!");
+                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} When setting NFTOffChainMetaType to ExternalJsonURL, the JSONMetaDataURL cannot be empty!");
                                 return result;
                             }
                             break;
