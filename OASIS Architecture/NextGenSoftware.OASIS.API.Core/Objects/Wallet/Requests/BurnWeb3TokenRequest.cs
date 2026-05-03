@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 
 namespace NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests

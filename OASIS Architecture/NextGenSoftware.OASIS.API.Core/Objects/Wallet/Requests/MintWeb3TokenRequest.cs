@@ -1,4 +1,4 @@
-﻿
+
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.Utilities;

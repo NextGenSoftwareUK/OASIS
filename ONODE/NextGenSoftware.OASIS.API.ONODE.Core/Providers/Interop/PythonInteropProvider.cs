@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Interop;
 using NextGenSoftware.OASIS.API.ONODE.Core.Objects.Interop;
@@ -36,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
         public PythonInteropProvider()
         {
-            _loadedModules = new Dictionary<string, dynamic>();
+            _loadedModules = new Dictionary<string, PythonModuleInfo>();
         }
 
         public Task<OASISResult<bool>> InitializeAsync()
@@ -88,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                 // Python.NET not available or Python runtime not installed
                 return false;
             }
-#else
+//#else
             // Python.NET not compiled in - check if available at runtime
             try
             {
@@ -113,6 +114,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
             {
                 // Python.NET not available
             }
+            return false;
+#else
             return false;
 #endif
         }
@@ -298,7 +301,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
 
                     result.Message = $"Python function '{functionName}' executed successfully.";
                 }
-#else
+//#else
                 // Try dynamic loading if Python.NET not compiled in
                 var pythonNetType = Type.GetType("Python.Runtime.Py, Python.Runtime");
                 if (pythonNetType != null)
@@ -590,7 +593,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                 var afterDef = sourceCode.Substring(functionIndex);
                 var docstringMatch = System.Text.RegularExpressions.Regex.Match(
                     afterDef,
-                    @"(?:"""""(.*?)"""""|'''(.*?)''')",
+                    @"(?:""""""""""(.*?)""""""""""|'''(.*?)''')",
                     System.Text.RegularExpressions.RegexOptions.Singleline);
 
                 if (docstringMatch.Success)
@@ -640,7 +643,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Providers.Interop
                         }
                     }
                 }
-#else
+//#else
                 // Try reflection-based approach
                 var pythonNetType = Type.GetType("Python.Runtime.Py, Python.Runtime");
                 if (pythonNetType != null)

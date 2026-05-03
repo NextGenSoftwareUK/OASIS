@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -24,6 +25,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class PluginsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all plugins in the system.
@@ -39,16 +42,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Plugins.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testPlugins = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testPlugins, "Plugins retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<object>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading plugins: {ex.Message}",
-                    Exception = ex
-                });
+                    var testPlugins = new List<object>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<object>>(testPlugins, "Plugins retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<object>>(ex, "GetAllPlugins");
             }
         }
 
@@ -67,16 +79,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Plugins.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Plugin retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<object>(null, "Plugin retrieved successfully (using test data)"));
+                }
+                return HandleException<object>(ex, "loading plugin");
             }
         }
 
@@ -92,6 +111,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePlugin([FromBody] CreatePluginRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, PluginType, and optional SourcePath." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
             try
             {
                 // Create a new plugin using the PluginManager
@@ -108,18 +132,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating plugin");
             }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePlugin(Guid id, [FromBody] UpdatePluginRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and/or Description." });
             try
             {
                 // Load existing plugin
@@ -146,12 +167,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error updating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "updating plugin");
             }
         }
 
@@ -165,12 +181,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting plugin");
             }
         }
 
@@ -285,12 +296,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error installing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "installing plugin");
             }
         }
 
@@ -304,18 +310,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error uninstalling plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "uninstalling plugin");
             }
         }
 
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> ClonePlugin(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.Plugins.CloneAsync(AvatarId, id, request.NewName);
@@ -323,12 +326,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning plugin");
             }
         }
 
@@ -344,19 +342,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreatePluginWithOptions([FromBody] CreatePluginWithOptionsRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<Plugin>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Plugins.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error creating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "creating plugin");
             }
         }
 
@@ -376,18 +378,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<object>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Plugins.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin");
             }
         }
 
@@ -406,18 +405,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<object>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Plugins.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin from path");
             }
         }
 
@@ -440,12 +436,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin from published file");
             }
         }
 
@@ -491,6 +482,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishPlugin(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Plugins.PublishAsync(
@@ -507,12 +500,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error publishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "publishing plugin");
             }
         }
 
@@ -538,12 +526,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedPlugin>
-                {
-                    IsError = true,
-                    Message = $"Error downloading plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedPlugin>(ex, "downloading plugin");
             }
         }
 
@@ -595,12 +578,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error loading plugin version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "loading plugin version");
             }
         }
 
@@ -617,6 +595,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditPlugin(Guid id, [FromBody] EditPluginRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Plugins.EditAsync(id, request.NewDNA, AvatarId);
@@ -624,12 +604,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error editing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "editing plugin");
             }
         }
 
@@ -653,12 +628,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "unpublishing plugin");
             }
         }
 
@@ -682,12 +652,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error republishing plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "republishing plugin");
             }
         }
 
@@ -711,12 +676,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error activating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "activating plugin");
             }
         }
 
@@ -740,12 +700,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating plugin: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "deactivating plugin");
             }
         }
     }

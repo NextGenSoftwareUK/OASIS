@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -22,6 +23,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class HolonsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all holons in the system.
@@ -37,16 +40,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Holons.LoadAllAsync(AvatarId, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testHolons = TestDataHelper.GetTestSTARHolons(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARHolon>>(testHolons, "Holons retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARHolon>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading holons: {ex.Message}",
-                    Exception = ex
-                });
+                    var testHolons = TestDataHelper.GetTestSTARHolons(5);
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARHolon>>(testHolons, "Holons retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARHolon>>(ex, "GetAllHolons");
             }
         }
 
@@ -65,16 +77,25 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.Holons.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    var testHolon = TestDataHelper.GetTestSTARHolon(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<STARHolon>(testHolon, "Holon retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading holon: {ex.Message}",
-                    Exception = ex
-                });
+                    var testHolon = TestDataHelper.GetTestSTARHolon(id);
+                    return Ok(TestDataHelper.CreateSuccessResult<STARHolon>(testHolon, "Holon retrieved successfully (using test data)"));
+                }
+                return HandleException<STARHolon>(ex, "GetHolon");
             }
         }
 
@@ -97,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error creating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "creating holon");
             }
         }
 
@@ -127,12 +143,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error updating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "updating holon");
             }
         }
 
@@ -155,12 +166,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting holon");
             }
         }
 
@@ -335,19 +341,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateHolonWithOptions([FromBody] CreateHolonRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<STARHolon>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.Holons.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error creating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "creating holon");
             }
         }
 
@@ -367,18 +377,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Holons.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon");
             }
         }
 
@@ -397,18 +404,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<IHolon>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.Holons.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon from path");
             }
         }
 
@@ -431,12 +435,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon from published file");
             }
         }
 
@@ -482,6 +481,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishHolon(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.Holons.PublishAsync(
@@ -498,12 +499,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error publishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "publishing holon");
             }
         }
 
@@ -529,12 +525,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error downloading holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARHolon>(ex, "downloading holon");
             }
         }
 
@@ -586,12 +577,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error loading holon version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "loading holon version");
             }
         }
 
@@ -608,6 +594,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARHolon>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditHolon(Guid id, [FromBody] EditHolonRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARHolon> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.Holons.EditAsync(id, request.NewDNA, AvatarId);
@@ -615,12 +603,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error editing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "editing holon");
             }
         }
 
@@ -644,12 +627,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "unpublishing holon");
             }
         }
 
@@ -673,12 +651,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error republishing holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "republishing holon");
             }
         }
 
@@ -702,12 +675,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error activating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "activating holon");
             }
         }
 
@@ -731,12 +699,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARHolon>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating holon: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARHolon>(ex, "deactivating holon");
             }
         }
     }

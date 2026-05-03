@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using NextGenSoftware.OASIS.API.Core.Events;
@@ -90,7 +90,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            try
+            {
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (System.IO.IOException ex) when (ex.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true
+                || ex.InnerException?.Message?.Contains("address already in use", StringComparison.OrdinalIgnoreCase) == true)
+            {
+                Console.Error.WriteLine();
+                Console.Error.WriteLine("Port already in use. Either:");
+                Console.Error.WriteLine("  1. Stop the existing process:  lsof -ti:7777 | xargs kill -9");
+                Console.Error.WriteLine("  2. Or use another port:        ASPNETCORE_URLS=http://localhost:7778 dotnet run");
+                Console.Error.WriteLine();
+                throw;
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>

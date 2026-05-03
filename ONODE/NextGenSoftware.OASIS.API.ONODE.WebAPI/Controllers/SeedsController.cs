@@ -114,6 +114,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("save-seed-transaction")]
         public async Task<OASISResult<SeedTransaction>> SaveSeedTransaction([FromBody] SaveSeedTransactionRequest request)
         {
+            if (request == null)
+                return new OASISResult<SeedTransaction> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with AvatarUserName, Amount, and optional AvatarId, Memo." };
             var targetAvatarId = request.AvatarId == Guid.Empty ? AvatarId : request.AvatarId;
             return await SeedsManager.SaveSeedTransactionAsync(targetAvatarId, request.AvatarUserName, request.Amount, request.Memo);
         }

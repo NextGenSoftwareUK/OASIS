@@ -294,12 +294,13 @@ Web4 NFTs wrap multiple Web3 NFTs sharing the same metadata across different cha
   - Ignition and shutdown
   - Beam-in operations
 
-## 🏆 Grants & Case Studies (from existing oasisweb4.com)
+## 🏆 Grants & Case Studies
 
 - Radix DLT: Native bridge work between Radix and Solana tokens
 - Arbitrum (Grant Ships): Endangered Tokens NFTs integrated into AR World treasure hunt
 - Arbitrum (Thrive): HoloNET API connected to Stellar Gate (browser-based, Arbitrum-enabled space game)
 - Solana Superteam UK: AR World Phygital mobile game with geo-cached Solana NFTs
+- OpenServ: Connecting the OASIS API to their AI Orchestration System using Agent2Agent protocols. 
 
 
 Once the Subscription API is implemented, the Plans page will redirect to a hosted checkout (e.g., Stripe) via the backend’s response URL.
@@ -543,283 +544,36 @@ The revolutionary linking system allows any STARNETHolon to be connected to any 
 - **GeoHotSpot + Quest**: Create location-specific challenges
 - **Any combination**: The system is completely flexible
 
-## 🏛️ Visual Architecture
 
-```mermaid
-graph TB
-    subgraph "OASIS Ecosystem"
-        subgraph "WEB5 STAR Web API - Gamification & Business Layer"
-            STAR[STAR ODK<br/>Omniverse Interoperable<br/>Metaverse Low Code Generator]
-            MISSIONS[Missions System]
-            NFTS[NFT Management]
-            INVENTORY[Inventory System]
-            CELESTIAL[Celestial Bodies]
-            TEMPLATES[Templates]
-            LIBRARIES[Libraries]
-            RUNTIMES[Runtimes]
-            PLUGINS[Plugins]
-            OAPPS[OAPPs Framework]
-        end
-        
-        subgraph "WEB4 OASIS API - Data Aggregation & Identity Layer"
-            HYPERDRIVE[OASIS HyperDrive<br/>Auto-Failover System]
-            AVATAR[Avatar API]
-            KARMA[Karma System]
-            DATA[Data API]
-            PROVIDER[Provider API]
-            IDENTITY[Identity Management]
-        end
-        
-        subgraph "Provider Layer - Web2 & Web3 Integration"
-            subgraph "Web3 Providers"
-                ETH[Ethereum]
-                SOL[Solana]
-                HOLO[Holochain]
-                IPFS[IPFS]
-                POLYGON[Polygon]
-            end
-            
-            subgraph "Web2 Providers"
-                AWS[AWS]
-                AZURE[Azure]
-                GCP[Google Cloud]
-                MONGO[MongoDB]
-                POSTGRES[PostgreSQL]
-            end
-        end
-        
-        subgraph "ONODE Network"
-            NODE1[ONODE 1]
-            NODE2[ONODE 2]
-            NODE3[ONODE 3]
-            NODEN[ONODE N...]
-        end
-    end
-    
-    STAR --> HYPERDRIVE
-    MISSIONS --> HYPERDRIVE
-    NFTS --> HYPERDRIVE
-    INVENTORY --> HYPERDRIVE
-    CELESTIAL --> HYPERDRIVE
-    TEMPLATES --> HYPERDRIVE
-    LIBRARIES --> HYPERDRIVE
-    RUNTIMES --> HYPERDRIVE
-    PLUGINS --> HYPERDRIVE
-    OAPPS --> HYPERDRIVE
-    
-    HYPERDRIVE --> AVATAR
-    HYPERDRIVE --> KARMA
-    HYPERDRIVE --> DATA
-    HYPERDRIVE --> PROVIDER
-    HYPERDRIVE --> IDENTITY
-    
-    HYPERDRIVE --> ETH
-    HYPERDRIVE --> SOL
-    HYPERDRIVE --> HOLO
-    HYPERDRIVE --> IPFS
-    HYPERDRIVE --> POLYGON
-    HYPERDRIVE --> AWS
-    HYPERDRIVE --> AZURE
-    HYPERDRIVE --> GCP
-    HYPERDRIVE --> MONGO
-    HYPERDRIVE --> POSTGRES
-    
-    NODE1 --> HYPERDRIVE
-    NODE2 --> HYPERDRIVE
-    NODE3 --> HYPERDRIVE
-    NODEN --> HYPERDRIVE
-```
+## Architecture Diagrams
 
-*For detailed architecture diagrams, see [Architecture Diagrams](./Docs/OASIS_ARCHITECTURE_DIAGRAMS.md)*
+### OASIS Architecture
+
+<img src="https://github.com/NextGenSoftwareUK/OASIS/blob/master/images/OASIS%20Arcitecture.png"
+alt="OASIS Architecture"/> 
 
 ### OASIS Torus Architecture
 
-```mermaid
-graph TB
-    subgraph "OASIS Torus Architecture"
-        subgraph "Top of Torus - Web Dev Kits & SDKs"
-            subgraph "WEB4 OASIS Web Kits"
-                WEB4_ANGULAR[Angular Web Kit]
-                WEB4_REACT[React Web Kit]
-                WEB4_VUE[Vue Web Kit]
-                WEB4_NEXTJS[Next.js Web Kit]
-                WEB4_SVELTE[Svelte Web Kit]
-                WEB4_VANILLA[Vanilla JS Web Kit]
-            end
-            
-            subgraph "WEB5 STAR Web Kits"
-                WEB5_ANGULAR[Angular STAR Web Kit]
-                WEB5_REACT[React STAR Web Kit]
-                WEB5_VUE[Vue STAR Web Kit]
-                WEB5_NEXTJS[Next.js STAR Web Kit]
-                WEB5_SVELTE[Svelte STAR Web Kit]
-                WEB5_VANILLA[Vanilla JS STAR Web Kit]
-            end
-            
-            subgraph "Avatar SSO Kits"
-                SSO_ANGULAR[Angular SSO Kit]
-                SSO_REACT[React SSO Kit]
-                SSO_VUE[Vue SSO Kit]
-                SSO_NEXTJS[Next.js SSO Kit]
-                SSO_SVELTE[Svelte SSO Kit]
-                SSO_VANILLA[Vanilla JS SSO Kit]
-            end
-            
-            subgraph "SDKs for Major Frameworks"
-                SDK_PYTHON[Python SDK]
-                SDK_RUST[Rust SDK]
-                SDK_UNITY[Unity SDK]
-                SDK_UNREAL[Unreal SDK]
-                SDK_JAVA[Java SDK]
-                SDK_PHP[PHP SDK]
-                SDK_GO[Go SDK]
-                SDK_DOTNET[.NET SDK]
-            end
-        end
-        
-        subgraph "Center of Torus - OASIS API Core"
-            OASIS_API[OASIS API<br/>Data Aggregation & Identity Layer]
-            HYPERDRIVE[OASIS HyperDrive<br/>Auto-Failover System]
-            AVATAR[Avatar Management]
-            KARMA[Karma System]
-            DATA[Universal Data Storage]
-            IDENTITY[Identity Management]
-        end
-        
-        subgraph "Bottom of Torus - Provider Layer"
-            subgraph "Web3 Providers"
-                ETH[Ethereum]
-                SOL[Solana]
-                HOLO[Holochain]
-                IPFS[IPFS]
-                POLYGON[Polygon]
-                ARBITRUM[Arbitrum]
-                OPTIMISM[Optimism]
-                BASE[Base]
-                AVALANCHE[Avalanche]
-                BNB[BNB Chain]
-                FANTOM[Fantom]
-                CARDANO[Cardano]
-                POLKADOT[Polkadot]
-                BITCOIN[Bitcoin]
-                NEAR[NEAR]
-                SUI[Sui]
-                APTOS[Aptos]
-                COSMOS[Cosmos]
-                EOSIO[EOSIO]
-                TELOS[Telos]
-                SEEDS[SEEDS]
-            end
-            
-            subgraph "Web2 Providers"
-                AWS[AWS]
-                AZURE[Azure]
-                GCP[Google Cloud]
-                MONGO[MongoDB]
-                POSTGRES[PostgreSQL]
-                MYSQL[MySQL]
-                REDIS[Redis]
-                ELASTICSEARCH[Elasticsearch]
-                PINATA[Pinata]
-                THREE_FOLD[ThreeFold]
-                SOLID[SOLID]
-                ACTIVITY_PUB[ActivityPub]
-            end
-        end
-    end
-    
-    %% Connections from top to center
-    WEB4_ANGULAR --> OASIS_API
-    WEB4_REACT --> OASIS_API
-    WEB4_VUE --> OASIS_API
-    WEB4_NEXTJS --> OASIS_API
-    WEB4_SVELTE --> OASIS_API
-    WEB4_VANILLA --> OASIS_API
-    
-    WEB5_ANGULAR --> OASIS_API
-    WEB5_REACT --> OASIS_API
-    WEB5_VUE --> OASIS_API
-    WEB5_NEXTJS --> OASIS_API
-    WEB5_SVELTE --> OASIS_API
-    WEB5_VANILLA --> OASIS_API
-    
-    SSO_ANGULAR --> OASIS_API
-    SSO_REACT --> OASIS_API
-    SSO_VUE --> OASIS_API
-    SSO_NEXTJS --> OASIS_API
-    SSO_SVELTE --> OASIS_API
-    SSO_VANILLA --> OASIS_API
-    
-    SDK_PYTHON --> OASIS_API
-    SDK_RUST --> OASIS_API
-    SDK_UNITY --> OASIS_API
-    SDK_UNREAL --> OASIS_API
-    SDK_JAVA --> OASIS_API
-    SDK_PHP --> OASIS_API
-    SDK_GO --> OASIS_API
-    SDK_DOTNET --> OASIS_API
-    
-    %% Connections from center to bottom
-    OASIS_API --> HYPERDRIVE
-    HYPERDRIVE --> AVATAR
-    HYPERDRIVE --> KARMA
-    HYPERDRIVE --> DATA
-    HYPERDRIVE --> IDENTITY
-    
-    %% Provider connections
-    HYPERDRIVE --> ETH
-    HYPERDRIVE --> SOL
-    HYPERDRIVE --> HOLO
-    HYPERDRIVE --> IPFS
-    HYPERDRIVE --> POLYGON
-    HYPERDRIVE --> ARBITRUM
-    HYPERDRIVE --> OPTIMISM
-    HYPERDRIVE --> BASE
-    HYPERDRIVE --> AVALANCHE
-    HYPERDRIVE --> BNB
-    HYPERDRIVE --> FANTOM
-    HYPERDRIVE --> CARDANO
-    HYPERDRIVE --> POLKADOT
-    HYPERDRIVE --> BITCOIN
-    HYPERDRIVE --> NEAR
-    HYPERDRIVE --> SUI
-    HYPERDRIVE --> APTOS
-    HYPERDRIVE --> COSMOS
-    HYPERDRIVE --> EOSIO
-    HYPERDRIVE --> TELOS
-    HYPERDRIVE --> SEEDS
-    
-    HYPERDRIVE --> AWS
-    HYPERDRIVE --> AZURE
-    HYPERDRIVE --> GCP
-    HYPERDRIVE --> MONGO
-    HYPERDRIVE --> POSTGRES
-    HYPERDRIVE --> MYSQL
-    HYPERDRIVE --> REDIS
-    HYPERDRIVE --> ELASTICSEARCH
-    HYPERDRIVE --> PINATA
-    HYPERDRIVE --> THREE_FOLD
-    HYPERDRIVE --> SOLID
-    HYPERDRIVE --> ACTIVITY_PUB
-```
+<img src="https://github.com/NextGenSoftwareUK/OASIS/blob/master/Docs/OASIS%20Torus.gif" alt="OASIS Torus"/> 
 
-### OASIS HyperDrive Architecture ✅ COMPLETED
+            
+### OASIS HyperDrive Architecture
 
 ```mermaid
 graph TB
-    subgraph "OASIS HyperDrive - 100% Uptime System ✅ COMPLETED"
+    subgraph "OASIS HyperDrive - 100% Uptime System"
         subgraph "Application Layer"
             APP[Your Application]
             API[OASIS API]
         end
         
-        subgraph "HyperDrive Core Engine ✅ COMPLETED"
-            ROUTING[Intelligent Routing Engine ✅]
-            FAILOVER[Auto-Failover System ✅]
-            LOADBAL[Auto-Load Balancing ✅]
-            AI[AI-Powered Optimization ✅]
-            PREDICT[Predictive Failover ✅]
-            ANALYTICS[Advanced Analytics ✅]
+        subgraph "HyperDrive Core Engine"
+            ROUTING[Intelligent Routing Engine]
+            FAILOVER[Auto-Failover System]
+            LOADBAL[Auto-Load Balancing]
+            AI[AI-Powered Optimization]
+            PREDICT[Predictive Failover]
+            ANALYTICS[Advanced Analytics]
             REPLICATION[Auto-Replication]
             MONITORING[Performance Monitoring]
         end
@@ -1076,9 +830,11 @@ graph TB
     TELOS_NFT -.-> SEEDS_NFT
 ```
 
+*For detailed architecture diagrams, see [Architecture Diagrams](./Docs/OASIS_ARCHITECTURE_DIAGRAMS.md)*
+
 ## 🎯 Unique Selling Propositions
 
-### 1. **Intelligent Auto-Failover System ✅ COMPLETED**
+### 1. **Intelligent Auto-Failover System
 Revolutionary OASIS HyperDrive automatically switches between Web2 and Web3 providers based on:
 - **Lag/Ping Priority** (40% weight) - Primary selection criteria
 - Network speed and reliability (25% weight)
@@ -1316,6 +1072,7 @@ Sophisticated tokenomics with:
 ## 📚 Documentation
 
 ### 🚀 **Quick Start Guides**
+- **[OASIS Omniverse — ODOOM, OQuake & STARAPIClient](./OASIS%20Omniverse/README.md)** - Native Doom/Quake integrations and STAR client; full documentation index under `OASIS Omniverse/Docs/`
 - **[Developer Documentation Index](./Docs/Devs/DEVELOPER_DOCUMENTATION_INDEX.md)** - Complete documentation guide
 - **[OASIS Quick Start Guide](./Docs/Devs/OASIS_Quick_Start_Guide.md)** - Get started with OASIS in 10 minutes
 - **[STARNET Web UI Quick Start](./Docs/Devs/STARNET_QUICK_START_GUIDE.md)** - Get started with STARNET Web UI in 5 minutes
@@ -1588,7 +1345,7 @@ For enterprise support and consulting services, please contact us at:
 - ✅ WEB4 OASIS API implementation
 - ✅ WEB5 STAR Web API development
 - ✅ Auto-failover system
-- ✅ Basic provider integration
+- ✅ STAR ODK/CLI
 
 ### Phase 2: Advanced Features (Q2 2024)
 - 🔄 AI/ML integration

@@ -21,7 +21,6 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     ];
 
 
-    //TODO: Finish porting!
     public async Task<OASISResult<decimal>> GetAccountBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
         OASISResult<decimal> result = new OASISResult<decimal>();
@@ -135,6 +134,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     {
         var response = new OASISResult<BurnNftResult>();
 
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
+
         try
         {
             //PublicKey mintAccount = new(mintNftRequest.MintWalletAddress);
@@ -154,6 +156,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 mintAccount))
                 .Build(oasisAccount);
 
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
@@ -172,6 +177,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -179,6 +189,10 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
     {
         var response = new OASISResult<SendTransactionResult>();
+
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
+
         try
         {
             (bool success, string res) = sendTransactionRequest.IsRequestValid();
@@ -201,6 +215,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 .AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts))
                 .Build(oasisAccount);
 
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
@@ -219,6 +236,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -227,8 +249,15 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         string address)
     {
         OASISResult<GetNftResult> response = new();
+        
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
+
         try
         {
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             PublicKey nftAccount = new(address);
             MetadataAccount metadataAccount = await MetadataAccount.GetAccount(rpcClient, nftAccount);
 
@@ -254,6 +283,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -261,6 +295,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<OASISResult<SendTransactionResult>> SendNftAsync(SendWeb3NFTRequest mintNftRequest)
     {
         OASISResult<SendTransactionResult> response = new OASISResult<SendTransactionResult>();
+
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
 
         try
         {
@@ -375,6 +412,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         {
             response.IsError = true;
             response.Message = ex.Message;
+        }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
         }
 
         return response;

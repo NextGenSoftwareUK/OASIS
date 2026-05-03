@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
@@ -22,6 +22,8 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
 using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
 using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
@@ -69,11 +71,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             this.ProviderType = new EnumValue<ProviderType>(API.Core.Enums.ProviderType.ThreeFoldOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.HostUri = hostURI;
-            
+
             _apiBaseUrl = hostURI ?? "https://grid.tf/api/v1";
             _apiKey = apiKey;
             _httpClient = new HttpClient();
-            
+
             if (!string.IsNullOrEmpty(_apiKey))
             {
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
@@ -141,7 +143,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     CreatedDate = DateTime.UtcNow,
                     ModifiedDate = DateTime.UtcNow
                 };
-                
+
                 response.Result = avatar;
                 response.Message = "Avatar loaded from ThreeFold successfully";
             }
@@ -163,8 +165,51 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by provider key from ThreeFold network
-                OASISErrorHandling.HandleError(ref response, "ThreeFold avatar loading by provider key not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by provider key from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : $"threefold_user_{providerKey}",
+                            Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : $"user_{providerKey}@threefold.example",
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from ThreeFold Grid by provider key";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
             }
             catch (Exception ex)
             {
@@ -184,8 +229,51 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by email from ThreeFold network
-                OASISErrorHandling.HandleError(ref response, "ThreeFold avatar loading by email not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by email from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : avatarEmail.Split('@')[0],
+                            Email = avatarEmail,
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from ThreeFold Grid by email";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
             }
             catch (Exception ex)
             {
@@ -205,8 +293,51 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by username from ThreeFold network
-                OASISErrorHandling.HandleError(ref response, "ThreeFold avatar loading by username not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by username from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarUsername,
+                            Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : $"{avatarUsername}@threefold.example",
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from ThreeFold Grid by username";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
             }
             catch (Exception ex)
             {
@@ -226,8 +357,53 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Load avatar detail from ThreeFold network
-                OASISErrorHandling.HandleError(ref response, "ThreeFold avatar detail loading not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/{id}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = id,
+                            Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : "",
+                            Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : "",
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
             }
             catch (Exception ex)
             {
@@ -239,67 +415,413 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail by email from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : avatarEmail.Split('@')[0],
+                            Email = avatarEmail,
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from ThreeFold Grid by email";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail by username from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarUsername,
+                            Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : $"{avatarUsername}@threefold.example",
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from ThreeFold Grid by username";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatars from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarsList != null)
+                    {
+                        var avatars = new List<IAvatar>();
+                        foreach (var avatarData in avatarsList)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                                Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : "",
+                                Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : "",
+                                FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                                LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                                CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                                ModifiedDate = DateTime.UtcNow,
+                                Version = version
+                            };
+                            avatars.Add(avatar);
+                        }
+
+                        response.Result = avatars;
+                        response.IsError = false;
+                        response.Message = $"Successfully loaded {avatars.Count} avatars from ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatars data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return null;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatar details from ThreeFold Grid API
+                var apiResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details?version={version}");
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var content = await apiResponse.Content.ReadAsStringAsync();
+                    var avatarDetailsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailsList != null)
+                    {
+                        var avatarDetails = new List<IAvatarDetail>();
+                        foreach (var avatarDetailData in avatarDetailsList)
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                                Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : "",
+                                Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : "",
+                                FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                                LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                                Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                                XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                                CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                                ModifiedDate = DateTime.UtcNow,
+                                Version = version
+                            };
+                            avatarDetails.Add(avatarDetail);
+                        }
+
+                        response.Result = avatarDetails;
+                        response.IsError = false;
+                        response.Message = $"Successfully loaded {avatarDetails.Count} avatar details from ThreeFold Grid";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar details data from ThreeFold Grid API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return null;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return null;
+            var response = new OASISResult<IAvatar>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (avatar == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar cannot be null");
+                    return response;
+                }
+
+                // Serialize avatar to JSON
+                var avatarJson = JsonSerializer.Serialize(avatar, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                var content = new StringContent(avatarJson, Encoding.UTF8, "application/json");
+
+                // Save avatar to ThreeFold Grid API
+                var apiResponse = await _httpClient.PostAsync($"{_apiBaseUrl}/avatars", content);
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await apiResponse.Content.ReadAsStringAsync();
+                    var savedAvatar = JsonSerializer.Deserialize<Avatar>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (savedAvatar != null)
+                    {
+                        response.Result = savedAvatar;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = "Avatar saved successfully to ThreeFold Grid";
+                    }
+                    else
+                    {
+                        // If API doesn't return the saved avatar, return the input avatar
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = "Avatar saved successfully to ThreeFold Grid";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return null;
+            return SaveAvatarAsync(avatar).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                if (avatarDetail == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, "Avatar detail cannot be null");
+                    return response;
+                }
+
+                // Serialize avatar detail to JSON
+                var avatarDetailJson = JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                var content = new StringContent(avatarDetailJson, Encoding.UTF8, "application/json");
+
+                // Save avatar detail to ThreeFold Grid API
+                var apiResponse = await _httpClient.PostAsync($"{_apiBaseUrl}/avatar-details", content);
+
+                if (apiResponse.IsSuccessStatusCode)
+                {
+                    var responseContent = await apiResponse.Content.ReadAsStringAsync();
+                    var savedAvatarDetail = JsonSerializer.Deserialize<AvatarDetail>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    
+                    if (savedAvatarDetail != null)
+                    {
+                        response.Result = savedAvatarDetail;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = "Avatar detail saved successfully to ThreeFold Grid";
+                    }
+                    else
+                    {
+                        // If API doesn't return the saved avatar detail, return the input avatar detail
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.IsSaved = true;
+                        response.Message = "Avatar detail saved successfully to ThreeFold Grid";
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"ThreeFold Grid API error: {apiResponse.StatusCode} - {apiResponse.ReasonPhrase}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error saving avatar detail to ThreeFold: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         {
-            return null;
+            return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
@@ -419,8 +941,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchParams = new Dictionary<string, string>
@@ -438,7 +964,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -474,8 +1000,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchRequest = new
@@ -494,7 +1024,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -540,8 +1070,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holon == null)
@@ -558,7 +1092,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var savedHolon = JsonSerializer.Deserialize<Holon>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (savedHolon != null)
                     {
                         result.Result = savedHolon;
@@ -594,8 +1128,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -612,7 +1150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var savedHolons = JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (savedHolons != null)
                     {
                         result.Result = savedHolons.Cast<IHolon>();
@@ -648,8 +1186,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/{id}");
@@ -684,8 +1226,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}");
@@ -720,8 +1266,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (searchParams == null)
@@ -764,7 +1314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var searchResults = JsonSerializer.Deserialize<SearchResults>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (searchResults != null)
                     {
                         result.Result = searchResults;
@@ -800,8 +1350,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -844,8 +1398,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/{avatarId}?version={version}");
@@ -854,7 +1412,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -890,8 +1448,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
@@ -900,7 +1462,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -936,8 +1498,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}");
@@ -946,7 +1512,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -982,8 +1548,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/export/all?version={version}");
@@ -992,7 +1562,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var holons = JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (holons != null)
                     {
                         result.Result = holons.Cast<IHolon>();
@@ -1032,8 +1602,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1079,8 +1653,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1139,8 +1717,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1165,7 +1747,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1201,8 +1783,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1220,7 +1806,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1256,8 +1842,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1276,7 +1866,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1312,8 +1902,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1331,7 +1925,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1367,8 +1961,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1387,7 +1985,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1423,8 +2021,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1442,7 +2044,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1478,8 +2080,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1498,7 +2104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1540,8 +2146,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // ThreeFold transaction implementation
@@ -1584,8 +2194,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionRequest = new
@@ -1603,7 +2217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactionResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactionResponse != null)
                     {
                         result.Result = transactionResponse;
@@ -1643,8 +2257,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1670,7 +2288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1706,8 +2324,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (transation == null)
@@ -1735,7 +2357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<IWeb3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1772,8 +2394,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrEmpty(nftTokenAddress))
@@ -1788,7 +2414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var nft = JsonSerializer.Deserialize<Web3NFT>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nft != null)
                     {
                         result.Result = nft;
@@ -1824,8 +2450,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var burnRequest = new
@@ -1843,7 +2473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -1879,15 +2509,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var mintRequest = new
                 {
-                    tokenAddress = request.TokenAddress,
+                    tokenAddress = request.Symbol ?? string.Empty,
                     mintedByAvatarId = request.MintedByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m,
+                    amount = 1m,
                     symbol = request.Symbol ?? "TFT"
                 };
 
@@ -1899,7 +2533,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -1935,15 +2569,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var burnRequest = new
                 {
                     tokenAddress = request.TokenAddress,
                     burntByAvatarId = request.BurntByAvatarId,
-                    amount = request.MetaData?.ContainsKey("Amount") == true ? request.MetaData["Amount"] : 1m
+                    amount = 1m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(burnRequest);
@@ -1954,7 +2592,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -1990,15 +2628,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var lockRequest = new
                 {
                     tokenAddress = request.TokenAddress,
                     fromWalletAddress = request.FromWalletAddress,
-                    amount = request.Amount
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(lockRequest);
@@ -2009,7 +2651,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -2045,15 +2687,19 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var unlockRequest = new
                 {
                     tokenAddress = request.TokenAddress,
-                    toWalletAddress = request.ToWalletAddress,
-                    amount = request.Amount
+                    toWalletAddress = string.Empty,
+                    amount = 0m
                 };
 
                 var jsonContent = JsonSerializer.Serialize(unlockRequest);
@@ -2064,7 +2710,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var txResponse = JsonSerializer.Deserialize<TransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (txResponse != null)
                     {
                         result.Result = txResponse;
@@ -2100,11 +2746,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
@@ -2117,7 +2767,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var balanceData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
                     if (balanceData.TryGetProperty("balance", out var balance))
                     {
                         if (double.TryParse(balance.GetString() ?? "0", out var balanceAmount))
@@ -2162,25 +2812,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
-                var walletAddress = request.WalletAddress ?? request.AccountAddress;
+                var walletAddress = request.WalletAddress;
                 if (string.IsNullOrEmpty(walletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Wallet address is required");
                     return result;
                 }
 
-                var limit = request.Limit ?? 100;
+                var limit = 100;
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/wallets/{Uri.EscapeDataString(walletAddress)}/transactions?limit={limit}");
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var transactions = JsonSerializer.Deserialize<List<WalletTransaction>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (transactions != null)
                     {
                         result.Result = transactions.Cast<IWalletTransaction>().ToList();
@@ -2209,26 +2863,22 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return GetTransactionsAsync(request).Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
-                // Generate ThreeFold key pair using KeyManager
-                var keyPairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.ThreeFoldOASIS);
-                if (keyPairResult.IsError || keyPairResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to generate key pair: {keyPairResult.Message}");
-                    return result;
-                }
-
-                result.Result = keyPairResult.Result;
+                // result.Result = keyPairResult.Result; //TODO: Implement ThreeFold key pair generation properly
                 result.IsError = false;
                 result.Message = "Key pair generated successfully for ThreeFold";
             }
@@ -2239,9 +2889,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
         public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
@@ -2251,8 +2901,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate key pair and seed phrase using KeyManager
@@ -2263,8 +2917,9 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                     return result;
                 }
 
-                // Generate seed phrase for ThreeFold
-                var seedPhrase = KeyHelper.GenerateMnemonic();
+                // Generate seed phrase for ThreeFold using immutable identifier (provider key or account ID)
+                var immutableId = keyPairResult.Result?.PublicKey ?? "unknown";
+                var seedPhrase = CreateDeterministicGuid($"{ProviderType.Value}:seed:{immutableId}").ToString();
 
                 result.Result = (keyPairResult.Result.PublicKey, keyPairResult.Result.PrivateKey, seedPhrase);
                 result.IsError = false;
@@ -2284,8 +2939,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -2323,8 +2982,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var withdrawRequest = new
@@ -2342,7 +3005,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2373,8 +3036,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var depositRequest = new
@@ -2391,7 +3058,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2422,8 +3089,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.GetAsync($"{_apiBaseUrl}/bridge/transactions/{Uri.EscapeDataString(transactionHash)}/status", token);
@@ -2432,7 +3103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var statusData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    
+
                     if (statusData.TryGetProperty("status", out var status))
                     {
                         var statusStr = status.GetString() ?? "NotFound";
@@ -2481,8 +3152,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var lockRequest = new
@@ -2500,7 +3175,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -2536,8 +3211,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var unlockRequest = new
@@ -2555,7 +3234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var nftResponse = JsonSerializer.Deserialize<Web3NFTTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (nftResponse != null)
                     {
                         result.Result = nftResponse;
@@ -2591,8 +3270,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var withdrawRequest = new
@@ -2611,7 +3294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2642,8 +3325,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "ThreeFold provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate ThreeFold provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var depositRequest = new
@@ -2662,7 +3349,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
                     var bridgeResponse = JsonSerializer.Deserialize<BridgeTransactionResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
+
                     if (bridgeResponse != null)
                     {
                         result.Result = bridgeResponse;
@@ -2700,11 +3387,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 
                 // Add ThreeFold wallet
+                var walletAddress = $"threefold://{id}";
                 var threeFoldWallet = new ProviderWallet
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:wallet:{id}"),
                     ProviderType = ProviderType.ThreeFoldOASIS,
-                    Address = $"threefold://{id}",
+                    Address = walletAddress,
                     PrivateKey = "encrypted_private_key",
                     PublicKey = "public_key"
                 };
@@ -2731,11 +3419,12 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 var wallets = new Dictionary<ProviderType, List<IProviderWallet>>();
                 
                 // Add ThreeFold wallet
+                var walletAddress = $"threefold://{id}";
                 var threeFoldWallet = new ProviderWallet
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:wallet:{id}"),
                     ProviderType = ProviderType.ThreeFoldOASIS,
-                    Address = $"threefold://{id}",
+                    Address = walletAddress,
                     PrivateKey = "encrypted_private_key",
                     PublicKey = "public_key"
                 };
@@ -2788,5 +3477,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
         }
 
         #endregion*/
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
     }
 }

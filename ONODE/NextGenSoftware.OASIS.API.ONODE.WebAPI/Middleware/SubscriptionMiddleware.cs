@@ -115,7 +115,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in SubscriptionMiddleware");
-                await _next(context);
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = 500;
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(new { error = "Subscription check failed", message = ex.Message }));
+                }
             }
         }
 
@@ -229,6 +234,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 
         private async Task ReturnSubscriptionRequiredError(HttpContext context)
         {
+            if (context.Response.HasStarted) return;
             context.Response.StatusCode = 402; // Payment Required
             context.Response.ContentType = "application/json";
 
@@ -250,6 +256,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 
         private async Task ReturnInactiveSubscriptionError(HttpContext context, SubscriptionInfo subscription)
         {
+            if (context.Response.HasStarted) return;
             context.Response.StatusCode = 402; // Payment Required
             context.Response.ContentType = "application/json";
 
@@ -272,6 +279,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 
         private async Task ReturnLimitExceededError(HttpContext context, SubscriptionInfo subscription, int currentUsage, int planLimit)
         {
+            if (context.Response.HasStarted) return;
             context.Response.StatusCode = 429; // Too Many Requests
             context.Response.ContentType = "application/json";
 
