@@ -540,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (request.Web3NFTs == null)
                         request.Web3NFTs = new List<IMintWeb3NFTRequest>();
 
-                    for (int i = 0; i <= (request.NumberToMint - request.Web3NFTs.Count) + 1; i++)
+                    for (int i = 0; i <= (request.NumberToMint - request.Web3NFTs.Count); i++)
                         request.Web3NFTs.Add(new MintWeb3NFTRequest());
                 }
 
