@@ -2896,7 +2896,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                providerType = ProviderType.LocalFileOASIS; //TODO: TEMP!
+                //providerType = ProviderType.LocalFileOASIS; //TODO: TEMP!
                 OASISResult<IOASISStorageProvider> providerResult = ProviderManager.Instance.SetAndActivateCurrentStorageProvider(providerType);
                 errorMessage = string.Format(errorMessageTemplate, ProviderManager.Instance.CurrentStorageProviderType.Name);
 
@@ -2967,7 +2967,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             try
             {
-                providerType = ProviderType.LocalFileOASIS; //TODO:Temp!
+                //providerType = ProviderType.LocalFileOASIS; //TODO:Temp!
 
                 CLIEngine.SupressConsoleLogging = true;
                 OASISResult<IOASISStorageProvider> providerResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(providerType);
