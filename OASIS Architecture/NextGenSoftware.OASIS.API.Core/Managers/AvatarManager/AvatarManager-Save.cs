@@ -13,6 +13,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
     {
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar, AutoReplicationMode autoReplicationMode = AutoReplicationMode.UseGlobalDefaultInOASISDNA, AutoFailOverMode autoFailOverMode = AutoFailOverMode.UseGlobalDefaultInOASISDNA, AutoLoadBalanceMode autoLoadBalanceMode = AutoLoadBalanceMode.UseGlobalDefaultInOASISDNA, bool waitForAutoReplicationResult = false, ProviderType providerType = ProviderType.Default)
         {
+            Console.WriteLine($"CurrentDirectory: {Environment.CurrentDirectory}");
+            Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
+            Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
+            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+
             if (avatar == null)
                 return new OASISResult<IAvatar> { IsError = true, Message = "The avatar is required. Please provide a valid avatar object." };
             // HyperDrive v2 routing with safe fallback to legacy
@@ -106,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.Instance.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
+                OASISErrorHandling.HandleError(ref result, string.Concat("Unknown error occured: ", ex.ToString(), " saving avatar ", avatar.Name, " with id ", avatar.Id, " for provider ", ProviderManager.Instance.CurrentStorageProviderType.Name), string.Concat("Error Message: ", ex.Message), ex);
                 result.Result = null;
             }
 

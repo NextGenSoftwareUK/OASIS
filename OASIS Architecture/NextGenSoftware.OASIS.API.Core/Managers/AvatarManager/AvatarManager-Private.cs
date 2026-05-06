@@ -177,10 +177,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
             }
 
-            OASISResult<bool> saveWalletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(result.Result.Id, result.Result.ProviderWallets);
+            //TODO: Fix this properly later! For some reason was causing an error in Azure cloud but seemed fine everywhere else including AWS etc! Its to do with not being able to save the wallets locally, which is not what we want on a server anyway! lol
+            //OASISResult<bool> saveWalletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(result.Result.Id, result.Result.ProviderWallets);
             
-            if (!(saveWalletsResult != null && saveWalletsResult.Result != null && !saveWalletsResult.IsError))
-                OASISErrorHandling.HandleError(ref result, $"Error occured saving the default wallets. Reason: {saveWalletsResult.Message}");
+            //if (!(saveWalletsResult != null && saveWalletsResult.Result != null && !saveWalletsResult.IsError))
+            //    OASISErrorHandling.HandleError(ref result, $"Error occured saving the default wallets. Reason: {saveWalletsResult.Message}");
 
             result.Result.CreatedByAvatarId = result.Result.Id;
             OASISResult<bool> checkIfUsernameExistsResult = CheckIfUsernameIsAlreadyInUse(email);
