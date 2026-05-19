@@ -362,6 +362,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
             {
                 MintedByAvatarId = mintedByAvatarId,
+                CollectionPublicKey = request.CollectionPublicKey,
                 Title = request.Title,
                 Description = request.Description,
                 Image = request.Image,

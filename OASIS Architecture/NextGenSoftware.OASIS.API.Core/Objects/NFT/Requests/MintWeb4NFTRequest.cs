@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
     //public class MintWeb4NFTRequest : NFTOptions, MintNFTRequestBase, IMintWeb4NFTRequest //TODO: If only c# supported multiple inheritance then we could do this way?
     public class MintWeb4NFTRequest : MintNFTRequestBase, IMintWeb4NFTRequest
     {
+        public string? CollectionPublicKey { get; set; }
         public IList<IMintWeb3NFTRequest> Web3NFTs { get; set; } = new List<IMintWeb3NFTRequest>();
         //Default Global NFT Properties (these will be applied to all Web3 NFTs being minted unless overridden in the individual Web3NFTs):
         public EnumValue<ProviderType> OffChainProvider { get; set; }

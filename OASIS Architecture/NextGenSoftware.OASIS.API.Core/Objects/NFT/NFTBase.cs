@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
     public abstract class NFTBase : INFTBase
     {
         public Guid Id { get; set; }
+        public string CollectionPublicKey { get; set; }
         public string SendToAddressAfterMinting { get; set; }
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.

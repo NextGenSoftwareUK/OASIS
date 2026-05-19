@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
     //All properties are optional, if not provided the values defined in the parent WEB4 OASIS NFT will be used.
     public class MintWeb3NFTRequest : MintNFTRequestBase, IMintWeb3NFTRequest
     {
+        public string? CollectionPublicKey { get; set; }
         public decimal? Price { get; set; }
         public decimal? Discount { get; set; }
         public int? RoyaltyPercentage { get; set; }
@@ -23,6 +24,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public bool? WaitTillNFTMinted { get; set; }
         public int? WaitForNFTToMintInSeconds { get; set; }
         public int? AttemptToMintEveryXSeconds { get; set; }
+        public bool? WaitTillNFTVerified { get; set; }
+        public int? WaitForNFTToVerifyInSeconds { get; set; }
+        public int? AttemptToVerifyEveryXSeconds { get; set; }
         public bool? WaitTillNFTSent { get; set; }
         public int? WaitForNFTToSendInSeconds { get; set; }
         public int? AttemptToSendEveryXSeconds { get; set; }
