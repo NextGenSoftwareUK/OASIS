@@ -3203,6 +3203,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             return new MintWeb4NFTRequest()
             {
+                CollectionPublicKey = request.CollectionPublicKey,
                 AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds,
                 Description = request.Description,
@@ -3249,6 +3250,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             //Web3 Request overrides web4 (optional).
             if (web3Request != null)
             {
+                if (!string.IsNullOrEmpty(web3Request.CollectionPublicKey))
+                    request.CollectionPublicKey = web3Request.CollectionPublicKey;
+
                 if (!string.IsNullOrEmpty(web3Request.Title))
                     request.Title = web3Request.Title;
 
@@ -3410,6 +3414,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     }
 
                     //Sync web3Request with web4.
+                    web3Request.CollectionPublicKey = request.CollectionPublicKey;
                     web3Request.AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds;
                     web3Request.AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds;
                     web3Request.Description = request.Description;
@@ -3812,8 +3817,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             {
                                 currentWeb3NFT = (Web3NFT)mintResult.Result.Web3NFT;
 
-                                if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash))
+                                //if (!string.IsNullOrEmpty(currentWeb3NFT.MintTransactionHash))
                                     currentWeb3NFT.MintTransactionHash = mintResult.Result.TransactionResult;
+
+                                currentWeb3NFT.VerifyCollectionTransactionHash = mintResult.Result.VerifyCollectionTransactionHash;
 
                                 if (jsonSaveResult != null)
                                 {
@@ -4525,6 +4532,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 Id = Guid.NewGuid(),
                 MetaData = request.MetaData,
                 Tags = request.Tags,
+                CollectionPublicKey = request.CollectionPublicKey,
                 MintedByAvatarId = request.MintedByAvatarId,
                 SendToAddressAfterMinting = request.SendToAddressAfterMinting,
                 SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
@@ -4701,6 +4709,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.Name = $"{nftMetaData.OnChainProvider.Name} WEB4 NFT Minted On The OASIS with title {nftMetaData.Title}";
             holonNFT.Description = nftMetaData.MemoText;
             holonNFT.MetaData["NFT.WEB4NFT"] = System.Text.Json.JsonSerializer.Serialize(nftMetaData);
+            holonNFT.MetaData["NFT.CollectionPublicKey"] = nftMetaData.CollectionPublicKey;
+            //holonNFT.MetaData["NFT.VerifyCollectionTransactionHash"] = nftMetaData.VerifyCollectionTransactionHash;
             holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
             holonNFT.MetaData["NFT.MintedByAvatarId"] = nftMetaData.MintedByAvatarId.ToString();
             holonNFT.MetaData["NFT.SendToAvatarAfterMintingId"] = nftMetaData.SendToAvatarAfterMintingId.ToString();
@@ -4760,6 +4770,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             holonNFT.Description = nftMetaData.MemoText;
             holonNFT.MetaData["NFT.WEB3NFT"] = System.Text.Json.JsonSerializer.Serialize(nftMetaData);
             holonNFT.MetaData["NFT.Id"] = nftMetaData.Id;
+            holonNFT.MetaData["NFT.CollectionPublicKey"] = nftMetaData.CollectionPublicKey;
+            holonNFT.MetaData["NFT.VerifyCollectionTransactionHash"] = nftMetaData.VerifyCollectionTransactionHash;
             holonNFT.MetaData["NFT.ParentWeb4NFTId"] = parentWeb4NFTId.ToString();
             holonNFT.MetaData["NFT.MintedByAvatarId"] = nftMetaData.MintedByAvatarId.ToString();
             holonNFT.MetaData["NFT.SendToAvatarAfterMintingId"] = nftMetaData.SendToAvatarAfterMintingId.ToString();

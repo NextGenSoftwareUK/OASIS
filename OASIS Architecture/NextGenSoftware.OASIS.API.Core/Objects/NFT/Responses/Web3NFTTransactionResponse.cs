@@ -8,5 +8,6 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response
     {
         public IWeb3NFT Web3NFT { get; set; }
         public string SendNFTTransactionResult { get; set; }
+        public string VerifyCollectionTransactionHash { get; set; }
     }
 }

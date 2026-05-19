@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Request
     {
         //If c# supported multi-inheritence then we wouldnt need to include the mint props again here! ;-)
         //public string MintWalletAddress { get; set; } The address that will actually mint the NFT (i.e. pay the gas fees etc). This will use the built-in OASIS accounts defined in the Smart Contracts.
-
+        public string? CollectionPublicKey { get; set; }
         public IList<IMintWeb3NFTRequest> Web3NFTs { get; set; } = new List<IMintWeb3NFTRequest>();
 
         public Guid MintedByAvatarId { get; set; }

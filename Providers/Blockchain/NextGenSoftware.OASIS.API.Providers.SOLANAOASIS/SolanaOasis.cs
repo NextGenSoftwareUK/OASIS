@@ -2766,7 +2766,7 @@ public class SolanaOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOAS
 
             result.Result.Web3NFT = Web3NFT;
             result.Result.TransactionResult = solanaNftTransactionResult.Result.TransactionHash;
-           
+            result.Result.VerifyCollectionTransactionHash = solanaNftTransactionResult.Result.VerifyCollectionTransactionHash;
         }
         catch (Exception e)
         {
