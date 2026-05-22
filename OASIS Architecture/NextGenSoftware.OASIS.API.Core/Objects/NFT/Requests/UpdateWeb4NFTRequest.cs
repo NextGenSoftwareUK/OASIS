@@ -8,7 +8,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
 {
     public class UpdateWeb4NFTRequest : IUpdateWeb4NFTRequest
     {
-        public Guid Id { get; set; }   
+        public Guid Id { get; set; }
+        public Guid MintedByAvatarId { get; set; }
         public Guid ModifiedByAvatarId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

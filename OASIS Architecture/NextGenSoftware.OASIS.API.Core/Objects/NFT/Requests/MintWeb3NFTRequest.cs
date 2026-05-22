@@ -21,14 +21,14 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public NFTMetaDataMergeStrategy NFTMetaDataMergeStrategy { get; set; } = NFTMetaDataMergeStrategy.Merge; //Defines how the Web3NFT meta data will be merged with the parent WEB4 OASIS NFT meta data.
       
         //If these are not set it will use the values defined in the parent WEB4 OASIS NFT for each Web3NFT.
-        public bool? WaitTillNFTMinted { get; set; }
-        public int? WaitForNFTToMintInSeconds { get; set; }
-        public int? AttemptToMintEveryXSeconds { get; set; }
-        public bool? WaitTillNFTVerified { get; set; }
-        public int? WaitForNFTToVerifyInSeconds { get; set; }
-        public int? AttemptToVerifyEveryXSeconds { get; set; }
-        public bool? WaitTillNFTSent { get; set; }
-        public int? WaitForNFTToSendInSeconds { get; set; }
-        public int? AttemptToSendEveryXSeconds { get; set; }
+        public bool? WaitTillNFTMinted { get; set; } = true;
+        public int? WaitForNFTToMintInSeconds { get; set; } = 180;
+        public int? AttemptToMintEveryXSeconds { get; set; } = 1;
+        public bool? WaitTillNFTVerified { get; set; } = true;
+        public int? WaitForNFTToVerifyInSeconds { get; set; } = 180;
+        public int? AttemptToVerifyEveryXSeconds { get; set; } = 1;
+        public bool? WaitTillNFTSent { get; set; } = true;
+        public int? WaitForNFTToSendInSeconds { get; set; } = 180;
+        public int? AttemptToSendEveryXSeconds { get; set; } = 1;
     }
 }

@@ -66,7 +66,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
         public static string OASISRuntimeVersion { get; set; } = "4.5.1";
-        public static string OASISAPIVersion { get; set; } = "4.5.1";
+        public static string OASISAPIVersion { get; set; } = "4.6.0";
         public static string COSMICVersion { get; set; } = "2.1.1";
         public static string STARODKVersion { get; set; } = "3.5.0";
         public static string STARRuntimeVersion { get; set; } = "3.5.0";

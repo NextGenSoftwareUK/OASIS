@@ -1782,6 +1782,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         nftResult.Result.Title = !string.IsNullOrEmpty(request.Title) ? request.Title : nftResult.Result.Title;
                         nftResult.Result.Description = !string.IsNullOrEmpty(request.Description) ? request.Description : nftResult.Result.Description;
+                        nftResult.Result.MintedByAvatarId = request.MintedByAvatarId != Guid.Empty ? request.MintedByAvatarId : nftResult.Result.MintedByAvatarId;
                         nftResult.Result.ModifiedByAvatarId = request.ModifiedByAvatarId != Guid.Empty ? request.ModifiedByAvatarId : nftResult.Result.ModifiedByAvatarId;
                         nftResult.Result.ModifiedOn = DateTime.Now;
                         nftResult.Result.ImageUrl = !string.IsNullOrEmpty(request.ImageUrl) ? request.ImageUrl : nftResult.Result.ImageUrl;

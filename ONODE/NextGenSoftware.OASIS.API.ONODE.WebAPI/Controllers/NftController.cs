@@ -278,6 +278,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await LoadAllGeoNFTsAsync();
         }
 
+        [Authorize]
         [HttpPost]
         [Route("send-nft")]
         public async Task<OASISResult<ISendWeb4NFTResponse>> SendNFTAsync(Models.NFT.NFTWalletTransactionRequest request)
@@ -315,6 +316,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return await NFTManager.SendNFTAsync(AvatarId, nftRequest);
         }
 
+        [Authorize]
         [HttpPost]
         [Route("mint-nft")]
         public async Task<OASISResult<IWeb4NFT>> MintNftAsync(Models.NFT.MintNFTTransactionRequest request)
@@ -381,19 +383,45 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain,
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType),
                 NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType),
-                WaitTillNFTMinted = request.WaitTillNFTMinted,
-                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
-                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
                 SendToAddressAfterMinting = request.SendToAddressAfterMinting,
                 SendToAvatarAfterMintingId = sendToAvatarAfterMintingId,
                 SendToAvatarAfterMintingEmail = request.SendToAvatarAfterMintingEmail,
                 SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
+                WaitTillNFTMinted = request.WaitTillNFTMinted,
+                WaitForNFTToMintInSeconds = request.WaitForNFTToMintInSeconds,
+                AttemptToMintEveryXSeconds = request.AttemptToMintEveryXSeconds,
+                WaitTillNFTVerified = request.WaitTillNFTVerified,
+                WaitForNFTToVerifyInSeconds = request.WaitForNFTToVerifyInSeconds,
+                AttemptToVerifyEveryXSeconds = request.AttemptToVerifyEveryXSeconds,
                 WaitTillNFTSent = request.WaitTillNFTSent,
                 WaitForNFTToSendInSeconds = request.WaitForNFTToSendInSeconds,
                 AttemptToSendEveryXSeconds = request.AttemptToSendEveryXSeconds
             };
 
             return await NFTManager.MintNftAsync(mintRequest, false, Core.Enums.ResponseFormatType.SimpleText);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost]
+        [Route("update-web4-nft")]
+        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default)
+        {
+            if (request == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid update Web4 NFT request." };
+
+            if (request.ProviderType != null && request.ProviderType.Value != ProviderType.None)
+                providerType = request.ProviderType.Value;
+
+            return await NFTManager.UpdateWeb4NFTAsync(request, providerType);
+        }
+
+        [Authorize(AvatarType.Wizard)]
+        [HttpPost]
+        [Route("update-web4-nft/{providerType}/{setGlobally}")]
+        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] IUpdateWeb4NFTRequest request, ProviderType providerType, bool setGlobally = false)
+        {
+            await GetAndActivateProviderAsync(providerType, setGlobally);
+            return await UpdateWeb4NftAsync(request, providerType);
         }
 
         [Authorize]

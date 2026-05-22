@@ -23,6 +23,9 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         public bool WaitTillNFTMinted { get; set; } = true;
         public int WaitForNFTToMintInSeconds { get; set; } = 180;
         public int AttemptToMintEveryXSeconds { get; set; } = 1;
+        public bool? WaitTillNFTVerified { get; set; } = true;
+        public int? WaitForNFTToVerifyInSeconds { get; set; } = 180;
+        public int? AttemptToVerifyEveryXSeconds { get; set; } = 1;
         public bool WaitTillNFTSent { get; set; } = true;
         public int WaitForNFTToSendInSeconds { get; set; } = 180;
         public int AttemptToSendEveryXSeconds { get; set; } = 1;
