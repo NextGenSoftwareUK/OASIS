@@ -8,6 +8,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
     public interface IUpdateWeb4NFTRequest
     {
         Guid Id { get; set; }
+        Guid MintedByAvatarId { get; set; }
         string Description { get; set; }
         decimal? Discount { get; set; }
         byte[] Image { get; set; }
