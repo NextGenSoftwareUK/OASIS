@@ -3,7 +3,7 @@
 
 # OASIS - The Universal Web4/Web5 Infrastructure
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
 
