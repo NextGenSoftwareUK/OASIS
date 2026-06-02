@@ -4,6 +4,7 @@
 # OASIS - The Universal Web4/Web5 Infrastructure
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Trademark Protected](https://img.shields.io/badge/Trademark-Protected-orange.svg)](#trademarks)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
 
@@ -1298,7 +1299,13 @@ We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTIN
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENSE) file for details.
+This project is licensed under the Apache2 License - see the [LICENSE](./Docs/LICENSE) file for details.
+
+### Trademarks
+
+OASIS, OASIS Omniverse, ONODE, ONET, STAR, OAPP and associated logos are trademarks of NextGen Software UK & NextGen World Ltd.
+
+This license does not grant permission to use OASIS trademarks, branding, logos, project names or official network identities without prior written permission.
 
 ## 🆘 Support
 
