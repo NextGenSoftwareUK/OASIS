@@ -3,7 +3,8 @@
 
 # OASIS - The Universal Web4/Web5 Infrastructure
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Trademark Protected](https://img.shields.io/badge/Trademark-Protected-orange.svg)](#trademarks)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
 
@@ -1298,7 +1299,15 @@ We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTIN
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](./Docs/LICENSE) file for details.
+This project is licensed under the Apache2 License - see the [LICENSE](./LICENSE) file for details.
+
+The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+### Trademarks
+
+OASIS, OASIS Omniverse, ONODE, ONET, STAR, OAPP and associated logos are trademarks of NextGen Software UK & NextGen World Ltd.
+
+This license does not grant permission to use OASIS trademarks, branding, logos, project names or official network identities without prior written permission.
 
 ## 🆘 Support
 
@@ -3233,17 +3242,6 @@ You can also get involved on our forum here:
 
 http://www.ourworldthegame.com/forum
 
-
-## HoloSource Licence
-
-This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
-
-This means permission will need to be requested for any forks, etc 
-
-The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the
- Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
-
-<a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
 **Ready to do your part? ;-)**
 
