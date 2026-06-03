@@ -302,6 +302,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int SmtpPort { get; set; }
         public string SmtpUser { get; set; }
         public string SmtpPass { get; set; }
+        public string ResendKey { get; set; }
         public bool DisableAllEmails { get; set; } //This overrides the SendVerificationEmail setting below. MAKE SURE THIS IS FALSE FOR LIVE!
         public bool SendVerificationEmail { get; set; }
         public string OASISWebSiteURL { get; set; }
