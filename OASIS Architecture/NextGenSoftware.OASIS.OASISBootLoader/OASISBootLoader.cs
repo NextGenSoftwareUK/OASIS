@@ -1328,19 +1328,19 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         {
             string dnaPath = Environment.GetEnvironmentVariable("OASIS_DNA_PATH") ?? Path.Combine(AppContext.BaseDirectory, OASISDNAPath);
 
-            Console.WriteLine($"CurrentDirectory: {Environment.CurrentDirectory}");
-            Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
-            Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
-            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
-            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
-            Console.WriteLine($"OASISDNAPath: {OASISDNAPath}");
-            Console.WriteLine($"dnaPath: {dnaPath}");
+            //Console.WriteLine($"CurrentDirectory: {Environment.CurrentDirectory}");
+            //Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
+            //Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
+            //Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+            //Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+            //Console.WriteLine($"OASISDNAPath: {OASISDNAPath}");
+            //Console.WriteLine($"dnaPath: {dnaPath}");
 
             var dnaResult = OASISDNAManager.LoadDNA(dnaPath);
 
-            Console.WriteLine($"DNA Load Success: {!dnaResult.IsError}");
-            Console.WriteLine($"DNA Load Message: {dnaResult.Message}");
-            Console.WriteLine($"OASISDNA null: {OASISDNAManager.OASISDNA == null}");
+            //Console.WriteLine($"DNA Load Success: {!dnaResult.IsError}");
+            //Console.WriteLine($"DNA Load Message: {dnaResult.Message}");
+            //Console.WriteLine($"OASISDNA null: {OASISDNAManager.OASISDNA == null}");
 
             return dnaResult;
             //return OASISDNAManager.LoadDNA(OASISDNAPath);

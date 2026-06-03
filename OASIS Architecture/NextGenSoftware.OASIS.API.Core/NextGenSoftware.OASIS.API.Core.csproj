@@ -31,6 +31,16 @@
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Images\OASISLogo.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\OASISLogo.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 	<ItemGroup>
 		<None Include="..\..\..\..\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
 			<Pack>True</Pack>
@@ -46,6 +56,7 @@
     <PackageReference Include="NBitcoin" Version="9.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="NLog" Version="4.7.9" />
+    <PackageReference Include="Resend" Version="0.5.1" />
     <PackageReference Include="Rijndael256.Core" Version="3.2.5" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.35.0" />
