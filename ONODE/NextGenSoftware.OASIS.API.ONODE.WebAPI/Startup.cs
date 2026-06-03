@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
-            //services.AddCors(); //Needed twice? It is below too...
+            services.AddCors();
             // Add exception filter with configuration
             services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
                 .AddJsonOptions(x =>
