@@ -3,6 +3,8 @@
 ## Overview
 This document serves as a comprehensive index of all Wiki documentation available for the OASIS project. The Wiki contains detailed technical documentation, tutorials, and guides for developers, users, and contributors.
 
+> 📖 **Also see the original GitHub Wiki:** [https://github.com/NextGenSoftwareUK/OASIS/wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)
+
 ## 📚 Wiki Sections
 
 ### Getting Started
