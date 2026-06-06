@@ -1,4 +1,4 @@
-
+﻿
 
 
 # WEB4 OASIS API / WEB5 STAR ODK OMNIVERSE INTEROPERABLE METAVERSE LOW CODE GENERATOR
@@ -168,7 +168,7 @@
 
 **NOTE: This documentation & code is a WIP and is still currently being written so please make sure you check back often...**
 
-**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Contact us on our Telegram group https://t.me/ourworldthegamechat Thank you.**
+**We would love to hear from you regarding feedback on any of the vision, docs, code or would like to submit ideas. Even better, if you would like to get actively involved by coding, spreading the word, finding funding or any other role then please get in touch right NOW! :) Contact us on our Telegram group https://t.me/oasisweb4chat Thank you.**
 
 ## Overview
 
@@ -178,7 +178,7 @@ Various OASIS API functions and services can be accessed with this API such as A
 
 http://api.oasisplatform.world
 
-This allows you to bridge between all of WEB2 & WEB3 Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near, Nexus, HIVE, CEPTR Pluggable Protocol, Fediverse, XMPP & many more! :) The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. If you wish to get involved and help build out any of these providers or any other you would like to see integrated please get in touch here: https://t.me/ourworldthegamechat. 
+This allows you to bridge between all of WEB2 & WEB3 Holochain, IPFS, MongoDB, SQLLite, Neo4j, Solana, Ethereum, EOS & ThreeFold with many more coming soon such as COSMOS, Polkadot, Polygon, SOLID, ActivityPub, Near, Nexus, HIVE, CEPTR Pluggable Protocol, Fediverse, XMPP & many more! :) The majority of these are aimed at building a truly decentralised distributed internet (Web 3.0) and this is also the aim of the OASIS API. If you wish to get involved and help build out any of these providers or any other you would like to see integrated please get in touch here: https://t.me/oasisweb4chat. 
 
 WEB 4 OASIS API is a fully distributed decentralised fault tolerant load balanced integrated API that runs across the full Internet acting as an abstraction layer over everything and serves as a network of networks. It is unity consciousnes expressed within the technical sphere. [The OASIS API is a global universal API that aims to connect anything to everything](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#the-universal-api-to-connect-everything-to-everything--no-more-silos-walled-gardens-) to eliminate walled gardens/silos.
 
@@ -288,9 +288,9 @@ Each OAPP can have a Web, 2D, 3D AR, 3D VR, 3D Map, 3D IR ([Infinite Reality](ht
 
 ### Our World Geo-Location/AR/IR/Map UI (Game Of Games Engine)
 
-[Our World](http://www.ourworldthegame.com) is the first world in the infinite Omniverse (what comes after Metaverse). Our World also acts as the UI to the OASIS API allowing the various OAPP’s to have a 3D object/2D sprite representation on the 3D map of the world. They can then view meta data about the app as well as launch the app from within Our World (phase 1 of The OASIS you see in Ready Player One). Through the OASIS API people have a full geo-location API allowing them to fully control the 3D map, add quests, routes, sub-games, AR hotspots, and so much more. One possible use case would be Smart Cities amongst many more. 
+[Our World](http://www.ourworldthegame.com) is the first world in the infinite Omniverse (what comes after Metaverse). Our World also acts as the UI to the OASIS API allowing the various OAPPâ€™s to have a 3D object/2D sprite representation on the 3D map of the world. They can then view meta data about the app as well as launch the app from within Our World (phase 1 of The OASIS you see in Ready Player One). Through the OASIS API people have a full geo-location API allowing them to fully control the 3D map, add quests, routes, sub-games, AR hotspots, and so much more. One possible use case would be Smart Cities amongst many more. 
 
-[Our World](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
+[Our World](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK#our-world-overview) is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to PokÃ©mon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...
 
 It is the XR/IR Gamification layer of the new interplanetary operating system & the new internet (Web 3.0), which is being built by the elite technical wizards stationed around the world. This will one day replace the current tech giants such as Google, FaceBook, etc and act as the technical layer of the New Earth, which is birthing now.  Unlike the current tech giants who's only aim is to ruthlessly maximize profits at the expense of people and the planet (as well as spying, exploitation, censorship & social engineering), our technology is based on true love & unity consciousness where money and profits are not our aim or intention, our aim and intention is to heal the entire planet & human race so we can all live in harmony with each other. It is a 5th dimensional and ascension training platform, teaching people vital life lessons as well as acting as a real-time simulation of the real world.
 
@@ -446,14 +446,14 @@ We are always looking for people to jump in and get involved, you do not need to
 
 The whole world is the Our World team, hence the name... ;-) It is not our project; it is all of humanities...
 
-We also offer FREE training and apprenticeship program with the NextGen Developer Training Programmes.  We will teach you all we know over time and you get to work on this real live commercial codebase rather than wasting time working on throw away dummy apps as most training offers. No previous skills/experience required and is open to everyone, but especially for all disadvantaged people including special needs, homeless, unemployed, prison inmates, kids on the streets etc. We want to help the people the world has forgotten and for people who have stopped believing in themselves, we **BELIEVE IN YOU** and in time you will again too. Everyone has a gift for the world, and we will help you find yours… Find out more by checking out the links below:
+We also offer FREE training and apprenticeship program with the NextGen Developer Training Programmes.  We will teach you all we know over time and you get to work on this real live commercial codebase rather than wasting time working on throw away dummy apps as most training offers. No previous skills/experience required and is open to everyone, but especially for all disadvantaged people including special needs, homeless, unemployed, prison inmates, kids on the streets etc. We want to help the people the world has forgotten and for people who have stopped believing in themselves, we **BELIEVE IN YOU** and in time you will again too. Everyone has a gift for the world, and we will help you find yoursâ€¦ Find out more by checking out the links below:
 
 <a href="https://c8119036-8b0a-4498-ab07-331841f19b4b.filesusr.com/ugd/4280d8_ad8787bd42b1471bae73003bfbf111f7.pdf">NextGen Developer Training Programme</a><br>
 <a href="https://c8119036-8b0a-4498-ab07-331841f19b4b.filesusr.com/ugd/4280d8_999d98ba615e4fa6ab4383a415ee24c5.pdf">NextGen Junior Developer Training Programme</a>
 
 We are looking for Web Devs (with any of these: react, angular, vue, js, html, css), Unity Devs & C# Devs.
 
-If anyone is interested in developing this game/platform, then we would LOVE to hear from you! 😊 There will be opportunities for people to own shares and/or cryptocurrency (as well as other unique perks such as premium locations in both the geolocation and VR versions, personal or business service spotlights, free lifetime access to all premium paid services, massive karma points (allowing your avatar to progress to more advanced stages in the game unlocking new exciting quests, areas to explore & new special abilities/superpowers) plus lots more!) based on the input they are willing to provide.  
+If anyone is interested in developing this game/platform, then we would LOVE to hear from you! ðŸ˜Š There will be opportunities for people to own shares and/or cryptocurrency (as well as other unique perks such as premium locations in both the geolocation and VR versions, personal or business service spotlights, free lifetime access to all premium paid services, massive karma points (allowing your avatar to progress to more advanced stages in the game unlocking new exciting quests, areas to explore & new special abilities/superpowers) plus lots more!) based on the input they are willing to provide.  
 
 Thank you and we hope we find interest from people to join us on this exciting incredible journey.
 
@@ -666,7 +666,7 @@ A list of of possible early adopters can be found below:
 | <a href="https://www.moneyofgood.org/">Money Of Good</a>|Money of Good is a social program that uses revolutionary proof-of-meditation technology to offer people the chance to earn money as a reward for practicing meditation, improving their health, rising consciousness and fostering a new economic model much more equitable and sustainable. |Yes |TBC |
 | <a href="https://alptha.joatu.org">Joatu</a>|Junto is a new breed of social media that integrates a more consciously designed interface, distributed technology, and a non-profit approach to create a space where people can truly be themselves.|Yes | TBC |
 | <a href="https://humm.earth/">Humm Earth</a> |Influence-free, beautifully simple peer-to-peer publishing: think of Humm as fully distributed WordPress + Patreon, made for the writers and content creators of the future, powering independent hApps and an intentional community. |Yes | TBC|
-| <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of “subreddits,” and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other voters’ content. |Yes | TBC|
+| <a href="[https://forum.holochain.org/c/projects/comet](https://forum.holochain.org/c/projects/comet)">Comet</a> |Comet is a distributed, Reddit alternative. Posts are created with tags instead of â€œsubreddits,â€ and are voted on in relation to these tags. Votes can be fractional amounts; the score of a post/comment is determined on a per-person basis, depending on how they have previously voted on the other votersâ€™ content. |Yes | TBC|
 | <a href="https://docs.google.com/document/d/1LgBQX42jIOFkfnbHf1swP3GwDd0O-jzpjYYv63OjDRg/edit#heading=h.ofqm4bivlrj4">Global Brain Application</a>|Developing a GloCal Holistic Collaboration and Mapping Tool/UI named here as Global Brain Application |Yes? |TBC |
 | <a href="http://www.joinseeds.com">Seeds</a>| A payment platform and financial ecosystem to empower humanity and heal our planet. |No|TBC |
 | <a href="http://www.appsforgood.org">Apps For Good</a>| Creative tech courses for you to deliver in your classroom | No |TBC |
@@ -717,7 +717,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [Orion Protocol](https://www.orionprotocol.io/) |Trade with the liquidity of the entire crypto market in one place - without ever giving up your private keys. | In Dev  | OrionProtocolOASIS
 | [Hedera Hashgraph](https://www.hedera.com/) | Hedera is a decentralized public network where anyone can carve out a piece of cyberspace to transact, play, and socialize in a secure, trusted environment. | In Dev  | HashgraphOASIS
 | [ScuttleButt](https://github.com/ssbc/) | A distributed and secure peer to peer social network | In Dev | ScuttleButtOASIS
-| [HoloWeb](https://holoweb.io//) | We’re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
+| [HoloWeb](https://holoweb.io//) | Weâ€™re reinventing the way the web works, and taking a stand for our sovereignty in cyberspace.| In Dev | HoloWebOASIS
 |[PLAN](https://www.plan-systems.org/) | Solving for privacy, ease of collaboration, and accessibility for all. We believe people profoundly benefit from having the tools to connect with each other, manage common resources, and to engage in meaningful projects. | In Dev | PLANOASIS
 |[CEPTR Protocol For Pluggable Protocols](http://ceptr.org/projects/pcubed)|Complete interoperability: No more silos and brittle APIs. Self-Describing protocols and a universal parsing system allows anything to talk to anything. This is where the OASIS API is a stepping stone to get to this point by providing backwards compatibility with what is already out there.|Coming soon | 
 |[COSMOS Blockchain](https://cosmos.network/)|Leading blockchain integrator.|Coming soon |
@@ -732,7 +732,7 @@ Below is a list of the protocols/networks/platforms that the OASIS API will supp
 | [TRON](https://tron.network/) | TRON is one of the largest blockchain-based operating systems in the world. | Coming Soon
 | [IOST](https://iost.io/) | IOST is building an ultra-high TPS blockchain infrastructure to meet the security and scalability needs of a decentralized economy. | Coming Soon
 | [BlockStack](https://blockstack.org/) | Blockstack apps protect your digital rights and are powered by the Stacks blockchain.. | Coming Soon
-| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into “OStatus” and “non-OStatus” projects. This guide unites all interoperable federated networks under one term “Fediverse”. | Coming Soon
+| [Fediverse](https://fediverse.party/) | It is a common name for federated social networks running on free open software on a myriad of servers across the world. Historically, this term has included only micro-blogging platforms supporting a set of protocols called OStatus. This didn't do justice to a large number of projects that federate, share same values and are reasonably popular. With the appearance and wide adoption of a new standard protocol called ActivityPub it makes no sense to further divide the federated world into â€œOStatusâ€ and â€œnon-OStatusâ€ projects. This guide unites all interoperable federated networks under one term â€œFediverseâ€. | Coming Soon
 | [Gab](https://gab.com) | Distributed social network promoting free speech | Coming Soon
 | [Mastodon](https://joinmastodon.org/) | Distributed twitter style network of micro blogging servers using the Fediverse. | Coming Soon
 | [Diaspora](https://diasporafoundation.org/) | Another distributed social network | Coming Soon|
@@ -1019,7 +1019,7 @@ The Architecture diagram can be found below or on our website (http://www.ourwor
 
 Our World will run on our own propriety game engine called OASIS 2.0 (Open Advanced Sensory Immersion System).
 
-Our World will run on a secure, distributed and de-centralized architecture where user’s data will be stored on their machine and not a central server enabling the user to own their data, meaning it cannot be sold or exploited as others do. It will do this by running on a new nextgen Internet known as Holochain.
+Our World will run on a secure, distributed and de-centralized architecture where userâ€™s data will be stored on their machine and not a central server enabling the user to own their data, meaning it cannot be sold or exploited as others do. It will do this by running on a new nextgen Internet known as Holochain.
 
 Our World will run on its own private secure network called ONET (OASIS Network) on top of HoloChain offering yet more security and performance benefits. It will not suffer from any bottlenecks as is the case with the current centralised server architecture in current games causing lag, which is very frustrating to gamers and can mean life or death in games.
 
@@ -1208,7 +1208,7 @@ If only you could see what we see... there is a reason why we are called NextGen
 
 ## Platforms
 
-We will have both a Smartphone App version and a PC/Console version. We are aiming to get this released on as many platform’s as possible including iOS, Android, Windows Phone, iPad, Windows Tablet, Android Tablet, XBOX ONE, PS4 & PC.
+We will have both a Smartphone App version and a PC/Console version. We are aiming to get this released on as many platformâ€™s as possible including iOS, Android, Windows Phone, iPad, Windows Tablet, Android Tablet, XBOX ONE, PS4 & PC.
 
 Some of the hardware we will be pushing to the limits are below:
 
@@ -1248,11 +1248,11 @@ If you check out the demos of the above, you will start to get an idea of the ap
 #### PC/Console Version
 
 Our World will have continuous expansions, add-ons and
- sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creating…
+ sub-games added to keep players immersed and wanting more and more. Our World is revolutionary and contains many elements never done before and so will not have any competition in the new genres it will be creatingâ€¦
 
 #### Smartphone Version
 
-The smartphone version is a free app with in-app purchases. This is why Our World will be free to download and have many in-app purchases not only for items you can use but also for expansion packs and sub-games. All of which will leave the player wanting more and more…
+The smartphone version is a free app with in-app purchases. This is why Our World will be free to download and have many in-app purchases not only for items you can use but also for expansion packs and sub-games. All of which will leave the player wanting more and moreâ€¦
 
 ## NextGen Hardware
 
@@ -1270,13 +1270,13 @@ https://www.ourworldthegame.com/single-post/2018/01/31/NextGen-Hardware---Device
 
 ### Introduction
 
-Imagine playing a game more fun and immersive than Pokémon Go, Minecraft, World of Warcraft and Second Life combined? A game that is not only a lot of fun to play but also teaches you how to look after your wellbeing as well as looking after our beautiful planet. A game that changes the way we think and interact with each other and the world so together we can create a better world for all of us. One where we can come together and help each other for the greater good of all.
+Imagine playing a game more fun and immersive than PokÃ©mon Go, Minecraft, World of Warcraft and Second Life combined? A game that is not only a lot of fun to play but also teaches you how to look after your wellbeing as well as looking after our beautiful planet. A game that changes the way we think and interact with each other and the world so together we can create a better world for all of us. One where we can come together and help each other for the greater good of all.
 
 Imagine a world where there are no more wars, poverty or suffering.
 
 Imagine a world where there is only peace, love & unity where we all co-exist living as one human race in harmony with each other and our beautiful planet.
 
-This does not just have to be a dream; together we can create this world…
+This does not just have to be a dream; together we can create this worldâ€¦
 
 Let us introduce you to Our World, the game that will change the world. As well as helping to make the world a better place, this game will be pushing the boundaries of what is currently possible with technology. It will feature augmented reality, virtual reality, motion detection, voice recognition and real-time emotional feedback. It will use technology in ways that has not been done before and in areas where it has been done, it will innovate and take it to the next level...
 
@@ -1286,7 +1286,7 @@ We wish to take this to the next level and help make the world a better place by
 
 We will do this by creating a suite of nextgen apps & games using the latest cutting-edge technology such as Virtual Reality, Augmented Reality, Real-time emotional feedback, face/voice recognition, motion detection and so much more.
 
-**Our World is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to Pokémon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
+**Our World is an exciting immersive next generation 3D XR/IR (Infinite Reality) educational game/platform/social network/ecosystem teaching people on how to look after themselves, each other and the planet using the latest cutting-edge technology. It teaches people the importance of real-life face to face connections with human beings and encourages them to get out into nature using Augmented Reality similar to PokÃ©mon Go but on a much more evolved scale. This is our flagship product and is our top priority due to the massive positive impact it will make upon the world...**
 
 <a name="xr-ir-gamification-layer-of-the-new-interplanetary-operating-system---the-new-internet--web-30-"></a>
 ### XR/IR Gamification Layer Of The New Interplanetary Operating System & The New Internet (Web 3.0)
@@ -1300,7 +1300,7 @@ As well as helping to make the world a better place, this game will be pushing t
 
 It is much more than just a free open world game where you can build and create anything you can imagine and at the same time be immersed in an epic storyline. it is an entirely new ecosystem/asset store/internet/Operating System/social network, it is the future way we will be interacting with each other and the world through the use of technology. Smaller satellite apps/game will plug into it and share your central profile/avatar where you gain karma for doing good deeds such as helping your local communities, etc and lose karma for being selfish and not helping others since it mirrors the real world where you have free will. There is nothing else out there like this, nothing even comes close, this will change everything... There is a reason we are called NextGen Software! ;-)
 
-The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and follow…
+The game teaches people true unity consciousness where everyone benefits if people put their differences aside and work together. Our World is also an ecosystem and a virtual e-commerce platform and so, so, so much more, it will create a whole new genre and blaze a new path for others to try and followâ€¦
 
 Our World has now merged with our NextGen Social Network project, which was always planned to be the prequel to Our World, so it made sense to simply merge them together.
 
@@ -1314,13 +1314,13 @@ Our World will fully integrate the Commons Engine & Mutual Crypto Currency to ed
 
 ### Synergy Engine
 
-Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+Our World implements the Synergy Engine helping to solve the worldâ€™s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
-Our World implements the Synergy Engine helping to solve the world’s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
+Our World implements the Synergy Engine helping to solve the worldâ€™s problems by matching solutions to problems. It also teaches the co-creation wheel and a new holistic approach to living and technology to help co-create a better world. 
 
 ### Resource Based Economy
 
-Our World teaches people the benefits of a <a href="https://www.thevenusproject.com/resource-based-economy/">Resource Based Economy</a> (coined by Jacque Fresco, the founder of <a href="https://www.thevenusproject.com/">The Venus Project</a>) where the world's resources are freely available to everyone and people exchange products and services without the need for money. For this to be achieved all resources must be declared as the common heritage of all Earth’s inhabitants. Equipped with the latest scientific and technological marvels mankind could reach extremely high productivity levels and create abundance of resources. This also prevents money being hoarded through greed and corruption and can no longer be used to control & divide people. A Resource Based Economy is actually fully integrated into Our World.
+Our World teaches people the benefits of a <a href="https://www.thevenusproject.com/resource-based-economy/">Resource Based Economy</a> (coined by Jacque Fresco, the founder of <a href="https://www.thevenusproject.com/">The Venus Project</a>) where the world's resources are freely available to everyone and people exchange products and services without the need for money. For this to be achieved all resources must be declared as the common heritage of all Earthâ€™s inhabitants. Equipped with the latest scientific and technological marvels mankind could reach extremely high productivity levels and create abundance of resources. This also prevents money being hoarded through greed and corruption and can no longer be used to control & divide people. A Resource Based Economy is actually fully integrated into Our World.
 
 ### First AAA MMO Game To Run On Holochain
 
@@ -1392,11 +1392,11 @@ With the advent of Virtual Reality now making these violent games even more imme
 
 Kids today are playing very violent games such as Call Of Duty which are used as brainwashing techniques to desensitise us to violence and also act as a training and recruitment tool for the military (which they have now admitted). The same goes for flight simulators being used to train and recruit drone pilots.
 
-We hope you will agree this is totally unacceptable and is part of why there is so much war, violence, etc in today’s world. It is time we start using technology to teach people the correct life lessons. Our World acts as a simulation for the real world and teaches them how to create a better world in the simulation and then shows how they can then implement these important lessons in real life. Read more on our previous blog post about violence in video games:
+We hope you will agree this is totally unacceptable and is part of why there is so much war, violence, etc in todayâ€™s world. It is time we start using technology to teach people the correct life lessons. Our World acts as a simulation for the real world and teaches them how to create a better world in the simulation and then shows how they can then implement these important lessons in real life. Read more on our previous blog post about violence in video games:
 
 https://www.ourworldthegame.com/single-post/2018/03/14/Good-they-are-finally-start-to-take-the-violence-in-video-games-seriously 
 
-Gambling is being forced onto kids more and more in the form of loot boxes where real money is asked for to receive a random prize and now it’s got so bad that money is actually needed to progress within the game. Everything seems to be geared around how much people can be exploited and how much money can be sucked out of them, this is even more wrong for kids. Read more on our previous post about this below:
+Gambling is being forced onto kids more and more in the form of loot boxes where real money is asked for to receive a random prize and now itâ€™s got so bad that money is actually needed to progress within the game. Everything seems to be geared around how much people can be exploited and how much money can be sucked out of them, this is even more wrong for kids. Read more on our previous post about this below:
 
 https://www.ourworldthegame.com/single-post/2017/11/29/Do-you-think-its-right-kids-are-gambling-in-games 
 
@@ -1429,7 +1429,7 @@ https://www.ourworldthegame.com/single-post/2017/09/08/Our-World-Is-The-Benevole
 
 These are the Last Days of Mortal Man through this God Training Programme.
 
-The self-reflective immersive XR game that has been created as ascension technology to help the user to discover their higher self through learning important lessons in how to be, think and feel as a human being. Through “karma” each individual can build themselves to be a better version of themselves that on a sub conscious level will teach them how this can be applied in the real world. The game truly is a mirror for reality. 
+The self-reflective immersive XR game that has been created as ascension technology to help the user to discover their higher self through learning important lessons in how to be, think and feel as a human being. Through â€œkarmaâ€ each individual can build themselves to be a better version of themselves that on a sub conscious level will teach them how this can be applied in the real world. The game truly is a mirror for reality. 
 
 Some important points about its potential capabilities and why it could be truly unique:
 
@@ -1444,7 +1444,7 @@ Some important points about its potential capabilities and why it could be truly
 <a name="7-years-of-planning---r-d"></a>
 ### 7 Years Of Planning & R&D
 
-We actually started researching, planning & designing this over seven years (we have also been busy networking, building partnerships, etc) ago but we could not yet afford the large amount of money it would take to create this. On top of this, the technology did not yet exist to create the vision, but this is now changing. When Pokémon Go was released featuring more primitive versions of some of the technology featured in Our World, we realised we really need to get this game into production.
+We actually started researching, planning & designing this over seven years (we have also been busy networking, building partnerships, etc) ago but we could not yet afford the large amount of money it would take to create this. On top of this, the technology did not yet exist to create the vision, but this is now changing. When PokÃ©mon Go was released featuring more primitive versions of some of the technology featured in Our World, we realised we really need to get this game into production.
 
 ### Early Prototype
 
@@ -1468,18 +1468,18 @@ http://www.ccsinsight.com/press/company-news/2251-augmented-and-virtual-reality-
 
  An exert from the above article states:
 
-“VR (virtual reality) and AR (augmented reality) are exciting – Google Glass coming and going, Facebook’s $2 billion for Oculus, Google’s $542 million into Magic Leap, not to mention Microsoft’s delightful HoloLens. There are amazing early stage platforms and apps, but VR/AR in 2015 feels a bit like the smartphone market before the iPhone. We’re waiting for someone to say “One more thing…” in a way that has everyone thinking “so that’s where the market’s going!”
+â€œVR (virtual reality) and AR (augmented reality) are exciting â€“ Google Glass coming and going, Facebookâ€™s $2 billion for Oculus, Googleâ€™s $542 million into Magic Leap, not to mention Microsoftâ€™s delightful HoloLens. There are amazing early stage platforms and apps, but VR/AR in 2015 feels a bit like the smartphone market before the iPhone. Weâ€™re waiting for someone to say â€œOne more thingâ€¦â€ in a way that has everyone thinking â€œso thatâ€™s where the marketâ€™s going!â€
 
 Well, we are what everyone has been waiting for, to take this technology to the next level, hence our name!
 
-Pokémon Go has already started to lose users as we predicted due to not being nowhere near immersive enough so to keep users engaged in the game. Our World is set to be one of the most immersive games ever made so it will not suffer from this problem.
+PokÃ©mon Go has already started to lose users as we predicted due to not being nowhere near immersive enough so to keep users engaged in the game. Our World is set to be one of the most immersive games ever made so it will not suffer from this problem.
 
 http://www.bbc.co.uk/news/technology-37176782 
  
  
 ### Large Social Media Following
 
-With over 5628 likes on our Facebook page ( http://www.facebook.com/ourworldthegame ), which is growing daily, this very important project is being very well received and we constantly receive glowing feedback of how much of a wonderful good idea this is, one that is needed more than ever in today’s world!
+With over 5628 likes on our Facebook page ( http://www.facebook.com/ourworldthegame ), which is growing daily, this very important project is being very well received and we constantly receive glowing feedback of how much of a wonderful good idea this is, one that is needed more than ever in todayâ€™s world!
 
 We are currently building the smartphone prototype and hope to have this done by 2020 Q2. We are also looking for any other developers, designers, 3D modellers and anyone else who wish to get involved so please get in touch if this is YOU...
 
@@ -1524,7 +1524,7 @@ It only seems to be a week or two before another terrorist attack or mass shooti
 <a name="nextgen-developer-training-programmes-for-everyone---including-special-needs---disadvantaged-people-"></a>
 ## NextGen Developer Training Programmes For EVERYONE! (Including Special Needs & Disadvantaged People)
 
-We also offer FREE training with our NextGen Developer Training Programme where I will teach everything I know from my many years of experience working in the industry. We know that people on the Autistic Spectrum are just as gifted with computers as I am (I was given the label of Asperger’s, Dyspraxia & Dyslexia) so they will be able to help me take what’s possible with technology to the next level. 
+We also offer FREE training with our NextGen Developer Training Programme where I will teach everything I know from my many years of experience working in the industry. We know that people on the Autistic Spectrum are just as gifted with computers as I am (I was given the label of Aspergerâ€™s, Dyspraxia & Dyslexia) so they will be able to help me take whatâ€™s possible with technology to the next level. 
 
 We want to help the people that the world has turned their back on, people who no longer believe in themselves, we are here to tell them that we believe in them and in time we will help them believe in themselves again. We are here to tell them to forget what society says you can or cannot do, for you can do whatever you want to, you can follow your heart and achieve your dreams. We want to empower people to be their own boss and we actively encourage their creativity and imagination and that anything is possible. We want to give them free reign to work on or create whatever they like or heart desires.
 
@@ -2001,7 +2001,7 @@ We are working full-time on this project so we have no other income so if you va
 
 https://www.gofundme.com/f/ourworldthegame
 
-**Every little helps, even if you can only manage £1 it can still help make all the difference! Thank you! :)**
+**Every little helps, even if you can only manage Â£1 it can still help make all the difference! Thank you! :)**
 
 **We would really appreciate if you could donate anything you can afford, even if it's just a pound, if everyone did that then we would be able to massively accelerate this very urgent and important project for a world in need right now. I think everyone can justify a pound if it meant saving the world don't you think?**
 
@@ -2019,7 +2019,7 @@ https://www.facebook.com/ourworldthegame
 
 Please make sure you LIKE it and spread the word and get as many of your friends and family to LIKE it too, many thanks & much appreciated! :)
 
-Every reward above £100 will automatically get your name added to the credits for the app/network which will be seen by billions...
+Every reward above Â£100 will automatically get your name added to the credits for the app/network which will be seen by billions...
 
 Please ready more on the website:
 http://www.ourworldthegame.com
@@ -2122,7 +2122,7 @@ https://www.thejusticeleagueaccademy.icu <br/>
 |YouTube| https://www.youtube.com/channel/UC0_O4RwdY3lq1m3-K-njUxA | 
 |Discord| https://discord.gg/RU6Z8YJ |
 |Hylo| https://www.hylo.com/c/ourworld |
-|Telegram| https://t.me/ourworldthegamechat (General Chat) |
+|Telegram| https://t.me/oasisweb4chat (General Chat) |
 || https://t.me/ourworldthegame (Announcements) |
 || https://t.me/ourworldtechupdate (Tech Updates) |
 || https://t.me/oasisapihackalong (OASIS API Weekly Hackalongs) |
@@ -2175,6 +2175,6 @@ https://www.thejusticeleagueaccademy.icu <br/>
 <a href="https://www.youtube.com/watch?v=2ntJCTEihnw&t=1s">AWAKEN DREAM SYNERGY DREAM # 19 Our World & The OASIS API By David Ellams - (Presentation Only)</a><br>
 <a href="https://www.youtube.com/watch?v=kqTNINBFNV4&t=1s">Interview Between Moving On TV & Our World Founder David Ellams - Part 1</a><br>
 <a href="https://www.youtube.com/watch?v=HxZixdkc-Ns&t=1s">Interview Between Moving On TV & Our World Founder David Ellams - Part 2</a><br>
-<a href="https://www.youtube.com/watch?v=UICajpltv1Y">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 1</a><br>
-<a href="https://www.youtube.com/watch?v=SsNsEDPglos">Our World Interviews With David Atkinson, Commercial Director of Holochain – Part 2</a><br>
+<a href="https://www.youtube.com/watch?v=UICajpltv1Y">Our World Interviews With David Atkinson, Commercial Director of Holochain â€“ Part 1</a><br>
+<a href="https://www.youtube.com/watch?v=SsNsEDPglos">Our World Interviews With David Atkinson, Commercial Director of Holochain â€“ Part 2</a><br>
 <a href="https://www.youtube.com/watch?v=H5JJyLxGFe0">ThreeFold, Our World, Protocol Love, Soulfie API Meeting</a><br>

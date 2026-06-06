@@ -1,5 +1,22 @@
 # 🐳 Docker Deployment Guide for OASIS Ecosystem
 
+## ✅ Pre-Deployment Checklist
+
+Before deploying to staging or production, complete all of these steps in order:
+
+1. **Update the version** — bump the version number in `Startup.cs`
+2. **Update Release History** — add an entry to the [OASIS API Release History](../../NextGenSoftware.OASIS.API.ONODE.WebAPI/OASIS%20API%20RELEASE%20HISTORY.md)
+3. **Update OASISDNA.json** — modify the config in **both** required locations (see [DNA System Guide](./DNA_SYSTEM_GUIDE.md) for details):
+   - `NextGenSoftware.OASIS.API.ONODE.WebAPI`
+   - `NextGenSoftware.OASIS.STAR`
+4. **Build in Release Mode** — compile the solution in Release configuration and verify there are no errors
+5. **Deploy to Staging** — publish to the staging environment and thoroughly verify functionality
+6. **Deploy to Production** — only if staging is fully verified, deploy to the live environment
+7. **Verify Live** — confirm the live deployment is operational and all endpoints respond correctly
+8. **Update Postman Collection** — update the Postman collection file and push it to both the staging and live HTML sites
+
+---
+
 ## Overview
 This guide covers Docker deployment for all OASIS ecosystem components:
 - **OASIS API Web API** (.NET 8)

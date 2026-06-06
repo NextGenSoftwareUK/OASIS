@@ -1,11 +1,11 @@
-# OASIS Wiki Documentation Index
+﻿# OASIS Wiki Documentation Index
 
 ## Overview
 This document serves as a comprehensive index of all Wiki documentation available for the OASIS project. The Wiki contains detailed technical documentation, tutorials, and guides for developers, users, and contributors.
 
-> 📖 **Also see the original GitHub Wiki:** [https://github.com/NextGenSoftwareUK/OASIS/wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)
+> ðŸ“– **Also see the original GitHub Wiki:** [https://github.com/NextGenSoftwareUK/OASIS/wiki](https://github.com/NextGenSoftwareUK/OASIS/wiki)
 
-## 📚 Wiki Sections
+## ðŸ“š Wiki Sections
 
 ### Getting Started
 - **[Home](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki)** - Main Wiki homepage
@@ -68,7 +68,7 @@ This document serves as a comprehensive index of all Wiki documentation availabl
 - **[Market Analysis](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Market-Analysis)** - Market opportunities
 - **[Competitive Analysis](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Competitive-Analysis)** - Competitive landscape
 
-## 🔗 Quick Links
+## ðŸ”— Quick Links
 
 ### Essential Reading
 1. **[Quick Start Guide](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Quick-Start)** - Start here
@@ -87,7 +87,7 @@ This document serves as a comprehensive index of all Wiki documentation availabl
 - **[Investment Opportunities](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Investment-Opportunities)**
 - **[Market Analysis](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/wiki/Market-Analysis)**
 
-## 📝 Contributing to the Wiki
+## ðŸ“ Contributing to the Wiki
 
 The Wiki is maintained by the community. To contribute:
 
@@ -96,19 +96,19 @@ The Wiki is maintained by the community. To contribute:
 3. **Follow Guidelines**: Maintain consistent formatting and structure
 4. **Update This Index**: Add new pages to this index
 
-## 🔄 Keeping Documentation Updated
+## ðŸ”„ Keeping Documentation Updated
 
 - **Regular Reviews**: Wiki content is reviewed monthly
 - **Version Updates**: Documentation updated with each major release
 - **Community Feedback**: User feedback incorporated continuously
 - **Cross-References**: Links between related topics maintained
 
-## 📞 Support
+## ðŸ“ž Support
 
 If you can't find what you're looking for in the Wiki:
 
 - **GitHub Issues**: [Report documentation issues](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/issues)
-- **Community Forum**: [Ask questions](https://t.me/ourworldthegamechat)
+- **Community Forum**: [Ask questions](https://t.me/oasisweb4chat)
 - **Email Support**: [Contact us](mailto:support@oasisplatform.world)
 
 ---
