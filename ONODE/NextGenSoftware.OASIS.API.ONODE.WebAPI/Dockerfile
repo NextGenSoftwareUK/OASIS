@@ -1,5 +1,6 @@
 # Build context must be the repo root (C:/Source/OASIS2/).
-# Railway uses repo root automatically; for local builds run from C:/Source/OASIS2/:
+# Railway uses repo root as build context automatically.
+# For local builds run from C:/Source/OASIS2/:
 #   docker build -f ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Dockerfile -t oasis-onode-webapi .
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
@@ -8,11 +9,11 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 
-# Clone the sibling repos that csproj files reference via ../../../../ relative paths.
-# From /src/OASIS Architecture/<Project>/, ../../../../ resolves to the filesystem root,
-# so we clone directly there to match the expected paths.
+# Clone sibling repos that csproj files reference via relative paths.
+# Cloned to / so that ../../../../ paths (from Providers/Network/<project>/)
+# and ../../../ paths (from OASIS Architecture/<project>/) resolve correctly.
 ARG LIBRARIES_REPO=https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git
-ARG HOLOCHAIN_REPO=https://github.com/NextGenSoftwareUK/holochain-client-csharp.git
+ARG HOLOCHAIN_REPO=https://github.com/holochain-open-dev/holochain-client-csharp.git
 RUN apt-get update && apt-get install -y --no-install-recommends git \
     && git clone --depth 1 "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
     && git clone --depth 1 "${HOLOCHAIN_REPO}" /holochain-client-csharp \
@@ -20,6 +21,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends git \
 
 WORKDIR /src
 COPY . .
+
+# OASIS_DNA.json is gitignored. The Default version is used here only as a build-time
+# placeholder — it has CopyToPublishDirectory=Never so it is NOT included in the
+# published image. The real OASIS_DNA.json must be mounted by Railway at runtime.
+RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" || \
+    cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
+       "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json"
 
 WORKDIR "/src/ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI"
 RUN dotnet restore "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj"
