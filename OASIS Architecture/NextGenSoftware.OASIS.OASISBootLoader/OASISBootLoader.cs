@@ -1328,7 +1328,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         {
             string dnaPath = Environment.GetEnvironmentVariable("OASIS_DNA_PATH") ?? Path.Combine(AppContext.BaseDirectory, OASISDNAPath);
 
-            Console.WriteLine($"CurrentDirectory: {Environment.CurrentDirectory}");
+            Console.WriteLine($"2CurrentDirectory: {Environment.CurrentDirectory}");
             Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
             Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
             Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
