@@ -324,7 +324,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseMiddleware<SubscriptionMiddleware>();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapGet("/", context =>
+                {
+                    context.Response.Redirect("/swagger");
+                    return Task.CompletedTask;
+                });
+            });
 
             //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 
