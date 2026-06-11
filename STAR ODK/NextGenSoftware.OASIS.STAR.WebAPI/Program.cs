@@ -149,7 +149,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 <a href='https://t.me/ourworldthegamechat'>https://t.me/ourworldthegamechat</a> (Telegram General Chat)<br><a href='https://t.me/ourworldthegame'>https://t.me/ourworldthegame</a> (Telegram Our World Announcements)<br><a href='https://t.me/ourworldtechupdates'>https://t.me/ourworldtechupdates</a> (Telegram Our World Tech Updates)<br><a href='https://t.me/oasisapihackalong'>https://t.me/oasisapihackalong</a> OASIS API Weekly Hackalongs
 
 <a href='https://discord.gg/q9gMKU6'>https://discord.gg/q9gMKU6</a>",
-        Title = "WEB 5 STAR API v1.0.0",
+        Title = string.Concat("WEB5 STAR API v", OASISBootLoader.STARAPIVersion),
         Version = "v1",
     });
 
