@@ -1,8 +1,8 @@
-# WEB5 STAR API — Dockerfile at repo root to avoid Railway space-in-path issue.
+# WEB5 STAR API
 # Build context must be the repo root (C:/Source/OASIS2/).
-# Railway Dockerfile path: Dockerfile.star
+# Railway Dockerfile path: Docker/Dockerfile.star
 # For local builds run from C:/Source/OASIS2/:
-#   docker build -f Dockerfile.star -t oasis-star-api .
+#   docker build -f Docker/Dockerfile.star -t oasis-star-api .
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
@@ -31,7 +31,7 @@ RUN dotnet publish "NextGenSoftware.OASIS.STAR.WebAPI.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-COPY "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/entrypoint.sh" /entrypoint.sh
+COPY Docker/entrypoint.star.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production

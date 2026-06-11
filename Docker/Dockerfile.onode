@@ -1,8 +1,8 @@
-# WEB4 OASIS API (ONODE) — Dockerfile at repo root for consistency with Dockerfile.star.
+# WEB4 OASIS API (ONODE)
 # Build context must be the repo root (C:/Source/OASIS2/).
-# Railway Dockerfile path: Dockerfile.onode
+# Railway Dockerfile path: Docker/Dockerfile.onode
 # For local builds run from C:/Source/OASIS2/:
-#   docker build -f Dockerfile.onode -t oasis-onode-webapi .
+#   docker build -f Docker/Dockerfile.onode -t oasis-onode-webapi .
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
@@ -31,7 +31,7 @@ RUN dotnet publish "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" -c Release -o
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-COPY ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/entrypoint.sh /entrypoint.sh
+COPY Docker/entrypoint.onode.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 ENV ASPNETCORE_ENVIRONMENT=Production
