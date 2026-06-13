@@ -1646,8 +1646,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 if (loadChildren && !loadChildrenFromProvider)
                     result = await LoadChildHolonsRecursiveForParentHolonAsync(result, $"metaKeyValuePairs", subChildHolonType, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version, currentChildDepth, providerType);
             }
-
-            SwitchBackToCurrentProvider(currentProviderType, ref result);
+            
+            //TODO: Temp, need to investigate more later! ;-)
+            if (currentProviderType != ProviderType.LocalFileOASIS)
+                SwitchBackToCurrentProvider(currentProviderType, ref result);
+            
             return result;
         }
     }

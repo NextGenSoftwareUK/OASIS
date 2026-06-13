@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -9,6 +9,12 @@
   <ItemGroup>
     <None Remove="DNA\OASIS_DNA.json" />
     <None Remove="DNA\STAR_DNA.json" />
+    <Compile Remove="DNA\Code\STARDNA.Linux.cs" />
+    <None Include="DNA\Code\STARDNA.Linux.cs" />
+    <Compile Remove="DNA\Code\STARDNA.Windows.cs" />
+    <None Include="DNA\Code\STARDNA.Windows.cs" />
+    <Compile Remove="DNA\Code\STARDNA.OSX.cs" />
+    <None Include="DNA\Code\STARDNA.OSX.cs" Condition="Exists('$(MSBuildProjectDirectory)\DNA\Code\STARDNA.OSX.cs')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,15 +27,57 @@
     <Content Include="DNA\Default\OASIS_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="DNA\STAR_DNA-Linux.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="DNA\STAR_DNA-Windows.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
 
+  <!-- Override transitive downgrades from API.Core/Rijndael256 (NU1605) -->
   <ItemGroup>
+    <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
+    <PackageReference Include="System.Globalization" Version="4.3.0" />
+    <PackageReference Include="System.IO" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
+    <PackageReference Include="System.Text.Encoding.Extensions" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
+  </ItemGroup>
+
+  <!-- Before compile: copy platform STARDNA.*.cs onto STARDNA.cs (only STARDNA.cs is compiled). -->
+  <Target Name="PrepareSTARDNACS" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <_StardnaCodeDir>$(MSBuildProjectDirectory)\DNA\Code</_StardnaCodeDir>
+      <_StardnaOut>$(_StardnaCodeDir)\STARDNA.cs</_StardnaOut>
+    </PropertyGroup>
+    <Copy Condition="$([MSBuild]::IsOSPlatform('windows'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Windows.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="$([MSBuild]::IsOSPlatform('osx')) AND Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs')"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.OSX.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="!$([MSBuild]::IsOSPlatform('windows')) AND (!$([MSBuild]::IsOSPlatform('osx')) OR !Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Linux.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+  </Target>
+
+  <!-- Test packages removed: STAR.DNA is a library; test runner was causing adapter conflict when referenced by STAR IntegrationTests -->
+  <!-- <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" />
-  </ItemGroup>
+  </ItemGroup> -->
 
 </Project>

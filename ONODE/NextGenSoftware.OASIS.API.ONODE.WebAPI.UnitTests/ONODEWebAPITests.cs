@@ -38,13 +38,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests
         }
 
         [Fact]
-        public void ONODEWebAPI_ShouldHaveStartMethod()
+        public void ONODEWebAPI_ShouldHaveEndpointNameConstant()
         {
-            // Arrange
-            var webAPI = new ONODEWebAPI();
+            // Arrange & Act
+            var endpointName = ONODEWebAPI.EndpointName;
 
-            // Act & Assert
-            webAPI.Should().HaveMethod("Start", new Type[] { });
+            // Assert
+            endpointName.Should().Be("ONODE", "ONODEWebAPI identifies as the ONODE endpoint");
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
@@ -7,7 +7,7 @@
   </ItemGroup>
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<PackageId>NextGenSoftware.OASIS.API.Providers.RootstockOASIS</PackageId>
 		<Company>NextGen Software Ltd</Company>
 		<Product>WEB4 OASIS API Rootstock OASIS Provider</Product>

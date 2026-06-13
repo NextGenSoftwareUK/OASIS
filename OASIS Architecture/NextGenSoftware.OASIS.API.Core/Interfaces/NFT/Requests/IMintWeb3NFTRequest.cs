@@ -5,6 +5,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
     //All properties are optional, if not provided the values defined in the parent WEB4 OASIS NFT will be used.
     public interface IMintWeb3NFTRequest : IMintNFTRequestBase
     {
+        public string? CollectionPublicKey { get; set; }
         NFTMetaDataMergeStrategy NFTMetaDataMergeStrategy { get; set; } //Defines how the Web3NFT meta data will be merged with the parent WEB4 OASIS NFT meta data. 
         NFTTagsMergeStrategy NFTTagsMergeStrategy { get; set; } //Defines how the Web3NFT tags will be merged with the parent WEB4 OASIS NFT tags. 
         public int? NumberToMint { get; set; }
@@ -19,6 +20,9 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         public bool? WaitTillNFTMinted { get; set; }
         public int? WaitForNFTToMintInSeconds { get; set; }
         public int ?AttemptToMintEveryXSeconds { get; set; }
+        public bool? WaitTillNFTVerified { get; set; }
+        public int? WaitForNFTToVerifyInSeconds { get; set; }
+        public int? AttemptToVerifyEveryXSeconds { get; set; }
         public bool? WaitTillNFTSent { get; set; }
         public int? WaitForNFTToSendInSeconds { get; set; }
         public int? AttemptToSendEveryXSeconds { get; set; }

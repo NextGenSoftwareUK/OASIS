@@ -1,4 +1,7 @@
-﻿using NextGenSoftware.Utilities;
+using System.Globalization;
+using System.Linq;
+using System.Text.Json;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -9,6 +12,12 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
     public class Avatars
     {
+        private static readonly JsonSerializerOptions AvatarInventoryJsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        };
+
         public Avatars(Guid avatarId)
         {
 
@@ -20,6 +29,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!emailValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Email input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
@@ -65,6 +77,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!emailValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Email input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 email = Console.ReadLine();
 
@@ -98,6 +113,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             while (!usernameValid)
             {
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException("Username input is not available in non-interactive mode.");
+
                 CLIEngine.ShowMessage(string.Concat("", message), true, true);
                 username = Console.ReadLine();
 
@@ -117,9 +135,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     //}
 
                     //No need to show error message because the CheckIfUsernameIsAlreadyInUse function already shows this! ;-)
-                    if (checkIfUsernameAlreadyInUseResult.Result)
-                        CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
-                    else
+                    if (!checkIfUsernameAlreadyInUseResult.Result)
+                    //    CLIEngine.ShowErrorMessage(checkIfUsernameAlreadyInUseResult.Message);
+                    //else
                     {
                         usernameValid = true;
                         CLIEngine.Spinner.Stop();
@@ -167,6 +185,59 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowSuccessMessage("Successfully Created Avatar. Please Check Your Email To Verify Your Account Before Logging In.");
                 return true;
             }
+        }
+
+        /// <summary>
+        /// Beam in using explicit credentials (shell / CI). Optional <paramref name="emailVerifyToken"/> if the API reports an unverified avatar.
+        /// </summary>
+        public async Task BeamInWithCredentialsAsync(string username, string password, string emailVerifyToken = null, ProviderType providerType = ProviderType.Default)
+        {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Username and password are required.", nameof(username));
+
+            OASISResult<IAvatar> beamInResult;
+
+            CLIEngine.SupressConsoleLogging = true;
+            beamInResult = await STAR.BeamInAsync(username, password);
+            CLIEngine.SupressConsoleLogging = false;
+
+            if (!beamInResult.IsError && STAR.BeamedInAvatar != null)
+            {
+                CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+                return;
+            }
+
+            if (beamInResult.Message != null && beamInResult.Message.Contains("not been verified", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrEmpty(emailVerifyToken))
+                {
+                    CLIEngine.SupressConsoleLogging = true;
+                    OASISResult<bool> verifyEmailResult = STAR.OASISAPI.Avatars.VerifyEmail(emailVerifyToken);
+                    CLIEngine.SupressConsoleLogging = false;
+
+                    if (verifyEmailResult.IsError)
+                        throw new InvalidOperationException(verifyEmailResult.Message);
+
+                    CLIEngine.SupressConsoleLogging = true;
+                    beamInResult = await STAR.BeamInAsync(username, password);
+                    CLIEngine.SupressConsoleLogging = false;
+
+                    if (!beamInResult.IsError && STAR.BeamedInAvatar != null)
+                    {
+                        CLIEngine.ShowSuccessMessage(string.Concat("Successfully Beamed In! Welcome back ", STAR.BeamedInAvatar.Username, ". Have a nice day! :) You Are Level ", STAR.BeamedInAvatarDetail.Level, " And Have ", STAR.BeamedInAvatarDetail.Karma, " Karma."));
+                        return;
+                    }
+                }
+
+                if (CLIEngine.NonInteractive)
+                    throw new CLIEngineNonInteractiveInputRequiredException(
+                        "Avatar is not verified. Set environment variable STAR_CLI_EMAIL_VERIFY_TOKEN to the token from your verification email, or verify the account in interactive mode.");
+            }
+
+            if (STAR.BeamedInAvatar == null)
+                throw new InvalidOperationException(string.IsNullOrEmpty(beamInResult.Message)
+                    ? "Beam-in failed (no session)."
+                    : beamInResult.Message);
         }
 
         public async Task BeamInAvatar(ProviderType providerType = ProviderType.Default)
@@ -738,6 +809,325 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 CLIEngine.ShowErrorMessage($"Unknown error occured loading Avatar's.");
 
             return avatarsResult;
+        }
+
+        /// <summary>
+        /// Lists inventory items for the beamed-in avatar via <c>STAR.OASISAPI.Avatars.GetAvatarInventoryAsync</c> (same data as WEB4 GET /api/avatar/inventory).
+        /// </summary>
+        public async Task ShowAvatarInventoryAsync(bool showDetailedInfo = false, ProviderType providerType = ProviderType.Default)
+        {
+            if (STAR.BeamedInAvatar == null)
+            {
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 2;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 2, error = "No Avatar Is Beamed In!", detail = (string?)null }, AvatarInventoryJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage("No Avatar Is Beamed In!");
+                return;
+            }
+
+            if (!CLIEngine.JsonOutput)
+                CLIEngine.ShowWorkingMessage("Loading avatar inventory...");
+
+            CLIEngine.SupressConsoleLogging = true;
+            OASISResult<IEnumerable<IInventoryItem>> inventoryResult =
+                await STAR.OASISAPI.Avatars.GetAvatarInventoryAsync(STAR.BeamedInAvatar.Id, providerType);
+            CLIEngine.SupressConsoleLogging = false;
+
+            if (inventoryResult == null || inventoryResult.IsError)
+            {
+                string msg = inventoryResult?.Message ?? "Failed to load avatar inventory.";
+                if (CLIEngine.JsonOutput)
+                {
+                    Environment.ExitCode = 1;
+                    Console.Out.WriteLine(JsonSerializer.Serialize(new { success = false, exitCode = 1, error = msg, detail = (string?)null }, AvatarInventoryJsonOptions));
+                    return;
+                }
+
+                CLIEngine.ShowErrorMessage($"Error loading avatar inventory: {msg}");
+                return;
+            }
+
+            List<IInventoryItem> items = inventoryResult.Result?.ToList() ?? new List<IInventoryItem>();
+
+            if (CLIEngine.JsonOutput)
+            {
+                object BuildInventoryItemJson(IInventoryItem i)
+                {
+                    if (!showDetailedInfo)
+                    {
+                        return new
+                        {
+                            id = i.Id,
+                            name = i.Name,
+                            description = i.Description,
+                            quantity = i.Quantity,
+                            gameSource = i.GameSource,
+                            itemType = i.ItemType,
+                            nftId = i.NftId
+                        };
+                    }
+
+                    var dna = i.STARNETDNA;
+                    return new
+                    {
+                        id = i.Id,
+                        name = i.Name,
+                        description = i.Description,
+                        quantity = i.Quantity,
+                        gameSource = i.GameSource,
+                        itemType = i.ItemType,
+                        nftId = i.NftId,
+                        starnetDNA = dna == null ? null : new
+                        {
+                            id = dna.Id,
+                            name = dna.Name,
+                            description = dna.Description,
+                            starnetHolonType = dna.STARNETHolonType,
+                            starnetCategory = FormatStarnetDnaJsonValue(dna.STARNETCategory),
+                            starnetSubCategory = FormatStarnetDnaJsonValue(dna.STARNETSubCategory),
+                            version = dna.Version,
+                            versionSequence = dna.VersionSequence,
+                            createdOn = dna.CreatedOn,
+                            createdByAvatarUsername = dna.CreatedByAvatarUsername,
+                            publishedOn = dna.PublishedOn,
+                            publishedProviderType = dna.PublishedProviderType,
+                            launchTarget = dna.LaunchTarget,
+                        }
+                    };
+                }
+
+                var jsonGroupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
+                var jsonGrouped = items
+                    .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                var groupsPayload = new List<object>();
+                foreach (string tab in jsonGroupsOrdered)
+                {
+                    if (!jsonGrouped.TryGetValue(tab, out List<IInventoryItem>? groupItems) || groupItems == null || groupItems.Count == 0)
+                        continue;
+
+                    groupsPayload.Add(new
+                    {
+                        type = tab,
+                        count = groupItems.Count,
+                        items = groupItems.Select(BuildInventoryItemJson).ToList()
+                    });
+                }
+
+                foreach (var extraTab in jsonGrouped.Keys.Except(jsonGroupsOrdered).OrderBy(x => x))
+                {
+                    List<IInventoryItem>? groupItems = jsonGrouped[extraTab];
+                    if (groupItems == null || groupItems.Count == 0) continue;
+
+                    groupsPayload.Add(new
+                    {
+                        type = extraTab,
+                        count = groupItems.Count,
+                        items = groupItems.Select(BuildInventoryItemJson).ToList()
+                    });
+                }
+
+                var payload = items.Select(BuildInventoryItemJson).ToList();
+
+                Console.Out.WriteLine(JsonSerializer.Serialize(new
+                {
+                    success = true,
+                    message = inventoryResult.Message,
+                    data = new { count = items.Count, items = payload, groups = groupsPayload }
+                }, AvatarInventoryJsonOptions));
+                return;
+            }
+
+            Console.WriteLine("");
+            CLIEngine.ShowMessage(
+                $"{items.Count} inventory item(s) for {STAR.BeamedInAvatar.Username}:",
+                ConsoleColor.Green);
+
+            if (items.Count == 0)
+            {
+                CLIEngine.ShowWarningMessage("Inventory is empty.");
+                return;
+            }
+
+            var groupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
+            var grouped = items
+                .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            CLIEngine.ShowDivider();
+            foreach (string tab in groupsOrdered)
+            {
+                if (!grouped.TryGetValue(tab, out List<IInventoryItem>? groupItems) || groupItems == null || groupItems.Count == 0)
+                    continue;
+
+                CLIEngine.ShowMessage($"  {tab}:", ConsoleColor.Yellow, false);
+                Console.WriteLine("");
+
+                foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
+                {
+                    int qty = item.Quantity > 0 ? item.Quantity : 1;
+                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                    CLIEngine.ShowMessage(
+                        $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
+                        ConsoleColor.Green,
+                        false);
+
+                    if (!string.IsNullOrWhiteSpace(item.Description))
+                        CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
+
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                        CLIEngine.ShowMessage(
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            ConsoleColor.Green,
+                            false);
+
+                    if (showDetailedInfo)
+                    {
+                        await STARCLI.InventoryItems.ShowAsync(
+                            item,
+                            showHeader: false,
+                            showFooter: false,
+                            showNumbers: false,
+                            number: 0,
+                            showDetailedInfo: true);
+                        CLIEngine.ShowDivider();
+                    }
+
+                    // Spacing between entries (matches the overall UX of other detailed lists).
+                    Console.WriteLine("");
+                }
+            }
+
+            foreach (var extraTab in grouped.Keys.Except(groupsOrdered).OrderBy(x => x))
+            {
+                List<IInventoryItem>? groupItems = grouped[extraTab];
+                if (groupItems == null || groupItems.Count == 0) continue;
+
+                CLIEngine.ShowMessage($"  {extraTab}:", ConsoleColor.Yellow, false);
+                Console.WriteLine("");
+
+                foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
+                {
+                    int qty = item.Quantity > 0 ? item.Quantity : 1;
+                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                    CLIEngine.ShowMessage(
+                        $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
+                        ConsoleColor.Green,
+                        false);
+
+                    if (!string.IsNullOrWhiteSpace(item.Description))
+                        CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
+
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                        CLIEngine.ShowMessage(
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            ConsoleColor.Green,
+                            false);
+
+                    if (showDetailedInfo)
+                    {
+                        await STARCLI.InventoryItems.ShowAsync(
+                            item,
+                            showHeader: false,
+                            showFooter: false,
+                            showNumbers: false,
+                            number: 0,
+                            showDetailedInfo: true);
+                        CLIEngine.ShowDivider();
+                    }
+
+                    // Spacing between entries (matches the overall UX of other detailed lists).
+                    Console.WriteLine("");
+                }
+            }
+
+            CLIEngine.ShowDivider();
+        }
+
+        private static string GetInventoryTabLabel(string? itemType)
+        {
+            if (string.IsNullOrWhiteSpace(itemType))
+                return "Other";
+
+            string lower = itemType.Trim().ToLowerInvariant();
+
+            // Match in priority order (e.g. KeyItem contains "item").
+            if (lower.Contains("key"))
+                return "Keys";
+            if (lower.Contains("weapon"))
+                return "Weapons";
+            if (lower.Contains("ammo"))
+                return "Ammo";
+            if (lower.Contains("armour") || lower.Contains("armor"))
+                return "Armor";
+            if (lower.Contains("monster"))
+                return "Monsters";
+            if (lower.Contains("powerup") || lower.Contains("power-up") || lower.Contains("health"))
+                return "Items";
+            if (lower.Contains("item"))
+                return "Items";
+
+            return "Other";
+        }
+
+        private static string FormatStarnetDnaJsonValue(object? raw)
+        {
+            if (raw == null)
+                return "None";
+
+            // Prevent serializing JsonElement as `{ "ValueKind": 3 }` in JSON output.
+            if (raw is JsonElement je)
+            {
+                switch (je.ValueKind)
+                {
+                    case JsonValueKind.String:
+                        return je.GetString() ?? "None";
+                    case JsonValueKind.Number:
+                        if (je.TryGetInt32(out var i32))
+                            return i32.ToString(CultureInfo.InvariantCulture);
+                        if (je.TryGetInt64(out var i64))
+                            return i64.ToString(CultureInfo.InvariantCulture);
+                        return je.GetRawText();
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return "None";
+                    default:
+                        return je.GetRawText();
+                }
+            }
+
+            // Some code paths end up storing a JsonElement-ish string like `{"ValueKind":3}`.
+            // Convert that into a plain number/string.
+            try
+            {
+                string s = raw.ToString();
+                if (string.IsNullOrWhiteSpace(s))
+                    return "None";
+
+                if (s.Contains("\"ValueKind\"", StringComparison.Ordinal))
+                {
+                    using var doc = JsonDocument.Parse(s);
+                    if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                        doc.RootElement.TryGetProperty("ValueKind", out JsonElement vk))
+                    {
+                        if (vk.ValueKind == JsonValueKind.Number)
+                            return vk.GetRawText();
+                        if (vk.ValueKind == JsonValueKind.String)
+                            return vk.GetString() ?? "None";
+                    }
+                }
+
+                return s;
+            }
+            catch
+            {
+                return raw.ToString() ?? "None";
+            }
         }
     }
 }

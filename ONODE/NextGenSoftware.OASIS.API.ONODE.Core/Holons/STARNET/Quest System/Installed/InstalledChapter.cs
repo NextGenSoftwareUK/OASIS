@@ -5,7 +5,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 {
     public class InstalledChapter : InstalledSTARNETHolon, IInstalledChapter
     {
-        public InstalledChapter() : base("InstalledDNAJSON")
+        public InstalledChapter() : base("ChapterDNAJSON")
         {
             this.HolonType = HolonType.InstalledChapter;
         }

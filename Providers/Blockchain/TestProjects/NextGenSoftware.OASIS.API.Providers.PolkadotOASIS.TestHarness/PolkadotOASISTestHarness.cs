@@ -1,9 +1,8 @@
-using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.API.Core.Objects;
 using System;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.TestHarness
 {
@@ -44,8 +43,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.TestHarness
             Console.WriteLine("--- Testing Provider Activation ---");
             
             Console.WriteLine($"Provider Name: {_provider.ProviderName}");
-            Console.WriteLine($"Provider Type: {_provider.ProviderType}");
-            Console.WriteLine($"Provider Category: {_provider.ProviderCategory}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
             Console.WriteLine($"Is Activated: {_provider.IsProviderActivated}");
 
             var activationResult = _provider.ActivateProvider();
@@ -57,22 +56,15 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.TestHarness
             Console.WriteLine();
         }
 
-        private static async Task TestProviderInformation()
+        private static Task TestProviderInformation()
         {
             Console.WriteLine("--- Testing Provider Information ---");
-            
-            var version = _provider.GetProviderVersion();
-            Console.WriteLine($"Provider Version: {version}");
-
-            var providerType = _provider.GetProviderType();
-            Console.WriteLine($"Provider Type: {providerType}");
-
-            var category = _provider.GetProviderCategory();
-            Console.WriteLine($"Provider Category: {category}");
-
-            var description = _provider.ProviderDescription;
-            Console.WriteLine($"Provider Description: {description}");
+            Console.WriteLine($"Provider Name: {_provider.ProviderName}");
+            Console.WriteLine($"Provider Type: {_provider.ProviderType.Value}");
+            Console.WriteLine($"Provider Category: {_provider.ProviderCategory.Value}");
+            Console.WriteLine($"Provider Description: {_provider.ProviderDescription}");
             Console.WriteLine();
+            return Task.CompletedTask;
         }
 
         private static async Task TestAvatarOperations()
@@ -131,25 +123,11 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.TestHarness
             Console.WriteLine();
         }
 
-        private static async Task TestSearchOperations()
+        private static Task TestSearchOperations()
         {
-            Console.WriteLine("--- Testing Search Operations ---");
-            
-            var searchParams = new SearchParams
-            {
-                SearchQuery = "test",
-                SearchType = SearchType.Avatar
-            };
-
-            Console.WriteLine($"Searching Avatars with query: '{searchParams.SearchQuery}'");
-            var avatarSearchResult = await _provider.SearchAvatarsAsync(searchParams);
-            Console.WriteLine($"Avatar Search Result: {(avatarSearchResult.IsError ? "Failed" : "Success")}");
-            if (avatarSearchResult.IsError)
-                Console.WriteLine($"Error: {avatarSearchResult.Message}");
-            else
-                Console.WriteLine($"Found {avatarSearchResult.Result?.NumberOfResults ?? 0} avatars");
-
+            Console.WriteLine("--- Search operations not on this provider ---");
             Console.WriteLine();
+            return Task.CompletedTask;
         }
 
         private static async Task TestProviderDeactivation()

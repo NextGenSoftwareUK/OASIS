@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API ChainLink OASIS Provider</Product>
@@ -31,6 +31,11 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Nethereum.Web3" Version="4.19.0" />
+	  <PackageReference Include="Nethereum.HdWallet" Version="4.19.0" />
 	</ItemGroup>
 
 	<ItemGroup>

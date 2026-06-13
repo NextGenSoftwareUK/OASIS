@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.IPFSOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API IPFS OASIS Provider</Product>
@@ -30,7 +30,7 @@
     <PackageReference Include="Ipfs.Core" Version="0.55.0" />
     <PackageReference Include="Ipfs.Engine" Version="0.13.0" />
     <PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <!--<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />-->
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
   </ItemGroup>
 

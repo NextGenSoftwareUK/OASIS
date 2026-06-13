@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,10 +13,11 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
@@ -26,12 +27,16 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 {
-    public class ElrondTransactionResponse : ITransactionResponse
+    public class ElrondTransactionResponse : TransactionResponse
     {
         public string TransactionResult { get; set; }
         public string MemoText { get; set; }
@@ -45,6 +50,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         private readonly string _network;
         private readonly string _chainId;
         private WalletManager _walletManager;
+        private string _contractAddress;
+        private dynamic _config;
 
         public WalletManager WalletManager
         {
@@ -158,19 +165,29 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by provider key from Elrond blockchain
-                // This would query Elrond smart contracts using provider key
-                var avatar = new Avatar
+                if (Guid.TryParse(providerKey, out var id))
                 {
-                    Id = Guid.NewGuid(),
-                    Username = $"elrond_user_{providerKey}",
-                    Email = $"user_{providerKey}@elrond.example",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatar;
-                response.Message = "Avatar loaded by provider key from Elrond successfully";
+                    var loadResult = await LoadAvatarAsync(id, version);
+                    response.Result = loadResult.Result;
+                    response.Message = loadResult.Message;
+                    response.IsError = loadResult.IsError;
+                    response.Exception = loadResult.Exception;
+                }
+                else
+                {
+                    var avatarData = await LoadAvatarByProviderKeyFromElrondAsync(providerKey, version);
+                    if (!string.IsNullOrEmpty(avatarData))
+                    {
+                        var avatar = JsonSerializer.Deserialize<Avatar>(avatarData);
+                        response.Result = avatar;
+                        response.Message = "Avatar loaded by provider key from Elrond successfully";
+                    }
+                    else
+                    {
+                        response.Result = null;
+                        response.Message = "Avatar not found by provider key on Elrond blockchain";
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -190,19 +207,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by email from Elrond blockchain
-                // This would query Elrond smart contracts using email
-                var avatar = new Avatar
+                var avatarId = await GetAvatarIdByEmailFromElrondAsync(avatarEmail);
+                if (avatarId.HasValue && avatarId.Value != Guid.Empty)
                 {
-                    Id = Guid.NewGuid(),
-                    Username = avatarEmail.Split('@')[0],
-                    Email = avatarEmail,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatar;
-                response.Message = "Avatar loaded by email from Elrond successfully";
+                    var loadResult = await LoadAvatarAsync(avatarId.Value, version);
+                    response.Result = loadResult.Result;
+                    response.Message = loadResult.Message;
+                    response.IsError = loadResult.IsError;
+                    response.Exception = loadResult.Exception;
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Avatar not found by email on Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -222,19 +240,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by username from Elrond blockchain
-                // This would query Elrond smart contracts using username
-                var avatar = new Avatar
+                var avatarId = await GetAvatarIdByUsernameFromElrondAsync(avatarUsername);
+                if (avatarId.HasValue && avatarId.Value != Guid.Empty)
                 {
-                    Id = Guid.NewGuid(),
-                    Username = avatarUsername,
-                    Email = $"{avatarUsername}@elrond.example",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatar;
-                response.Message = "Avatar loaded by username from Elrond successfully";
+                    var loadResult = await LoadAvatarAsync(avatarId.Value, version);
+                    response.Result = loadResult.Result;
+                    response.Message = loadResult.Message;
+                    response.IsError = loadResult.IsError;
+                    response.Exception = loadResult.Exception;
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Avatar not found by username on Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -254,20 +273,26 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Load avatar detail from Elrond blockchain
-                // This would query Elrond smart contracts for detailed avatar data
-                var avatarDetail = new AvatarDetail
+                var detailJson = await LoadAvatarDetailFromElrondAsync(id.ToString(), version);
+                if (!string.IsNullOrEmpty(detailJson))
                 {
-                    Id = id,
-                    FirstName = $"Elrond_User_{id}",
-                    LastName = "Blockchain",
-                    Email = $"user_{id}@elrond.example",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatarDetail;
-                response.Message = "Avatar detail loaded from Elrond successfully";
+                    var avatarDetail = ParseElrondToAvatarDetail(detailJson);
+                    if (avatarDetail != null)
+                    {
+                        response.Result = avatarDetail;
+                        response.Message = "Avatar detail loaded from Elrond successfully";
+                    }
+                    else
+                    {
+                        response.Result = null;
+                        response.Message = "Avatar detail not found or invalid on Elrond blockchain";
+                    }
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Avatar detail not found on Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -287,19 +312,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Load avatar detail by email from Elrond blockchain
-                var avatarDetail = new AvatarDetail
+                var avatarIdResult = await GetAvatarIdByEmailFromElrondAsync(avatarEmail);
+                if (avatarIdResult != null && avatarIdResult.Value != Guid.Empty)
                 {
-                    Id = Guid.NewGuid(),
-                    FirstName = avatarEmail.Split('@')[0],
-                    LastName = "Blockchain",
-                    Email = avatarEmail,
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatarDetail;
-                response.Message = "Avatar detail loaded by email from Elrond successfully";
+                    var detailResult = await LoadAvatarDetailAsync(avatarIdResult.Value, version);
+                    response.Result = detailResult.Result;
+                    response.Message = detailResult.Message;
+                    response.IsError = detailResult.IsError;
+                    response.Exception = detailResult.Exception;
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Avatar detail not found by email on Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -319,19 +345,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Load avatar detail by username from Elrond blockchain
-                var avatarDetail = new AvatarDetail
+                var avatarIdResult = await GetAvatarIdByUsernameFromElrondAsync(avatarUsername);
+                if (avatarIdResult != null && avatarIdResult.Value != Guid.Empty)
                 {
-                    Id = Guid.NewGuid(),
-                    FirstName = avatarUsername,
-                    LastName = "Blockchain",
-                    Email = $"{avatarUsername}@elrond.example",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow
-                };
-
-                response.Result = avatarDetail;
-                response.Message = "Avatar detail loaded by username from Elrond successfully";
+                    var detailResult = await LoadAvatarDetailAsync(avatarIdResult.Value, version);
+                    response.Result = detailResult.Result;
+                    response.Message = detailResult.Message;
+                    response.IsError = detailResult.IsError;
+                    response.Exception = detailResult.Exception;
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Avatar detail not found by username on Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -351,15 +378,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                // Load all avatars from Elrond blockchain
-                var avatars = new List<IAvatar>
+                var avatarIds = await GetAvatarIdsFromElrondAsync();
+                var list = new List<IAvatar>();
+                foreach (var id in avatarIds)
                 {
-                    new Avatar { Id = Guid.NewGuid(), Username = "elrond_user_1", Email = "user1@elrond.example", CreatedDate = DateTime.UtcNow },
-                    new Avatar { Id = Guid.NewGuid(), Username = "elrond_user_2", Email = "user2@elrond.example", CreatedDate = DateTime.UtcNow }
-                };
-
-                response.Result = avatars;
-                response.Message = "All avatars loaded from Elrond successfully";
+                    var avatarData = await LoadAvatarFromElrondAsync(id.ToString(), version);
+                    if (!string.IsNullOrEmpty(avatarData))
+                    {
+                        var avatar = JsonSerializer.Deserialize<Avatar>(avatarData);
+                        if (avatar != null)
+                            list.Add(avatar);
+                    }
+                }
+                response.Result = list;
+                response.Message = list.Count > 0 ? "All avatars loaded from Elrond successfully" : "No avatars found on Elrond blockchain";
             }
             catch (Exception ex)
             {
@@ -379,15 +411,20 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
-                // Load all avatar details from Elrond blockchain
-                var avatarDetails = new List<IAvatarDetail>
+                var avatarIds = await GetAvatarIdsFromElrondAsync();
+                var list = new List<IAvatarDetail>();
+                foreach (var id in avatarIds)
                 {
-                    new AvatarDetail { Id = Guid.NewGuid(), FirstName = "Elrond_User_1", LastName = "Blockchain", Email = "user1@elrond.example", CreatedDate = DateTime.UtcNow },
-                    new AvatarDetail { Id = Guid.NewGuid(), FirstName = "Elrond_User_2", LastName = "Blockchain", Email = "user2@elrond.example", CreatedDate = DateTime.UtcNow }
-                };
-
-                response.Result = avatarDetails;
-                response.Message = "All avatar details loaded from Elrond successfully";
+                    var detailJson = await LoadAvatarDetailFromElrondAsync(id.ToString(), version);
+                    if (!string.IsNullOrEmpty(detailJson))
+                    {
+                        var detail = ParseElrondToAvatarDetail(detailJson);
+                        if (detail != null)
+                            list.Add(detail);
+                    }
+                }
+                response.Result = list;
+                response.Message = list.Count > 0 ? "All avatar details loaded from Elrond successfully" : "No avatar details found on Elrond blockchain";
             }
             catch (Exception ex)
             {
@@ -440,10 +477,18 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
             var response = new OASISResult<IAvatarDetail>();
             try
             {
-                // Save avatar detail to Elrond blockchain
                 avatarDetail.ModifiedDate = DateTime.UtcNow;
-                response.Result = avatarDetail;
-                response.Message = "Avatar detail saved to Elrond successfully";
+                var txHash = await SaveAvatarDetailToElrondAsync(avatarDetail);
+                if (!string.IsNullOrEmpty(txHash))
+                {
+                    response.Result = avatarDetail;
+                    response.Message = $"Avatar detail saved to Elrond blockchain successfully. Transaction: {txHash}";
+                }
+                else
+                {
+                    response.Result = null;
+                    response.Message = "Failed to save avatar detail to Elrond blockchain";
+                }
             }
             catch (Exception ex)
             {
@@ -2204,8 +2249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
                     var nftTransactionResponse = new Web3NFTTransactionResponse
                     {
-                        TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-transfer-completed",
-                        Success = true
+                        TransactionResult = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-transfer-completed"
                     };
 
                     result.Result = nftTransactionResponse;
@@ -2245,11 +2289,11 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     nonce = 0,
                     value = "0",
-                    receiver = ((IWalletTransactionRequest)transation).ToWalletAddress,
-                    sender = ((IWalletTransactionRequest)transation).FromWalletAddress,
+                    receiver = request.SendToAddressAfterMinting ?? "",
+                    sender = request.SendToAddressAfterMinting ?? "",
                     gasPrice = 1000000000,
                     gasLimit = 50000,
-                    data = $"ESDTNFTCreate@{"ELROND-NFT"}@01@{((IWalletTransactionRequest)transation).ToWalletAddress}",
+                    data = $"ESDTNFTCreate@{"ELROND-NFT"}@01@{request.SendToAddressAfterMinting ?? ""}",
                     chainID = _chainId
                 };
 
@@ -2264,8 +2308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
 
                     var nftTransactionResponse = new Web3NFTTransactionResponse
                     {
-                        TransactionHash = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-mint-completed",
-                        Success = true
+                        TransactionResult = responseData?.GetValueOrDefault("txHash")?.ToString() ?? "nft-mint-completed"
                     };
 
                     result.Result = nftTransactionResponse;
@@ -2568,14 +2611,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                     var web3NFT = new Web3NFT
                     {
                         NFTTokenAddress = nftTokenAddress,
-                        Name = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
+                        Title = nftData.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : null,
                         Symbol = nftData.TryGetProperty("ticker", out var tickerProp) ? tickerProp.GetString() : null,
-                        TokenUri = nftData.TryGetProperty("uri", out var uriProp) ? uriProp.GetString() : null
+                        JSONMetaDataURL = nftData.TryGetProperty("uri", out var uriProp) ? uriProp.GetString() : null
                     };
 
                     result.Result = web3NFT;
                 result.IsError = false;
                 result.Message = "NFT data loaded successfully from Elrond blockchain";
+            }
             }
             catch (Exception ex)
             {
@@ -2611,14 +2655,54 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
-                    return result?.data?.returnData?.FirstOrDefault();
+                    var raw = result?.data?.returnData?.FirstOrDefault();
+                    return DecodeElrondReturnData(raw);
                 }
                 
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading avatar from Elrond: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error loading avatar from Elrond: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Save avatar detail data to Elrond smart contract (separate from Avatar).
+        /// </summary>
+        private async Task<string> SaveAvatarDetailToElrondAsync(IAvatarDetail avatarDetail)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(avatarDetail, new JsonSerializerOptions
+                {
+                    WriteIndented = false,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+                });
+                var transactionData = new
+                {
+                    nonce = await GetAccountNonceAsync(),
+                    value = "0",
+                    receiver = GetOASISContractAddress(),
+                    sender = await GetWalletAddressAsync(),
+                    gasPrice = 1000000000,
+                    gasLimit = 10000000,
+                    data = $"saveAvatarDetail@{Convert.ToHexString(Encoding.UTF8.GetBytes(json))}"
+                };
+                var response = await _httpClient.PostAsync("/transaction/send",
+                    new StringContent(JsonSerializer.Serialize(transactionData), Encoding.UTF8, "application/json"));
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<ElrondTransactionResult>(content);
+                    return result?.txHash;
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error saving avatar detail to Elrond: {ex.Message}");
                 return null;
             }
         }
@@ -2667,6 +2751,182 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
 
         /// <summary>
+        /// Load avatar by provider key from Elrond smart contract (getAvatarByProviderKey view).
+        /// </summary>
+        private async Task<string> LoadAvatarByProviderKeyFromElrondAsync(string providerKey, int version = 0)
+        {
+            try
+            {
+                var queryData = new
+                {
+                    scAddress = GetOASISContractAddress(),
+                    func = "getAvatarByProviderKey",
+                    args = new[] { providerKey, version.ToString() }
+                };
+                var response = await _httpClient.PostAsync("/vm/query",
+                    new StringContent(JsonSerializer.Serialize(queryData), Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode) return null;
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
+                var raw = result?.data?.returnData?.FirstOrDefault();
+                return DecodeElrondReturnData(raw);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Load avatar detail data from Elrond smart contract (separate from Avatar; stored as detail on chain).
+        /// </summary>
+        private async Task<string> LoadAvatarDetailFromElrondAsync(string avatarId, int version = 0)
+        {
+            try
+            {
+                var queryData = new
+                {
+                    scAddress = GetOASISContractAddress(),
+                    func = "getAvatarDetail",
+                    args = new[] { avatarId, version.ToString() }
+                };
+
+                var response = await _httpClient.PostAsync("/vm/query",
+                    new StringContent(JsonSerializer.Serialize(queryData), Encoding.UTF8, "application/json"));
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
+                    var raw = result?.data?.returnData?.FirstOrDefault();
+                    return DecodeElrondReturnData(raw);
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error loading avatar detail from Elrond: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Resolve avatar id by email from Elrond contract (getAvatarIdByEmail view).
+        /// </summary>
+        private async Task<Guid?> GetAvatarIdByEmailFromElrondAsync(string email)
+        {
+            try
+            {
+                var queryData = new
+                {
+                    scAddress = GetOASISContractAddress(),
+                    func = "getAvatarIdByEmail",
+                    args = new[] { email }
+                };
+                var response = await _httpClient.PostAsync("/vm/query",
+                    new StringContent(JsonSerializer.Serialize(queryData), Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode) return null;
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
+                var raw = result?.data?.returnData?.FirstOrDefault();
+                var decoded = DecodeElrondReturnData(raw);
+                return Guid.TryParse(decoded, out var id) ? id : (Guid?)null;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Resolve avatar id by username from Elrond contract (getAvatarIdByUsername view).
+        /// </summary>
+        private async Task<Guid?> GetAvatarIdByUsernameFromElrondAsync(string username)
+        {
+            try
+            {
+                var queryData = new
+                {
+                    scAddress = GetOASISContractAddress(),
+                    func = "getAvatarIdByUsername",
+                    args = new[] { username }
+                };
+                var response = await _httpClient.PostAsync("/vm/query",
+                    new StringContent(JsonSerializer.Serialize(queryData), Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode) return null;
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
+                var raw = result?.data?.returnData?.FirstOrDefault();
+                var decoded = DecodeElrondReturnData(raw);
+                return Guid.TryParse(decoded, out var id) ? id : (Guid?)null;
+            }
+            catch { return null; }
+        }
+
+        /// <summary>
+        /// Get all avatar ids from Elrond contract (getAvatarIds view).
+        /// </summary>
+        private async Task<List<Guid>> GetAvatarIdsFromElrondAsync()
+        {
+            var list = new List<Guid>();
+            try
+            {
+                var queryData = new
+                {
+                    scAddress = GetOASISContractAddress(),
+                    func = "getAvatarIds",
+                    args = Array.Empty<string>()
+                };
+                var response = await _httpClient.PostAsync("/vm/query",
+                    new StringContent(JsonSerializer.Serialize(queryData), Encoding.UTF8, "application/json"));
+                if (!response.IsSuccessStatusCode) return list;
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
+                var returnData = result?.data?.returnData;
+                if (returnData == null) return list;
+                foreach (var raw in returnData)
+                {
+                    var decoded = DecodeElrondReturnData(raw);
+                    if (Guid.TryParse(decoded, out var id))
+                        list.Add(id);
+                }
+            }
+            catch { /* ignore */ }
+            return list;
+        }
+
+        /// <summary>
+        /// Decode MultiversX/Elrond VM return data (base64) to UTF8 string.
+        /// </summary>
+        private static string DecodeElrondReturnData(string base64OrRaw)
+        {
+            if (string.IsNullOrEmpty(base64OrRaw)) return null;
+            try
+            {
+                var bytes = Convert.FromBase64String(base64OrRaw);
+                return Encoding.UTF8.GetString(bytes);
+            }
+            catch
+            {
+                return base64OrRaw;
+            }
+        }
+
+        /// <summary>
+        /// Parse JSON from Elrond chain into AvatarDetail (provider's own detail source, not built from Avatar).
+        /// </summary>
+        private static IAvatarDetail ParseElrondToAvatarDetail(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try
+            {
+                return JsonSerializer.Deserialize<AvatarDetail>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Load holon data from Elrond smart contract
         /// </summary>
         private async Task<string> LoadHolonFromElrondAsync(string holonId, int version = 0)
@@ -2687,14 +2947,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
                 {
                     var content = await response.Content.ReadAsStringAsync();
                     var result = JsonSerializer.Deserialize<ElrondQueryResult>(content);
-                    return result?.data?.returnData?.FirstOrDefault();
+                    var raw = result?.data?.returnData?.FirstOrDefault();
+                    return DecodeElrondReturnData(raw);
                 }
 
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading holon from Elrond: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Error loading holon from Elrond: {ex.Message}");
                 return null;
             }
         }
@@ -2778,19 +3039,41 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
 
         /// <summary>
-        /// Get wallet address for transactions
+        /// Get wallet address for transactions using real WalletManager API
         /// </summary>
-        private async Task<string> GetWalletAddressAsync()
+        private async Task<string> GetWalletAddressAsync(Guid? avatarId = null)
         {
-            // This would get the wallet address from WalletManager
-            // For now, return a placeholder address - in real implementation, this would get the actual wallet
-            return "erd1qqqqqqqqqqqqqpgq7ykazrzd905zvnlr8dpfw0jp7r4q0v4s2zzqs0zp5s";
+            try
+        {
+                // If avatar ID is provided, get wallet for that avatar
+                if (avatarId.HasValue && avatarId.Value != Guid.Empty)
+                {
+                    var walletResult = await WalletHelper.GetWalletAddressForAvatarAsync(
+                        WalletManager.Instance, 
+                        Core.Enums.ProviderType.ElrondOASIS, 
+                        avatarId.Value, 
+                        _httpClient);
+                    
+                    if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                    {
+                        return walletResult.Result;
+                    }
+                }
+                
+                // Fallback: no default wallet available; caller should provide avatarId or configure wallet
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error getting wallet address: {ex.Message}", ex);
+            }
+            
+            // Final fallback: return empty string (caller should handle this)
+            return "";
         }
 
         #endregion
-    }
 
-    #region Elrond Response Models
+        #region Elrond Response Models
 
     public class ElrondQueryResult
     {
@@ -2899,6 +3182,52 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         catch (Exception ex)
         {
             OASISErrorHandling.HandleError(ref result, $"Error unlocking NFT: {ex.Message}", ex);
+        }
+        return result;
+    }
+
+    public OASISResult<IWeb3NFTTransactionResponse> BurnNFT(IBurnWeb3NFTRequest request)
+    {
+        return BurnNFTAsync(request).Result;
+    }
+
+    public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
+    {
+        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated");
+                return result;
+            }
+            if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
+            {
+                OASISErrorHandling.HandleError(ref result, "Burn request and NFT token address are required");
+                return result;
+            }
+            // Elrond/MultiversX burn: send NFT to zero address
+            var burnRequest = new SendWeb3NFTRequest
+            {
+                FromWalletAddress = string.Empty,
+                ToWalletAddress = "erd1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq",
+                TokenAddress = request.NFTTokenAddress ?? "",
+                TokenId = request.Web3NFTId.ToString(),
+                Amount = 1
+            };
+            var sendResult = await SendNFTAsync(burnRequest);
+            if (!sendResult.IsError && sendResult.Result != null)
+            {
+                result.IsError = false;
+                result.Result.TransactionResult = sendResult.Result.TransactionResult;
+                result.Message = "NFT burn submitted on Elrond.";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, sendResult.Message ?? "Failed to burn NFT on Elrond", sendResult.Exception);
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error burning NFT on Elrond: {ex.Message}", ex);
         }
         return result;
     }
@@ -3022,6 +3351,98 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         }
         return result;
     }
+
+        #region IOASISBlockchainStorageProvider explicit implementation
+
+    OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.SendToken(ISendWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).SendTokenAsync(request).Result;
+    async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTokenAsync(ISendWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
+        {
+            if (request == null) { OASISErrorHandling.HandleError(ref result, "Request is required"); return result; }
+            var tx = await SendTransactionAsync(request.FromWalletAddress ?? "", request.ToWalletAddress ?? "", request.Amount, request.MemoText ?? "");
+            result.Result = tx.Result; result.IsError = tx.IsError; result.Message = tx.Message; result.Exception = tx.Exception;
+        }
+        catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+        return result;
+    }
+    OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.MintToken(IMintWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).MintTokenAsync(request).Result;
+    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
+        OASISErrorHandling.HandleError(ref result, "MintToken not implemented for Elrond in this build.");
+        return Task.FromResult(result);
+    }
+    OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.BurnToken(IBurnWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).BurnTokenAsync(request).Result;
+    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
+        OASISErrorHandling.HandleError(ref result, "BurnToken not implemented for Elrond in this build.");
+        return Task.FromResult(result);
+    }
+    OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.LockToken(ILockWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).LockTokenAsync(request).Result;
+    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
+        OASISErrorHandling.HandleError(ref result, "LockToken not implemented for Elrond in this build.");
+        return Task.FromResult(result);
+    }
+    OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.UnlockToken(IUnlockWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).UnlockTokenAsync(request).Result;
+    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
+        OASISErrorHandling.HandleError(ref result, "UnlockToken not implemented for Elrond in this build.");
+        return Task.FromResult(result);
+    }
+    OASISResult<double> IOASISBlockchainStorageProvider.GetBalance(IGetWeb3WalletBalanceRequest request) => ((IOASISBlockchainStorageProvider)this).GetBalanceAsync(request).Result;
+    async Task<OASISResult<double>> IOASISBlockchainStorageProvider.GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+    {
+        var result = new OASISResult<double>();
+        if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress)) { OASISErrorHandling.HandleError(ref result, "Wallet address required"); return result; }
+        var balanceResult = await GetAccountBalanceAsync(request.WalletAddress);
+        if (!balanceResult.IsError && balanceResult.Result >= 0) { result.Result = (double)balanceResult.Result; result.IsError = false; result.Message = balanceResult.Message; }
+        else { result.IsError = true; result.Message = balanceResult.Message; result.Exception = balanceResult.Exception; }
+        return result;
+    }
+    OASISResult<IList<IWalletTransaction>> IOASISBlockchainStorageProvider.GetTransactions(IGetWeb3TransactionsRequest request) => ((IOASISBlockchainStorageProvider)this).GetTransactionsAsync(request).Result;
+    Task<OASISResult<IList<IWalletTransaction>>> IOASISBlockchainStorageProvider.GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+    {
+        var result = new OASISResult<IList<IWalletTransaction>>();
+        result.Result = new List<IWalletTransaction>();
+        if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress)) { OASISErrorHandling.HandleError(ref result, "Wallet address required"); return Task.FromResult(result); }
+        OASISErrorHandling.HandleError(ref result, "GetTransactions for Elrond requires gateway transaction history endpoint.");
+        return Task.FromResult(result);
+    }
+    OASISResult<IKeyPairAndWallet> IOASISBlockchainStorageProvider.GenerateKeyPair() => ((IOASISBlockchainStorageProvider)this).GenerateKeyPairAsync().Result;
+    async Task<OASISResult<IKeyPairAndWallet>> IOASISBlockchainStorageProvider.GenerateKeyPairAsync()
+    {
+        var result = new OASISResult<IKeyPairAndWallet>();
+        try
+        {
+            var accountResult = await CreateAccountAsync(CancellationToken.None);
+            if (!accountResult.IsError && accountResult.Result.PublicKey != null)
+            {
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
+                {
+                    keyPair.PublicKey = accountResult.Result.PublicKey;
+                    keyPair.PrivateKey = accountResult.Result.PrivateKey;
+                    keyPair.WalletAddressLegacy = "";
+                }
+                result.Result = keyPair; result.IsError = false; result.Message = accountResult.Message;
+            }
+            else OASISErrorHandling.HandleError(ref result, accountResult.Message ?? "Failed to create account");
+        }
+        catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+        return result;
+    }
+
+        #endregion
 
         #region Bridge Methods (IOASISBlockchainStorageProvider)
 
@@ -3305,4 +3726,5 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
     }
 
     #endregion
+}
 }

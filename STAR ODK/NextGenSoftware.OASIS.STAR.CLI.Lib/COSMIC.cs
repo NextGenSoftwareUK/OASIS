@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Holons;
 
 namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 {
@@ -87,14 +88,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                         // Search for all if no type specified
                         HolonType searchType = holonType ?? HolonType.All;
-                        searchResults = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                        var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                             "",
                             _avatarId,
                             default(Guid),
+                            null,
+                            MetaKeyValuePairMatchMode.All,
                             showOnlyForCurrentAvatar,
                             searchType,
                             providerType
                         );
+                        searchResults = new OASISResult<IEnumerable<IHolon>>();
+                        searchResults.Result = searchResult.Result?.Cast<IHolon>();
+                        searchResults.IsError = searchResult.IsError;
+                        searchResults.Message = searchResult.Message;
 
                         if (searchResults != null && searchResults.Result != null && !searchResults.IsError && searchResults.Result.Any())
                         {
@@ -150,14 +157,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     CLIEngine.ShowWorkingMessage("Searching celestial bodies/spaces...");
                     HolonType searchType = holonType ?? HolonType.All;
-                    var searchResults = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                    var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                         idOrName,
                         _avatarId,
                         default(Guid),
+                        null,
+                        MetaKeyValuePairMatchMode.All,
                         showOnlyForCurrentAvatar,
                         searchType,
                         providerType
                     );
+                    var searchResults = new OASISResult<IEnumerable<IHolon>>();
+                    searchResults.Result = searchResult.Result?.Cast<IHolon>();
+                    searchResults.IsError = searchResult.IsError;
+                    searchResults.Message = searchResult.Message;
 
                     if (searchResults != null && searchResults.Result != null && !searchResults.IsError)
                     {
@@ -285,7 +298,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     return;
 
                 // Get description (optional)
-                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):", allowEmpty: true);
+                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):");
+                if (string.IsNullOrWhiteSpace(description))
+                    description = "";
 
                 CLIEngine.ShowWorkingMessage($"Creating {selectedType} '{name}' for parent '{parent.Name}'...");
 
@@ -351,11 +366,15 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("Enter new values (press Enter to keep current value):", ConsoleColor.Green);
 
-                string newName = CLIEngine.GetValidInput($"Name [{celestialBody.Name}]:", allowEmpty: true);
+                string newName = CLIEngine.GetValidInput($"Name [{celestialBody.Name}]:");
+                if (string.IsNullOrWhiteSpace(newName))
+                    newName = celestialBody.Name;
                 if (!string.IsNullOrEmpty(newName))
                     celestialBody.Name = newName;
 
-                string newDescription = CLIEngine.GetValidInput($"Description [{celestialBody.Description}]:", allowEmpty: true);
+                string newDescription = CLIEngine.GetValidInput($"Description [{celestialBody.Description}]:");
+                if (string.IsNullOrWhiteSpace(newDescription))
+                    newDescription = celestialBody.Description;
                 if (!string.IsNullOrEmpty(newDescription))
                     celestialBody.Description = newDescription;
 
@@ -498,7 +517,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     // List children of the parent
                     HolonType childType = selectedType ?? HolonType.All;
-                    var childrenResult = await _cosmicManager.GetChildrenForParentAsync<IHolon>(parent, childType);
+                    var childrenResult = await _cosmicManager.GetChildrenForParentAsync<Holon>(parent, childType);
                     
                     if (childrenResult.IsError)
                     {
@@ -513,14 +532,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     // List all celestial bodies
                     bool showAll = CLIEngine.GetConfirmation("Do you want to list all celestial bodies (not just yours)?");
-                    result = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                    var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                         "",
                         _avatarId,
                         default(Guid),
+                        null,
+                        MetaKeyValuePairMatchMode.All,
                         !showAll,
                         selectedType ?? HolonType.All,
                         ProviderType.Default
                     );
+                    result = new OASISResult<IEnumerable<IHolon>>();
+                    result.Result = searchResult.Result?.Cast<IHolon>();
+                    result.IsError = searchResult.IsError;
+                    result.Message = searchResult.Message;
                 }
 
                 if (result.IsError)
@@ -567,13 +592,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 CLIEngine.ShowWorkingMessage("Searching...");
 
-                var result = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                     searchTerm,
                     _avatarId,
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
-                    HolonType.All
+                    HolonType.All,
+                    ProviderType.Default
                 );
+                var result = new OASISResult<IEnumerable<IHolon>>();
+                result.Result = searchResult.Result?.Cast<IHolon>();
+                result.IsError = searchResult.IsError;
+                result.Message = searchResult.Message;
 
                 if (result.IsError)
                 {
@@ -645,7 +677,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     // Find the parent (must be a higher-level space) - REQUIRED (except for Omniverse)
                     Console.WriteLine("");
                     CLIEngine.ShowMessage("Finding parent (must be a celestial space)...", ConsoleColor.Green);
-                    var findResult = await FindAsync("create child for", "", HolonType.CelestialSpace, false);
+                    var findResult = await FindAsync("create child for", "", HolonType.All, false);
                     
                     if (findResult.IsError || findResult.Result == null)
                     {
@@ -693,7 +725,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (name.ToLower() == "exit")
                     return;
 
-                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):", allowEmpty: true);
+                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):");
+                if (string.IsNullOrWhiteSpace(description))
+                    description = "";
 
                 CLIEngine.ShowWorkingMessage($"Creating {selectedType} '{name}'{(parent != null ? $" for parent '{parent.Name}'" : " (Omniverse - no parent required)")}...");
 
@@ -711,7 +745,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             try
             {
-                var findResult = await FindAsync("read", "", HolonType.CelestialSpace, false);
+                var findResult = await FindAsync("read", "", HolonType.All, false);
 
                 if (findResult.IsError || findResult.Result == null)
                 {
@@ -735,7 +769,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             try
             {
-                var findResult = await FindAsync("update", "", HolonType.CelestialSpace, false);
+                var findResult = await FindAsync("update", "", HolonType.All, false);
 
                 if (findResult.IsError || findResult.Result == null)
                 {
@@ -758,12 +792,16 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 Console.WriteLine("");
                 CLIEngine.ShowMessage("Enter new values (press Enter to keep current value):", ConsoleColor.Green);
 
-                string newName = CLIEngine.GetValidInput($"Name [{space.Name}]:", allowEmpty: true);
-                if (!string.IsNullOrEmpty(newName))
+                string newName = CLIEngine.GetValidInput($"Name [{space.Name}]:");
+                if (string.IsNullOrWhiteSpace(newName))
+                    newName = space.Name;
+                else
                     space.Name = newName;
 
-                string newDescription = CLIEngine.GetValidInput($"Description [{space.Description}]:", allowEmpty: true);
-                if (!string.IsNullOrEmpty(newDescription))
+                string newDescription = CLIEngine.GetValidInput($"Description [{space.Description}]:");
+                if (string.IsNullOrWhiteSpace(newDescription))
+                    newDescription = space.Description;
+                else
                     space.Description = newDescription;
 
                 CLIEngine.ShowWorkingMessage("Saving changes...");
@@ -791,7 +829,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             try
             {
-                var findResult = await FindAsync("delete", "", HolonType.CelestialSpace, false);
+                var findResult = await FindAsync("delete", "", HolonType.All, false);
 
                 if (findResult.IsError || findResult.Result == null)
                 {
@@ -854,7 +892,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     // Find the parent (must be a higher-level space)
                     Console.WriteLine("");
                     CLIEngine.ShowMessage("Finding parent (must be a celestial space)...", ConsoleColor.Green);
-                    var findResult = await FindAsync("list children for", "", HolonType.CelestialSpace, false);
+                    var findResult = await FindAsync("list children for", "", HolonType.All, false);
                     
                     if (findResult.IsError || findResult.Result == null)
                     {
@@ -905,7 +943,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     // List children of the parent
                     HolonType childType = selectedType ?? HolonType.All;
-                    var childrenResult = await _cosmicManager.GetChildrenForParentAsync<IHolon>(parent, childType);
+                    var childrenResult = await _cosmicManager.GetChildrenForParentAsync<Holon>(parent, childType);
                     
                     if (childrenResult.IsError)
                     {
@@ -920,13 +958,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 {
                     // List all celestial spaces
                     bool showAll = CLIEngine.GetConfirmation("Do you want to list all celestial spaces (not just yours)?");
-                    result = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                    var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                         "",
                         _avatarId,
                         default(Guid),
+                        null,
+                        MetaKeyValuePairMatchMode.All,
                         !showAll,
-                        selectedType ?? HolonType.All
+                        selectedType ?? HolonType.All,
+                        ProviderType.Default
                     );
+                    result = new OASISResult<IEnumerable<IHolon>>();
+                    result.Result = searchResult.Result?.Cast<IHolon>();
+                    result.IsError = searchResult.IsError;
+                    result.Message = searchResult.Message;
                 }
 
                 if (result.IsError)
@@ -973,13 +1018,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 CLIEngine.ShowWorkingMessage("Searching...");
 
-                var result = await _cosmicManager.SearchHolonsForParentAsync<IHolon>(
+                var searchResult = await _cosmicManager.SearchHolonsForParentAsync<Holon>(
                     searchTerm,
                     _avatarId,
                     default(Guid),
+                    null,
+                    MetaKeyValuePairMatchMode.All,
                     false,
-                    HolonType.All
+                    HolonType.All,
+                    ProviderType.Default
                 );
+                var result = new OASISResult<IEnumerable<IHolon>>();
+                result.Result = searchResult.Result?.Cast<IHolon>();
+                result.IsError = searchResult.IsError;
+                result.Message = searchResult.Message;
 
                 if (result.IsError)
                 {
@@ -1108,7 +1160,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (universeName.ToLower() == "exit")
                     return;
 
-                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):", allowEmpty: true);
+                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):");
+                if (string.IsNullOrWhiteSpace(description))
+                    description = "";
 
                 // Ask which children to create
                 bool createGalaxyCluster = CLIEngine.GetConfirmation("Do you want to create GalaxyCluster(s)?");
@@ -1282,7 +1336,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 int numberOfMoons = 0;
                 if (createMoon)
                 {
-                    string moonsInput = CLIEngine.GetValidInput("How many moons? (default: 1):", allowEmpty: true);
+                    string moonsInput = CLIEngine.GetValidInput("How many moons? (default: 1):");
+                    if (string.IsNullOrWhiteSpace(moonsInput))
+                        moonsInput = "1";
                     if (!int.TryParse(moonsInput, out numberOfMoons) || numberOfMoons < 1)
                         numberOfMoons = 1;
                 }
@@ -1329,7 +1385,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 int numberOfPlanets = 0;
                 if (createPlanet)
                 {
-                    string planetsInput = CLIEngine.GetValidInput("How many planets? (default: 1):", allowEmpty: true);
+                    string planetsInput = CLIEngine.GetValidInput("How many planets? (default: 1):");
+                    if (string.IsNullOrWhiteSpace(planetsInput))
+                        planetsInput = "1";
                     if (!int.TryParse(planetsInput, out numberOfPlanets) || numberOfPlanets < 1)
                         numberOfPlanets = 1;
 
@@ -1337,7 +1395,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     int numberOfMoonsPerPlanet = 0;
                     if (createMoon)
                     {
-                        string moonsInput = CLIEngine.GetValidInput("How many moons per planet? (default: 1):", allowEmpty: true);
+                        string moonsInput = CLIEngine.GetValidInput("How many moons per planet? (default: 1):");
+                        if (string.IsNullOrWhiteSpace(moonsInput))
+                            moonsInput = "1";
                         if (!int.TryParse(moonsInput, out numberOfMoonsPerPlanet) || numberOfMoonsPerPlanet < 1)
                             numberOfMoonsPerPlanet = 1;
                     }
@@ -1509,7 +1569,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 if (name.ToLower() == "exit")
                     return;
 
-                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):", allowEmpty: true);
+                string description = CLIEngine.GetValidInput("Enter a description (optional, press Enter to skip):");
+                if (string.IsNullOrWhiteSpace(description))
+                    description = "";
 
                 // Create the proposed holon (simplified - would need proper STAR factory)
                 CLIEngine.ShowWorkingMessage($"Creating proposal for {selectedType} '{name}' in Universe '{parentUniverse.Name}'...");

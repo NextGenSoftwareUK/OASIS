@@ -406,7 +406,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 _isDiscoveryActive = true;
                 
                 // Initialize discovery methods
-                await InitializeDiscoveryMethodsAsync();
+                //await InitializeDiscoveryMethodsAsync();
                 
                 // Start discovery processes
                 await StartDiscoveryProcessesAsync();

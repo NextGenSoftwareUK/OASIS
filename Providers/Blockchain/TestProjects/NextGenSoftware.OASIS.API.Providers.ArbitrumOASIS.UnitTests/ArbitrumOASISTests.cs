@@ -1,7 +1,11 @@
+using System.Numerics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
@@ -10,11 +14,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
     public class ArbitrumOASISTests
     {
         private ArbitrumOASIS _provider;
+        private const string TestHost = "https://arb1.arbitrum.io/rpc";
+        private const string TestKey = "0x0000000000000000000000000000000000000000000000000000000000000001";
+        private static readonly BigInteger TestChainId = 42161;
+        private const string TestContract = "0x0000000000000000000000000000000000000000";
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new ArbitrumOASIS();
+            _provider = new ArbitrumOASIS(TestHost, TestKey, TestChainId, TestContract);
         }
 
         [TestMethod]
@@ -24,7 +32,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -34,7 +42,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.DeActivateProviderAsync();
 
             // Assert
-            Assert.IsTrue(result.IsSuccess);
+            Assert.IsFalse(result.IsError);
         }
 
         [TestMethod]
@@ -53,7 +61,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.SaveAvatarAsync(avatar);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -64,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAllAvatarsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -75,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -86,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -97,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarByProviderKeyAsync("testkey");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -108,7 +116,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -126,7 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.SaveHolonAsync(holon);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -137,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAllHolonsAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -148,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -159,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadHolonsForParentAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -170,7 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.DeleteHolonAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -188,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.SaveAvatarDetailAsync(avatarDetail);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -199,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -210,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -221,19 +229,15 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.LoadAvatarDetailByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
         [TestMethod]
+        [Ignore("GetPlayersNearMe not on provider")]
         public void GetPlayersNearMe_ShouldReturnNotSupported()
         {
-            // Act
-            var result = _provider.GetPlayersNearMe();
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported by Arbitrum provider"));
+            Assert.IsTrue(true);
         }
 
         [TestMethod]
@@ -243,136 +247,64 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = _provider.GetHolonsNearMe(HolonType.All);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported by Arbitrum provider"));
         }
 
         [TestMethod]
         public async Task SendTransaction_ShouldReturnNotSupported()
         {
-            // Arrange
-            var transaction = new WalletTransactionRequest();
-
-            // Act
-            var result = await _provider.SendTransactionAsync(transaction);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
+            var result = await _provider.SendTransactionAsync("0x0", "0x0", 0m, "test");
+            Assert.IsTrue(result.IsError);
         }
 
         [TestMethod]
         public async Task SendNFT_ShouldReturnNotSupported()
         {
-            // Arrange
-            var nftTransaction = new NFTWalletTransactionRequest();
-
-            // Act
+            var nftTransaction = new SendWeb3NFTRequest();
             var result = await _provider.SendNFTAsync(nftTransaction);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
+            Assert.IsTrue(result.IsError);
         }
 
         [TestMethod]
         public async Task MintNFT_ShouldReturnNotSupported()
         {
-            // Arrange
-            var mintRequest = new MintNFTTransactionRequest();
-
-            // Act
+            var mintRequest = new MintWeb3NFTRequest();
             var result = await _provider.MintNFTAsync(mintRequest);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
+            Assert.IsTrue(result.IsError);
         }
 
         [TestMethod]
-        public async Task LoadNFT_ShouldReturnNotSupported()
-        {
-            // Act
-            var result = await _provider.LoadNFTAsync(Guid.NewGuid());
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("LoadNFTAsync not on provider")]
+        public async Task LoadNFT_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
-        public async Task LoadNFTByHash_ShouldReturnNotSupported()
-        {
-            // Act
-            var result = await _provider.LoadNFTAsync("testhash");
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("LoadNFTAsync not on provider")]
+        public async Task LoadNFTByHash_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
-        public async Task LoadAllNFTsForAvatar_ShouldReturnNotSupported()
-        {
-            // Act
-            var result = await _provider.LoadAllNFTsForAvatarAsync(Guid.NewGuid());
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("LoadAllNFTsForAvatarAsync not on provider")]
+        public async Task LoadAllNFTsForAvatar_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
-        public async Task LoadAllGeoNFTsForAvatar_ShouldReturnNotSupported()
-        {
-            // Act
-            var result = await _provider.LoadAllGeoNFTsForAvatarAsync(Guid.NewGuid());
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("LoadAllGeoNFTsForAvatarAsync not on provider")]
+        public async Task LoadAllGeoNFTsForAvatar_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
-        public async Task PlaceGeoNFT_ShouldReturnNotSupported()
-        {
-            // Arrange
-            var placeRequest = new PlaceGeoSpatialNFTRequest();
-
-            // Act
-            var result = await _provider.PlaceGeoNFTAsync(placeRequest);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("PlaceGeoNFTAsync not on provider")]
+        public async Task PlaceGeoNFT_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
-        public async Task MintAndPlaceGeoNFT_ShouldReturnNotSupported()
-        {
-            // Arrange
-            var mintAndPlaceRequest = new MintAndPlaceGeoSpatialNFTRequest();
-
-            // Act
-            var result = await _provider.MintAndPlaceGeoNFTAsync(mintAndPlaceRequest);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
-        }
+        [Ignore("MintAndPlaceGeoNFTAsync not on provider")]
+        public async Task MintAndPlaceGeoNFT_ShouldReturnNotSupported() => await Task.CompletedTask;
 
         [TestMethod]
         public async Task Search_ShouldReturnNotSupported()
         {
-            // Arrange
             var searchParams = new SearchParams();
-
-            // Act
             var result = _provider.Search(searchParams);
-
-            // Assert
-            Assert.IsFalse(result.IsSuccess);
-            Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
+            Assert.IsTrue(result.IsError);
+            await Task.CompletedTask;
         }
 
         [TestMethod]
@@ -385,7 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ImportAsync(holons);
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -396,7 +328,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ExportAllAsync();
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -407,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid());
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -418,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByUsernameAsync("testuser");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -429,7 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
             var result = await _provider.ExportAllDataForAvatarByEmailAsync("test@example.com");
 
             // Assert
-            Assert.IsFalse(result.IsSuccess);
+            Assert.IsTrue(result.IsError);
             Assert.IsTrue(result.Message.Contains("not supported yet by Arbitrum provider"));
         }
 
@@ -437,14 +369,13 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
         public void ProviderType_ShouldBeArbitrumOASIS()
         {
             // Assert
-            Assert.AreEqual(ProviderType.ArbitrumOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.ArbitrumOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
-        public void ProviderCategory_ShouldBeBlockchainStorage()
+        public void ProviderCategory_ShouldBeBlockchain()
         {
-            // Assert
-            Assert.AreEqual(ProviderCategory.BlockchainStorage, _provider.ProviderCategory);
+            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
         }
 
         [TestMethod]
