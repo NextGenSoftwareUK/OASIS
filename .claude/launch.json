@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "oasis-omniverse",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3456", "C:/Source/OASISOmniverseSite"],
+      "port": 3456
+    }
+  ]
+}
