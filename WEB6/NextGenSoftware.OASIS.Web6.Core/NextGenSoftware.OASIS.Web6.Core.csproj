@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>NextGenSoftware.OASIS.Web6.Core</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB6 OASIS AI Abstraction Layer Core</Product>
+    <Title>WEB6 OASIS AI Abstraction Layer Core</Title>
+    <Summary>The Core (Business Logic Layer) for WEB6 - the unified AI abstraction and orchestration layer built on top of WEB4 (OASIS API/ONODE Core - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). Hosts the AIProviderManager (routes/normalises requests across every AI provider), the HolonicBraidManager (fractal holonic shared reasoning-graph memory) and the FAHRNManager (Fractal Adaptive Holonic Reasoning Network - the controller-agent meta-orchestrator with composite scoring, dispatch modes and loop detection).</Summary>
+    <Version>1.0.0</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.BedrockRuntime" Version="3.7.415" />
+  </ItemGroup>
+
+</Project>
