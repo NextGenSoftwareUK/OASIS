@@ -18,7 +18,7 @@ public class ONODECoreIntegrationTests
         
         // Assert
         onode.Should().NotBeNull();
-        onode.EndpointName.Should().Be(ONODE.EndpointName);
+        ONODE.EndpointName.Should().Be("ONODE");
     }
 
     [Fact]

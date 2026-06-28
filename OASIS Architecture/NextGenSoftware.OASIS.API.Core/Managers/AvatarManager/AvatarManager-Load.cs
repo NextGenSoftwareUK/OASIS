@@ -10,6 +10,7 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -92,7 +93,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return hdResult;
                 }
             }
-            catch { /* fallback to legacy */ }
+            catch (Exception hyperDriveEx)
+            {
+                LoggingManager.Log($"HyperDrive v2 routing failed for LoadAvatar(id={id}), falling back to legacy provider path. Reason: {hyperDriveEx.Message}", LogType.Warning);
+            }
 
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;

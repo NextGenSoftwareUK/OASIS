@@ -18,8 +18,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 {
     /// <summary>
     /// The WEB6 AI abstraction layer. Normalises completion requests/responses across every AI provider
-    /// (OpenAI, Anthropic, Gemini, Ollama, Groq, Mistral, etc.) behind a single unified interface, with
-    /// automatic provider selection, fail-over and cost/latency/quality-based routing.
+    /// (OpenAI, Anthropic, Gemini, Ollama, Groq, Mistral, OpenServ, etc.) behind a single unified interface,
+    /// with automatic provider selection, fail-over and cost/latency/quality-based routing.
     /// </summary>
     public class AIProviderManager : OASISManager
     {
@@ -52,6 +52,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             ApiKeys[AIProviderType.HuggingFace] = Environment.GetEnvironmentVariable("HUGGINGFACE_API_KEY");
             ApiKeys[AIProviderType.AzureOpenAI] = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
             ApiKeys[AIProviderType.StabilityAI] = Environment.GetEnvironmentVariable("STABILITY_API_KEY");
+            ApiKeys[AIProviderType.OpenServ] = Environment.GetEnvironmentVariable("SERV_API_KEY");
         }
 
         /// <summary>
@@ -104,21 +105,27 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
         private List<AIProviderType> ResolveProviderCandidates(CompletionRequest request)
         {
-            if (Enum.TryParse(request.Provider, true, out AIProviderType requested) && requested != AIProviderType.Auto)
+            string requestedProvider = string.IsNullOrEmpty(request.Provider) || request.Provider == "auto"
+                ? OASISDNA?.OASIS?.Web6?.DefaultProvider ?? "Auto"
+                : request.Provider;
+
+            if (Enum.TryParse(requestedProvider, true, out AIProviderType requested) && requested != AIProviderType.Auto)
                 return new List<AIProviderType> { requested };
 
             // "auto" - prefer whichever providers we actually have an API key configured for,
-            // ordered by the requested routing priority.
+            // ordered by the requested (or DNA-configured default) routing priority.
             List<AIProviderType> configured = ApiKeys.Where(kv => !string.IsNullOrEmpty(kv.Value)).Select(kv => kv.Key).ToList();
 
             if (configured.Count == 0)
                 return new List<AIProviderType> { AIProviderType.OpenAI };
 
-            return request.Routing?.Priority?.ToLowerInvariant() switch
+            string priority = request.Routing?.Priority ?? OASISDNA?.OASIS?.Web6?.DefaultRoutingPriority ?? "cost";
+
+            return priority.ToLowerInvariant() switch
             {
-                "quality" => OrderByPreference(configured, AIProviderType.Anthropic, AIProviderType.OpenAI, AIProviderType.Gemini),
-                "latency" => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.Gemini, AIProviderType.OpenAI),
-                _ => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.DeepSeek, AIProviderType.OpenAI, AIProviderType.Anthropic),
+                "quality" => OrderByPreference(configured, AIProviderType.Anthropic, AIProviderType.OpenAI, AIProviderType.OpenServ, AIProviderType.Gemini),
+                "latency" => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.Gemini, AIProviderType.OpenAI, AIProviderType.OpenServ),
+                _ => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.DeepSeek, AIProviderType.OpenAI, AIProviderType.Anthropic, AIProviderType.OpenServ),
             };
         }
 
@@ -139,6 +146,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 case AIProviderType.Mistral:
                 case AIProviderType.XAI:
                 case AIProviderType.Ollama:
+                case AIProviderType.OpenServ:
                     return await CallOpenAICompatibleAsync(provider, request);
 
                 case AIProviderType.Anthropic:
@@ -176,6 +184,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 AIProviderType.Mistral => ("https://api.mistral.ai/v1/chat/completions", "mistral-large-latest"),
                 AIProviderType.XAI => ("https://api.x.ai/v1/chat/completions", "grok-3"),
                 AIProviderType.Ollama => ($"{Environment.GetEnvironmentVariable("OLLAMA_BASE_URL") ?? "http://localhost:11434"}/v1/chat/completions", "llama3.3"),
+                AIProviderType.OpenServ => (
+                    OASISDNA?.OASIS?.Web6?.OpenServ?.BaseUrl ?? "https://inference-api.openserv.ai/v1/chat/completions",
+                    OASISDNA?.OASIS?.Web6?.OpenServ?.DefaultModel ?? OpenServCatalog.DefaultModel),
                 _ => ("https://api.openai.com/v1/chat/completions", "gpt-4o"),
             };
         }

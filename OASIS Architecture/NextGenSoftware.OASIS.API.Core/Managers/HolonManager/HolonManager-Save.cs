@@ -8,6 +8,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -283,7 +284,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return hdResult;
                 }
             }
-            catch { /* fallback to legacy */ }
+            catch (Exception hyperDriveEx)
+            {
+                LoggingManager.Log($"HyperDrive v2 routing failed for SaveHolon(avatarId={avatarId}), falling back to legacy provider path. Reason: {hyperDriveEx.Message}", LogType.Warning);
+            }
 
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IHolon> result = new OASISResult<IHolon>();

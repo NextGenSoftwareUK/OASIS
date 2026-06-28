@@ -29,5 +29,17 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 
             return result.IsError ? BadRequest(result) : Ok(result);
         }
+
+        /// <summary>
+        /// Lists the models reachable through the OpenServ provider (provider: "openserv"), i.e. the full
+        /// SERV catalog spanning OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind one SERV_API_KEY.
+        /// GET https://api.web6.oasisomniverse.one/v1/openserv/models
+        /// </summary>
+        [HttpGet("openserv/models")]
+        [ProducesResponseType(typeof(System.Collections.Generic.List<OpenServModel>), StatusCodes.Status200OK)]
+        public IActionResult OpenServModels()
+        {
+            return Ok(OpenServCatalog.Models);
+        }
     }
 }

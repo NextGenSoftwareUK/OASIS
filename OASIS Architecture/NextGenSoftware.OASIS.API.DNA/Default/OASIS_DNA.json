@@ -386,6 +386,7 @@
             "PlanType": "Free",
             "MaxReplicationsPerMonth": 100,
             "MaxFailoversPerMonth": 10,
+            "MaxRequestsPerMonth": 1000,
             "MaxStorageGB": 1,
             "PayAsYouGoEnabled": false,
             "CostPerReplication": 0.01,
@@ -458,6 +459,38 @@
         "NetworkId": "onet01",
         "SettingsLookupHolonId": "00000000-0000-0000-0000-000000000000",
         "StatsCacheEnabled": false,
-        "StatsCacheTtlSeconds": 45
+        "StatsCacheTtlSeconds": 45,
+        "Web6": {
+            "DefaultProvider": "Auto",
+            "DefaultOpenServModel": "gpt-5.4",
+            "DefaultRoutingPriority": "cost",
+            "DefaultRoutingFallbackEnabled": true,
+            "OpenServ": {
+                "BaseUrl": "https://inference-api.openserv.ai/v1/chat/completions",
+                "DefaultModel": "gpt-5.4",
+                "AvailableModels": [
+                    "gpt-5.5", "gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano",
+                    "o3", "o3-mini", "o3-pro", "o4-mini",
+                    "claude-opus-4.6", "claude-sonnet-4.6", "claude-haiku-4.5",
+                    "gemini-flash-latest", "gemini-pro-latest", "gemma-4-26b-a4b-it", "gemma-4-31b-it",
+                    "grok-4.3", "grok-4.20",
+                    "qwen3.6-flash", "qwen3.6-max-preview",
+                    "deepseek-v4-pro", "deepseek-v4-flash"
+                ]
+            },
+            "FAHRN": {
+                "EMAAlpha": 0.2,
+                "DefaultDispatchMode": "Serial",
+                "AutoSeedOpenServAgentsOnStartup": true,
+                "MaxDecomposedSubProblems": 3
+            },
+            "HolonicBraid": {
+                "AutoPersistWinningPlan": true
+            },
+            "HolonicMemory": {
+                "DefaultRetentionPolicy": "Default",
+                "RecordDispatchOutcomes": true
+            }
+        }
     }
 }
