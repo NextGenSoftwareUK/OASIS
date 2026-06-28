@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <RootNamespace>NextGenSoftware.OASIS.Web9.WebAPI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.Web9.WebAPI</AssemblyName>
+    <UserSecretsId>d4f9e6a5-bf7e-4f2d-ce4b-9c0f1e8d5b43</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NextGenSoftware.OASIS.Web9.Core\NextGenSoftware.OASIS.Web9.Core.csproj" />
+  </ItemGroup>
+
+</Project>

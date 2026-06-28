@@ -31,8 +31,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
         private bool _isNetworkRunning = false;
 
+        private readonly IOASISStorageProvider _storageProvider;
+
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
+            _storageProvider = storageProvider;
             _networkType = networkType;
             _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
             _consensus = new ONETConsensus(storageProvider, oasisdna);
@@ -40,11 +43,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             _security = new ONETSecurity(storageProvider, oasisdna);
             _discovery = new ONETDiscovery(storageProvider, oasisdna);
             _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
-            
-            // Initialize P2P network provider based on type
+
+            // Initialize P2P network provider based on type. Done synchronously in the constructor
+            // (rather than via an async InitAsync the caller must remember to call) because every public
+            // method on this class assumes _p2pNetworkProvider is already set - so it must exist before
+            // the constructor returns.
             InitializeP2PNetworkProvider();
-            
-            InitializeAsync().Wait();
         }
 
         private void InitializeP2PNetworkProvider()
@@ -55,36 +59,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     _p2pNetworkProvider = new InternalP2PNetworkProvider(
                         _onetProtocol, _consensus, _routing, _security, _discovery, _apiGateway);
                     break;
-                    
+
                 case P2PNetworkType.HoloNET:
+                    // The HoloNET P2P provider needs a real IHoloNETClientBase. The natural source of one is
+                    // the HoloOASIS storage provider itself (HoloOASIS.HoloNETClientAppAgent implements
+                    // IHoloNETClientBase) - previously this branch always passed null/null into
+                    // HoloNETP2PProvider's constructor, which throws ArgumentNullException immediately,
+                    // making P2PNetworkType.HoloNET permanently unusable regardless of what was passed in.
+                    _holoOASIS = _storageProvider as HoloOASIS;
                     if (_holoOASIS == null)
                     {
-                        throw new InvalidOperationException("HoloOASIS provider is required for HoloNET P2P network type");
+                        throw new InvalidOperationException(
+                            "P2PNetworkType.HoloNET requires the storageProvider passed to ONETManager's " +
+                            "constructor to be a HoloOASIS instance (so its HoloNETClientAppAgent can be used " +
+                            "as the underlying HoloNET client). Pass a HoloOASIS storage provider, or use " +
+                            "P2PNetworkType.Internal instead.");
                     }
-                    _p2pNetworkProvider = new HoloNETP2PProvider(null, null, OASISDNA);
+                    _p2pNetworkProvider = new HoloNETP2PProvider(_holoOASIS.HoloNETClientAppAgent, _storageProvider, OASISDNA);
                     break;
-                    
+
                 default:
                     throw new ArgumentException($"Unsupported P2P network type: {_networkType}");
             }
         }
 
-        private async Task InitializeAsync()
+        /// <summary>
+        /// Loads the live OASISDNA configuration into this manager. Must be called (and awaited) once after
+        /// construction before relying on GetOASISDNAAsync()/UpdateOASISDNAAsync() to reflect the persisted
+        /// configuration - constructors cannot be async, so this can no longer run via a blocking
+        /// InitializeAsync().Wait() call inside the constructor (that was a sync-over-async deadlock risk).
+        /// GetOASISDNAAsync() also lazily loads on first call if this was never invoked.
+        /// </summary>
+        public async Task<OASISResult<OASISDNA>> InitializeAsync()
         {
+            var result = new OASISResult<OASISDNA>();
+
             try
             {
-                // Load OASISDNA configuration
                 var oasisdnaResult = await LoadOASISDNAAsync();
                 if (!oasisdnaResult.IsError && oasisdnaResult.Result != null)
-                {
                     _oasisdna = oasisdnaResult.Result;
-                }
+
+                result.Result = _oasisdna;
+                result.IsError = oasisdnaResult.IsError;
+                result.Message = oasisdnaResult.Message;
             }
             catch (Exception ex)
             {
-                var errorResult = new OASISResult<OASISDNA>();
-                OASISErrorHandling.HandleError(ref errorResult, $"Error initializing ONET manager: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error initializing ONET manager: {ex.Message}", ex);
             }
+
+            return result;
         }
 
         /// <summary>

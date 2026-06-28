@@ -142,6 +142,12 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         HolonicMemoryContinentHolon,
         HolonicMemoryEarthHolon,
         OrchestratorAdapter,
+        SymbiosisSession,
+        CollectiveConsciousnessSpace,
+        SovereigntyConsentRecord,
+        GalacticNode,
+        MeshMessageLog,
+        Trust,
         None
         //Custom,
         //DataObject

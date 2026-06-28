@@ -19,31 +19,45 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class ONETController : OASISControllerBase
     {
         private readonly ILogger<ONETController> _logger;
-        private ONETManager _onetManager;
-        private readonly object _onetManagerLock = new object();
+
+        // ONETManager owns long-running background loops (consensus voting, routing table maintenance, etc.)
+        // and a P2P network connection - it must be a true process-wide singleton, not rebuilt per request.
+        // ASP.NET Core creates a new ONETController instance per request, so previously storing the manager
+        // as an instance field meant every single request reconstructed the whole ONET stack (including
+        // spinning up new background Task.Run loops with no disposal of the old ones - a thread/task leak)
+        // and the lock around it only ever protected a single-use instance field, never actually preventing
+        // duplicate construction across requests. A static field shared by all controller instances fixes
+        // both problems. The lazy-init is done via a cached Task (not Task.Run(...).Result, which blocked
+        // the calling thread synchronously and risked deadlocking under a captured SynchronizationContext).
+        private static Task<ONETManager> _onetManagerTask;
+        private static readonly object _onetManagerLock = new object();
 
         public ONETController(ILogger<ONETController> logger)
         {
             _logger = logger;
         }
 
-        private ONETManager GetOnetManager()
+        private static Task<ONETManager> GetOnetManagerAsync()
         {
-            if (_onetManager != null)
-                return _onetManager;
+            if (_onetManagerTask != null)
+                return _onetManagerTask;
 
             lock (_onetManagerLock)
             {
-                if (_onetManager != null)
-                    return _onetManager;
-
-                OASISResult<IOASISStorageProvider> providerResult = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-                if (providerResult == null || providerResult.IsError || providerResult.Result == null)
-                    throw new InvalidOperationException($"Unable to initialize ONETManager because default provider activation failed: {providerResult?.Message}");
-
-                _onetManager = new ONETManager(providerResult.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-                return _onetManager;
+                _onetManagerTask ??= InitializeOnetManagerAsync();
+                return _onetManagerTask;
             }
+        }
+
+        private static async Task<ONETManager> InitializeOnetManagerAsync()
+        {
+            OASISResult<IOASISStorageProvider> providerResult = await OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync();
+            if (providerResult == null || providerResult.IsError || providerResult.Result == null)
+                throw new InvalidOperationException($"Unable to initialize ONETManager because default provider activation failed: {providerResult?.Message}");
+
+            var manager = new ONETManager(providerResult.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+            await manager.InitializeAsync();
+            return manager;
         }
 
         /// <summary>
@@ -54,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().GetOASISDNAAsync();
+                var result = await (await GetOnetManagerAsync()).GetOASISDNAAsync();
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -96,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new { message = "The request body is required. Please provide a valid OASISDNA configuration object." });
             try
             {
-                var result = await GetOnetManager().UpdateOASISDNAAsync(oasisdna);
+                var result = await (await GetOnetManagerAsync()).UpdateOASISDNAAsync(oasisdna);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -118,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().GetNetworkStatusAsync();
+                var result = await (await GetOnetManagerAsync()).GetNetworkStatusAsync();
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
                 if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
@@ -158,7 +172,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().GetConnectedNodesAsync();
+                var result = await (await GetOnetManagerAsync()).GetConnectedNodesAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -178,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with NodeId and NodeAddress." });
             try
             {
-                var result = await GetOnetManager().ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+                var result = await (await GetOnetManagerAsync()).ConnectToNodeAsync(request.NodeId, request.NodeAddress);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -202,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with NodeId." });
             try
             {
-                var result = await GetOnetManager().DisconnectFromNodeAsync(request.NodeId);
+                var result = await (await GetOnetManagerAsync()).DisconnectFromNodeAsync(request.NodeId);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -224,7 +238,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().GetNetworkStatsAsync();
+                var result = await (await GetOnetManagerAsync()).GetNetworkStatsAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -242,7 +256,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().StartNetworkAsync();
+                var result = await (await GetOnetManagerAsync()).StartNetworkAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -264,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().StopNetworkAsync();
+                var result = await (await GetOnetManagerAsync()).StopNetworkAsync();
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });
@@ -286,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                var result = await GetOnetManager().GetNetworkTopologyAsync();
+                var result = await (await GetOnetManagerAsync()).GetNetworkTopologyAsync();
                 return Ok(result);
             }
             catch (Exception ex)
@@ -306,7 +320,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest(new { message = "The request body is required. Please provide a valid JSON body with Message and MessageType." });
             try
             {
-                var result = await GetOnetManager().BroadcastMessageAsync(request.Message, request.MessageType);
+                var result = await (await GetOnetManagerAsync()).BroadcastMessageAsync(request.Message, request.MessageType);
                 if (result.IsError)
                 {
                     return BadRequest(new { message = result.Message, errors = result.InnerMessages });

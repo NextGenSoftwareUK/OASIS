@@ -35,6 +35,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             _braidManager = new HolonicBraidManager(avatarId, OASISDNA);
             _providerManager = new AIProviderManager(avatarId, OASISDNA);
             _memoryManager = new HolonicMemoryManager(avatarId, OASISDNA);
+            EMAAlpha = this.OASISDNA?.OASIS?.Web6?.FAHRN?.EMAAlpha ?? EMAAlpha;
         }
 
         public FAHRNManager(IOASISStorageProvider OASISStorageProvider, Guid avatarId, OASISDNA OASISDNA = null)
@@ -43,6 +44,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             _braidManager = new HolonicBraidManager(OASISStorageProvider, avatarId, OASISDNA);
             _providerManager = new AIProviderManager(OASISStorageProvider, avatarId, OASISDNA);
             _memoryManager = new HolonicMemoryManager(OASISStorageProvider, avatarId, OASISDNA);
+            EMAAlpha = this.OASISDNA?.OASIS?.Web6?.FAHRN?.EMAAlpha ?? EMAAlpha;
         }
 
         /// <summary>Registers a new reasoning agent with the network, persisted as a ReasoningAgent holon.</summary>
@@ -70,6 +72,103 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             result.Result = agent;
             return result;
         }
+
+        /// <summary>
+        /// Registers one reasoning agent per model in the OpenServ SERV catalog (skipping any AgentName already
+        /// registered), so FAHRN can immediately score, dispatch and braid across every OpenServ-reachable model
+        /// (OpenAI, Anthropic, Google, xAI, Qwen, DeepSeek) behind the single SERV_API_KEY. Safe to call repeatedly.
+        /// </summary>
+        public async Task<OASISResult<List<ReasoningAgentMetadata>>> SeedDefaultOpenServAgentsAsync()
+        {
+            OASISResult<List<ReasoningAgentMetadata>> result = new OASISResult<List<ReasoningAgentMetadata>>();
+            List<ReasoningAgentMetadata> registered = new List<ReasoningAgentMetadata>();
+
+            OASISResult<List<ReasoningAgentMetadata>> existingResult = await GetRegisteredAgentsAsync();
+
+            if (existingResult.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading existing agents before seeding. Reason: {existingResult.Message}");
+                return result;
+            }
+
+            HashSet<string> existingNames = new HashSet<string>(
+                (existingResult.Result ?? new List<ReasoningAgentMetadata>()).Select(a => a.AgentName).Where(n => n != null),
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (ReasoningAgentMetadata seed in OpenServSeedAgents)
+            {
+                if (existingNames.Contains(seed.AgentName))
+                    continue;
+
+                OASISResult<ReasoningAgentMetadata> registerResult = await RegisterAgentAsync(new ReasoningAgentMetadata
+                {
+                    AgentName = seed.AgentName,
+                    Provider = AIProviderType.OpenServ,
+                    Model = seed.Model,
+                    CategoryScores = new Dictionary<string, double>(seed.CategoryScores),
+                    SpeedScore = seed.SpeedScore,
+                    CostScore = seed.CostScore
+                });
+
+                if (!registerResult.IsError && registerResult.Result != null)
+                    registered.Add(registerResult.Result);
+            }
+
+            result.Result = registered;
+            return result;
+        }
+
+        /// <summary>
+        /// Default scoring metadata for one reasoning agent per model in <see cref="OpenServCatalog.Models"/>.
+        /// Speed/cost/category scores are seeded estimates (0-1, higher is better/cheaper/faster) intended as a
+        /// reasonable starting point - FAHRN's EMA updates (see <see cref="UpdateAgentScoreAsync"/>) adjust them
+        /// toward real observed behaviour as dispatches complete.
+        /// </summary>
+        private static readonly List<ReasoningAgentMetadata> OpenServSeedAgents = new List<ReasoningAgentMetadata>
+        {
+            new ReasoningAgentMetadata { AgentName = "openserv-gpt-5.5", Model = "gpt-5.5", SpeedScore = 0.55, CostScore = 0.35,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.93, ["reasoning"] = 0.93, ["writing"] = 0.9, ["mathematics"] = 0.9 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gpt-5.4", Model = "gpt-5.4", SpeedScore = 0.6, CostScore = 0.45,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.88, ["reasoning"] = 0.88, ["writing"] = 0.85, ["mathematics"] = 0.85 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gpt-5.4-mini", Model = "gpt-5.4-mini", SpeedScore = 0.8, CostScore = 0.75,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.72, ["reasoning"] = 0.7, ["writing"] = 0.72, ["real-time"] = 0.75 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gpt-5.4-nano", Model = "gpt-5.4-nano", SpeedScore = 0.92, CostScore = 0.9,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.85, ["code"] = 0.55, ["writing"] = 0.55 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-o3", Model = "o3", SpeedScore = 0.4, CostScore = 0.3,
+                CategoryScores = new Dictionary<string, double> { ["mathematics"] = 0.95, ["reasoning"] = 0.95, ["code"] = 0.85 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-o3-mini", Model = "o3-mini", SpeedScore = 0.65, CostScore = 0.6,
+                CategoryScores = new Dictionary<string, double> { ["mathematics"] = 0.85, ["reasoning"] = 0.85, ["code"] = 0.75 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-o3-pro", Model = "o3-pro", SpeedScore = 0.25, CostScore = 0.15,
+                CategoryScores = new Dictionary<string, double> { ["mathematics"] = 0.97, ["reasoning"] = 0.97, ["legal"] = 0.85, ["architecture"] = 0.9 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-o4-mini", Model = "o4-mini", SpeedScore = 0.7, CostScore = 0.65,
+                CategoryScores = new Dictionary<string, double> { ["mathematics"] = 0.8, ["reasoning"] = 0.8, ["code"] = 0.78 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-claude-opus-4.6", Model = "claude-opus-4.6", SpeedScore = 0.3, CostScore = 0.2,
+                CategoryScores = new Dictionary<string, double> { ["writing"] = 0.97, ["code"] = 0.92, ["legal"] = 0.92, ["architecture"] = 0.93 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-claude-sonnet-4.6", Model = "claude-sonnet-4.6", SpeedScore = 0.55, CostScore = 0.45,
+                CategoryScores = new Dictionary<string, double> { ["writing"] = 0.92, ["code"] = 0.9, ["legal"] = 0.85, ["architecture"] = 0.88 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-claude-haiku-4.5", Model = "claude-haiku-4.5", SpeedScore = 0.85, CostScore = 0.8,
+                CategoryScores = new Dictionary<string, double> { ["writing"] = 0.78, ["code"] = 0.75, ["real-time"] = 0.8 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gemini-flash", Model = "gemini-flash-latest", SpeedScore = 0.88, CostScore = 0.85,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.85, ["writing"] = 0.7, ["code"] = 0.65 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gemini-pro", Model = "gemini-pro-latest", SpeedScore = 0.5, CostScore = 0.4,
+                CategoryScores = new Dictionary<string, double> { ["reasoning"] = 0.88, ["writing"] = 0.85, ["code"] = 0.82, ["architecture"] = 0.85 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gemma-4-26b", Model = "gemma-4-26b-a4b-it", SpeedScore = 0.78, CostScore = 0.82,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.6, ["writing"] = 0.62 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-gemma-4-31b", Model = "gemma-4-31b-it", SpeedScore = 0.7, CostScore = 0.78,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.65, ["writing"] = 0.68 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-grok-4.3", Model = "grok-4.3", SpeedScore = 0.6, CostScore = 0.5,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.92, ["writing"] = 0.8, ["code"] = 0.78 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-grok-4.20", Model = "grok-4.20", SpeedScore = 0.45, CostScore = 0.35,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.9, ["reasoning"] = 0.85, ["code"] = 0.83 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-qwen3.6-flash", Model = "qwen3.6-flash", SpeedScore = 0.85, CostScore = 0.88,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.7, ["mathematics"] = 0.68 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-qwen3.6-max", Model = "qwen3.6-max-preview", SpeedScore = 0.5, CostScore = 0.55,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.85, ["mathematics"] = 0.85 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-deepseek-v4-pro", Model = "deepseek-v4-pro", SpeedScore = 0.45, CostScore = 0.7,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.88, ["mathematics"] = 0.88 } },
+            new ReasoningAgentMetadata { AgentName = "openserv-deepseek-v4-flash", Model = "deepseek-v4-flash", SpeedScore = 0.82, CostScore = 0.85,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.72, ["mathematics"] = 0.7 } },
+        };
 
         /// <summary>Loads every agent currently registered with the network.</summary>
         public async Task<OASISResult<List<ReasoningAgentMetadata>>> GetRegisteredAgentsAsync()
@@ -240,7 +339,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             // Each ranked agent owns one sub-problem slice, best-fit-first - then sub-plans are stitched together.
             List<AgentExecutionPlan> subPlans = new List<AgentExecutionPlan>();
 
-            foreach ((ReasoningAgentMetadata agent, double score) in ranked.Take(Math.Min(3, ranked.Count)))
+            int maxSubProblems = OASISDNA?.OASIS?.Web6?.FAHRN?.MaxDecomposedSubProblems ?? 3;
+            foreach ((ReasoningAgentMetadata agent, double score) in ranked.Take(Math.Min(maxSubProblems, ranked.Count)))
             {
                 AgentExecutionPlan plan = await ExecuteAgentAsync(agent, score, request, graph);
                 subPlans.Add(plan);
@@ -389,7 +489,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 LoopDetectionScore = GetDouble(holon, "LoopDetectionScore", 1.0),
                 FailureRate = GetDouble(holon, "FailureRate", 0.0),
                 TasksCompleted = holon.MetaData.TryGetValue("TasksCompleted", out object tc) && tc != null ? Convert.ToInt32(tc) : 0,
-                LastUpdatedUtc = holon.MetaData.TryGetValue("LastUpdatedUtc", out object lu) && lu != null && DateTime.TryParse(lu.ToString(), out DateTime dt) ? dt : DateTime.UtcNow
+                LastUpdatedUtc = holon.MetaData.TryGetValue("LastUpdatedUtc", out object lu) && lu != null && DateTime.TryParse(lu.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime dt) ? dt : DateTime.UtcNow
             };
 
             if (holon.MetaData.TryGetValue("Provider", out object p) && Enum.TryParse(p?.ToString(), true, out AIProviderType providerType))

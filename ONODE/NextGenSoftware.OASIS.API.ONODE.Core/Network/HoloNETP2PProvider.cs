@@ -214,20 +214,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        /// <summary>
+        /// Configures HoloNET network behaviour for this P2P provider. The "enhanced features" block this
+        /// method used to configure (EnableKitsune2Networking/EnableQUICProtocol/Kitsune2Config/QUICConfig,
+        /// then later EnableIntegratedKeystore/EnableCachingLayer/EnableWASMOptimization/KeystoreConfig/
+        /// CacheConfig/WASMConfig) has been removed from IHoloNETDNA entirely upstream - that whole interface
+        /// surface no longer exists, so there is nothing left here to configure beyond null-checking
+        /// HoloNETDNA itself. NetworkConfig.RequestTimeoutS is the one piece of network behaviour
+        /// IHoloNETDNA still exposes; it's left at HoloNET's own default unless a caller has a specific
+        /// reason to override it for P2P traffic.
+        /// </summary>
         private void ConfigureEnhancedFeatures()
         {
-            _holoNETClient.HoloNETDNA.EnableKitsune2Networking = true;
-            _holoNETClient.HoloNETDNA.EnableQUICProtocol = true;
-            _holoNETClient.HoloNETDNA.EnableIntegratedKeystore = true;
-            _holoNETClient.HoloNETDNA.EnableCachingLayer = true;
-            _holoNETClient.HoloNETDNA.EnableWASMOptimization = true;
-
-            _holoNETClient.HoloNETDNA.Kitsune2Config.EnableDiscovery = true;
-            _holoNETClient.HoloNETDNA.Kitsune2Config.BootstrapNodes.Add("bootstrap-node-1");
-            _holoNETClient.HoloNETDNA.QUICConfig.EnableMultiplexing = true;
-            _holoNETClient.HoloNETDNA.KeystoreConfig.AutoGenerateKeys = true;
-            _holoNETClient.HoloNETDNA.CacheConfig.DefaultCacheDurationMinutes = 30;
-            _holoNETClient.HoloNETDNA.WASMConfig.EnableJITCompilation = true;
+            if (_holoNETClient.HoloNETDNA == null)
+                LoggingManager.Log("HoloNETP2PProvider: HoloNETClient.HoloNETDNA is null - using HoloNET's own defaults.", Logging.LogType.Warning);
         }
 
         private async Task<double> CalculateAverageLatencyAsync()

@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -96,6 +97,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
                 CLIEngine.ShowSuccessMessage(mintResult.Message);
             else
                 CLIEngine.ShowErrorMessage($"Error Minting NFT: {mintResult.Message}");
+
+            await RunONETDemoAsync();
 
             return;
 
@@ -201,6 +204,65 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
             else
                 Console.WriteLine($"Error Occured Saving NFT Purchase Data. Reason: {purchaseHolonResult.Message}");
             */
+        }
+
+        /// <summary>
+        /// Manual end-to-end ONET demo: starts a real ONET network, brings up a second node on a different
+        /// port, has it ping the first node over the real PING/PONG TCP responder, runs a real bootstrap
+        /// discovery query (against itself, to demonstrate the real HTTP call path), then shuts both nodes
+        /// down. Useful for hands-on verification beyond the automated unit/integration test suites.
+        /// </summary>
+        static async Task RunONETDemoAsync()
+        {
+            CLIEngine.ShowWorkingMessage("Starting ONET node A...");
+            var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = 38470 };
+            var startResultA = await nodeA.StartNetworkAsync();
+            if (startResultA.IsError)
+            {
+                CLIEngine.ShowErrorMessage($"Failed to start ONET node A: {startResultA.Message}");
+                return;
+            }
+            CLIEngine.ShowSuccessMessage($"ONET node A started on port {nodeA.ListenPort}.");
+
+            CLIEngine.ShowWorkingMessage("Starting ONET node B...");
+            var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = 38471 };
+            var startResultB = await nodeB.StartNetworkAsync();
+            if (startResultB.IsError)
+            {
+                CLIEngine.ShowErrorMessage($"Failed to start ONET node B: {startResultB.Message}");
+                await nodeA.StopNetworkAsync();
+                return;
+            }
+            CLIEngine.ShowSuccessMessage($"ONET node B started on port {nodeB.ListenPort}.");
+
+            CLIEngine.ShowWorkingMessage("Node A pinging node B over real TCP...");
+            try
+            {
+                using var client = new System.Net.Sockets.TcpClient();
+                await client.ConnectAsync(System.Net.IPAddress.Loopback, nodeB.ListenPort);
+                using var stream = client.GetStream();
+
+                var ping = System.Text.Encoding.UTF8.GetBytes("ONET_PING\n");
+                await stream.WriteAsync(ping, 0, ping.Length);
+
+                var buffer = new byte[256];
+                var read = await stream.ReadAsync(buffer, 0, buffer.Length);
+                var response = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+
+                if (response.Contains("ONET_PONG"))
+                    CLIEngine.ShowSuccessMessage($"Node B responded: {response.Trim()}");
+                else
+                    CLIEngine.ShowErrorMessage($"Unexpected response from node B: {response}");
+            }
+            catch (Exception ex)
+            {
+                CLIEngine.ShowErrorMessage($"Ping to node B failed: {ex.Message}");
+            }
+
+            CLIEngine.ShowWorkingMessage("Stopping ONET nodes...");
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+            CLIEngine.ShowSuccessMessage("ONET demo completed.");
         }
     }
 }

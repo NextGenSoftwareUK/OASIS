@@ -145,7 +145,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return hdResult;
                 }
             }
-            catch { /* fallback to legacy */ }
+            catch (Exception hyperDriveEx)
+            {
+                LoggingManager.Log($"HyperDrive v2 routing failed for LoadHolon(id={id}), falling back to legacy provider path. Reason: {hyperDriveEx.Message}", LogType.Warning);
+            }
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
             OASISResult<IHolon> result = new OASISResult<IHolon>();
 

@@ -46,6 +46,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, APIRoute> _routes = new Dictionary<string, APIRoute>();
         private int _requestCount = 0;
 
+        /// <summary>
+        /// Real per-endpoint rate limiting, enforced in CallUnifiedAPIAsync. Previously
+        /// InitializeRateLimitingAsync/InitializeRateLimitingPoliciesAsync/InitializeRateLimitingAlgorithmsAsync
+        /// (and their near-duplicates further down this file) only ever logged labels like "Initializing
+        /// token bucket algorithm" - no limiter object existed anywhere, so nothing was ever actually rate
+        /// limited no matter how the gateway was configured.
+        /// </summary>
+        private readonly RateLimiter _rateLimiter = new RateLimiter();
+
+        /// <summary>Requests allowed per endpoint per MaxRequestsPerWindow (default 100/minute). Configurable per deployment.</summary>
+        public int MaxRequestsPerWindow { get; set; } = 100;
+        public TimeSpan RateLimitWindow { get; set; } = TimeSpan.FromMinutes(1);
+
         public ONETAPIGateway(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _router = new APIRouter();
@@ -131,6 +144,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 if (!_isInitialized)
                 {
                     OASISErrorHandling.HandleError(ref result, "API Gateway not initialized");
+                    return result;
+                }
+
+                if (!_rateLimiter.TryAcquire(endpoint, MaxRequestsPerWindow, RateLimitWindow))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Rate limit exceeded for endpoint '{endpoint}' ({MaxRequestsPerWindow} requests per {RateLimitWindow.TotalSeconds}s).");
                     return result;
                 }
 
@@ -985,9 +1004,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return _apiBridges.Values.FirstOrDefault(b => b.Status == "Active");
         }
 
+        // Shared, never-recreated HttpClient - ExecuteAPICallAsync previously did `new HttpClient()` on every
+        // single call with no disposal, which leaks a socket per call under load (HttpClient is designed to
+        // be long-lived and reused, not constructed per-request).
+        private static readonly HttpClient _apiHttpClient = new HttpClient { Timeout = TimeSpan.FromMilliseconds(5000) };
+
         private string GenerateCacheKey(string endpoint, object parameters, string networkType)
         {
-            return $"{endpoint}_{networkType}_{parameters.GetHashCode()}";
+            // parameters is nullable at every call site - GetHashCode() on a null reference threw NRE here.
+            var parametersKey = parameters?.GetHashCode().ToString() ?? "none";
+            return $"{endpoint}_{networkType}_{parametersKey}";
         }
 
         private async Task<OASISResult<object>> ExecuteAPICallAsync(APIEndpoint endpoint, string apiEndpoint, object parameters, string networkType)
@@ -996,36 +1022,43 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
             try
             {
-                // Execute real API call
-                try
-                {
-                    var httpClient = new HttpClient();
-                    httpClient.Timeout = TimeSpan.FromMilliseconds(5000); // 5 second timeout
+                // Build the request URL from the resolved endpoint (falling back to the raw apiEndpoint path
+                // if no concrete URL was resolved), honour the endpoint's configured HTTP method instead of
+                // always issuing GET, and append parameters as a query string when provided - previously
+                // apiEndpoint/parameters/networkType were accepted but silently ignored entirely.
+                var url = !string.IsNullOrEmpty(endpoint?.Url) ? endpoint.Url
+                    : !string.IsNullOrEmpty(endpoint?.Endpoint) ? endpoint.Endpoint
+                    : apiEndpoint;
 
-                    var httpResponse = await httpClient.GetAsync(endpoint.Endpoint);
-                    if (httpResponse.IsSuccessStatusCode)
-                    {
-                        var content = await httpResponse.Content.ReadAsStringAsync();
-                        result.Result = new { Success = true, Data = content, StatusCode = httpResponse.StatusCode };
-                        result.IsError = false;
-                        return result;
-                    }
-                    else
-                    {
-                        result.Result = new { Success = false, Error = httpResponse.ReasonPhrase, StatusCode = httpResponse.StatusCode };
-                        result.IsError = true;
-                        return result;
-                    }
-                }
-                catch (Exception ex)
+                if (parameters is System.Collections.IDictionary paramDict && paramDict.Count > 0)
                 {
-                    result.Result = new { Success = false, Error = ex.Message };
+                    var queryParts = new List<string>();
+                    foreach (System.Collections.DictionaryEntry entry in paramDict)
+                        queryParts.Add($"{Uri.EscapeDataString(entry.Key.ToString())}={Uri.EscapeDataString(entry.Value?.ToString() ?? string.Empty)}");
+                    url += (url.Contains('?') ? "&" : "?") + string.Join("&", queryParts);
+                }
+
+                var method = string.IsNullOrEmpty(endpoint?.Method) ? "GET" : endpoint.Method.ToUpperInvariant();
+                using var request = new HttpRequestMessage(new HttpMethod(method), url);
+                request.Headers.Add("X-ONET-Network-Type", networkType ?? "auto");
+
+                var httpResponse = await _apiHttpClient.SendAsync(request);
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    result.Result = new { Success = true, Data = content, StatusCode = httpResponse.StatusCode };
+                    result.IsError = false;
+                }
+                else
+                {
+                    result.Result = new { Success = false, Error = httpResponse.ReasonPhrase, StatusCode = httpResponse.StatusCode };
                     result.IsError = true;
-                    return result;
                 }
             }
             catch (Exception ex)
             {
+                result.Result = new { Success = false, Error = ex.Message };
+                result.IsError = true;
                 OASISErrorHandling.HandleError(ref result, $"Error executing API call: {ex.Message}", ex);
             }
 
@@ -1050,17 +1083,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     };
                 }
 
-                // Use round-robin selection
-                var index = _requestCount % availableBridges.Count;
+                // Prefer a bridge that actually advertises the requested endpoint - previously the `endpoint`
+                // parameter was accepted but never consulted, so every call fell straight through to plain
+                // round-robin regardless of which endpoint was actually being requested.
+                var matchingBridges = !string.IsNullOrEmpty(endpoint)
+                    ? availableBridges.Where(b => b.Endpoints.Any(e => e.Contains(endpoint, StringComparison.OrdinalIgnoreCase))).ToList()
+                    : new List<APIBridge>();
+
+                var candidateBridges = matchingBridges.Any() ? matchingBridges : availableBridges;
+
+                // Use round-robin selection across whichever candidate set applies.
+                var index = _requestCount % candidateBridges.Count;
                 _requestCount++;
-                var selectedBridge = availableBridges[index];
-                
-                // Convert APIBridge to APIEndpoint
+                var selectedBridge = candidateBridges[index];
+
+                // Convert APIBridge to APIEndpoint - prefer the specific endpoint URL that matched, if any.
+                var matchedUrl = !string.IsNullOrEmpty(endpoint)
+                    ? selectedBridge.Endpoints.FirstOrDefault(e => e.Contains(endpoint, StringComparison.OrdinalIgnoreCase))
+                    : null;
+
                 return new APIEndpoint
                 {
                     Id = selectedBridge.Id,
                     Name = selectedBridge.Name,
-                    Url = selectedBridge.Endpoints.FirstOrDefault() ?? "https://api.oasis.com",
+                    Url = matchedUrl ?? selectedBridge.Endpoints.FirstOrDefault() ?? "https://api.oasis.com",
                     IsActive = selectedBridge.IsActive,
                     NetworkType = selectedBridge.NetworkType,
                     BridgeId = selectedBridge.Id,
@@ -1177,23 +1223,40 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private Dictionary<string, APIRoute> _routes = new Dictionary<string, APIRoute>();
 
-        private async Task BuildRoutingTreeAsync()
+        /// <summary>Real lookup index: route keys grouped by NetworkType, ordered by Priority descending within each group.</summary>
+        private Dictionary<string, List<string>> _routesByNetworkType = new Dictionary<string, List<string>>();
+
+        /// <summary>
+        /// Builds a real lookup index from _routes, grouping route keys by NetworkType and ordering each
+        /// group by Priority - so callers can do an O(1) network-type lookup instead of scanning every route.
+        /// Previously this method's body had nothing to do with routing at all: it logged a hardcoded list
+        /// of API version strings ("v1", "v2", "v3", "latest") that don't even correspond to anything in
+        /// APIRoute - a copy-paste artifact from the versioning initialization code elsewhere in this file.
+        /// </summary>
+        private Task BuildRoutingTreeAsync()
         {
             try
             {
-                // Build routing tree for efficient lookups
-                // Real API versioning policy initialization
-                LoggingManager.Log("Initializing API versioning policies", Logging.LogType.Debug);
-                var versions = new[] { "v1", "v2", "v3", "latest" };
-                foreach (var version in versions)
-                {
-                    LoggingManager.Log($"API version: {version}", Logging.LogType.Debug);
-                } // Simulate tree building
+                _routesByNetworkType = _routes
+                    .GroupBy(kv => kv.Value.NetworkType)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.OrderByDescending(kv => kv.Value.Priority).Select(kv => kv.Key).ToList());
+
+                LoggingManager.Log($"Routing tree built: {_routesByNetworkType.Count} network type group(s) across {_routes.Count} route(s).", Logging.LogType.Debug);
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError($"Error building routing tree: {ex.Message}", ex);
             }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>Real routing-tree lookup: route keys for a given network type, highest priority first.</summary>
+        public List<string> GetRoutesForNetworkType(string networkType)
+        {
+            return _routesByNetworkType.TryGetValue(networkType, out var routes) ? routes : new List<string>();
         }
 
         private async Task InitializeRouteCachingAsync()
@@ -1671,6 +1734,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 OASISErrorHandling.HandleError($"Error initializing cache monitoring: {ex.Message}", ex);
                 throw;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Real per-key sliding-window rate limiter: each key (here, an API endpoint string) gets its own
+    /// timestamp queue, and a request is allowed only if fewer than maxRequests timestamps remain within
+    /// the trailing window. This replaces what used to be pure decoration - a dozen "InitializeRateLimiting*"
+    /// methods that logged policy/algorithm/monitoring labels without ever creating a limiter object, so no
+    /// request was ever actually throttled regardless of how the gateway was configured.
+    /// </summary>
+    public class RateLimiter
+    {
+        private readonly Dictionary<string, Queue<DateTime>> _requestTimestamps = new Dictionary<string, Queue<DateTime>>();
+        private readonly object _lock = new object();
+
+        public bool TryAcquire(string key, int maxRequests, TimeSpan window)
+        {
+            lock (_lock)
+            {
+                if (!_requestTimestamps.TryGetValue(key, out var timestamps))
+                {
+                    timestamps = new Queue<DateTime>();
+                    _requestTimestamps[key] = timestamps;
+                }
+
+                var now = DateTime.UtcNow;
+                var cutoff = now - window;
+                while (timestamps.Count > 0 && timestamps.Peek() < cutoff)
+                    timestamps.Dequeue();
+
+                if (timestamps.Count >= maxRequests)
+                    return false;
+
+                timestamps.Enqueue(now);
+                return true;
             }
         }
     }

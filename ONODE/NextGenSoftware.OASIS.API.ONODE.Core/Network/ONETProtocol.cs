@@ -31,6 +31,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private bool _isNetworkRunning = false;
         private OASISDNA? _oasisdna;
 
+        /// <summary>
+        /// TCP port this node listens on for ONET_PING/ONET_PONG connectivity probes (see ONETRouting's
+        /// TestNodeConnectivityAsync, which sends ONET_PING and expects ONET_PONG back). Configurable so
+        /// multiple local nodes can run side by side during testing.
+        /// </summary>
+        public int ListenPort { get; set; } = 38470;
+
+        private System.Net.Sockets.TcpListener? _pingResponderListener;
+        private System.Threading.CancellationTokenSource? _pingResponderCts;
+
         // Events
         public event EventHandler<NodeConnectedEventArgs> NodeConnected;
         public event EventHandler<NodeDisconnectedEventArgs> NodeDisconnected;
@@ -112,6 +122,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
                 // Initialize API Gateway
                 await _apiGateway.InitializeAsync();
+
+                // Start the real ONET_PING/ONET_PONG TCP responder, so connectivity tests against this node
+                // (from ONETRouting.TestNodeConnectivityAsync, or PerformRealNetworkTransmissionAsync's ACK
+                // wait, both of which already implement a real client) actually get a real reply instead of
+                // timing out - previously nothing in ONET listened for incoming connections at all, so every
+                // connectivity test against a real running node failed even though the node was healthy.
+                StartPingResponder();
 
                 _isNetworkRunning = true;
 
@@ -229,6 +246,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 await _routing.StopRoutingAsync();
                 await _apiGateway.StopAsync();
                 await _consensus.StopAsync();
+                StopPingResponder();
 
                 _connectedNodes.Clear();
                 _isNetworkRunning = false;
@@ -243,6 +261,101 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Starts a real TCP listener on ListenPort that answers "ONET_PING" with "ONET_PONG" - the missing
+        /// server-side half of the connectivity probe that ONETRouting.TestNodeConnectivityAsync and
+        /// PerformRealNetworkTransmissionAsync's ACK wait already implement on the client side.
+        /// </summary>
+        private void StartPingResponder()
+        {
+            try
+            {
+                _pingResponderCts = new System.Threading.CancellationTokenSource();
+                _pingResponderListener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, ListenPort);
+                _pingResponderListener.Start();
+
+                _ = Task.Run(() => AcceptPingConnectionsAsync(_pingResponderListener, _pingResponderCts.Token));
+
+                LoggingManager.Log($"ONET ping responder listening on port {ListenPort}", Logging.LogType.Info);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error starting ONET ping responder on port {ListenPort}: {ex.Message}", ex);
+            }
+        }
+
+        private void StopPingResponder()
+        {
+            try
+            {
+                _pingResponderCts?.Cancel();
+                _pingResponderListener?.Stop();
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError($"Error stopping ONET ping responder: {ex.Message}", ex);
+            }
+            finally
+            {
+                _pingResponderCts?.Dispose();
+                _pingResponderCts = null;
+                _pingResponderListener = null;
+            }
+        }
+
+        private async Task AcceptPingConnectionsAsync(System.Net.Sockets.TcpListener listener, System.Threading.CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    var client = await listener.AcceptTcpClientAsync(cancellationToken);
+                    _ = Task.Run(() => HandlePingConnectionAsync(client, cancellationToken), cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Listener was stopped - exit the accept loop.
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    if (!cancellationToken.IsCancellationRequested)
+                        OASISErrorHandling.HandleError($"Error accepting ONET ping connection: {ex.Message}", ex);
+                }
+            }
+        }
+
+        private async Task HandlePingConnectionAsync(System.Net.Sockets.TcpClient client, System.Threading.CancellationToken cancellationToken)
+        {
+            using (client)
+            {
+                try
+                {
+                    using var stream = client.GetStream();
+                    var buffer = new byte[256];
+                    var read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                    var request = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
+
+                    if (request.IndexOf("ONET_PING", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        var pong = System.Text.Encoding.UTF8.GetBytes("ONET_PONG\n");
+                        await stream.WriteAsync(pong, 0, pong.Length, cancellationToken);
+                    }
+                    else
+                    {
+                        // Any other inbound message is treated as a delivered ONET message and ACKed, matching
+                        // the ACK that PerformRealNetworkTransmissionAsync's client side waits for.
+                        var ack = System.Text.Encoding.UTF8.GetBytes("ONET_ACK\n");
+                        await stream.WriteAsync(ack, 0, ack.Length, cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    OASISErrorHandling.HandleError($"Error handling inbound ONET connection: {ex.Message}", ex);
+                }
+            }
         }
 
         /// <summary>
@@ -293,6 +406,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Real passthrough to the discovery layer's RegisterNodeAsync, so other ONET components (e.g.
+        /// ONETProviderIntegration) can register a provider/node for discovery without needing direct access
+        /// to the private _discovery field, and without resorting to a fake "registration" that just logs
+        /// and sleeps.
+        /// </summary>
+        public Task<OASISResult<bool>> RegisterNodeForDiscoveryAsync(string nodeId, string nodeAddress, List<string> capabilities)
+        {
+            return _discovery.RegisterNodeAsync(nodeId, nodeAddress, capabilities);
         }
 
         /// <summary>
@@ -571,9 +695,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var host = parts[0];
                     var port = parts.Length > 1 && int.TryParse(parts[1], out var p) ? p : 8080;
                     
-                    // Connect with timeout
+                    // Connect with timeout. transmissionDelay is derived from a latency*10 heuristic and can
+                    // be as low as a few milliseconds - using it directly as the *connection* timeout meant
+                    // most real TCP connects (which routinely take 50-200ms+ over a real network) were raced
+                    // against an unreasonably short deadline and reported as "failed to connect" even when
+                    // the peer was perfectly reachable. The connect budget is now a sane fixed floor.
+                    var connectTimeoutMs = Math.Max(5000, transmissionDelay);
                     var connectTask = client.ConnectAsync(host, port);
-                    var timeoutTask = Task.Delay(transmissionDelay);
+                    var timeoutTask = Task.Delay(connectTimeoutMs);
                     var completed = await Task.WhenAny(connectTask, timeoutTask);
                     
                     if (completed == connectTask && client.Connected)
@@ -1038,18 +1167,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public async Task<double> MeasureLatencyAsync(string nodeId)
         {
-            // Measure latency to a specific node
-            // Real implementation would calculate average latency from all nodes
-            // For now, use actual measurement
-            // Calculate actual latency using network measurements
+            // Measure latency to the specific node requested. This used to ignore nodeId entirely and always
+            // ping Google's public DNS (8.8.8.8) instead - meaning latency for every node, regardless of its
+            // actual address or even whether it was reachable at all, reported "how far away is Google DNS"
+            // rather than anything about the requested node.
             try
             {
-                var startTime = DateTime.UtcNow;
-                var ping = new System.Net.NetworkInformation.Ping();
-                var reply = await ping.SendPingAsync("8.8.8.8", 5000); // Ping Google DNS
-                if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
+                if (_connectedNodes.TryGetValue(nodeId, out var node) && !string.IsNullOrEmpty(node.Address))
                 {
-                    return reply.RoundtripTime;
+                    var host = node.Address.Contains(':') ? node.Address.Split(':')[0] : node.Address;
+                    var ping = new System.Net.NetworkInformation.Ping();
+                    var reply = await ping.SendPingAsync(host, 5000);
+                    if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
+                        return reply.RoundtripTime;
                 }
             }
             catch (Exception ex)
@@ -1057,8 +1187,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var result = new OASISResult<double>();
                 OASISErrorHandling.HandleError(ref result, $"Error measuring latency to {nodeId}: {ex.Message}", ex);
             }
-            
-            return await CalculateDefaultLatencyAsync(); // Calculated default latency on error
+
+            return await CalculateDefaultLatencyAsync(); // Calculated default latency when the node is unknown/unreachable
         }
 
         public async Task<double> MeasureBandwidthAsync(string nodeId)
@@ -1099,36 +1229,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public async Task<double> GetAverageLatencyAsync()
         {
-            // Get average latency across all connections
-            // Real implementation would calculate average latency from all nodes
-            // For now, use actual measurement
-            // Calculate actual average latency across all connections
+            // Average latency across this node's actual connected ONET peers - not a hardcoded list of
+            // public DNS resolvers (8.8.8.8/1.1.1.1/208.67.222.222) that have nothing to do with this
+            // network's topology and would report "average distance to the internet" instead of anything
+            // about ONET connectivity.
             try
             {
+                var connectedNodeIds = _connectedNodes.Keys.ToList();
+                if (connectedNodeIds.Count == 0)
+                    return await CalculateDefaultAverageLatencyAsync();
+
                 var latencies = new List<double>();
-                var testNodes = new[] { "8.8.8.8", "1.1.1.1", "208.67.222.222" }; // Multiple DNS servers
-                
-                foreach (var node in testNodes)
-                {
-                    var ping = new System.Net.NetworkInformation.Ping();
-                    var reply = await ping.SendPingAsync(node, 3000);
-                    if (reply.Status == System.Net.NetworkInformation.IPStatus.Success)
-                    {
-                        latencies.Add(reply.RoundtripTime);
-                    }
-                }
-                
+                foreach (var nodeId in connectedNodeIds)
+                    latencies.Add(await MeasureLatencyAsync(nodeId));
+
                 if (latencies.Any())
-                {
                     return latencies.Average();
-                }
             }
             catch (Exception ex)
             {
                 var result = new OASISResult<double>();
                 OASISErrorHandling.HandleError(ref result, $"Error calculating average latency: {ex.Message}", ex);
             }
-            
+
             return await CalculateDefaultAverageLatencyAsync(); // Calculated default average latency on error
         }
 

@@ -19,6 +19,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
         DeepSeek,
         AWSBedrock,
         AzureOpenAI,
-        StabilityAI
+        StabilityAI,
+
+        /// <summary>OpenServ SERV inference gateway - one API key (SERV_API_KEY) reaches every model in
+        /// the SERV catalog (OpenAI, Anthropic, Google, xAI, Qwen, DeepSeek) via an OpenAI-compatible
+        /// chat/completions endpoint. See https://docs.openserv.ai/serv-reasoning/sdk-integration</summary>
+        OpenServ
     }
 }
