@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>NextGenSoftware.OASIS.Web10.Core</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB10 OASIS Source Layer Core</Product>
+    <Title>WEB10 OASIS Source Layer Core</Title>
+    <Summary>The Core for WEB10 - "The Source" / WEB0, made literal as the single root source-of-truth endpoint for the entire OASIS stack. The SourceManager returns the foundational OASIS_DNA configuration every other layer derives from (the Alpha) together with WEB9's live unified status report across WEB4-WEB8 (the Omega) - closing the loop the site describes ("WEB10 = WEB0") as one real, queryable endpoint instead of metaphor.</Summary>
+    <Version>1.0.0</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\WEB9\NextGenSoftware.OASIS.Web9.Core\NextGenSoftware.OASIS.Web9.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -34,6 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private string _currentLeader = string.Empty;
         private DateTime _lastConsensusTime = DateTime.UtcNow;
         private readonly object _consensusLock = new object();
+        private System.Threading.CancellationTokenSource? _consensusLoopCts;
 
         // Events
         public event EventHandler<ConsensusReachedEventArgs> ConsensusReached;
@@ -49,9 +50,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 
                 // Initialize consensus parameters
                 await InitializeConsensusParametersAsync();
-                
-                // Start consensus process
-                _ = Task.Run(ConsensusLoopAsync);
+
+                // Start consensus process. Loop lifetime is controlled by a dedicated CancellationTokenSource,
+                // not by _currentState - ProcessConsensusAsync sets _currentState to Active/Initializing on
+                // every single iteration based on node count, which previously meant StopAsync's
+                // _currentState = ConsensusState.Stopped got silently overwritten on the very next iteration
+                // and the loop (and its un-cancellable Task.Run) could never actually be stopped.
+                _consensusLoopCts = new System.Threading.CancellationTokenSource();
+                _ = Task.Run(() => ConsensusLoopAsync(_consensusLoopCts.Token));
                 
                 result.Result = true;
                 result.IsError = false;
@@ -72,7 +78,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 _currentState = ConsensusState.Stopped;
-                
+                _consensusLoopCts?.Cancel();
+                _consensusLoopCts?.Dispose();
+                _consensusLoopCts = null;
+
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "ONET Consensus mechanism stopped successfully";
@@ -304,19 +313,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task ConsensusLoopAsync()
+        private async Task ConsensusLoopAsync(System.Threading.CancellationToken cancellationToken)
         {
-            while (_currentState != ConsensusState.Stopped)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
                     await ProcessConsensusAsync();
-                    await Task.Delay(await CalculateConsensusIntervalAsync()); // Dynamic consensus interval
+                    await Task.Delay(await CalculateConsensusIntervalAsync(), cancellationToken); // Dynamic consensus interval
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
                 }
                 catch (Exception ex)
                 {
                     OASISErrorHandling.HandleError($"Error in consensus loop: {ex.Message}", ex);
-                    await Task.Delay(await CalculateErrorRecoveryIntervalAsync()); // Dynamic error recovery interval
+                    try
+                    {
+                        await Task.Delay(await CalculateErrorRecoveryIntervalAsync(), cancellationToken); // Dynamic error recovery interval
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
             }
         }

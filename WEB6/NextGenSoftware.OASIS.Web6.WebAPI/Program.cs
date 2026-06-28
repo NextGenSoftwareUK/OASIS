@@ -3,8 +3,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web6.Core.Managers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -112,6 +114,26 @@ var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirect
 var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
 if (bootResult.IsError)
     OASISErrorHandling.HandleError($"Warning: WEB6 OASIS boot failed: {bootResult.Message}");
+
+// Auto-seed FAHRN with one reasoning agent per OpenServ catalog model so the reasoning network and Holonic
+// BRAID have agents to score/dispatch/braid against out of the box. Controlled by OASIS_DNA.json ->
+// OASIS.Web6.FAHRN.AutoSeedOpenServAgentsOnStartup (default true); only runs when SERV_API_KEY is set.
+OASISDNA dna = OASISBootLoader.OASISDNA;
+if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERV_API_KEY"))
+    && (dna?.OASIS?.Web6?.FAHRN?.AutoSeedOpenServAgentsOnStartup ?? true))
+{
+    try
+    {
+        FAHRNManager fahrnManager = new FAHRNManager(Guid.Empty, dna);
+        var seedResult = await fahrnManager.SeedDefaultOpenServAgentsAsync();
+        if (seedResult.IsError)
+            OASISErrorHandling.HandleError($"Warning: WEB6 FAHRN OpenServ agent auto-seed failed: {seedResult.Message}");
+    }
+    catch (Exception ex)
+    {
+        OASISErrorHandling.HandleError($"Warning: WEB6 FAHRN OpenServ agent auto-seed threw an exception: {ex.Message}", ex);
+    }
+}
 
 app.Run();
 

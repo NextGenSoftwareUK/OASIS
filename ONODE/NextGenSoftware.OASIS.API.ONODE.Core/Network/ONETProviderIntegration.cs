@@ -22,6 +22,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, ProviderNode> _providerNodes = new Dictionary<string, ProviderNode>();
         private readonly Dictionary<ProviderCategory, List<ProviderType>> _providerCategories = new Dictionary<ProviderCategory, List<ProviderType>>();
 
+        /// <summary>
+        /// Real per-provider call history (latency + success/failure), recorded by RouteThroughProviderAsync
+        /// on every real call. CalculateProviderLatencyAsync/CalculateProviderReliabilityAsync read from this
+        /// instead of a hardcoded per-ProviderType switch statement - the only genuinely "calculated" signal
+        /// available here, since these are logical provider-category bridges, not independently network-
+        /// addressable ONET nodes with their own real connection to measure.
+        /// </summary>
+        private readonly Dictionary<ProviderType, List<(double latencyMs, bool success)>> _providerCallHistory = new();
+        private readonly object _providerCallHistoryLock = new object();
+
         public ONETProviderIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
@@ -74,7 +84,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             ProviderCategory category = ProviderCategory.Storage)
         {
             var result = new OASISResult<T>();
-            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             try
             {
                 if (!_isIntegrated)
@@ -124,8 +135,46 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 OASISErrorHandling.HandleError(ref result, $"Error routing through provider: {ex.Message}", ex);
             }
+            finally
+            {
+                stopwatch.Stop();
+                RecordProviderCall(providerType, stopwatch.Elapsed.TotalMilliseconds, !result.IsError);
+            }
 
             return result;
+        }
+
+        /// <summary>
+        /// Records a real call outcome for a provider, capped at the most recent 200 entries, and refreshes
+        /// that provider's ProviderNode.Latency/Reliability so FindOptimalProviderNodeAsync's ordering
+        /// reflects real recent performance - previously these fields were set once at routing-table
+        /// creation time and never updated again no matter how the provider actually performed afterward.
+        /// </summary>
+        private void RecordProviderCall(ProviderType providerType, double latencyMs, bool success)
+        {
+            List<(double latencyMs, bool success)> historySnapshot;
+
+            lock (_providerCallHistoryLock)
+            {
+                if (!_providerCallHistory.TryGetValue(providerType, out var history))
+                {
+                    history = new List<(double latencyMs, bool success)>();
+                    _providerCallHistory[providerType] = history;
+                }
+
+                history.Add((latencyMs, success));
+                if (history.Count > 200)
+                    history.RemoveRange(0, history.Count - 200);
+
+                historySnapshot = new List<(double latencyMs, bool success)>(history);
+            }
+
+            var nodeId = $"{providerType}_node";
+            if (_providerNodes.TryGetValue(nodeId, out var node))
+            {
+                node.Latency = historySnapshot.Average(h => h.latencyMs);
+                node.Reliability = (int)Math.Round(100.0 * historySnapshot.Count(h => h.success) / historySnapshot.Count);
+            }
         }
 
         /// <summary>
@@ -180,10 +229,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     TotalProviders = _providerBridges.Count,
                     ActiveProviders = _providerBridges.Values.Count(p => p.IsActive),
-                    BlockchainProviders = _providerCategories[ProviderCategory.Blockchain].Count,
-                    CloudProviders = _providerCategories[ProviderCategory.Cloud].Count,
-                    StorageProviders = _providerCategories[ProviderCategory.Storage].Count,
-                    NetworkProviders = _providerCategories[ProviderCategory.Network].Count,
+                    // GetValueOrDefault rather than the indexer - previously a KeyNotFoundException waiting
+                    // to happen if any of these four ProviderCategory keys were ever not seeded.
+                    BlockchainProviders = _providerCategories.GetValueOrDefault(ProviderCategory.Blockchain)?.Count ?? 0,
+                    CloudProviders = _providerCategories.GetValueOrDefault(ProviderCategory.Cloud)?.Count ?? 0,
+                    StorageProviders = _providerCategories.GetValueOrDefault(ProviderCategory.Storage)?.Count ?? 0,
+                    NetworkProviders = _providerCategories.GetValueOrDefault(ProviderCategory.Network)?.Count ?? 0,
                     TotalNodes = _providerNodes.Count,
                     NetworkUptime = await GetNetworkUptimeAsync(),
                     LastUpdated = DateTime.UtcNow
@@ -473,106 +524,63 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             bridge.Status = "Active";
         }
 
+        /// <summary>
+        /// Registers a provider bridge with ONET's real discovery layer via ONETProtocol's
+        /// RegisterNodeForDiscoveryAsync passthrough. Previously this ran three Task.Run blocks that each
+        /// looped over hardcoded service-name lists (mDNS/DHT/Blockchain/Bootstrap,
+        /// ShortestPath/Intelligent/LoadBalanced/Adaptive, ProofOfStake/.../PBFT) doing nothing but
+        /// Task.Delay and logging - no actual registration with any discovery, routing or consensus
+        /// component ever happened.
+        /// </summary>
         private async Task RegisterProviderWithONETAsync(ProviderBridge bridge)
         {
-            // Register provider with ONET network
-            await PerformRealProviderRegistrationAsync(); // Real provider registration
+            var nodeId = $"{bridge.ProviderType}_node";
+            var registerResult = await _onetProtocol.RegisterNodeForDiscoveryAsync(nodeId, bridge.Name, bridge.Capabilities);
+
+            if (registerResult.IsError)
+                OASISErrorHandling.HandleError($"Error registering provider {bridge.ProviderType} with ONET discovery: {registerResult.Message}");
+            else
+                LoggingManager.Log($"Provider {bridge.ProviderType} registered with ONET discovery as node {nodeId}.", Logging.LogType.Info);
         }
 
-        private async Task PerformRealProviderRegistrationAsync()
+        /// <summary>
+        /// Average real call latency from RouteThroughProviderAsync's recorded history. Previously a
+        /// hardcoded per-ProviderType switch with made-up numbers (e.g. "EthereumOASIS => 15.5") that never
+        /// changed regardless of how the provider actually performed. Falls back to a neutral 20ms estimate
+        /// only when no calls have been made yet for this provider - there is no real signal to report until
+        /// then, so a single fixed fallback (rather than per-type guesses) is the most honest option.
+        /// </summary>
+        private Task<double> CalculateProviderLatencyAsync(ProviderType providerType)
         {
-            try
+            lock (_providerCallHistoryLock)
             {
-                // Real provider registration logic
-                LoggingManager.Log("Performing real provider registration", Logging.LogType.Info);
-                
-                // Register provider with ONET network using real registration process
-                var registrationTasks = new List<Task>();
-                
-            // Register with discovery services
-            registrationTasks.Add(Task.Run(async () =>
-            {
-                LoggingManager.Log("Registering with discovery services", Logging.LogType.Debug);
-                // Real discovery service registration
-                var discoveryServices = new[] { "mDNS", "DHT", "Blockchain", "Bootstrap" };
-                foreach (var service in discoveryServices)
-                {
-                    LoggingManager.Log($"Registering with {service} discovery service", Logging.LogType.Debug);
-                    await Task.Delay(5); // Real service registration time
-                }
-                LoggingManager.Log("Discovery services registration completed", Logging.LogType.Debug);
-            }));
-                
-            // Register with routing services
-            registrationTasks.Add(Task.Run(async () =>
-            {
-                LoggingManager.Log("Registering with routing services", Logging.LogType.Debug);
-                // Real routing service registration
-                var routingServices = new[] { "ShortestPath", "Intelligent", "LoadBalanced", "Adaptive" };
-                foreach (var service in routingServices)
-                {
-                    LoggingManager.Log($"Registering with {service} routing service", Logging.LogType.Debug);
-                    await Task.Delay(4); // Real service registration time
-                }
-                LoggingManager.Log("Routing services registration completed", Logging.LogType.Debug);
-            }));
-                
-            // Register with consensus services
-            registrationTasks.Add(Task.Run(async () =>
-            {
-                LoggingManager.Log("Registering with consensus services", Logging.LogType.Debug);
-                // Real consensus service registration
-                var consensusServices = new[] { "ProofOfStake", "ProofOfWork", "DelegatedProofOfStake", "PracticalByzantineFaultTolerance" };
-                foreach (var service in consensusServices)
-                {
-                    LoggingManager.Log($"Registering with {service} consensus service", Logging.LogType.Debug);
-                    await Task.Delay(4); // Real service registration time
-                }
-                LoggingManager.Log("Consensus services registration completed", Logging.LogType.Debug);
-            }));
-                
-                // Wait for all registration tasks to complete
-                await Task.WhenAll(registrationTasks);
-                
-                LoggingManager.Log("Provider registration completed successfully", Logging.LogType.Info);
+                if (_providerCallHistory.TryGetValue(providerType, out var history) && history.Count > 0)
+                    return Task.FromResult(history.Average(h => h.latencyMs));
             }
-            catch (Exception ex)
+
+            return Task.FromResult(20.0);
+        }
+
+        /// <summary>
+        /// Real success-rate percentage from recorded call history. Previously a hardcoded per-ProviderType
+        /// switch (e.g. "BitcoinOASIS => 99") with no relationship to actual outcomes. Falls back to a
+        /// neutral 90% only when no calls have been recorded yet.
+        /// </summary>
+        private Task<int> CalculateProviderReliabilityAsync(ProviderType providerType)
+        {
+            lock (_providerCallHistoryLock)
             {
-                OASISErrorHandling.HandleError($"Error during provider registration: {ex.Message}", ex);
-                throw;
+                if (_providerCallHistory.TryGetValue(providerType, out var history) && history.Count > 0)
+                    return Task.FromResult((int)Math.Round(100.0 * history.Count(h => h.success) / history.Count));
             }
-        }
 
-        private async Task<double> CalculateProviderLatencyAsync(ProviderType providerType)
-        {
-            // Calculate provider latency based on type
-            return providerType switch
-            {
-                ProviderType.EthereumOASIS => 15.5,
-                ProviderType.SolanaOASIS => 8.2,
-                ProviderType.BitcoinOASIS => 25.7,
-                ProviderType.IPFSOASIS => 12.3,
-                _ => 20.0
-            };
-        }
-
-        private async Task<int> CalculateProviderReliabilityAsync(ProviderType providerType)
-        {
-            // Calculate provider reliability based on type
-            return providerType switch
-            {
-                ProviderType.EthereumOASIS => 95,
-                ProviderType.SolanaOASIS => 98,
-                ProviderType.BitcoinOASIS => 99,
-                ProviderType.IPFSOASIS => 92,
-                _ => 90
-            };
+            return Task.FromResult(90);
         }
 
         private async Task<List<ProviderInfo>> GetBlockchainProvidersAsync()
         {
             var providers = new List<ProviderInfo>();
-            var blockchainTypes = _providerCategories[ProviderCategory.Blockchain];
+            var blockchainTypes = _providerCategories.GetValueOrDefault(ProviderCategory.Blockchain) ?? new List<ProviderType>();
             
             foreach (var providerType in blockchainTypes)
             {
@@ -597,7 +605,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task<List<ProviderInfo>> GetCloudProvidersAsync()
         {
             var providers = new List<ProviderInfo>();
-            var cloudTypes = _providerCategories[ProviderCategory.Cloud];
+            var cloudTypes = _providerCategories.GetValueOrDefault(ProviderCategory.Cloud) ?? new List<ProviderType>();
             
             foreach (var providerType in cloudTypes)
             {
@@ -622,7 +630,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task<List<ProviderInfo>> GetStorageProvidersAsync()
         {
             var providers = new List<ProviderInfo>();
-            var storageTypes = _providerCategories[ProviderCategory.Storage];
+            var storageTypes = _providerCategories.GetValueOrDefault(ProviderCategory.Storage) ?? new List<ProviderType>();
             
             foreach (var providerType in storageTypes)
             {
@@ -647,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task<List<ProviderInfo>> GetNetworkProvidersAsync()
         {
             var providers = new List<ProviderInfo>();
-            var networkTypes = _providerCategories[ProviderCategory.Network];
+            var networkTypes = _providerCategories.GetValueOrDefault(ProviderCategory.Network) ?? new List<ProviderType>();
             
             foreach (var providerType in networkTypes)
             {
@@ -669,10 +677,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return providers;
         }
 
-        private async Task<double> GetNetworkUptimeAsync()
+        /// <summary>
+        /// Real uptime estimate: the fraction of registered provider bridges currently marked active.
+        /// Previously hardcoded to 99.9% regardless of actual bridge state.
+        /// </summary>
+        private Task<double> GetNetworkUptimeAsync()
         {
-            // Get network uptime
-            return 99.9; // 99.9% uptime
+            if (_providerBridges.Count == 0)
+                return Task.FromResult(0.0);
+
+            var activeFraction = (double)_providerBridges.Values.Count(b => b.IsActive) / _providerBridges.Count;
+            return Task.FromResult(Math.Round(activeFraction * 100.0, 2));
         }
     }
 

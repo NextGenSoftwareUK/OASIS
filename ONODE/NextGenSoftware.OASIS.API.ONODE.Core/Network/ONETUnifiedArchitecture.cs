@@ -498,13 +498,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
+                var targetNodeId = await FindOptimalONETNodeAsync(service);
+
+                // Previously, when no real node advertised the requested service, FindOptimalONETNodeAsync
+                // fabricated a plausible-looking node ID ("unified-node-XXXXXXXX") that didn't correspond to
+                // any actual node - so SendMessageAsync would be sent at a target that could never possibly
+                // receive it, failing later with a confusing error instead of this clear one up front.
+                if (string.IsNullOrEmpty(targetNodeId))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No ONET node advertises the '{service}' service - cannot route.");
+                    return result;
+                }
+
                 // Route through ONET P2P network
                 var onetMessage = new ONETMessage
                 {
                     Content = CreateONETMessage(service, endpoint, parameters),
                     MessageType = "UNIFIED_API_CALL",
                     SourceNodeId = "local",
-                    TargetNodeId = await FindOptimalONETNodeAsync(service)
+                    TargetNodeId = targetNodeId
                 };
 
                 var onetResult = await _onetProtocol.SendMessageAsync(onetMessage);
@@ -577,7 +589,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     }
                     catch (Exception ex)
                     {
-                        // Continue to next layer
+                        // Continue to next layer, but log the failure first - this used to silently discard
+                        // every routing-layer exception with no logging at all, making it impossible to tell
+                        // why a given layer failed when troubleshooting "all routing layers failed" below.
+                        LoggingManager.Log($"Routing layer '{layer}' failed, trying next layer. Reason: {ex.Message}", Logging.LogType.Warning);
                         continue;
                     }
                 }
@@ -612,18 +627,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return System.Text.Json.JsonSerializer.Deserialize<T>(content);
         }
 
+        /// <summary>
+        /// Finds a real ONET node that advertises the requested service. Returns null (not a fabricated
+        /// "unified-node-XXXXXXXX" ID) when no such node exists - a fabricated ID would target a node that
+        /// can never actually receive the message, turning a clear "no provider available" failure into a
+        /// confusing downstream send failure instead.
+        /// </summary>
         private async Task<string> FindOptimalONETNodeAsync(string service)
         {
-            // Find optimal ONET node for service
             var topology = await _onetProtocol.GetNetworkTopologyAsync();
             var nodes = topology.Result?.Nodes ?? new List<ONETNode>();
-            
-            // Select node with best capabilities for service
-            var optimalNode = nodes?.FirstOrDefault(n => 
-                n.Capabilities.Contains("API") || 
+
+            var optimalNode = nodes?.FirstOrDefault(n =>
+                n.Capabilities.Contains("API") ||
                 n.Capabilities.Contains(service.ToLower()));
-            
-            return optimalNode?.Id ?? await CalculateDefaultNodeIdAsync();
+
+            return optimalNode?.Id;
         }
 
         private async Task<double> CalculateUnifiedUptimeAsync()
@@ -755,20 +774,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task<string> CalculateDefaultNodeIdAsync()
-        {
-            try
-            {
-                // Calculate default node ID
-                var nodeId = $"unified-node-{Guid.NewGuid().ToString("N")[..8]}";
-                return await Task.FromResult(nodeId);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error calculating node ID: {ex.Message}", ex);
-                return "default-node";
-            }
-        }
     }
 
     public class UnifiedService

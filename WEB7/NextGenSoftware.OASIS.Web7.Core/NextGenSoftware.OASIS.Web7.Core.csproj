@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>NextGenSoftware.OASIS.Web7.Core</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB7 OASIS Symbiotic Layer Core</Product>
+    <Title>WEB7 OASIS Symbiotic Layer Core</Title>
+    <Summary>The Core (Business Logic Layer) for WEB7 - the non-invasive human/AI symbiosis layer. Hosts the BioSignalProcessingManager (real DSP: FFT band-power for EEG, time-domain HRV metrics, GSR normalisation), the IntentionEngine (maps processed signal features to focus/arousal/valence/cognitive-load state), the SymbiosisSessionManager (consent-gated sessions enforcing the Borg-Free pledge - no implanted/invasive signal types accepted, ever) and the CollectiveConsciousnessManager (multi-participant shared intention fields).</Summary>
+    <Version>1.0.0</Version>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+  </ItemGroup>
+
+</Project>

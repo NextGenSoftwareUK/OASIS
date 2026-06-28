@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 TimesReused = holon.MetaData.TryGetValue("TimesReused", out object r) && r != null ? Convert.ToInt32(r) : 0,
                 AvgSolverAccuracy = holon.MetaData.TryGetValue("AvgSolverAccuracy", out object acc) && acc != null && double.TryParse(acc.ToString(), out double accVal) ? accVal : 1.0,
                 Version = holon.MetaData.TryGetValue("Version", out object v) && v != null ? Convert.ToInt32(v) : 1,
-                CreatedUtc = holon.MetaData.TryGetValue("CreatedUtc", out object c) && c != null && DateTime.TryParse(c.ToString(), out DateTime dt) ? dt : DateTime.UtcNow
+                CreatedUtc = holon.MetaData.TryGetValue("CreatedUtc", out object c) && c != null && DateTime.TryParse(c.ToString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out DateTime dt) ? dt : DateTime.UtcNow
             };
         }
     }
