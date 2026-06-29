@@ -54,24 +54,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests
             var discoveryType = typeof(ONETDiscovery);
 
             var buildQuery = discoveryType.GetMethod("BuildPtrQuery", BindingFlags.NonPublic | BindingFlags.Static);
-            var buildResponse = discoveryType.GetMethod("BuildPtrResponse", BindingFlags.NonPublic | BindingFlags.Static);
+            var buildResponse = discoveryType.GetMethod("BuildServiceResponse", BindingFlags.NonPublic | BindingFlags.Static);
             var parseQuestion = discoveryType.GetMethod("TryParseFirstQuestionName", BindingFlags.NonPublic | BindingFlags.Static);
             var parseAnswer = discoveryType.GetMethod("TryParseFirstPtrAnswer", BindingFlags.NonPublic | BindingFlags.Static);
-            var parseHostPort = discoveryType.GetMethod("TryParseHostPort", BindingFlags.NonPublic | BindingFlags.Static);
+            var parseService = discoveryType.GetMethod("TryParseServiceResponse", BindingFlags.NonPublic | BindingFlags.Static);
 
             var queryBytes = (byte[])buildQuery!.Invoke(null, new object[] { "_onet._tcp.local" })!;
             var parsedQuestionName = (string?)parseQuestion!.Invoke(null, new object[] { queryBytes });
             parsedQuestionName.Should().Be("_onet._tcp.local");
 
-            var responseBytes = (byte[])buildResponse!.Invoke(null, new object[] { "127.0.0.1:9999" })!;
-            var parsedInstance = (string?)parseAnswer!.Invoke(null, new object[] { responseBytes });
-            parsedInstance.Should().Be("127.0.0.1:9999._onet._tcp.local");
+            // BuildServiceResponse emits PTR + SRV + A records (standard RFC 6762/6763 DNS-SD)
+            var responseBytes = (byte[])buildResponse!.Invoke(null, new object[] { "127.0.0.1", 9999 })!;
 
-            var hostPortArgs = new object[] { parsedInstance!, null!, 0 };
-            var parsed = (bool)parseHostPort!.Invoke(null, hostPortArgs)!;
-            parsed.Should().BeTrue();
-            hostPortArgs[1].Should().Be("127.0.0.1");
-            hostPortArgs[2].Should().Be(9999);
+            // The PTR answer should resolve to the instance name
+            var parsedInstance = (string?)parseAnswer!.Invoke(null, new object[] { responseBytes });
+            parsedInstance.Should().Contain("_onet._tcp.local");
+
+            // TryParseServiceResponse should extract host+port from SRV+A chain
+            var parsedServiceArgs = new object[] { responseBytes, null!, 0 };
+            var parsedService = (bool)parseService!.Invoke(null, parsedServiceArgs)!;
+            parsedService.Should().BeTrue("SRV+A records should be present in the response");
+            parsedServiceArgs[1].Should().Be("127.0.0.1");
+            parsedServiceArgs[2].Should().Be(9999);
         }
 
         [Fact]

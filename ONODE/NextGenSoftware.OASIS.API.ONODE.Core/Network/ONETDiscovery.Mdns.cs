@@ -92,8 +92,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
                     if (questionName != null && questionName.Equals(MdnsServiceType, StringComparison.OrdinalIgnoreCase))
                     {
-                        var response = BuildPtrResponse(MdnsAdvertisedAddress);
-                        await client.SendAsync(response, response.Length, result.RemoteEndPoint);
+                        // Parse the "host:port" MdnsAdvertisedAddress into components for proper SRV+A emission.
+                        if (TryParseHostPortSimple(MdnsAdvertisedAddress, out var advHost, out var advPort))
+                        {
+                            var response = BuildServiceResponse(advHost, advPort);
+                            await client.SendAsync(response, response.Length, result.RemoteEndPoint);
+                        }
                     }
                 }
                 catch (OperationCanceledException)
@@ -146,16 +150,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         break;
                     }
 
-                    var instance = TryParseFirstPtrAnswer(result.Buffer);
-                    if (instance != null && TryParseHostPort(instance, out var host, out var port))
+                    // Try the standard SRV+A path first; fall back to the legacy host:port-in-PTR-name
+                    // encoding for interop with older ONET nodes that haven't been upgraded yet.
+                    if (TryParseServiceResponse(result.Buffer, out var parsedHost, out var parsedPort))
                     {
+                        var instance = TryParseFirstPtrAnswer(result.Buffer) ?? $"{parsedHost}:{parsedPort}.{MdnsServiceType}";
                         response.Services.Add(new MDNSService
                         {
                             Name = instance,
-                            Address = host,
-                            Port = port,
+                            Address = parsedHost,
+                            Port = parsedPort,
                             Properties = new Dictionary<string, string>()
                         });
+                    }
+                    else
+                    {
+                        // Legacy: host:port embedded in PTR RDATA name.
+                        var instance = TryParseFirstPtrAnswer(result.Buffer);
+                        if (instance != null && TryParseHostPort(instance, out var host, out var port))
+                        {
+                            response.Services.Add(new MDNSService
+                            {
+                                Name = instance,
+                                Address = host,
+                                Port = port,
+                                Properties = new Dictionary<string, string>()
+                            });
+                        }
                     }
                 }
             }
@@ -201,28 +222,150 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return packet.ToArray();
         }
 
-        private static byte[] BuildPtrResponse(string instanceName)
+        /// <summary>
+        /// Builds a standard RFC 6762 + RFC 6763 DNS-SD response containing three records:
+        ///   PTR  _onet._tcp.local        → &lt;instanceName&gt;._onet._tcp.local  (ANCOUNT=1)
+        ///   SRV  &lt;instanceName&gt;._onet._tcp.local → 0 0 &lt;port&gt; &lt;hostname&gt;.local  (ARCOUNT=2)
+        ///   A    &lt;hostname&gt;.local        → &lt;IPv4 address&gt;
+        /// This replaces the old practice of stuffing "host:port" into the PTR target name
+        /// label, which is non-standard and breaks avahi, Bonjour, and other real mDNS clients.
+        /// </summary>
+        private static byte[] BuildServiceResponse(string host, int port)
         {
+            // Instance name: sanitize host to produce a valid DNS label ("192.168.1.1" → "192-168-1-1").
+            var safeHost = host.Replace('.', '-').Replace(':', '-');
+            var instanceLabel = $"onet-{safeHost}-{port}";        // e.g. "onet-192-168-1-1-38470"
+            var instanceName = $"{instanceLabel}.{MdnsServiceType}"; // full name of this service instance
+            var hostLocal = $"{safeHost}.local";                   // hostname in .local domain for SRV target + A name
+
             var packet = new List<byte>
             {
                 0x00, 0x00, // transaction ID
-                0x84, 0x00, // flags: standard response, authoritative
+                0x84, 0x00, // flags: QR=1 (response) AA=1 (authoritative)
                 0x00, 0x00, // QDCOUNT = 0
-                0x00, 0x01, // ANCOUNT = 1
+                0x00, 0x01, // ANCOUNT = 1  (PTR)
                 0x00, 0x00, // NSCOUNT = 0
-                0x00, 0x00, // ARCOUNT = 0
+                0x00, 0x02, // ARCOUNT = 2  (SRV + A)
             };
 
-            packet.AddRange(EncodeDnsName(MdnsServiceType)); // NAME being answered
-            packet.AddRange(new byte[] { 0x00, 0x0C }); // TYPE = PTR
-            packet.AddRange(new byte[] { 0x00, 0x01 }); // CLASS = IN
-            packet.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x78 }); // TTL = 120s
+            // --- Answer: PTR record ---
+            packet.AddRange(EncodeDnsName(MdnsServiceType));
+            packet.AddRange(new byte[] { 0x00, 0x0C });             // TYPE  = PTR (12)
+            packet.AddRange(new byte[] { 0x80, 0x01 });             // CLASS = IN (1), cache-flush bit set
+            packet.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x78 }); // TTL   = 120 s
+            var ptrRdata = EncodeDnsName(instanceName);
+            packet.AddRange(ToBeUInt16(ptrRdata.Length));
+            packet.AddRange(ptrRdata);
 
-            var rdata = EncodeDnsName(instanceName + "." + MdnsServiceType);
-            packet.AddRange(BitConverter.GetBytes((ushort)rdata.Length).Reverse()); // RDLENGTH (big-endian)
-            packet.AddRange(rdata); // RDATA: PTR target name
+            // --- Additional: SRV record ---
+            // RDATA: Priority(2) + Weight(2) + Port(2) + Target(name)
+            packet.AddRange(EncodeDnsName(instanceName));
+            packet.AddRange(new byte[] { 0x00, 0x21 });             // TYPE  = SRV (33)
+            packet.AddRange(new byte[] { 0x80, 0x01 });             // CLASS = IN, cache-flush
+            packet.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x78 }); // TTL   = 120 s
+            var targetName = EncodeDnsName(hostLocal);
+            var srvRdata = new List<byte> { 0x00, 0x00, 0x00, 0x00 }; // Priority=0, Weight=0
+            srvRdata.AddRange(ToBeUInt16(port));                    // Port
+            srvRdata.AddRange(targetName);
+            packet.AddRange(ToBeUInt16(srvRdata.Count));
+            packet.AddRange(srvRdata);
+
+            // --- Additional: A record ---
+            packet.AddRange(EncodeDnsName(hostLocal));
+            packet.AddRange(new byte[] { 0x00, 0x01 });             // TYPE  = A (1)
+            packet.AddRange(new byte[] { 0x80, 0x01 });             // CLASS = IN, cache-flush
+            packet.AddRange(new byte[] { 0x00, 0x00, 0x00, 0x78 }); // TTL   = 120 s
+            // Resolve host to bytes; fall back to 0.0.0.0 if not a parseable IPv4 literal.
+            byte[] addrBytes;
+            if (IPAddress.TryParse(host, out var ipAddr) && ipAddr.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                addrBytes = ipAddr.GetAddressBytes();
+            else
+                addrBytes = new byte[] { 0, 0, 0, 0 };
+            packet.AddRange(ToBeUInt16(addrBytes.Length)); // RDLENGTH = 4
+            packet.AddRange(addrBytes);
 
             return packet.ToArray();
+        }
+
+        /// <summary>
+        /// Parse a multi-record mDNS response looking for PTR→SRV→A record chain.
+        /// Returns true with <paramref name="host"/> and <paramref name="port"/> when the full
+        /// SRV+A chain is resolved; returns false when only legacy PTR-name encoding is present.
+        /// </summary>
+        private static bool TryParseServiceResponse(byte[] buffer, out string host, out int port)
+        {
+            host = string.Empty;
+            port = 0;
+            try
+            {
+                if (buffer.Length < 12) return false;
+                int qdCount = (buffer[4] << 8) | buffer[5];
+                int anCount = (buffer[6] << 8) | buffer[7];
+                int arCount = (buffer[10] << 8) | buffer[11];
+                if (anCount + arCount < 1) return false;
+
+                int offset = 12;
+                // Skip questions
+                for (int i = 0; i < qdCount; i++) { ReadDnsName(buffer, ref offset); offset += 4; }
+
+                // Walk all answer + additional records; collect SRV and A records.
+                string? srvTarget = null;
+                int srvPort = 0;
+                string? aHost = null;
+                int totalRecords = anCount + arCount;
+
+                for (int i = 0; i < totalRecords && offset < buffer.Length - 4; i++)
+                {
+                    ReadDnsName(buffer, ref offset);              // NAME
+                    if (offset + 10 > buffer.Length) break;
+                    int type     = (buffer[offset] << 8) | buffer[offset + 1]; offset += 2;
+                    offset += 2;                                  // CLASS (skip)
+                    offset += 4;                                  // TTL   (skip)
+                    int rdLen    = (buffer[offset] << 8) | buffer[offset + 1]; offset += 2;
+                    int rdataEnd = offset + rdLen;
+
+                    if (type == 33 && rdLen >= 7) // SRV
+                    {
+                        offset += 4; // Priority + Weight (skip)
+                        srvPort = (buffer[offset] << 8) | buffer[offset + 1]; offset += 2;
+                        srvTarget = ReadDnsName(buffer, ref offset);
+                    }
+                    else if (type == 1 && rdLen == 4) // A
+                    {
+                        aHost = $"{buffer[offset]}.{buffer[offset+1]}.{buffer[offset+2]}.{buffer[offset+3]}";
+                    }
+
+                    offset = rdataEnd;
+                }
+
+                if (srvPort > 0 && !string.IsNullOrEmpty(aHost))
+                {
+                    host = aHost;
+                    port = srvPort;
+                    return true;
+                }
+            }
+            catch { /* fall through */ }
+            return false;
+        }
+
+        /// <summary>Simple "host:port" parser for MdnsAdvertisedAddress (not for DNS wire format).</summary>
+        private static bool TryParseHostPortSimple(string hostPort, out string host, out int port)
+        {
+            host = string.Empty;
+            port = 0;
+            if (string.IsNullOrWhiteSpace(hostPort)) return false;
+            var idx = hostPort.LastIndexOf(':');
+            if (idx < 0 || !int.TryParse(hostPort.Substring(idx + 1), out port)) return false;
+            host = hostPort.Substring(0, idx);
+            return !string.IsNullOrEmpty(host);
+        }
+
+        private static byte[] ToBeUInt16(int value)
+        {
+            var b = BitConverter.GetBytes((ushort)value);
+            if (BitConverter.IsLittleEndian) Array.Reverse(b);
+            return b;
         }
 
         /// <summary>Parses just the QNAME of the first question in a DNS message, with basic label-pointer support.</summary>

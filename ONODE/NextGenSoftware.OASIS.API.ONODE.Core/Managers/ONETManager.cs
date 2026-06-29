@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             _storageProvider = storageProvider;
             _networkType = networkType;
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
             _security = new ONETSecurity(storageProvider, oasisdna);
@@ -212,6 +212,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
+        /// <summary>
+        /// Verify that a remote node's signature over <paramref name="message"/> is valid.
+        /// Used by HTTP endpoints to authenticate peer requests via X-ONET-NodeId / X-ONET-Signature headers.
+        /// </summary>
+        public Task<bool> VerifyRequestSignatureAsync(string nodeId, string message, string base64Signature)
+            => _onetProtocol.VerifyRequestSignatureAsync(nodeId, message, base64Signature);
+
         /// Get connected nodes
         /// </summary>
         public async Task<OASISResult<List<ONETNode>>> GetConnectedNodesAsync()

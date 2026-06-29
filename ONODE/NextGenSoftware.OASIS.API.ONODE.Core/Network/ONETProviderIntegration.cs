@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETProviderIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             InitializeProviderBridges();
             InitializeProviderCategories();
         }

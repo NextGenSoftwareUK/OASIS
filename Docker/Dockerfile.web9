@@ -1,0 +1,55 @@
+# WEB9 WEB API
+# Build context must be the repo root (C:/Source/OASIS2/).
+# Railway Dockerfile path: Docker/Dockerfile.web9
+# For local builds run from C:/Source/OASIS2/:
+#   docker build -f Docker/Dockerfile.web9 -t oasis-web9-webapi .
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+
+ARG LIBRARIES_REPO=https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git
+ARG HOLOCHAIN_REPO=https://github.com/holochain-open-dev/holochain-client-csharp.git
+# Pinned to known-good, mutually-compatible commits (NextGenSoftware-Libraries adds the
+# WebSocket.ConnectAsync(Uri, headers) overload that holochain-client-csharp's
+# HoloNETClientBase.cs calls as part of the Holochain 0.6.1 upgrade - these two repos must be
+# updated together. Pinning also fixes a Docker/Railway build-cache issue: with an unpinned
+# `git clone --depth 1`, the RUN instruction text never changes, so Docker reuses the cached
+# layer from whichever commit happened to be live at the time of the last cache-busting build
+# even after new commits are pushed - bump these SHAs whenever either repo is intentionally
+# updated to force a fresh, deterministic clone.
+ARG LIBRARIES_COMMIT=8634ab8be426d2919111e75cadac9ff2901b7384
+ARG HOLOCHAIN_COMMIT=8f47260109834c058e07767656dec4e55d54d8f2
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && git clone "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
+    && git -C /NextGenSoftware-Libraries checkout "${LIBRARIES_COMMIT}" \
+    && git clone "${HOLOCHAIN_REPO}" /holochain-client-csharp \
+    && git -C /holochain-client-csharp checkout "${HOLOCHAIN_COMMIT}" \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+COPY . .
+
+RUN test -f "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json" || \
+    cp "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json" \
+       "/src/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json"
+
+WORKDIR "/src/WEB9/NextGenSoftware.OASIS.Web9.WebAPI"
+RUN dotnet restore "NextGenSoftware.OASIS.Web9.WebAPI.csproj"
+RUN dotnet publish "NextGenSoftware.OASIS.Web9.WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+COPY Docker/entrypoint.web9.sh /entrypoint.sh
+RUN sed -i 's/\r//' /entrypoint.sh && chmod +x /entrypoint.sh
+
+ENV ASPNETCORE_ENVIRONMENT=Production
+ENV ASPNETCORE_URLS=http://+:8080
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+ENTRYPOINT ["/entrypoint.sh"]

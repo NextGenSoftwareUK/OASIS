@@ -9,6 +9,7 @@ using NextGenSoftware.OASIS.Common;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 using System;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
@@ -165,13 +166,28 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Get connected nodes
+        /// Get connected nodes. Peer-to-peer callers must authenticate by supplying:
+        ///   X-ONET-NodeId: &lt;their nodeId&gt;
+        ///   X-ONET-Signature: &lt;base64 ECDSA-P256 signature over "GET /onet/network/nodes"&gt;
+        /// Human/browser callers without those headers receive the node list without enforcement
+        /// (auth enforcement can be tightened in SecurityConfig once all real peers are registered).
         /// </summary>
         [HttpGet("network/nodes")]
         public async Task<IActionResult> GetConnectedNodes()
         {
             try
             {
+                var nodeId = Request.Headers["X-ONET-NodeId"].FirstOrDefault();
+                var signature = Request.Headers["X-ONET-Signature"].FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(nodeId) && !string.IsNullOrWhiteSpace(signature))
+                {
+                    var manager = await GetOnetManagerAsync();
+                    var valid = await manager.VerifyRequestSignatureAsync(nodeId, "GET /onet/network/nodes", signature);
+                    if (!valid)
+                        return Unauthorized(new { message = "Invalid or unrecognised node signature. Register your public key via /onet/network/connect first." });
+                }
+
                 var result = await (await GetOnetManagerAsync()).GetConnectedNodesAsync();
                 return Ok(result);
             }
