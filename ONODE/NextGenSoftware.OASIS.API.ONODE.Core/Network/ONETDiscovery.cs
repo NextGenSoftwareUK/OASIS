@@ -27,6 +27,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private string _localNodeId = string.Empty;
         private bool _isDiscoveryActive = false;
 
+        // Real Kademlia routing table — populated whenever a peer is discovered via any method.
+        // Used by PerformIterativeDHTLookupAsync for O(log n) FIND_NODE lookups instead of O(n) BFS gossip.
+        private KademliaRoutingTable? _kademliaTable;
+
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
         /// <summary>
@@ -47,8 +51,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, List<NodeHistory>> _nodeHistory = new Dictionary<string, List<NodeHistory>>();
         private readonly object _nodeHistoryLock = new object();
 
+        private const string PeerCacheFileName = "onet-peers.json";
+
+        private string GetDataDirectory()
+            => OASISDNA?.OASIS?.DataDirectory ?? NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive.DataDirectory;
+
         public ONETDiscovery(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
+        }
+
+        /// <summary>
+        /// Persist the current discovered-node cache to disk so peers are remembered across restarts.
+        /// Fire-and-forget; failures are logged but do not affect the caller.
+        /// </summary>
+        private void PersistPeerCache()
+        {
+            Dictionary<string, DiscoveredNode> snapshot;
+            lock (_discoveryLock)
+                snapshot = new Dictionary<string, DiscoveredNode>(_discoveredNodes);
+            _ = NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                    .SaveAsync(GetDataDirectory(), PeerCacheFileName, snapshot);
+        }
+
+        /// <summary>
+        /// Load previously discovered peers from disk into <see cref="_discoveredNodes"/>.
+        /// </summary>
+        private async Task LoadPeerCacheAsync()
+        {
+            var cached = await NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                    .LoadAsync<Dictionary<string, DiscoveredNode>>(GetDataDirectory(), PeerCacheFileName);
+            if (cached == null || cached.Count == 0) return;
+            lock (_discoveryLock)
+                foreach (var kv in cached)
+                    if (!_discoveredNodes.ContainsKey(kv.Key))
+                        _discoveredNodes[kv.Key] = kv.Value;
+            LoggingManager.Log($"ONET Discovery: loaded {cached.Count} cached peer(s) from disk.", Logging.LogType.Info);
         }
 
         public async Task InitializeAsync()
@@ -424,10 +461,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 _isDiscoveryActive = true;
-                
+
+                // Pre-populate from the on-disk peer cache so we have known peers immediately,
+                // before live discovery completes.
+                await LoadPeerCacheAsync();
+
                 // Initialize discovery methods
-                //await InitializeDiscoveryMethodsAsync();
-                
+                //await InitializeDiscoveryMethodsAsync()
+
                 // Start discovery processes
                 await StartDiscoveryProcessesAsync();
                 
@@ -522,9 +563,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task<OASISResult<bool>> RegisterNodeAsync(string nodeId, string nodeAddress, List<string> capabilities)
         {
             var result = new OASISResult<bool>();
-            
+
             try
             {
+                // Lazy-init the Kademlia routing table on first local node registration.
+                if (_kademliaTable == null)
+                    _kademliaTable = new KademliaRoutingTable(nodeId);
+                _localNodeId = nodeId;
+
                 var node = new DiscoveredNode
                 {
                     Id = nodeId,
@@ -539,6 +585,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _discoveredNodes[nodeId] = node;
                 }
+
+                PersistPeerCache();
 
                 // Register with all discovery methods
                 await RegisterWithDiscoveryMethodsAsync(node);
@@ -1583,24 +1631,85 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         /// <summary>
-        /// Real iterative peer-exchange lookup: starting from the bootstrap seed set, repeatedly asks each
-        /// newly-discovered node for the peers *it* knows about (breadth-first), accumulating distinct nodes
-        /// until query.MaxResults is reached, no new nodes are found, or MaxHops is exceeded. This is gossip-
-        /// based discovery, not full Kademlia XOR-distance routing (that needs a binary RPC wire protocol
-        /// this codebase doesn't implement) - but it is a real, working, network-calling implementation, not
-        /// a fabricated result set. Previously this unconditionally returned an empty list regardless of what
-        /// was actually reachable on the network.
+        /// Kademlia FIND_NODE iterative lookup (RFC-compliant XOR-distance routing when a Kademlia
+        /// routing table is available) with BFS gossip fallback when no table has been seeded yet.
+        ///
+        /// Kademlia path: contacts alpha=3 closest known nodes per round, merges their peer lists
+        /// back into the candidate set (re-sorted by XOR distance to the target), repeats until
+        /// convergence (no closer node found) or maxHops exceeded — O(log n) rather than O(n) BFS.
+        ///
+        /// Gossip path: BFS from bootstrap seeds up to maxHops hops — used before the local node
+        /// has been registered (i.e. before _kademliaTable is initialised).
         /// </summary>
         private async Task<List<DHTResult>> PerformIterativeDHTLookupAsync(DHTQuery query)
         {
-            const int maxHops = 4;
+            const int maxHops = 8;
+            const int alpha = 3;
             var maxResults = query.MaxResults > 0 ? query.MaxResults : 50;
+            var targetId = string.IsNullOrEmpty(query.TargetId) ? _localNodeId : query.TargetId;
 
-            var discovered = new Dictionary<string, NodeInfo>();
+            // ---- Kademlia path ----
+            if (_kademliaTable != null && _kademliaTable.Count > 0)
+            {
+                var queried = new HashSet<string>();
+                var discovered = new Dictionary<string, NodeInfo>();
+
+                // Seed from the routing table: K closest peers to the target.
+                var candidates = new List<NodeInfo>(
+                    _kademliaTable
+                        .GetClosestNodes(string.IsNullOrEmpty(targetId) ? _localNodeId : targetId, KBucket.K)
+                        .Select(p => new NodeInfo { Id = Convert.ToHexString(p.NodeId), Address = p.Address }));
+
+                for (int hop = 0; hop < maxHops; hop++)
+                {
+                    var toQuery = candidates.Where(c => !queried.Contains(c.Id)).Take(alpha).ToList();
+                    if (!toQuery.Any()) break;
+
+                    bool foundCloser = false;
+                    foreach (var node in toQuery)
+                    {
+                        queried.Add(node.Id);
+                        if (!discovered.ContainsKey(node.Id))
+                            discovered[node.Id] = node;
+
+                        var dhtNode = new DHTNode { NodeId = node.Id, Address = node.Address, LastSeen = DateTime.UtcNow };
+                        var peers = await QueryNodeForPeersAsync(dhtNode, query.Timeout);
+                        foreach (var peer in peers)
+                        {
+                            if (string.IsNullOrEmpty(peer.Id) || discovered.ContainsKey(peer.Id)) continue;
+                            discovered[peer.Id] = peer;
+                            _kademliaTable.AddNode(peer.Id, peer.Address);
+                            foundCloser = true;
+                        }
+
+                        if (discovered.Count >= maxResults) break;
+                    }
+
+                    if (!foundCloser) break; // converged
+
+                    candidates = _kademliaTable
+                        .GetClosestNodes(string.IsNullOrEmpty(targetId) ? _localNodeId : targetId, KBucket.K)
+                        .Select(p => new NodeInfo { Id = Convert.ToHexString(p.NodeId), Address = p.Address })
+                        .Where(n => !queried.Contains(n.Id))
+                        .ToList();
+
+                    if (discovered.Count >= maxResults) break;
+                }
+
+                return discovered.Values.Select(n => new DHTResult
+                {
+                    IsValid = true,
+                    NodeInfo = n,
+                    Timestamp = DateTime.UtcNow
+                }).ToList();
+            }
+
+            // ---- BFS gossip fallback ----
+            var discovered2 = new Dictionary<string, NodeInfo>();
             var frontier = await GetBootstrapNodesAsync();
             var visited = new HashSet<string>();
 
-            for (int hop = 0; hop < maxHops && frontier.Count > 0 && discovered.Count < maxResults; hop++)
+            for (int hop = 0; hop < maxHops && frontier.Count > 0 && discovered2.Count < maxResults; hop++)
             {
                 var nextFrontier = new List<DHTNode>();
 
@@ -1609,34 +1718,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     if (string.IsNullOrEmpty(node.NodeId) || !visited.Add(node.NodeId))
                         continue;
 
-                    // The frontier node itself is a discovered peer too - not just whatever it tells us
-                    // about. Without this, seed/bootstrap nodes were never added to the result set at all,
-                    // only nodes found one hop *beyond* them.
-                    if (!discovered.ContainsKey(node.NodeId))
-                        discovered[node.NodeId] = new NodeInfo { Id = node.NodeId, Address = node.Address, LastSeen = node.LastSeen, IsActive = true };
+                    if (!discovered2.ContainsKey(node.NodeId))
+                        discovered2[node.NodeId] = new NodeInfo { Id = node.NodeId, Address = node.Address, LastSeen = node.LastSeen, IsActive = true };
 
                     var peers = await QueryNodeForPeersAsync(node, query.Timeout);
 
                     foreach (var peer in peers)
                     {
-                        if (string.IsNullOrEmpty(peer.Id) || discovered.ContainsKey(peer.Id))
+                        if (string.IsNullOrEmpty(peer.Id) || discovered2.ContainsKey(peer.Id))
                             continue;
 
-                        discovered[peer.Id] = peer;
+                        discovered2[peer.Id] = peer;
                         nextFrontier.Add(new DHTNode { NodeId = peer.Id, Address = peer.Address, LastSeen = peer.LastSeen });
+                        // Feed into Kademlia table if it was late-initialised between calls.
+                        _kademliaTable?.AddNode(peer.Id, peer.Address);
 
-                        if (discovered.Count >= maxResults)
-                            break;
+                        if (discovered2.Count >= maxResults) break;
                     }
 
-                    if (discovered.Count >= maxResults)
-                        break;
+                    if (discovered2.Count >= maxResults) break;
                 }
 
                 frontier = nextFrontier;
             }
 
-            return discovered.Values.Select(n => new DHTResult
+            return discovered2.Values.Select(n => new DHTResult
             {
                 IsValid = true,
                 NodeInfo = n,

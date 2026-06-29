@@ -28,8 +28,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// rolls over monthly (matching SubscriptionConfig.BillingCycle = "Monthly"). Shared across all
         /// OASISHyperDrive instances (the class is constructed fresh per request by callers like AvatarManager/
         /// HolonManager) via this static field, so quota actually accumulates instead of always reading 0.
+        /// Loaded from disk on first use and persisted after every increment so monthly caps survive restarts.
         /// </summary>
         private static readonly ConcurrentDictionary<string, int> _usageCounters = new ConcurrentDictionary<string, int>();
+        private static bool _usageCountersLoaded = false;
+        private static readonly object _usageLoadLock = new object();
+
+        /// <summary>
+        /// Directory used for persisting runtime state (quota counters).
+        /// Defaults to "oasis-data"; can be overridden before the first OASISHyperDrive instance is created.
+        /// </summary>
+        public static string DataDirectory { get; set; } = "oasis-data";
+        private const string QuotaFileName = "hyperdrive-quota.json";
 
         private readonly ProviderManager _providerManager;
         private readonly PerformanceMonitor _performanceMonitor;
@@ -420,14 +430,34 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             return $"{operationType}:{DateTime.UtcNow:yyyy-MM}";
         }
 
+        private static void EnsureUsageCountersLoaded()
+        {
+            if (_usageCountersLoaded) return;
+            lock (_usageLoadLock)
+            {
+                if (_usageCountersLoaded) return;
+                // Synchronous load on first access (only runs once per process).
+                var loaded = OASISPersistence.LoadAsync<Dictionary<string, int>>(DataDirectory, QuotaFileName)
+                    .GetAwaiter().GetResult();
+                if (loaded != null)
+                    foreach (var kv in loaded)
+                        _usageCounters[kv.Key] = kv.Value;
+                _usageCountersLoaded = true;
+            }
+        }
+
         /// <summary>Records one unit of usage against the current monthly window for the given operation type.</summary>
         private static void IncrementUsage(string operationType)
         {
+            EnsureUsageCountersLoaded();
             _usageCounters.AddOrUpdate(GetUsageCounterKey(operationType), 1, (_, count) => count + 1);
+            // Fire-and-forget best-effort persist so monthly caps survive restarts.
+            _ = OASISPersistence.SaveAsync(DataDirectory, QuotaFileName, new Dictionary<string, int>(_usageCounters));
         }
 
         private Task<int> GetCurrentUsageAsync(string operationType)
         {
+            EnsureUsageCountersLoaded();
             return Task.FromResult(_usageCounters.TryGetValue(GetUsageCounterKey(operationType), out var count) ? count : 0);
         }
 
@@ -446,6 +476,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                 // Route requests to specific providers
                 private async Task<OASISResult<T>> RouteToProviderAsync<T>(IRequest request, EnumValue<ProviderType> providerType)
                 {
+                    // Apply any preventive failover override recorded by the background prediction loop.
+                    // This is the safe alternative to PredictiveFailoverEngine calling
+                    // SetAndActivateCurrentStorageProviderAsync globally (which would race with concurrent requests).
+                    var override_ = PredictiveFailoverEngine.Instance.GetFailoverOverride(providerType.Value);
+                    if (override_ != ProviderType.Default)
+                    {
+                        LoggingManager.Log(
+                            $"HyperDrive: applying predictive failover override {providerType.Value} -> {override_}",
+                            Logging.LogType.Info);
+                        providerType = new EnumValue<ProviderType>(override_);
+                    }
+
                     var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                     OASISResult<T> routeResult;
 
@@ -479,6 +521,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                     }
 
                     stopwatch.Stop();
+
+                    // If this provider succeeded after a failover override was active, clear it so traffic
+                    // gradually returns to the primary once it has recovered.
+                    if (!routeResult.IsError)
+                        PredictiveFailoverEngine.Instance.ClearFailoverOverride(providerType.Value);
 
                     // Feed the AI optimization engine real outcomes from every routed request, instead of it
                     // always degrading to a neutral 0.5 score because nothing in the live path ever called this.

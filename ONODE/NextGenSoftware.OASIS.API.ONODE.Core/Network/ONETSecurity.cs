@@ -699,6 +699,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        /// <summary>
+        /// Register a remote node's public key so its signatures can be verified.
+        /// Called when a peer announces itself during bootstrap peer-exchange.
+        /// </summary>
+        public void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+        {
+            if (string.IsNullOrWhiteSpace(nodeId) || string.IsNullOrWhiteSpace(base64PublicKey))
+                return;
+            _nodeKeys[nodeId] = new SecurityKey
+            {
+                NodeId = nodeId,
+                PublicKey = base64PublicKey,
+                KeyData = Convert.FromBase64String(base64PublicKey),
+                IsActive = true,
+                GeneratedAt = DateTime.UtcNow
+            };
+        }
+
+        /// <summary>
+        /// Verify an ECDSA P-256 signature produced by a remote node over <paramref name="message"/>.
+        /// Returns false if the node's public key is not yet registered (unknown peer).
+        /// </summary>
+        public async Task<bool> VerifyNodeSignatureAsync(string nodeId, string message, string base64Signature)
+        {
+            if (!_nodeKeys.TryGetValue(nodeId, out var key) || key.KeyData == null || key.KeyData.Length == 0)
+                return false;
+            var securityKey = new SecurityKey { PublicKey = key.PublicKey, KeyData = key.KeyData };
+            return await _encryptionProvider.VerifySignatureAsync(message, base64Signature, securityKey);
+        }
+
     }
 
     public class SecurityKey

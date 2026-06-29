@@ -38,6 +38,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
         public string NetworkId { get; set; } = "onet-network";
+        /// <summary>Directory where OASIS persists runtime state (quota counters, discovered ONET peers, etc.). Relative paths are resolved against the working directory.</summary>
+        public string DataDirectory { get; set; } = "oasis-data";
         public Guid SettingsLookupHolonId { get; set; } = Guid.Empty;
         // Stats caching controls
         public bool StatsCacheEnabled { get; set; } = false;

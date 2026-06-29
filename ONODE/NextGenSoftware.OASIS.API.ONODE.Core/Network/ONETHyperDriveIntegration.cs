@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public ONETHyperDriveIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _hyperDrive = new OASISHyperDrive();
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
         }
         private bool _isIntegrated = false;
 

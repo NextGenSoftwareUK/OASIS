@@ -28,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _holoNETClient = (HoloNETClientBase)holoNETClient ?? throw new ArgumentNullException(nameof(holoNETClient));
             _networkConnections = new Dictionary<string, NetworkConnection>();
             _failedConnections = new List<NetworkConnection>();
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             SetupEventHandlers();
             ConfigureEnhancedFeatures();
         }
