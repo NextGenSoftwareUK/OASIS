@@ -23,6 +23,24 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         private readonly List<PreventiveAction> _preventiveActions = new List<PreventiveAction>();
         private readonly object _lockObject = new object();
 
+        /// <summary>
+        /// Per-provider override recommendations written by the background prediction loop and read by
+        /// RouteToProviderAsync on each incoming request. Keyed by the at-risk provider; value is the
+        /// recommended replacement to use instead. This replaces the previous implementation which called
+        /// ProviderManager.SetAndActivateCurrentStorageProviderAsync globally from the background loop,
+        /// racing with concurrent in-flight storage operations.
+        /// </summary>
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<ProviderType, ProviderType>
+            _pendingFailoverOverrides = new();
+
+        /// <summary>
+        /// Returns the override provider for <paramref name="provider"/> if the background loop has flagged
+        /// it as high-risk, or <see cref="ProviderType.Default"/> when no override is active.
+        /// Called by OASISHyperDrive.RouteToProviderAsync on the hot path.
+        /// </summary>
+        public ProviderType GetFailoverOverride(ProviderType provider)
+            => _pendingFailoverOverrides.TryGetValue(provider, out var alt) ? alt : ProviderType.Default;
+
         public static PredictiveFailoverEngine Instance
         {
             get
@@ -437,20 +455,26 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
-        /// Executes a real preventive failover by switching the active storage provider via
-        /// ProviderManager - previously this only logged "Preventive failover: X -> Y" via Console.WriteLine
-        /// with an explicit comment that a real implementation "would" update configs/redirect traffic/etc;
-        /// no provider switch ever actually happened.
+        /// Records a per-provider failover override that OASISHyperDrive.RouteToProviderAsync will apply
+        /// on the next incoming request for <paramref name="fromProvider"/>.  Does NOT call
+        /// ProviderManager.SetAndActivateCurrentStorageProviderAsync — that mutates global state from this
+        /// background loop, racing with concurrent in-flight storage operations on every other goroutine.
         /// </summary>
-        private async Task ExecutePreventiveFailoverAsync(ProviderType fromProvider, ProviderType toProvider)
+        private Task ExecutePreventiveFailoverAsync(ProviderType fromProvider, ProviderType toProvider)
         {
-            var switchResult = await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(toProvider);
-
-            if (switchResult.IsError)
-                OASISErrorHandling.HandleError($"Preventive failover from {fromProvider} to {toProvider} failed: {switchResult.Message}");
-            else
-                LoggingManager.Log($"Preventive failover completed: {fromProvider} -> {toProvider}", Logging.LogType.Info);
+            _pendingFailoverOverrides[fromProvider] = toProvider;
+            LoggingManager.Log(
+                $"Preventive failover queued: next request for {fromProvider} will be redirected to {toProvider}",
+                Logging.LogType.Info);
+            return Task.CompletedTask;
         }
+
+        /// <summary>
+        /// Clear the failover override for a provider once it has recovered (called by
+        /// OASISHyperDrive.RouteToProviderAsync after a successful real operation through that provider).
+        /// </summary>
+        public void ClearFailoverOverride(ProviderType provider)
+            => _pendingFailoverOverrides.TryRemove(provider, out _);
 
         /// <summary>
         /// Records a preventive action in a real, queryable list (see GetPreventiveActions) instead of just

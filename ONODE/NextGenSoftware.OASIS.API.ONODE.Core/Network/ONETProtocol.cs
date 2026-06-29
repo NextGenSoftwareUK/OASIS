@@ -20,6 +20,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
     {
         private static ONETProtocol? _instance;
         private static readonly object _lock = new object();
+
+        /// <summary>
+        /// Returns the process-wide singleton, creating it on first call.
+        /// All callers share one TCP listener so only one port 38470 binding exists per process.
+        /// </summary>
+        public static ONETProtocol GetInstance(IOASISStorageProvider storageProvider, OASISDNA? oasisdna = null)
+        {
+            if (_instance == null)
+            {
+                lock (_lock)
+                {
+                    if (_instance == null)
+                        _instance = new ONETProtocol(storageProvider, oasisdna);
+                }
+            }
+            return _instance;
+        }
         private readonly Dictionary<string, ONETNode> _connectedNodes = new Dictionary<string, ONETNode>();
         private readonly Dictionary<string, ONETBridge> _networkBridges = new Dictionary<string, ONETBridge>();
 
@@ -338,8 +355,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     var read = await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
                     var request = System.Text.Encoding.UTF8.GetString(buffer, 0, read);
 
-                    if (request.IndexOf("ONET_PING", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (request.StartsWith("ONET_PING", StringComparison.OrdinalIgnoreCase))
                     {
+                        // Enhanced format: "ONET_PING <nodeId> <base64Signature>"
+                        // Signature is ECDSA P-256 over the UTF-8 bytes of "ONET_PING".
+                        // If auth parts are present, verify before replying.
+                        var parts = request.Trim().Split(' ');
+                        if (parts.Length >= 3)
+                        {
+                            var pingNodeId = parts[1];
+                            var pingSignature = parts[2];
+                            var verified = await _security.VerifyNodeSignatureAsync(pingNodeId, "ONET_PING", pingSignature);
+                            if (!verified)
+                            {
+                                var denied = System.Text.Encoding.UTF8.GetBytes("ONET_AUTH_FAILED\n");
+                                await stream.WriteAsync(denied, 0, denied.Length, cancellationToken);
+                                LoggingManager.Log($"ONET PING rejected from {pingNodeId}: invalid or unknown signature", Logging.LogType.Warning);
+                                return;
+                            }
+                        }
                         var pong = System.Text.Encoding.UTF8.GetBytes("ONET_PONG\n");
                         await stream.WriteAsync(pong, 0, pong.Length, cancellationToken);
                     }
@@ -357,6 +391,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
             }
         }
+
+        /// <summary>
+        /// Verify a remote node's ECDSA signature for an authenticated HTTP request.
+        /// Delegates to ONETSecurity; returns false if the node is unknown (not yet registered).
+        /// </summary>
+        public Task<bool> VerifyRequestSignatureAsync(string nodeId, string message, string base64Signature)
+            => _security.VerifyNodeSignatureAsync(nodeId, message, base64Signature);
+
+        /// <summary>
+        /// Register a remote node's public key (called during peer-exchange so later PING / HTTP calls can be verified).
+        /// </summary>
+        public void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+            => _security.RegisterNodePublicKey(nodeId, base64PublicKey);
 
         /// <summary>
         /// Connect to a specific ONET node
