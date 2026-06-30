@@ -23,6 +23,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly Dictionary<string, NetworkMetrics> _nodeMetrics = new Dictionary<string, NetworkMetrics>();
         private RoutingAlgorithm _algorithm = RoutingAlgorithm.Intelligent;
 
+        /// <summary>
+        /// Wired by ONETProtocol to produce an authenticated PING payload.
+        /// Returns (localNodeId, base64Signature) or (null, null) when no key is available yet.
+        /// </summary>
+        public Func<Task<(string? nodeId, string? sig)>>? BuildAuthenticatedPing { get; set; }
+
         public ONETRouting(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
         }
@@ -1714,7 +1720,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         return false;
 
                     var stream = client.GetStream();
-                    var ping = System.Text.Encoding.UTF8.GetBytes("ONET_PING\n");
+                    string pingLine = "ONET_PING\n";
+                    if (BuildAuthenticatedPing != null)
+                    {
+                        var (authNodeId, authSig) = await BuildAuthenticatedPing();
+                        if (authNodeId != null && authSig != null)
+                            pingLine = $"ONET_PING {authNodeId} {authSig}\n";
+                    }
+                    var ping = System.Text.Encoding.UTF8.GetBytes(pingLine);
                     await stream.WriteAsync(ping, 0, ping.Length);
 
                     var buffer = new byte[256];

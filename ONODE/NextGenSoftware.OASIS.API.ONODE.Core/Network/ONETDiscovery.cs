@@ -34,6 +34,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
         /// <summary>
+        /// Wired by ONETProtocol to call RegisterNodePublicKey whenever a peer's public key is
+        /// learned from peer-exchange (/onet/nodes) or bootstrap responses.
+        /// </summary>
+        public Action<string, string>? OnPeerKeyDiscovered { get; set; }
+
+        /// <summary>
         /// Real, operator-configured bootstrap server URLs (each expected to expose a GET /onet/nodes
         /// endpoint returning a JSON array of NodeInfo). Defaults to empty - there is no public ONET network
         /// running yet, so previously hardcoded hostnames like "bootstrap1.onet.network" were never real,
@@ -541,7 +547,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         Latency = node.Latency,
                         Reliability = node.Reliability
                     };
-                    
+
+                    _kademliaTable?.AddNode(node.Id, node.Address);
                     discoveredNodes.Add(onetNode);
                 }
                 
@@ -1611,6 +1618,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 var json = await httpResponse.Content.ReadAsStringAsync();
                 var nodes = System.Text.Json.JsonSerializer.Deserialize<List<NodeInfo>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<NodeInfo>();
                 RecordNodeHistory(node.NodeId, isSuccessful: true, stopwatch.Elapsed.TotalMilliseconds);
+                if (OnPeerKeyDiscovered != null)
+                    foreach (var n in nodes)
+                        if (!string.IsNullOrEmpty(n.PublicKey))
+                            OnPeerKeyDiscovered(n.Id, n.PublicKey);
                 return nodes;
             }
             catch (Exception ex)
@@ -1798,6 +1809,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
                     if (nodes != null && nodes.Count > 0)
                     {
+                        if (OnPeerKeyDiscovered != null)
+                            foreach (var n in nodes)
+                                if (!string.IsNullOrEmpty(n.PublicKey))
+                                    OnPeerKeyDiscovered(n.Id, n.PublicKey);
                         response.Success = true;
                         response.Nodes = nodes;
                         response.ServerUsed = server;
@@ -1974,6 +1989,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public List<string> Capabilities { get; set; } = new List<string>();
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }
+        public string PublicKey { get; set; } = string.Empty;
     }
 
     public class NodeHistory

@@ -47,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private readonly ONETAPIGateway _apiGateway;
         private bool _isNetworkRunning = false;
         private OASISDNA? _oasisdna;
+        private string? _localNodeId;
 
         /// <summary>
         /// TCP port this node listens on for ONET_PING/ONET_PONG connectivity probes (see ONETRouting's
@@ -86,7 +87,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             _security = new ONETSecurity(storageProvider, oasisdna);
             _discovery = new ONETDiscovery(storageProvider, oasisdna);
             _apiGateway = new ONETAPIGateway(storageProvider, oasisdna);
-            InitializeAsync().Wait();
+
+            // Wire discovery→security key registration so any public key received during
+            // peer-exchange is immediately available for PING/HTTP signature verification.
+            _discovery.OnPeerKeyDiscovered = RegisterNodePublicKey;
+
+            // Wire routing→security so outbound PINGs are authenticated.
+            _routing.BuildAuthenticatedPing = async () =>
+            {
+                if (_localNodeId == null) return (null, null);
+                var sig = await _security.SignMessageForNodeAsync(_localNodeId, "ONET_PING");
+                return (_localNodeId, sig);
+            };
+
+            Task.Run(InitializeAsync).GetAwaiter().GetResult();
         }
 
         public async Task InitializeAsync()
@@ -435,7 +449,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     Address = nodeAddress,
                     ConnectedAt = DateTime.UtcNow,
                     Status = "Connected",
-                    Capabilities = await GetNodeCapabilitiesAsync(nodeId)
+                    Capabilities = await GetNodeCapabilitiesAsync(nodeId),
+                    PublicKey = _security.GetNodePublicKey(nodeId)
                 };
 
                 _connectedNodes[nodeId] = node;
@@ -463,6 +478,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         /// </summary>
         public Task<OASISResult<bool>> RegisterNodeForDiscoveryAsync(string nodeId, string nodeAddress, List<string> capabilities)
         {
+            _localNodeId = nodeId;
             return _discovery.RegisterNodeAsync(nodeId, nodeAddress, capabilities);
         }
 
@@ -1356,6 +1372,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public List<string> Capabilities { get; set; } = new List<string>();
         public double Latency { get; set; }
         public int Reliability { get; set; }
+        public string PublicKey { get; set; } = string.Empty;
     }
 
     public class ONETBridge
