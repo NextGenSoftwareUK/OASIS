@@ -75,6 +75,17 @@
    - `OASISHyperDrive` quota + failover — above the transport layer
    - `ONETConsensus` / `ONETRouting` high-level logic — delegates to whichever `IP2PNetworkProvider` is active
 
+   **Step 5 — Benchmarking & comparison (once both modes are operational)**
+   Run both modes under equivalent conditions and compare across key dimensions:
+   - **Latency** — peer discovery time, message round-trip on LAN vs WAN
+   - **Throughput** — messages/sec sustained under load
+   - **Reliability** — behaviour under peer churn (nodes joining/leaving mid-test)
+   - **NAT traversal** — success rate connecting nodes behind different routers (Internal mode has no relay fallback; HoloNET mode uses kitsune2 bootstrap + relay)
+   - **Startup time** — time to first connected peer from cold start
+   - **Resource usage** — memory and CPU per node at steady state
+   The `ONETManager` mode switch + shared `IP2PNetworkProvider` interface is already designed for this — the same test harness can run against either mode by changing one constructor argument.
+   The results will determine which mode becomes the recommended default (or whether both remain as user-selectable options for different deployment scenarios — e.g. Internal for LAN clusters, HoloNET for global WAN).
+
    **Prerequisite**
    ONET DNA must be built and deployed to a conductor before Step 2 can be tested end-to-end. The Internal mode remains the default and fallback until then.
 
