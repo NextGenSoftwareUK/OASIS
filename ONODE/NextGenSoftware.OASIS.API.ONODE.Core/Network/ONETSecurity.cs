@@ -700,6 +700,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         }
 
         /// <summary>
+        /// Returns the base64 SubjectPublicKeyInfo public key for a known node, or empty string if unknown.
+        /// Used when building the outgoing /onet/nodes peer list so recipients can register the key.
+        /// </summary>
+        public string GetNodePublicKey(string nodeId)
+            => _nodeKeys.TryGetValue(nodeId, out var k) ? k.PublicKey ?? string.Empty : string.Empty;
+
+        /// <summary>
+        /// Signs <paramref name="message"/> with the local node's ECDSA private key.
+        /// Returns null if the node has no registered key pair (e.g. key generation not yet called).
+        /// </summary>
+        public async Task<string?> SignMessageForNodeAsync(string nodeId, string message)
+        {
+            if (!_nodeKeys.TryGetValue(nodeId, out var key) || string.IsNullOrEmpty(key.PrivateKey))
+                return null;
+            var securityKey = new SecurityKey { PrivateKey = key.PrivateKey, KeyData = Convert.FromBase64String(key.PrivateKey) };
+            return await _encryptionProvider.SignAsync(message, securityKey);
+        }
+
+        /// <summary>
         /// Register a remote node's public key so its signatures can be verified.
         /// Called when a peer announces itself during bootstrap peer-exchange.
         /// </summary>
