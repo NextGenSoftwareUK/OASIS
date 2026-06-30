@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -37,6 +38,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         {
             _storageProvider = storageProvider;
             _networkType = networkType;
+
+            if (!string.IsNullOrWhiteSpace(oasisdna?.OASIS?.DataDirectory))
+                OASISHyperDrive.DataDirectory = oasisdna.OASIS.DataDirectory;
+
             _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
