@@ -8,7 +8,7 @@ The WEB4 JS client has been renamed twice (npm does not support renaming a packa
 
 1. **`oasis-api`** (original name) — first published 2022-03-17
 2. **`web4-oasis-api`** (renamed for WEB4 branding) — first published 2022-08-11
-3. **`@oasisomniverse/web4-api`** (current — renamed into the `@oasisomniverse` scope) — not yet published
+3. **`@oasisomniverse/web4-api`** (current — renamed into the `@oasisomniverse` scope) — published 2026-07-01 at v2.0.0
 
 All WEB5–WEB10 JS packages are brand new with no prior published history, so they correctly start at `v1.0.0` (vs. `v2.0.0` for WEB4, which continues the `web4-oasis-api` version lineage):
 
@@ -27,7 +27,9 @@ All WEB5–WEB10 JS packages are brand new with no prior published history, so t
 - Avoids ever being locked out of a name by one personal account/email again (scopes belong to an npm org, which can have multiple owners).
 - Uses a flat `web{N}-api` naming convention (not `web5-star-api` / `web6-ai-api` — descriptive detail belongs in `description`/README, not the package name) for visual consistency across the family.
 
-Once published, `npm deprecate` will be run against `oasis-api` and `web4-oasis-api` pointing at the new scoped package (without unpublishing them, to preserve their stats).
+All 7 packages were published to the `@oasisomniverse` scope on 2026-07-01. `oasis-api` and `web4-oasis-api` were then deprecated (not unpublished, to preserve their stats/history) with `npm deprecate`, pointing users at `@oasisomniverse/web4-api`.
+
+**Note on the recovered `nextgensoftware` npm org:** while resolving npm account access, it turned out `oasis-api` and `web4-oasis-api` were already associated with an existing `nextgensoftware` org (via npm's "Add Package" org-linking feature, which grants org members access to an *existing unscoped* package without renaming/scoping it). This is a different mechanism from package scoping — a package only gets an `@scope/` prefix if its literal name is written that way in `package.json`. The `@oasisomniverse` org was created separately and specifically to hold the new scoped `@oasisomniverse/web{4-10}-api` packages.
 
 ## Download Stats Snapshot — 2026-06-29
 
@@ -63,7 +65,7 @@ curl -s "https://api.npmjs.org/downloads/point/2025-08-01:2026-06-29/web4-oasis-
 | `web4-oasis-api` | | 2025-08-01 → 2026-06-29 | 1,470 |
 | **`web4-oasis-api` total** | | | **3,685** |
 | **Combined WEB4 lineage total** | | | **5,655** |
-| `@oasisomniverse/web4-api` | not yet published | — | 0 |
+| `@oasisomniverse/web4-api` | published 2026-07-01 | — | 0 (just launched) |
 
 For comparison, the existing infra stat shown on the OASIS Omniverse site is **256K+ NuGet downloads** for the C# packages — a much larger, longer-established number from a different ecosystem.
 
