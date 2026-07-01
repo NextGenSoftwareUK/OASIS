@@ -3,7 +3,7 @@
 
 # OASIS - The Universal Web4/Web5 Infrastructure
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Trademark Protected](https://img.shields.io/badge/Trademark-Protected-orange.svg)](#trademarks)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
@@ -1299,9 +1299,27 @@ We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTIN
 
 ## 📄 License
 
-This project is licensed under the Apache2 License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the AGPL3 License - see the [LICENSE](./LICENSE) file for details and the HoloSource license.
+
+This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
+
+This means permission will need to be requested for any forks, etc 
+
+<a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
 The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+1. Permitted Use. This Software may be used, without modification, for private, personal, educational, and internal business purposes, including internal use within a for-profit organization, provided that no part of the Software's functionality is made available, directly or indirectly, to any third party outside the licensee's own organization.
+   
+2. Prohibited Use. Except as permitted under Section 3, no individual or entity may:
+   
+(a) modify, adapt, translate, or create derivative works of the Software;
+(b) publicly distribute, sublicense, resell, or otherwise make the Software available to third parties, whether in original or modified form;
+(c) offer the Software, or any product or service whose core functionality is substantially derived from or dependent on the Software, to third parties as a hosted service, SaaS product, managed offering, or API — regardless of whether a fee is charged.
+
+3. Commercial License Required. Any use described in Section 2, or any use where the Software (or a service built on it) is offered to customers, users, or the public as a product in its own right, requires a separate commercial license from [You/Company Name]. See the Commercial License Terms below.
+
+4. No Modification Without License. Modification of the Software in any form is prohibited absent a commercial license under Section 3, which will separately define what modification rights, if any, are granted.
 
 ### Trademarks
 
