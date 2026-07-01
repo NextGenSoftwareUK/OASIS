@@ -3,6 +3,7 @@
 
 # OASIS - The Universal Web4/Web5 Infrastructure
 
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPLv3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Trademark Protected](https://img.shields.io/badge/Trademark-Protected-orange.svg)](#trademarks)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/NextGenSoftwareUK/OASIS)
 [![Documentation](https://img.shields.io/badge/docs-complete-blue.svg)](./Docs/)
