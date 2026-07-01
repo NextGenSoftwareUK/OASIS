@@ -1299,7 +1299,7 @@ We welcome contributions! Please see our [Contributing Guide](./Docs/CONTRIBUTIN
 
 ## 📄 License
 
-This project is licensed under the Apache2 License - see the [LICENSE](./LICENSE) file for details and the HoloSource license.
+This project is licensed under the AGPL3 License - see the [LICENSE](./LICENSE) file for details and the HoloSource license.
 
 This repo uses a new type of Open Source where more control is needed over the codebase to make sure things do not go off on a tangent that is not beneficial to the original intention and vision of this very important critical project to help save the world and make it a better place for all. Too much is at stake to stop this falling into the wrong hands so to speak! ;-)
 
@@ -1308,6 +1308,8 @@ This means permission will need to be requested for any forks, etc
 <a href="https://docs.google.com/document/d/1I3qbBnfVPLrGxv5paDAaCFSBxkb_34vkhA6fc8iNMew/edit#heading=h.s2ub9y5otad7">Read More Here</a>
 
 The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
+
+**Use of this Software for any commercial purpose, including but not limited to selling, sublicensing, offering as a paid service, or use within a revenue-generating product, is prohibited without a separate commercial license from NextGen World Ltd. Private, personal, educational, and non-revenue-generating use is permitted.**
 
 ### Trademarks
 
