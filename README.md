@@ -1309,7 +1309,17 @@ This means permission will need to be requested for any forks, etc
 
 The whole point of opening up this codebase to the public is we wish to empower the whole world to take responsibility for our beautiful planet and this is why the whole world is the Our World team. It will be one of the biggest most ambitious projects the world has ever seen and this is why it needs to be open to all...
 
-**Use of this Software for any commercial purpose, including but not limited to selling, sublicensing, offering as a paid service, or use within a revenue-generating product, is prohibited without a separate commercial license from NextGen World Ltd. Private, personal, educational, and non-revenue-generating use is permitted.**
+1. Permitted Use. This Software may be used, without modification, for private, personal, educational, and internal business purposes, including internal use within a for-profit organization, provided that no part of the Software's functionality is made available, directly or indirectly, to any third party outside the licensee's own organization.
+   
+2. Prohibited Use. Except as permitted under Section 3, no individual or entity may:
+   
+(a) modify, adapt, translate, or create derivative works of the Software;
+(b) publicly distribute, sublicense, resell, or otherwise make the Software available to third parties, whether in original or modified form;
+(c) offer the Software, or any product or service whose core functionality is substantially derived from or dependent on the Software, to third parties as a hosted service, SaaS product, managed offering, or API — regardless of whether a fee is charged.
+
+3. Commercial License Required. Any use described in Section 2, or any use where the Software (or a service built on it) is offered to customers, users, or the public as a product in its own right, requires a separate commercial license from [You/Company Name]. See the Commercial License Terms below.
+
+4. No Modification Without License. Modification of the Software in any form is prohibited absent a commercial license under Section 3, which will separately define what modification rights, if any, are granted.
 
 ### Trademarks
 
