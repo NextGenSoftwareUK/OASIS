@@ -1,7 +1,8 @@
 {
 	"info": {
 		"_postman_id": "b0d0e7ef-79a9-4930-a610-1beaea1a652b",
-		"name": "OASIS API v4.0.0",
+		"name": "OASIS API v4.0.0 (Updated 2024)",
+		"description": "Complete WEB4 OASIS API collection with all endpoints updated to match latest API changes",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "46169692"
 	},
@@ -3621,6 +3622,377 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Save Data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Key\": \"myCustomDataKey\",\r\n    \"Value\": \"myCustomDataValue\",\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/save-data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Data (GET)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/save-data/myCustomDataKey/myCustomDataValue",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-data",
+								"myCustomDataKey",
+								"myCustomDataValue"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Data (GET with Provider)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/save-data/myCustomDataKey/myCustomDataValue/MongoDBOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-data",
+								"myCustomDataKey",
+								"myCustomDataValue",
+								"MongoDBOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Key\": \"myCustomDataKey\",\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/load-data",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-data"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Data (GET)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-data/myCustomDataKey",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-data",
+								"myCustomDataKey"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load Data (GET with Provider)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-data/myCustomDataKey/MongoDBOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-data",
+								"myCustomDataKey",
+								"MongoDBOASIS",
+								"false"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save File",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Data\": \"base64EncodedFileData\",\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/save-file",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-file"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load File",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"{{fileId}}\",\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/load-file",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-file"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Load File (GET)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/data/load-file/{{fileId}}",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"load-file",
+								"{{fileId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Save Holon Off Chain",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"Id\": \"00000000-0000-0000-0000-000000000000\",\r\n    \"Name\": \"Test Holon\",\r\n    \"Description\": \"Test Holon Description\",\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/api/data/save-holon-off-chain",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"data",
+								"save-holon-off-chain"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -4651,23 +5023,112 @@
 			"name": "Search",
 			"item": [
 				{
-					"name": "Search",
+					"name": "Search (GET with Query Params)",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImVlMTVhZGFlLTlmODQtNDk0ZC1hM2UzLTU4MTU1N2FhZTdiYyIsIm5iZiI6MTYxNjYwODM1OSwiZXhwIjoxNjE2NjA5MjU5LCJpYXQiOjE2MTY2MDgzNTl9._K5HobDAHSZZClQZd7URJbsqGWKBqJHYbWl73ZNMzQg",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/search?SearchQuery=test&SearchAllProviders=true&ProviderType=Default&SetGlobally=false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"search"
+							],
+							"query": [
+								{
+									"key": "SearchQuery",
+									"value": "test"
+								},
+								{
+									"key": "SearchAllProviders",
+									"value": "true"
+								},
+								{
+									"key": "ProviderType",
+									"value": "Default"
+								},
+								{
+									"key": "SetGlobally",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search (GET with Provider Override)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/search?SearchQuery=test&SearchAllProviders=true/MongoDBOASIS/false",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"search"
+							],
+							"query": [
+								{
+									"key": "SearchQuery",
+									"value": "test"
+								},
+								{
+									"key": "SearchAllProviders",
+									"value": "true"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search (POST)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{token}}",
 									"type": "string"
 								}
 							]
 						},
 						"method": "POST",
-						"header": [],
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"SearchQuery\": \"test\"\r\n}",
+							"raw": "{\r\n    \"SearchQuery\": \"test\",\r\n    \"SearchAllProviders\": true,\r\n    \"ProviderType\": \"Default\",\r\n    \"SetGlobally\": false\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -4675,14 +5136,55 @@
 							}
 						},
 						"url": {
-							"raw": "{{host}}/api/search/search",
+							"raw": "{{host}}/api/search",
 							"host": [
 								"{{host}}"
 							],
 							"path": [
 								"api",
-								"search",
 								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/health",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"health"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check (Alternative)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/api/health/health",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"api",
+								"health",
+								"health"
 							]
 						}
 					},

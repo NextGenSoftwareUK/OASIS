@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -23,6 +24,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class CelestialSpacesController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all celestial spaces in the system.
@@ -38,16 +41,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialSpaces.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test celestial spaces - using empty list for now as STARCelestialSpace type may need specific implementation
+                    var testSpaces = new List<STARCelestialSpace>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialSpace>>(testSpaces, "Celestial spaces retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<STARCelestialSpace>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial spaces: {ex.Message}",
-                    Exception = ex
-                });
+                    var testSpaces = new List<STARCelestialSpace>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<STARCelestialSpace>>(testSpaces, "Celestial spaces retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<STARCelestialSpace>>(ex, "GetAllCelestialSpaces");
             }
         }
 
@@ -66,16 +79,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.CelestialSpaces.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test celestial space - using null for now as STARCelestialSpace type may need specific implementation
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialSpace>(null, "Celestial space retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<STARCelestialSpace>(null, "Celestial space retrieved successfully (using test data)"));
+                }
+                return HandleException<STARCelestialSpace>(ex, "GetCelestialSpace");
             }
         }
 
@@ -91,6 +112,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialSpace([FromBody] STARCelestialSpace celestialSpace)
         {
+            if (celestialSpace == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid Celestial Space object." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.UpdateAsync(AvatarId, celestialSpace);
@@ -98,12 +121,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "creating celestial space");
             }
         }
 
@@ -120,6 +138,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateCelestialSpace(Guid id, [FromBody] STARCelestialSpace celestialSpace)
         {
+            if (celestialSpace == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid Celestial Space object." });
             try
             {
                 celestialSpace.Id = id;
@@ -128,12 +148,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error updating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "updating celestial space");
             }
         }
 
@@ -156,12 +171,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting celestial space");
             }
         }
 
@@ -271,19 +281,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateCelestialSpaceWithOptions([FromBody] CreateCelestialSpaceRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<STARCelestialSpace>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.CelestialSpaces.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error creating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "creating celestial space");
             }
         }
 
@@ -303,18 +317,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialSpace>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.CelestialSpaces.LoadAsync(AvatarId, id, version, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space");
             }
         }
 
@@ -333,18 +344,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var holonTypeEnum = Enum.Parse<HolonType>(holonType);
+                var (holonTypeEnum, validationError) = ValidateAndParseHolonType<STARCelestialSpace>(holonType, "holonType");
+                if (validationError != null)
+                    return validationError;
                 var result = await _starAPI.CelestialSpaces.LoadForSourceOrInstalledFolderAsync(AvatarId, path, holonTypeEnum);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space from path");
             }
         }
 
@@ -367,12 +375,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space from published file: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space from published file");
             }
         }
 
@@ -418,6 +421,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishCelestialSpace(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.PublishAsync(
@@ -434,12 +439,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error publishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "publishing celestial space");
             }
         }
 
@@ -465,12 +465,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<DownloadedSTARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error downloading celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<DownloadedSTARCelestialSpace>(ex, "downloading celestial space");
             }
         }
 
@@ -522,12 +517,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error loading celestial space version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "loading celestial space version");
             }
         }
 
@@ -544,6 +534,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<STARCelestialSpace>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditCelestialSpace(Guid id, [FromBody] EditCelestialSpaceRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<STARCelestialSpace> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.CelestialSpaces.EditAsync(id, request.NewDNA, AvatarId);
@@ -551,12 +543,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error editing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "editing celestial space");
             }
         }
 
@@ -580,12 +567,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "unpublishing celestial space");
             }
         }
 
@@ -609,12 +591,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error republishing celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "republishing celestial space");
             }
         }
 
@@ -638,12 +615,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error activating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "activating celestial space");
             }
         }
 
@@ -667,12 +639,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<STARCelestialSpace>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating celestial space: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<STARCelestialSpace>(ex, "deactivating celestial space");
             }
         }
     }

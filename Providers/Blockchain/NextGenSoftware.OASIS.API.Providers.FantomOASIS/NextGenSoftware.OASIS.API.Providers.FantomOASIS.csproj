@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	  <TargetFramework>net8.0</TargetFramework>
+	  <TargetFramework>net10.0</TargetFramework>
 	  <PackageId>NextGenSoftware.OASIS.API.Providers.FantomOASIS</PackageId>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Fantom OASIS Provider</Product>
@@ -36,10 +36,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.Web3" Version="4.15.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.20.0" />
+    <PackageReference Include="Nethereum.HdWallet" Version="4.20.0" />
   </ItemGroup>
 
   <ItemGroup>

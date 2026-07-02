@@ -262,7 +262,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Encrypt message content
                 var securityKey = new SecurityKey
                 {
-                    KeyData = System.Text.Encoding.UTF8.GetBytes(session.SymmetricKey),
+                    KeyData = Convert.FromBase64String(session.SymmetricKey), // real AES key bytes, not a UTF8 re-encoding of the base64 text
                     Algorithm = "AES-256-GCM"
                 };
                 var encryptedContent = await _encryptionProvider.EncryptAsync(message.Content, securityKey);
@@ -338,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 // Decrypt message content
                 var securityKey = new SecurityKey
                 {
-                    KeyData = System.Text.Encoding.UTF8.GetBytes(session.SymmetricKey),
+                    KeyData = Convert.FromBase64String(session.SymmetricKey), // real AES key bytes, not a UTF8 re-encoding of the base64 text
                     Algorithm = "AES-256-GCM"
                 };
                 var decryptedContent = await _encryptionProvider.DecryptAsync(encryptedMessage.Content, securityKey);
@@ -547,15 +547,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             };
         }
 
+        /// <summary>
+        /// Performs a real proof-of-possession handshake: signs a fresh random nonce with the session's own
+        /// private key and verifies it with the session's own public key. This used to trivially set
+        /// Result=true with no actual cryptographic check, which meant a session with malformed or unusable
+        /// key material (e.g. a key pair that doesn't actually round-trip through ECDsa) would still report a
+        /// successful handshake. If signing or verification fails, the handshake now genuinely fails.
+        /// </summary>
         private async Task<OASISResult<bool>> PerformSecureHandshakeAsync(SecuritySession session)
         {
             var result = new OASISResult<bool>();
-            
+
             try
             {
-                // Implement secure handshake protocol
-                // This would include key exchange, authentication, etc.
-                
+                var nonceBytes = new byte[32];
+                RandomNumberGenerator.Fill(nonceBytes);
+                var nonce = Convert.ToBase64String(nonceBytes);
+
+                var signingKey = new SecurityKey { PrivateKey = session.PrivateKey, KeyData = Convert.FromBase64String(session.PrivateKey) };
+                var signature = await _encryptionProvider.SignAsync(nonce, signingKey);
+
+                var verificationKey = new SecurityKey { PublicKey = session.PublicKey, KeyData = Convert.FromBase64String(session.PublicKey) };
+                var verified = await _encryptionProvider.VerifySignatureAsync(nonce, signature, verificationKey);
+
+                if (!verified)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Secure handshake failed: proof-of-possession signature did not verify against the session's public key.");
+                    return result;
+                }
+
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "Secure handshake completed successfully";
@@ -570,17 +590,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private async Task<string> GenerateMessageSignatureAsync(ONETMessage message, string privateKey)
         {
-            // Generate digital signature for message integrity
+            // Generate digital signature for message integrity. KeyData must be populated with the decoded
+            // PKCS8 private key bytes - SignAsync feeds it straight into ECDsa.ImportPkcs8PrivateKey, which
+            // throws on the empty byte[] this SecurityKey would otherwise default to.
             var messageHash = await _encryptionProvider.ComputeHashAsync(message.Content);
-            var securityKey = new SecurityKey { PrivateKey = privateKey };
+            var securityKey = new SecurityKey { PrivateKey = privateKey, KeyData = Convert.FromBase64String(privateKey) };
             return await _encryptionProvider.SignAsync(messageHash, securityKey);
         }
 
         private async Task<bool> VerifyMessageSignatureAsync(ONETMessage message, string publicKey)
         {
-            // Verify digital signature for message integrity
+            // Verify digital signature for message integrity. Same KeyData requirement as above, decoding
+            // the SubjectPublicKeyInfo bytes VerifySignatureAsync needs for ECDsa.ImportSubjectPublicKeyInfo.
             var messageHash = await _encryptionProvider.ComputeHashAsync(message.Content);
-            var securityKey = new SecurityKey { PublicKey = publicKey };
+            var securityKey = new SecurityKey { PublicKey = publicKey, KeyData = Convert.FromBase64String(publicKey) };
             return await _encryptionProvider.VerifySignatureAsync(messageHash, message.SecurityMetadata?.Signature ?? "", securityKey);
         }
 
@@ -676,6 +699,55 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        /// <summary>
+        /// Returns the base64 SubjectPublicKeyInfo public key for a known node, or empty string if unknown.
+        /// Used when building the outgoing /onet/nodes peer list so recipients can register the key.
+        /// </summary>
+        public string GetNodePublicKey(string nodeId)
+            => _nodeKeys.TryGetValue(nodeId, out var k) ? k.PublicKey ?? string.Empty : string.Empty;
+
+        /// <summary>
+        /// Signs <paramref name="message"/> with the local node's ECDSA private key.
+        /// Returns null if the node has no registered key pair (e.g. key generation not yet called).
+        /// </summary>
+        public async Task<string?> SignMessageForNodeAsync(string nodeId, string message)
+        {
+            if (!_nodeKeys.TryGetValue(nodeId, out var key) || string.IsNullOrEmpty(key.PrivateKey))
+                return null;
+            var securityKey = new SecurityKey { PrivateKey = key.PrivateKey, KeyData = Convert.FromBase64String(key.PrivateKey) };
+            return await _encryptionProvider.SignAsync(message, securityKey);
+        }
+
+        /// <summary>
+        /// Register a remote node's public key so its signatures can be verified.
+        /// Called when a peer announces itself during bootstrap peer-exchange.
+        /// </summary>
+        public void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+        {
+            if (string.IsNullOrWhiteSpace(nodeId) || string.IsNullOrWhiteSpace(base64PublicKey))
+                return;
+            _nodeKeys[nodeId] = new SecurityKey
+            {
+                NodeId = nodeId,
+                PublicKey = base64PublicKey,
+                KeyData = Convert.FromBase64String(base64PublicKey),
+                IsActive = true,
+                GeneratedAt = DateTime.UtcNow
+            };
+        }
+
+        /// <summary>
+        /// Verify an ECDSA P-256 signature produced by a remote node over <paramref name="message"/>.
+        /// Returns false if the node's public key is not yet registered (unknown peer).
+        /// </summary>
+        public async Task<bool> VerifyNodeSignatureAsync(string nodeId, string message, string base64Signature)
+        {
+            if (!_nodeKeys.TryGetValue(nodeId, out var key) || key.KeyData == null || key.KeyData.Length == 0)
+                return false;
+            var securityKey = new SecurityKey { PublicKey = key.PublicKey, KeyData = key.KeyData };
+            return await _encryptionProvider.VerifySignatureAsync(message, base64Signature, securityKey);
+        }
+
     }
 
     public class SecurityKey
@@ -748,17 +820,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task<KeyPair> GenerateKeyPairAsync()
         {
             await PerformRealKeyGenerationAsync(); // Real key generation
+
+            // Real ECDSA P-256 key pair, not a random GUID dressed up as a "key" - those were never valid
+            // PKCS8/SPKI key material, so every later SignAsync/VerifySignatureAsync call against them threw.
+            using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
             return new KeyPair
             {
-                PublicKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray()),
-                PrivateKey = Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+                PrivateKey = Convert.ToBase64String(ecdsa.ExportPkcs8PrivateKey()),
+                PublicKey = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo())
             };
         }
 
         public async Task<string> GenerateSymmetricKeyAsync()
         {
             await PerformRealQuantumKeyGenerationAsync(); // Real quantum key generation
-            return Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+
+            // Real 256-bit random key, not a random GUID's 16 bytes (which decoded to the wrong length for
+            // AES-256-GCM and was never produced by a CSPRNG sized for the configured key length).
+            var keyBytes = new byte[32];
+            RandomNumberGenerator.Fill(keyBytes);
+            return Convert.ToBase64String(keyBytes);
         }
 
         public async Task<string> EncryptAsync(string data, SecurityKey key)
@@ -840,9 +921,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 OASISErrorHandling.HandleError($"Error computing hash: {ex.Message}", ex);
                 throw;
             }
-            using var sha256Hash = SHA256.Create();
-            var hash = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(data));
-            return Convert.ToBase64String(hash);
         }
 
         public async Task<string> SignAsync(string data, SecurityKey key)

@@ -692,12 +692,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        // The six handlers below previously routed every event - including good-news ones like "consensus
+        // reached", "route updated" and "node discovered" - through OASISErrorHandling.HandleError(message)
+        // with no Exception, just to log them. That polluted error telemetry with non-error noise: anything
+        // monitoring error rates would have seen a spike of "errors" every time a node successfully joined
+        // the network. Informational/successful events now log at Info via LoggingManager; only genuinely
+        // adverse events (failures, security alerts) use Warning, and only real handler exceptions use
+        // OASISErrorHandling.HandleError.
+
         private void OnConsensusReached(object sender, ConsensusReachedEventArgs e)
         {
-            // Handle consensus reached event
             try
             {
-                OASISErrorHandling.HandleError($"Consensus reached: {e.ConsensusId}");
+                LoggingManager.Log($"Consensus reached: {e.ConsensusId}", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
@@ -707,10 +714,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnConsensusFailed(object sender, ConsensusFailedEventArgs e)
         {
-            // Handle consensus failed event
             try
             {
-                OASISErrorHandling.HandleError($"Consensus failed: {e.Reason}");
+                LoggingManager.Log($"Consensus failed: {e.Reason}", Logging.LogType.Warning);
             }
             catch (Exception ex)
             {
@@ -720,10 +726,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnRouteUpdated(object sender, RouteUpdatedEventArgs e)
         {
-            // Handle route updated event
             try
             {
-                OASISErrorHandling.HandleError($"Route updated: {e.RouteId}");
+                LoggingManager.Log($"Route updated: {e.RouteId}", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
@@ -733,10 +738,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnRouteFailed(object sender, RouteFailedEventArgs e)
         {
-            // Handle route failed event
             try
             {
-                OASISErrorHandling.HandleError($"Route failed: {e.Reason}");
+                LoggingManager.Log($"Route failed: {e.Reason}", Logging.LogType.Warning);
             }
             catch (Exception ex)
             {
@@ -746,10 +750,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnSecurityAlert(object sender, SecurityAlertEventArgs e)
         {
-            // Handle security alert event
             try
             {
-                OASISErrorHandling.HandleError($"Security alert: {e.AlertType} - {e.Description}");
+                LoggingManager.Log($"Security alert: {e.AlertType} - {e.Description}", Logging.LogType.Warning);
             }
             catch (Exception ex)
             {
@@ -759,10 +762,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnAuthenticationFailed(object sender, AuthenticationFailedEventArgs e)
         {
-            // Handle authentication failed event
             try
             {
-                OASISErrorHandling.HandleError($"Authentication failed: {e.NodeId} - {e.Reason}");
+                LoggingManager.Log($"Authentication failed: {e.NodeId} - {e.Reason}", Logging.LogType.Warning);
             }
             catch (Exception ex)
             {
@@ -772,10 +774,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnNodeDiscovered(object sender, NodeDiscoveredEventArgs e)
         {
-            // Handle node discovered event
             try
             {
-                OASISErrorHandling.HandleError($"Node discovered: {e.NodeId} at {e.Endpoint}");
+                LoggingManager.Log($"Node discovered: {e.NodeId} at {e.Endpoint}", Logging.LogType.Info);
             }
             catch (Exception ex)
             {
@@ -785,10 +786,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         private void OnNodeLost(object sender, NodeLostEventArgs e)
         {
-            // Handle node lost event
             try
             {
-                OASISErrorHandling.HandleError($"Node lost: {e.NodeId} - {e.Reason}");
+                LoggingManager.Log($"Node lost: {e.NodeId} - {e.Reason}", Logging.LogType.Warning);
             }
             catch (Exception ex)
             {

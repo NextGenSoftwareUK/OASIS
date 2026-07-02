@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
@@ -21,6 +22,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             _mockLogger = new Mock<ILogger<MissionsController>>();
             _controller = new MissionsController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -31,7 +33,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -45,7 +47,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -61,7 +63,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -78,7 +80,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -92,7 +94,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

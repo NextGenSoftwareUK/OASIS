@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.ComponentModel.DataAnnotations.Schema;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -66,12 +67,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
         public List<RefreshTokenModel> RefreshTokens { get; set;}
         public List<MetaDataModel> MetaData { get; set;}
+        public List<ProviderKeyModel> ProviderKey { get; set; } = new List<ProviderKeyModel>();
 
         public AvatarModel(){}
         public AvatarModel(IAvatar source){
 
             if(source.Id == Guid.Empty){
-                this.Id = Guid.NewGuid().ToString();
+                // Use ProviderUniqueStorageKey if available (immutable), otherwise fallback to a stable identifier
+                var immutableKey = source.ProviderUniqueStorageKey?.Values?.FirstOrDefault() 
+                    ?? source.ProviderUniqueStorageKey?.Keys?.FirstOrDefault().ToString() 
+                    ?? $"avatar:{source.CreatedDate.Ticks}";
+                this.Id = CreateDeterministicGuid(immutableKey).ToString();
             }
             else{
                 this.Id = source.Id.ToString();
@@ -210,6 +216,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             }
 
             return(item);
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
     }
 }

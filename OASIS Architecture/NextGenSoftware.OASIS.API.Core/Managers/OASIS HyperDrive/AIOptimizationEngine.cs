@@ -299,7 +299,20 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
         /// <summary>
         /// Update provider score based on recent performance
         /// </summary>
-        private async Task UpdateProviderScoreAsync(
+        private Task UpdateProviderScoreAsync(
+            ProviderType provider,
+            OASISResult<object> result,
+            long responseTimeMs)
+        {
+            UpdateProviderScore(provider, result, responseTimeMs);
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Updates a provider's running score in-memory. Pure dictionary math, no I/O - safe to call
+        /// synchronously from non-async call sites without resorting to sync-over-async (.Wait()/.Result).
+        /// </summary>
+        private void UpdateProviderScore(
             ProviderType provider,
             OASISResult<object> result,
             long responseTimeMs)
@@ -307,15 +320,15 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             try
             {
                 var currentScore = _providerScores.GetValueOrDefault(provider, 0.5);
-                
+
                 // Calculate performance factor
                 var successFactor = result.IsError ? -0.1 : 0.1;
-                var responseTimeFactor = responseTimeMs < 1000 ? 0.05 : 
+                var responseTimeFactor = responseTimeMs < 1000 ? 0.05 :
                                        responseTimeMs > 5000 ? -0.05 : 0.0;
-                
+
                 var adjustment = successFactor + responseTimeFactor;
                 var newScore = currentScore + adjustment;
-                
+
                 // Ensure score stays within bounds
                 _providerScores[provider] = Math.Max(0.0, Math.Min(1.0, newScore));
             }
@@ -460,7 +473,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
                     Message = dataPoint.ErrorMessage
                 };
                 
-                UpdateProviderScoreAsync(providerType, result, (long)dataPoint.Duration.TotalMilliseconds).Wait();
+                // UpdateProviderScore is pure in-memory dictionary math with no real async work, so it runs
+                // synchronously here - no .Wait()/sync-over-async deadlock risk on a captured sync context.
+                UpdateProviderScore(providerType, result, (long)dataPoint.Duration.TotalMilliseconds);
             }
             catch (Exception ex)
             {
@@ -498,8 +513,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive
             
             try
             {
-                // Find expensive providers
-                var expensiveProviders = _providerScores.Where(p => p.Value < 0.3).Select(p => p.Key).ToList();
+                // Find expensive providers using actual cost-efficiency scoring (not the general performance
+                // score, which measures speed/reliability and has nothing to do with cost - using it here was
+                // a label/data mismatch: "low performance" providers were being reported as "expensive").
+                var expensiveProviders = _providerScores.Keys
+                    .Where(provider => GetCostEfficiencyScore(provider) < 0.3)
+                    .ToList();
                 
                 if (expensiveProviders.Any())
                 {

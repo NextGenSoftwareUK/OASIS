@@ -10,12 +10,14 @@ using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.Logging;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
     public partial class AvatarManager : OASISManager
     {
         public OASISResult<IAvatar> LoadAvatar(Guid id, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
+        //public OASISResult<IAvatar> LoadAvatar(Guid id, bool loadWallets = true, bool loadPrivateKeys = false, bool hideAuthDetails = true, ProviderType providerType = ProviderType.Default, int version = 0)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
@@ -91,7 +93,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return hdResult;
                 }
             }
-            catch { /* fallback to legacy */ }
+            catch (Exception hyperDriveEx)
+            {
+                LoggingManager.Log($"HyperDrive v2 routing failed for LoadAvatar(id={id}), falling back to legacy provider path. Reason: {hyperDriveEx.Message}", LogType.Warning);
+            }
 
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
             ProviderType currentProviderType = ProviderManager.Instance.CurrentStorageProviderType.Value;
