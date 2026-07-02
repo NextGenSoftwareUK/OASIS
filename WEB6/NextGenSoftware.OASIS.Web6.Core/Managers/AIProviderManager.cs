@@ -123,20 +123,35 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (Enum.TryParse(requestedProvider, true, out AIProviderType requested) && requested != AIProviderType.Auto)
                 return new List<AIProviderType> { requested };
 
-            // "auto" - prefer whichever providers we actually have an API key configured for,
-            // ordered by the requested (or DNA-configured default) routing priority.
-            List<AIProviderType> configured = ApiKeys.Where(kv => !string.IsNullOrEmpty(kv.Value)).Select(kv => kv.Key).ToList();
+            // "auto" - check whether OpenServ should be preferred (per-request overrides DNA default).
+            bool preferOpenServ = request.Routing?.UseOpenServ
+                ?? OASISDNA?.OASIS?.Web6?.PreferOpenServ
+                ?? false;
 
+            if (preferOpenServ && !string.IsNullOrEmpty(ApiKeys.GetValueOrDefault(AIProviderType.OpenServ)))
+                return new List<AIProviderType> { AIProviderType.OpenServ };
+
+            // Otherwise prefer whichever direct providers we have keys for, ordered by routing priority.
+            List<AIProviderType> configured = ApiKeys
+                .Where(kv => !string.IsNullOrEmpty(kv.Value) && kv.Key != AIProviderType.OpenServ)
+                .Select(kv => kv.Key)
+                .ToList();
+
+            // Fall back to OpenServ if nothing else is configured.
             if (configured.Count == 0)
+            {
+                if (!string.IsNullOrEmpty(ApiKeys.GetValueOrDefault(AIProviderType.OpenServ)))
+                    return new List<AIProviderType> { AIProviderType.OpenServ };
                 return new List<AIProviderType> { AIProviderType.OpenAI };
+            }
 
             string priority = request.Routing?.Priority ?? OASISDNA?.OASIS?.Web6?.DefaultRoutingPriority ?? "cost";
 
             return priority.ToLowerInvariant() switch
             {
-                "quality" => OrderByPreference(configured, AIProviderType.Anthropic, AIProviderType.OpenAI, AIProviderType.OpenServ, AIProviderType.Gemini),
-                "latency" => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.Gemini, AIProviderType.OpenAI, AIProviderType.OpenServ),
-                _ => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.DeepSeek, AIProviderType.OpenAI, AIProviderType.Anthropic, AIProviderType.OpenServ),
+                "quality" => OrderByPreference(configured, AIProviderType.Anthropic, AIProviderType.OpenAI, AIProviderType.Gemini, AIProviderType.Groq),
+                "latency" => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.Gemini, AIProviderType.OpenAI, AIProviderType.Anthropic),
+                _ => OrderByPreference(configured, AIProviderType.Groq, AIProviderType.DeepSeek, AIProviderType.OpenAI, AIProviderType.Anthropic),
             };
         }
 
