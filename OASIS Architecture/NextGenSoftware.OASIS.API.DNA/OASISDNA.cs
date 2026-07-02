@@ -69,6 +69,36 @@ namespace NextGenSoftware.OASIS.API.DNA
         public FAHRNSettings FAHRN { get; set; } = new FAHRNSettings();
         public HolonicBraidSettings HolonicBraid { get; set; } = new HolonicBraidSettings();
         public HolonicMemorySettings HolonicMemory { get; set; } = new HolonicMemorySettings();
+
+        /// <summary>
+        /// AI provider API keys. Environment variables always take priority (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
+        /// and override these values at runtime. Set keys here for local development so you don't need to configure
+        /// environment variables on your machine. Leave blank in production and use environment variables instead.
+        /// </summary>
+        public Web6ApiKeysSettings ApiKeys { get; set; } = new Web6ApiKeysSettings();
+    }
+
+    /// <summary>
+    /// API keys for every AI provider supported by WEB6's AIProviderManager.
+    /// Environment variables (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.) always win over these values.
+    /// These are the fallback used when the corresponding environment variable is absent or empty.
+    /// Do NOT commit real keys to source control — use environment variables in production.
+    /// </summary>
+    public class Web6ApiKeysSettings
+    {
+        public string OpenAI { get; set; } = "";
+        public string Anthropic { get; set; } = "";
+        public string Gemini { get; set; } = "";
+        public string Groq { get; set; } = "";
+        public string Mistral { get; set; } = "";
+        public string Cohere { get; set; } = "";
+        public string XAI { get; set; } = "";
+        public string DeepSeek { get; set; } = "";
+        public string HuggingFace { get; set; } = "";
+        public string AzureOpenAI { get; set; } = "";
+        public string StabilityAI { get; set; } = "";
+        /// <summary>OpenServ SERV gateway key — reaches OpenAI, Anthropic, Google, xAI, Qwen, DeepSeek behind one key.</summary>
+        public string OpenServ { get; set; } = "";
     }
 
     /// <summary>
