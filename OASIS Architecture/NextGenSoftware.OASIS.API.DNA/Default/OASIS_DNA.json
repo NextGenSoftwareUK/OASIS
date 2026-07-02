@@ -490,6 +490,23 @@
             "HolonicMemory": {
                 "DefaultRetentionPolicy": "Default",
                 "RecordDispatchOutcomes": true
+            },
+            "PreferOpenServ": false,
+            "EnableFAHRN": false,
+            "EnableHolonicBraid": false,
+            "ApiKeys": {
+                "OpenAI": "",
+                "Anthropic": "",
+                "Gemini": "",
+                "Groq": "",
+                "Mistral": "",
+                "Cohere": "",
+                "XAI": "",
+                "DeepSeek": "",
+                "HuggingFace": "",
+                "AzureOpenAI": "",
+                "StabilityAI": "",
+                "OpenServ": ""
             }
         }
     }
