@@ -416,13 +416,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Get network topology
         /// </summary>
-        public async Task<OASISResult<NetworkTopology>> GetNetworkTopologyAsync()
+        public async Task<OASISResult<NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology>> GetNetworkTopologyAsync()
         {
-            var result = new OASISResult<NetworkTopology>();
-            
+            var result = new OASISResult<NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology>();
+
             try
             {
-                var topology = new NetworkTopology
+                var topology = new NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology
                 {
                     Nodes = _connectedNodes,
                     Connections = new List<NetworkConnection>(),
