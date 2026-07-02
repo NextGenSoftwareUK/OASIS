@@ -65,6 +65,27 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// <summary>When true, AIProviderManager.CompleteAsync fails over to the next configured provider candidate on error (overridable per-request via CompletionRequest.Routing.Fallback).</summary>
         public bool DefaultRoutingFallbackEnabled { get; set; } = true;
 
+        /// <summary>
+        /// When true and CompletionRequest.Provider is "auto", route through the OpenServ SERV gateway instead of
+        /// calling providers directly. OpenServ reaches OpenAI, Anthropic, Google, xAI, Qwen and DeepSeek behind a
+        /// single SERV_API_KEY / ApiKeys.OpenServ. Overridable per-request via CompletionRequest.Routing.UseOpenServ.
+        /// </summary>
+        public bool PreferOpenServ { get; set; } = false;
+
+        /// <summary>
+        /// When true, /v1/complete automatically runs the FAHRN reasoning-network dispatch step before calling the
+        /// AI provider, injecting the returned Mermaid execution plan into the system context. This improves
+        /// multi-step reasoning at the cost of extra latency. Overridable per-request via CompletionRequest.UseFAHRN.
+        /// </summary>
+        public bool EnableFAHRN { get; set; } = false;
+
+        /// <summary>
+        /// When true, /v1/complete fetches the shared Holonic BRAID reasoning graph for the request's task type
+        /// and injects it into the system context before calling the provider. Reasoning patterns compound globally
+        /// across all users. Overridable per-request via CompletionRequest.UseHolonicBraid.
+        /// </summary>
+        public bool EnableHolonicBraid { get; set; } = false;
+
         public OpenServSettings OpenServ { get; set; } = new OpenServSettings();
         public FAHRNSettings FAHRN { get; set; } = new FAHRNSettings();
         public HolonicBraidSettings HolonicBraid { get; set; } = new HolonicBraidSettings();
