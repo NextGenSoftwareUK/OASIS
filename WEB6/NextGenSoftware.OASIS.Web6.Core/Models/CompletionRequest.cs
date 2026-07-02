@@ -26,5 +26,25 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public double? Temperature { get; set; }
 
         public int? MaxTokens { get; set; }
+
+        /// <summary>
+        /// Per-request FAHRN override. null = use OASIS_DNA.Web6.EnableFAHRN default. true/false = force on/off
+        /// regardless of the DNA setting. When enabled, WEB6 runs a FAHRN reasoning-network dispatch before calling
+        /// the provider and injects the Mermaid execution plan into the system context.
+        /// </summary>
+        public bool? UseFAHRN { get; set; }
+
+        /// <summary>
+        /// Per-request Holonic BRAID override. null = use OASIS_DNA.Web6.EnableHolonicBraid default.
+        /// true/false = force on/off. When enabled, WEB6 fetches the shared reasoning graph for FahrnTaskType
+        /// and injects it into the system context before calling the provider.
+        /// </summary>
+        public bool? UseHolonicBraid { get; set; }
+
+        /// <summary>
+        /// Task type used for FAHRN dispatch scoring and Holonic BRAID graph look-up (e.g. "general", "legal",
+        /// "code", "mathematics", "trust-guidance"). Defaults to "general".
+        /// </summary>
+        public string FahrnTaskType { get; set; } = "general";
     }
 }
