@@ -41,18 +41,29 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
         private void LoadApiKeysFromEnvironment()
         {
-            ApiKeys[AIProviderType.OpenAI] = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
-            ApiKeys[AIProviderType.Anthropic] = Environment.GetEnvironmentVariable("ANTHROPIC_API_KEY");
-            ApiKeys[AIProviderType.Gemini] = Environment.GetEnvironmentVariable("GEMINI_API_KEY");
-            ApiKeys[AIProviderType.Groq] = Environment.GetEnvironmentVariable("GROQ_API_KEY");
-            ApiKeys[AIProviderType.Mistral] = Environment.GetEnvironmentVariable("MISTRAL_API_KEY");
-            ApiKeys[AIProviderType.Cohere] = Environment.GetEnvironmentVariable("COHERE_API_KEY");
-            ApiKeys[AIProviderType.XAI] = Environment.GetEnvironmentVariable("XAI_API_KEY");
-            ApiKeys[AIProviderType.DeepSeek] = Environment.GetEnvironmentVariable("DEEPSEEK_API_KEY");
-            ApiKeys[AIProviderType.HuggingFace] = Environment.GetEnvironmentVariable("HUGGINGFACE_API_KEY");
-            ApiKeys[AIProviderType.AzureOpenAI] = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
-            ApiKeys[AIProviderType.StabilityAI] = Environment.GetEnvironmentVariable("STABILITY_API_KEY");
-            ApiKeys[AIProviderType.OpenServ] = Environment.GetEnvironmentVariable("SERV_API_KEY");
+            // Environment variables always win — they override OASIS_DNA.json values.
+            // Fallback order: env var → OASIS_DNA.json Web6.ApiKeys → null (provider skipped).
+            var dna = OASISDNA?.OASIS?.Web6?.ApiKeys;
+
+            ApiKeys[AIProviderType.OpenAI]      = Resolve("OPENAI_API_KEY",       dna?.OpenAI);
+            ApiKeys[AIProviderType.Anthropic]   = Resolve("ANTHROPIC_API_KEY",    dna?.Anthropic);
+            ApiKeys[AIProviderType.Gemini]      = Resolve("GEMINI_API_KEY",       dna?.Gemini);
+            ApiKeys[AIProviderType.Groq]        = Resolve("GROQ_API_KEY",         dna?.Groq);
+            ApiKeys[AIProviderType.Mistral]     = Resolve("MISTRAL_API_KEY",      dna?.Mistral);
+            ApiKeys[AIProviderType.Cohere]      = Resolve("COHERE_API_KEY",       dna?.Cohere);
+            ApiKeys[AIProviderType.XAI]         = Resolve("XAI_API_KEY",          dna?.XAI);
+            ApiKeys[AIProviderType.DeepSeek]    = Resolve("DEEPSEEK_API_KEY",     dna?.DeepSeek);
+            ApiKeys[AIProviderType.HuggingFace] = Resolve("HUGGINGFACE_API_KEY",  dna?.HuggingFace);
+            ApiKeys[AIProviderType.AzureOpenAI] = Resolve("AZURE_OPENAI_API_KEY", dna?.AzureOpenAI);
+            ApiKeys[AIProviderType.StabilityAI] = Resolve("STABILITY_API_KEY",    dna?.StabilityAI);
+            ApiKeys[AIProviderType.OpenServ]    = Resolve("SERV_API_KEY",         dna?.OpenServ);
+        }
+
+        /// <summary>Returns the env var value if set and non-empty, otherwise the OASIS_DNA fallback.</summary>
+        private static string Resolve(string envVar, string dnaFallback)
+        {
+            string env = Environment.GetEnvironmentVariable(envVar);
+            return !string.IsNullOrEmpty(env) ? env : dnaFallback;
         }
 
         /// <summary>
