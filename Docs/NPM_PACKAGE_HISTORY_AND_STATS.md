@@ -1,29 +1,29 @@
-# OASIS JS API Package History & Download Stats
+﻿# OASIS JS API Package History & Download Stats
 
 A running historic log of the OASIS JS npm package rename(s), the `@oasisomniverse` scope migration, and download stats snapshots — kept for historic record of the OASIS project's evolution.
 
 ## Package Lineage
 
-The WEB4 JS client has been renamed twice (npm does not support renaming a package in place, so each rename forces a new package to be published):
+The WEB 4 JS client has been renamed twice (npm does not support renaming a package in place, so each rename forces a new package to be published):
 
 1. **`oasis-api`** (original name) — first published 2022-03-17
-2. **`web4-oasis-api`** (renamed for WEB4 branding) — first published 2022-08-11
+2. **`web4-oasis-api`** (renamed for WEB 4 branding) — first published 2022-08-11
 3. **`@oasisomniverse/web4-api`** (current — renamed into the `@oasisomniverse` scope) — published 2026-07-01 at v2.0.0
 
-All WEB5–WEB10 JS packages are brand new with no prior published history, so they correctly start at `v1.0.0` (vs. `v2.0.0` for WEB4, which continues the `web4-oasis-api` version lineage):
+All WEB 5–WEB 10 JS packages are brand new with no prior published history, so they correctly start at `v1.0.0` (vs. `v2.0.0` for WEB 4, which continues the `web4-oasis-api` version lineage):
 
 | Package | Scope name | Starting version |
 |---|---|---|
-| WEB4 | `@oasisomniverse/web4-api` | v2.0.0 (continuation) |
-| WEB5 | `@oasisomniverse/web5-api` | v1.0.0 (new) |
-| WEB6 | `@oasisomniverse/web6-api` | v1.0.0 (new) |
-| WEB7 | `@oasisomniverse/web7-api` | v1.0.0 (new) |
-| WEB8 | `@oasisomniverse/web8-api` | v1.0.0 (new) |
-| WEB9 | `@oasisomniverse/web9-api` | v1.0.0 (new) |
-| WEB10 | `@oasisomniverse/web10-api` | v1.0.0 (new) |
+| WEB 4 | `@oasisomniverse/web4-api` | v2.0.0 (continuation) |
+| WEB 5 | `@oasisomniverse/web5-api` | v1.0.0 (new) |
+| WEB 6 | `@oasisomniverse/web6-api` | v1.0.0 (new) |
+| WEB 7 | `@oasisomniverse/web7-api` | v1.0.0 (new) |
+| WEB 8 | `@oasisomniverse/web8-api` | v1.0.0 (new) |
+| WEB 9 | `@oasisomniverse/web9-api` | v1.0.0 (new) |
+| WEB 10 | `@oasisomniverse/web10-api` | v1.0.0 (new) |
 
 **Why the scope migration happened:** the original npm account's recovery email (`david@nextgensoftware.co.uk`) stopped working after that domain lapsed, locking out publish access to the unscoped names. A support ticket was filed with npm to recover the original account (Plan A — if successful, keep publishing `web4-oasis-api` under its original name to preserve its download history rather than deprecating it). As a Plan B (and because it also makes sense as a permanent naming convention regardless of account recovery), all 7 packages were renamed into the `@oasisomniverse` scope, which:
-- Groups the whole WEB4–WEB10 family under one consistent, professional namespace.
+- Groups the whole WEB 4–WEB 10 family under one consistent, professional namespace.
 - Avoids ever being locked out of a name by one personal account/email again (scopes belong to an npm org, which can have multiple owners).
 - Uses a flat `web{N}-api` naming convention (not `web5-star-api` / `web6-ai-api` — descriptive detail belongs in `description`/README, not the package name) for visual consistency across the family.
 
@@ -64,7 +64,7 @@ curl -s "https://api.npmjs.org/downloads/point/2025-08-01:2026-06-29/web4-oasis-
 | `web4-oasis-api` | | 2024-02-01 → 2025-07-31 | 939 |
 | `web4-oasis-api` | | 2025-08-01 → 2026-06-29 | 1,470 |
 | **`web4-oasis-api` total** | | | **3,685** |
-| **Combined WEB4 lineage total** | | | **5,655** |
+| **Combined WEB 4 lineage total** | | | **5,655** |
 | `@oasisomniverse/web4-api` | published 2026-07-01 | — | 0 (just launched) |
 
 For comparison, the existing infra stat shown on the OASIS Omniverse site is **256K+ NuGet downloads** for the C# packages — a much larger, longer-established number from a different ecosystem.
