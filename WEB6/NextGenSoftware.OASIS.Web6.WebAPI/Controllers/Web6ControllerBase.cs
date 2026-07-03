@@ -24,6 +24,6 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             }
         }
 
-        protected OASISDNA OASISDNA => OASISBootLoader.OASISDNA;
+        protected OASISDNA OASISDNA => OASISBootLoader.OASISBootLoader.OASISDNA; //TODO: check if this is the best way to get the OASISDNA instance in a controller.
     }
 }
