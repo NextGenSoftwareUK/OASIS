@@ -1,5 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 {
@@ -21,5 +23,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
                 return Guid.TryParse(raw, out Guid id) ? id : Guid.Empty;
             }
         }
+
+        protected OASISDNA OASISDNA => OASISBootLoader.OASISDNA;
     }
 }
