@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Web10.Core.Managers;
 using NextGenSoftware.OASIS.Web10.Core.Models;
+using NextGenSoftware.OASIS.Web10.WebAPI.Attributes;
 
 namespace NextGenSoftware.OASIS.Web10.WebAPI.Controllers
 {
     /// <summary>The Source / WEB0 - the root of the OASIS stack. "The Omega that is the Alpha."</summary>
+    [Authorize]
     [ApiController]
     [Route("v1/source")]
     public class SourceController : ControllerBase

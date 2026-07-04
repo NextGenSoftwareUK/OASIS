@@ -1297,6 +1297,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
+                Issuer = "OASIS",
+                Audience = "OASIS",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);

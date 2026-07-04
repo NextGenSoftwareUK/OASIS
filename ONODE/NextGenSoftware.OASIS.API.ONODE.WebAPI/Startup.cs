@@ -297,7 +297,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
 
 
-            app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
@@ -310,7 +311,13 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
 
             // global cors policy
             app.UseCors(x => x
-                .SetIsOriginAllowed(origin => true)
+                .WithOrigins(
+                    "https://oasisomniverse.one",
+                    "https://app.oasisomniverse.one",
+                    "https://oasisweb4.one",
+                    "https://oasisweb5.one",
+                    "http://localhost:3000",
+                    "http://localhost:5173")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials());
