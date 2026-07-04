@@ -37,17 +37,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             try
             {
-                Console.WriteLine($"JwtMiddleware: Validating JWT Token... Token: {token}");
-                Console.WriteLine($"URI: {context.Connection.LocalIpAddress}:{context.Connection.LocalPort}");
                 var tokenHandler = new JwtSecurityTokenHandler();
                 var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.SecretKey);
                 tokenHandler.ValidateToken(token, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ValidateIssuer = true,
+                    ValidIssuer = "OASIS",
+                    ValidateAudience = true,
+                    ValidAudience = "OASIS",
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 

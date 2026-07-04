@@ -1,7 +1,9 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web6.WebAPI.Attributes;
 
 namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 {
@@ -9,6 +11,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
     /// Base controller for WEB6 endpoints. Resolves the calling OASIS avatar id (optional) from the
     /// AvatarId header/query so completions and dispatches can be grounded with WEB4 identity/karma.
     /// </summary>
+    [Authorize]
     public abstract class Web6ControllerBase : ControllerBase
     {
         protected Guid AvatarId
@@ -24,6 +27,8 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             }
         }
 
-        protected OASISDNA OASISDNA => OASISBootLoader.OASISBootLoader.OASISDNA; //TODO: check if this is the best way to get the OASISDNA instance in a controller.
+        protected IAvatar Avatar => HttpContext.Items["Avatar"] as IAvatar;
+
+        protected OASISDNA OASISDNA => OASISBootLoader.OASISBootLoader.OASISDNA;
     }
 }

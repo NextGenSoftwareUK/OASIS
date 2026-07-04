@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Web9.Core.Managers;
 using NextGenSoftware.OASIS.Web9.Core.Models;
+using NextGenSoftware.OASIS.Web9.WebAPI.Attributes;
 
 namespace NextGenSoftware.OASIS.Web9.WebAPI.Controllers
 {
     /// <summary>The Singularity Layer - one unified view across every other OASIS layer, live.</summary>
+    [Authorize]
     [ApiController]
     [Route("v1/singularity")]
     public class SingularityController : ControllerBase
