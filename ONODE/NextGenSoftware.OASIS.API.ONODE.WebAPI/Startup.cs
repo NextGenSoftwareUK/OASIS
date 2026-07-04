@@ -62,6 +62,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
                 .AddJsonOptions(x =>
                 {
                     x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                     x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
                 });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
