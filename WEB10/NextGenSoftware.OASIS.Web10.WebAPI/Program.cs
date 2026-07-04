@@ -28,7 +28,14 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+    options.AddPolicy("AllowAll", policy => policy.WithOrigins(
+            "https://oasisomniverse.one",
+            "https://app.oasisomniverse.one",
+            "https://oasisweb4.one",
+            "https://oasisweb5.one",
+            "http://localhost:3000",
+            "http://localhost:5173")
+        .AllowAnyMethod().AllowAnyHeader());
 });
 
 var app = builder.Build();
