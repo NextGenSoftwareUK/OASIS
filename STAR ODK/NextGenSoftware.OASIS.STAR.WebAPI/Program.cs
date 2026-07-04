@@ -341,25 +341,13 @@ app.Use(async (context, next) =>
                             if (bootResult.IsError)
                                 OASISErrorHandling.HandleError($"Warning: OASIS boot failed in middleware: {bootResult.Message}");
                         }
-                        var avatarLoadResult = await AvatarManager.Instance.LoadAvatarAsync(avatarId);
-                        if (!avatarLoadResult.IsError && avatarLoadResult.Result is not null)
-                        {
-                            context.Items["Avatar"] = avatarLoadResult.Result;
-                            OASISRequestContext.CurrentAvatarId = avatarId;
-                            OASISRequestContext.CurrentAvatar = avatarLoadResult.Result;
-                        }
-                        else
-                        {
-                            context.Items["AvatarId"] = avatarId;
-                            OASISRequestContext.CurrentAvatarId = avatarId;
-                            OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
-                        }
+                        // Avatar context is set by JwtMiddleware after signature validation — only set the ID hint here
+                        context.Items["AvatarId"] = avatarId;
+                        OASISRequestContext.CurrentAvatarId = avatarId;
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Warning: Failed to load avatar in middleware: {ex.Message}");
-                        OASISRequestContext.CurrentAvatarId = avatarId;
-                        OASISRequestContext.CurrentAvatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatarId };
+                        System.Diagnostics.Debug.WriteLine($"Warning: Failed to parse avatar ID in middleware: {ex.Message}");
                     }
                 }
             }

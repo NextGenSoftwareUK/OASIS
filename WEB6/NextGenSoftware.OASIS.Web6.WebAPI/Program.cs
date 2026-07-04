@@ -105,6 +105,7 @@ app.Use(async (context, next) =>
 });
 
 app.UseAuthorization();
+app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));

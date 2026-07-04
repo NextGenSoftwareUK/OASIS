@@ -1,25 +1,22 @@
 using System;
-using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.Core;
-using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 
-namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
+namespace NextGenSoftware.OASIS.Web6.WebAPI.Middleware
 {
     public class JwtMiddleware
     {
         private readonly RequestDelegate _next;
-        
+
         public JwtMiddleware(RequestDelegate next)
         {
             _next = next;
@@ -29,11 +26,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
-                await AttachAccountToContext(context, token);
+                await AttachAvatarToContext(context, token);
             await _next(context);
         }
 
-        private async Task AttachAccountToContext(HttpContext context, string token)
+        private async Task AttachAvatarToContext(HttpContext context, string token)
         {
             try
             {
@@ -53,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                OASISResult<IAvatar> avatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
+                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
 
                 if (!avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -64,33 +61,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
             }
             catch (Exception ex)
             {
-                var exceptionResponse = new OASISResult<string>()
+                var exceptionResponse = new OASISResult<string>
                 {
-                    Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
+                    Message = "Authorization Failed: JWT Token Is Invalid. Please re-login and try again."
                 };
-
                 OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
-
                 byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                //byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject("test error"));
-
-               // await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
-
-                try
-                {
-                    //context.Response.ContentLength = body.Length;
-
-                    //if (context.Response.Body.CanRead)
-                    //    context.Response.ContentLength = context.Response.Body.Length;
-                }
-                catch (Exception)
-                {
-                    // Ignore exceptions during response body reading
-                }
+                try { await context.Response.Body.WriteAsync(body); } catch { }
+                return;
             }
         }
     }

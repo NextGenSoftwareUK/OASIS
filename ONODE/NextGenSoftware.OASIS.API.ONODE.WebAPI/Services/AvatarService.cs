@@ -780,8 +780,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     {
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(key),
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidIssuer = "OASIS",
+                        ValidateAudience = true,
+                        ValidAudience = "OASIS",
                         ClockSkew = TimeSpan.Zero
                     }, out _);
                     response.IsError = false;
@@ -1328,6 +1330,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 Subject = new ClaimsIdentity(new[] {new Claim("id", account.Id.ToString())}),
                 Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
+                Issuer = "OASIS",
+                Audience = "OASIS",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
                     SecurityAlgorithms.HmacSha256Signature)
             };

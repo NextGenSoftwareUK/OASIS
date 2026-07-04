@@ -27,11 +27,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
         {
             var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
             if (token != null)
-                await AttachAccountToContext(context, token);
+            {
+                bool authorized = await AttachAccountToContext(context, token);
+                if (!authorized)
+                    return;
+            }
             await _next(context);
         }
 
-        private async Task AttachAccountToContext(HttpContext context, string token)
+        private async Task<bool> AttachAccountToContext(HttpContext context, string token)
         {
             try
             {
@@ -41,9 +45,10 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
+                    ValidateIssuer = true,
+                    ValidIssuer = "OASIS",
+                    ValidateAudience = true,
+                    ValidAudience = "OASIS",
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
@@ -58,12 +63,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                     NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatarId = id;
                     NextGenSoftware.OASIS.API.Core.OASISRequestContext.CurrentAvatar = avatarResult.Result;
                 }
+                return true;
             }
             catch (Exception ex)
             {
                 var exceptionResponse = new OASISResult<string>()
                 {
-                    Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
+                    Message = "Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
                 };
 
                 OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
@@ -71,15 +77,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Middleware
                 context.Response.ContentType = "application/json";
 
                 byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                
-                try
-                {
-                    await context.Response.Body.WriteAsync(body);
-                }
-                catch
-                {
-                    // If we can't write to the response body, just continue
-                }
+                try { await context.Response.Body.WriteAsync(body); } catch { }
+                return false;
             }
         }
     }

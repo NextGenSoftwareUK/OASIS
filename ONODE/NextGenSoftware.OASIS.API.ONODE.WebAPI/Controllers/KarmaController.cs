@@ -93,6 +93,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <param name="providerType">Pass in the provider you wish to use.</param>
         /// <param name="setGlobally"> Set this to false for this provider to be used only for this request or true for it to be used for all future requests too.</param>
         /// <returns></returns>
+        [Authorize]
         [HttpGet("get-karma-for-avatar/{avatarId}")]
         public async Task<OASISResult<long>> GetKarmaForAvatar(Guid avatarId)
         {
@@ -161,6 +162,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="avatarId"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpGet("get-karma-akashic-records-for-avatar/{avatarId}")]
         public OASISResult<IEnumerable<IKarmaAkashicRecord>> GetKarmaAkashicRecordsForAvatar(Guid avatarId)
         {
@@ -315,6 +317,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("add-karma-to-avatar/{avatarId}")]
         public async Task<OASISResult<KarmaAkashicRecord>> AddKarmaToAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
+            if (avatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new() { IsError = true, Message = "Unauthorized" };
+
             object karmaTypePositiveObject = null;
             object karmaSourceTypeObject = null;
 
@@ -357,6 +362,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("remove-karma-from-avatar/{avatarId}")]
         public async Task<OASISResult<KarmaAkashicRecord>> RemoveKarmaFromAvatar(Guid avatarId, AddRemoveKarmaToAvatarRequest addKarmaToAvatarRequest)
         {
+            if (avatarId != Avatar.Id && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return new() { IsError = true, Message = "Unauthorized" };
+
             object karmaTypeNegativeObject = null;
             object karmaSourceTypeObject = null;
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -76,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         {
                             if (searchTextGroup.AvatarSearchParams.FirstName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
                                 //IEnumerable<IAvatar> avatars = await _dbContext.Avatar.Find(avatarFilter).ToEnumerable<IAvatar>();
                                 //IAsyncCursor<IAvatar> avatars = await _dbContext.Avatar.Find(avatarFilter).ToEnumerable<IAvatar>();
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
@@ -84,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                             if (searchTextGroup.AvatarSearchParams.LastName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 
@@ -120,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                             if (searchTextGroup.AvatarSearchParams.Email || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + searchTextGroup.SearchQuery.ToLower() + "/"));
+                                avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
                                 avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
                             }
 

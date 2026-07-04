@@ -782,6 +782,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-email/{email}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByEmail(string email)
         {
+            if (email != Avatar.Email && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByEmailAsync(email));
         }
 
@@ -812,6 +814,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpGet("get-avatar-detail-by-username/{username}")]
         public async Task<OASISHttpResponseMessage<IAvatarDetail>> GetAvatarDetailByUsername(string username)
         {
+            if (username != Avatar.Username && Avatar.AvatarType.Value != AvatarType.Wizard)
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatarDetail>() { IsError = true, Message = "Unauthorized" }, HttpStatusCode.Unauthorized);
             return HttpResponseHelper.FormatResponse(await Program.AvatarManager.LoadAvatarDetailByUsernameAsync(username));
         }
 
@@ -1122,6 +1126,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// </summary>
         /// <param name="searchParams"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpPost("search")]
         public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams)
         {
@@ -1129,13 +1134,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
-        /// Search avatars for the given search term. Coming soon... 
+        /// Search avatars for the given search term. Coming soon...
         /// Pass in the provider you wish to use. Set the setglobally flag to false for this provider to be used only for this request or true for it to be used for all future requests too.
         /// </summary>
         /// <param name="searchParams"></param>
         /// <param name="providerType"></param>
         /// <param name="setGlobally"></param>
         /// <returns></returns>
+        [Authorize]
         [HttpPost("search/{providerType}/{setGlobally}")]
         public async Task<OASISHttpResponseMessage<ISearchResults>> SearchAvatar(SearchParams searchParams, ProviderType providerType, bool setGlobally = false)
         {
@@ -1295,7 +1301,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
-            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
@@ -1355,7 +1361,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
-            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
@@ -1411,7 +1417,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
             if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
-            if (!string.IsNullOrEmpty(avatar.AvatarType)) 
+            if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
                     existingAvatar.AvatarType = new EnumValue<AvatarType>(avatarType);
