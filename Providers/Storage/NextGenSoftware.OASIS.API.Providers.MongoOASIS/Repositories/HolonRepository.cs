@@ -693,30 +693,41 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                //TODO: Cant remember why I was doing this?! lol
-                if (holon.Id == null)
+                // If the caller did not supply the MongoDB ObjectId (_id), look it up by HolonId
+                // so that ReplaceOneAsync does not try to write _id: null onto the existing document
+                // (MongoDB rejects this with error code 66 "immutable field _id was altered").
+                // This happens when stateless REST/JS clients construct a holon from scratch — they
+                // know the OASIS GUID (HolonId) but have no way to know the internal MongoDB _id.
+                if (string.IsNullOrEmpty(holon.Id))
                 {
-                    //Holon originalHolon = await GetHolonAsync(holon.HolonId);
-
-                    //if (originalHolon != null)
-                    //{
-                    //    holon.Id = originalHolon.Id;
-                    //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
-                    //    holon.CreatedDate = originalHolon.CreatedDate;
-                    //    holon.HolonType = originalHolon.HolonType;
-                    //    holon.ParentZome = originalHolon.ParentZome;
-                    //    holon.ParentZomeId = originalHolon.ParentZomeId;
-                    //    holon.ParentMoon = originalHolon.ParentMoon;
-                    //    holon.ParentPlanet = originalHolon.ParentPlanet;
-                    //    holon.ParentMoonId = originalHolon.ParentMoonId;
-                    //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
-                    //    holon.Children = originalHolon.Children;
-                    //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
-                    //    holon.DeletedDate = originalHolon.DeletedDate;
-                    //    holon.MetaData = originalHolon.MetaData;
-                    //    //TODO: Needs more thought!
-                    //}
+                    Holon originalHolon = await GetHolonAsync(holon.HolonId);
+                    if (originalHolon != null)
+                        holon.Id = originalHolon.Id;
                 }
+
+                // Old code (kept for reference — was previously commented out and never ran):
+                // if (holon.Id == null)
+                // {
+                //     //Holon originalHolon = await GetHolonAsync(holon.HolonId);
+                //     //if (originalHolon != null)
+                //     //{
+                //     //    holon.Id = originalHolon.Id;
+                //     //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
+                //     //    holon.CreatedDate = originalHolon.CreatedDate;
+                //     //    holon.HolonType = originalHolon.HolonType;
+                //     //    holon.ParentZome = originalHolon.ParentZome;
+                //     //    holon.ParentZomeId = originalHolon.ParentZomeId;
+                //     //    holon.ParentMoon = originalHolon.ParentMoon;
+                //     //    holon.ParentPlanet = originalHolon.ParentPlanet;
+                //     //    holon.ParentMoonId = originalHolon.ParentMoonId;
+                //     //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
+                //     //    holon.Children = originalHolon.Children;
+                //     //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
+                //     //    holon.DeletedDate = originalHolon.DeletedDate;
+                //     //    holon.MetaData = originalHolon.MetaData;
+                //     //    //TODO: Needs more thought!
+                //     //}
+                // }
 
                 await _dbContext.Holon.ReplaceOneAsync(filter: g => g.HolonId == holon.HolonId, replacement: holon);
                 result.Result = holon;
