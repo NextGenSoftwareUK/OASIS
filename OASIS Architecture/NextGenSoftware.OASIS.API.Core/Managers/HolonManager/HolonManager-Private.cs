@@ -63,14 +63,31 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             // TODO: I think it's best to include audit stuff here so the providers do not need to worry about it?
             // Providers could always override this behaviour if they choose...
 
-            if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
-            {
-                if (holon.Id == Guid.Empty)
-                    holon.Id = Guid.NewGuid();
+            // CHANGED: Previously IsNewHolon was set to true if EITHER Id == Guid.Empty OR
+            // CreatedDate == DateTime.MinValue. The CreatedDate check was problematic for
+            // stateless REST/JS clients (e.g. Vercel functions) that construct a holon
+            // object from scratch and never set CreatedDate — causing every save to be
+            // treated as an insert, creating a new MongoDB document every time instead of
+            // updating the existing one. Id == Guid.Empty is the correct and sufficient
+            // signal that a holon has not been persisted yet. CreatedDate is set below for
+            // new holons; for existing ones the caller simply won't know it, and that is fine.
+            //
+            // Old code (kept for reference):
+            // if (holon.Id == Guid.Empty || holon.CreatedDate == DateTime.MinValue)
+            // {
+            //     if (holon.Id == Guid.Empty)
+            //         holon.Id = Guid.NewGuid();
+            //     holon.IsNewHolon = true;
+            // }
+            // else if (holon.CreatedDate != DateTime.MinValue)
+            //     holon.IsNewHolon = false;
 
+            if (holon.Id == Guid.Empty)
+            {
+                holon.Id = Guid.NewGuid();
                 holon.IsNewHolon = true;
             }
-            else if (holon.CreatedDate != DateTime.MinValue)
+            else
                 holon.IsNewHolon = false;
 
             //if (holon.Id != Guid.Empty)
