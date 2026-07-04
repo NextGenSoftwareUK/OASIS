@@ -248,7 +248,21 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             using JsonDocument doc = JsonDocument.Parse(body);
             JsonElement root = doc.RootElement;
-            string content = root.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString();
+
+            JsonElement choice = root.GetProperty("choices")[0];
+            JsonElement message = choice.GetProperty("message");
+            string content = message.GetProperty("content").GetString();
+
+            if (content == null)
+            {
+                // content is null when the model refused, used tool calls, or hit a content filter.
+                // Surface the finish_reason and any refusal text so the caller knows exactly why.
+                string finishReason = choice.TryGetProperty("finish_reason", out JsonElement fr) ? fr.GetString() : "unknown";
+                string refusal = message.TryGetProperty("refusal", out JsonElement ref_) ? ref_.GetString() : null;
+                string detail = !string.IsNullOrEmpty(refusal) ? $" Refusal: {refusal}" : $" Raw response: {body}";
+                throw new InvalidOperationException($"{provider} returned null content (finish_reason={finishReason}).{detail}");
+            }
+
             int promptTokens = root.TryGetProperty("usage", out JsonElement usage) && usage.TryGetProperty("prompt_tokens", out JsonElement pt) ? pt.GetInt32() : 0;
             int completionTokens = root.TryGetProperty("usage", out JsonElement usage2) && usage2.TryGetProperty("completion_tokens", out JsonElement ct) ? ct.GetInt32() : 0;
 
@@ -296,6 +310,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             using JsonDocument doc = JsonDocument.Parse(body);
             JsonElement root = doc.RootElement;
             string content = root.GetProperty("content")[0].GetProperty("text").GetString();
+
+            if (content == null)
+                throw new InvalidOperationException($"Anthropic returned null content. Raw response: {body}");
+
             int promptTokens = root.TryGetProperty("usage", out JsonElement usage) && usage.TryGetProperty("input_tokens", out JsonElement pt) ? pt.GetInt32() : 0;
             int completionTokens = root.TryGetProperty("usage", out JsonElement usage2) && usage2.TryGetProperty("output_tokens", out JsonElement ct) ? ct.GetInt32() : 0;
 
@@ -345,6 +363,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             using JsonDocument doc = JsonDocument.Parse(body);
             JsonElement root = doc.RootElement;
             string content = root.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
+
+            if (content == null)
+                throw new InvalidOperationException($"Gemini returned null content. Raw response: {body}");
+
             int promptTokens = root.TryGetProperty("usageMetadata", out JsonElement usage) && usage.TryGetProperty("promptTokenCount", out JsonElement pt) ? pt.GetInt32() : 0;
             int completionTokens = root.TryGetProperty("usageMetadata", out JsonElement usage2) && usage2.TryGetProperty("candidatesTokenCount", out JsonElement ct) ? ct.GetInt32() : 0;
 
