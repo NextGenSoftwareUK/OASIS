@@ -44,7 +44,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             if (providerResult != null && !providerResult.IsError && providerResult.Result != null)
             {
-                OASISResult<IAvatarDetail> avatarResult = await providerResult.Result.LoadAvatarDetailAsync(avatarId);
+                OASISResult<IAvatarDetail> avatarResult = await LoadAvatarDetailAsync(avatarId);
+
+                // If AvatarDetail doesn't exist yet (e.g. registered via external OAPP), create it on the fly.
+                if (avatarResult == null || avatarResult.IsError || avatarResult.Result == null)
+                {
+                    IAvatarDetail newDetail = new AvatarDetail() { Id = avatarId, IsNewHolon = true };
+                    avatarResult = await SaveAvatarDetailAsync(newDetail);
+                }
 
                 if (avatarResult != null && !avatarResult.IsError && avatarResult.Result != null)
                 {
@@ -59,7 +66,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {result.Message}", result.DetailedMessage);
                 }
                 else
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult.Message}", avatarResult.DetailedMessage);
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: Avatar Not Found. Error Details: {avatarResult?.Message}", avatarResult?.DetailedMessage);
             }
             else
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} Reason: {providerResult.Message}", providerResult.DetailedMessage);
