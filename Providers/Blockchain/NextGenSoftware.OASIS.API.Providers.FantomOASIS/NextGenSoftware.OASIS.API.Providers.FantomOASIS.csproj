@@ -44,6 +44,8 @@
     <PackageReference Include="Nethereum.Signer" Version="4.25.0" />
     <PackageReference Include="Nethereum.Web3" Version="4.25.0" />
     <PackageReference Include="Nethereum.HdWallet" Version="4.25.0" />
+    <!-- Override to resolve NU1107: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client declares < 9.0.0 -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
