@@ -81,7 +81,6 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
     app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
-app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.JwtMiddleware>();
 
 // Global exception handler - logs and returns a real OASISResult-shaped error body.
 app.Use(async (context, next) =>
