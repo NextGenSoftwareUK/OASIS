@@ -42,8 +42,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Middleware
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = true,
                     ValidIssuer = "OASIS",
-                    ValidateAudience = true,
-                    ValidAudience = "OASIS",
+                    ValidateAudience = false,
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
