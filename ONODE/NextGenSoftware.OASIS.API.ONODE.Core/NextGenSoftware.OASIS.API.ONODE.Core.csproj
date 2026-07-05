@@ -40,7 +40,7 @@
 	  <PackageReference Include="Pinata.Client" Version="1.0.0" />
 	  <PackageReference Include="PinataNET" Version="1.0.2" />
 	  <PackageReference Include="SevenZip" Version="19.0.0" />
-	  <PackageReference Include="SharpCompress" Version="0.39.0" />
+	  <PackageReference Include="SharpCompress" Version="0.49.1" />
 	  <PackageReference Include="SharpZipLib" Version="1.4.2" />
 	  <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.35.4" />
 	  <PackageReference Include="Ipfs.Core" Version="0.55.0" />
