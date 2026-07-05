@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
@@ -28,7 +28,10 @@
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="System.Net.Http" Version="4.3.4" />
       <PackageReference Include="Nethereum.Signer" Version="4.18.0" />
-    </ItemGroup>
+    
+    <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+  </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\\..\\..\\OASIS Architecture\\NextGenSoftware.OASIS.API.Core\\NextGenSoftware.OASIS.API.Core.csproj" />
