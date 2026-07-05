@@ -50,13 +50,24 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Middleware
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
+                // Always mark the JWT as authenticated so AI endpoints work even when the storage
+                // provider (avatar DB) is not configured on this deployment. The avatar ID from the
+                // JWT claims is sufficient for routing/karma attribution; a full avatar load is best-effort.
+                context.Items["AvatarId"] = id;
+                OASISRequestContext.CurrentAvatarId = id;
 
-                if (!avatarResult.IsError && avatarResult.Result != null)
+                try
                 {
-                    context.Items["Avatar"] = avatarResult.Result;
-                    OASISRequestContext.CurrentAvatarId = id;
-                    OASISRequestContext.CurrentAvatar = avatarResult.Result;
+                    OASISResult<IAvatar> avatarResult = await AvatarManager.Instance.LoadAvatarAsync(id, false, false);
+                    if (!avatarResult.IsError && avatarResult.Result != null)
+                    {
+                        context.Items["Avatar"] = avatarResult.Result;
+                        OASISRequestContext.CurrentAvatar = avatarResult.Result;
+                    }
+                }
+                catch
+                {
+                    // Avatar DB not available on this deployment — JWT is still valid, proceed without full avatar.
                 }
             }
             catch (Exception ex)
