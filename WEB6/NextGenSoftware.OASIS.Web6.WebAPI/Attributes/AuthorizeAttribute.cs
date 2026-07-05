@@ -11,6 +11,16 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Attributes
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
+            // Accept a pre-shared service API key (X-Web6-Api-Key header) for server-to-server calls
+            // (e.g. Vercel serverless functions calling the Web6 AI layer directly).
+            string apiKey = Environment.GetEnvironmentVariable("WEB6_API_KEY");
+            if (!string.IsNullOrEmpty(apiKey))
+            {
+                string incomingKey = context.HttpContext.Request.Headers["X-Web6-Api-Key"].ToString();
+                if (incomingKey == apiKey)
+                    return; // authenticated via API key
+            }
+
             // Accept either a fully-loaded avatar (Avatar DB available) or just a validated avatar ID
             // from the JWT claims (AI-only deployments where the avatar DB is not configured).
             var avatar   = context.HttpContext.Items["Avatar"] as IAvatar;
