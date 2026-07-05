@@ -68,18 +68,10 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Middleware
                     // Avatar DB not available on this deployment — JWT is still valid, proceed without full avatar.
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                var exceptionResponse = new OASISResult<string>
-                {
-                    Message = "Authorization Failed: JWT Token Is Invalid. Please re-login and try again."
-                };
-                OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
-                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                try { await context.Response.Body.WriteAsync(body); } catch { }
-                return;
+                // JWT is invalid — don't block here. AuthorizeAttribute will reject the request
+                // if no other auth mechanism (e.g. X-Web6-Api-Key) succeeds.
             }
         }
     }
