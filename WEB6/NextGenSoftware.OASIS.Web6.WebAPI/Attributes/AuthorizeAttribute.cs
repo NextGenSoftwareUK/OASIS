@@ -11,8 +11,12 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Attributes
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var avatar = context.HttpContext.Items["Avatar"] as IAvatar;
-            if (avatar == null)
+            // Accept either a fully-loaded avatar (Avatar DB available) or just a validated avatar ID
+            // from the JWT claims (AI-only deployments where the avatar DB is not configured).
+            var avatar   = context.HttpContext.Items["Avatar"] as IAvatar;
+            var avatarId = context.HttpContext.Items["AvatarId"] is Guid id && id != Guid.Empty ? id : Guid.Empty;
+
+            if (avatar == null && avatarId == Guid.Empty)
             {
                 context.Result = new JsonResult(new { message = "Unauthorized" })
                 {
