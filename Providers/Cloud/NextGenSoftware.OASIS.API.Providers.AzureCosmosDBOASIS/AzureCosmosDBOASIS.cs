@@ -993,7 +993,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            //TODO HB: implement...
             OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
             string errorMessage = "Error occured in LoadAllAvatarDetails method in AzureCosmosDBOASIS Provider. Reason: ";
 
