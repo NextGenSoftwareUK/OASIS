@@ -1541,10 +1541,115 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         private bool GenerateRustFromCelestialBody(ICelestialBody celestialBody, string outputFolder)
         {
-            // TODO: Implement generation from celestialBody structure directly
-            // This would parse the zomes and holons from the celestialBody object
-            // For now, return false to indicate we need the DNA folder
-            return false;
+            try
+            {
+                if (_oasisDNA?.OASIS?.StorageProviders?.HoloOASIS == null)
+                    return false;
+
+                var holoSettings = _oasisDNA.OASIS.StorageProviders.HoloOASIS;
+                string starBasePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.STARBasePath);
+                string rustTemplateFolder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustDNARSMTemplateFolder);
+                string baseSTARPathFull = string.IsNullOrEmpty(starBasePath)
+                    ? rustTemplateFolder
+                    : Path.Combine(starBasePath, rustTemplateFolder);
+
+                if (!Directory.Exists(baseSTARPathFull))
+                    return false;
+
+                string libTemplate        = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateLib)));
+                string createTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateCreate)));
+                string readTemplate       = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateRead)));
+                string updateTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateUpdate)));
+                string deleteTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateDelete)));
+                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateValidation)));
+                string holonTemplateRust  = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateHolon)));
+                string intTemplateRust    = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateInt)));
+                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateString)));
+                string boolTemplateRust   = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateBool)));
+
+                string rustFolder = Path.Combine(outputFolder, "Rust");
+                if (!Directory.Exists(rustFolder))
+                    Directory.CreateDirectory(rustFolder);
+
+                // Collect IHolonBase property names so we skip them during reflection
+                var basePropertyNames = typeof(NextGenSoftware.OASIS.API.Core.Interfaces.Holons.IHolonBase)
+                    .GetProperties().Select(p => p.Name).ToHashSet();
+
+                string libBuffer = "";
+                bool anyGenerated = false;
+
+                foreach (IZome zome in celestialBody.CelestialBodyCore.Zomes)
+                {
+                    string zomeName = (zome.Name ?? "zome").ToSnakeCase();
+                    libBuffer = libTemplate.Replace("zome_name", zomeName);
+                    int nextLineToWrite = 0;
+
+                    var holonsResult = zome.LoadChildHolons();
+                    var holons = holonsResult?.Result ?? Enumerable.Empty<IHolon>();
+
+                    foreach (IHolon holon in holons)
+                    {
+                        string holonNameSnake  = (holon.Name ?? "holon").ToSnakeCase();
+                        string holonNamePascal = (holon.Name ?? "Holon").ToPascalCase();
+
+                        string holonBufferRust = holonTemplateRust
+                            .Replace("Holon", holonNamePascal)
+                            .Replace("{holon}", holonNameSnake);
+                        holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
+
+                        string holonFieldsClone = "";
+                        bool firstField = true;
+
+                        // Reflect on the concrete holon type; emit only string/int/bool domain properties
+                        foreach (var prop in holon.GetType().GetProperties()
+                            .Where(p => p.CanRead && !basePropertyNames.Contains(p.Name)))
+                        {
+                            string fieldTemplate = null;
+                            if (prop.PropertyType == typeof(string))
+                                fieldTemplate = stringTemplateRust;
+                            else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(uint))
+                                fieldTemplate = intTemplateRust;
+                            else if (prop.PropertyType == typeof(bool))
+                                fieldTemplate = boolTemplateRust;
+
+                            if (fieldTemplate != null)
+                                GenerateRustField(prop.Name.ToSnakeCase(), fieldTemplate, holonNameSnake, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                        }
+
+                        if (holonBufferRust.Length > 2)
+                            holonBufferRust = holonBufferRust.Remove(holonBufferRust.Length - 3);
+
+                        holonBufferRust = string.Concat(Environment.NewLine, holonBufferRust, Environment.NewLine, holonTemplateRust.Substring(holonTemplateRust.Length - 1, 1), Environment.NewLine);
+
+                        int zomeIndex         = libTemplate.IndexOf("#[zome]");
+                        int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
+                        libBuffer = libBuffer.Insert(zomeIndex - 2, holonBufferRust);
+
+                        if (nextLineToWrite == 0)
+                            nextLineToWrite = zomeBodyStartIndex + holonBufferRust.Length;
+                        else
+                            nextLineToWrite += holonBufferRust.Length;
+
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+
+                        anyGenerated = true;
+                    }
+                }
+
+                if (!anyGenerated || string.IsNullOrEmpty(libBuffer))
+                    return false;
+
+                File.WriteAllText(Path.Combine(rustFolder, "lib.rs"), libBuffer);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         #endregion

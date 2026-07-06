@@ -1107,17 +1107,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                 else
                     holonsFiltered = holonList.Where(h => h.HolonType == type).ToList();
 
-                //TODO: Implement loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError params...
-                //if (loadChildren)
-                //{
-                //    foreach (IHolon holon in holonsFiltered)
-                //    {
-                //        //TODO: NEED TO COME BACK TO THIS!
-                //        //THIS METHOD WILL CALL LOADALLHOLONS ON HOLON WHICH COULD CAUSE INFINITE RECURSION AND STACK OVERFLOW! ;-)
-                //        //PLUS NEED TO THINK ABOUT CACHING AND EFFICIENCY ETC... LOTS TO THINK ABOUT AND DONT HAVE TIME FOR THIS JUST YET! ;-)
-                //        holon.LoadChildHolons(type, recursive, maxChildDepth, continueOnError, true);
-                //    }
-                //}
+                // Child loading is deferred: recursive holon loading would call LoadAllHolons on each child,
+                // which risks infinite recursion on deep graphs. Child holons are loaded on demand via LoadChildHolons.
+                // The loadChildren/recursive/maxChildDepth params are accepted but not yet applied here.
 
                 if (holonList.Count <= 0)
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");

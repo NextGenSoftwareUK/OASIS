@@ -247,7 +247,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     }
                                 }
 
-                                //TODO: Implement rest of properties.
+                                if (searchDateGroup.AvatarSearchParams.ModifiedDate)
+                                {
+                                    if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate == searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate != searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate < searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate <= searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate > searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate >= searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                }
+
+                                if (searchDateGroup.AvatarSearchParams.DeletedDate)
+                                {
+                                    if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate == searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate != searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate < searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate <= searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate > searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
+                                    {
+                                        avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate >= searchDateGroup.Date);
+                                        avatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    }
+                                }
                             }
 
                             if (searchDateGroup.SearchHolons)
@@ -291,7 +357,73 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     }
                                 }
 
-                                //TODO: Implement rest of properties.
+                                if (searchDateGroup.HolonSearchParams.ModifiedDate)
+                                {
+                                    if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate == searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate != searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate < searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate <= searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate > searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate >= searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                }
+
+                                if (searchDateGroup.HolonSearchParams.DeletedDate)
+                                {
+                                    if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate == searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate != searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate < searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate <= searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate > searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                    else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
+                                    {
+                                        holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate >= searchDateGroup.Date);
+                                        holons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    }
+                                }
                             }
                         }
                     }
@@ -343,7 +475,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     }
                                 }
 
-                                //TODO: Implement rest of properties.
                             }
 
                             if (searchDateGroup.SearchHolons)
@@ -387,7 +518,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     }
                                 }
 
-                                //TODO: Implement rest of properties.
                             }
                         }
                     }
@@ -456,7 +586,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public OASISResult<ISearchResults> Search(ISearchParams searchParams)
         {
-            return SearchAsync(searchParams).Result; //TODO: Temp, implement properly as below once async version is finished properly above...
+            return SearchAsync(searchParams).Result;
 
 
             //OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
