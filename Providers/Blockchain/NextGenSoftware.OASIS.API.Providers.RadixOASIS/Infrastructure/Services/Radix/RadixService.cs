@@ -163,21 +163,16 @@ public sealed class RadixService : IRadixService
             token.ThrowIfCancellationRequested();
             byte network = (byte)networkType;
 
-            // Radix address derivation using RadixEngineToolkit
-            // PublicKey object doesn't have PublicKeyBytes() method directly
-            // Use RadixEngineToolkit's address derivation API
-            // TODO: Implement proper address derivation using RadixEngineToolkit API
-            // For now, use simplified derivation (proper implementation would use RadixEngineToolkit's address derivation)
-            var publicKeyBytes = new byte[32]; // Placeholder - proper implementation needed
-            var addressPrefix = addressType switch
+            Address address = addressType switch
             {
-                RadixAddressType.Account => "account_",
-                RadixAddressType.Identity => "identity_",
-                _ => throw new ArgumentException("Invalid address type")
+                RadixAddressType.Account =>
+                    RadixEngineToolkitUniffiMethods.DerivePreallocatedAccountAddressFromPublicKey(publicKey, network),
+                RadixAddressType.Identity =>
+                    RadixEngineToolkitUniffiMethods.DerivePreallocatedIdentityAddressFromPublicKey(publicKey, network),
+                _ => throw new ArgumentException($"Unsupported address type: {addressType}", nameof(addressType))
             };
-            
-            result.Result = addressPrefix + Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
-            
+
+            result.Result = address.AddressString();
             result.IsError = false;
             return result;
         }
@@ -265,13 +260,8 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            // Derive sender address from public key using RadixEngineToolkit
-            var senderPublicKey = sender.PublicKey();
-            // PublicKey doesn't have PublicKeyBytes() method - use sender's PublicKeyBytes() instead
-            var senderPublicKeyBytes = sender.PublicKeyBytes();
-            // Derive Radix account address from public key bytes (simplified - proper implementation would use RadixEngineToolkit address derivation)
-            var senderAddressStr = "account_" + Convert.ToHexString(senderPublicKeyBytes).ToLowerInvariant();
-            Address senderAddress = new(senderAddressStr);
+            Address senderAddress = RadixEngineToolkitUniffiMethods.DerivePreallocatedAccountAddressFromPublicKey(
+                sender.PublicKey(), _config.NetworkId);
             Address receiverAddress = new(receiver);
 
             // Check balance
@@ -301,71 +291,71 @@ public sealed class RadixService : IRadixService
             string formattedAmount = roundedAmount.ToString("F18", CultureInfo.InvariantCulture)
                 .TrimEnd('0').TrimEnd('.');
 
-            // Build transaction manifest
-            // TODO: TransactionManifest and ManifestBuilder may not be available in current RadixEngineToolkit version
-            // For now, return error indicating this needs to be implemented with the correct Radix SDK
-            // using TransactionManifest manifest = new ManifestBuilder()
-            //     .AccountLockFeeAndWithdraw(senderAddress, new($"{fee}"), _xrdAddress, new(formattedAmount))
-            //     .TakeFromWorktop(_xrdAddress, new(formattedAmount), new("xrdBucket"))
-            //     .AccountTryDepositOrAbort(receiverAddress, new("xrdBucket"), null)
-            //     .Build(_config.NetworkId);
-            // manifest.StaticallyValidate();
+            // Build the V1 transaction manifest: lock fee + withdraw from sender, deposit to receiver
+            using TransactionManifestV1 manifest = new ManifestV1Builder()
+                .AccountLockFeeAndWithdraw(
+                    senderAddress,
+                    new RadixEngineToolkit.Decimal(fee.ToString()),
+                    _xrdAddress,
+                    new RadixEngineToolkit.Decimal(formattedAmount))
+                .TakeFromWorktop(
+                    _xrdAddress,
+                    new RadixEngineToolkit.Decimal(formattedAmount),
+                    new ManifestBuilderBucket("xrdBucket"))
+                .AccountTryDepositBatchOrAbort(
+                    receiverAddress,
+                    new[] { new ManifestBuilderBucket("xrdBucket") },
+                    null)
+                .Build(_config.NetworkId);
 
-            // Get current epoch
+            manifest.StaticallyValidate(_config.NetworkId);
+
+            // Get current epoch for transaction header window
             ulong currentEpoch = (await _httpClient.GetConstructionMetadataAsync(_config))?.CurrentEpoch ?? 0;
 
-            // Build and sign transaction
-            // TODO: Implement proper transaction building when RadixEngineToolkit.TransactionBuilder is available
-            // For now, return error indicating this needs to be implemented with the correct Radix SDK
-            result.IsError = true;
-            result.Message = "Transaction building not yet implemented - RadixEngineToolkit.TransactionBuilder needs to be properly configured";
+            // Build the signed + notarized transaction (notaryIsSignatory = true means no extra signatures needed)
+            var header = new TransactionHeaderV1(
+                networkId: _config.NetworkId,
+                startEpochInclusive: currentEpoch,
+                endEpochExclusive: currentEpoch + 50,
+                nonce: RadixBridgeHelper.RandomNonce(),
+                notaryPublicKey: sender.PublicKey(),
+                notaryIsSignatory: true,
+                tipPercentage: 0);
+
+            using IntentV1 intent = new(header, manifest, new MessageV1());
+            using SignedTransactionIntentV1 signedIntent = new(intent, Array.Empty<SignatureWithPublicKeyV1>());
+            var notarySignature = sender.SignToSignature(signedIntent.SignedIntentHash());
+            using NotarizedTransactionV1 notarizedTransaction = new(signedIntent, notarySignature);
+
+            notarizedTransaction.StaticallyValidate(_config.NetworkId);
+
+            var payloadHex = Convert.ToHexString(notarizedTransaction.ToPayloadBytes()).ToLowerInvariant();
+            var submitData = new
+            {
+                network = _network,
+                notarized_transaction_hex = payloadHex,
+                force_recalculate = true
+            };
+
+            var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+                _httpClient,
+                $"{_config.HostUri}/core/lts/transaction/submit",
+                submitData);
+
+            var transactionHash = notarizedTransaction.IntentHash().AsStr();
+
             result.Result = new BridgeTransactionResponse(
-                string.Empty,
-                null,
-                false,
-                "Transaction building not yet implemented",
-                BridgeTransactionStatus.Canceled
+                transactionHash,
+                response.Result?.TransactionHash,
+                response.Result != null && !response.IsError,
+                response.IsError ? response.Message : null,
+                response.Result != null && !response.IsError
+                    ? BridgeTransactionStatus.Completed
+                    : BridgeTransactionStatus.Canceled
             );
-            return result;
-            
-            // Future implementation:
-            // using NotarizedTransaction transaction = new RadixEngineToolkit.TransactionBuilder()
-            //     .Header(new TransactionHeader(
-            //         networkId: _config.NetworkId,
-            //         startEpochInclusive: currentEpoch,
-            //         endEpochExclusive: currentEpoch + 50,
-            //         nonce: RadixBridgeHelper.RandomNonce(),
-            //         notaryPublicKey: sender.PublicKey(),
-            //         notaryIsSignatory: true,
-            //         tipPercentage: 0
-            //     ))
-            //     .Manifest(manifest)
-            //     .Message(new Message.None())
-            //     .NotarizeWithPrivateKey(sender);
-            //
-            // var data = new
-            // {
-            //     network = _network,
-            //     notarized_transaction_hex = Encoders.Hex.EncodeData(transaction.Compile()),
-            //     force_recalculate = true
-            // };
-            //
-            // var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
-            //     _httpClient,
-            //     $"{_config.HostUri}/core/lts/transaction/submit",
-            //     data);
-            //
-            // var transactionHash = transaction.IntentHash().AsStr();
-            //
-            // result.Result = new BridgeTransactionResponse(
-            //     transactionHash,
-            //     response.Result?.TransactionHash,
-            //     response.Result != null && !response.IsError,
-            //     response.IsError ? response.Message : null,
-            //     response.Result != null && !response.IsError 
-            //         ? BridgeTransactionStatus.Completed 
-            //         : BridgeTransactionStatus.Canceled
-            // );
+            result.IsError = response.IsError;
+            result.Message = response.IsError ? response.Message : null;
         }
         catch (Exception ex)
         {
