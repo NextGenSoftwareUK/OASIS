@@ -60,6 +60,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                   "https://oasisomniverse.one",
                   "https://app.oasisomniverse.one",
+                  "https://oportal.oasisomniverse.one",
                   "https://oasisweb4.one",
                   "https://oasisweb5.one",
                   "http://localhost:3000",
@@ -81,6 +82,12 @@ if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.
     app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+
+// JwtMiddleware MUST be registered here. It was missing in the original Web6 Program.cs
+// (unlike Web4/Web5 which had it), causing every JWT to be silently ignored and all
+// authenticated requests to fail with 401. It must come AFTER UseCors and BEFORE
+// UseAuthorization/MapControllers so the avatar context is populated before AuthorizeAttribute runs.
+app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.JwtMiddleware>();
 
 // Global exception handler - logs and returns a real OASISResult-shaped error body.
 app.Use(async (context, next) =>
@@ -113,7 +120,6 @@ app.Use(async (context, next) =>
 });
 
 app.UseAuthorization();
-app.UseMiddleware<NextGenSoftware.OASIS.Web6.WebAPI.Middleware.JwtMiddleware>();
 
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
