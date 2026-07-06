@@ -1572,7 +1572,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     Directory.CreateDirectory(rustFolder);
 
                 // Collect IHolonBase property names so we skip them during reflection
-                var basePropertyNames = typeof(NextGenSoftware.OASIS.API.Core.Interfaces.Holons.IHolonBase)
+                var basePropertyNames = typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase)
                     .GetProperties().Select(p => p.Name).ToHashSet();
 
                 string libBuffer = "";

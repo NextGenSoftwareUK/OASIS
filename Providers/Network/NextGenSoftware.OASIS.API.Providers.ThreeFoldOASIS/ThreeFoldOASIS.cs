@@ -2886,7 +2886,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS
                 byte[] publicKeyBytes = System.Security.Cryptography.SHA256.HashData(seed);
                 string publicKeyHex = Convert.ToHexString(publicKeyBytes).ToLowerInvariant();
 
-                var keyPair = NextGenSoftware.OASIS.API.Core.Helpers.KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                var keyPair = NextGenSoftware.Utilities.KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)
                 {
                     keyPair.PrivateKey = privateKeyHex;
