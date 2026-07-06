@@ -310,18 +310,11 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseRouting();
             //app.UseSession();
 
-            // global cors policy
+            // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
             app.UseCors(x => x
-                .WithOrigins(
-                    "https://oasisomniverse.one",
-                    "https://app.oasisomniverse.one",
-                    "https://oasisweb4.one",
-                    "https://oasisweb5.one",
-                    "http://localhost:3000",
-                    "http://localhost:5173")
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials());
+                .AllowAnyHeader());
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
