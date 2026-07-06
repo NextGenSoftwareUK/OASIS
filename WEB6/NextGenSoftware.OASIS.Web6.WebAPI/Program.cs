@@ -57,14 +57,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                  "https://oasisomniverse.one",
-                  "https://app.oasisomniverse.one",
-                  "https://oportal.oasisomniverse.one",
-                  "https://oasisweb4.one",
-                  "https://oasisweb5.one",
-                  "http://localhost:3000",
-                  "http://localhost:5173")
+        policy.AllowAnyOrigin()
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
