@@ -44,15 +44,25 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var result = new OASISResult<long>();
             try
             {
-                if (_avatarKarma.TryGetValue(avatarId, out var karma))
+                if (_avatarKarma.TryGetValue(avatarId, out var karma) && karma > 0)
                 {
                     result.Result = karma;
                     result.Message = "Karma retrieved successfully.";
                 }
                 else
                 {
-                    result.Result = 0;
-                    result.Message = "No karma found for this avatar.";
+                    // In-memory cache empty — load from persistent store
+                    var avatarDetail = AvatarManager.Instance.LoadAvatarDetail(avatarId);
+                    if (avatarDetail != null && !avatarDetail.IsError && avatarDetail.Result != null)
+                    {
+                        result.Result = avatarDetail.Result.Karma;
+                        result.Message = "Karma retrieved successfully.";
+                    }
+                    else
+                    {
+                        result.Result = 0;
+                        result.Message = "No karma found for this avatar.";
+                    }
                 }
             }
             catch (Exception ex)
