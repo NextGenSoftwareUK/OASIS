@@ -231,7 +231,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 model,
                 messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
                 temperature = request.Temperature,
-                max_tokens = request.MaxTokens
+                max_tokens = request.MaxTokens ?? 4096
             };
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, baseUrl);
@@ -393,7 +393,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 model,
                 messages = request.Messages.Select(m => new { role = m.Role == "assistant" ? "assistant" : m.Role, content = m.Content }),
                 temperature = request.Temperature,
-                max_tokens = request.MaxTokens
+                max_tokens = request.MaxTokens ?? 4096
             };
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.cohere.com/v2/chat");
@@ -439,7 +439,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             {
                 messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
                 temperature = request.Temperature,
-                max_tokens = request.MaxTokens
+                max_tokens = request.MaxTokens ?? 4096
             };
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
@@ -477,7 +477,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 model,
                 messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
                 temperature = request.Temperature,
-                max_tokens = request.MaxTokens
+                max_tokens = request.MaxTokens ?? 4096
             };
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://router.huggingface.co/v1/chat/completions");
