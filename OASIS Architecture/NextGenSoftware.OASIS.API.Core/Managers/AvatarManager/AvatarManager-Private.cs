@@ -35,9 +35,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private void SendPasswordResetEmail(IAvatar avatar)
+        private void SendPasswordResetEmail(IAvatar avatar, string returnUrl = null)
         {
-            var resetUrl = $"{OASISWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
+            var baseUrl = !string.IsNullOrWhiteSpace(returnUrl) ? returnUrl.TrimEnd('/') : $"{OASISWebSiteURL}/avatar/reset-password";
+            var resetUrl = $"{baseUrl}?token={avatar.ResetToken}";
 
             string message = $@"
                 <!DOCTYPE html>
