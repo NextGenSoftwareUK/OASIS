@@ -447,7 +447,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         //public async Task<OASISResult<string>> ForgotPassword(ForgotPasswordRequest model)
-        public async Task<OASISResult<string>> ForgotPasswordAsync(string email, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<string>> ForgotPasswordAsync(string email, ProviderType providerType = ProviderType.Default, string returnUrl = null)
         {
             var response = new OASISResult<string>();
 
@@ -475,7 +475,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // send email
-                SendPasswordResetEmail(avatarResult.Result);
+                SendPasswordResetEmail(avatarResult.Result, returnUrl);
                 response.Message = "Please check your email for password reset instructions";
                 response.Result = response.Message;
             }
@@ -488,7 +488,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return response;
         }
 
-        public OASISResult<string> ForgotPassword(string email, ProviderType providerType = ProviderType.Default)
+        public OASISResult<string> ForgotPassword(string email, ProviderType providerType = ProviderType.Default, string returnUrl = null)
         {
             var response = new OASISResult<string>();
 
@@ -516,7 +516,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
 
                 // send email
-                SendPasswordResetEmail(avatarResult.Result);
+                SendPasswordResetEmail(avatarResult.Result, returnUrl);
                 response.Message = "Please check your email for password reset instructions";
                 response.Result = response.Message;
             }

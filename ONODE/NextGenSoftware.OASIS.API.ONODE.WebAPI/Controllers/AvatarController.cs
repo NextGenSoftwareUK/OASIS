@@ -379,8 +379,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("forgot-password")]
         public async Task<OASISHttpResponseMessage<string>> ForgotPassword(ForgotPasswordRequest model)
         {
-            //return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPassword(model, Request.Headers["origin"]));
-            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPasswordAsync(model.Email));
+            return HttpResponseHelper.FormatResponse(await Program.AvatarManager.ForgotPasswordAsync(model.Email, returnUrl: model.ReturnUrl));
         }
 
         /// <summary>
