@@ -550,7 +550,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return response;
                     }
 
-                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
+                    // oldPassword is optional when authenticating via a reset token
+                    if (!string.IsNullOrEmpty(oldPassword) && !BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
                     {
                         OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
                         return response;
@@ -612,7 +613,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                         return response;
                     }
 
-                    if (!BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
+                    // oldPassword is optional when authenticating via a reset token
+                    if (!string.IsNullOrEmpty(oldPassword) && !BCrypt.Net.BCrypt.Verify(oldPassword, avatar.Password))
                     {
                         OASISErrorHandling.HandleError(ref response, "Old Password Is Not Correct");
                         return response;
