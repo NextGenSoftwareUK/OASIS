@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,7 +10,11 @@
     <Product>WEB7 OASIS Symbiotic Layer Core</Product>
     <Title>WEB7 OASIS Symbiotic Layer Core</Title>
     <Summary>The Core (Business Logic Layer) for WEB7 - the non-invasive human/AI symbiosis layer. Hosts the BioSignalProcessingManager (real DSP: FFT band-power for EEG, time-domain HRV metrics, GSR normalisation), the IntentionEngine (maps processed signal features to focus/arousal/valence/cognitive-load state), the SymbiosisSessionManager (consent-gated sessions enforcing the Borg-Free pledge - no implanted/invasive signal types accepted, ever) and the CollectiveConsciousnessManager (multi-participant shared intention fields).</Summary>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
+- Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
+- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.</PackageReleaseNotes>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
