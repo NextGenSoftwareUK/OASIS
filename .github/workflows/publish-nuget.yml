@@ -21,13 +21,22 @@ jobs:
         shell: pwsh
         run: .\publish-nuget.ps1 -SkipPush
 
-      - name: Get NuGet token
-        uses: actions/nuget-auth@v1
+      - name: Get NuGet token via Trusted Publishing
+        id: get-token
+        shell: pwsh
+        run: |
+          $response = Invoke-RestMethod `
+            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api.nuget.org" `
+            -Headers @{ Authorization = "Bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN" }
+          echo "NUGET_TOKEN=$($response.value)" >> $env:GITHUB_OUTPUT
 
       - name: Push all packages to NuGet.org
         shell: pwsh
         run: |
           Get-ChildItem -Path .\nupkgs\*.nupkg | ForEach-Object {
             Write-Host "Pushing $($_.Name)..."
-            dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --skip-duplicate
+            dotnet nuget push $_.FullName `
+              --source https://api.nuget.org/v3/index.json `
+              --api-key ${{ steps.get-token.outputs.NUGET_TOKEN }} `
+              --skip-duplicate
           }
