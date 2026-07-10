@@ -4,6 +4,8 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+  
+    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -32,7 +34,6 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
     <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Version>2.0.0</Version>

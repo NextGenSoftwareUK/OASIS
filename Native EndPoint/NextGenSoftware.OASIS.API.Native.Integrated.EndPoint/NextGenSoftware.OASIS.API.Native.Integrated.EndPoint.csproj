@@ -54,10 +54,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="E:\OneDrive\Dropbox\Our World\Logo\OASISLogo128.jpg">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
+    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
   </ItemGroup>
 
   <ItemGroup>

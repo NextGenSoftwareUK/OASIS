@@ -33,6 +33,8 @@
   </PropertyGroup>
 <ItemGroup>
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Providers.HoloOASIS.Core\NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj" />
+  
+    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>
