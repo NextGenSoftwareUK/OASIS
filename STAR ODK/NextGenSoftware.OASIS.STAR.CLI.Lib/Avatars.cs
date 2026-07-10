@@ -902,7 +902,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 var jsonGroupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
                 var jsonGrouped = items
-                    .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                    .GroupBy(i => GetInventoryTabLabel(i.ItemType.ToString()))
                     .ToDictionary(g => g.Key, g => g.ToList());
 
                 var groupsPayload = new List<object>();
@@ -956,7 +956,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             var groupsOrdered = new[] { "Keys", "Weapons", "Ammo", "Armor", "Items", "Monsters", "Other" };
             var grouped = items
-                .GroupBy(i => GetInventoryTabLabel(i.ItemType))
+                .GroupBy(i => GetInventoryTabLabel(i.ItemType.ToString()))
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             CLIEngine.ShowDivider();
@@ -971,7 +971,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
                 {
                     int qty = item.Quantity > 0 ? item.Quantity : 1;
-                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                    string nft = item.NftId == Guid.Empty ? "" : $"  [NFT: {item.NftId}]";
                     CLIEngine.ShowMessage(
                         $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
                         ConsoleColor.Green,
@@ -980,9 +980,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!string.IsNullOrWhiteSpace(item.Description))
                         CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
 
-                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || item.ItemType != default)
                         CLIEngine.ShowMessage(
-                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType}",
                             ConsoleColor.Green,
                             false);
 
@@ -1014,7 +1014,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 foreach (IInventoryItem item in groupItems.OrderBy(i => i.Name).ThenBy(i => i.Id))
                 {
                     int qty = item.Quantity > 0 ? item.Quantity : 1;
-                    string nft = string.IsNullOrWhiteSpace(item.NftId) ? "" : $"  [NFT: {item.NftId}]";
+                    string nft = item.NftId == Guid.Empty ? "" : $"  [NFT: {item.NftId}]";
                     CLIEngine.ShowMessage(
                         $"    {qty} x {item.Name ?? "(unnamed)"}  (Id: {item.Id}){nft}",
                         ConsoleColor.Green,
@@ -1023,9 +1023,9 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                     if (!string.IsNullOrWhiteSpace(item.Description))
                         CLIEngine.ShowMessage($"      {item.Description}", ConsoleColor.Green, false);
 
-                    if (!string.IsNullOrWhiteSpace(item.GameSource) || !string.IsNullOrWhiteSpace(item.ItemType))
+                    if (!string.IsNullOrWhiteSpace(item.GameSource) || item.ItemType != default)
                         CLIEngine.ShowMessage(
-                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType ?? "-"}",
+                            $"      source: {item.GameSource ?? "-"}  type: {item.ItemType}",
                             ConsoleColor.Green,
                             false);
 

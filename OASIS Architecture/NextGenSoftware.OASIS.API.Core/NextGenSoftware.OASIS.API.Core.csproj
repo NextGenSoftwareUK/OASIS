@@ -66,7 +66,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
+    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
