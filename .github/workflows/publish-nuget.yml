@@ -17,9 +17,17 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Authenticate to NuGet
+      - name: Pack all packages
+        shell: pwsh
+        run: .\publish-nuget.ps1 -SkipPush
+
+      - name: Get NuGet token
         uses: actions/nuget-auth@v1
 
-      - name: Pack and publish all packages
+      - name: Push all packages to NuGet.org
         shell: pwsh
-        run: .\publish-nuget.ps1
+        run: |
+          Get-ChildItem -Path .\nupkgs\*.nupkg | ForEach-Object {
+            Write-Host "Pushing $($_.Name)..."
+            dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
