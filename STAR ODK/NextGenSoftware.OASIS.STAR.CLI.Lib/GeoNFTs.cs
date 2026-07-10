@@ -719,8 +719,8 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 request.MetaData = existing.MetaData != null ? new Dictionary<string, string>(existing.MetaData) : new Dictionary<string, string>();
 
                 // Geo specific
-                request.Lat = existing.Lat;
-                request.Long = existing.Long;
+                request.Lat = (long?)existing.Lat;
+                request.Long = (long?)existing.Long;
                 request.AllowOtherPlayersToAlsoCollect = existing.AllowOtherPlayersToAlsoCollect;
                 request.PermSpawn = existing.PermSpawn;
                 request.GlobalSpawnQuantity = existing.GlobalSpawnQuantity;

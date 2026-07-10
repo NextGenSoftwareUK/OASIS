@@ -325,7 +325,7 @@ public sealed class RadixService : IRadixService
 
             using IntentV1 intent = new(header, manifest, new MessageV1());
             using SignedTransactionIntentV1 signedIntent = new(intent, Array.Empty<SignatureWithPublicKeyV1>());
-            var notarySignature = sender.SignToSignature(signedIntent.SignedIntentHash());
+            var notarySignature = sender.SignToSignature(signedIntent.SignedIntentHash().AsHash());
             using NotarizedTransactionV1 notarizedTransaction = new(signedIntent, notarySignature);
 
             notarizedTransaction.StaticallyValidate(_config.NetworkId);
@@ -361,8 +361,8 @@ public sealed class RadixService : IRadixService
         {
             OASISErrorHandling.HandleError<BridgeTransactionResponse>(ref result,
                 $"Error executing transaction: {ex.Message}", ex);
-            return result;
         }
+        return result;
     }
 
     /// <summary>

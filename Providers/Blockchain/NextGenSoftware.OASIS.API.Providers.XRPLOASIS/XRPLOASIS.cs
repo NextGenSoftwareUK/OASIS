@@ -327,7 +327,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         return result;
     }
 
-    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon)
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
     {
         var result = new OASISResult<IHolon>();
 
@@ -406,7 +406,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         return result;
     }
 
-    public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, int version = 0)
+    public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
         var result = new OASISResult<IHolon>();
 
@@ -450,7 +450,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         return result;
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams)
+    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
         var result = new OASISResult<ISearchResults>();
 
@@ -714,6 +714,32 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
 
         return null;
     }
+
+    #endregion
+
+    #region Unimplemented abstract members
+
+    public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => throw new NotImplementedException();
+    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => throw new NotImplementedException();
+    public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => throw new NotImplementedException();
+    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) => throw new NotImplementedException();
+    public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => throw new NotImplementedException();
+    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) => throw new NotImplementedException();
 
     #endregion
 }

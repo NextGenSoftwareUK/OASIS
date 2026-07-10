@@ -57,7 +57,7 @@
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
   
-    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
+    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
