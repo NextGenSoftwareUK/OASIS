@@ -23,7 +23,7 @@
     <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageIcon>OASISLogo128.jpg</PackageIcon>
+    <PackageIcon>OASIS.jpg</PackageIcon>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -38,7 +38,7 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   
-    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>

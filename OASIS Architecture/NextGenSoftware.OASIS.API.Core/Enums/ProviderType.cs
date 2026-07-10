@@ -42,6 +42,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         MonadOASIS,
         LineaOASIS,
         ScrollOASIS,
+        ZkSyncOASIS,
         MoralisOASIS, //Web3 API
         IPFSOASIS, //IPFS
         PinataOASIS,

@@ -9,7 +9,7 @@
 	  <Summary>This module is responsible for starting/shutting down the Apollo Server used for GraphQL queries. NOTE: Apollo integration is a current WIP...</Summary>
 	  <Description>This module is responsible for starting/shutting down the Apollo Server used for GraphQL queries. NOTE: Apollo integration is a current WIP...</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4</PackageTags>
 	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one after ~3 years of deep development.
@@ -53,7 +53,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
+		<None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
   <ItemGroup>
