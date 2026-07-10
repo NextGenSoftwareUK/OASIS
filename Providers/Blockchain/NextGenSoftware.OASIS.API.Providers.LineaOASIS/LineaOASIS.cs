@@ -1,5 +1,6 @@
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.LineaOASIS;
 
@@ -21,13 +22,13 @@ public sealed class LineaOASIS : Web3CoreOASISBaseProvider,
     {
         ProviderName = "LineaOASIS";
         ProviderDescription = "Linea EVM-compatible L2 provider for OASIS";
-        ProviderType = new Core.Enums.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LineaOASIS);
-        ProviderCategory = new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-        ProviderCategories.Add(new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
-        ProviderCategories.Add(new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
-        ProviderCategories.Add(new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.NFT));
-        ProviderCategories.Add(new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
-        ProviderCategories.Add(new Core.Enums.EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Storage));
+        ProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LineaOASIS);
+        ProviderCategory = new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        ProviderCategories.Add(new EnumValue<Core.Enums.ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 }
 
