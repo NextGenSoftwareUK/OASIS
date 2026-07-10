@@ -1,11 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <FileUpgradeFlags>40</FileUpgradeFlags>
     <UpgradeBackupLocation>C:\Users\Naveen Reddy\source\repos\Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK\Backup\NextGenSoftware.OASIS.API.Providers.MoralisOASIS\</UpgradeBackupLocation>
     <OldToolsVersion>2.0</OldToolsVersion>
   </PropertyGroup>
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.MoralisOASIS</PackageId>
+    <Version>2.0.0</Version>
+    <Title>OASIS Moralis OASIS Provider</Title>
+    <Product>OASIS Moralis OASIS Provider</Product>
+    <Summary>Moralis DB OASIS Provider — bridges the OASIS API to Moralis (Web3 backend-as-a-service) for avatar, holon, and NFT storage with built-in EVM cross-chain support.</Summary>
+    <Description>Moralis DB OASIS Provider — bridges the OASIS API to Moralis (Web3 backend-as-a-service) for avatar, holon, and NFT storage with built-in EVM cross-chain support.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASISLogo128.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Full implementation of all provider interface methods — no NotImplementedExceptions.
+- Upgraded to .NET 10.
+- Updated to align with OASIS API Core v2.0.0.
+- Security hardening: NuGet vulnerability fixes, improved null safety.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <PackageReference Include="MongoDB.Bson" Version="2.19.2" />
     <PackageReference Include="MongoDB.Driver" Version="2.19.2" />
   </ItemGroup>
