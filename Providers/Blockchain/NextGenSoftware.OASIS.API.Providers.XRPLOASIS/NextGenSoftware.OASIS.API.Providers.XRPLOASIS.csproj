@@ -4,7 +4,7 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
   
-    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,7 +16,7 @@
     <Summary>XRP Ledger provider for OASIS</Summary>
     <Description>XRP Ledger provider for OASIS - stores data in transaction memos</Description>
     <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-    <PackageIcon>OASISLogo128.jpg</PackageIcon>
+    <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
     <PackageTags>OASIS API; XRPL; XRP Ledger; Provider; WEB3</PackageTags>
     <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
