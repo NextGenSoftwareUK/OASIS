@@ -1,4 +1,3 @@
-
 <#
 .SYNOPSIS
     Pack and publish all 91 OASIS NuGet packages to nuget.org.
@@ -7,7 +6,7 @@
     Your nuget.org API key. Can also be set via the NUGET_API_KEY environment variable.
 
 .PARAMETER SkipPush
-    Pack only — do not push to nuget.org. Useful for testing the build.
+    Pack only - do not push to nuget.org. Useful for testing the build.
 
 .PARAMETER Filter
     Only process packages whose PackageId contains this string (e.g. "STAR", "WEB6").
@@ -16,24 +15,19 @@
     Directory to write .nupkg files into. Defaults to .\nupkgs
 
 .EXAMPLE
-    # Pack and push everything
     .\publish-nuget.ps1 -ApiKey "your-api-key-here"
 
 .EXAMPLE
-    # Pack only (no push), inspect output in .\nupkgs
     .\publish-nuget.ps1 -SkipPush
 
 .EXAMPLE
-    # Push only STAR packages
     .\publish-nuget.ps1 -ApiKey "your-key" -Filter "STAR"
 
 .EXAMPLE
-    # Use env var for key
     $env:NUGET_API_KEY = "your-key"
     .\publish-nuget.ps1
 #>
 
-[CmdletBinding()]
 param(
     [string]$ApiKey = $env:NUGET_API_KEY,
     [switch]$SkipPush,
@@ -48,11 +42,7 @@ $root = $PSScriptRoot
 # Validate
 # ---------------------------------------------------------------------------
 if (-not $SkipPush -and -not $ApiKey) {
-    Write-Error @"
-No NuGet API key supplied.
-Pass -ApiKey "your-key"  OR  set `$env:NUGET_API_KEY before running.
-Get a key at: https://www.nuget.org/account/apikeys
-"@
+    Write-Error "No NuGet API key supplied. Pass -ApiKey ""your-key"" or set `$env:NUGET_API_KEY before running. Get a key at: https://www.nuget.org/account/apikeys"
     exit 1
 }
 
@@ -64,7 +54,9 @@ $skipPatterns = @('Archived', 'External Libs', 'net-ipfs-http-client', 'Provider
 $projects = Get-ChildItem -Recurse -Filter "*.csproj" $root | Where-Object {
     $path = $_.FullName
     $skip = $false
-    foreach ($p in $skipPatterns) { if ($path -like "*$p*") { $skip = $true; break } }
+    foreach ($p in $skipPatterns) {
+        if ($path -like "*$p*") { $skip = $true; break }
+    }
     -not $skip
 } | Where-Object {
     $c = [System.IO.File]::ReadAllText($_.FullName)
@@ -78,7 +70,8 @@ if ($Filter) {
     }
 }
 
-$total = $projects.Count
+$total = ($projects | Measure-Object).Count
+
 Write-Host ""
 Write-Host "======================================================"
 Write-Host "  OASIS NuGet Publisher"
@@ -99,28 +92,18 @@ New-Item -ItemType Directory -Force $NupkgOutput | Out-Null
 Write-Host "--- PHASE 1: dotnet pack ---"
 Write-Host ""
 
-$packFailed  = [System.Collections.Generic.List[string]]::new()
-$packSuccess = [System.Collections.Generic.List[string]]::new()
+$packFailed  = New-Object System.Collections.Generic.List[string]
+$packSuccess = New-Object System.Collections.Generic.List[string]
 
 $i = 0
 foreach ($proj in $projects) {
     $i++
     $c = [System.IO.File]::ReadAllText($proj.FullName)
-    $pkgId  = if ($c -match '<PackageId>(.*?)</PackageId>')   { $Matches[1] } else { $proj.BaseName }
-    $pkgVer = if ($c -match '<Version>([\d\.]+)</Version>')   { $Matches[1] } else { "?" }
+    if ($c -match '<PackageId>(.*?)</PackageId>') { $pkgId = $Matches[1] } else { $pkgId = $proj.BaseName }
+    if ($c -match '<Version>([\d\.]+)</Version>')  { $pkgVer = $Matches[1] } else { $pkgVer = "?" }
 
     Write-Host "[$i/$total] Packing $pkgId $pkgVer ..."
 
-    $args = @(
-        'pack', $proj.FullName,
-        '--configuration', 'Release',
-        '--output', $NupkgOutput,
-        '--no-build',       # remove this line if you want a full rebuild each time
-        '/p:NoBuild=false', # ensures Release assets are current
-        '--nologo'
-    )
-
-    # Actually build + pack in one step for reliability
     $packArgs = @(
         'pack', $proj.FullName,
         '--configuration', 'Release',
@@ -145,7 +128,7 @@ Write-Host "Pack complete: $($packSuccess.Count) succeeded, $($packFailed.Count)
 if ($packFailed.Count -gt 0) {
     Write-Host ""
     Write-Host "Failed packs:" -ForegroundColor Red
-    $packFailed | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+    foreach ($f in $packFailed) { Write-Host "  - $f" -ForegroundColor Red }
 }
 
 # ---------------------------------------------------------------------------
@@ -153,9 +136,9 @@ if ($packFailed.Count -gt 0) {
 # ---------------------------------------------------------------------------
 if ($SkipPush) {
     Write-Host ""
-    Write-Host "-SkipPush specified — stopping before push."
+    Write-Host "-SkipPush specified - stopping before push."
     Write-Host "Packages are in: $NupkgOutput"
-    exit ($packFailed.Count -gt 0 ? 1 : 0)
+    if ($packFailed.Count -gt 0) { exit 1 } else { exit 0 }
 }
 
 Write-Host ""
@@ -164,20 +147,21 @@ Write-Host ""
 
 $nupkgs = Get-ChildItem $NupkgOutput -Filter "*.nupkg" | Where-Object { $_.Name -notmatch '\.symbols\.nupkg$' }
 
-$pushFailed  = [System.Collections.Generic.List[string]]::new()
-$pushSuccess = [System.Collections.Generic.List[string]]::new()
-$pushSkipped = [System.Collections.Generic.List[string]]::new()
+$pushFailed  = New-Object System.Collections.Generic.List[string]
+$pushSuccess = New-Object System.Collections.Generic.List[string]
+$pushSkipped = New-Object System.Collections.Generic.List[string]
 
 $j = 0
+$nupkgTotal = ($nupkgs | Measure-Object).Count
 foreach ($pkg in $nupkgs) {
     $j++
-    Write-Host "[$j/$($nupkgs.Count)] Pushing $($pkg.Name) ..."
+    Write-Host "[$j/$nupkgTotal] Pushing $($pkg.Name) ..."
 
     $pushArgs = @(
         'nuget', 'push', $pkg.FullName,
         '--api-key', $ApiKey,
         '--source', 'https://api.nuget.org/v3/index.json',
-        '--skip-duplicate',   # don't fail if version already exists
+        '--skip-duplicate',
         '--no-symbols'
     )
 
@@ -189,7 +173,7 @@ foreach ($pkg in $nupkgs) {
         Write-Host $output -ForegroundColor DarkRed
         $pushFailed.Add($pkg.Name)
     } elseif ($output -match 'already exists') {
-        Write-Host "  [SKIP] $($pkg.Name) — already on nuget.org" -ForegroundColor Yellow
+        Write-Host "  [SKIP] $($pkg.Name) - already on nuget.org" -ForegroundColor Yellow
         $pushSkipped.Add($pkg.Name)
     } else {
         Write-Host "  [OK]   $($pkg.Name)" -ForegroundColor Green
@@ -212,12 +196,13 @@ Write-Host "======================================================"
 if ($packFailed.Count -gt 0) {
     Write-Host ""
     Write-Host "Pack failures:" -ForegroundColor Red
-    $packFailed | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+    foreach ($f in $packFailed) { Write-Host "  - $f" -ForegroundColor Red }
 }
 if ($pushFailed.Count -gt 0) {
     Write-Host ""
     Write-Host "Push failures:" -ForegroundColor Red
-    $pushFailed | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+    foreach ($f in $pushFailed) { Write-Host "  - $f" -ForegroundColor Red }
 }
 
-exit (($packFailed.Count + $pushFailed.Count) -gt 0 ? 1 : 0)
+$totalFailed = $packFailed.Count + $pushFailed.Count
+if ($totalFailed -gt 0) { exit 1 } else { exit 0 }
