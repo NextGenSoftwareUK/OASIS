@@ -959,6 +959,711 @@ DNA config: `OASIS.Web6.Cache.DefaultTtlSeconds` (default 3600), `OASIS.Web6.Cac
 - OpenAI-compatible endpoint; community-run decentralised model nodes
 - Env var: `GAIANET_NODE_URL`
 
+#### Replicate
+
+- `AIProviderType.Replicate`
+- Env var: `REPLICATE_API_KEY`
+- REST: `POST https://api.replicate.com/v1/models/{owner}/{model}/predictions`
+- Hundreds of community open-source models (image, text, audio, video); not OpenAI-compatible — requires a dedicated adapter
+- Best for: niche open-source models not available elsewhere
+
+#### Gensyn / Ritual / Prime Intellect
+
+- Register as `AIProviderType.Custom` endpoints once their inference APIs stabilise
+- Monitor for OpenAI-compatible gateways — most decentralised compute networks are converging on this wire format
+
+---
+
+### PRIORITY 15 — External Memory Providers
+
+**Makes Holonic BRAID interoperable with the broader memory ecosystem. Developers who already use Mem0, Zep, or LangMem can plug them in as additional memory layers alongside or beneath the fractal holon hierarchy.**
+
+#### New `MemoryProviderManager` with abstract interface
+
+```csharp
+public interface IExternalMemoryProvider
+{
+    string Name { get; }
+    Task<List<MemoryEntry>> SearchAsync(Guid avatarId, string query, int topK = 5);
+    Task AddAsync(Guid avatarId, string content, Dictionary<string, string> metadata = null);
+    Task DeleteAsync(Guid avatarId, string memoryId);
+}
+```
+
+#### Adapters
+
+| Provider | Notes |
+|---|---|
+| **Mem0** | REST API (`https://api.mem0.ai/v1/memories`). Auto-manages per-user/per-session/per-agent memories. `POST /memories`, `GET /memories/search`. Env var: `MEM0_API_KEY` |
+| **Zep** | Graph-based long-term memory. REST API (`https://api.getzep.com`). Strong for dialog history + entity extraction. Env var: `ZEP_API_KEY` |
+| **Letta (MemGPT)** | Stateful agent memory with self-editing context windows. REST API or in-process. Env var: `LETTA_BASE_URL`, `LETTA_API_KEY` |
+| **LangMem** | LangGraph-native memory provider. Can be embedded in-process or called via LangGraph Cloud REST. Env var: `LANGMEM_API_KEY` |
+| **Graphiti** | Temporal knowledge graph memory (from Zep team). `POST /episodes`, `GET /search`. Env var: `GRAPHITI_BASE_URL` |
+| **Redis Vector Memory** | Fast in-process memory for high-throughput agents. Uses Redis Stack + RediSearch. `REDIS_URL` env var. |
+
+#### Integration with FAHRN and completions
+
+- `CompletionRequest.ExternalMemoryProviders[]` — list of provider names to query for context before the provider call
+- `FAHRNManager.DispatchAsync()` — before dispatch, search each configured external memory provider and inject top-K results into the system message alongside Holonic BRAID context
+- `MemoryProviderManager` registered in DI; providers activated via `OASIS_DNA.json → OASIS.Web6.Memory.Providers[]`
+
+#### New endpoints
+
+```
+GET  /v1/memory/external/providers         List configured external memory providers  [NEW]
+POST /v1/memory/external/search            Search across all configured providers  [NEW]
+POST /v1/memory/external/add               Add a memory to the configured provider  [NEW]
+DELETE /v1/memory/external/{provider}/{id} Delete a specific memory  [NEW]
+```
+
+#### MCP tools
+
+```csharp
+[McpServerTool(Name = "web6_memory_external_search")]
+[Description("WEB6: searches configured external memory providers (Mem0, Zep, Letta, LangMem, etc.) for memories relevant to a query, returning top-K results ranked by relevance.")]
+
+[McpServerTool(Name = "web6_memory_external_add")]
+[Description("WEB6: adds a memory to the configured external memory provider for the given avatar.")]
+```
+
+---
+
+### PRIORITY 16 — Holonic Memory Improvements
+
+**Three concrete improvements to the existing `HolonicMemoryManager` that close gaps identified during planning.**
+
+#### 16a. Multi-hop propagation: `PropagateUpAsync(childHolonId, levels)`
+
+Currently `PropagateAsync` propagates exactly one hop (child → parent). Add:
+
+```csharp
+/// <summary>Propagates permitted memory up the fractal hierarchy for the given number of hops (levels). Pass int.MaxValue to propagate all the way to Earth.</summary>
+public async Task<OASISResult<int>> PropagateUpAsync(Guid childHolonId, int levels = 1)
+{
+    int totalPropagated = 0;
+    Guid currentId = childHolonId;
+
+    for (int i = 0; i < levels; i++)
+    {
+        OASISResult<int> step = await PropagateAsync(currentId);
+        if (step.IsError || step.Result == 0) break;
+        totalPropagated += step.Result;
+        // load parent id to continue upward
+        OASISResult<IHolon> holon = await Data.LoadHolonAsync(currentId, false);
+        if (holon.IsError || holon.Result?.ParentHolonId == Guid.Empty) break;
+        currentId = holon.Result.ParentHolonId;
+    }
+
+    return new OASISResult<int> { Result = totalPropagated };
+}
+```
+
+New endpoint: `POST /v1/holonic-memory/holons/{childHolonId}/propagate-up?levels={n}`
+New MCP tool: `web6_memory_propagate_up`
+
+#### 16b. Semantic memory search: `QueryMemoryAsync(holonId, semanticQuery, topK)`
+
+Once embeddings exist (Priority 7), add semantic search within a holon's memory items:
+
+```csharp
+public async Task<OASISResult<List<HolonicMemoryItem>>> QueryMemoryAsync(Guid holonId, string semanticQuery, int topK = 5)
+{
+    // Load all memory items on the holon
+    // Embed the query via EmbeddingManager
+    // Embed each memory item's Value field (or use cached embeddings)
+    // Cosine-rank, return top-K
+}
+```
+
+New endpoint: `GET /v1/holonic-memory/holons/{holonId}/memory/search?q={query}&topK={n}`
+New MCP tool: `web6_memory_search`
+
+#### 16c. TTL enforcement for `RetentionPolicy`
+
+The `RetentionPolicy` enum already exists in `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/RetentionPolicy.cs` but is not enforced. Wire it:
+
+- `RetentionPolicy.Ephemeral` → memory item deleted when its session holon ends (wire into `SymbiosisSessionManager.EndSessionAsync` to also call `HolonicMemoryManager.DeleteEphemeralMemoriesAsync`)
+- `RetentionPolicy.Session` → TTL = session lifetime
+- `RetentionPolicy.Persistent` → no TTL (current default behaviour)
+- `RetentionPolicy.TimeLimited` → `HolonicMemoryItem.ExpiresUtc` field; background job or on-read check deletes expired items
+
+Add `HolonicMemoryItem.ExpiresUtc` and `HolonicMemoryItem.RetentionPolicy` fields. Add `HolonicMemoryManager.PurgeExpiredAsync()` — called on startup and periodically.
+
+---
+
+### PRIORITY 17 — Enhanced Loop Detection in FAHRN
+
+**The current loop detection only catches degenerate line-repetition. Four additional mechanisms make it robust.**
+
+Current detection (in `FAHRNManager.DetectLoop()`): flags when the last 6 lines of a Mermaid diagram are all identical. This is too narrow — it misses semantic loops, budget overruns, circular DAGs, and contradictory outputs.
+
+#### 17a. Output hashing (rolling window)
+
+```csharp
+// Maintain a rolling hash set of the last N outputs across the serial dispatch chain:
+private readonly HashSet<string> _outputHashes = new HashSet<string>();
+
+bool IsOutputDuplicate(string content)
+{
+    // SHA256 hash of normalised content (trim whitespace, lowercase)
+    string hash = ComputeHash(content.Trim().ToLowerInvariant());
+    return !_outputHashes.Add(hash);  // Add returns false if already present
+}
+```
+
+If `IsOutputDuplicate` returns true, set `plan.LoopDetected = true` immediately — the agent is cycling.
+
+#### 17b. Token budget monitoring
+
+Add to `DispatchRequest`:
+```csharp
+public int? MaxTotalTokens { get; set; }  // hard stop for the entire dispatch
+```
+
+In `FAHRNManager.DispatchAsync()`:
+```csharp
+int totalTokensUsed = 0;
+// After each ExecuteAgentAsync:
+totalTokensUsed += plan.TokensUsed;
+if (request.MaxTotalTokens.HasValue && totalTokensUsed >= request.MaxTotalTokens.Value)
+{
+    dispatchResult.BudgetExceeded = true;
+    break;  // stop dispatch even if more agents remain
+}
+```
+
+#### 17c. DAG cycle detection in Mermaid
+
+Parse `A --> B` edges from the Mermaid diagram and run a DFS cycle check:
+
+```csharp
+bool HasCyclicDependency(string mermaidDiagram)
+{
+    // Extract edges: regex @"(\w+)\s*--[>-]+\s*(\w+)"
+    // Build adjacency list
+    // DFS with visited + recursion-stack sets
+    // Return true if any back-edge found
+}
+```
+
+A Mermaid `graph TD` with a back-edge (`A --> B --> A`) indicates the agent produced a circular plan — flag as `LoopDetected = true`.
+
+#### 17d. Contradiction detection (lightweight NLI)
+
+For high-stakes dispatch modes (Debate, Voting), run a lightweight NLI (Natural Language Inference) check between adjacent agent outputs:
+
+```csharp
+// Call a small fast model:
+// System: "Does statement B contradict statement A? Reply with only: ENTAIL, NEUTRAL, or CONTRADICT."
+// If CONTRADICT → flag the second agent's plan as potentially looped / contradictory
+```
+
+This is optional (off by default, enabled via `DispatchRequest.EnableContradictionDetection = true`) because it adds a model call per agent pair. Best for Debate mode where catching contradictions is the point.
+
+---
+
+### PRIORITY 18 — WebSocket Bidirectional Agent Sessions
+
+**SSE (Priority 5) covers server→client streaming. WebSocket adds client→server interactivity: mid-session tool results, user interruptions, multi-turn agent loops with persistent server-side state.**
+
+#### New endpoint: `GET /v1/ws/session` (WebSocket upgrade)
+
+Once connected, the session carries:
+- Avatar context (loaded once from Web4/Web5 on connect, cached for the session)
+- Conversation history (maintained server-side in Holonic Memory at Session level)
+- Active tool calls (pending results tracked server-side)
+- FAHRN dispatch state (which agents are mid-execution)
+
+#### Message protocol (JSON over WebSocket)
+
+Client → Server:
+```json
+{ "type": "message",      "content": "...", "role": "user" }
+{ "type": "tool_result",  "toolCallId": "call_abc", "result": "..." }
+{ "type": "interrupt" }   // cancel current FAHRN dispatch
+{ "type": "ping" }
+```
+
+Server → Client:
+```json
+{ "type": "chunk",        "delta": "...", "provider": "Anthropic", "model": "..." }
+{ "type": "tool_call",    "id": "call_abc", "name": "oasis_karma_get", "arguments": "{...}" }
+{ "type": "done",         "totalTokens": 1842, "latencyMs": 1203 }
+{ "type": "error",        "message": "..." }
+{ "type": "pong" }
+```
+
+#### Implementation
+
+- `WebSocketSessionManager` — manages active sessions keyed by `sessionId`
+- Sessions stored as Holonic Memory Session holons (reuses existing `HolonicMemoryManager`)
+- `CompletionController` gets a new `[HttpGet("ws/session")]` action with `HttpContext.WebSockets.AcceptWebSocketAsync()`
+- Tool call loop: server sends `tool_call`, waits for `tool_result`, then continues completion
+
+---
+
+### PRIORITY 19 — Observability, Telemetry & SDK Generation
+
+**Three distinct improvements to developer experience and operational visibility.**
+
+#### 19a. `/v1/telemetry` — real-time per-request trace stream
+
+```
+GET /v1/telemetry/stream   (SSE)
+```
+
+Each AI request emits a structured trace event:
+```json
+{
+  "requestId": "uuid",
+  "timestamp": "2026-07-10T12:00:00Z",
+  "provider": "Anthropic",
+  "model": "claude-opus-4.6",
+  "latencyMs": 843,
+  "promptTokens": 512,
+  "completionTokens": 1024,
+  "estimatedCostUSD": 0.0089,
+  "fahrnMode": "Parallel",
+  "braidGraphReused": true,
+  "braidGraphId": "uuid",
+  "agentsScored": 5,
+  "winningAgent": "openserv-claude-opus-4.6",
+  "avatarContextInjected": true,
+  "cacheHit": false,
+  "loopDetected": false
+}
+```
+
+Clients subscribe to this SSE stream to power real-time dashboards. Store last N events per avatar in Holonic Memory for historical replay via `GET /v1/telemetry/history`.
+
+#### 19b. `/v1/providers/status` — live provider health
+
+```
+GET /v1/providers/status
+```
+
+Response:
+```json
+[
+  { "provider": "OpenAI",    "healthy": true,  "latencyMs": 312, "lastCheckedUtc": "..." },
+  { "provider": "Anthropic", "healthy": true,  "latencyMs": 498, "lastCheckedUtc": "..." },
+  { "provider": "Groq",      "healthy": false, "latencyMs": null, "error": "timeout", "lastCheckedUtc": "..." }
+]
+```
+
+Background `ProviderHealthMonitor` pings each provider every 60 seconds with a minimal completion request (e.g. `"Reply with OK"`). Results cached and exposed here. FAHRN's Web9 health gate (Priority 3b) consumes this directly.
+
+#### 19c. OpenAPI spec improvements and SDK generation
+
+- Add `[SwaggerOperation(Summary = "...", Description = "...")]` and request/response examples to every controller action
+- Publish the spec at `GET /openapi.json` (alongside Swagger UI)
+- Add a CI step to auto-generate SDKs from the published spec:
+  - **npm**: `@oasisomniverse/web6-api` — TypeScript/JavaScript client, types inferred from the spec
+  - **Python**: `oasis-web6` — async client via `openapi-python-client` or `fern`
+  - **C#**: `NextGenSoftware.OASIS.Web6.Client` — already trivially available since the models live in `Web6.Core`, but a standalone NuGet for external callers is worthwhile
+- Target: developers can `npm install @oasisomniverse/web6-api` and call `web6.fahrn.solve(...)` without ever reading the Swagger docs
+
+---
+
+### PRIORITY 20 — DID / Verifiable Credentials & Identity Layer
+
+**Completes the identity story. OASIS avatars are already on-chain identities — this extends them to the emerging W3C decentralised identity standard, enabling AI to act verifiably on behalf of users.**
+
+#### 20a. DID resolution and avatar mapping
+
+Add `DidManager`:
+- `ResolveDidAsync(did)` — resolve a W3C DID (e.g. `did:key:...`, `did:web:...`, `did:ethr:...`) to an OASIS avatar via the DID Document's `service` endpoint or via a registered mapping holon
+- `RegisterAvatarDidAsync(avatarId, did)` — stores the DID↔avatar mapping as a holon
+- `GET /v1/identity/did/{did}` — public resolution endpoint
+
+#### 20b. DID-based authentication
+
+New auth flow alongside existing JWT:
+- `POST /v1/auth/did` — client presents a DID + a signed challenge (DID Auth); server verifies the signature against the DID Document's `verificationMethod`, issues an OASIS JWT scoped to the resolved avatar
+- Enables walletless auth: users authenticate with their existing DID (e.g. their ENS name, their Ceramic DID, their `did:key`) without creating a separate OASIS account
+
+#### 20c. Verifiable Credentials (VC) for capability grants
+
+```csharp
+// A VC issued by avatar X grants AI agent Y permission to perform specific actions:
+{
+  "@context": ["https://www.w3.org/2018/credentials/v1"],
+  "type": ["VerifiableCredential", "OASISCapabilityGrant"],
+  "issuer": "did:ethr:0xAvatarX",
+  "credentialSubject": {
+    "id": "did:web:api.web6.oasisomniverse.one/agents/fahrn",
+    "capabilities": ["web4:karma:read", "web5:quests:complete", "web6:complete"]
+  }
+}
+```
+
+- `POST /v1/auth/vc` — present a VC; server verifies issuer signature, extracts granted capabilities, issues a scoped JWT limited to those capabilities
+- `CompletionRequest.ActingAsAvatarId` — AI agent acts on behalf of this avatar; request must carry a VC proving the grant
+- Enables: "Avatar X authorises Claude to complete quests on my behalf" — verifiable, revocable, on-chain provenance
+
+#### 20d. `OASIS_DNA.json` config
+
+```json
+"OASIS": {
+  "Web6": {
+    "Identity": {
+      "EnableDIDAuth": true,
+      "EnableVerifiableCredentials": true,
+      "TrustedDIDMethods": ["did:key", "did:web", "did:ethr", "did:ion"],
+      "VCSignatureAlgorithm": "Ed25519Signature2020"
+    }
+  }
+}
+```
+
+---
+
+### PRIORITY 21 — ACP, ANP & Additional Protocol Adapters
+
+**Completes the protocol neutrality story. OASIS should support every major emerging agent protocol, not just MCP and A2A.**
+
+#### 21a. ACP (Agent Communication Protocol — BeeAI/IBM)
+
+Add `OrchestratorProtocolType.ACP`.
+
+Wire `OrchestratorManager.InvokeAcpAsync()`:
+- `POST {endpoint}/agents/{agentId}/runs` — create a run (ACP spec)
+- `GET {endpoint}/agents/{agentId}/runs/{runId}` — poll status
+- `GET {endpoint}/agents/{agentId}/runs/{runId}/events` — SSE stream of run events
+- Parse ACP's `RunStatus` → normalise to `OrchestratorInvokeResponse`
+
+ACP is designed for autonomous agents that run asynchronously — the invoke call creates a run and returns immediately; results come via SSE or polling. This is structurally different from MCP (synchronous tools/call) and A2A (task lifecycle).
+
+#### 21b. ANP (Agent Network Protocol)
+
+Add `OrchestratorProtocolType.ANP`.
+
+ANP focuses on decentralised agent discovery rather than pairwise invocation:
+- `GET {did_document_url}` — resolve the agent's DID Document to find its ANP service endpoint
+- `POST {anp_endpoint}/messages` — send a message to the agent
+- Agents publish their capabilities via DID Documents rather than a central registry
+
+Wire `OrchestratorManager.InvokeAnpAsync()`:
+- Resolve `config.EndpointUrl` as a DID → extract `service` entries with `type: "ANPAgent"`
+- `POST` to the resolved service endpoint with the ANP message envelope
+- ANP is closely related to Priority 20 (DID) — enable them together
+
+#### 21c. gRPC adapter
+
+Add `OrchestratorProtocolType.GRPC`.
+
+```csharp
+case OrchestratorProtocolType.GRPC:
+    // config.ExtraConfig["protoDescriptor"] = base64-encoded .proto file descriptor
+    // config.ExtraConfig["service"] = "mypackage.MyService"
+    // config.ExtraConfig["method"] = "MyMethod"
+    // Use Grpc.Net.Client + Google.Protobuf.WellKnownTypes.Struct for dynamic invocation
+    return await InvokeGrpcAsync(config, request);
+```
+
+Best for: high-performance agent-to-agent calls, internal microservice agents, latency-sensitive routing.
+
+#### 21d. AsyncAPI / event-driven adapters (Kafka, AMQP, MQTT)
+
+Add `OrchestratorProtocolType.Kafka`, `.AMQP`, `.MQTT`.
+
+These are fire-and-forget or pub/sub — the invocation model differs:
+- `InvokeAsync` publishes a message to the topic/queue and returns immediately
+- Optional: subscribe to a reply topic (`config.ExtraConfig["replyTopic"]`) and await the response with a timeout
+
+Best for: event-driven agent pipelines, IoT agents (MQTT), high-throughput task queues (Kafka/AMQP).
+
+#### 21e. GraphQL adapter
+
+Add `OrchestratorProtocolType.GraphQL`.
+
+```csharp
+case OrchestratorProtocolType.GraphQL:
+    // config.ExtraConfig["query"] = "mutation InvokeAgent($input: String!) { invoke(input: $input) { result } }"
+    // POST {endpoint} with { "query": ..., "variables": { "input": request.Input, ...request.Parameters } }
+    return await InvokeGraphQLAsync(config, request);
+```
+
+---
+
+### PRIORITY 24 — SkillOpt: Self-Evolving Agent Skill Documents
+
+**Source:** Microsoft Research, arXiv:2605.23904 — [https://microsoft.github.io/SkillOpt/](https://microsoft.github.io/SkillOpt/)
+
+**What it is:** SkillOpt treats the agent's natural-language *skill document* (a markdown procedure file) as the optimisation target rather than model weights. A frozen target model executes tasks guided by the current skill; a separate optimiser model proposes bounded textual edits; a held-out validation gate accepts a candidate only when performance improves. The exported artifact is a portable `best_skill.md`.
+
+**Why it matters for FAHRN:** FAHRN already updates agent scores via EMA. SkillOpt adds a second, complementary learning axis — the *procedure itself* evolves, not just the score. An agent that scores well numerically but uses a suboptimal procedure for a task category now gets its procedure rewritten automatically. Demonstrated gains: **+23.5% avg** on GPT-5.5 across SearchQA, SpreadsheetBench, OfficeQA, DocVQA, LiveMath, ALFWorld.
+
+#### New `SkillOptManager`
+
+```csharp
+public class SkillOptManager
+{
+    // Runs one SkillOpt epoch for a given agent + task category:
+    // 1. Collect scored rollout trajectories from recent FAHRN dispatches
+    // 2. Split into success and failure minibatches
+    // 3. Call optimiser model: "Given these failures, propose bounded add/delete/replace edits to the skill"
+    // 4. Apply edits under budget (textual learning rate = max N lines changed)
+    // 5. Evaluate candidate skill on held-out task set via ExecuteWithSkillAsync()
+    // 6. Accept candidate only if held-out selection score improves; otherwise store in rejected-edit buffer
+    public async Task<OASISResult<SkillDocument>> RunEpochAsync(Guid agentHolonId, string taskCategory);
+
+    // Execute a single FAHRN dispatch using the agent's current best skill injected into the system context
+    public async Task<OASISResult<DispatchResult>> ExecuteWithSkillAsync(DispatchRequest request, SkillDocument skill);
+
+    // Load/save the current best skill for this agent + category as a holon child of the agent holon
+    public async Task<OASISResult<SkillDocument>> LoadSkillAsync(Guid agentHolonId, string taskCategory);
+    public async Task<OASISResult<SkillDocument>> SaveSkillAsync(Guid agentHolonId, string taskCategory, SkillDocument skill);
+}
+```
+
+#### `SkillDocument` holon
+
+```csharp
+public class SkillDocument : HolonBase
+{
+    public string TaskCategory { get; set; }        // "mathematics", "code", "legal", etc.
+    public string Content { get; set; }             // Markdown — the actual skill text
+    public double SelectionScore { get; set; }      // Best held-out score achieved
+    public int EpochsRun { get; set; }
+    public List<RejectedEdit> RejectedEdits { get; set; }  // Negative feedback buffer
+    public string SlowUpdateContent { get; set; }   // Checkpoint for slow update mechanism
+}
+```
+
+#### Integration with FAHRN
+
+- `FAHRNManager.DispatchAsync()` — before dispatching, call `SkillOptManager.LoadSkillAsync(agentId, taskType)`. If a skill document exists, inject its content into the system message: `[AGENT SKILL FOR {taskCategory}]\n{skill.Content}`
+- After dispatch completes: store the outcome (score, trajectory) as a rollout record on the agent holon
+- Background job (or on-demand via API): `SkillOptManager.RunEpochAsync()` processes accumulated rollouts and attempts a skill evolution step
+- `ReasoningAgent.SkillOptEnabled` flag — opt-in per agent (default true for agents with ≥20 rollout records in a category)
+
+#### New endpoints
+
+```
+GET  /v1/reasoning-network/agents/{id}/skills              List skill documents per task category  [NEW]
+GET  /v1/reasoning-network/agents/{id}/skills/{category}   Get current best skill for a category  [NEW]
+POST /v1/reasoning-network/agents/{id}/skills/{category}/evolve   Trigger one SkillOpt epoch  [NEW]
+```
+
+#### New MCP tool
+
+```csharp
+[McpServerTool(Name = "web6_fahrn_get_agent_skill")]
+[Description("WEB6: returns the current best_skill.md document for a FAHRN agent and task category — the evolved natural-language procedure that guides the agent's reasoning, produced by the SkillOpt self-improvement loop.")]
+```
+
+#### Skill transferability
+
+Per the SkillOpt paper, the exported skill document transfers across:
+- **Cross-model**: skill trained with GPT-5.4 transfers to GPT-5.4-nano (+15.2 pts)  
+- **Cross-harness**: skill trained in Codex transfers to Claude Code (+31.8 pts)
+- **Self-optimiser**: small model optimising its own skills still finds useful edits
+
+This means a skill evolved by one FAHRN agent can seed the starting skill for a newly added agent in the same task category — dramatically accelerating onboarding of new providers into the reasoning network.
+
+---
+
+### PRIORITY 25 — ML.NET In-Process Machine Learning
+
+**Source:** [https://dotnet.microsoft.com/en-us/apps/ai/ml-dotnet](https://dotnet.microsoft.com/en-us/apps/ai/ml-dotnet)
+
+**What it is:** ML.NET is Microsoft's open-source, cross-platform ML framework for .NET — used in Power BI, Microsoft Defender, Outlook and Bing. Runs entirely in-process (C#/F#), supports AutoML, TensorFlow, ONNX, and achieves 95% accuracy on 9GB datasets.
+
+**Why it matters for WEB6:** The entire OASIS stack is .NET. ML.NET enables WEB6 to run ML inference *inside the API process* — zero additional API calls, microsecond latency, no external dependency — for tasks that don't need a large LLM: classification, anomaly detection, sentiment analysis, recommendation.
+
+#### Use cases within WEB6
+
+| ML Task | Where Used | Model Type |
+|---|---|---|
+| **Task type classification** | `FahrnTaskClassifier` — classify incoming problem as mathematics/code/legal/etc. | Multi-class classification (AutoML) |
+| **Loop anomaly scoring** | `FAHRNManager.DetectLoop()` — supplement hash/DAG checks with an ML anomaly score on token velocity and graph growth rate | Anomaly detection |
+| **Sentiment analysis** | Avatar content moderation, OAPP review scoring, holonic memory tagging | Binary/multi-class classification |
+| **Agent routing recommendation** | Recommend agent subset for a new task based on task embedding similarity to historical dispatches | Recommendation / collaborative filtering |
+| **Cost anomaly detection** | Flag unusual spend spikes per avatar before they hit budget cap | Time-series anomaly detection |
+| **Semantic similarity scoring** | Support `SemanticCacheManager` with a local cosine-similarity model as a fast pre-filter before embedding API call | Regression |
+
+#### New `MLNetManager`
+
+```csharp
+public class MLNetManager
+{
+    private readonly MLContext _ctx = new MLContext();
+
+    // Train or retrain a named model from OASIS usage holons
+    public async Task<OASISResult<bool>> TrainAsync(string modelName, IEnumerable<IHolon> trainingData);
+
+    // Load a serialised model from holon storage (COSMIC ORM)
+    public async Task<OASISResult<ITransformer>> LoadModelAsync(string modelName);
+
+    // Classify task type without an LLM call
+    public string ClassifyTaskType(string problemText);
+
+    // Score loop anomaly: returns 0.0 (normal) to 1.0 (certain loop)
+    public double ScoreLoopAnomaly(LoopFeatureVector features);
+
+    // Sentiment: returns Positive / Neutral / Negative
+    public string AnalyseSentiment(string text);
+}
+```
+
+#### AutoML integration
+
+- `POST /v1/ml/train` — trigger AutoML training on a named scenario using holons as training data
+- `GET /v1/ml/models` — list deployed in-process models and their accuracy metrics
+- Models serialised as `.zip` and stored as holons via COSMIC ORM — survive restarts, replicate across deployments
+
+#### `FahrnTaskClassifier` upgrade
+
+Replace the current regex/keyword heuristic in `FahrnTaskClassifier.cs` with an ML.NET multi-class classification model trained on historical FAHRN dispatch outcomes:
+
+```csharp
+// Before (heuristic):
+if (problem.Contains("code") || problem.Contains("function")) return "code";
+
+// After (ML.NET):
+string taskType = _mlNetManager.ClassifyTaskType(problem);
+// Returns: "mathematics" | "code" | "legal" | "architecture" | "writing" | "real-time" | "general"
+// Trained on accumulated FAHRN dispatch history stored as holons
+```
+
+#### NuGet packages required
+
+```xml
+<PackageReference Include="Microsoft.ML" Version="4.*" />
+<PackageReference Include="Microsoft.ML.AutoML" Version="0.22.*" />
+<PackageReference Include="Microsoft.ML.TensorFlow" Version="4.*" />  <!-- optional: ONNX/TF models -->
+```
+
+#### DNA config
+
+```json
+"OASIS": {
+  "Web6": {
+    "MLNet": {
+      "Enabled": true,
+      "AutoRetrainOnHolonThreshold": 1000,
+      "Models": {
+        "TaskClassifier": { "Enabled": true, "MinAccuracy": 0.85 },
+        "LoopAnomaly":    { "Enabled": true },
+        "Sentiment":      { "Enabled": true }
+      }
+    }
+  }
+}
+```
+
+---
+
+### PRIORITY 22 — Self-Registration as Orchestrator at Startup
+
+**A small but elegant addition: the Web6 API registers itself in its own FAHRN orchestrator registry on boot, so FAHRN agents can call back into any OASIS tool as a first-class orchestrator without any manual setup.**
+
+In `Program.cs`, after OASIS boot and FAHRN auto-seed:
+
+```csharp
+// Auto-register this Web6 instance as an MCP orchestrator adapter in its own registry.
+// Enables FAHRN agents to invoke any Web4-Web10 tool via web6_orchestrator_invoke
+// without leaving the FAHRN dispatch pipeline.
+if (dna?.OASIS?.Web6?.SelfRegisterAsOrchestrator ?? true)
+{
+    try
+    {
+        string selfUrl = Environment.GetEnvironmentVariable("WEB6_PUBLIC_URL")
+            ?? "https://api.web6.oasisomniverse.one/mcp";
+
+        OrchestratorManager orchManager = new OrchestratorManager(Guid.Empty, dna);
+        OASISResult<List<OrchestratorAdapterConfig>> existing = await orchManager.GetAdaptersAsync();
+
+        bool alreadyRegistered = existing.Result?.Any(a =>
+            string.Equals(a.EndpointUrl, selfUrl, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+        if (!alreadyRegistered)
+        {
+            await orchManager.RegisterAdapterAsync(new OrchestratorAdapterConfig
+            {
+                Name        = "OASIS-WEB6-SELF",
+                Protocol    = OrchestratorProtocolType.MCP,
+                EndpointUrl = selfUrl,
+                ExtraConfig = new Dictionary<string, string> { ["tool"] = "web6_fahrn_solve" }
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        OASISErrorHandling.HandleError($"Warning: WEB6 self-registration as orchestrator failed: {ex.Message}", ex);
+    }
+}
+```
+
+DNA config: `OASIS.Web6.SelfRegisterAsOrchestrator` (bool, default true). Controlled so operators can disable it in environments where the public URL isn't resolvable.
+
+---
+
+### PRIORITY 23 — Karma-Gated AI Access & StarnetContextManager
+
+**Two related WEB4/WEB5 integration items that make OASIS's identity layer a first-class routing signal.**
+
+#### 23a. Karma-gated AI access
+
+Avatar karma score influences what AI resources are available to them:
+
+Add `KarmaGatingConfig` to `OASIS_DNA.json → OASIS.Web6`:
+```json
+"KarmaGating": {
+  "Enabled": true,
+  "Tiers": [
+    { "MinKarma": 0,     "MaxKarma": 999,    "AllowedProviders": ["Groq", "DeepSeek", "Ollama"], "MonthlyBudgetUSD": 1.0  },
+    { "MinKarma": 1000,  "MaxKarma": 9999,   "AllowedProviders": ["auto"],                        "MonthlyBudgetUSD": 5.0  },
+    { "MinKarma": 10000, "MaxKarma": 999999, "AllowedProviders": ["auto"],                        "MonthlyBudgetUSD": 25.0 },
+    { "MinKarma": 10000, "MaxKarma": null,   "AllowedProviders": ["auto"],                        "MonthlyBudgetUSD": 100.0, "PriorityRouting": true }
+  ]
+}
+```
+
+In `CompletionController.Complete()` pre-flight:
+1. Load avatar karma via `KarmaManager` (Web4)
+2. Look up karma tier
+3. Filter `candidates` in `AIProviderManager.ResolveProviderCandidates()` to only allowed providers for this tier
+4. Apply tier's monthly budget cap (feeds into Priority 12 quota system)
+5. If `PriorityRouting = true` → set `request.Routing.Priority = "quality"` automatically
+
+This creates a meaningful progression loop: earn karma in the OurWorld game → unlock better AI models → complete harder quests → earn more karma.
+
+#### 23b. `StarnetContextManager` — standalone context endpoint
+
+```
+GET /v1/context/avatar/{avatarId}
+```
+
+Returns a rich, pre-assembled JSON block of the avatar's current OASIS state, callable by any external system (not just the completion pipeline):
+
+```json
+{
+  "avatarId": "...",
+  "displayName": "...",
+  "karmaScore": 4821,
+  "karmaLevel": "Adept",
+  "activeQuests": [
+    { "id": "...", "name": "The Holonic Path", "progress": "3/5 objectives complete" }
+  ],
+  "activeMissions": [...],
+  "worldMemberships": ["OurWorld", "Thrive"],
+  "recentHolons": [...],
+  "walletSummary": { "totalBalanceUSD": 12.50, "providers": ["Solana", "Ethereum"] },
+  "assembledAtUtc": "2026-07-10T12:00:00Z"
+}
+```
+
+New `StarnetContextManager` assembles this by calling Web4 + Web5 managers in parallel. Used internally by `CompletionController` for avatar context injection (Priority 3a) but also exposed as a standalone endpoint so game clients, OAPPs, and third-party AI tools can consume the same context block.
+
+MCP tool:
+```csharp
+[McpServerTool(Name = "web6_get_avatar_context")]
+[Description("WEB6: assembles and returns a rich context block for an OASIS avatar — karma, active quests, missions, world memberships, wallet summary — assembled from Web4 and Web5 in parallel. Use this to ground AI prompts in the avatar's real OASIS state.")]
+public static async Task<string> GetAvatarContext(string avatarId)
+```
+
 ---
 
 ## 3. MCP Tool Inventory (Complete — Post Implementation)
@@ -987,8 +1692,13 @@ After all priorities are implemented, the MCP server exposes:
 - `web6_fahrn_register_agent`, `web6_fahrn_get_agents`, `web6_fahrn_seed_openserv_agents`, `web6_fahrn_dispatch`
 - `web6_braid_find_graph`, `web6_braid_save_graph`, `web6_braid_record_outcome`, `web6_braid_record_solver_outcome` _(new)_
 - `web6_memory_get_earth_holon`, `web6_memory_get_or_create_holon`, `web6_memory_set_membrane_rule`, `web6_memory_record`, `web6_memory_propagate`
+- `web6_memory_propagate_up` _(new — multi-hop upward propagation, Priority 16)_
+- `web6_memory_search` _(new — semantic search within a holon, Priority 16)_
+- `web6_memory_external_search` _(new — search Mem0/Zep/Letta/LangMem/Graphiti/Redis, Priority 15)_
+- `web6_memory_external_add` _(new — add to external memory provider, Priority 15)_
 - `web6_orchestrator_register`, `web6_orchestrator_list`, `web6_orchestrator_invoke`
 - `web6_list_openserv_models`
+- `web6_get_avatar_context` _(new — StarnetContextManager rich context block, Priority 23)_
 
 ### Web7 Tools (Symbiosis, Collective Consciousness)
 - `web7_start_session`, `web7_submit_signals`, `web7_end_session`, `web7_get_session`
@@ -1061,6 +1771,25 @@ GET    /.well-known/mcp.json                 MCP discovery document  [NEW]
 GET    /.well-known/agent.json               A2A agent card  [NEW]
 
 GET    /openserv/models                      OpenServ SERV catalog
+
+GET    /v1/ws/session                        WebSocket bidirectional agent session  [NEW - Priority 18]
+
+GET    /v1/telemetry/stream                  Real-time per-request SSE trace stream  [NEW - Priority 19]
+GET    /v1/telemetry/history                 Historical telemetry replay  [NEW - Priority 19]
+
+GET    /v1/identity/did/{did}                Resolve a W3C DID to OASIS avatar  [NEW - Priority 20]
+POST   /v1/auth/did                          DID-based authentication  [NEW - Priority 20]
+POST   /v1/auth/vc                           Verifiable Credential capability grant  [NEW - Priority 20]
+
+GET    /v1/context/avatar/{avatarId}         StarnetContextManager rich avatar context block  [NEW - Priority 23]
+
+GET    /v1/memory/external/providers         List configured external memory providers  [NEW - Priority 15]
+POST   /v1/memory/external/search            Semantic search across all external providers  [NEW - Priority 15]
+POST   /v1/memory/external/add               Add memory to configured external provider  [NEW - Priority 15]
+DELETE /v1/memory/external/{provider}/{id}   Delete specific external memory  [NEW - Priority 15]
+
+POST   /v1/holonic-memory/holons/{id}/propagate-up  Multi-hop upward propagation  [NEW - Priority 16]
+GET    /v1/holonic-memory/holons/{id}/memory/search  Semantic search within holon  [NEW - Priority 16]
 ```
 
 ---
@@ -1114,4 +1843,19 @@ The GPT conversation confirms the vision is coherent and the positioning is corr
 | Key vault / cost metering | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/KeyVaultManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/KeysController.cs` + `UsageController.cs` |
 | Semantic caching | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/SemanticCacheManager.cs` |
 | Decentralised AI providers | `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/AIProviderType.cs` + `AIProviderManager.cs` |
+| Replicate provider | `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/AIProviderType.cs` + `AIProviderManager.cs` |
 | Discovery documents | New `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/DiscoveryController.cs` |
+| External memory providers (Mem0/Zep/Letta/LangMem/Graphiti/Redis) | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/MemoryProviderManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/ExternalMemoryController.cs` + `C:/Source/MCP/NextGenSoftware.OASIS.MCP.Server/Tools/Web6Tools.cs` |
+| Holonic Memory improvements (multi-hop propagate, semantic search, TTL) | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/HolonicMemoryManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/HolonicMemoryItem.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/HolonicMemoryController.cs` |
+| Enhanced loop detection (hashing, budget, DAG, NLI) | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/FAHRNManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/DispatchRequest.cs` |
+| WebSocket bidirectional sessions | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/WebSocketSessionManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/CompletionController.cs` |
+| Telemetry SSE stream | New `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/TelemetryController.cs` + `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/TelemetryManager.cs` |
+| Provider health monitor | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/ProviderHealthMonitor.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/ProvidersController.cs` |
+| OpenAPI SDK generation | CI pipeline (GitHub Actions / Azure DevOps) + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/` (SwaggerOperation annotations) |
+| DID / Verifiable Credentials | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/DidManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/IdentityController.cs` + `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Middleware/JwtMiddleware.cs` |
+| ACP adapter | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/OrchestratorManager.cs` + `WEB6/NextGenSoftware.OASIS.Web6.Core/Enums/OrchestratorProtocolType.cs` |
+| ANP adapter | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/OrchestratorManager.cs` + `OrchestratorProtocolType.cs` (requires DidManager from Priority 20) |
+| gRPC / AsyncAPI / GraphQL adapters | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/OrchestratorManager.cs` + `OrchestratorProtocolType.cs` |
+| Self-registration as orchestrator at startup | `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Program.cs` |
+| Karma-gated AI access | `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/CompletionController.cs` + `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/AIProviderManager.cs` + `OASIS_DNA.json` |
+| StarnetContextManager + standalone endpoint | New `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/StarnetContextManager.cs` + New `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/ContextController.cs` + `C:/Source/MCP/NextGenSoftware.OASIS.MCP.Server/Tools/Web6Tools.cs` |
