@@ -31,7 +31,13 @@
 - Added optional returnUrl parameter to forgot-password endpoint.
 - Made OldPassword optional in ResetPassword (not required when using a reset token).
 - Changed license to GNU Affero General Public License v3 (AGPL3).
-- Numerous bug fixes, stability improvements, and performance enhancements.</PackageReleaseNotes>
+- Numerous bug fixes, stability improvements, and performance enhancements.
+- Upgraded all projects to .NET 10 — the latest LTS runtime with improved performance, lower memory footprint, and new language features.
+- Miscellaneous stability improvements and internal refactoring across all layers.
+- Improved async/await patterns and cancellation token propagation throughout.
+- Better null safety and nullable reference type annotations.
+- Refined logging output for easier diagnostics.
+- Various minor bug fixes identified during the WEB6-10 integration testing phase.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>

@@ -15,7 +15,11 @@
 - Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
 - Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
 - Improved error handling: explicit errors when provider returns null content; null guards throughout.
-- Updated to align with OASIS API Core v2.0.0.</PackageReleaseNotes>
+- Updated to align with OASIS API Core v2.0.0.
+- Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
+- Miscellaneous bug fixes and stability improvements.
+- Improved null safety and error reporting.
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
