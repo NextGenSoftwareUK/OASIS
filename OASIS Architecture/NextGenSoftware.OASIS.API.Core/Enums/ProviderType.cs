@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Core.Enums
         ZcashOASIS,
         RadixOASIS,
         TelegramOASIS,
+        XRPLOASIS,
         MonadOASIS,
         LineaOASIS,
         ScrollOASIS,
