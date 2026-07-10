@@ -10,7 +10,7 @@
         <Summary>Aztec privacy provider for OASIS offering private note management, STARK proof workflows, and smart contract interactions.</Summary>
         <Description>Aztec privacy provider for OASIS offering private note management, STARK proof workflows, and smart contract interactions. Built for Zypherpunk hackathon submissions.</Description>
         <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-        <PackageIcon>OASISLogo128.jpg</PackageIcon>
+        <PackageIcon>OASIS.jpg</PackageIcon>
         <Authors>David Ellams (NextGen Software Ltd)</Authors>
         <PackageTags>OASIS API; Aztec; Privacy; ZK; Private Notes; STARK</PackageTags>
         <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
@@ -42,7 +42,7 @@
     <!-- Override: AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0 -->
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
   
-    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
     <ItemGroup>
@@ -52,7 +52,7 @@
 
     <ItemGroup>
       <None Update="README.md">
-        <PackagePath>\\</PackagePath>
+        <PackagePath>\</PackagePath>
         <Pack>True</Pack>
       </None>
     </ItemGroup>

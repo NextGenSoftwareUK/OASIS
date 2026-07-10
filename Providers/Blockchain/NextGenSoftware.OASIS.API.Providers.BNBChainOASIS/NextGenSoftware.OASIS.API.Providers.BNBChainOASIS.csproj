@@ -9,7 +9,7 @@
 	  <Summary>WEB4 OASIS API BNB Chain OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
 	  <Description>WEB4 OASIS API BNB Chain OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
 	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
@@ -36,7 +36,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+    <None Include="..\..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>
@@ -58,10 +58,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="README.md">
-      <PackagePath>\</PackagePath>
-      <Pack>True</Pack>
-    </None>
   </ItemGroup>
 
 </Project>

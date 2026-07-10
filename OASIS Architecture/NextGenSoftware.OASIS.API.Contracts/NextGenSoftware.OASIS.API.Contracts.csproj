@@ -10,7 +10,7 @@
 	  <Summary>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts for OASIS ecosystem</Summary>
 	  <Description>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts that can be referenced by both OASIS.API.Core and Unity projects</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Contracts; Interfaces; Enums; Shared; Unity; .NET Standard</PackageTags>
 	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one after ~3 years of deep development.
@@ -51,7 +51,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\Images\Logos\OASISLogo128.jpg" Link="OASISLogo128.jpg">
+    <None Include="..\..\Logos\OASIS.jpg" Link="OASIS.jpg">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
     </None>
