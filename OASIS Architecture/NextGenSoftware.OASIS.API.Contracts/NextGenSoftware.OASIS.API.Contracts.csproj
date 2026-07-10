@@ -37,7 +37,9 @@
 - Improved async/await patterns and cancellation token propagation throughout.
 - Better null safety and nullable reference type annotations.
 - Refined logging output for easier diagnostics.
-- Various minor bug fixes identified during the WEB6-10 integration testing phase.</PackageReleaseNotes>
+- Various minor bug fixes identified during the WEB6-10 integration testing phase.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
