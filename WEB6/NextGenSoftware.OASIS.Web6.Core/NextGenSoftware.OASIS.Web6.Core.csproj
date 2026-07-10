@@ -14,7 +14,9 @@
     <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
 - Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
 - Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
-- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.</PackageReleaseNotes>
+- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.
+- Built on .NET 10 from the ground up for maximum performance and longevity.
+- Miscellaneous bug fixes and improvements during initial stabilisation.</PackageReleaseNotes>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
