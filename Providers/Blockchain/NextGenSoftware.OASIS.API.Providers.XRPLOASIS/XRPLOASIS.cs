@@ -14,8 +14,13 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using System.Threading;
 
 namespace NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
 
@@ -36,10 +41,10 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     {
         ProviderName = "XRPLOASIS";
         ProviderDescription = "XRP Ledger provider for OASIS - stores data in transaction memos";
-        ProviderType = new EnumValue<ProviderType>(ProviderType.XRPLOASIS);
-        ProviderCategory = new EnumValue<ProviderCategory>(ProviderCategory.StorageAndNetwork);
-        ProviderCategories.Add(new EnumValue<ProviderCategory>(ProviderCategory.Blockchain));
-        ProviderCategories.Add(new EnumValue<ProviderCategory>(ProviderCategory.Storage));
+        ProviderType = new EnumValue<ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(NextGenSoftware.OASIS.API.Core.Enums.ProviderCategory.Storage));
 
         _rpcEndpoint = rpcEndpoint;
         _archiveAccount = archiveAccount;
@@ -139,7 +144,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             }
 
             // Get wallet address from avatar
-            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, ProviderType.XRPLOASIS);
+            var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatar.Id, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS);
             if (walletResult.IsError || string.IsNullOrEmpty(walletResult.Result?.WalletAddress))
             {
                 OASISErrorHandling.HandleError(ref result, "Avatar wallet address not found for XRPL");
@@ -181,7 +186,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            avatar.ProviderUniqueStorageKey[ProviderType.XRPLOASIS] = submitResult.Result;
+            avatar.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS] = submitResult.Result;
             result.Result = avatar;
             result.Message = "Avatar saved to XRPL successfully";
         }
@@ -348,7 +353,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
             if (holon.MetaData != null && holon.MetaData.ContainsKey("avatarId"))
             {
                 var avatarId = Guid.Parse(holon.MetaData["avatarId"].ToString());
-                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId, ProviderType.XRPLOASIS);
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS);
                 if (!walletResult.IsError && !string.IsNullOrEmpty(walletResult.Result?.WalletAddress))
                 {
                     walletAddress = walletResult.Result.WalletAddress;
@@ -394,7 +399,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
                 return result;
             }
 
-            holon.ProviderUniqueStorageKey[ProviderType.XRPLOASIS] = submitResult.Result;
+            holon.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.XRPLOASIS] = submitResult.Result;
             result.Result = holon;
             result.Message = "Holon saved to XRPL successfully";
         }
@@ -450,68 +455,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         return result;
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-    {
-        var result = new OASISResult<ISearchResults>();
-
-        try
-        {
-            if (!_isActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate XRPL provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            var transactions = await GetArchiveTransactionsAsync();
-            if (transactions.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Failed to get XRPL transactions: {transactions.Message}");
-                return result;
-            }
-
-            var searchResults = new SearchResults();
-            var query = searchParams?.SearchQuery?.ToLower() ?? "";
-
-            foreach (var tx in transactions.Result)
-            {
-                if (searchParams?.SearchType == SearchType.Holon || searchParams?.SearchType == SearchType.All)
-                {
-                    var holon = TryParseHolonFromTransaction(tx);
-                    if (holon != null && (string.IsNullOrEmpty(query) ||
-                        (holon.Name?.ToLower().Contains(query) == true) ||
-                        (holon.Description?.ToLower().Contains(query) == true)))
-                    {
-                        searchResults.Holons.Add(holon);
-                    }
-                }
-
-                if (searchParams?.SearchType == SearchType.Avatar || searchParams?.SearchType == SearchType.All)
-                {
-                    var avatar = LoadAvatarFromTransaction(tx);
-                    if (avatar != null && (string.IsNullOrEmpty(query) ||
-                        (avatar.Username?.ToLower().Contains(query) == true) ||
-                        (avatar.Email?.ToLower().Contains(query) == true)))
-                    {
-                        searchResults.Avatars.Add(avatar);
-                    }
-                }
-            }
-
-            searchResults.NumberOfResults = searchResults.Holons.Count + searchResults.Avatars.Count;
-            result.Result = searchResults;
-            result.Message = $"Search completed: {searchResults.NumberOfResults} results found";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error searching XRPL: {ex.Message}", ex);
-        }
-
-        return result;
-    }
+    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => throw new NotImplementedException();
 
     #region Helper Methods
 
@@ -775,6 +719,36 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => throw new NotImplementedException();
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => throw new NotImplementedException();
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => throw new NotImplementedException();
+
+    // IOASISStorageProviderBase — string overload
+    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
+
+    // IOASISNETProvider
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters) => throw new NotImplementedException();
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type) => throw new NotImplementedException();
+
+    // IOASISBlockchainStorageProvider
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request) => throw new NotImplementedException();
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request) => throw new NotImplementedException();
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request) => throw new NotImplementedException();
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request) => throw new NotImplementedException();
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request) => throw new NotImplementedException();
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request) => throw new NotImplementedException();
+    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => throw new NotImplementedException();
+    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request) => throw new NotImplementedException();
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => throw new NotImplementedException();
+    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() => throw new NotImplementedException();
+    public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) => throw new NotImplementedException();
+    public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) => throw new NotImplementedException();
+    public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey) => throw new NotImplementedException();
+    public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress) => throw new NotImplementedException();
+    public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default) => throw new NotImplementedException();
 
     #endregion
 }
