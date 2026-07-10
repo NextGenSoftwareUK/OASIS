@@ -20,7 +20,9 @@
 - Upgraded to .NET 10 — latest runtime with significant performance and GC improvements.
 - Miscellaneous bug fixes and stability improvements.
 - Improved null safety and error reporting.
-- Internal refactoring to align with OASIS API Core v2.0.0 conventions.</PackageReleaseNotes>
+- Internal refactoring to align with OASIS API Core v2.0.0 conventions.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>

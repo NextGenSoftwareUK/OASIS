@@ -16,7 +16,9 @@
 - Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
 - Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.
 - Built on .NET 10 from the ground up for maximum performance and longevity.
-- Miscellaneous bug fixes and improvements during initial stabilisation.</PackageReleaseNotes>
+- Miscellaneous bug fixes and improvements during initial stabilisation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
