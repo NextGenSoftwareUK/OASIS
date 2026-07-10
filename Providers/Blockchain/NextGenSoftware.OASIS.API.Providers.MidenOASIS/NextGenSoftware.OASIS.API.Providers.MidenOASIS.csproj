@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
@@ -13,14 +13,18 @@
         <PackageIcon>OASISLogo128.jpg</PackageIcon>
         <Authors>David Ellams (NextGen Software Ltd)</Authors>
         <PackageTags>OASIS API; Miden; Privacy; ZK; STARK; Private Notes; zkVM</PackageTags>
-        <PackageReleaseNotes>Initial release for Zypherpunk hackathon Track 4.</PackageReleaseNotes>
+        <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
+- Full implementation of all remaining provider interface stubs — no more NotImplementedExceptions.
+- Security hardening: NuGet vulnerability remediation, CORS and JWT alignment.
+- Improved error handling: explicit errors when provider returns null content; null guards throughout.
+- Updated to align with OASIS API Core v2.0.0.</PackageReleaseNotes>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
         <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-        <Version>1.0.0</Version>
+        <Version>2.0.0</Version>
         <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     </PropertyGroup>
 

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,7 +10,11 @@
     <Product>WEB6 OASIS AI Abstraction Layer Core</Product>
     <Title>WEB6 OASIS AI Abstraction Layer Core</Title>
     <Summary>The Core (Business Logic Layer) for WEB6 - the unified AI abstraction and orchestration layer built on top of WEB4 (OASIS API/ONODE Core - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). Hosts the AIProviderManager (routes/normalises requests across every AI provider), the HolonicBraidManager (fractal holonic shared reasoning-graph memory) and the FAHRNManager (Fractal Adaptive Holonic Reasoning Network - the controller-agent meta-orchestrator with composite scoring, dispatch modes and loop detection).</Summary>
-    <Version>1.0.0</Version>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
+- Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
+- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.</PackageReleaseNotes>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
