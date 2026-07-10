@@ -35,7 +35,7 @@
     <PackageReference Include="Neo4jClient" Version="4.1.18" />
     <PackageReference Include="Neo4jOgm" Version="0.21.8" />
   
-    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath=""/>
+    <None Include="..\..\..\Images\Logos\OASISLogo128.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
