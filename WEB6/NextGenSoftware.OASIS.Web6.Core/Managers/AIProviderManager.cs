@@ -65,6 +65,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             ApiKeys[AIProviderType.MoonshotAI]  = Resolve("MOONSHOT_API_KEY",     null);
             ApiKeys[AIProviderType.Perplexity]  = Resolve("PERPLEXITY_API_KEY",   null);
             ApiKeys[AIProviderType.LMStudio]    = Resolve("LM_STUDIO_API_KEY",    null);
+            ApiKeys[AIProviderType.Bittensor]   = Resolve("BITTENSOR_API_KEY",   null);
+            ApiKeys[AIProviderType.GaiaNet]     = Resolve("GAIANET_API_KEY",     null);
+            ApiKeys[AIProviderType.Custom]      = Resolve("CUSTOM_AI_API_KEY",   null);
         }
 
         /// <summary>Returns the env var value if set and non-empty, otherwise the OASIS_DNA fallback.</summary>
@@ -187,6 +190,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 case AIProviderType.MoonshotAI:
                 case AIProviderType.Perplexity:
                 case AIProviderType.LMStudio:
+                case AIProviderType.Bittensor:
+                case AIProviderType.GaiaNet:
+                case AIProviderType.Custom:
                     return await CallOpenAICompatibleAsync(provider, request);
 
                 case AIProviderType.Anthropic:
@@ -233,6 +239,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 AIProviderType.MoonshotAI => ("https://api.moonshot.cn/v1/chat/completions",                             "moonshot-v1-128k"),
                 AIProviderType.Perplexity => ("https://api.perplexity.ai/chat/completions",                              "sonar-pro"),
                 AIProviderType.LMStudio   => ($"{Environment.GetEnvironmentVariable("LM_STUDIO_BASE_URL") ?? "http://localhost:1234"}/v1/chat/completions", "local"),
+                AIProviderType.Bittensor  => (Environment.GetEnvironmentVariable("BITTENSOR_API_URL") ?? "https://api.corcel.io/v1/chat/completions", "bittensor-mistral-7b"),
+                AIProviderType.GaiaNet    => ($"{Environment.GetEnvironmentVariable("GAIANET_NODE_URL") ?? "https://llama.us.gaianet.network"}/v1/chat/completions", "llama"),
+                AIProviderType.Custom     => (Environment.GetEnvironmentVariable("CUSTOM_AI_BASE_URL") ?? "", "custom"),
                 _ => ("https://api.openai.com/v1/chat/completions", "gpt-4o"),
             };
         }
@@ -243,7 +252,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             string model = string.IsNullOrEmpty(request.Model) || request.Model == "auto" ? defaultModel : request.Model;
             string apiKey = ApiKeys.TryGetValue(provider, out string key) ? key : null;
 
-            if (string.IsNullOrEmpty(apiKey) && provider != AIProviderType.Ollama)
+            bool keyOptional = provider == AIProviderType.Ollama || provider == AIProviderType.LMStudio || provider == AIProviderType.GaiaNet || provider == AIProviderType.Custom;
+            if (string.IsNullOrEmpty(apiKey) && !keyOptional)
                 throw new InvalidOperationException($"No API key configured for {provider}.");
 
             bool hasTools = request.Tools?.Count > 0;

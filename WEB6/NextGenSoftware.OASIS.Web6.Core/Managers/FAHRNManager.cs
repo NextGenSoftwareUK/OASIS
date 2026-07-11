@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -29,6 +32,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
         private readonly HolonicBraidManager _braidManager;
         private readonly AIProviderManager _providerManager;
         private readonly HolonicMemoryManager _memoryManager;
+
+        // Priority 3b — Web9 health snapshot cache (refresh every 30 s)
+        private static Web9HealthSnapshot _cachedHealth;
+        private static DateTime _healthCacheExpiry = DateTime.MinValue;
+        private static readonly object _healthLock = new object();
+
+        // Priority 17a — rolling output hash set (per dispatch instance, cleared on construction)
+        private readonly HashSet<string> _outputHashes = new HashSet<string>();
+
+        // Priority 3b — set true when Web9 reports Web4 storage as degraded to skip BRAID persistence
+        private bool _skipBraidPersistence = false;
 
         public FAHRNManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
@@ -168,6 +182,22 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 CategoryScores = new Dictionary<string, double> { ["code"] = 0.88, ["mathematics"] = 0.88 } },
             new ReasoningAgentMetadata { AgentName = "openserv-deepseek-v4-flash", Model = "deepseek-v4-flash", SpeedScore = 0.82, CostScore = 0.85,
                 CategoryScores = new Dictionary<string, double> { ["code"] = 0.72, ["mathematics"] = 0.7 } },
+
+            // Priority 9 — additional direct providers
+            new ReasoningAgentMetadata { AgentName = "cerebras-llama-70b", Provider = AIProviderType.Cerebras, Model = "llama-3.3-70b", SpeedScore = 0.97, CostScore = 0.80,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.90, ["code"] = 0.72, ["writing"] = 0.70 } },
+            new ReasoningAgentMetadata { AgentName = "together-llama-70b", Provider = AIProviderType.TogetherAI, Model = "meta-llama/Llama-3.3-70B-Instruct-Turbo", SpeedScore = 0.85, CostScore = 0.78,
+                CategoryScores = new Dictionary<string, double> { ["code"] = 0.72, ["writing"] = 0.70, ["reasoning"] = 0.68 } },
+            new ReasoningAgentMetadata { AgentName = "perplexity-sonar-pro", Provider = AIProviderType.Perplexity, Model = "sonar-pro", SpeedScore = 0.70, CostScore = 0.55,
+                CategoryScores = new Dictionary<string, double> { ["real-time"] = 0.95, ["writing"] = 0.75, ["reasoning"] = 0.72 } },
+            new ReasoningAgentMetadata { AgentName = "moonshot-kimi-128k", Provider = AIProviderType.MoonshotAI, Model = "moonshot-v1-128k", SpeedScore = 0.55, CostScore = 0.50,
+                CategoryScores = new Dictionary<string, double> { ["writing"] = 0.82, ["legal"] = 0.78, ["architecture"] = 0.75 } },
+
+            // Priority 14 — decentralised providers
+            new ReasoningAgentMetadata { AgentName = "bittensor-mistral-7b", Provider = AIProviderType.Bittensor, Model = "bittensor-mistral-7b", SpeedScore = 0.60, CostScore = 0.90,
+                CategoryScores = new Dictionary<string, double> { ["general"] = 0.55, ["writing"] = 0.55 } },
+            new ReasoningAgentMetadata { AgentName = "gaianet-llama", Provider = AIProviderType.GaiaNet, Model = "llama", SpeedScore = 0.55, CostScore = 0.95,
+                CategoryScores = new Dictionary<string, double> { ["general"] = 0.55, ["code"] = 0.50 } },
         };
 
         /// <summary>Loads every agent currently registered with the network.</summary>
@@ -216,6 +246,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 return result;
             }
 
+            // Priority 3b — Web9 health gating: exclude providers flagged as degraded
+            Web9HealthSnapshot health = await GetCachedWeb9HealthAsync();
+            if (health.Web4StorageDegraded)
+                _skipBraidPersistence = true;
+            if (health.DegradedProviders?.Count > 0)
+                eligibleAgents = eligibleAgents.Where(a => !health.DegradedProviders.Contains(a.Provider.ToString(), StringComparer.OrdinalIgnoreCase)).ToList();
+
+            // Priority 3c — Web7 symbiosis hints: adjust dispatch mode based on user's cognitive state
+            if (request.SymbiosisSessionId.HasValue)
+                request = await ApplySymbiosisHintsAsync(request);
+
             ScoringWeights weights = ScoringWeights.ForMode(request.Mode);
             List<(ReasoningAgentMetadata agent, double score)> ranked = eligibleAgents
                 .Select(a => (agent: a, score: ComputeCompositeScore(a, request.TaskType, weights)))
@@ -256,7 +297,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                     break;
             }
 
-            if (existingGraph.Result == null && !string.IsNullOrEmpty(dispatchResult.FinalMermaidPlan))
+            if (existingGraph.Result == null && !string.IsNullOrEmpty(dispatchResult.FinalMermaidPlan) && !_skipBraidPersistence)
             {
                 AgentExecutionPlan winner = dispatchResult.AgentPlans.FirstOrDefault(p => p.AgentId == dispatchResult.WinningAgentId);
                 OASISResult<HolonicBraidGraphDto> saved = await _braidManager.SaveGraphAsync(request.TaskType, dispatchResult.FinalMermaidPlan, winner?.AgentName ?? "FAHRN");
@@ -566,6 +607,20 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             dispatchResult.FinalMermaidPlan = "graph TD\n" + string.Join("\n", subPlans.Select((p, idx) => $"  sub{idx}[\"{p.AgentName}: sub-problem {idx + 1}\"]"));
         }
 
+        // Priority 3d: route through Web8 galactic mesh when requested
+        private async Task<OASISResult<CompletionResponse>> RouteCompletionAsync(DispatchRequest request, CompletionRequest completionRequest)
+        {
+            if (request.UseMeshRouting && request.SourceMeshNodeId.HasValue)
+            {
+                // Route through the Web8 mesh — the mesh manager handles Dijkstra path selection and relay.
+                // The agent's mesh node id is stored as metadata on its holon (future: agent.MeshNodeId).
+                // For now we fall through to direct invocation when no mesh manager is available, since
+                // Web8 is a separate deployment. Callers with a full OASIS stack can override this.
+                // This hook is intentionally left as a no-op stub — wire a GalacticMeshManager here when available.
+            }
+            return await _providerManager.CompleteAsync(completionRequest);
+        }
+
         private async Task<AgentExecutionPlan> ExecuteAgentAsync(ReasoningAgentMetadata agent, double score, DispatchRequest request, HolonicBraidGraphDto graph)
         {
             Stopwatch sw = Stopwatch.StartNew();
@@ -594,7 +649,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                         }
                     };
 
-                    OASISResult<CompletionResponse> completionResult = await _providerManager.CompleteAsync(completionRequest);
+                    OASISResult<CompletionResponse> completionResult = await RouteCompletionAsync(request, completionRequest);
 
                     if (completionResult.IsError || completionResult.Result == null)
                     {
@@ -605,7 +660,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                     mermaid = completionResult.Result.Content;
                 }
 
-                plan.LoopDetected = DetectLoop(mermaid);
+                plan.LoopDetected = DetectLoop(mermaid) || IsOutputDuplicate(mermaid);
                 plan.MermaidDiagram = mermaid;
             }
             catch
@@ -623,20 +678,162 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
         /// <summary>
         /// Loop detection: flags output-similarity (degenerate repetition) and circular DAG references in the
-        /// Mermaid diagram. Token-budget and self-contradictory-step detection are evaluated by the caller against
-        /// the raw provider response before this is called.
+        /// Mermaid diagram. Priority 17a: also uses rolling output hash; Priority 17c: DAG cycle check.
         /// </summary>
         private bool DetectLoop(string mermaidDiagram)
         {
             if (string.IsNullOrWhiteSpace(mermaidDiagram))
                 return true;
 
-            // Degenerate repetition - the same line repeated many times in a row.
+            // Degenerate repetition — the same line repeated many times in a row.
             string[] lines = mermaidDiagram.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0).ToArray();
             if (lines.Length >= 6 && lines.Skip(lines.Length - 6).Distinct().Count() == 1)
                 return true;
 
+            // Priority 17c — DAG cycle detection
+            if (HasCyclicDependency(mermaidDiagram))
+                return true;
+
             return false;
+        }
+
+        // ── Priority 17 helpers ──────────────────────────────────────────────────────────────────────
+
+        /// <summary>Priority 17a — returns true if this output content has been seen before in this dispatch run.</summary>
+        private bool IsOutputDuplicate(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+                return false;
+            using SHA256 sha = SHA256.Create();
+            byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(content.Trim().ToLowerInvariant()));
+            string hex = BitConverter.ToString(hash).Replace("-", "");
+            return !_outputHashes.Add(hex);
+        }
+
+        /// <summary>Priority 17c — returns true if the Mermaid diagram contains a back-edge (cycle) in its DAG.</summary>
+        private static bool HasCyclicDependency(string mermaidDiagram)
+        {
+            // Extract edges: A --> B  or  A --- B  or  A ==> B
+            var edges = Regex.Matches(mermaidDiagram, @"(\w[\w\s]*?)\s*(?:-->|---|-\.->|==>)\s*\|?[^|\n]*\|?\s*(\w[\w\s]*?)(?:\s*$|\[|\(|{)", RegexOptions.Multiline);
+            var adj = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (Match m in edges)
+            {
+                string from = m.Groups[1].Value.Trim();
+                string to = m.Groups[2].Value.Trim();
+                if (!string.IsNullOrEmpty(from) && !string.IsNullOrEmpty(to))
+                {
+                    if (!adj.ContainsKey(from)) adj[from] = new List<string>();
+                    adj[from].Add(to);
+                }
+            }
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var recStack = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            bool DFS(string node)
+            {
+                visited.Add(node); recStack.Add(node);
+                if (adj.TryGetValue(node, out var nbrs))
+                    foreach (string nb in nbrs)
+                        if (!visited.Contains(nb) ? DFS(nb) : recStack.Contains(nb))
+                            return true;
+                recStack.Remove(node);
+                return false;
+            }
+            return adj.Keys.Where(n => !visited.Contains(n)).Any(DFS);
+        }
+
+        /// <summary>Priority 17d — lightweight NLI check: returns true when statement B contradicts statement A.</summary>
+        private async Task<bool> ContradictesAsync(string statementA, string statementB)
+        {
+            if (string.IsNullOrWhiteSpace(statementA) || string.IsNullOrWhiteSpace(statementB))
+                return false;
+            try
+            {
+                OASISResult<CompletionResponse> nliResult = await _providerManager.CompleteAsync(new CompletionRequest
+                {
+                    Routing = new RoutingOptions { Priority = "latency" },
+                    MaxTokens = 5,
+                    Messages = new List<ChatMessage>
+                    {
+                        new ChatMessage { Role = "system", Content = "Does statement B contradict statement A? Reply with only one word: ENTAIL, NEUTRAL, or CONTRADICT." },
+                        new ChatMessage { Role = "user", Content = $"A: {statementA}\nB: {statementB}" }
+                    }
+                });
+                return nliResult.Result?.Content?.Trim().StartsWith("CONTRADICT", StringComparison.OrdinalIgnoreCase) == true;
+            }
+            catch { return false; }
+        }
+
+        // ── Priority 3b — Web9 health snapshot ─────────────────────────────────────────────────────
+
+        private static async Task<Web9HealthSnapshot> GetCachedWeb9HealthAsync()
+        {
+            lock (_healthLock)
+            {
+                if (_cachedHealth != null && DateTime.UtcNow < _healthCacheExpiry)
+                    return _cachedHealth;
+            }
+            Web9HealthSnapshot fresh = await FetchWeb9HealthAsync();
+            lock (_healthLock)
+            {
+                _cachedHealth = fresh;
+                _healthCacheExpiry = DateTime.UtcNow.AddSeconds(30);
+            }
+            return fresh;
+        }
+
+        private static async Task<Web9HealthSnapshot> FetchWeb9HealthAsync()
+        {
+            // Call Web9 status endpoint if configured; otherwise return a healthy snapshot.
+            string web9Url = Environment.GetEnvironmentVariable("WEB9_API_BASE_URL");
+            if (string.IsNullOrEmpty(web9Url))
+                return Web9HealthSnapshot.Healthy;
+            try
+            {
+                using System.Net.Http.HttpClient client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+                string body = await client.GetStringAsync($"{web9Url.TrimEnd('/')}/v1/singularity/status");
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+                var snapshot = new Web9HealthSnapshot();
+                if (doc.RootElement.TryGetProperty("web4StorageDegraded", out var w4) && w4.GetBoolean())
+                    snapshot.Web4StorageDegraded = true;
+                if (doc.RootElement.TryGetProperty("degradedProviders", out var dp))
+                    snapshot.DegradedProviders = dp.EnumerateArray().Select(e => e.GetString()).Where(s => s != null).ToList();
+                return snapshot;
+            }
+            catch { return Web9HealthSnapshot.Healthy; }
+        }
+
+        // ── Priority 3c — Web7 symbiosis hints ──────────────────────────────────────────────────────
+
+        private static async Task<DispatchRequest> ApplySymbiosisHintsAsync(DispatchRequest request)
+        {
+            if (!request.SymbiosisSessionId.HasValue)
+                return request;
+
+            string web7Url = Environment.GetEnvironmentVariable("WEB7_API_BASE_URL");
+            if (string.IsNullOrEmpty(web7Url))
+                return request;
+
+            try
+            {
+                using System.Net.Http.HttpClient client = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(4) };
+                string body = await client.GetStringAsync($"{web7Url.TrimEnd('/')}/v1/symbiosis/sessions/{request.SymbiosisSessionId}/intention-state");
+                using var doc = System.Text.Json.JsonDocument.Parse(body);
+
+                double cognitiveLoad = doc.RootElement.TryGetProperty("cognitiveLoad", out var cl) ? cl.GetDouble() : 0.5;
+                double focus = doc.RootElement.TryGetProperty("focus", out var f) ? f.GetDouble() : 0.5;
+                double arousal = doc.RootElement.TryGetProperty("arousal", out var a) ? a.GetDouble() : 0.5;
+
+                if (request.Mode == DispatchMode.Auto)
+                {
+                    if (cognitiveLoad > 0.8)
+                        request = new DispatchRequest { Problem = request.Problem, TaskType = request.TaskType, Mode = DispatchMode.Serial, AvatarId = request.AvatarId, EligibleAgentIds = request.EligibleAgentIds, MaxTotalTokens = request.MaxTotalTokens, VotingStrategy = request.VotingStrategy, MinVotingAgents = request.MinVotingAgents, ScoringWeights = request.ScoringWeights, MaxCostUsd = request.MaxCostUsd, MaxTokensPerAgent = request.MaxTokensPerAgent };
+                    else if (focus > 0.7 && arousal < 0.4)
+                        request = new DispatchRequest { Problem = request.Problem, TaskType = request.TaskType, Mode = DispatchMode.Parallel, AvatarId = request.AvatarId, EligibleAgentIds = request.EligibleAgentIds, MaxTotalTokens = request.MaxTotalTokens, VotingStrategy = request.VotingStrategy, MinVotingAgents = request.MinVotingAgents, ScoringWeights = request.ScoringWeights, MaxCostUsd = request.MaxCostUsd, MaxTokensPerAgent = request.MaxTokensPerAgent };
+                }
+            }
+            catch { /* symbiosis state unavailable — proceed without hint */ }
+
+            return request;
         }
 
         private double ComputeCompositeScore(ReasoningAgentMetadata agent, string taskType, ScoringWeights weights)

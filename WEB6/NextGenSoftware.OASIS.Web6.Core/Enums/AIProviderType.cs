@@ -42,6 +42,20 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
         Perplexity,
 
         /// <summary>LM Studio — local inference, complements Ollama. Env: LM_STUDIO_BASE_URL.</summary>
-        LMStudio
+        LMStudio,
+
+        // ── Decentralised / community providers (Priority 14) ────────────────────────────────────────
+
+        /// <summary>Bittensor — decentralised, censorship-resistant inference via Corcel API or direct subnet.
+        /// Env: BITTENSOR_API_KEY, BITTENSOR_SUBNET_UID. IsDecentralised = true.</summary>
+        Bittensor,
+
+        /// <summary>GaiaNet — community-run decentralised model nodes. OpenAI-compatible.
+        /// Env: GAIANET_NODE_URL.</summary>
+        GaiaNet,
+
+        /// <summary>Custom operator-configured OpenAI-compatible endpoint.
+        /// Set OASIS_DNA.json → OASIS.Web6.CustomProviders[].BaseUrl.</summary>
+        Custom
     }
 }
