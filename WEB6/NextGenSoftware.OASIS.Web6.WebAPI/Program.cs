@@ -132,11 +132,46 @@ app.Use(async (context, next) =>
 
 app.UseAuthorization();
 
+// Priority 18: WebSocket support for bidirectional agent sessions
+app.UseWebSockets();
+
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // Priority 1: mount /mcp HTTP endpoint
 try { app.MapMcp("/mcp"); } catch { }
+
+// Priority 1: MCP discovery document
+app.MapGet("/.well-known/mcp.json", () => Results.Json(new
+{
+    schema_version = "v1",
+    name_for_human = "OASIS WEB4–WEB10",
+    name_for_model = "oasis",
+    description_for_human = "Universal AI abstraction layer — Web4 identity/data, Web5 apps/quests, Web6 AI/FAHRN, Web7 symbiosis, Web8 mesh, Web9 singularity, Web10 source.",
+    description_for_model = "Access all OASIS capabilities: avatar/karma (web4), quests/missions/OAPPs (web5), AI completion/FAHRN dispatch/holonic-braid (web6), bio-signal symbiosis (web7), galactic mesh routing (web8), unified status (web9), root identity (web10).",
+    auth = new { type = "bearer" },
+    api = new { type = "mcp", url = "https://api.web6.oasisomniverse.one/mcp" }
+}));
+
+// Priority 4: A2A Agent Card
+app.MapGet("/.well-known/agent.json", () => Results.Json(new
+{
+    name = "OASIS WEB6 FAHRN",
+    description = "Fractal Adaptive Holonic Reasoning Network — universal AI abstraction and aggregation layer (Web4–Web10)",
+    url = "https://api.web6.oasisomniverse.one",
+    version = "1.0.0",
+    documentationUrl = "https://web6.oasisomniverse.one",
+    capabilities = new { streaming = true, pushNotifications = false, stateTransitionHistory = false },
+    defaultInputModes = new[] { "text/plain", "application/json" },
+    defaultOutputModes = new[] { "text/plain", "application/json" },
+    skills = new object[]
+    {
+        new { id = "fahrn-solve", name = "FAHRN Solve", description = "Full pipeline: classify → avatar context → dispatch → BRAID → answer + reasoning trace", inputModes = new[] { "text/plain" }, outputModes = new[] { "application/json" } },
+        new { id = "ai-complete", name = "AI Completion", description = "Route chat completions across 15+ AI providers with automatic failover", inputModes = new[] { "application/json" }, outputModes = new[] { "application/json" } },
+        new { id = "holonic-braid", name = "Holonic BRAID", description = "Shared reasoning graph memory — lookup or create Mermaid execution graphs per task type", inputModes = new[] { "application/json" }, outputModes = new[] { "application/json" } },
+        new { id = "oasis-data", name = "OASIS Data (Web4)", description = "Avatar, karma, wallet, NFT, holon CRUD via COSMIC ORM across 40+ storage providers" }
+    }
+}));
 
 // Boot the OASIS engine (loads OASIS_DNA.json and activates the default storage provider) before serving requests.
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");

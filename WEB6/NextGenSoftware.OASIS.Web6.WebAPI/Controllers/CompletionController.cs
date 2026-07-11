@@ -158,6 +158,18 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 
                 // Semantic cache store (Priority 13)
                 await cache.SetAsync(request, result.Result);
+
+                // Priority 19a — Telemetry
+                TelemetryController.Publish(new TelemetryEvent
+                {
+                    Provider = result.Result.Provider,
+                    Model = result.Result.Model,
+                    PromptTokens = result.Result.PromptTokens,
+                    CompletionTokens = result.Result.CompletionTokens,
+                    EstimatedCostUSD = result.Result.EstimatedCostUSD,
+                    AvatarId = request.AvatarId,
+                    AvatarContextInjected = request.InjectAvatarContext == true
+                });
             }
 
             return result.IsError ? BadRequest(result) : Ok(result);
