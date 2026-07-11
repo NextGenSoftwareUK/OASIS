@@ -65,5 +65,19 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Cosine similarity threshold for cache hit (0–1). null = use DNA default (0.95).</summary>
         public double? CacheSimilarityThreshold { get; set; }
+
+        /// <summary>
+        /// Tools the model may call. When populated, providers that support native function-calling
+        /// (OpenAI, Anthropic, Gemini) receive the tool definitions in their native format.
+        /// Providers that don't support tool calls receive a shim that injects the tool descriptions
+        /// into the system prompt.
+        /// </summary>
+        public List<ToolDefinition> Tools { get; set; }
+
+        /// <summary>
+        /// Controls how the model uses tools. "auto" (default) | "none" | "required" |
+        /// { "type": "function", "function": { "name": "..." } } to force a specific tool.
+        /// </summary>
+        public string ToolChoice { get; set; } = "auto";
     }
 }
