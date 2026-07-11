@@ -21,6 +21,12 @@ jobs:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
           path: NextGenSoftware-Libraries
 
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
