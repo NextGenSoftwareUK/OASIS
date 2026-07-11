@@ -12,6 +12,15 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
         Parallel,
 
         /// <summary>Decompose the problem into sub-problems and route each to its best-fit agent, then merge the resulting plans.</summary>
-        Decomposed
+        Decomposed,
+
+        /// <summary>Adversarial: agent A proposes, agent B critiques, agent C judges and produces the final answer.</summary>
+        Debate,
+
+        /// <summary>Democratic: N agents answer independently in parallel, majority/weighted vote picks the winner.</summary>
+        Voting,
+
+        /// <summary>FAHRN selects the mode automatically based on task type and available agent count.</summary>
+        Auto
     }
 }

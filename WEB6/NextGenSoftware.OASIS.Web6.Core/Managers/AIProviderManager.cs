@@ -57,6 +57,13 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             ApiKeys[AIProviderType.AzureOpenAI] = Resolve("AZURE_OPENAI_API_KEY", dna?.AzureOpenAI);
             ApiKeys[AIProviderType.StabilityAI] = Resolve("STABILITY_API_KEY",    dna?.StabilityAI);
             ApiKeys[AIProviderType.OpenServ]    = Resolve("SERV_API_KEY",         dna?.OpenServ);
+            // Priority 9 — additional providers (all OpenAI-compatible)
+            ApiKeys[AIProviderType.Cerebras]    = Resolve("CEREBRAS_API_KEY",     null);
+            ApiKeys[AIProviderType.TogetherAI]  = Resolve("TOGETHER_API_KEY",     null);
+            ApiKeys[AIProviderType.FireworksAI] = Resolve("FIREWORKS_API_KEY",    null);
+            ApiKeys[AIProviderType.MoonshotAI]  = Resolve("MOONSHOT_API_KEY",     null);
+            ApiKeys[AIProviderType.Perplexity]  = Resolve("PERPLEXITY_API_KEY",   null);
+            ApiKeys[AIProviderType.LMStudio]    = Resolve("LM_STUDIO_API_KEY",    null);
         }
 
         /// <summary>Returns the env var value if set and non-empty, otherwise the OASIS_DNA fallback.</summary>
@@ -173,6 +180,12 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 case AIProviderType.XAI:
                 case AIProviderType.Ollama:
                 case AIProviderType.OpenServ:
+                case AIProviderType.Cerebras:
+                case AIProviderType.TogetherAI:
+                case AIProviderType.FireworksAI:
+                case AIProviderType.MoonshotAI:
+                case AIProviderType.Perplexity:
+                case AIProviderType.LMStudio:
                     return await CallOpenAICompatibleAsync(provider, request);
 
                 case AIProviderType.Anthropic:
@@ -213,6 +226,12 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 AIProviderType.OpenServ => (
                     OASISDNA?.OASIS?.Web6?.OpenServ?.BaseUrl ?? "https://inference-api.openserv.ai/v1/chat/completions",
                     OASISDNA?.OASIS?.Web6?.OpenServ?.DefaultModel ?? OpenServCatalog.DefaultModel),
+                AIProviderType.Cerebras   => ("https://api.cerebras.ai/v1/chat/completions",                             "llama-3.3-70b"),
+                AIProviderType.TogetherAI => ("https://api.together.xyz/v1/chat/completions",                            "meta-llama/Llama-3.3-70B-Instruct-Turbo"),
+                AIProviderType.FireworksAI=> ("https://api.fireworks.ai/inference/v1/chat/completions",                  "accounts/fireworks/models/llama-v3p3-70b-instruct"),
+                AIProviderType.MoonshotAI => ("https://api.moonshot.cn/v1/chat/completions",                             "moonshot-v1-128k"),
+                AIProviderType.Perplexity => ("https://api.perplexity.ai/chat/completions",                              "sonar-pro"),
+                AIProviderType.LMStudio   => ($"{Environment.GetEnvironmentVariable("LM_STUDIO_BASE_URL") ?? "http://localhost:1234"}/v1/chat/completions", "local"),
                 _ => ("https://api.openai.com/v1/chat/completions", "gpt-4o"),
             };
         }
@@ -622,6 +641,90 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 ImageBase64 = Convert.ToBase64String(imageBytes),
                 OutputFormat = request.OutputFormat ?? "png"
             };
+        }
+
+        /// <summary>
+        /// Streams completion chunks as an async sequence via SSE (OpenAI-compatible providers only).
+        /// Each item is a CompletionChunk; the final item has Done=true and token counts.
+        /// </summary>
+        public async IAsyncEnumerable<CompletionChunk> CompleteStreamAsync(CompletionRequest request)
+        {
+            List<AIProviderType> candidates = ResolveProviderCandidates(request);
+            AIProviderType provider = candidates.Count > 0 ? candidates[0] : AIProviderType.OpenAI;
+
+            // Anthropic and Gemini have different streaming wire formats; fall back to non-streaming for them.
+            if (provider == AIProviderType.Anthropic || provider == AIProviderType.Gemini ||
+                provider == AIProviderType.Cohere || provider == AIProviderType.AWSBedrock)
+            {
+                CompletionResponse full = await CallProviderAsync(provider, request);
+                yield return new CompletionChunk { Delta = full.Content, Provider = full.Provider, Model = full.Model };
+                yield return new CompletionChunk { Done = true, Provider = full.Provider, Model = full.Model, PromptTokens = full.PromptTokens, CompletionTokens = full.CompletionTokens };
+                yield break;
+            }
+
+            (string baseUrl, string defaultModel) = GetOpenAICompatibleEndpoint(provider);
+            string model = string.IsNullOrEmpty(request.Model) || request.Model == "auto" ? defaultModel : request.Model;
+            string apiKey = ApiKeys.TryGetValue(provider, out string k) ? k : null;
+
+            var payload = new
+            {
+                model,
+                messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
+                temperature = request.Temperature,
+                max_tokens = request.MaxTokens ?? 4096,
+                stream = true
+            };
+
+            using HttpRequestMessage httpReq = new HttpRequestMessage(HttpMethod.Post, baseUrl);
+            if (!string.IsNullOrEmpty(apiKey))
+                httpReq.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
+            httpReq.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+
+            using HttpResponseMessage httpResp = await _httpClient.SendAsync(httpReq, System.Net.Http.HttpCompletionOption.ResponseHeadersRead);
+            if (!httpResp.IsSuccessStatusCode)
+            {
+                string err = await httpResp.Content.ReadAsStringAsync();
+                yield return new CompletionChunk { Delta = $"[ERROR] {err}", Done = true, Provider = provider.ToString(), Model = model };
+                yield break;
+            }
+
+            using System.IO.Stream stream = await httpResp.Content.ReadAsStreamAsync();
+            using System.IO.StreamReader reader = new System.IO.StreamReader(stream);
+            int promptTokens = 0, completionTokens = 0;
+
+            while (!reader.EndOfStream)
+            {
+                string line = await reader.ReadLineAsync();
+                if (string.IsNullOrEmpty(line)) continue;
+                if (!line.StartsWith("data: ")) continue;
+                string data = line[6..];
+                if (data == "[DONE]")
+                {
+                    yield return new CompletionChunk { Done = true, Provider = provider.ToString(), Model = model, PromptTokens = promptTokens, CompletionTokens = completionTokens };
+                    yield break;
+                }
+                using JsonDocument doc = JsonDocument.Parse(data);
+                JsonElement root = doc.RootElement;
+                if (root.TryGetProperty("choices", out JsonElement choices) && choices.GetArrayLength() > 0)
+                {
+                    JsonElement choice = choices[0];
+                    if (choice.TryGetProperty("delta", out JsonElement delta) && delta.TryGetProperty("content", out JsonElement content))
+                    {
+                        string text = content.GetString();
+                        if (!string.IsNullOrEmpty(text))
+                        {
+                            completionTokens++;
+                            yield return new CompletionChunk { Delta = text, Provider = provider.ToString(), Model = model };
+                        }
+                    }
+                }
+                if (root.TryGetProperty("usage", out JsonElement usage))
+                {
+                    if (usage.TryGetProperty("prompt_tokens", out JsonElement pt)) promptTokens = pt.GetInt32();
+                    if (usage.TryGetProperty("completion_tokens", out JsonElement ct)) completionTokens = ct.GetInt32();
+                }
+            }
+            yield return new CompletionChunk { Done = true, Provider = provider.ToString(), Model = model, PromptTokens = promptTokens, CompletionTokens = completionTokens };
         }
 
         private async Task<ImageGenerationResponse> GenerateImageOpenAIAsync(ImageGenerationRequest request)

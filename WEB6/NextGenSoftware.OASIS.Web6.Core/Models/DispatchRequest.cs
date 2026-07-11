@@ -20,5 +20,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public List<Guid> EligibleAgentIds { get; set; } = new List<Guid>();
 
         public Guid AvatarId { get; set; }
+
+        /// <summary>Hard token budget for the entire dispatch run. Dispatch stops early if exceeded.</summary>
+        public int? MaxTotalTokens { get; set; }
+
+        /// <summary>Voting strategy for Voting mode: "majority" (default), "weighted", or "unanimous".</summary>
+        public string VotingStrategy { get; set; } = "weighted";
+
+        /// <summary>Minimum number of agents required for Voting mode (default 3).</summary>
+        public int MinVotingAgents { get; set; } = 3;
+
+        /// <summary>Optional per-request override of FAHRN composite score weights.</summary>
+        public ScoringWeights ScoringWeights { get; set; }
     }
 }

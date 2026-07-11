@@ -1,0 +1,68 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" width="500" height="500">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#1a2744"/>
+      <stop offset="100%" stop-color="#080c18"/>
+    </radialGradient>
+    <radialGradient id="circleGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#1c1c1c"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    <radialGradient id="oGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#4b9eff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="outerGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feColorMatrix in="blur" type="matrix"
+        values="0.3 0.6 1 0 0
+                0.3 0.6 1 0 0
+                0.3 0.6 1 0 0
+                0 0 0 0.35 0" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="500" height="500" fill="url(#bgGrad)"/>
+
+  <!-- Star field -->
+  <circle cx="60" cy="80" r="1.2" fill="#ffffff" opacity="0.25"/>
+  <circle cx="140" cy="40" r="0.8" fill="#ffffff" opacity="0.18"/>
+  <circle cx="380" cy="70" r="1" fill="#ffffff" opacity="0.2"/>
+  <circle cx="440" cy="130" r="0.7" fill="#ffffff" opacity="0.15"/>
+  <circle cx="80" cy="390" r="1.1" fill="#ffffff" opacity="0.2"/>
+  <circle cx="420" cy="420" r="0.9" fill="#ffffff" opacity="0.18"/>
+  <circle cx="320" cy="460" r="0.8" fill="#ffffff" opacity="0.15"/>
+  <circle cx="180" cy="470" r="1" fill="#ffffff" opacity="0.2"/>
+  <circle cx="460" cy="280" r="0.7" fill="#ffffff" opacity="0.12"/>
+  <circle cx="30" cy="220" r="0.9" fill="#ffffff" opacity="0.18"/>
+
+  <!-- Outer glow ring -->
+  <circle cx="250" cy="250" r="195" fill="none" stroke="#4b9eff" stroke-width="1" opacity="0.15" filter="url(#outerGlow)"/>
+
+  <!-- Main black circle -->
+  <circle cx="250" cy="250" r="190" fill="url(#circleGrad)" filter="url(#softGlow)"/>
+
+  <!-- Inner highlight -->
+  <ellipse cx="250" cy="98" rx="90" ry="18" fill="white" opacity="0.04"/>
+
+  <!-- Ambient glow -->
+  <ellipse cx="250" cy="250" rx="110" ry="110" fill="url(#oGlow)"/>
+
+  <!-- Perfect circular O -->
+  <circle cx="250" cy="250" r="90" fill="none" stroke="white" stroke-width="44" filter="url(#softGlow)"/>
+
+  <!-- Accent ring -->
+  <circle cx="250" cy="250" r="243" fill="none" stroke="#4b9eff" stroke-width="0.8" opacity="0.3"/>
+</svg>

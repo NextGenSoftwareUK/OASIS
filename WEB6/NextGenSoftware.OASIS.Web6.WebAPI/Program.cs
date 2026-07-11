@@ -2,6 +2,7 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ModelContextProtocol.Server;
 using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
@@ -29,6 +30,23 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
+
+// Priority 1: HTTP MCP transport — makes the entire OASIS tool surface reachable by any MCP client (Claude.ai, OpenAI, etc.)
+try
+{
+    builder.Services
+        .AddMcpServer(options =>
+        {
+            options.ServerInfo = new ModelContextProtocol.Protocol.Implementation
+            {
+                Name = "oasis-web4-to-web10-mcp",
+                Version = "2.0.0"
+            };
+        })
+        .WithHttpTransport()
+        .WithToolsFromAssembly(System.Reflection.Assembly.GetExecutingAssembly());
+}
+catch { /* MCP tools assembly may not be referenced directly — skip if unavailable */ }
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -117,6 +135,9 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
+// Priority 1: mount /mcp HTTP endpoint
+try { app.MapMcp("/mcp"); } catch { }
+
 // Boot the OASIS engine (loads OASIS_DNA.json and activates the default storage provider) before serving requests.
 var dnaPath = OASISBootLoader.OASISDNAPath ?? Path.Combine(AppContext.BaseDirectory, "OASIS_DNA.json");
 var bootResult = await OASISBootLoader.BootOASISAsync(dnaPath);
@@ -140,6 +161,37 @@ if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SERV_API_KEY"))
     catch (Exception ex)
     {
         OASISErrorHandling.HandleError($"Warning: WEB6 FAHRN OpenServ agent auto-seed threw an exception: {ex.Message}", ex);
+    }
+}
+
+// Priority 22: self-register this Web6 instance as an MCP orchestrator adapter so FAHRN agents can call back.
+if (dna?.OASIS?.Web6?.SelfRegisterAsOrchestrator ?? true)
+{
+    try
+    {
+        string selfUrl = Environment.GetEnvironmentVariable("WEB6_PUBLIC_URL")
+            ?? "https://api.web6.oasisomniverse.one/mcp";
+
+        OrchestratorManager orchManager = new OrchestratorManager(Guid.Empty, dna);
+        OASISResult<List<NextGenSoftware.OASIS.Web6.Core.Models.OrchestratorAdapterConfig>> existing = await orchManager.GetAdaptersAsync();
+
+        bool alreadyRegistered = existing.Result?.Any(a =>
+            string.Equals(a.EndpointUrl, selfUrl, StringComparison.OrdinalIgnoreCase)) ?? false;
+
+        if (!alreadyRegistered)
+        {
+            await orchManager.RegisterAdapterAsync(new NextGenSoftware.OASIS.Web6.Core.Models.OrchestratorAdapterConfig
+            {
+                Name = "OASIS-WEB6-SELF",
+                Protocol = NextGenSoftware.OASIS.Web6.Core.Enums.OrchestratorProtocolType.MCP,
+                EndpointUrl = selfUrl,
+                ExtraConfig = new Dictionary<string, string> { ["tool"] = "web6_fahrn_solve" }
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        OASISErrorHandling.HandleError($"Warning: WEB6 self-registration as orchestrator failed: {ex.Message}", ex);
     }
 }
 

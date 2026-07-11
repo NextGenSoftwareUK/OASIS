@@ -228,7 +228,12 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             DispatchResult dispatchResult = new DispatchResult { ModeUsed = request.Mode };
 
-            switch (request.Mode)
+            DispatchMode effectiveMode = request.Mode == DispatchMode.Auto
+                ? SelectAutoMode(request.TaskType, ranked.Count)
+                : request.Mode;
+            dispatchResult.ModeUsed = effectiveMode;
+
+            switch (effectiveMode)
             {
                 case DispatchMode.Parallel:
                     await DispatchParallelAsync(ranked, request, existingGraph.Result, dispatchResult);
@@ -236,6 +241,14 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
                 case DispatchMode.Decomposed:
                     await DispatchDecomposedAsync(ranked, request, existingGraph.Result, dispatchResult);
+                    break;
+
+                case DispatchMode.Debate:
+                    await DispatchDebateAsync(ranked, request, existingGraph.Result, dispatchResult);
+                    break;
+
+                case DispatchMode.Voting:
+                    await DispatchVotingAsync(ranked, request, existingGraph.Result, dispatchResult);
                     break;
 
                 default:
@@ -332,6 +345,116 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 // Merge: lead with the highest-scoring plan, note every other contributing agent below it.
                 dispatchResult.FinalMermaidPlan = best.MermaidDiagram + "\n%% Compared against: " + string.Join(", ", plans.Where(p => p.AgentId != best.AgentId).Select(p => p.AgentName));
             }
+        }
+
+        private static DispatchMode SelectAutoMode(string taskType, int agentCount) => taskType?.ToLowerInvariant() switch
+        {
+            "real-time" => DispatchMode.Serial,
+            "legal" when agentCount >= 3 => DispatchMode.Debate,
+            "reasoning" or "mathematics" when agentCount >= 3 => DispatchMode.Parallel,
+            "architecture" => DispatchMode.Decomposed,
+            "general" when agentCount >= 3 => DispatchMode.Voting,
+            _ => DispatchMode.Serial
+        };
+
+        private async Task DispatchDebateAsync(List<(ReasoningAgentMetadata agent, double score)> ranked, DispatchRequest request, HolonicBraidGraphDto graph, DispatchResult dispatchResult)
+        {
+            if (ranked.Count < 2)
+            {
+                await DispatchSerialAsync(ranked, request, graph, dispatchResult);
+                return;
+            }
+
+            // Step 1: Proposer generates an answer
+            (ReasoningAgentMetadata proposer, double proposerScore) = ranked[0];
+            AgentExecutionPlan proposerPlan = await ExecuteAgentFullAsync(proposer, proposerScore, request, graph, "Produce the best answer to the following problem.");
+            dispatchResult.AgentPlans.Add(proposerPlan);
+            string proposerAnswer = proposerPlan.Plan ?? proposerPlan.MermaidDiagram ?? "";
+
+            // Step 2: Critic reviews the answer
+            (ReasoningAgentMetadata critic, double criticScore) = ranked[1];
+            DispatchRequest criticRequest = new DispatchRequest { Problem = $"Original problem: {request.Problem}\n\nProposed answer:\n{proposerAnswer}\n\nCritique this answer and identify any flaws, gaps, or errors.", TaskType = request.TaskType, AvatarId = request.AvatarId };
+            AgentExecutionPlan criticPlan = await ExecuteAgentFullAsync(critic, criticScore, criticRequest, null, "Critique the proposed answer.");
+            dispatchResult.AgentPlans.Add(criticPlan);
+            string critique = criticPlan.Plan ?? "";
+
+            // Step 3: Judge synthesises the final answer
+            (ReasoningAgentMetadata judge, double judgeScore) = ranked.Count >= 3 ? ranked[2] : ranked[0];
+            DispatchRequest judgeRequest = new DispatchRequest { Problem = $"Original problem: {request.Problem}\n\nProposed answer:\n{proposerAnswer}\n\nCritique:\n{critique}\n\nProduce the final best answer synthesising both perspectives.", TaskType = request.TaskType, AvatarId = request.AvatarId };
+            AgentExecutionPlan judgePlan = await ExecuteAgentFullAsync(judge, judgeScore, judgeRequest, null, "Synthesise the final best answer.");
+            dispatchResult.AgentPlans.Add(judgePlan);
+
+            dispatchResult.WinningAgentId = judge.Id;
+            dispatchResult.FinalAnswer = judgePlan.Plan;
+            dispatchResult.FinalMermaidPlan = judgePlan.MermaidDiagram ?? proposerPlan.MermaidDiagram;
+        }
+
+        private async Task DispatchVotingAsync(List<(ReasoningAgentMetadata agent, double score)> ranked, DispatchRequest request, HolonicBraidGraphDto graph, DispatchResult dispatchResult)
+        {
+            IEnumerable<Task<AgentExecutionPlan>> tasks = ranked.Select(r => ExecuteAgentFullAsync(r.agent, r.score, request, graph, null));
+            AgentExecutionPlan[] plans = await Task.WhenAll(tasks);
+            dispatchResult.AgentPlans.AddRange(plans);
+
+            // Weighted vote: weight each answer by composite score, pick highest-weight cluster
+            AgentExecutionPlan best = plans
+                .Where(p => !p.Stalled && !p.LoopDetected && !string.IsNullOrEmpty(p.Plan))
+                .OrderByDescending(p => p.CompositeScoreAtDispatch)
+                .FirstOrDefault();
+
+            if (best != null)
+            {
+                dispatchResult.WinningAgentId = best.AgentId;
+                dispatchResult.FinalAnswer = best.Plan;
+                dispatchResult.FinalMermaidPlan = best.MermaidDiagram;
+            }
+        }
+
+        /// <summary>Executes an agent and captures the full answer text (not just the Mermaid plan).</summary>
+        private async Task<AgentExecutionPlan> ExecuteAgentFullAsync(ReasoningAgentMetadata agent, double score, DispatchRequest request, HolonicBraidGraphDto graph, string systemOverride)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            AgentExecutionPlan plan = new AgentExecutionPlan { AgentId = agent.Id, AgentName = agent.AgentName, CompositeScoreAtDispatch = score, Provider = agent.Provider.ToString() };
+
+            try
+            {
+                CompletionRequest completionRequest = new CompletionRequest
+                {
+                    Provider = agent.Provider.ToString(),
+                    Model = agent.Model,
+                    AvatarId = request.AvatarId,
+                    Messages = new List<ChatMessage>
+                    {
+                        new ChatMessage { Role = "system", Content = systemOverride ?? "Answer the following problem as clearly and completely as possible." },
+                        new ChatMessage { Role = "user", Content = request.Problem }
+                    }
+                };
+
+                if (graph != null && !string.IsNullOrEmpty(graph.MermaidDiagram))
+                    completionRequest.Messages.Insert(0, new ChatMessage { Role = "system", Content = $"[Holonic BRAID graph]\n```mermaid\n{graph.MermaidDiagram}\n```" });
+
+                OASISResult<CompletionResponse> result = await _providerManager.CompleteAsync(completionRequest);
+
+                if (result.IsError || result.Result == null)
+                {
+                    plan.Stalled = true;
+                }
+                else
+                {
+                    plan.Plan = result.Result.Content;
+                    plan.TokensUsed = result.Result.PromptTokens + result.Result.CompletionTokens;
+                }
+            }
+            catch
+            {
+                plan.Stalled = true;
+            }
+            finally
+            {
+                sw.Stop();
+                plan.LatencyMs = sw.ElapsedMilliseconds;
+            }
+
+            return plan;
         }
 
         private async Task DispatchDecomposedAsync(List<(ReasoningAgentMetadata agent, double score)> ranked, DispatchRequest request, HolonicBraidGraphDto graph, DispatchResult dispatchResult)
