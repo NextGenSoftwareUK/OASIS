@@ -32,5 +32,14 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Optional per-request override of FAHRN composite score weights.</summary>
         public ScoringWeights ScoringWeights { get; set; }
+
+        /// <summary>Hard USD cost ceiling for the entire dispatch run. Checked between agent calls; stops early if exceeded.</summary>
+        public decimal? MaxCostUsd { get; set; }
+
+        /// <summary>Hard token ceiling per individual agent call. Agent calls whose token count exceeds this are skipped.</summary>
+        public int? MaxTokensPerAgent { get; set; }
+
+        /// <summary>"stop" (default — return partial results) or "best_so_far" (return best answer seen before budget hit).</summary>
+        public string BudgetExceededBehaviour { get; set; } = "stop";
     }
 }

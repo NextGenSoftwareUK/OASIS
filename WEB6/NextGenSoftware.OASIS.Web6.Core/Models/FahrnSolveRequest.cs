@@ -25,5 +25,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public ScoringWeights ScoringWeights { get; set; }
 
         public DispatchMode Mode { get; set; } = DispatchMode.Auto;
+
+        public int?     MaxTotalTokens         { get; set; }
+        public decimal? MaxCostUsd             { get; set; }
+        public int?     MaxTokensPerAgent      { get; set; }
+        public string   BudgetExceededBehaviour { get; set; } = "stop";
     }
 }
