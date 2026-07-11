@@ -53,6 +53,20 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             return result.IsError ? BadRequest(result) : Ok(result);
         }
 
+        /// <summary>
+        /// Multi-hop upward propagation — propagates permitted memory items up the fractal hierarchy for up to
+        /// <paramref name="levels"/> hops. Pass levels=2147483647 to propagate all the way to Earth.
+        /// Priority 16a. POST /v1/holonic-memory/holons/{childHolonId}/propagate-up?levels=N
+        /// </summary>
+        [HttpPost("holons/{childHolonId}/propagate-up")]
+        [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+        public async Task<IActionResult> PropagateUp(Guid childHolonId, [FromQuery] int levels = 1)
+        {
+            HolonicMemoryManager manager = new HolonicMemoryManager(AvatarId, OASISDNA);
+            var result = await manager.PropagateUpAsync(childHolonId, levels);
+            return result.IsError ? BadRequest(result) : Ok(result);
+        }
+
         /// <summary>Propagates whatever the child holon's membrane rule permits up to its parent (a single hop).</summary>
         [HttpPost("holons/{childHolonId}/propagate")]
         [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
