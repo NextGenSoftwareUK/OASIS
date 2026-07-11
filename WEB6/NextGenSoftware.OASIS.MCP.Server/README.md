@@ -1,6 +1,6 @@
 # OASIS MCP Server
 
-The OASIS [Model Context Protocol](https://modelcontextprotocol.io) Server — **101 typed tools** covering the full OASIS stack (WEB4 through WEB10) delivered directly into Cursor, VS Code, Claude Desktop, and any other MCP-compatible IDE.
+The OASIS [Model Context Protocol](https://modelcontextprotocol.io) Server — **111 typed tools** covering the full OASIS stack (WEB4 through WEB10) delivered directly into Cursor, VS Code, Claude Desktop, and any other MCP-compatible IDE.
 
 Built on the official [`ModelContextProtocol`](https://github.com/modelcontextprotocol/csharp-sdk) C# SDK, communicating over stdio. Part of the [OASIS Omniverse](https://oasisomniverse.one) ecosystem.
 

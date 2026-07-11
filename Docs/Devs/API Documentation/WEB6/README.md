@@ -7,7 +7,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse stack �
 | Document | Description |
 |---|---|
 | [WEB6 REST API Reference](WEB6_REST_API_Reference.md) | Full reference for all 56 REST endpoints — request/response shapes, auth, error codes |
-| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | Full reference for all 101 MCP tools — parameters, return values, examples |
+| [WEB6 MCP Tool Reference](WEB6_MCP_Tool_Reference.md) | Full reference for all 111 MCP tools — parameters, return values, examples |
 | [WEB6 User Guide](WEB6_User_Guide.md) | Getting started, common workflows, environment setup, recipes |
 
 ## Quick links

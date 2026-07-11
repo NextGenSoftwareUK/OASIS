@@ -2,7 +2,7 @@
 
 WEB6 is the unified AI layer of the [OASIS Omniverse](https://oasisomniverse.one) stack. It sits on top of WEB4 (identity, karma, COSMIC ORM, NFTs) and WEB5 (STAR ODK, holon graph, STARNET), providing a single API surface for AI completions, multi-agent orchestration, semantic memory, and IDE tooling — regardless of which underlying AI provider, blockchain, or storage layer you're using.
 
-**101 MCP tools · 56 REST endpoints · 15+ AI providers · .NET 10**
+**111 MCP tools · 56 REST endpoints · 15+ AI providers · .NET 10**
 
 ---
 
@@ -12,7 +12,7 @@ WEB6 is the unified AI layer of the [OASIS Omniverse](https://oasisomniverse.one
 |---|---|---|
 | [`NextGenSoftware.OASIS.Web6.Core`](NextGenSoftware.OASIS.Web6.Core/) | `NextGenSoftware.OASIS.Web6.Core` | Business logic — all managers, models, enums |
 | [`NextGenSoftware.OASIS.Web6.WebAPI`](NextGenSoftware.OASIS.Web6.WebAPI/) | `NextGenSoftware.OASIS.Web6.WebAPI` | ASP.NET Core REST API — all controllers |
-| [`NextGenSoftware.OASIS.MCP.Server`](NextGenSoftware.OASIS.MCP.Server/) | `NextGenSoftware.OASIS.MCP.Server` · `@oasisomniverse/mcp-server` | MCP Server — 101 typed tools for IDEs |
+| [`NextGenSoftware.OASIS.MCP.Server`](NextGenSoftware.OASIS.MCP.Server/) | `NextGenSoftware.OASIS.MCP.Server` · `@oasisomniverse/mcp-server` | MCP Server — 111 typed tools for IDEs |
 | [`npm/`](npm/) | — | npm shim package source |
 
 ---
@@ -47,7 +47,7 @@ In-process ring buffer (500 events), SSE stream at `GET /v1/telemetry/stream`, r
 Zero-latency task classification, sentiment analysis, and loop anomaly scoring — no LLM call needed. Trains and improves from FAHRN dispatch history.
 
 ### MCP Server
-Exposes the full WEB4–WEB10 stack as 101 typed named tools directly inside Cursor, VS Code, and Claude Desktop. See [MCP Server README](NextGenSoftware.OASIS.MCP.Server/README.md).
+Exposes the full WEB4–WEB10 stack as 111 typed named tools directly inside Cursor, VS Code, and Claude Desktop. See [MCP Server README](NextGenSoftware.OASIS.MCP.Server/README.md).
 
 ---
 
