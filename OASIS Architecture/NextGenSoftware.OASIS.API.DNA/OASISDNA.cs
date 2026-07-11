@@ -109,6 +109,27 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         /// <summary>When true, Web6 registers itself as an MCP orchestrator in its own registry on startup so FAHRN agents can call back into any OASIS tool.</summary>
         public bool SelfRegisterAsOrchestrator { get; set; } = true;
+
+        /// <summary>Per-avatar monthly USD spend limit. 0 = no limit. CompletionController returns 429 when exceeded.</summary>
+        public double DefaultMonthlyBudgetUSD { get; set; } = 0;
+
+        /// <summary>Per-avatar daily token limit (prompt + completion). 0 = no limit.</summary>
+        public int DefaultDailyTokenLimit { get; set; } = 0;
+
+        /// <summary>Settings for the semantic response cache (Priority 13).</summary>
+        public Web6CacheSettings Cache { get; set; } = new Web6CacheSettings();
+    }
+
+    public class Web6CacheSettings
+    {
+        /// <summary>Default TTL in seconds for cached completions (0 = disabled globally). Overridable per-request via CompletionRequest.CacheTtlSeconds.</summary>
+        public int DefaultTtlSeconds { get; set; } = 3600;
+
+        /// <summary>Cosine similarity threshold (0–1) above which a cached response is returned. Overridable per-request via CompletionRequest.CacheSimilarityThreshold.</summary>
+        public double SimilarityThreshold { get; set; } = 0.95;
+
+        /// <summary>Maximum number of cached entries to keep in memory (LRU eviction when exceeded).</summary>
+        public int MaxEntries { get; set; } = 1000;
     }
 
     /// <summary>
