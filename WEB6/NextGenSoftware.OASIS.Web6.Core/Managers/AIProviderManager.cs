@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
@@ -245,19 +246,29 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (string.IsNullOrEmpty(apiKey) && provider != AIProviderType.Ollama)
                 throw new InvalidOperationException($"No API key configured for {provider}.");
 
-            var payload = new
+            bool hasTools = request.Tools?.Count > 0;
+
+            var payloadObj = new System.Collections.Generic.Dictionary<string, object>
             {
-                model,
-                messages = request.Messages.Select(m => new { role = m.Role, content = m.Content }),
-                temperature = request.Temperature,
-                max_tokens = request.MaxTokens ?? 4096
+                ["model"] = model,
+                ["messages"] = BuildOpenAIMessages(request.Messages),
+                ["temperature"] = request.Temperature,
+                ["max_tokens"] = request.MaxTokens ?? 4096
             };
+            if (hasTools)
+            {
+                payloadObj["tools"] = request.Tools.Select(t => (object)new
+                {
+                    type = "function",
+                    function = new { name = t.Function.Name, description = t.Function.Description, parameters = t.Function.Parameters }
+                }).ToList();
+                payloadObj["tool_choice"] = request.ToolChoice ?? "auto";
+            }
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, baseUrl);
-
             if (!string.IsNullOrEmpty(apiKey))
                 httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payloadObj), Encoding.UTF8, "application/json");
 
             using HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest);
             string body = await httpResponse.Content.ReadAsStringAsync();
@@ -270,13 +281,28 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             JsonElement choice = root.GetProperty("choices")[0];
             JsonElement message = choice.GetProperty("message");
-            string content = message.GetProperty("content").GetString();
+            string finishReason = choice.TryGetProperty("finish_reason", out JsonElement fr) ? fr.GetString() : null;
 
-            if (content == null)
+            // Parse tool calls when finish_reason is "tool_calls"
+            List<ToolCall> toolCalls = null;
+            if (finishReason == "tool_calls" && message.TryGetProperty("tool_calls", out JsonElement tcs))
             {
-                // content is null when the model refused, used tool calls, or hit a content filter.
-                // Surface the finish_reason and any refusal text so the caller knows exactly why.
-                string finishReason = choice.TryGetProperty("finish_reason", out JsonElement fr) ? fr.GetString() : "unknown";
+                toolCalls = tcs.EnumerateArray().Select(tc => new ToolCall
+                {
+                    Id = tc.GetProperty("id").GetString(),
+                    Function = new ToolCallFunction
+                    {
+                        Name = tc.GetProperty("function").GetProperty("name").GetString(),
+                        Arguments = tc.GetProperty("function").GetProperty("arguments").GetString()
+                    }
+                }).ToList();
+            }
+
+            string content = message.TryGetProperty("content", out JsonElement contentEl) ? contentEl.GetString() : null;
+
+            // If content is null and it's not a tool_calls finish, surface the reason
+            if (content == null && toolCalls == null)
+            {
                 string refusal = message.TryGetProperty("refusal", out JsonElement ref_) ? ref_.GetString() : null;
                 string detail = !string.IsNullOrEmpty(refusal) ? $" Refusal: {refusal}" : $" Raw response: {body}";
                 throw new InvalidOperationException($"{provider} returned null content (finish_reason={finishReason}).{detail}");
@@ -290,6 +316,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 Provider = provider.ToString(),
                 Model = model,
                 Content = content,
+                FinishReason = finishReason,
+                ToolCalls = toolCalls,
                 PromptTokens = promptTokens,
                 CompletionTokens = completionTokens
             };
@@ -304,21 +332,28 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 throw new InvalidOperationException("No API key configured for Anthropic.");
 
             string systemPrompt = string.Join("\n", request.Messages.Where(m => m.Role == "system").Select(m => m.Content));
-            var userMessages = request.Messages.Where(m => m.Role != "system").Select(m => new { role = m.Role, content = m.Content });
 
-            var payload = new
+            var payloadObj = new System.Collections.Generic.Dictionary<string, object>
             {
-                model,
-                max_tokens = request.MaxTokens ?? 4096,
-                system = string.IsNullOrEmpty(systemPrompt) ? null : systemPrompt,
-                messages = userMessages,
-                temperature = request.Temperature
+                ["model"] = model,
+                ["max_tokens"] = request.MaxTokens ?? 4096,
+                ["messages"] = BuildAnthropicMessages(request.Messages),
+                ["temperature"] = request.Temperature
             };
+            if (!string.IsNullOrEmpty(systemPrompt))
+                payloadObj["system"] = systemPrompt;
+            if (request.Tools?.Count > 0)
+                payloadObj["tools"] = request.Tools.Select(t => (object)new
+                {
+                    name = t.Function.Name,
+                    description = t.Function.Description,
+                    input_schema = t.Function.Parameters
+                }).ToList();
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, "https://api.anthropic.com/v1/messages");
             httpRequest.Headers.Add("x-api-key", apiKey);
             httpRequest.Headers.Add("anthropic-version", "2023-06-01");
-            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payloadObj), Encoding.UTF8, "application/json");
 
             using HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest);
             string body = await httpResponse.Content.ReadAsStringAsync();
@@ -328,9 +363,32 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             using JsonDocument doc = JsonDocument.Parse(body);
             JsonElement root = doc.RootElement;
-            string content = root.GetProperty("content")[0].GetProperty("text").GetString();
 
-            if (content == null)
+            string stopReason = root.TryGetProperty("stop_reason", out JsonElement sr) ? sr.GetString() : null;
+            string content = null;
+            List<ToolCall> toolCalls = null;
+
+            foreach (JsonElement block in root.GetProperty("content").EnumerateArray())
+            {
+                string blockType = block.GetProperty("type").GetString();
+                if (blockType == "text")
+                    content = block.GetProperty("text").GetString();
+                else if (blockType == "tool_use")
+                {
+                    toolCalls ??= new List<ToolCall>();
+                    toolCalls.Add(new ToolCall
+                    {
+                        Id = block.GetProperty("id").GetString(),
+                        Function = new ToolCallFunction
+                        {
+                            Name = block.GetProperty("name").GetString(),
+                            Arguments = block.GetProperty("input").GetRawText()
+                        }
+                    });
+                }
+            }
+
+            if (content == null && toolCalls == null)
                 throw new InvalidOperationException($"Anthropic returned null content. Raw response: {body}");
 
             int promptTokens = root.TryGetProperty("usage", out JsonElement usage) && usage.TryGetProperty("input_tokens", out JsonElement pt) ? pt.GetInt32() : 0;
@@ -341,6 +399,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 Provider = AIProviderType.Anthropic.ToString(),
                 Model = model,
                 Content = content,
+                FinishReason = stopReason == "tool_use" ? "tool_calls" : stopReason,
+                ToolCalls = toolCalls,
                 PromptTokens = promptTokens,
                 CompletionTokens = completionTokens
             };
@@ -355,23 +415,26 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 throw new InvalidOperationException("No API key configured for Gemini.");
 
             string systemPrompt = string.Join("\n", request.Messages.Where(m => m.Role == "system").Select(m => m.Content));
-            var contents = request.Messages.Where(m => m.Role != "system").Select(m => new
-            {
-                role = m.Role == "assistant" ? "model" : "user",
-                parts = new[] { new { text = m.Content } }
-            });
 
-            var payload = new
+            var payloadObj = new System.Collections.Generic.Dictionary<string, object>
             {
-                contents,
-                systemInstruction = string.IsNullOrEmpty(systemPrompt) ? null : new { parts = new[] { new { text = systemPrompt } } },
-                generationConfig = new { temperature = request.Temperature, maxOutputTokens = request.MaxTokens }
+                ["contents"] = BuildGeminiContents(request.Messages),
+                ["generationConfig"] = new { temperature = request.Temperature, maxOutputTokens = request.MaxTokens }
             };
+            if (!string.IsNullOrEmpty(systemPrompt))
+                payloadObj["systemInstruction"] = new { parts = new[] { new { text = systemPrompt } } };
+            if (request.Tools?.Count > 0)
+                payloadObj["tools"] = new object[] { new { functionDeclarations = request.Tools.Select(t => (object)new
+                {
+                    name = t.Function.Name,
+                    description = t.Function.Description,
+                    parameters = t.Function.Parameters
+                }).ToList() } };
 
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
             using HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, url);
-            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            httpRequest.Content = new StringContent(JsonSerializer.Serialize(payloadObj), Encoding.UTF8, "application/json");
 
             using HttpResponseMessage httpResponse = await _httpClient.SendAsync(httpRequest);
             string body = await httpResponse.Content.ReadAsStringAsync();
@@ -381,9 +444,32 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             using JsonDocument doc = JsonDocument.Parse(body);
             JsonElement root = doc.RootElement;
-            string content = root.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
 
-            if (content == null)
+            JsonElement candidate = root.GetProperty("candidates")[0];
+            string finishReason = candidate.TryGetProperty("finishReason", out JsonElement fr) ? fr.GetString() : null;
+            string content = null;
+            List<ToolCall> toolCalls = null;
+
+            foreach (JsonElement part in candidate.GetProperty("content").GetProperty("parts").EnumerateArray())
+            {
+                if (part.TryGetProperty("text", out JsonElement textEl))
+                    content = textEl.GetString();
+                else if (part.TryGetProperty("functionCall", out JsonElement fc))
+                {
+                    toolCalls ??= new List<ToolCall>();
+                    toolCalls.Add(new ToolCall
+                    {
+                        Id = $"call_{Guid.NewGuid():N}",
+                        Function = new ToolCallFunction
+                        {
+                            Name = fc.GetProperty("name").GetString(),
+                            Arguments = fc.GetProperty("args").GetRawText()
+                        }
+                    });
+                }
+            }
+
+            if (content == null && toolCalls == null)
                 throw new InvalidOperationException($"Gemini returned null content. Raw response: {body}");
 
             int promptTokens = root.TryGetProperty("usageMetadata", out JsonElement usage) && usage.TryGetProperty("promptTokenCount", out JsonElement pt) ? pt.GetInt32() : 0;
@@ -394,6 +480,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 Provider = AIProviderType.Gemini.ToString(),
                 Model = model,
                 Content = content,
+                FinishReason = toolCalls != null ? "tool_calls" : finishReason,
+                ToolCalls = toolCalls,
                 PromptTokens = promptTokens,
                 CompletionTokens = completionTokens
             };
@@ -406,6 +494,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             if (string.IsNullOrEmpty(apiKey))
                 throw new InvalidOperationException("No API key configured for Cohere.");
+
+            if (request.Tools?.Count > 0)
+                request = InjectToolShimIntoSystemPrompt(request);
 
             var payload = new
             {
@@ -452,6 +543,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(endpoint))
                 throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT and an Azure OpenAI API key must both be configured.");
 
+            if (request.Tools?.Count > 0)
+                request = InjectToolShimIntoSystemPrompt(request);
+
             string url = $"{endpoint.TrimEnd('/')}/openai/deployments/{deployment}/chat/completions?api-version=2024-06-01";
 
             var payload = new
@@ -490,6 +584,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
             if (string.IsNullOrEmpty(apiKey))
                 throw new InvalidOperationException("No API key configured for HuggingFace.");
+
+            if (request.Tools?.Count > 0)
+                request = InjectToolShimIntoSystemPrompt(request);
 
             var payload = new
             {
@@ -725,6 +822,143 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 }
             }
             yield return new CompletionChunk { Done = true, Provider = provider.ToString(), Model = model, PromptTokens = promptTokens, CompletionTokens = completionTokens };
+        }
+
+        // ── Tool calling helpers ─────────────────────────────────────────────────────────────────
+
+        /// <summary>Serialises messages into the OpenAI wire format, handling tool-role and assistant-with-tool_calls messages.</summary>
+        private static List<object> BuildOpenAIMessages(List<ChatMessage> messages)
+        {
+            var result = new List<object>();
+            foreach (ChatMessage m in messages)
+            {
+                if (m.Role == "tool")
+                    result.Add(new { role = "tool", tool_call_id = m.ToolCallId, content = m.Content });
+                else if (m.Role == "assistant" && m.ToolCalls?.Count > 0)
+                    result.Add(new
+                    {
+                        role = "assistant",
+                        content = (string)null,
+                        tool_calls = m.ToolCalls.Select(tc => (object)new
+                        {
+                            id = tc.Id,
+                            type = "function",
+                            function = new { name = tc.Function.Name, arguments = tc.Function.Arguments }
+                        }).ToList()
+                    });
+                else
+                    result.Add(new { role = m.Role, content = m.Content });
+            }
+            return result;
+        }
+
+        /// <summary>Serialises messages into the Anthropic wire format, handling tool_use and tool_result blocks.</summary>
+        private static List<object> BuildAnthropicMessages(List<ChatMessage> messages)
+        {
+            var result = new List<object>();
+            foreach (ChatMessage m in messages.Where(x => x.Role != "system"))
+            {
+                if (m.Role == "tool")
+                    result.Add(new
+                    {
+                        role = "user",
+                        content = new object[] { new { type = "tool_result", tool_use_id = m.ToolCallId, content = m.Content } }
+                    });
+                else if (m.Role == "assistant" && m.ToolCalls?.Count > 0)
+                    result.Add(new
+                    {
+                        role = "assistant",
+                        content = m.ToolCalls.Select(tc => (object)new
+                        {
+                            type = "tool_use",
+                            id = tc.Id,
+                            name = tc.Function.Name,
+                            input = JsonSerializer.Deserialize<object>(tc.Function.Arguments ?? "{}")
+                        }).ToList()
+                    });
+                else
+                    result.Add(new { role = m.Role, content = m.Content });
+            }
+            return result;
+        }
+
+        /// <summary>Serialises messages into the Gemini contents format, handling functionCall and functionResponse parts.</summary>
+        private static List<object> BuildGeminiContents(List<ChatMessage> messages)
+        {
+            var result = new List<object>();
+            foreach (ChatMessage m in messages.Where(x => x.Role != "system"))
+            {
+                if (m.Role == "tool")
+                {
+                    object responseVal;
+                    try { responseVal = JsonSerializer.Deserialize<object>(m.Content ?? "null"); }
+                    catch { responseVal = m.Content; }
+                    result.Add(new
+                    {
+                        role = "user",
+                        parts = new object[] { new { functionResponse = new { name = m.Name ?? "tool", response = new { result = responseVal } } } }
+                    });
+                }
+                else if (m.Role == "assistant" && m.ToolCalls?.Count > 0)
+                    result.Add(new
+                    {
+                        role = "model",
+                        parts = m.ToolCalls.Select(tc => (object)new
+                        {
+                            functionCall = new
+                            {
+                                name = tc.Function.Name,
+                                args = JsonSerializer.Deserialize<object>(tc.Function.Arguments ?? "{}")
+                            }
+                        }).ToList()
+                    });
+                else
+                    result.Add(new
+                    {
+                        role = m.Role == "assistant" ? "model" : "user",
+                        parts = new[] { new { text = m.Content } }
+                    });
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Returns a shallow copy of the request with tool descriptions injected into the system prompt.
+        /// Used for providers that lack native tool calling (Cohere, HuggingFace, AzureOpenAI).
+        /// </summary>
+        private static CompletionRequest InjectToolShimIntoSystemPrompt(CompletionRequest request)
+        {
+            if (request.Tools == null || request.Tools.Count == 0)
+                return request;
+
+            var sb = new StringBuilder("\n\nYou have access to the following tools. When you want to call a tool, respond ONLY with a JSON object in this format:\n{\"tool_call\":{\"name\":\"<tool_name>\",\"arguments\":{<args>}}}\n\nAvailable tools:");
+            foreach (ToolDefinition t in request.Tools)
+            {
+                sb.Append($"\n- {t.Function.Name}: {t.Function.Description}");
+                if (t.Function.Parameters != null)
+                    sb.Append($"\n  Parameters: {t.Function.Parameters}");
+            }
+
+            var cloned = new CompletionRequest
+            {
+                AvatarId = request.AvatarId,
+                Provider = request.Provider,
+                Model = request.Model,
+                Temperature = request.Temperature,
+                MaxTokens = request.MaxTokens,
+                Routing = request.Routing,
+                Tools = null, // shim injected; don't pass tools through
+                ToolChoice = request.ToolChoice,
+                Messages = new List<ChatMessage>(request.Messages)
+            };
+
+            ChatMessage systemMsg = cloned.Messages.FirstOrDefault(m => m.Role == "system");
+            if (systemMsg != null)
+                systemMsg.Content = (systemMsg.Content ?? "") + sb.ToString();
+            else
+                cloned.Messages.Insert(0, new ChatMessage { Role = "system", Content = sb.ToString().TrimStart() });
+
+            return cloned;
         }
 
         private async Task<ImageGenerationResponse> GenerateImageOpenAIAsync(ImageGenerationRequest request)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.Web6.Core.Models
 {
@@ -29,5 +30,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>True if this response was served from the semantic cache (no provider call was made).</summary>
         public bool FromCache { get; set; }
+
+        /// <summary>Why the model stopped. "stop" | "tool_calls" | "length" | "content_filter".</summary>
+        public string FinishReason { get; set; }
+
+        /// <summary>Tool calls the model wants to execute. Populated when FinishReason="tool_calls".</summary>
+        public List<ToolCall> ToolCalls { get; set; }
     }
 }
