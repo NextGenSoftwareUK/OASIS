@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Authors>Zhen Liu</Authors>
     <NeutralLanguage>en-NZ</NeutralLanguage>
     <PackageLicenseUrl>https://github.com/touchjet/JsonRpc20.Client/blob/master/LICENSE</PackageLicenseUrl>

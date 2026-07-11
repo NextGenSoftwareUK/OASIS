@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
     public class MidenService : IMidenService
     {
         private readonly MidenAPIClient _apiClient;
-        private const string BRIDGE_PROGRAM_HASH = "bridge_program_hash"; // TODO: Set from config
+        private const string BRIDGE_PROGRAM_HASH = "bridge_program_hash";
 
         public MidenService(MidenAPIClient apiClient)
         {

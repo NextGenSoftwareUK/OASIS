@@ -1,0 +1,1121 @@
+﻿Authentication successful. Token: eyJhbGciOiJIUzI1NiIs..., AvatarId: f9ccf5b2-3991-42ec-8155-65b94b2e0f0c
+STAR WEB5 endpoint count: 603
+
+=== Testing Invalid Enum Validation ===
+GET /api/CelestialBodies/{id}/load?holonType=InvalidEnumValue123 => 400
+  Ô£ô Validation working correctly - returned 400 with valid enum values listed
+  Error message: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"The holonType 'InvalidEnumValue123' is not valid. It must be o...
+
+POST /api/Avatar/authenticate => 200
+GET /api/Avatar/current => 200
+GET /api/Avatar/inventory => 200
+POST /api/Avatar/inventory => 200
+DELETE /api/Avatar/inventory/{itemId} => 200
+GET /api/Avatar/inventory/{itemId} => 200
+GET /api/Avatar/inventory/{itemId}/has => 200
+GET /api/Avatar/inventory/has-by-name => 200
+GET /api/Avatar/inventory/search => 200
+POST /api/Avatar/inventory/send-to-avatar => 400
+  POST /api/Avatar/inventory/send-to-avatar => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Target and ItemName are required.","detailedMessage":null,"res...
+POST /api/Avatar/inventory/send-to-clan => 400
+  POST /api/Avatar/inventory/send-to-clan => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Target (clan name) and ItemName are required.","detailedMessag...
+GET /api/CelestialBodies => 400
+  GET /api/CelestialBodies => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to GetAllCelestialBodies. Exception o...
+POST /api/CelestialBodies => 400
+  POST /api/CelestialBodies => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to creating celestial body. Exception...
+GET /api/CelestialBodies/{id} => 400
+  GET /api/CelestialBodies/{id} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to GetCelestialBody. Exception of typ...
+PUT /api/CelestialBodies/{id} => 400
+  PUT /api/CelestialBodies/{id} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to updating celestial body. Exception...
+DELETE /api/CelestialBodies/{id} => 400
+  DELETE /api/CelestialBodies/{id} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to deleting celestial body. Exception...
+GET /api/CelestialBodies/by-type/{type} => 400
+  GET /api/CelestialBodies/by-type/{type} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Error loading celestial bodies of type Default: LoadAllOfTypeA...
+GET /api/CelestialBodies/in-space/{spaceId} => 400
+  GET /api/CelestialBodies/in-space/{spaceId} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Error loading celestial bodies in space: LoadAllInSpaceAsync m...
+GET /api/CelestialBodies/search => 400
+  GET /api/CelestialBodies/search => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Error searching celestial bodies: Exception of type 'NextGenSo...
+POST /api/CelestialBodies/create => 400
+  POST /api/CelestialBodies/create => 400: {"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"request":["The request field is required."],"$.HolonSubType":["The JSON value could not be converted to NextGenSoftware.OASIS.API.Core.Enums.HolonType. Path: $.Holon...
+GET /api/CelestialBodies/{id}/load => 400
+  GET /api/CelestialBodies/{id}/load => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to loading celestial body. Exception ...
+GET /api/CelestialBodies/load-from-path => 400
+  GET /api/CelestialBodies/load-from-path => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to loading celestial body from path. ...
+GET /api/CelestialBodies/load-from-published => 400
+  GET /api/CelestialBodies/load-from-published => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to loading celestial body from publis...
+GET /api/CelestialBodies/load-all-for-avatar => 400
+  GET /api/CelestialBodies/load-all-for-avatar => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Error loading celestial bodies for avatar: Exception of type '...
+POST /api/CelestialBodies/{id}/publish => 400
+  POST /api/CelestialBodies/{id}/publish => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to publishing celestial body. Excepti...
+POST /api/CelestialBodies/{id}/download => 400
+  POST /api/CelestialBodies/{id}/download => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to downloading celestial body. Except...
+GET /api/CelestialBodies/{id}/versions => 400
+  GET /api/CelestialBodies/{id}/versions => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Error retrieving celestial body versions: Exception of type 'N...
+GET /api/CelestialBodies/{id}/version/{version} => 400
+  GET /api/CelestialBodies/{id}/version/{version} => 400: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoaded":false,"isDeleted":false,"message":"Invalid args were passed to loading celestial body version. Ex...
+POST /api/CelestialBodies/{id}/edit => 400
+POST /api/CelestialBodies/{id}/unpublish => 400
+POST /api/CelestialBodies/{id}/republish => 400
+POST /api/CelestialBodies/{id}/activate => 400
+POST /api/CelestialBodies/{id}/deactivate => 400
+GET /api/CelestialBodiesMetaData => 400
+POST /api/CelestialBodiesMetaData => 400
+GET /api/CelestialBodiesMetaData/{id} => 400
+PUT /api/CelestialBodiesMetaData/{id} => 400
+DELETE /api/CelestialBodiesMetaData/{id} => 400
+POST /api/CelestialBodiesMetaData/{id}/clone => 400
+POST /api/CelestialBodiesMetaData/{id}/publish => 400
+GET /api/CelestialBodiesMetaData/search => 400
+POST /api/CelestialBodiesMetaData/search => 400
+GET /api/CelestialBodiesMetaData/{id}/versions => 400
+POST /api/CelestialBodiesMetaData/create => 400
+GET /api/CelestialBodiesMetaData/load-from-path => 400
+GET /api/CelestialBodiesMetaData/load-from-published => 400
+GET /api/CelestialBodiesMetaData/load-all-for-avatar => 400
+POST /api/CelestialBodiesMetaData/{id}/download => 400
+GET /api/CelestialBodiesMetaData/{id}/versions/{version} => 400
+PUT /api/CelestialBodiesMetaData/{id}/edit => 400
+POST /api/CelestialBodiesMetaData/{id}/unpublish => 400
+POST /api/CelestialBodiesMetaData/{id}/republish => 400
+POST /api/CelestialBodiesMetaData/{id}/activate => 400
+POST /api/CelestialBodiesMetaData/{id}/deactivate => 400
+GET /api/CelestialSpaces => 400
+POST /api/CelestialSpaces => 400
+GET /api/CelestialSpaces/{id} => 400
+PUT /api/CelestialSpaces/{id} => 400
+DELETE /api/CelestialSpaces/{id} => 400
+GET /api/CelestialSpaces/by-type/{type} => 400
+GET /api/CelestialSpaces/in-space/{parentSpaceId} => 400
+GET /api/CelestialSpaces/search => 400
+POST /api/CelestialSpaces/create => 400
+GET /api/CelestialSpaces/{id}/load => 400
+GET /api/CelestialSpaces/load-from-path => 400
+GET /api/CelestialSpaces/load-from-published => 400
+GET /api/CelestialSpaces/load-all-for-avatar => 400
+POST /api/CelestialSpaces/{id}/publish => 400
+POST /api/CelestialSpaces/{id}/download => 400
+GET /api/CelestialSpaces/{id}/versions => 400
+GET /api/CelestialSpaces/{id}/version/{version} => 400
+POST /api/CelestialSpaces/{id}/edit => 400
+POST /api/CelestialSpaces/{id}/unpublish => 400
+POST /api/CelestialSpaces/{id}/republish => 400
+POST /api/CelestialSpaces/{id}/activate => 400
+POST /api/CelestialSpaces/{id}/deactivate => 400
+GET /api/Chapters => 400
+POST /api/Chapters => 400
+GET /api/Chapters/{id} => 400
+PUT /api/Chapters/{id} => 400
+DELETE /api/Chapters/{id} => 400
+GET /api/Chapters/search => 400
+POST /api/Chapters/create => 400
+GET /api/Chapters/{id}/load => 400
+GET /api/Chapters/load-from-path => 400
+GET /api/Chapters/load-from-published => 400
+GET /api/Chapters/load-all-for-avatar => 400
+POST /api/Chapters/{id}/publish => 400
+POST /api/Chapters/{id}/download => 400
+GET /api/Chapters/{id}/versions => 400
+GET /api/Chapters/{id}/version/{version} => 400
+POST /api/Chapters/{id}/edit => 400
+POST /api/Chapters/{id}/unpublish => 400
+POST /api/Chapters/{id}/republish => 400
+POST /api/Chapters/{id}/activate => 400
+POST /api/Chapters/{id}/deactivate => 400
+GET /api/competition/leaderboard/{competitionType}/{seasonType} => 200
+GET /api/competition/my-rank/{competitionType}/{seasonType} => 200
+GET /api/competition/rank/{avatarId}/{competitionType}/{seasonType} => 200
+GET /api/competition/leagues/{competitionType}/{seasonType} => 200
+GET /api/competition/my-league/{competitionType}/{seasonType} => 200
+GET /api/competition/league/{avatarId}/{competitionType}/{seasonType} => 200
+GET /api/competition/tournaments => 200
+POST /api/competition/tournaments/{tournamentId}/join => 200
+GET /api/competition/stats/{competitionType}/{seasonType} => 200
+GET /api/Cosmic/omniverse => 400
+POST /api/Cosmic/omniverse => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/omniverse => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+GET /api/Cosmic/children/{parentId} => 200
+GET /api/Cosmic/search-children => 200
+GET /api/Cosmic/search-holons => 200
+GET /api/Cosmic/search-holons-sync => 200
+DELETE /api/Cosmic/omniverse/{omniverseId} => 200
+POST /api/Cosmic/omniverse/{parentOmniverseId}/multiverse => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/multiverse => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+DELETE /api/Cosmic/multiverse/{multiverseId} => 200
+POST /api/Cosmic/multiverse/{parentMultiverseId}/universe => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/universe => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+DELETE /api/Cosmic/universe/{universeId} => 200
+POST /api/Cosmic/universe/{parentUniverseId}/galaxy-cluster => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/galaxy-cluster => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+DELETE /api/Cosmic/galaxy-cluster/{galaxyClusterId} => 200
+POST /api/Cosmic/galaxy-cluster/{parentGalaxyClusterId}/galaxy => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/galaxy => 500
+  Error details: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+DELETE /api/Cosmic/galaxy/{galaxyId} => 200
+POST /api/Cosmic/galaxy/{parentGalaxyId}/solar-system => 500
+PUT /api/Cosmic/solar-system => 500
+DELETE /api/Cosmic/solar-system/{solarSystemId} => 200
+POST /api/Cosmic/galaxy/{parentGalaxyId}/star => 500
+PUT /api/Cosmic/star => 500
+DELETE /api/Cosmic/star/{starId} => 200
+POST /api/Cosmic/solar-system/{parentSolarSystemId}/planet => 500
+PUT /api/Cosmic/planet => 500
+DELETE /api/Cosmic/planet/{planetId} => 200
+POST /api/Cosmic/planet/{parentPlanetId}/moon => 500
+PUT /api/Cosmic/moon => 500
+DELETE /api/Cosmic/moon/{moonId} => 200
+POST /api/Cosmic/galaxy/{parentGalaxyId}/asteroid => 500
+PUT /api/Cosmic/asteroid => 500
+DELETE /api/Cosmic/asteroid/{asteroidId} => 200
+POST /api/Cosmic/galaxy/{parentGalaxyId}/comet => 500
+PUT /api/Cosmic/comet => 500
+DELETE /api/Cosmic/comet/{cometId} => 200
+POST /api/Cosmic/galaxy/{parentGalaxyId}/meteroid => 500
+PUT /api/Cosmic/meteroid => 500
+DELETE /api/Cosmic/meteroid/{meteroidId} => 200
+GET /api/Cosmic/solar-system/{solarSystemId}/planets => 200
+GET /api/Cosmic/galaxy/{galaxyId}/solar-systems => 200
+GET /api/Cosmic/galaxy/{galaxyId}/stars => 200
+GET /api/Cosmic/galaxy/{galaxyId}/planets => 200
+GET /api/Cosmic/galaxy/{galaxyId}/moons => 200
+PUT /api/Cosmic/nebula => 500
+DELETE /api/Cosmic/nebula/{nebulaId} => 200
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+  Exception: Error while copying content to a stream.
+
+Full failure list written to: C:\Source\OASIS-master\STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness\bin\Release\net9.0\Test Results\test_failures_web5.txt
+
+Failures 5xx (475):
+POST /api/Cosmic/omniverse => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/omniverse => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/omniverse/{parentOmniverseId}/multiverse => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/multiverse => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/multiverse/{parentMultiverseId}/universe => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/universe => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/universe/{parentUniverseId}/galaxy-cluster => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/galaxy-cluster => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy-cluster/{parentGalaxyClusterId}/galaxy => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/galaxy => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy/{parentGalaxyId}/solar-system => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/solar-system => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy/{parentGalaxyId}/star => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/star => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/solar-system/{parentSolarSystemId}/planet => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/planet => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/planet/{parentPlanetId}/moon => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/moon => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy/{parentGalaxyId}/asteroid => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/asteroid => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy/{parentGalaxyId}/comet => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/comet => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+POST /api/Cosmic/galaxy/{parentGalaxyId}/meteroid => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/meteroid => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/nebula => 500. Body: {"resultsCount":0,"errorCount":0,"warningCount":0,"savedCount":0,"loadedCount":0,"deletedCount":0,"hasAnyHolonsChanged":false,"errorCode":null,"isError":true,"isWarning":false,"isSaved":false,"isLoade...
+PUT /api/Cosmic/superverse => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/superverse/{superVerseId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/wormhole => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/wormhole/{wormHoleId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/blackhole => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/blackhole/{blackHoleId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/portal => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/portal/{portalId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/stargate => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/stargate/{starGateId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/spacetime-distortion => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/spacetime-distortion/{distortionId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/spacetime-abnormally => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/spacetime-abnormally/{abnormallyId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/temporal-rift => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/temporal-rift/{riftId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/stardust => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/stardust/{starDustId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/cosmic-wave => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/cosmic-wave/{waveId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/cosmic-ray => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/cosmic-ray/{rayId} => exception: Error while copying content to a stream.
+PUT /api/Cosmic/gravitational-wave => exception: Error while copying content to a stream.
+DELETE /api/Cosmic/gravitational-wave/{waveId} => exception: Error while copying content to a stream.
+GET /api/Games => exception: Error while copying content to a stream.
+POST /api/Games => exception: Error while copying content to a stream.
+GET /api/Games/{id} => exception: Error while copying content to a stream.
+PUT /api/Games/{id} => exception: Error while copying content to a stream.
+DELETE /api/Games/{id} => exception: Error while copying content to a stream.
+POST /api/Games/{id}/clone => exception: Error while copying content to a stream.
+POST /api/Games/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Games/{id}/download => exception: Error while copying content to a stream.
+POST /api/Games/{id}/install => exception: Error while copying content to a stream.
+GET /api/Games/search => exception: Error while copying content to a stream.
+GET /api/Games/by-type/{type} => exception: Error while copying content to a stream.
+GET /api/Games/{id}/load => exception: Error while copying content to a stream.
+GET /api/Games/load-from-path => exception: Error while copying content to a stream.
+GET /api/Games/load-from-published => exception: Error while copying content to a stream.
+GET /api/Games/load-all-for-avatar => exception: Error while copying content to a stream.
+GET /api/Games/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Games/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Games/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Games/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Games/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Games/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Games/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/Games/create => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/start => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/end => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/load => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/unload => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/levels/{level}/load => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/levels/{level}/unload => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/levels/{level}/jump => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/levels/{level}/jump-to-point => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/areas/load => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/areas/{areaId}/unload => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/areas/jump => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/ui/title-screen => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/ui/main-menu => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/ui/options => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/ui/credits => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/audio/master-volume => exception: Error while copying content to a stream.
+GET /api/Games/{gameId}/audio/master-volume => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/audio/voice-volume => exception: Error while copying content to a stream.
+GET /api/Games/{gameId}/audio/voice-volume => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/audio/sound-volume => exception: Error while copying content to a stream.
+GET /api/Games/{gameId}/audio/sound-volume => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/video/setting => exception: Error while copying content to a stream.
+GET /api/Games/{gameId}/video/setting => exception: Error while copying content to a stream.
+POST /api/Games/{gameId}/input/bind-keys => exception: Error while copying content to a stream.
+GET /api/Games/{gameId}/input/bind-keys => exception: Error while copying content to a stream.
+GET /api/Games/shared-inventory => exception: Error while copying content to a stream.
+POST /api/Games/shared-inventory/add => exception: Error while copying content to a stream.
+DELETE /api/Games/shared-inventory/{itemId} => exception: Error while copying content to a stream.
+GET /api/Games/shared-inventory/{itemId}/has => exception: Error while copying content to a stream.
+GET /api/Games/shared-inventory/has-by-name => exception: Error while copying content to a stream.
+GET /api/Games/cross-game-quests => exception: Error while copying content to a stream.
+GET /api/Games/karma => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/{id} => exception: Error while copying content to a stream.
+PUT /api/GeoHotSpots/{id} => exception: Error while copying content to a stream.
+DELETE /api/GeoHotSpots/{id} => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/nearby => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/create => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/{id}/load => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/load-from-path => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/load-from-published => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/publish => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/download => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/{id}/versions => exception: Error while copying content to a stream.
+GET /api/GeoHotSpots/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/edit => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/republish => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/activate => exception: Error while copying content to a stream.
+POST /api/GeoHotSpots/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/GeoNFTs => exception: Error while copying content to a stream.
+POST /api/GeoNFTs => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/{id} => exception: Error while copying content to a stream.
+PUT /api/GeoNFTs/{id} => exception: Error while copying content to a stream.
+DELETE /api/GeoNFTs/{id} => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/nearby => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/by-avatar/{avatarId} => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/search => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/create => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/{id}/load => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/load-from-path => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/load-from-published => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/publish => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/download => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/{id}/versions => exception: Error while copying content to a stream.
+GET /api/GeoNFTs/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/edit => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/republish => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/activate => exception: Error while copying content to a stream.
+POST /api/GeoNFTs/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/Health => exception: Error while copying content to a stream.
+GET /api/Health/health => exception: Error while copying content to a stream.
+GET /api/Holons => exception: Error while copying content to a stream.
+POST /api/Holons => exception: Error while copying content to a stream.
+GET /api/Holons/{id} => exception: Error while copying content to a stream.
+PUT /api/Holons/{id} => exception: Error while copying content to a stream.
+DELETE /api/Holons/{id} => exception: Error while copying content to a stream.
+GET /api/Holons/by-type/{type} => exception: Error while copying content to a stream.
+GET /api/Holons/by-parent/{parentId} => exception: Error while copying content to a stream.
+GET /api/Holons/by-metadata => exception: Error while copying content to a stream.
+GET /api/Holons/search => exception: Error while copying content to a stream.
+GET /api/Holons/by-status/{status} => exception: Error while copying content to a stream.
+POST /api/Holons/create => exception: Error while copying content to a stream.
+GET /api/Holons/{id}/load => exception: Error while copying content to a stream.
+GET /api/Holons/load-from-path => exception: Error while copying content to a stream.
+GET /api/Holons/load-from-published => exception: Error while copying content to a stream.
+GET /api/Holons/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/download => exception: Error while copying content to a stream.
+GET /api/Holons/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Holons/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Holons/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/{id} => exception: Error while copying content to a stream.
+PUT /api/HolonsMetaData/{id} => exception: Error while copying content to a stream.
+DELETE /api/HolonsMetaData/{id} => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/clone => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/publish => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/search => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/search => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/{id}/versions => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/create => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/load-from-path => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/load-from-published => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/download => exception: Error while copying content to a stream.
+GET /api/HolonsMetaData/{id}/versions/{version} => exception: Error while copying content to a stream.
+PUT /api/HolonsMetaData/{id}/edit => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/republish => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/activate => exception: Error while copying content to a stream.
+POST /api/HolonsMetaData/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/InventoryItems => exception: Error while copying content to a stream.
+POST /api/InventoryItems => exception: Error while copying content to a stream.
+GET /api/InventoryItems/{id} => exception: Error while copying content to a stream.
+PUT /api/InventoryItems/{id} => exception: Error while copying content to a stream.
+DELETE /api/InventoryItems/{id} => exception: Error while copying content to a stream.
+GET /api/InventoryItems/by-avatar/{avatarId} => exception: Error while copying content to a stream.
+POST /api/InventoryItems/create => exception: Error while copying content to a stream.
+GET /api/InventoryItems/{id}/load => exception: Error while copying content to a stream.
+GET /api/InventoryItems/load-from-path => exception: Error while copying content to a stream.
+GET /api/InventoryItems/load-from-published => exception: Error while copying content to a stream.
+GET /api/InventoryItems/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/publish => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/download => exception: Error while copying content to a stream.
+GET /api/InventoryItems/{id}/versions => exception: Error while copying content to a stream.
+GET /api/InventoryItems/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/edit => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/republish => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/activate => exception: Error while copying content to a stream.
+POST /api/InventoryItems/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/InventoryItems/search => exception: Error while copying content to a stream.
+GET /api/Libraries => exception: Error while copying content to a stream.
+POST /api/Libraries => exception: Error while copying content to a stream.
+GET /api/Libraries/{id} => exception: Error while copying content to a stream.
+PUT /api/Libraries/{id} => exception: Error while copying content to a stream.
+DELETE /api/Libraries/{id} => exception: Error while copying content to a stream.
+GET /api/Libraries/search => exception: Error while copying content to a stream.
+GET /api/Libraries/by-category/{category} => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/clone => exception: Error while copying content to a stream.
+POST /api/Libraries/create => exception: Error while copying content to a stream.
+GET /api/Libraries/{id}/load => exception: Error while copying content to a stream.
+GET /api/Libraries/load-from-path => exception: Error while copying content to a stream.
+GET /api/Libraries/load-from-published => exception: Error while copying content to a stream.
+GET /api/Libraries/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/download => exception: Error while copying content to a stream.
+GET /api/Libraries/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Libraries/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Libraries/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/Missions => exception: Error while copying content to a stream.
+POST /api/Missions => exception: Error while copying content to a stream.
+GET /api/Missions/{id} => exception: Error while copying content to a stream.
+PUT /api/Missions/{id} => exception: Error while copying content to a stream.
+DELETE /api/Missions/{id} => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/clone => exception: Error while copying content to a stream.
+GET /api/Missions/by-type/{type} => exception: Error while copying content to a stream.
+GET /api/Missions/by-status/{status} => exception: Error while copying content to a stream.
+GET /api/Missions/search => exception: Error while copying content to a stream.
+POST /api/Missions/create => exception: Error while copying content to a stream.
+GET /api/Missions/{id}/load => exception: Error while copying content to a stream.
+GET /api/Missions/load-from-path => exception: Error while copying content to a stream.
+GET /api/Missions/load-from-published => exception: Error while copying content to a stream.
+GET /api/Missions/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/download => exception: Error while copying content to a stream.
+GET /api/Missions/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Missions/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/Missions/{id}/complete => exception: Error while copying content to a stream.
+GET /api/Missions/{id}/leaderboard => exception: Error while copying content to a stream.
+GET /api/Missions/{id}/rewards => exception: Error while copying content to a stream.
+GET /api/Missions/stats => exception: Error while copying content to a stream.
+GET /api/NFTs => exception: Error while copying content to a stream.
+POST /api/NFTs => exception: Error while copying content to a stream.
+GET /api/NFTs/{id} => exception: Error while copying content to a stream.
+PUT /api/NFTs/{id} => exception: Error while copying content to a stream.
+DELETE /api/NFTs/{id} => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/clone => exception: Error while copying content to a stream.
+POST /api/NFTs/create => exception: Error while copying content to a stream.
+GET /api/NFTs/{id}/load => exception: Error while copying content to a stream.
+GET /api/NFTs/load-from-path => exception: Error while copying content to a stream.
+GET /api/NFTs/load-from-published => exception: Error while copying content to a stream.
+GET /api/NFTs/load-all-for-avatar => exception: Error while copying content to a stream.
+GET /api/NFTs/search => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/publish => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/download => exception: Error while copying content to a stream.
+GET /api/NFTs/{id}/versions => exception: Error while copying content to a stream.
+GET /api/NFTs/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/edit => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/republish => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/activate => exception: Error while copying content to a stream.
+POST /api/NFTs/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/OAPPs => exception: Error while copying content to a stream.
+POST /api/OAPPs => exception: Error while copying content to a stream.
+GET /api/OAPPs/{id} => exception: Error while copying content to a stream.
+PUT /api/OAPPs/{id} => exception: Error while copying content to a stream.
+DELETE /api/OAPPs/{id} => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/clone => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/publish => exception: Error while copying content to a stream.
+GET /api/OAPPs/search => exception: Error while copying content to a stream.
+POST /api/OAPPs/search => exception: Error while copying content to a stream.
+GET /api/OAPPs/{id}/versions => exception: Error while copying content to a stream.
+POST /api/OAPPs/create => exception: Error while copying content to a stream.
+GET /api/OAPPs/load-from-path => exception: Error while copying content to a stream.
+GET /api/OAPPs/load-from-published => exception: Error while copying content to a stream.
+GET /api/OAPPs/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/download => exception: Error while copying content to a stream.
+GET /api/OAPPs/{id}/versions/{version} => exception: Error while copying content to a stream.
+PUT /api/OAPPs/{id}/edit => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/republish => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/activate => exception: Error while copying content to a stream.
+POST /api/OAPPs/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/Parks => exception: Error while copying content to a stream.
+POST /api/Parks => exception: Error while copying content to a stream.
+GET /api/Parks/{id} => exception: Error while copying content to a stream.
+PUT /api/Parks/{id} => exception: Error while copying content to a stream.
+DELETE /api/Parks/{id} => exception: Error while copying content to a stream.
+GET /api/Parks/nearby => exception: Error while copying content to a stream.
+GET /api/Parks/by-type/{type} => exception: Error while copying content to a stream.
+POST /api/Parks/create => exception: Error while copying content to a stream.
+GET /api/Parks/{id}/load => exception: Error while copying content to a stream.
+GET /api/Parks/load-from-path => exception: Error while copying content to a stream.
+GET /api/Parks/load-from-published => exception: Error while copying content to a stream.
+GET /api/Parks/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/download => exception: Error while copying content to a stream.
+GET /api/Parks/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Parks/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Parks/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/Parks/search => exception: Error while copying content to a stream.
+GET /api/Plugins => exception: Error while copying content to a stream.
+POST /api/Plugins => exception: Error while copying content to a stream.
+GET /api/Plugins/{id} => exception: Error while copying content to a stream.
+PUT /api/Plugins/{id} => exception: Error while copying content to a stream.
+DELETE /api/Plugins/{id} => exception: Error while copying content to a stream.
+GET /api/Plugins/search => exception: Error while copying content to a stream.
+GET /api/Plugins/by-type/{type} => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/install => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/uninstall => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/clone => exception: Error while copying content to a stream.
+POST /api/Plugins/create => exception: Error while copying content to a stream.
+GET /api/Plugins/{id}/load => exception: Error while copying content to a stream.
+GET /api/Plugins/load-from-path => exception: Error while copying content to a stream.
+GET /api/Plugins/load-from-published => exception: Error while copying content to a stream.
+GET /api/Plugins/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/download => exception: Error while copying content to a stream.
+GET /api/Plugins/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Plugins/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Plugins/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/Quests => exception: Error while copying content to a stream.
+POST /api/Quests => exception: Error while copying content to a stream.
+GET /api/Quests/{id} => exception: Error while copying content to a stream.
+PUT /api/Quests/{id} => exception: Error while copying content to a stream.
+DELETE /api/Quests/{id} => exception: Error while copying content to a stream.
+GET /api/Quests/by-avatar/{avatarId} => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/clone => exception: Error while copying content to a stream.
+GET /api/Quests/by-type/{type} => exception: Error while copying content to a stream.
+GET /api/Quests/by-status/{status} => exception: Error while copying content to a stream.
+GET /api/Quests/search => exception: Error while copying content to a stream.
+POST /api/Quests/create => exception: Error while copying content to a stream.
+GET /api/Quests/{id}/load => exception: Error while copying content to a stream.
+GET /api/Quests/load-from-path => exception: Error while copying content to a stream.
+GET /api/Quests/load-from-published => exception: Error while copying content to a stream.
+GET /api/Quests/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/download => exception: Error while copying content to a stream.
+GET /api/Quests/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Quests/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/start => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/objectives/{objectiveId}/complete => exception: Error while copying content to a stream.
+POST /api/Quests/{id}/complete => exception: Error while copying content to a stream.
+GET /api/Quests/{id}/leaderboard => exception: Error while copying content to a stream.
+GET /api/Quests/{id}/rewards => exception: Error while copying content to a stream.
+GET /api/Quests/stats => exception: Error while copying content to a stream.
+GET /api/Runtimes => exception: Error while copying content to a stream.
+POST /api/Runtimes => exception: Error while copying content to a stream.
+GET /api/Runtimes/{id} => exception: Error while copying content to a stream.
+PUT /api/Runtimes/{id} => exception: Error while copying content to a stream.
+DELETE /api/Runtimes/{id} => exception: Error while copying content to a stream.
+GET /api/Runtimes/search => exception: Error while copying content to a stream.
+POST /api/Runtimes/search => exception: Error while copying content to a stream.
+GET /api/Runtimes/by-type/{type} => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/start => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/stop => exception: Error while copying content to a stream.
+GET /api/Runtimes/{id}/status => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/clone => exception: Error while copying content to a stream.
+POST /api/Runtimes/create => exception: Error while copying content to a stream.
+GET /api/Runtimes/load-from-path => exception: Error while copying content to a stream.
+GET /api/Runtimes/load-from-published => exception: Error while copying content to a stream.
+GET /api/Runtimes/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/download => exception: Error while copying content to a stream.
+GET /api/Runtimes/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Runtimes/{id}/versions/{version} => exception: Error while copying content to a stream.
+PUT /api/Runtimes/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Runtimes/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/STAR/status => exception: Error while copying content to a stream.
+POST /api/STAR/ignite => exception: Error while copying content to a stream.
+POST /api/STAR/beam-in => exception: Error while copying content to a stream.
+GET /api/Templates => exception: Error while copying content to a stream.
+POST /api/Templates => exception: Error while copying content to a stream.
+GET /api/Templates/{id} => exception: Error while copying content to a stream.
+PUT /api/Templates/{id} => exception: Error while copying content to a stream.
+DELETE /api/Templates/{id} => exception: Error while copying content to a stream.
+GET /api/Templates/search => exception: Error while copying content to a stream.
+POST /api/Templates/search => exception: Error while copying content to a stream.
+GET /api/Templates/by-type/{type} => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/clone => exception: Error while copying content to a stream.
+POST /api/Templates/create => exception: Error while copying content to a stream.
+GET /api/Templates/load-from-path => exception: Error while copying content to a stream.
+GET /api/Templates/load-from-published => exception: Error while copying content to a stream.
+GET /api/Templates/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/download => exception: Error while copying content to a stream.
+GET /api/Templates/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Templates/{id}/versions/{version} => exception: Error while copying content to a stream.
+PUT /api/Templates/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Templates/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/Zomes => exception: Error while copying content to a stream.
+POST /api/Zomes => exception: Error while copying content to a stream.
+GET /api/Zomes/{id} => exception: Error while copying content to a stream.
+PUT /api/Zomes/{id} => exception: Error while copying content to a stream.
+DELETE /api/Zomes/{id} => exception: Error while copying content to a stream.
+GET /api/Zomes/by-type/{type} => exception: Error while copying content to a stream.
+GET /api/Zomes/in-space/{spaceId} => exception: Error while copying content to a stream.
+POST /api/Zomes/create => exception: Error while copying content to a stream.
+GET /api/Zomes/{id}/load => exception: Error while copying content to a stream.
+GET /api/Zomes/load-from-path => exception: Error while copying content to a stream.
+GET /api/Zomes/load-from-published => exception: Error while copying content to a stream.
+GET /api/Zomes/load-all-for-avatar => exception: Error while copying content to a stream.
+GET /api/Zomes/search => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/publish => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/download => exception: Error while copying content to a stream.
+GET /api/Zomes/{id}/versions => exception: Error while copying content to a stream.
+GET /api/Zomes/{id}/version/{version} => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/edit => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/republish => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/activate => exception: Error while copying content to a stream.
+POST /api/Zomes/{id}/deactivate => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/{id} => exception: Error while copying content to a stream.
+PUT /api/ZomesMetaData/{id} => exception: Error while copying content to a stream.
+DELETE /api/ZomesMetaData/{id} => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/clone => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/publish => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/search => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/search => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/{id}/versions => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/create => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/load-from-path => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/load-from-published => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/load-all-for-avatar => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/download => exception: Error while copying content to a stream.
+GET /api/ZomesMetaData/{id}/versions/{version} => exception: Error while copying content to a stream.
+PUT /api/ZomesMetaData/{id}/edit => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/unpublish => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/republish => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/activate => exception: Error while copying content to a stream.
+POST /api/ZomesMetaData/{id}/deactivate => exception: Error while copying content to a stream.
+POST /api/STAR/extinguish => exception: Error while copying content to a stream.
+
+400s (88) - see C:\Source\OASIS-master\STAR ODK\TestProjects\NextGenSoftware.OASIS.STAR.WebAPI.TestHarness\bin\Release\net9.0\Test Results\test_failures_web5.txt

@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
         public EnumValue<NFTOffChainMetaType> NFTOffChainMetaType { get; set; }
         public EnumValue<NFTStandardType> NFTStandardType { get; set; } 
         public string MintTransactionHash { get; set; } //optional.
-        public Dictionary<string, object> MetaData { get; set; }  //optional.
+        public Dictionary<string, string> MetaData { get; set; }  //optional.
         public List<string> Tags { get; set; } //optional.
         public string JSONMetaDataURL { get; set; }  //optional.
         //public string JSONMetaData { get; set; }

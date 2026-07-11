@@ -12,3 +12,10 @@ echo.
 dotnet run --urls "http://localhost:5000"
 
 pause
+
+REM OASIS: Explorer pause (OASIS_BAT_NO_PAUSE=1 skips)
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul

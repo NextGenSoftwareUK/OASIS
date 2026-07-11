@@ -4,6 +4,33 @@
 
 This guide provides comprehensive instructions for setting up a complete development environment for OASIS and STARNET development.
 
+## ⚡ **Quick Repository Setup (Visual Studio)**
+
+If you are using **Visual Studio**, the simplest way to get up and running is to clone the three required repositories into the **same parent folder**:
+
+**Step 1** — Clone the main OASIS repository:
+```bash
+git clone https://github.com/NextGenSoftwareUK/OASIS.git
+```
+
+**Step 2** — Clone the NextGenSoftware Libraries into the same parent folder:
+```bash
+git clone https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git
+```
+
+**Step 3** — Clone the HoloNET (holochain-client-csharp) library into the same parent folder:
+```bash
+git clone https://github.com/NextGenSoftwareUK/holochain-client-csharp.git
+```
+
+**Step 4** — Open the OASIS solution in Visual Studio. The external libraries will appear automatically in the `External Libs` folder.
+
+> That's it! Happy coding & welcome to the team! :)
+
+All three repositories must be in the **same parent directory** for the project references to resolve correctly.
+
+---
+
 ## 🛠️ **Prerequisites**
 
 ### **System Requirements**

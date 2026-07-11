@@ -47,7 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
                 {
                     response.IsError = true;
                     response.Message = httpRes.ReasonPhrase;
-                    ErrorHandling.HandleError(ref response, response.Message);
+                    OASISErrorHandling.HandleError(ref response, response.Message);
                     return response;
                 }
                 var responseContent = await httpRes.Content.ReadAsStringAsync();
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CargoOASIS.Infrastructure.Handlers
             {
                 response.IsError = true;
                 response.Message = e.Message;
-                ErrorHandling.HandleError(ref response, e.Message);
+                OASISErrorHandling.HandleError(ref response, e.Message);
                 return response;
             }
         }

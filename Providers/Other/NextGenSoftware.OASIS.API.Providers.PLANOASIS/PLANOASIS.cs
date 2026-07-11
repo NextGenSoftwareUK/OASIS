@@ -8,7 +8,8 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.STAR;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
-using NextGenSoftware.OASIS.API.Core.Interfaces.Wallets.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Managers;
@@ -114,8 +115,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "PLAN provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from PLAN network using HTTP client
@@ -168,8 +173,52 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by provider key from PLAN network
-                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by provider key not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by provider key from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatars/provider-key/{Uri.EscapeDataString(providerKey)}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : $"plan_user_{providerKey}",
+                            Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : $"user_{providerKey}@plan.example",
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from PLAN network by provider key";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from PLAN network: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -189,8 +238,52 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by email from PLAN network
-                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by email not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by email from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatars/email/{Uri.EscapeDataString(avatarEmail)}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : avatarEmail.Split('@')[0],
+                            Email = avatarEmail,
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from PLAN network by email";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from PLAN network: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -210,8 +303,52 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             var response = new OASISResult<IAvatar>();
             try
             {
-                // Load avatar by username from PLAN network
-                OASISErrorHandling.HandleError(ref response, "PLAN avatar loading by username not yet implemented");
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar by username from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatars/username/{Uri.EscapeDataString(avatarUsername)}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarData != null)
+                    {
+                        var avatar = new Avatar
+                        {
+                            Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarUsername,
+                            Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : $"{avatarUsername}@plan.example",
+                            FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                            LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                            CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatar;
+                        response.IsError = false;
+                        response.Message = "Avatar loaded successfully from PLAN network by username";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar from PLAN network: {httpResponse.StatusCode}");
+                }
             }
             catch (Exception ex)
             {
@@ -228,52 +365,345 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatar-details/{id}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = id,
+                            Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : "",
+                            Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : "",
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from PLAN network";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from PLAN network: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailAsync(id, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail by email from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatar-details/email/{Uri.EscapeDataString(avatarEmail)}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : avatarEmail.Split('@')[0],
+                            Email = avatarEmail,
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from PLAN network by email";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from PLAN network: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by email from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return null;
+            var response = new OASISResult<IAvatarDetail>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load avatar detail by username from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatar-details/username/{Uri.EscapeDataString(avatarUsername)}?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetailData = JsonSerializer.Deserialize<Dictionary<string, object>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailData != null)
+                    {
+                        var avatarDetail = new AvatarDetail
+                        {
+                            Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                            Username = avatarUsername,
+                            Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : $"{avatarUsername}@plan.example",
+                            FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                            LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                            Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                            XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                            CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                            ModifiedDate = DateTime.UtcNow,
+                            Version = version
+                        };
+
+                        response.Result = avatarDetail;
+                        response.IsError = false;
+                        response.Message = "Avatar detail loaded successfully from PLAN network by username";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar detail data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar detail from PLAN network: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading avatar detail by username from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
         {
-            return null;
+            return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IAvatar>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatars from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatars?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarsList != null)
+                    {
+                        var avatars = new List<IAvatar>();
+                        foreach (var avatarData in avatarsList)
+                        {
+                            var avatar = new Avatar
+                            {
+                                Id = avatarData.ContainsKey("id") && Guid.TryParse(avatarData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                                Username = avatarData.ContainsKey("username") ? avatarData["username"].ToString() : "",
+                                Email = avatarData.ContainsKey("email") ? avatarData["email"].ToString() : "",
+                                FirstName = avatarData.ContainsKey("firstName") ? avatarData["firstName"].ToString() : "",
+                                LastName = avatarData.ContainsKey("lastName") ? avatarData["lastName"].ToString() : "",
+                                CreatedDate = avatarData.ContainsKey("createdDate") && DateTime.TryParse(avatarData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                                ModifiedDate = DateTime.UtcNow,
+                                Version = version
+                            };
+                            avatars.Add(avatar);
+                        }
+
+                        response.Result = avatars;
+                        response.IsError = false;
+                        response.Message = $"Successfully loaded {avatars.Count} avatars from PLAN network";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatars data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatars from PLAN network: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return null;
+            return LoadAllAvatarsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
-            return null;
+            var response = new OASISResult<IEnumerable<IAvatarDetail>>();
+            try
+            {
+                if (!IsProviderActivated)
+                {
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return response;
+                    }
+                }
+
+                // Load all avatar details from PLAN network API
+                var planUrl = $"{_apiBaseUrl}/avatar-details?version={version}";
+                var httpResponse = await _httpClient.GetAsync(planUrl);
+
+                if (httpResponse.IsSuccessStatusCode)
+                {
+                    var content = await httpResponse.Content.ReadAsStringAsync();
+                    var avatarDetailsList = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (avatarDetailsList != null)
+                    {
+                        var avatarDetails = new List<IAvatarDetail>();
+                        foreach (var avatarDetailData in avatarDetailsList)
+                        {
+                            var avatarDetail = new AvatarDetail
+                            {
+                                Id = avatarDetailData.ContainsKey("id") && Guid.TryParse(avatarDetailData["id"].ToString(), out var id) ? id : Guid.NewGuid(),
+                                Username = avatarDetailData.ContainsKey("username") ? avatarDetailData["username"].ToString() : "",
+                                Email = avatarDetailData.ContainsKey("email") ? avatarDetailData["email"].ToString() : "",
+                                FirstName = avatarDetailData.ContainsKey("firstName") ? avatarDetailData["firstName"].ToString() : "",
+                                LastName = avatarDetailData.ContainsKey("lastName") ? avatarDetailData["lastName"].ToString() : "",
+                                Karma = avatarDetailData.ContainsKey("karma") && long.TryParse(avatarDetailData["karma"].ToString(), out var karma) ? karma : 0,
+                                XP = avatarDetailData.ContainsKey("xp") && int.TryParse(avatarDetailData["xp"].ToString(), out var xp) ? xp : 0,
+                                CreatedDate = avatarDetailData.ContainsKey("createdDate") && DateTime.TryParse(avatarDetailData["createdDate"].ToString(), out var created) ? created : DateTime.UtcNow,
+                                ModifiedDate = DateTime.UtcNow,
+                                Version = version
+                            };
+                            avatarDetails.Add(avatarDetail);
+                        }
+
+                        response.Result = avatarDetails;
+                        response.IsError = false;
+                        response.Message = $"Successfully loaded {avatarDetails.Count} avatar details from PLAN network";
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref response, "Failed to deserialize avatar details data from PLAN network API");
+                    }
+                }
+                else
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to load avatar details from PLAN network: {httpResponse.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Exception = ex;
+                OASISErrorHandling.HandleError(ref response, $"Error loading all avatar details from PLAN: {ex.Message}");
+            }
+            return response;
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return null;
+            return LoadAllAvatarDetailsAsync(version).Result;
         }
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
@@ -413,8 +843,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchParams = new Dictionary<string, string>
@@ -468,8 +902,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchRequest = new
@@ -534,8 +972,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holon == null)
@@ -588,8 +1030,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -642,8 +1088,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/{id}");
@@ -678,8 +1128,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var response = await _httpClient.DeleteAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}");
@@ -714,15 +1168,36 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchUrl = $"{_apiBaseUrl}/search";
+                
+                // Extract search query and holon type from SearchGroups if available
+                string searchQuery = "";
+                string holonTypeStr = "All";
+                
+                if (searchParams?.SearchGroups != null && searchParams.SearchGroups.Count > 0)
+                {
+                    var firstGroup = searchParams.SearchGroups[0];
+                    holonTypeStr = firstGroup.HolonType.ToString();
+                    
+                    // Try to get SearchQuery from SearchTextGroup if available
+                    if (firstGroup is SearchTextGroup textGroup)
+                    {
+                        searchQuery = textGroup.SearchQuery ?? "";
+                    }
+                }
+                
                 var searchRequest = new
                 {
-                    query = searchParams?.SearchQuery ?? "",
-                    holonType = searchParams?.HolonType?.ToString() ?? "All",
+                    query = searchQuery,
+                    holonType = holonTypeStr,
                     version = version
                 };
 
@@ -736,8 +1211,10 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
                     var searchResults = new SearchResults
                     {
-                        SearchQuery = searchParams?.SearchQuery ?? "",
-                        Results = new List<IHolon>()
+                        SearchResultHolons = new List<IHolon>(),
+                        SearchResultAvatars = new List<IAvatar>(),
+                        NumberOfResults = 0,
+                        NumberOfDuplicates = 0
                     };
 
                     if (searchData?.ContainsKey("results") == true && searchData["results"] is JsonElement resultsArray)
@@ -750,13 +1227,14 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                                 Name = item.GetProperty("name").GetString() ?? "",
                                 Description = item.TryGetProperty("description", out var desc) ? desc.GetString() : ""
                             };
-                            searchResults.Results.Add(holon);
+                            searchResults.SearchResultHolons.Add(holon);
                         }
+                        searchResults.NumberOfResults = searchResults.SearchResultHolons.Count;
                     }
 
                     result.Result = searchResults;
                     result.IsError = false;
-                    result.Message = $"Search completed successfully, found {searchResults.Results.Count} results";
+                    result.Message = $"Search completed successfully, found {searchResults.NumberOfResults} results";
                 }
                 else
                 {
@@ -782,8 +1260,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var importUrl = $"{_apiBaseUrl}/import";
@@ -809,7 +1291,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     {
                         importedCount++;
                     }
-                    else if (!continueOnError)
+                    else if (!result.IsError)
                     {
                         OASISErrorHandling.HandleError(ref result, $"Failed to import holon {holon.Id}: {response.StatusCode}");
                         return result;
@@ -839,8 +1321,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/{avatarId}?version={version}";
@@ -895,8 +1381,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/username/{avatarUsername}?version={version}";
@@ -951,8 +1441,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/avatar/email/{Uri.EscapeDataString(avatarEmailAddress)}?version={version}";
@@ -1007,8 +1501,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var exportUrl = $"{_apiBaseUrl}/export/all?version={version}";
@@ -1060,18 +1558,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
 
         #region IOASISNET Implementation
 
-        OASISResult<IEnumerable<IPlayer>> IOASISNETProvider.GetPlayersNearMe()
+        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
-            var result = new OASISResult<IEnumerable<IPlayer>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
-                var playersUrl = $"{_apiBaseUrl}/players/nearby";
+                var playersUrl = $"{_apiBaseUrl}/players/nearby?lat={geoLat}&lng={geoLong}&radius={radiusInMeters}";
                 var response = _httpClient.GetAsync(playersUrl).Result;
 
                 if (response.IsSuccessStatusCode)
@@ -1079,46 +1581,50 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     var content = response.Content.ReadAsStringAsync().Result;
                     var playersData = JsonSerializer.Deserialize<Dictionary<string, object>>(content);
 
-                    var players = new List<IPlayer>();
+                    var avatars = new List<IAvatar>();
                     if (playersData?.ContainsKey("players") == true && playersData["players"] is JsonElement playersArray)
                     {
                         foreach (var item in playersArray.EnumerateArray())
                         {
-                            var player = new Avatar
+                            var avatar = new Avatar
                             {
                                 Id = Guid.Parse(item.GetProperty("id").GetString() ?? Guid.Empty.ToString()),
                                 Username = item.GetProperty("username").GetString() ?? "",
                                 Email = item.TryGetProperty("email", out var email) ? email.GetString() : ""
                             };
-                            players.Add(player as IPlayer);
+                            avatars.Add(avatar);
                         }
                     }
 
-                    result.Result = players;
+                    result.Result = avatars;
                     result.IsError = false;
-                    result.Message = $"Found {players.Count} players nearby from PLAN";
+                    result.Message = $"Found {avatars.Count} avatars nearby from PLAN";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, $"PLAN GetPlayersNearMe failed: {response.StatusCode}");
+                    OASISErrorHandling.HandleError(ref result, $"PLAN GetAvatarsNearMe failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error getting players near me from PLAN: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from PLAN: {ex.Message}", ex);
             }
             return result;
         }
 
-        OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(HolonType Type)
+        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsUrl = $"{_apiBaseUrl}/holons/nearby?type={Type}";
@@ -1238,18 +1744,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var transactionUrl = $"{_apiBaseUrl}/transactions/send";
                 var transactionData = new
                 {
-                    fromAddress = transaction.FromAddress,
-                    toAddress = transaction.ToAddress,
+                    fromAddress = transaction.FromWalletAddress,
+                    toAddress = transaction.ToWalletAddress,
                     amount = transaction.Amount,
-                    token = transaction.Token ?? "PLAN",
-                    memo = transaction.Memo ?? ""
+                    token = "PLAN", // Default token for PLAN
+                    memo = transaction.MemoText ?? ""
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(transactionData), Encoding.UTF8, "application/json");
@@ -1288,8 +1798,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromAvatar = await LoadAvatarAsync(fromAvatarId);
@@ -1301,17 +1815,22 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                var walletResult = WalletManager.GetWalletForAvatarAsync(fromAvatarId, ProviderType.Value);
-                if (walletResult.Result.IsError || walletResult.Result.Result == null)
+                var walletResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(fromAvatarId, providerTypeToLoadFrom: ProviderType.Value);
+                if (walletResult.IsError || walletResult.Result == null || !walletResult.Result.ContainsKey(ProviderType.Value) || walletResult.Result[ProviderType.Value] == null || !walletResult.Result[ProviderType.Value].Any())
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to get wallet for sender avatar");
                     return result;
                 }
 
+                var fromWallet = walletResult.Result[ProviderType.Value].FirstOrDefault();
+                var toWallet = toAvatar.Result.ProviderWallets?.ContainsKey(ProviderType.Value) == true && toAvatar.Result.ProviderWallets[ProviderType.Value]?.Any() == true 
+                    ? toAvatar.Result.ProviderWallets[ProviderType.Value].FirstOrDefault() 
+                    : null;
+
                 var transactionRequest = new WalletTransactionRequest
                 {
-                    FromAddress = walletResult.Result.Result.Address,
-                    ToAddress = toAvatar.Result.ProviderWallets?.FirstOrDefault()?.Address ?? "",
+                    FromWalletAddress = fromWallet?.WalletAddress ?? "",
+                    ToWalletAddress = toWallet?.WalletAddress ?? "",
                     Amount = amount
                 };
 
@@ -1336,8 +1855,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromAvatar = await LoadAvatarAsync(fromAvatarId);
@@ -1349,19 +1872,24 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     return result;
                 }
 
-                var walletResult = WalletManager.GetWalletForAvatarAsync(fromAvatarId, ProviderType.Value);
-                if (walletResult.Result.IsError || walletResult.Result.Result == null)
+                var walletResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(fromAvatarId, providerTypeToLoadFrom: ProviderType.Value);
+                if (walletResult.IsError || walletResult.Result == null || !walletResult.Result.ContainsKey(ProviderType.Value) || walletResult.Result[ProviderType.Value] == null || !walletResult.Result[ProviderType.Value].Any())
                 {
                     OASISErrorHandling.HandleError(ref result, "Failed to get wallet for sender avatar");
                     return result;
                 }
 
+                var fromWallet = walletResult.Result[ProviderType.Value].FirstOrDefault();
+                var toWallet = toAvatar.Result.ProviderWallets?.ContainsKey(ProviderType.Value) == true && toAvatar.Result.ProviderWallets[ProviderType.Value]?.Any() == true 
+                    ? toAvatar.Result.ProviderWallets[ProviderType.Value].FirstOrDefault() 
+                    : null;
+
                 var transactionRequest = new WalletTransactionRequest
                 {
-                    FromAddress = walletResult.Result.Result.Address,
-                    ToAddress = toAvatar.Result.ProviderWallets?.FirstOrDefault()?.Address ?? "",
+                    FromWalletAddress = fromWallet?.WalletAddress ?? "",
+                    ToWalletAddress = toWallet?.WalletAddress ?? "",
                     Amount = amount,
-                    Token = token
+                    MemoText = token?.ToString() ?? ""
                 };
 
                 return await SendTransactionAsync(transactionRequest);
@@ -1511,17 +2039,21 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var nftUrl = $"{_apiBaseUrl}/nft/transfer";
                 var nftData = new
                 {
-                    fromAddress = transaction.FromAddress,
-                    toAddress = transaction.ToAddress,
-                    nftTokenId = transaction.TokenId ?? "",
-                    nftContractAddress = transaction.NFTTokenAddress ?? ""
+                    fromAddress = transaction.FromWalletAddress ?? "",
+                    toAddress = transaction.ToWalletAddress ?? "",
+                    nftTokenId = "",
+                    nftContractAddress = ""
                 };
 
                 var content = new StringContent(JsonSerializer.Serialize(nftData), Encoding.UTF8, "application/json");
@@ -1566,8 +2098,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar to get provider wallets
@@ -1610,8 +2146,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "PLAN provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate PLAN provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar and update provider wallets
@@ -1694,10 +2234,11 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
             try
             {
                 // Extract basic information from PLAN JSON response
+                var planId = ExtractPLANProperty(planJson, "id") ?? ExtractPLANProperty(planJson, "account") ?? "plan_unknown";
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
-                    Username = ExtractPLANProperty(planJson, "id") ?? "plan_user",
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{planId}"),
+                    Username = planId,
                     Email = ExtractPLANProperty(planJson, "email") ?? "user@plan.example",
                     FirstName = ExtractPLANProperty(planJson, "first_name"),
                     LastName = ExtractPLANProperty(planJson, "last_name"),
@@ -1799,6 +2340,19 @@ namespace NextGenSoftware.OASIS.API.Providers.BlockStackOASIS
                     DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
                 });
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

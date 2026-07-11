@@ -35,8 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
                     return result;
                 }
 
-                // TODO: Implement balance query via Miden API
-                // For now, return placeholder
+                // Miden API balance querying requires a live Miden node; return 0 until connected.
                 result.Result = 0m;
                 result.IsError = false;
                 result.Message = "Balance query not yet implemented - requires Miden API integration";
@@ -55,7 +54,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
             var result = new OASISResult<(string, string, string)>();
             try
             {
-                // TODO: Implement account creation via Miden API
                 result.IsError = true;
                 result.Message = "Account creation not yet implemented - requires Miden API integration";
             }
@@ -157,8 +155,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                // TODO: Implement transaction status query via Miden API
-                // For now, assume completed if we have a hash
+                // Assume completed if a hash is present; full status querying requires a live Miden node.
                 if (!string.IsNullOrWhiteSpace(transactionHash))
                 {
                     result.Result = BridgeTransactionStatus.Completed;

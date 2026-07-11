@@ -1,8 +1,35 @@
-# OASIS Provider Development Guide for Alpha Testers
+﻿# OASIS Provider Development Guide for Alpha Testers
 
 ## Overview
 
 OASIS uses a modular provider architecture that allows you to extend functionality by creating custom providers. This guide covers how to build, test, and deploy custom OASIS providers.
+
+---
+
+## ðŸ§© Provider Template
+
+When creating a new provider, start from the template below. Your provider class inherits from `OASISStorageProviderBase` and implements whichever optional interfaces match the functionality you need.
+
+**Usage instructions:**
+1. Replace all `ProviderName` references with your actual provider name
+2. Remove any interface declarations for functionality you don't need
+3. Comment out the corresponding method implementations for removed interfaces
+4. Implement activation/deactivation logic for connections and resource management
+5. Add any custom parameters to `OASISDNA.json` (remember to update it in both locations â€” see [DNA System Guide](./DNA_SYSTEM_GUIDE.md))
+
+**Optional interfaces available:**
+
+| Interface | Purpose |
+|-----------|---------|
+| `IOASISNETProvider` | Network geo-location (find nearby players/holons) |
+| `IOASISSuperStar` | Native code generation for STAR ODK Low Code Generator |
+| `IOASISBlockchainStorageProvider` | Transaction handling and wallet operations |
+| `IOASISNFTProvider` | NFT sending capabilities |
+| `IOASISLocalStorageProvider` | Local wallet storage for avatars |
+
+Both **synchronous and asynchronous** method implementations are required throughout.
+
+---
 
 ---
 
@@ -53,12 +80,12 @@ Handle NFT operations:
 Create a new provider project following the naming convention:
 ```
 NextGenSoftware.OASIS.API.Providers.YourProviderOASIS/
-├── YourProviderOASIS.cs
-├── YourProviderOASIS.TestHarness/
-│   ├── Program.cs
-│   └── OASIS_DNA.json
-├── DNA.json
-└── README.md
+â”œâ”€â”€ YourProviderOASIS.cs
+â”œâ”€â”€ YourProviderOASIS.TestHarness/
+â”‚   â”œâ”€â”€ Program.cs
+â”‚   â””â”€â”€ OASIS_DNA.json
+â”œâ”€â”€ DNA.json
+â””â”€â”€ README.md
 ```
 
 ### Step 2: Provider Template
@@ -315,11 +342,11 @@ namespace NextGenSoftware.OASIS.API.Providers.YourProviderOASIS.TestHarness
             
             if (activationResult.IsError)
             {
-                Console.WriteLine($"❌ Activation failed: {activationResult.Message}");
+                Console.WriteLine($"âŒ Activation failed: {activationResult.Message}");
                 return;
             }
             
-            Console.WriteLine("✅ Provider activated successfully");
+            Console.WriteLine("âœ… Provider activated successfully");
 
             // Test basic operations
             TestBasicOperations(provider);
@@ -329,7 +356,7 @@ namespace NextGenSoftware.OASIS.API.Providers.YourProviderOASIS.TestHarness
 
             // Test cleanup
             provider.DeActivateProvider();
-            Console.WriteLine("✅ Provider deactivated successfully");
+            Console.WriteLine("âœ… Provider deactivated successfully");
         }
 
         static void TestBasicOperations(YourProviderOASIS provider)
@@ -888,7 +915,7 @@ public class CustomBlockchainOASIS : OASISStorageProviderBase, IOASISBlockchainS
 - [OASIS Quick Start Guide](./OASIS_Quick_Start_Guide.md)
 
 ### Community
-- [Telegram Chat](https://t.me/ourworldthegamechat)
+- [Telegram Chat](https://t.me/oasisweb4chat)
 - [Discord Server](https://discord.gg/q9gMKU6)
 - [OASIS API Hackalong](https://t.me/oasisapihackalong)
 
@@ -898,6 +925,6 @@ public class CustomBlockchainOASIS : OASISStorageProviderBase, IOASISBlockchainS
 
 ---
 
-**Happy Provider Development! 🔧**
+**Happy Provider Development! ðŸ”§**
 
 *This guide provides comprehensive information for developing custom OASIS providers. Start with simple storage providers and gradually move to more complex blockchain and network providers.*

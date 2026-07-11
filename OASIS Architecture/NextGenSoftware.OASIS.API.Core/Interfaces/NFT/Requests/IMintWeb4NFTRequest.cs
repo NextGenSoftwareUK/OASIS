@@ -6,6 +6,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests
 {
     public interface IMintWeb4NFTRequest : IMintNFTRequestBase
     {
+        public string? CollectionPublicKey { get; set; }
         IList<IMintWeb3NFTRequest> Web3NFTs { get; set; }
         public int NumberToMint { get; set; }
         public bool StoreNFTMetaDataOnChain { get; set; }

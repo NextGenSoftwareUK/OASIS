@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -205,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarById(avatarID, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByUsername(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarUsername, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -249,7 +249,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             (isValid, providerTypeToLinkTo, avatarID, errorMessage) = ValidateParams(generateKeyPairAndLinkProviderKeysToAvatarParams);
 
             if (isValid)
-                return KeyManager.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
+                return KeyManager.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail(generateKeyPairAndLinkProviderKeysToAvatarParams.AvatarEmail, providerTypeToLinkTo, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPublicKey, generateKeyPairAndLinkProviderKeysToAvatarParams.ShowPrivateKey);
             else
                 return new OASISResult<IProviderWallet>() { IsError = true, Message = errorMessage };
         }
@@ -707,22 +707,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <returns></returns>
         [Authorize]
         [HttpPost("generate_keypair_for_provider/{providerType}")]
-        public OASISResult<KeyPair> GenerateKeyPairForProvider(ProviderType providerType)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPairForProvider(ProviderType providerType)
         {
-            return KeyManager.GenerateKeyPair(providerType);
+            return KeyManager.GenerateKeyPairWithWalletAddress(providerType);
         }
 
-        /// <summary>
-        ///     Generate's a new unique private/public keypair.
-        /// </summary>
-        /// <param name="keyPrefix"></param>
-        /// <returns></returns>
-        [Authorize]
-        [HttpPost("generate_keypair/{keyPrefix}")]
-        public OASISResult<KeyPair> GenerateKeyPair(string keyPrefix)
-        {
-            return KeyManager.GenerateKeyPair(keyPrefix);
-        }
+        ///// <summary>
+        /////     Generate's a new unique private/public keypair.
+        ///// </summary>
+        ///// <param name="keyPrefix"></param>
+        ///// <returns></returns>
+        //[Authorize]
+        //[HttpPost("generate_keypair/{keyPrefix}")]
+        //public OASISResult<IKeyPairAndWallet> GenerateKeyPair(string keyPrefix)
+        //{
+        //    return KeyManager.GenerateKeyPairWithWalletAddress(keyPrefix);
+        //}
 
         /// <summary>
         ///     Get's the private WIF.
@@ -907,6 +907,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("create")]
         public async Task<OASISResult<KeyInfo>> CreateKey([FromBody] CreateKeyRequest keyRequest)
         {
+            if (keyRequest == null)
+                return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
                 // TODO: Implement actual key creation logic
@@ -948,6 +950,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPut("{keyId}")]
         public async Task<OASISResult<KeyInfo>> UpdateKey(Guid keyId, [FromBody] UpdateKeyRequest keyRequest)
         {
+            if (keyRequest == null)
+                return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
                 // TODO: Implement actual key update logic

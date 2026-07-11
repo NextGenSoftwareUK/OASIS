@@ -1,5 +1,7 @@
 # STAR CLI Documentation
 
+> **New:** For a single hub that covers **users & developers**, how **Light** / DNA **templating** works, **`IOASISSuperStar` / NativeCodeGenesis**, **STARNET store** concepts, **non-interactive** scripting, and **AI/MCP** integration patterns, see **[STAR CLI Comprehensive Guide](./STAR_CLI_Comprehensive_Guide.md)**. This file remains the long **command reference** and quick feature overview.
+
 ## 📋 **Overview**
 
 The STAR CLI (Command Line Interface) is the most important tool for developers working with the OASIS ecosystem. It provides comprehensive command-line access to all STARNET functionality, including STARNETHolon management, DNA system operations, and dependency management.

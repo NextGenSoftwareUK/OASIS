@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         string Description { get; set; }
         HolonType HolonType { get; set; }
         bool IsActive { get; set; }
+        /// <summary>True when DeletedDate is set (computed from DeletedDate/DeletedBy; set only via Delete methods).</summary>
+        bool IsDeleted { get; }
         Dictionary<string, object> MetaData { get; set; }
 
         

@@ -1,14 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.STAR.DNA</PackageId>
+    <Version>2.0.0</Version>
+    <Title>OASIS STAR DNA</Title>
+    <Product>OASIS STAR DNA</Product>
+    <Summary>STAR DNA configuration model — strongly-typed binding for STAR_DNA.json governing OAPP templates, Zomes, Holons, and STAR ODK build-time settings.</Summary>
+    <Description>STAR DNA configuration model — strongly-typed binding for STAR_DNA.json governing OAPP templates, Zomes, Holons, and STAR ODK build-time settings.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <None Remove="DNA\OASIS_DNA.json" />
     <None Remove="DNA\STAR_DNA.json" />
+    <Compile Remove="DNA\Code\STARDNA.Linux.cs" />
+    <None Include="DNA\Code\STARDNA.Linux.cs" />
+    <Compile Remove="DNA\Code\STARDNA.Windows.cs" />
+    <None Include="DNA\Code\STARDNA.Windows.cs" />
+    <Compile Remove="DNA\Code\STARDNA.OSX.cs" />
+    <None Include="DNA\Code\STARDNA.OSX.cs" Condition="Exists('$(MSBuildProjectDirectory)\DNA\Code\STARDNA.OSX.cs')" />
+  
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -21,15 +55,57 @@
     <Content Include="DNA\Default\OASIS_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="DNA\STAR_DNA-Linux.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="DNA\STAR_DNA-Windows.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
   </ItemGroup>
 
+  <!-- Override transitive downgrades from API.Core/Rijndael256 (NU1605) -->
   <ItemGroup>
+    <PackageReference Include="System.Diagnostics.Tracing" Version="4.3.0" />
+    <PackageReference Include="System.Globalization" Version="4.3.0" />
+    <PackageReference Include="System.IO" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
+    <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Reflection.Primitives" Version="4.3.0" />
+    <PackageReference Include="System.Runtime.Handles" Version="4.3.0" />
+    <PackageReference Include="System.Text.Encoding.Extensions" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
+  </ItemGroup>
+
+  <!-- Before compile: copy platform STARDNA.*.cs onto STARDNA.cs (only STARDNA.cs is compiled). -->
+  <Target Name="PrepareSTARDNACS" BeforeTargets="BeforeCompile;CoreCompile">
+    <PropertyGroup>
+      <_StardnaCodeDir>$(MSBuildProjectDirectory)\DNA\Code</_StardnaCodeDir>
+      <_StardnaOut>$(_StardnaCodeDir)\STARDNA.cs</_StardnaOut>
+    </PropertyGroup>
+    <Copy Condition="$([MSBuild]::IsOSPlatform('windows'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Windows.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="$([MSBuild]::IsOSPlatform('osx')) AND Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs')"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.OSX.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+    <Copy Condition="!$([MSBuild]::IsOSPlatform('windows')) AND (!$([MSBuild]::IsOSPlatform('osx')) OR !Exists('$(_StardnaCodeDir)\STARDNA.OSX.cs'))"
+          SourceFiles="$(_StardnaCodeDir)\STARDNA.Linux.cs"
+          DestinationFiles="$(_StardnaOut)"
+          SkipUnchangedFiles="false" />
+  </Target>
+
+  <!-- Test packages removed: STAR.DNA is a library; test runner was causing adapter conflict when referenced by STAR IntegrationTests -->
+  <!-- <ItemGroup>
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" />
-  </ItemGroup>
+  </ItemGroup> -->
 
 </Project>

@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.IntegrationTests;
 public class BaseOASISIntegrationTests : IDisposable
 {
     private const string TestHostUri = "https://sepolia.base.org"; // Base Sepolia Testnet
-    private const BigInteger TestChainId = 84532; // Base Sepolia Chain ID
+    private static readonly BigInteger TestChainId = 84532; // Base Sepolia Chain ID
     private readonly string _testPrivateKey;
     private readonly string _testContractAddress;
     private readonly BaseOASIS _provider;

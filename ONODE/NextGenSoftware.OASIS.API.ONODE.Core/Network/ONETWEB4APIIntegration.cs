@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETWEB4APIIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             InitializeWEB4Services();
         }
 
@@ -73,7 +73,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             string method = "GET")
         {
             var result = new OASISResult<T>();
-            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            WEB4APIService? service = null;
+
             try
             {
                 if (!_isIntegrated)
@@ -83,10 +85,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
 
                 // Find appropriate WEB4 service
-                var service = await FindWEB4ServiceAsync(apiName);
+                service = await FindWEB4ServiceAsync(apiName);
                 if (service == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"WEB4 API service '{apiName}' not found");
+                    return result;
+                }
+
+                var targetNodeId = await FindOptimalNodeForAPIAsync(apiName);
+                if (string.IsNullOrEmpty(targetNodeId))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No ONET node advertises the '{apiName}' API capability - cannot route.");
                     return result;
                 }
 
@@ -96,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     Content = CreateAPIRequest(apiName, endpoint, parameters, method),
                     MessageType = "WEB4_API_CALL",
                     SourceNodeId = "local",
-                    TargetNodeId = await FindOptimalNodeForAPIAsync(apiName)
+                    TargetNodeId = targetNodeId
                 };
 
                 // Send through ONET network
@@ -122,6 +131,21 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error calling WEB4 API: {ex.Message}", ex);
+            }
+            finally
+            {
+                // Record real call metrics on the service - TotalRequests/AverageResponseTime existed on
+                // WEB4APIService already but were never written to anywhere, so GetWEB4APIStatsAsync's
+                // GetTotalAPIRequestsAsync/GetAverageAPIResponseTimeAsync always reported 0.
+                if (service != null)
+                {
+                    stopwatch.Stop();
+                    var previousTotal = service.TotalRequests;
+                    service.AverageResponseTime = previousTotal == 0
+                        ? stopwatch.Elapsed.TotalMilliseconds
+                        : ((service.AverageResponseTime * previousTotal) + stopwatch.Elapsed.TotalMilliseconds) / (previousTotal + 1);
+                    service.TotalRequests = previousTotal + 1;
+                }
             }
 
             return result;
@@ -316,12 +340,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task<WEB4APIService?> FindWEB4ServiceAsync(string apiName)
+        /// <summary>
+        /// Finds a WEB4 service by name. Prefers an exact (case-insensitive) match against the service's
+        /// canonical dictionary key (e.g. "avatar", "data", "wallet") - those keys are precise and
+        /// unambiguous. Only falls back to bidirectional substring matching against the display Name for
+        /// callers passing something like "Avatar API" instead of "avatar". The substring-only approach
+        /// used previously was a real routing risk: e.g. CallWEB4APIAsync("metadata", ...) would have
+        /// matched the unrelated "Data API" service purely because "metadata".Contains("data") is true.
+        /// </summary>
+        private Task<WEB4APIService?> FindWEB4ServiceAsync(string apiName)
         {
-            // Find WEB4 service by name
-            return _web4Services.Values.FirstOrDefault(s => 
-                s.Name.ToLower().Contains(apiName.ToLower()) || 
-                apiName.ToLower().Contains(s.Name.ToLower()));
+            if (_web4Services.TryGetValue(apiName.ToLowerInvariant(), out var exactMatch))
+                return Task.FromResult<WEB4APIService?>(exactMatch);
+
+            var fuzzyMatch = _web4Services.Values.FirstOrDefault(s =>
+                s.Name.ToLowerInvariant().Contains(apiName.ToLowerInvariant()) ||
+                apiName.ToLowerInvariant().Contains(s.Name.ToLowerInvariant()));
+
+            return Task.FromResult(fuzzyMatch);
         }
 
         private string CreateAPIRequest(string apiName, string endpoint, object parameters, string method)
@@ -339,18 +375,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return System.Text.Json.JsonSerializer.Serialize(request);
         }
 
-        private async Task<string> FindOptimalNodeForAPIAsync(string apiName)
+        /// <summary>
+        /// Finds a real ONET node advertising the requested API capability. Returns null (not a fabricated
+        /// "web4-node-XXXXXXXX" ID) when none exists - same reasoning as ONETUnifiedArchitecture's
+        /// FindOptimalONETNodeAsync fix: a fabricated ID would target a node that can never receive the
+        /// message, turning a clear "no provider available" failure into a confusing downstream send error.
+        /// </summary>
+        private async Task<string?> FindOptimalNodeForAPIAsync(string apiName)
         {
-            // Find optimal ONET node for specific API
             var topology = await _onetProtocol.GetNetworkTopologyAsync();
             var nodes = topology.Result?.Nodes ?? new List<ONETNode>();
-            
-            // Find node with best capabilities for this API
-            var optimalNode = nodes.FirstOrDefault(n => 
-                n.Capabilities.Contains("API") || 
+
+            var optimalNode = nodes.FirstOrDefault(n =>
+                n.Capabilities.Contains("API") ||
                 n.Capabilities.Contains(apiName.ToLower()));
-            
-            return optimalNode?.Id ?? await CalculateDefaultNodeIdAsync();
+
+            return optimalNode?.Id;
         }
 
         private async Task<OASISResult<T>> ProcessAPIResponseAsync<T>(ONETMessage message)
@@ -396,7 +436,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task RegisterServiceWithONETAsync(WEB4APIService service)
         {
             // Register service with ONET network
-            await PerformRealWEB4APIRegistrationAsync(); // Real WEB4 API registration
+            await PerformRealWEB4APIRegistrationAsync(service);
         }
 
         private async Task<long> GetTotalAPIRequestsAsync()
@@ -412,86 +452,32 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return services.Any() ? services.Average(s => s.AverageResponseTime) : 0.0;
         }
 
-        private async Task<double> GetNetworkUptimeAsync()
+        /// <summary>Real uptime estimate: fraction of registered WEB4 services currently marked active. Previously hardcoded to 99.9% regardless of actual service state.</summary>
+        private Task<double> GetNetworkUptimeAsync()
         {
-            // Get network uptime
-            return 99.9; // 99.9% uptime
+            if (_web4Services.Count == 0)
+                return Task.FromResult(0.0);
+
+            var activeFraction = (double)_web4Services.Values.Count(s => s.IsActive) / _web4Services.Count;
+            return Task.FromResult(Math.Round(activeFraction * 100.0, 2));
         }
 
-        // Helper methods for calculations
-        private static async Task<string> CalculateDefaultNodeIdAsync()
+        /// <summary>
+        /// Registers a WEB4 service with ONET's real discovery layer via ONETProtocol's
+        /// RegisterNodeForDiscoveryAsync passthrough. Previously this ran four Task.Run blocks looping over
+        /// hardcoded provider/protocol/mechanism name lists (DID/VerifiableCredentials/.../SelfSovereignIdentity,
+        /// IPFS/Arweave/Swarm/Filecoin/Sia, libp2p/WebRTC/WebSocket/HTTP3/QUIC, ProofOfStake/.../PBFT) doing
+        /// nothing but Task.Delay and logging - no actual registration with any real component ever happened.
+        /// </summary>
+        private async Task PerformRealWEB4APIRegistrationAsync(WEB4APIService service)
         {
-            // Return default node ID
-            return await Task.FromResult("web4-node-" + Guid.NewGuid().ToString("N")[..8]);
-        }
+            var nodeId = $"web4-{service.Name.ToLowerInvariant().Replace(' ', '-')}-node";
+            var registerResult = await _onetProtocol.RegisterNodeForDiscoveryAsync(nodeId, service.Name, service.Capabilities);
 
-        private static async Task PerformRealWEB4APIRegistrationAsync()
-        {
-            // Perform real WEB4 API registration with actual network operations
-            LoggingManager.Log("Starting WEB4 API registration", Logging.LogType.Info);
-            
-            var registrationTasks = new List<Task>();
-            
-        // Register with WEB4 identity providers
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with WEB4 identity providers", Logging.LogType.Debug);
-            // Real identity provider registration
-            var identityProviders = new[] { "DID", "VerifiableCredentials", "DecentralizedIdentity", "SelfSovereignIdentity" };
-            foreach (var provider in identityProviders)
-            {
-                LoggingManager.Log($"Registering with {provider} identity provider", Logging.LogType.Debug);
-                await Task.Delay(8); // Real provider registration time
-            }
-            LoggingManager.Log("WEB4 identity registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with WEB4 storage providers
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with WEB4 storage providers", Logging.LogType.Debug);
-            // Real storage provider registration
-            var storageProviders = new[] { "IPFS", "Arweave", "Swarm", "Filecoin", "Sia" };
-            foreach (var provider in storageProviders)
-            {
-                LoggingManager.Log($"Registering with {provider} storage provider", Logging.LogType.Debug);
-                await Task.Delay(5); // Real provider registration time
-            }
-            LoggingManager.Log("WEB4 storage registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with WEB4 networking protocols
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with WEB4 networking protocols", Logging.LogType.Debug);
-            // Real networking protocol registration
-            var networkingProtocols = new[] { "libp2p", "WebRTC", "WebSocket", "HTTP/3", "QUIC" };
-            foreach (var protocol in networkingProtocols)
-            {
-                LoggingManager.Log($"Registering with {protocol} networking protocol", Logging.LogType.Debug);
-                await Task.Delay(7); // Real protocol registration time
-            }
-            LoggingManager.Log("WEB4 networking registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with WEB4 consensus mechanisms
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with WEB4 consensus mechanisms", Logging.LogType.Debug);
-            // Real consensus mechanism registration
-            var consensusMechanisms = new[] { "ProofOfStake", "ProofOfWork", "DelegatedProofOfStake", "PracticalByzantineFaultTolerance" };
-            foreach (var mechanism in consensusMechanisms)
-            {
-                LoggingManager.Log($"Registering with {mechanism} consensus mechanism", Logging.LogType.Debug);
-                await Task.Delay(5); // Real mechanism registration time
-            }
-            LoggingManager.Log("WEB4 consensus registration completed", Logging.LogType.Debug);
-        }));
-            
-            // Wait for all registration tasks to complete
-            await Task.WhenAll(registrationTasks);
-            
-            LoggingManager.Log("WEB4 API registration completed successfully", Logging.LogType.Info);
+            if (registerResult.IsError)
+                OASISErrorHandling.HandleError($"Error registering WEB4 service {service.Name} with ONET discovery: {registerResult.Message}");
+            else
+                LoggingManager.Log($"WEB4 service {service.Name} registered with ONET discovery as node {nodeId}.", Logging.LogType.Info);
         }
     }
 

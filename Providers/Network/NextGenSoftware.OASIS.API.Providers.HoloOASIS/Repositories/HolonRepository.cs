@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -125,7 +125,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             try
             {
                 HcHolonCollection hcHolons = new HcHolonCollection();
-                ZomeFunctionCallBackEventArgs response = null;
 
                 if (hcHolons != null)
                 {

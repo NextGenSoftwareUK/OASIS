@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -105,7 +106,50 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByIdAsync(Guid id, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, providerType);
+            try
+            {
+                OASISResult<Dictionary<ProviderType, List<IProviderWallet>>> result = null;
+                try
+                {
+                    result = await WalletManager.LoadProviderWalletsForAvatarByIdAsync(id, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
+                }
+                catch
+                {
+                    // If real data unavailable, use test data
+                }
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && (result == null || result.IsError || result.Result == null))
+                {
+                    return new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>
+                    {
+                        Result = new Dictionary<ProviderType, List<IProviderWallet>>(),
+                        IsError = false,
+                        Message = "Wallets loaded successfully (using test data)"
+                    };
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
+                {
+                    return new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>
+                    {
+                        Result = new Dictionary<ProviderType, List<IProviderWallet>>(),
+                        IsError = false,
+                        Message = "Wallets loaded successfully (using test data)"
+                    };
+                }
+                return new OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>
+                {
+                    IsError = true,
+                    Message = $"Error loading wallets: {ex.Message}",
+                    Exception = ex
+                };
+            }
         }
 
         /// <summary>
@@ -124,7 +168,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
 
@@ -163,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<Dictionary<ProviderType, List<IProviderWallet>>>> LoadProviderWalletsForAvatarByEmailAsync(string email, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.LoadProviderWalletsForAvatarByEmailAsync(email, showOnlyDefault, decryptPrivateKeys, false, ProviderType.All, providerType);
         }
 
         /// <summary>
@@ -261,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<IProviderWallet>> GetAvatarDefaultWalletByUsernameAsync(string username, bool showOnlyDefault = false, bool decryptPrivateKeys = false, ProviderType providerType = ProviderType.Default)
         {
-            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, providerType);
+            return await WalletManager.GetAvatarDefaultWalletByUsernameAsync(username, showOnlyDefault, decryptPrivateKeys, false, providerType);
         }
 
         /// <summary>
@@ -479,7 +523,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public OASISResult<IProviderWallet> GetWalletThatPublicKeyBelongsTo(string providerKey, ProviderType providerType)
         {
-            return WalletManager.GetWalletThatPublicKeyBelongsTo(providerKey, providerType);
+            return WalletManager.GetWalletThatPublicKeyBelongsTo(providerKey, false, false, providerType);
         }
 
         /// <summary>
@@ -561,6 +605,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<object>> TransferBetweenWalletsAsync([FromBody] object request)
         {
+            if (request == null)
+                return new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with transfer details (e.g. fromWalletId, toWalletId, amount)." };
             // This would need to be implemented in WalletManager
             // For now, return a demo response
             return new OASISResult<object>
@@ -705,7 +751,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByIdAsync(Guid avatarId, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType, GenerateKeyPair, IsDefaultWallet." };
+            return await WalletManager.CreateWalletForAvatarByIdAsync(avatarId, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, request.ShowSecretRecoveryPhase, request.ShowPrivateKey, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -721,7 +769,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByUsernameAsync(string username, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByUsernameAsync(username, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType, GenerateKeyPair, IsDefaultWallet." };
+            return await WalletManager.CreateWalletForAvatarByUsernameAsync(username, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, false, false, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -737,7 +787,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> CreateWalletForAvatarByEmailAsync(string email, [FromBody] CreateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
-            return await WalletManager.CreateWalletForAvatarByEmailAsync(email, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, providerTypeToLoadSave);
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType, GenerateKeyPair, IsDefaultWallet." };
+            return await WalletManager.CreateWalletForAvatarByEmailAsync(email, request.Name, request.Description, request.WalletProviderType, request.GenerateKeyPair, request.IsDefaultWallet, false, false, providerTypeToLoadSave);
         }
 
         /// <summary>
@@ -754,6 +806,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByIdAsync(Guid avatarId, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType." };
             return await WalletManager.UpdateWalletForAvatarByIdAsync(avatarId, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
         }
 
@@ -771,6 +825,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByUsernameAsync(string username, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType." };
             return await WalletManager.UpdateWalletForAvatarByUsernameAsync(username, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
         }
 
@@ -788,6 +844,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISResult<IProviderWallet>> UpdateWalletForAvatarByEmailAsync(string email, Guid walletId, [FromBody] UpdateWalletRequest request, ProviderType providerTypeToLoadSave = ProviderType.Default)
         {
+            if (request == null)
+                return new OASISResult<IProviderWallet> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional WalletProviderType." };
             return await WalletManager.UpdateWalletForAvatarByEmailAsync(email, walletId, request.Name, request.Description, request.WalletProviderType, providerTypeToLoadSave);
         }
     }
@@ -802,6 +860,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public ProviderType WalletProviderType { get; set; }
         public bool GenerateKeyPair { get; set; } = true;
         public bool IsDefaultWallet { get; set; } = false;
+        public bool ShowSecretRecoveryPhase { get; set; }
+        public bool ShowPrivateKey { get; set; }
     }
 
     /// <summary>

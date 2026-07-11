@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.Utilities;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -42,6 +42,20 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
         public override async Task<OASISResult<Library>> CreateAsync(ISTARNETCreateOptions<Library, STARNETDNA> createOptions = null, object holonSubType = null, bool showHeaderAndInro = true, bool addDependencies = true, ProviderType providerType = ProviderType.Default)
         {
             OASISResult<Library> result = new OASISResult<Library>();
+
+            if (createOptions?.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb)
+            {
+                if (!createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.LibraryStarnetSubCategory, out object langObj)
+                    || langObj == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Scripted library create requires a Languages value in CustomCreateParams (see StarnetUiScriptedCreateCli / --non-interactive lib create argv).");
+                    return result;
+                }
+
+                return await base.CreateAsync(createOptions, null, showHeaderAndInro, addDependencies, providerType);
+            }
 
             if (showHeaderAndInro)
                 ShowHeader();
@@ -92,7 +106,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                         createOptions.CustomCreateParams = new Dictionary<string, object>();
                     }
 
-                    createOptions.CustomCreateParams["STARNETSubCategory"] = language;
+                    createOptions.CustomCreateParams[StarCliNonInteractiveCreateKeys.LibraryStarnetSubCategory] = language;
                 }
                 else if (language != null && language.ToString() == "exit")
                 {
@@ -102,10 +116,10 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 string holonPath = "";
 
-                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.BaseSTARNETPath))
+                if (Path.IsPathRooted(SourcePath) || string.IsNullOrEmpty(STAR.STARDNA.STARNETBasePath))
                     holonPath = SourcePath;
                 else
-                    holonPath = Path.Combine(STAR.STARDNA.BaseSTARNETPath, SourcePath);
+                    holonPath = Path.Combine(STAR.STARDNA.STARNETBasePath, SourcePath);
 
                 (result, holonPath) = GetValidFolder(result, holonPath, STARNETManager.STARNETHolonUIName, SourceSTARDNAKey, true, holonName);
 

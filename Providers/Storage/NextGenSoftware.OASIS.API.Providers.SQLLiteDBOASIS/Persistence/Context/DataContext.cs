@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
@@ -63,6 +63,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
                 .HasMany(avatar => avatar.InventoryItems)
                 .WithOne()
                 .HasForeignKey(ob => ob.AvatarId);
+
+            modelBuilder.Entity<InventoryItemModel>()
+                .Ignore("Children");
             
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasMany(avatar => avatar.GeneKeys)

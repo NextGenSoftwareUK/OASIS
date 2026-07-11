@@ -50,6 +50,23 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
+        /// Real provider set this engine reports on: the union of providers with recorded analytics data
+        /// and providers actually registered with ProviderManager. RecordAnalyticsData is never called from
+        /// anywhere in the live HyperDrive routing path (confirmed by reference search), so _analyticsData
+        /// stays permanently empty in practice - every method below that iterated _analyticsData.Keys
+        /// directly was therefore always returning an empty result regardless of how many providers were
+        /// actually configured and active.
+        /// </summary>
+        private IEnumerable<ProviderType> GetTrackedProviders()
+        {
+            var registered = ProviderManager.Instance.GetAllRegisteredProviders()
+                .Select(p => p.ProviderType?.Value ?? ProviderType.Default)
+                .Where(p => p != ProviderType.Default);
+
+            return _analyticsData.Keys.Union(registered).Distinct();
+        }
+
+        /// <summary>
         /// Records analytics data point
         /// </summary>
         public void RecordAnalyticsData(ProviderType providerType, AnalyticsDataPoint dataPoint)
@@ -80,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var costs = new Dictionary<string, decimal>();
             
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var providerCosts = _performanceMonitor.GetProviderCosts(provider);
                 costs[provider.ToString()] = providerCosts;
@@ -104,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 _ => 30
             };
             
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var providerHistory = _performanceMonitor.GetProviderCostHistory(provider, days);
                 history[provider.ToString()] = providerHistory;
@@ -120,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var projections = new Dictionary<string, decimal>();
             
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var growthRate = _performanceMonitor.GetProviderCostGrowthRate(provider);
                 var currentCost = _performanceMonitor.GetProviderCosts(provider);
@@ -178,7 +195,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ProviderType = providerType
             };
 
-            var providers = providerType.HasValue ? new[] { providerType.Value } : _analyticsData.Keys.ToArray();
+            var providers = providerType.HasValue ? new[] { providerType.Value } : GetTrackedProviders().ToArray();
 
             foreach (var provider in providers)
             {
@@ -230,7 +247,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var dashboard = new DashboardData
             {
                 Timestamp = DateTime.UtcNow,
-                ActiveProviders = _analyticsData.Keys.Count,
+                ActiveProviders = GetTrackedProviders().Count(),
                 TotalRequests = _analyticsData.Values.SelectMany(x => x).Count(),
                 SystemHealth = CalculateSystemHealth(),
                 PerformanceMetrics = GetPerformanceMetrics(),
@@ -283,7 +300,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var recommendations = new List<CostOptimizationRecommendation>();
 
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var data = GetProviderData(provider, TimeRange.Last7Days);
                 if (data.Count < 5) continue;
@@ -322,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var recommendations = new List<PerformanceOptimizationRecommendation>();
 
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var data = GetProviderData(provider, TimeRange.Last7Days);
                 if (data.Count < 5) continue;
@@ -580,7 +597,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var alerts = new List<Alert>();
 
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var data = GetProviderData(provider, TimeRange.LastHour);
                 if (data.Count < 5) continue;
@@ -623,7 +640,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         {
             var trends = new List<Trend>();
 
-            foreach (var provider in _analyticsData.Keys)
+            foreach (var provider in GetTrackedProviders())
             {
                 var data = GetProviderData(provider, TimeRange.Last7Days);
                 if (data.Count < 10) continue;

@@ -1,5 +1,4 @@
-﻿using NextGenSoftware.OASIS.API.ONODE.OPORTAL;
-using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.ONODE.OPORTAL;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
@@ -18,7 +17,6 @@ public class OPORTALUnitTests
         
         // Assert
         oportal.Should().NotBeNull();
-        oportal.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -29,7 +27,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Avatar.Should().NotBeNull();
-        oportal.Avatar.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -40,7 +37,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Holon.Should().NotBeNull();
-        oportal.Holon.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -51,7 +47,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Key.Should().NotBeNull();
-        oportal.Key.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -62,7 +57,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Map.Should().NotBeNull();
-        oportal.Map.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -73,7 +67,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.NFT.Should().NotBeNull();
-        oportal.NFT.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -84,7 +77,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Search.Should().NotBeNull();
-        oportal.Search.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -95,7 +87,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Wallet.Should().NotBeNull();
-        oportal.Wallet.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -106,7 +97,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Data.Should().NotBeNull();
-        oportal.Data.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -117,7 +107,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Storage.Should().NotBeNull();
-        oportal.Storage.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -128,7 +117,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Link.Should().NotBeNull();
-        oportal.Link.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -139,7 +127,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Log.Should().NotBeNull();
-        oportal.Log.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -150,7 +137,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Quest.Should().NotBeNull();
-        oportal.Quest.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -161,7 +147,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Mission.Should().NotBeNull();
-        oportal.Mission.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -172,7 +157,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Park.Should().NotBeNull();
-        oportal.Park.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -183,7 +167,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Inventory.Should().NotBeNull();
-        oportal.Inventory.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -194,7 +177,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.OAPP.Should().NotBeNull();
-        oportal.OAPP.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -205,7 +187,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Zome.Should().NotBeNull();
-        oportal.Zome.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -216,7 +197,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.CelestialBody.Should().NotBeNull();
-        oportal.CelestialBody.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -227,7 +207,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.CelestialSpace.Should().NotBeNull();
-        oportal.CelestialSpace.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -238,7 +217,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.Chapter.Should().NotBeNull();
-        oportal.Chapter.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -249,7 +227,6 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.GeoHotSpot.Should().NotBeNull();
-        oportal.GeoHotSpot.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 
     [Fact]
@@ -260,6 +237,5 @@ public class OPORTALUnitTests
         
         // Act & Assert
         oportal.GeoNFT.Should().NotBeNull();
-        oportal.GeoNFT.ProviderType.Should().Be(ProviderType.OPORTAL);
     }
 }

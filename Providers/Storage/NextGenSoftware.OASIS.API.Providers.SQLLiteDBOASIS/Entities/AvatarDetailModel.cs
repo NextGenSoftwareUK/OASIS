@@ -59,6 +59,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public int XP { get; set; }
         public int Level{set; get;}
 
+        /// <summary>Quest currently tracked in the game HUD. Persisted so GET avatar/current can restore after beam-in.</summary>
+        public Guid? ActiveQuestId { get; set; }
+        /// <summary>Objective currently active within the tracked quest.</summary>
+        public Guid? ActiveObjectiveId { get; set; }
+
         public AvatarAttributesModel Attributes { get; set; }
         public AvatarAuraModel Aura { get; set; }
         public AvatarHumanDesignModel HumanDesign { get; set; }
@@ -139,6 +144,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Karma=source.Karma;
             this.XP=source.XP;
             this.Level=source.Level;
+            this.ActiveQuestId=source.ActiveQuestId;
+            this.ActiveObjectiveId=source.ActiveObjectiveId;
 
             this.Version=source.Version;
             this.IsActive=source.IsActive;

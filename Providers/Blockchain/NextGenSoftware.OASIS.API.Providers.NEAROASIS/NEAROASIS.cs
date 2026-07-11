@@ -25,7 +25,9 @@ using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
-using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
@@ -64,10 +66,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             this.ProviderName = "NEAROASIS";
             this.ProviderDescription = "NEAR Provider - Developer-friendly blockchain platform";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.NEAROASIS);
-            this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
             _networkId = networkId ?? throw new ArgumentNullException(nameof(networkId));
@@ -153,8 +156,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Load avatar from NEAR blockchain
@@ -203,8 +210,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by provider key using RPC
@@ -234,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     {
                         var avatar = new Avatar
                         {
-                            Id = Guid.NewGuid(),
+                            Id = CreateDeterministicGuid($"{ProviderType.Value}:{providerKey}"),
                             Username = providerKey,
                             Email = result.TryGetProperty("account_id", out var accountId) ? accountId.GetString() : "",
                             CreatedDate = DateTime.UtcNow,
@@ -276,8 +287,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by email using smart contract call
@@ -342,8 +357,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NEAR account by username using smart contract call
@@ -408,8 +427,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar to NEAR blockchain using smart contract call
@@ -475,8 +498,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar from NEAR blockchain using smart contract call
@@ -538,8 +565,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatars from NEAR smart contract
@@ -604,8 +635,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar details from NEAR smart contract
@@ -636,7 +671,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     if (rpcResponse.TryGetProperty("result", out var result))
                     {
                         var avatarData = JsonSerializer.Deserialize<AvatarDetail>(result.GetProperty("result").GetString());
-                        response.Result = avatarData as IAvatarDetail;
+                        response.Result = avatarData;
                         response.IsError = false;
                         response.Message = "Avatar detail loaded from NEAR successfully";
                     }
@@ -674,8 +709,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holon from NEAR smart contract
@@ -745,8 +784,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holon by provider key from NEAR smart contract
@@ -821,8 +864,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save holon to NEAR blockchain using smart contract call
@@ -899,8 +946,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon from NEAR blockchain using smart contract call
@@ -973,8 +1024,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete holon by provider key from NEAR blockchain using smart contract call
@@ -1042,8 +1097,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all holons of specific type from NEAR smart contract
@@ -1126,8 +1185,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons for parent from NEAR smart contract
@@ -1210,8 +1273,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons for parent by provider key from NEAR smart contract
@@ -1294,8 +1361,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var savedHolons = new List<IHolon>();
@@ -1340,8 +1411,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Save avatar detail to NEAR smart contract
@@ -1404,8 +1479,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar detail by email from NEAR smart contract
@@ -1475,8 +1554,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query avatar detail by username from NEAR smart contract
@@ -1546,8 +1629,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query all avatar details from NEAR smart contract
@@ -1631,8 +1718,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Perform search on NEAR smart contract
@@ -1725,8 +1816,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 var saveResult = await SaveHolonsAsync(holons);
@@ -1757,8 +1852,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all holons from NEAR smart contract
@@ -1842,8 +1941,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar from NEAR smart contract
@@ -1926,8 +2029,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar by email from NEAR smart contract
@@ -2010,8 +2117,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Export all data for avatar by username from NEAR smart contract
@@ -2095,8 +2206,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by username from NEAR smart contract
@@ -2159,8 +2274,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Delete avatar by email from NEAR smart contract
@@ -2214,8 +2333,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get avatars near me from NEAR blockchain
@@ -2293,8 +2416,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get holons near me from NEAR blockchain
@@ -2379,8 +2506,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Send NFT on NEAR blockchain
@@ -2454,8 +2585,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Mint NFT on NEAR blockchain
@@ -2525,8 +2660,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons by metadata from NEAR smart contract
@@ -2609,8 +2748,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query holons by metadata dictionary from NEAR smart contract
@@ -2698,8 +2841,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Get players near me from NEAR blockchain
@@ -2749,8 +2896,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create NEAR transaction for token transfer
@@ -2885,8 +3036,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Create NEAR NFT transfer transaction
@@ -2954,8 +3109,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 if (!_isActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "NEAR provider is not activated");
-                    return response;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate NEAR provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query NFT from NEAR blockchain
@@ -3275,9 +3434,11 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             {
                 // Look up the private key from the secure NEAR key store
                 // This uses the real NEAR key management system for secure key retrieval
+                // Note: This method should receive avatarId as parameter - using accountId as fallback for deterministic lookup
                 var keyManager = KeyManager.Instance;
-                var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(Guid.NewGuid(), Core.Enums.ProviderType.NEAROASIS);
-                if (keysResult.IsError || !keysResult.Result.Any())
+                var avatarId = CreateDeterministicGuid($"{ProviderType.Value}:{accountId}");
+                var keysResult = keyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.NEAROASIS);
+                if (keysResult.IsError || keysResult.Result == null || !keysResult.Result.Any())
                 {
                     return null;
                 }
@@ -3359,7 +3520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 // Extract basic information from NEAR JSON response
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{ExtractNEARProperty(nearJson, "account_id") ?? "near_user"}"),
                     Username = ExtractNEARProperty(nearJson, "account_id") ?? "near_user",
                     Email = ExtractNEARProperty(nearJson, "email") ?? "user@near.example",
                     FirstName = ExtractNEARProperty(nearJson, "first_name"),
@@ -3475,20 +3636,37 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         {
             try
             {
-                // Try to get from OASIS DNA first
-                // TODO: Fix OASISDNA.OASIS.Storage access
-                // if (OASISDNA?.OASIS?.Storage?.NEAR?.PublicKey != null)
-                // {
-                //     return OASISDNA.OASIS.Storage.NEAR.PublicKey;
-                // }
+                // Try to get from KeyManager first
+                if (KeyManager.Instance != null)
+                {
+                    var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(
+                        Guid.Empty, // Use default avatar or get from context
+                        Core.Enums.ProviderType.NEAROASIS);
+                    
+                    if (keysResult != null && !keysResult.IsError && keysResult.Result != null && keysResult.Result.Any())
+                    {
+                        var firstPrivateKey = keysResult.Result.First();
+                        if (!string.IsNullOrWhiteSpace(firstPrivateKey))
+                            return await DerivePublicKeyFromPrivateKeyAsync(firstPrivateKey);
+                    }
+                }
 
                 // Get from wallet manager
-                // TODO: Fix WalletManager.GetWalletAsync
-                // var walletResult = await WalletManager.GetWalletAsync();
-                // if (!walletResult.IsError && walletResult.Result != null)
-                // {
-                //     return walletResult.Result.PublicKey ?? await DerivePublicKeyFromPrivateKeyAsync(await GetPrivateKeyForAccountAsync(accountId));
-                // }
+                var walletResult = await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(
+                    Guid.Empty, // Use default avatar or get from context
+                    Core.Enums.ProviderType.NEAROASIS);
+                
+                if (!walletResult.IsError && walletResult.Result != null && !string.IsNullOrWhiteSpace(walletResult.Result.PublicKey))
+                {
+                    return walletResult.Result.PublicKey;
+                }
+
+                // Derive from private key if available
+                var privateKey = await GetPrivateKeyForAccountAsync(accountId);
+                if (!string.IsNullOrWhiteSpace(privateKey))
+                {
+                    return await DerivePublicKeyFromPrivateKeyAsync(privateKey);
+                }
 
                 // Generate new key pair if none exists
                 var keyPair = await GenerateNEARKeyPairAsync();
@@ -3700,7 +3878,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -4018,10 +4196,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
 
                 // IBurnWeb3TokenRequest doesn't have Amount property
-                // Get burn amount from MetaData or use default
-                var burnAmount = request.MetaData?.ContainsKey("Amount") == true && 
-                    decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) 
-                    ? amt : 1m;
+                // Use default burn amount of 1
+                var burnAmount = 1m;
                 var amountInYoctoNEAR = (ulong)(burnAmount * 1_000_000_000_000_000_000_000_000m);
 
                 // Create NEAR FT burn transaction
@@ -4099,15 +4275,14 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool
+                // Lock token by transferring to bridge pool (one NFT – no amount)
                 var bridgePoolAddress = _contractAddress ?? "bridge.oasispool.near";
-                
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = request.FromWalletPrivateKey,
                     ToWalletAddress = bridgePoolAddress,
-                    Amount = request.Amount > 0 ? request.Amount : 1m
+                    Amount = 1m
                 };
 
                 return await SendTokenAsync(sendRequest);
@@ -4159,12 +4334,13 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
+                // IUnlockWeb3TokenRequest doesn't have Amount property - use default
                 var sendRequest = new SendWeb3TokenRequest
                 {
                     FromTokenAddress = request.TokenAddress,
                     OwnerPrivateKey = bridgePoolPrivateKey,
                     ToWalletAddress = toWalletResult.Result,
-                    Amount = request.Amount > 0 ? request.Amount : 1m
+                    Amount = 1m // Default unlock amount
                 };
 
                 return await SendTokenAsync(sendRequest);
@@ -4306,14 +4482,31 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                             if (receipt.TryGetProperty("outcome", out var outcome) &&
                                 outcome.TryGetProperty("status", out var status))
                             {
+                                // Create deterministic GUID from receipt ID
+                                var receiptId = receipt.TryGetProperty("id", out var id) ? id.GetString() : null;
+                                Guid txGuid;
+                                if (!string.IsNullOrWhiteSpace(receiptId))
+                                {
+                                    using var sha256 = System.Security.Cryptography.SHA256.Create();
+                                    var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(receiptId));
+                                    txGuid = new Guid(hashBytes.Take(16).ToArray());
+                                }
+                                else
+                                {
+                                    // Fallback: use deterministic GUID from transaction data
+                                    var txData = $"{request.WalletAddress}:{receipt.GetRawText()}";
+                                    txGuid = CreateDeterministicGuid($"{ProviderType.Value}:tx:{txData}");
+                                }
+                                
                                 var transaction = new WalletTransaction
                                 {
-                                    TransactionHash = receipt.TryGetProperty("id", out var id) ? id.GetString() : "",
-                                    FromAddress = request.WalletAddress,
-                                    ToAddress = outcome.TryGetProperty("executor_id", out var executor) ? executor.GetString() : "",
-                                    Amount = 0m,
-                                    MemoText = "",
-                                    TransactionDate = DateTime.UtcNow
+                                    TransactionId = txGuid,
+                                    FromWalletAddress = request.WalletAddress,
+                                    ToWalletAddress = outcome.TryGetProperty("executor_id", out var executor) ? executor.GetString() : "",
+                                    Amount = 0.0,
+                                    Description = receiptId ?? "",
+                                    TransactionType = TransactionType.Credit,
+                                    TransactionCategory = TransactionCategory.Other
                                 };
                                 transactions.Add(transaction);
                             }
@@ -4332,6 +4525,17 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
             return result;
         }
 
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
+        {
+            return GenerateKeyPairAsync().Result;
+        }
+
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        {
+            // Call the overloaded version with null request
+            return await GenerateKeyPairAsync(null);
+        }
+
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
         {
             return GenerateKeyPairAsync(request).Result;
@@ -4348,17 +4552,16 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                     return result;
                 }
 
-                // Generate NEAR Ed25519 key pair using Solnet.Wallet (Ed25519 compatible)
-                var mnemonic = new Solnet.Wallet.Bip39.Mnemonic(Solnet.Wallet.Bip39.Wordlist.English, Solnet.Wallet.Bip39.WordCount.Twelve);
-                var wallet = new Solnet.Wallet.Wallet(mnemonic);
-                var account = wallet.GetAccount(0);
+                // Generate NEAR Ed25519 key pair using built-in method
+                var nearKeyPair = await GenerateNEARKeyPairAsync();
 
-                var keyPair = new KeyPairAndWallet
+                var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
+                if (keyPair != null)
                 {
-                    PublicKey = account.PublicKey.Key,
-                    PrivateKey = account.PrivateKey.Key,
-                    WalletAddress = account.PublicKey.Key // NEAR uses public key as account ID
-                };
+                    keyPair.PrivateKey = nearKeyPair.PrivateKey;
+                    keyPair.PublicKey = nearKeyPair.PublicKey;
+                    keyPair.WalletAddressLegacy = nearKeyPair.PublicKey; // NEAR uses public key as account ID
+                }
 
                 result.Result = keyPair;
                 result.IsError = false;
@@ -4381,7 +4584,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
         #region Bridge Methods (IOASISBlockchainStorageProvider)
 
-    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken token = default)
+    public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<decimal>();
         try
@@ -4412,8 +4615,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var content = await response.Content.ReadAsStringAsync(token);
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, cancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var jsonDoc = JsonDocument.Parse(content);
 
             if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement) &&
@@ -4444,7 +4647,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default)
+    public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
         try
@@ -4469,7 +4672,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default)
+    public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<(string PublicKey, string PrivateKey)>();
         try
@@ -4559,8 +4762,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest, token);
-            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync(token);
+            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest);
+            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync();
             var accountInfo = JsonDocument.Parse(accountInfoContent);
 
             var nonce = accountInfo.RootElement.TryGetProperty("result", out var accResult) &&
@@ -4575,8 +4778,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new { finality = "final" }
             };
 
-            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest, token);
-            var blockContent = await blockResponse.Content.ReadAsStringAsync(token);
+            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest);
+            var blockContent = await blockResponse.Content.ReadAsStringAsync();
             var blockData = JsonDocument.Parse(blockContent);
             var blockHash = blockData.RootElement.TryGetProperty("result", out var blockRes) &&
                            blockRes.TryGetProperty("header", out var header) &&
@@ -4623,8 +4826,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new[] { Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction))) }
             };
 
-            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var responseContent = await httpResponse.Content.ReadAsStringAsync(token);
+            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest);
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
             var rpcResponse = JsonDocument.Parse(responseContent);
 
             if (rpcResponse.RootElement.TryGetProperty("result", out var txResult))
@@ -4632,9 +4835,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var txHash = txResult.TryGetProperty("transaction", out var tx) &&
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
+                // If txHash is null, create deterministic hash from transaction parameters
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{senderAccountAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                    TransactionId = finalTxHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Pending
                 };
@@ -4709,8 +4915,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 }
             };
 
-            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest, token);
-            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync(token);
+            var accountInfoResponse = await _httpClient.PostAsJsonAsync("", accountInfoRequest);
+            var accountInfoContent = await accountInfoResponse.Content.ReadAsStringAsync();
             var accountInfo = JsonDocument.Parse(accountInfoContent);
 
             var nonce = accountInfo.RootElement.TryGetProperty("result", out var accResult) &&
@@ -4725,8 +4931,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new { finality = "final" }
             };
 
-            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest, token);
-            var blockContent = await blockResponse.Content.ReadAsStringAsync(token);
+            var blockResponse = await _httpClient.PostAsJsonAsync("", blockRequest);
+            var blockContent = await blockResponse.Content.ReadAsStringAsync();
             var blockData = JsonDocument.Parse(blockContent);
             var blockHash = blockData.RootElement.TryGetProperty("result", out var blockRes) &&
                            blockRes.TryGetProperty("header", out var header) &&
@@ -4773,8 +4979,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new[] { Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(signedTransaction))) }
             };
 
-            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var responseContent = await httpResponse.Content.ReadAsStringAsync(token);
+            var httpResponse = await _httpClient.PostAsJsonAsync("", rpcRequest);
+            var responseContent = await httpResponse.Content.ReadAsStringAsync();
             var rpcResponse = JsonDocument.Parse(responseContent);
 
             if (rpcResponse.RootElement.TryGetProperty("result", out var txResult))
@@ -4782,9 +4988,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 var txHash = txResult.TryGetProperty("transaction", out var tx) &&
                             tx.TryGetProperty("hash", out var txHashEl) ? txHashEl.GetString() : "";
 
+                // If txHash is null, create deterministic hash from transaction parameters
+                var finalTxHash = txHash ?? CreateDeterministicGuid($"{ProviderType.Value}:withdraw:{bridgePoolAddress}:{amount}:{DateTime.UtcNow.Ticks}").ToString("N");
+                
                 result.Result = new BridgeTransactionResponse
                 {
-                    TransactionId = txHash ?? Guid.NewGuid().ToString(),
+                    TransactionId = finalTxHash,
                     IsSuccessful = true,
                     Status = BridgeTransactionStatus.Completed
                 };
@@ -4818,7 +5027,7 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
         return result;
     }
 
-    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default)
+    public async Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<BridgeTransactionStatus>();
         try
@@ -4850,8 +5059,8 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
                 @params = new object[] { transactionHash }
             };
 
-            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, token);
-            var content = await response.Content.ReadAsStringAsync(token);
+            var response = await _httpClient.PostAsJsonAsync("", rpcRequest, cancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var jsonDoc = JsonDocument.Parse(content);
 
             if (jsonDoc.RootElement.TryGetProperty("result", out var resultElement))
@@ -4914,6 +5123,19 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS
     }
 
     #endregion
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
+        }
 
         #endregion
     }

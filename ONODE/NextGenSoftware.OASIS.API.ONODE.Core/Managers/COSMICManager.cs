@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
@@ -123,7 +123,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (holon == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{typeof(T).Name} cannot be null.");
+                    result.IsError = true;
+                    result.Message = $"The {typeof(T).Name} field is required. Please provide a valid object in the request body.";
                     return result;
                 }
 
@@ -155,7 +156,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (holon == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{typeof(T).Name} cannot be null.");
+                    result.IsError = true;
+                    result.Message = $"The {typeof(T).Name} field is required. Please provide a valid object in the request body.";
                     return result;
                 }
 
@@ -431,7 +433,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 if (omniverse == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Omniverse cannot be null.");
+                    result.IsError = true;
+                    result.Message = "The Omniverse field is required. Please provide a valid Omniverse object in the request body.";
                     return result;
                 }
 
@@ -442,6 +445,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 var saveResult = await omniverse.SaveAsync();
+                if (saveResult == null)
+                {
+                    result.IsError = true;
+                    result.Message = "An error occurred while saving the Omniverse. Please try again.";
+                    return result;
+                }
                 OASISResultHelper.CopyResult(saveResult, result);
                 result.Result = (IOmiverse)saveResult.Result;
             }

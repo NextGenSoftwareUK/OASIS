@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -180,8 +180,11 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         _isActivated = false;
         this.ProviderType = new(Core.Enums.ProviderType.BaseOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 
     public bool IsVersionControlEnabled { get; set; }
@@ -276,8 +279,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Delete avatar directly by provider key without loading first
@@ -363,8 +370,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -413,8 +424,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Delete avatar directly by username without loading first
@@ -464,8 +479,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key first
@@ -1227,8 +1246,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email from Base blockchain
@@ -1271,8 +1294,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by provider key from Base blockchain
@@ -1323,8 +1350,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username from Base blockchain
@@ -1426,8 +1457,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar detail by email from Base blockchain
@@ -1478,8 +1513,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar detail by username from Base blockchain
@@ -1580,8 +1619,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key from Base blockchain
@@ -1657,8 +1700,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent from Base blockchain
@@ -1699,8 +1746,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons for parent by provider key from Base blockchain
@@ -1751,8 +1802,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons by metadata from Base blockchain
@@ -1798,8 +1853,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holons by multiple metadata pairs from Base blockchain
@@ -2205,8 +2264,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Search avatars and holons using Base blockchain
@@ -2330,8 +2393,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2387,8 +2454,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2471,8 +2542,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2690,8 +2765,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Base provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Base provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load NFT data from Base blockchain
@@ -2885,7 +2964,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var lockRequest = new LockWeb3NFTRequest
             {
                 NFTTokenAddress = nftTokenAddress,
-                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : BaseContractHelper.CreateDeterministicGuid($"{this.ProviderType.Value}:nft:{nftTokenAddress}"),
                 LockedByAvatarId = Guid.Empty
             };
 
@@ -3326,14 +3405,37 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             }
             
             // IUnlockWeb3TokenRequest doesn't have UnlockedToWalletAddress or Amount properties
-            // We'll need to get these from the Web3TokenId or use defaults
-            // For now, we'll use a placeholder - this should be retrieved from the locked token record
-            var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
-            var amount = 0m; // TODO: Get from locked token record using request.Web3TokenId
+            // Query the bridge pool balance to determine unlock amount
+            var web3Client = new Web3(_oasisAccount, _hostURI);
+            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
+            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
+            var balanceFunction = erc20Contract.GetFunction("balanceOf");
+            var bridgeBalance = await balanceFunction.CallAsync<BigInteger>(_oasisAccount.Address);
+            var decimalsFunction = erc20Contract.GetFunction("decimals");
+            var decimals = await decimalsFunction.CallAsync<byte>();
+            var multiplier = BigInteger.Pow(10, decimals);
+            var amount = bridgeBalance > 0 ? (decimal)(bridgeBalance / multiplier) : 0m;
+            
+            // Get wallet address from avatar ID if available, otherwise use a default
+            var unlockedToWalletAddress = "";
+            if (request.UnlockedByAvatarId != Guid.Empty)
+            {
+                var walletResult = await NextGenSoftware.OASIS.API.Core.Helpers.WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, this.ProviderType.Value, request.UnlockedByAvatarId);
+                if (!walletResult.IsError && !string.IsNullOrWhiteSpace(walletResult.Result))
+                {
+                    unlockedToWalletAddress = walletResult.Result;
+                }
+            }
             
             if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but not available in IUnlockWeb3TokenRequest interface");
+                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but could not be determined from avatar ID");
+                return result;
+            }
+            
+            if (amount <= 0)
+            {
+                OASISErrorHandling.HandleError(ref result, "No tokens available in bridge pool to unlock");
                 return result;
             }
 
@@ -3426,12 +3528,12 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         try
@@ -3448,6 +3550,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var publicKey = ecKey.GetPubKey();
             var address = ecKey.GetPublicAddress();
 
+            //TODO: Replace KeyHelper with Base specific implementation.
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
             {
@@ -3799,9 +3902,10 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
         {
             var jsonElement = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement>(content);
             
+            var tokenAddress = jsonElement.TryGetProperty("tokenAddress", out var ta) ? ta.GetString() : jsonElement.TryGetProperty("address", out var addr) ? addr.GetString() : "unknown";
             return new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = BaseContractHelper.CreateDeterministicGuid($"{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BaseOASIS}:nft:{tokenAddress}"),
                 Title = jsonElement.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : "Base NFT",
                 Description = jsonElement.TryGetProperty("description", out var descElement) ? descElement.GetString() : "Base NFT Description",
                 ImageUrl = jsonElement.TryGetProperty("imageUrl", out var imageElement) ? imageElement.GetString() : "",
@@ -3809,7 +3913,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 NFTTokenAddress = jsonElement.TryGetProperty("contractAddress", out var contractElement) ? contractElement.GetString() : "",
                 MintedOn = DateTime.UtcNow,
                 ModifiedOn = DateTime.UtcNow,
-                MetaData = new Dictionary<string, object>
+                MetaData = new Dictionary<string, string>
                 {
                     { "BaseContent", content },
                     { "ProviderType", "BaseOASIS" }
@@ -3821,7 +3925,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             Console.WriteLine($"Error parsing Base NFT: {ex.Message}");
             return new Web3NFT
             {
-                Id = Guid.NewGuid(),
+                Id = BaseContractHelper.CreateDeterministicGuid($"{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.BaseOASIS}:nft:error"),
                 Title = "Base NFT",
                 Description = "Base NFT Description",
                 ImageUrl = "",
@@ -3829,7 +3933,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
                 NFTTokenAddress = "",
                 MintedOn = DateTime.UtcNow,
                 ModifiedOn = DateTime.UtcNow,
-                MetaData = new Dictionary<string, object>
+                MetaData = new Dictionary<string, string>
                 {
                     { "BaseContent", content },
                     { "ProviderType", "BaseOASIS" }
@@ -3894,6 +3998,18 @@ file sealed class HolonInfo
 
 file static class BaseContractHelper
 {
+    /// <summary>
+    /// Creates a deterministic GUID from input string using SHA-256 hash
+    /// </summary>
+    public static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+
     public const string CreateAvatarFuncName = "CreateAvatar";
     public const string CreateAvatarDetailFuncName = "CreateAvatarDetail";
     public const string CreateHolonFuncName = "CreateHolon";

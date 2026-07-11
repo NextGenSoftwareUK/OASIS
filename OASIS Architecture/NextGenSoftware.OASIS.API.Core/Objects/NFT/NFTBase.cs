@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
     public abstract class NFTBase : INFTBase
     {
         public Guid Id { get; set; }
+        public string CollectionPublicKey { get; set; }
         public string SendToAddressAfterMinting { get; set; }
         public Guid SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
@@ -38,7 +39,8 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public string ThumbnailUrl { get; set; }
         //public string Token { get; set; } //TODO: Should be dervied from the OnChainProvider so may not need this?
         public string MemoText { get; set; }
-        public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
+        //public Dictionary<string, object> MetaData { get; set; } = new Dictionary<string, object>();
+        public Dictionary<string, string> MetaData { get; set; } = new Dictionary<string, string>();
         //public List<NFTRoyalty> Royalties { get; set; } = new List<NFTRoyalty>(); //TODO: May need to add this later...
 
         public List<string> Tags { get; set; }

@@ -5,7 +5,14 @@
 
 ## 📋 Executive Summary
 
-**OASIS (Open Advanced Secure Interoperable Scalable-System)** is a revolutionary Web4/Web5 infrastructure that unifies all Web2 and Web3 technologies into a single, intelligent, auto-failover system. It's the world's first universal API that connects everything to everything, eliminating silos and walled gardens.
+**OASIS (Open Advanced Sensory Immersion System)** is the universal interoperability and intelligence infrastructure for the internet — WEB4 through WEB10. It unifies every blockchain, database, cloud provider, AI model and protocol behind one API, with a single avatar identity and karma reputation system that travels across every app, game and world built on top of it.
+
+**As of July 2026**, the full WEB4–WEB6 stack is live in production:
+- **WEB4**: Universal data aggregation, 40+ storage providers, COSMIC ORM, HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P
+- **WEB5**: STAR ODK metaverse generator, STARNET holon graph, OAPPs, quests, missions, cross-world assets  
+- **WEB6**: ONE API. EVERY AI. FAHRN multi-agent orchestration, 20+ AI providers, Holonic BRAID memory, SkillOpt self-evolving skills, DID/VC identity, 111 MCP tools — **the AI intelligence layer is fully shipped and commercially live**
+- **WEB7**: Bio-signal symbiosis architecture complete, 7 MCP tools live, implementation in progress
+- **WEB8–WEB10**: Architecture defined, MCP tools live, long-horizon vision layers
 
 ### Key Innovation: The Universal Bridge
 
@@ -44,7 +51,24 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
   - Celestial Bodies, Spaces, Zomes, and Holons
   - OAPPs (OASIS Applications) ecosystem
 
-#### **Layer 3: Provider Layer** - Universal Integration
+#### **Layer 3: WEB6 FAHRN AI API** - The Intelligence Layer
+- **Purpose**: Unified AI abstraction and orchestration across every provider
+- **Core Innovation**: FAHRN (Fractal Adaptive Holonic Reasoning Network) + Holonic BRAID + SkillOpt
+- **Key Features**:
+  - Routes completions across 20+ AI providers (OpenAI, Anthropic, Google, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, OpenServ, Replicate, StabilityAI)
+  - Five dispatch modes: Serial, Parallel, Decomposed, Debate, Voting — auto-selected by ML.NET classifier
+  - Holonic BRAID shared reasoning-graph memory (74× PPD gain demonstrated)
+  - SkillOpt self-evolving agent skills (+23.5% avg accuracy gain, Microsoft Research method arXiv:2605.23904)
+  - Holonic memory hierarchy (Session → Earth) with semantic search and multi-hop propagation
+  - DID/Verifiable Credentials, karma-gated model tiers, BudgetGuard cost caps
+  - 111 MCP tools, 56 REST endpoints, ACP/ANP/gRPC/GraphQL/AsyncAPI protocols
+
+#### **Layer 4: WEB7 Symbiosis** - The Bio-Signal Layer
+- **Purpose**: Bridge bio-signal and neural interface data to the AI layer
+- **Core Innovation**: Biometric-verified karma and consciousness-layer holonic memory
+- **Key Features**: Wearable/EEG/neural interface ingestion, biosignal-verified karma, 7 MCP tools live
+
+#### **Layer 5: Provider Layer** - Universal Integration
 - **50+ Supported Providers** across all categories:
   - **Blockchain**: Ethereum, Solana, Polygon, Bitcoin, Cardano, Polkadot, Cosmos, Fantom, NEAR, Avalanche, BNB Chain, Arbitrum, Optimism, Base, Sui, Aptos, EOSIO, Telos, Hashgraph, TRON, and 20+ more
   - **Cloud**: AWS, Azure, Google Cloud, Azure Cosmos DB
@@ -102,6 +126,67 @@ OASIS solves the fundamental problem of internet fragmentation by providing:
 ---
 
 ## 🌟 Revolutionary Use Cases
+
+---
+
+### **Category 0: WEB6 AI Intelligence Use Cases (Live — July 2026)**
+
+#### WEB6-1. **Identity-Grounded Enterprise AI**
+**Problem**: Enterprise AI deployments have no reliable way to attribute AI actions to real, verified identities — creating compliance, audit and liability gaps.
+
+**OASIS WEB6 Solution**:
+- Every FAHRN AI dispatch carries a W3C DID and Verifiable Credential proving which avatar authorised the action
+- Consent-governed VC grants allow avatars to delegate AI agent actions with cryptographic proof
+- Full OpenTelemetry traces on every dispatch — latency, cost, provider, model, BRAID graph reuse
+- ACP/ANP protocol support means peer AI agents on other platforms can also verify identity
+
+**Use Case Example**: A financial services firm deploys FAHRN agents for document analysis. Each AI action is logged with the analyst's DID, their karma tier (verifying seniority), and a VC grant scoping the agent's permissions. Audit trail is cryptographically complete.
+
+#### WEB6-2. **Cost-Optimised Multi-Model AI Pipelines**
+**Problem**: AI API costs are unpredictable and single-model pipelines don't use the right model for the right subtask.
+
+**OASIS WEB6 Solution**:
+- FAHRN automatically dispatches to the cheapest capable model per task type (ML.NET classifier at microsecond latency)
+- Holonic BRAID graph reuse means reasoning plans generated once are reused across the entire network (74× cost reduction demonstrated)
+- BudgetGuard enforces per-dispatch cost and token caps before any API call is made
+- Semantic caching returns cached answers for semantically equivalent queries
+
+**Use Case Example**: A legal tech company routes document classification to Gemini Flash (cheapest), contract analysis to Claude Sonnet (highest accuracy), and quick FAQ responses to a local Ollama instance (zero cost). BRAID graph reuse means the 50th contract analysis costs ~2% of the first. BudgetGuard prevents any single client from exceeding their tier.
+
+#### WEB6-3. **Self-Improving AI Agents at Scale**
+**Problem**: AI agents require constant manual prompt engineering and degradation is invisible until something fails.
+
+**OASIS WEB6 Solution**:
+- SkillOpt agents autonomously evolve their `best_skill.md` procedure through rollout → reflect → edit → gate loops
+- Every FAHRN agent gets an EMA accuracy score updated after every dispatch — the network always routes to the highest-scoring agent for each task type
+- Debate and Voting dispatch modes use multi-agent adversarial reasoning to identify and eliminate errors
+- Loop detection (6 mechanisms) prevents runaway agent chains automatically
+
+**Use Case Example**: A SaaS company deploys a FAHRN agent fleet for customer support. Over 30 days, each agent evolves its skill procedure autonomously. Accuracy improves +23.5% with no human intervention. Low-scoring agents are automatically deprioritised by the EMA scoring system.
+
+#### WEB6-4. **Collective AI Memory Across a Platform**
+**Problem**: Each AI conversation starts from zero — no organisation-wide memory or collective learning.
+
+**OASIS WEB6 Solution**:
+- Holonic memory hierarchy (Session → Agent → User → Group → ... → Earth) stores and propagates insights upward according to membrane rules
+- Group holons accumulate team-level knowledge; the Earth holon accumulates planetary knowledge
+- External provider integration (Mem0, Zep, Letta, LangMem, Graphiti) unifies all existing memory stores
+- Semantic search retrieves relevant memories by cosine similarity for RAG pipelines
+
+**Use Case Example**: A global consulting firm's FAHRN agents store every client insight as a Session holon. Permitted patterns propagate up to a Group holon (practice area) and Country holon. When a new analyst starts a project, semantic search over the Group holon surfaces relevant prior work — without exposing confidential client specifics (membrane rules enforce this).
+
+#### WEB6-5. **AI-Powered OAPPs (OASIS Applications)**
+**Problem**: Building AI-native applications requires stitching together identity, data, model access, memory and orchestration from five separate vendors.
+
+**OASIS WEB6 Solution**:
+- WEB6 routes AI through WEB5's OAPP ecosystem — every OAPP has native access to FAHRN, Holonic BRAID memory, and the holonic memory hierarchy
+- WEB4 avatar identity and karma are injected into every AI request automatically
+- The npm package (`@oasisomniverse/web6-api`) exposes all 14 modules and 40 operations in a zero-dependency isomorphic client
+- 111 MCP tools expose the entire stack to Claude.ai, Cursor, VS Code natively
+
+**Use Case Example**: A developer builds an AI-native OAPP (e.g. a legal research tool). The OAPP uses WEB4 for user auth, WEB5 for quest-gated feature unlocks, and WEB6 FAHRN for document analysis — all through one SDK. The OAPP is published to STARNET and immediately available across every OASIS platform.
+
+---
 
 ### **Category 1: Enterprise & Business Applications**
 
