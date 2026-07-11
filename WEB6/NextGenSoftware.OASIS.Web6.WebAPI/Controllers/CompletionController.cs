@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Http;
+using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using NextGenSoftware.OASIS.Web6.Core.Enums;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
 using NextGenSoftware.OASIS.Web6.Core.Models;
 
@@ -42,10 +44,28 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         [ProducesResponseType(typeof(CompletionResponse), StatusCodes.Status200OK)]
         public async Task<IActionResult> Complete([FromBody] CompletionRequest request)
         {
-            if (request.AvatarId == System.Guid.Empty)
+            if (request.AvatarId == Guid.Empty)
                 request.AvatarId = AvatarId;
 
             var web6 = OASISDNA?.OASIS?.Web6;
+
+            // --- Quota pre-flight (Priority 12) ---
+            if (request.AvatarId != Guid.Empty)
+            {
+                var metering = new UsageMeteringManager(request.AvatarId, OASISDNA);
+                string quotaViolation = await metering.CheckQuotaAsync();
+                if (quotaViolation != null)
+                {
+                    Response.Headers["Retry-After"] = SecondsUntilNextReset().ToString();
+                    return StatusCode(429, new { error = quotaViolation });
+                }
+            }
+
+            // --- Semantic cache lookup (Priority 13) ---
+            var cache = new SemanticCacheManager(request.AvatarId, OASISDNA);
+            CompletionResponse cached = await cache.GetAsync(request);
+            if (cached != null)
+                return Ok(cached);
 
             // Resolve effective FAHRN / Holonic BRAID flags: per-request override → DNA default → false.
             bool useFAHRN         = request.UseFAHRN         ?? web6?.EnableFAHRN         ?? false;
@@ -104,6 +124,20 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             var manager = new AIProviderManager(request.AvatarId, OASISDNA);
             var result  = await manager.CompleteAsync(request);
 
+            if (!result.IsError && result.Result != null)
+            {
+                // Cost metering (Priority 12)
+                if (request.AvatarId != Guid.Empty)
+                {
+                    var metering = new UsageMeteringManager(request.AvatarId, OASISDNA);
+                    if (Enum.TryParse<AIProviderType>(result.Result.Provider, true, out var providerType))
+                        result.Result.EstimatedCostUSD = await metering.RecordUsageAsync(providerType, result.Result.Model ?? "", result.Result.PromptTokens, result.Result.CompletionTokens);
+                }
+
+                // Semantic cache store (Priority 13)
+                await cache.SetAsync(request, result.Result);
+            }
+
             return result.IsError ? BadRequest(result) : Ok(result);
         }
 
@@ -143,6 +177,13 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         }
 
         // ── Helpers ─────────────────────────────────────────────────────────────────
+
+        private static int SecondsUntilNextReset()
+        {
+            DateTime now = DateTime.UtcNow;
+            // Daily reset: seconds until midnight UTC
+            return (int)(now.Date.AddDays(1) - now).TotalSeconds;
+        }
 
         /// <summary>
         /// Appends <paramref name="text"/> to the existing system message, or inserts a new system message at

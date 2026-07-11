@@ -59,5 +59,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         /// null = use OASIS_DNA.Web6.InjectAvatarContext default (false).
         /// </summary>
         public bool? InjectAvatarContext { get; set; }
+
+        /// <summary>Semantic cache TTL in seconds. null = use DNA default; 0 = disable cache for this request.</summary>
+        public int? CacheTtlSeconds { get; set; }
+
+        /// <summary>Cosine similarity threshold for cache hit (0–1). null = use DNA default (0.95).</summary>
+        public double? CacheSimilarityThreshold { get; set; }
     }
 }
