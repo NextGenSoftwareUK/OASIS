@@ -13,6 +13,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
+using NextGenSoftware.OASIS.Web6.Core.Memory;
 using NextGenSoftware.OASIS.Web6.Core.Models;
 
 namespace NextGenSoftware.OASIS.Web6.Core.Managers
@@ -256,6 +257,38 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             // Priority 3c — Web7 symbiosis hints: adjust dispatch mode based on user's cognitive state
             if (request.SymbiosisSessionId.HasValue)
                 request = await ApplySymbiosisHintsAsync(request);
+
+            // Priority 15 — External memory: search configured providers and prepend context to problem
+            if (request.ExternalMemoryProviders?.Count > 0 && request.AvatarId != Guid.Empty)
+            {
+                try
+                {
+                    var memResults = await MemoryProviderManager.Instance.SearchAllAsync(request.AvatarId, request.Problem, request.ExternalMemoryProviders);
+                    string memBlock = MemoryProviderManager.BuildContextBlock(memResults);
+                    if (!string.IsNullOrEmpty(memBlock))
+                        request = new DispatchRequest
+                        {
+                            Problem = memBlock + "\n" + request.Problem,
+                            TaskType = request.TaskType,
+                            Mode = request.Mode,
+                            EligibleAgentIds = request.EligibleAgentIds,
+                            AvatarId = request.AvatarId,
+                            MaxTotalTokens = request.MaxTotalTokens,
+                            VotingStrategy = request.VotingStrategy,
+                            MinVotingAgents = request.MinVotingAgents,
+                            ScoringWeights = request.ScoringWeights,
+                            MaxCostUsd = request.MaxCostUsd,
+                            MaxTokensPerAgent = request.MaxTokensPerAgent,
+                            BudgetExceededBehaviour = request.BudgetExceededBehaviour,
+                            SymbiosisSessionId = request.SymbiosisSessionId,
+                            UseMeshRouting = request.UseMeshRouting,
+                            SourceMeshNodeId = request.SourceMeshNodeId,
+                            EnableContradictionDetection = request.EnableContradictionDetection,
+                            ExternalMemoryProviders = request.ExternalMemoryProviders
+                        };
+                }
+                catch { /* external memory search is best-effort */ }
+            }
 
             ScoringWeights weights = ScoringWeights.ForMode(request.Mode);
             List<(ReasoningAgentMetadata agent, double score)> ranked = eligibleAgents

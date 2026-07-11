@@ -79,5 +79,12 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         /// { "type": "function", "function": { "name": "..." } } to force a specific tool.
         /// </summary>
         public string ToolChoice { get; set; } = "auto";
+
+        /// <summary>
+        /// External memory providers to search before the provider call and inject into system context.
+        /// Values: "Mem0", "Zep", "Letta", "LangMem", "Graphiti". null/empty = skip external memory search.
+        /// Requires AvatarId to be set for per-user scoping.
+        /// </summary>
+        public List<string> ExternalMemoryProviders { get; set; }
     }
 }

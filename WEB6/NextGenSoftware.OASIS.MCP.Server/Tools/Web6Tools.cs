@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json;
 using ModelContextProtocol.Server;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
+using NextGenSoftware.OASIS.Web6.Core.Memory;
 using NextGenSoftware.OASIS.Web6.Core.Models;
 
 namespace NextGenSoftware.OASIS.MCP.Server.Tools
@@ -191,6 +193,33 @@ namespace NextGenSoftware.OASIS.MCP.Server.Tools
             StarnetContextManager manager = new StarnetContextManager(id);
             var result = await manager.GetAvatarContextAsync(id);
             return JsonSerializer.Serialize(result);
+        }
+
+        // ── Priority 15: External memory providers ──────────────────────────────────
+
+        [McpServerTool(Name = "web6_memory_external_search"), Description("WEB6 External Memory: searches one or more configured external memory providers (Mem0, Zep, Letta, LangMem, Graphiti) for memories relevant to the given query, scoped to the avatar. Returns merged, score-ranked results.")]
+        public static async Task<string> MemoryExternalSearch(string query, string? avatarId = null, List<string>? providers = null, int topK = 5)
+        {
+            Guid id = ParseAvatarId(avatarId);
+            var results = await MemoryProviderManager.Instance.SearchAllAsync(id, query, providers, topK);
+            return JsonSerializer.Serialize(results);
+        }
+
+        [McpServerTool(Name = "web6_memory_external_add"), Description("WEB6 External Memory: adds a memory to the specified external memory provider (Mem0, Zep, Letta, LangMem, Graphiti), scoped to the avatar.")]
+        public static async Task<string> MemoryExternalAdd(string provider, string content, string? avatarId = null)
+        {
+            Guid id = ParseAvatarId(avatarId);
+            var p = MemoryProviderManager.Instance.Get(provider);
+            if (p == null)
+                return JsonSerializer.Serialize(new { error = $"Provider '{provider}' is not registered" });
+            await p.AddAsync(id, content);
+            return JsonSerializer.Serialize(new { ok = true });
+        }
+
+        [McpServerTool(Name = "web6_memory_external_list_providers"), Description("WEB6 External Memory: lists the names of all external memory providers currently registered (auto-detected from environment variables on startup).")]
+        public static string MemoryExternalListProviders()
+        {
+            return JsonSerializer.Serialize(MemoryProviderManager.Instance.ProviderNames);
         }
     }
 }

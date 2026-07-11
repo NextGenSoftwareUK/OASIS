@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
+using NextGenSoftware.OASIS.Web6.Core.Memory;
 using NextGenSoftware.OASIS.Web6.Core.Models;
 
 namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
@@ -118,6 +119,23 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
                         InjectIntoSystemContext(request, injection);
                     }
                 }
+            }
+
+            // --- External memory injection (Priority 15) ---
+            if (request.ExternalMemoryProviders?.Count > 0 && request.AvatarId != Guid.Empty)
+            {
+                try
+                {
+                    string lastQuery = request.Messages?.LastOrDefault(m => string.Equals(m.Role, "user", System.StringComparison.OrdinalIgnoreCase))?.Content ?? "";
+                    if (!string.IsNullOrEmpty(lastQuery))
+                    {
+                        var memResults = await MemoryProviderManager.Instance.SearchAllAsync(request.AvatarId, lastQuery, request.ExternalMemoryProviders);
+                        string memBlock = MemoryProviderManager.BuildContextBlock(memResults);
+                        if (!string.IsNullOrEmpty(memBlock))
+                            InjectIntoSystemContext(request, memBlock);
+                    }
+                }
+                catch { /* external memory search is best-effort */ }
             }
 
             // --- Auto-inject built-in OASIS tools when avatar is known and caller hasn't specified tools ---
