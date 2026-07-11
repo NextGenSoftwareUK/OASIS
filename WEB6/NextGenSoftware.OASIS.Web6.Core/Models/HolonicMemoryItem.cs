@@ -25,6 +25,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Returns true when this item has passed its TTL and should be purged.</summary>
         public bool IsExpired => ExpiresUtc.HasValue && DateTime.UtcNow > ExpiresUtc.Value;
+
+        // Priority 16b — semantic search
+        /// <summary>Pre-computed embedding vector for this item's Value. Null until EmbedAsync is called.</summary>
+        public float[] Embedding { get; set; }
+    }
+
+    /// <summary>A ranked result from QueryMemoryAsync semantic search.</summary>
+    public class MemorySearchResult
+    {
+        public HolonicMemoryItem Item { get; set; }
+        public double Score { get; set; }
     }
 
     /// <summary>A holon in the Holonic BRAID fractal memory hierarchy (Session → Agent → User → Group → ... → Earth).</summary>

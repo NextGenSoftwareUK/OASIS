@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.Json;
+using System.Threading.Tasks;
 using ModelContextProtocol.Server;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
 using NextGenSoftware.OASIS.Web6.Core.Memory;
@@ -136,6 +137,22 @@ namespace NextGenSoftware.OASIS.MCP.Server.Tools
         {
             HolonicMemoryManager manager = new HolonicMemoryManager(ParseAvatarId(avatarId));
             var result = await manager.PropagateAsync(Guid.Parse(childHolonId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web6_memory_propagate_up"), Description("WEB6 Holonic BRAID memory hierarchy: propagates permitted memory items up the fractal hierarchy for up to N hops (pass int.MaxValue to reach Earth). Priority 16a — multi-hop upward propagation.")]
+        public static async Task<string> MemoryPropagateUp(string childHolonId, int levels = 1, string? avatarId = null)
+        {
+            HolonicMemoryManager manager = new HolonicMemoryManager(ParseAvatarId(avatarId));
+            var result = await manager.PropagateUpAsync(Guid.Parse(childHolonId), levels);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web6_memory_search"), Description("WEB6 Holonic BRAID memory hierarchy: semantic search over all memory items in a holon. Returns the top-K items most similar to the query using cosine similarity over stored embedding vectors (falls back to keyword overlap when no embeddings are stored). Priority 16b — semantic search.")]
+        public static async Task<string> MemorySearch(string holonId, string query, int topK = 5, string embeddingProvider = "auto", string? avatarId = null)
+        {
+            HolonicMemoryManager manager = new HolonicMemoryManager(ParseAvatarId(avatarId));
+            var result = await manager.QueryMemoryAsync(Guid.Parse(holonId), query, topK, embeddingProvider);
             return JsonSerializer.Serialize(result);
         }
 
