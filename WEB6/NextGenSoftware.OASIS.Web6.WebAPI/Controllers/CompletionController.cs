@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
@@ -50,6 +51,17 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             bool useFAHRN         = request.UseFAHRN         ?? web6?.EnableFAHRN         ?? false;
             bool useHolonicBraid  = request.UseHolonicBraid  ?? web6?.EnableHolonicBraid  ?? false;
 
+            // --- Avatar context injection (Priority 3a) ---
+            bool injectCtx = request.InjectAvatarContext ?? web6?.InjectAvatarContext ?? false;
+            if (injectCtx && request.AvatarId != System.Guid.Empty)
+            {
+                string bearer = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+                StarnetContextManager ctxManager = new StarnetContextManager(request.AvatarId, OASISDNA);
+                string ctxStr = await ctxManager.GetAvatarContextStringAsync(request.AvatarId, bearer);
+                if (!string.IsNullOrEmpty(ctxStr))
+                    InjectIntoSystemContext(request, ctxStr);
+            }
+
             // --- Holonic BRAID: inject shared reasoning graph into system context ---
             if (useHolonicBraid)
             {
@@ -93,6 +105,29 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             var result  = await manager.CompleteAsync(request);
 
             return result.IsError ? BadRequest(result) : Ok(result);
+        }
+
+        /// <summary>
+        /// Streams a completion response as SSE (text/event-stream). Each event is a JSON CompletionChunk;
+        /// the final event has Done=true and includes token counts.
+        /// POST https://api.web6.oasisomniverse.one/v1/complete/stream
+        /// </summary>
+        [HttpPost("complete/stream")]
+        public async Task CompleteStream([FromBody] CompletionRequest request)
+        {
+            if (request.AvatarId == System.Guid.Empty)
+                request.AvatarId = AvatarId;
+
+            Response.ContentType = "text/event-stream";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["X-Accel-Buffering"] = "no";
+
+            var manager = new AIProviderManager(request.AvatarId, OASISDNA);
+            await foreach (var chunk in manager.CompleteStreamAsync(request))
+            {
+                await Response.WriteAsync($"data: {JsonSerializer.Serialize(chunk)}\n\n");
+                await Response.Body.FlushAsync();
+            }
         }
 
         /// <summary>

@@ -97,6 +97,18 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// environment variables on your machine. Leave blank in production and use environment variables instead.
         /// </summary>
         public Web6ApiKeysSettings ApiKeys { get; set; } = new Web6ApiKeysSettings();
+
+        /// <summary>Base URL for Web4 API — used by avatar context injection and StarnetContextManager. Env var WEB4_API_BASE_URL takes priority.</summary>
+        public string Web4BaseUrl { get; set; } = "https://api.oasisomniverse.one";
+
+        /// <summary>Base URL for Web5 API — used by avatar context injection and StarnetContextManager. Env var WEB5_API_BASE_URL takes priority.</summary>
+        public string Web5BaseUrl { get; set; } = "https://api.star.oasisomniverse.one";
+
+        /// <summary>When true, inject avatar context (Web4 karma + Web5 quests) into every completion request that has an AvatarId set. Overridable per-request via CompletionRequest.InjectAvatarContext.</summary>
+        public bool InjectAvatarContext { get; set; } = false;
+
+        /// <summary>When true, Web6 registers itself as an MCP orchestrator in its own registry on startup so FAHRN agents can call back into any OASIS tool.</summary>
+        public bool SelfRegisterAsOrchestrator { get; set; } = true;
     }
 
     /// <summary>

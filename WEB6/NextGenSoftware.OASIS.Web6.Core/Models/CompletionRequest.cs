@@ -46,5 +46,18 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         /// "code", "mathematics", "trust-guidance"). Defaults to "general".
         /// </summary>
         public string FahrnTaskType { get; set; } = "general";
+
+        /// <summary>
+        /// When true the response is streamed as SSE chunks via POST /v1/complete/stream.
+        /// Has no effect on the standard POST /v1/complete endpoint.
+        /// </summary>
+        public bool Stream { get; set; } = false;
+
+        /// <summary>
+        /// When true, WEB6 calls Web4 (karma) and Web5 (active quests) in parallel before the provider call
+        /// and injects an [OASIS Avatar Context] block into the system message. Requires AvatarId to be set.
+        /// null = use OASIS_DNA.Web6.InjectAvatarContext default (false).
+        /// </summary>
+        public bool? InjectAvatarContext { get; set; }
     }
 }

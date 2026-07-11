@@ -13,9 +13,13 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public string AgentName { get; set; }
         public double CompositeScoreAtDispatch { get; set; }
         public string MermaidDiagram { get; set; }
+        /// <summary>The full text answer from this agent (populated when FAHRN captures the model's completion output).</summary>
+        public string Plan { get; set; }
         public bool Stalled { get; set; }
         public bool LoopDetected { get; set; }
         public long LatencyMs { get; set; }
+        public int TokensUsed { get; set; }
+        public string Provider { get; set; }
     }
 
     /// <summary>
@@ -31,6 +35,9 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>Final assembled Mermaid plan - selected (serial), merged (parallel) or stitched (decomposed).</summary>
         public string FinalMermaidPlan { get; set; }
+
+        /// <summary>The final answer text extracted from the winning agent's completion (populated when FAHRN captures full completions).</summary>
+        public string FinalAnswer { get; set; }
 
         public Guid WinningAgentId { get; set; }
 
