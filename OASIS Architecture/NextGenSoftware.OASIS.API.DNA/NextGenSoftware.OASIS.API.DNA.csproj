@@ -59,12 +59,12 @@
     <Content Include="Default\OASIS_DNA.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="OASIS_DNA.Development.json">
+    <Content Include="OASIS_DNA.Development.json" Condition="Exists('OASIS_DNA.Development.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <Content Include="OASIS_DNA.json">
+    <Content Include="OASIS_DNA.json" Condition="Exists('OASIS_DNA.json')">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
