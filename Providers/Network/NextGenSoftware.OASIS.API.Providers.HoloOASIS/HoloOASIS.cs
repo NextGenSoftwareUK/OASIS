@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -969,8 +969,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var searchResults = new SearchResults();
@@ -1022,8 +1026,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var saveResult = await _holonRepository.SaveHolonsAsync(holons, "holons", "holons_anchor", ZOME_SAVE_ALL_HOLONS_FUNCTION, new Dictionary<string, string>()
@@ -1070,8 +1078,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar from Holochain
@@ -1101,8 +1113,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar username from Holochain
@@ -1138,8 +1154,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons created by the avatar email from Holochain
@@ -1169,8 +1189,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons from Holochain
@@ -1210,8 +1234,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -1257,8 +1285,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = ActivateProviderAsync().Result;
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -1346,29 +1378,29 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 var holoSettings = _oasisDNA.OASIS.StorageProviders.HoloOASIS;
                 
-                // Get base STAR path and Rust template folder from OASISDNA
-                string baseSTARPath = holoSettings.BaseSTARPath;
-                string rustTemplateFolder = holoSettings.RustDNARSMTemplateFolder;
+                // Get base STAR path and Rust template folder from OASISDNA (JSON may use forward slashes; normalize for current OS)
+                string starBasePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.STARBasePath);
+                string rustTemplateFolder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustDNARSMTemplateFolder);
                 
                 // Construct full path to Rust templates
-                string baseSTARPathFull = string.IsNullOrEmpty(baseSTARPath) 
-                    ? rustTemplateFolder  // If BaseSTARPath is empty, assume RustDNARSMTemplateFolder is absolute
-                    : Path.Combine(baseSTARPath, rustTemplateFolder);
+                string baseSTARPathFull = string.IsNullOrEmpty(starBasePath) 
+                    ? rustTemplateFolder  // If STARBasePath is empty, assume RustDNARSMTemplateFolder is absolute
+                    : Path.Combine(starBasePath, rustTemplateFolder);
 
                 if (!Directory.Exists(baseSTARPathFull))
                     return false;
 
                 // Load Rust templates using paths from OASISDNA
-                string libTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateLib));
-                string createTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateCreate));
-                string readTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateRead));
-                string updateTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateUpdate));
-                string deleteTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateDelete));
-                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateValidation));
-                string holonTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateHolon));
-                string intTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateInt));
-                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateString));
-                string boolTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, holoSettings.RustTemplateBool));
+                string libTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateLib)));
+                string createTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateCreate)));
+                string readTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateRead)));
+                string updateTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateUpdate)));
+                string deleteTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateDelete)));
+                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateValidation)));
+                string holonTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateHolon)));
+                string intTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateInt)));
+                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateString)));
+                string boolTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateBool)));
 
                 // Process DNA files to generate Rust code
                 string libBuffer = "";
@@ -1389,7 +1421,6 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                     using (StreamReader reader = file.OpenText())
                     {
                         bool holonReached = false;
-                        IHolon currentHolon = null;
 
                         while (!reader.EndOfStream)
                         {
@@ -1490,7 +1521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
                 return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Log error if logging available
                 return false;
@@ -1510,10 +1541,115 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         private bool GenerateRustFromCelestialBody(ICelestialBody celestialBody, string outputFolder)
         {
-            // TODO: Implement generation from celestialBody structure directly
-            // This would parse the zomes and holons from the celestialBody object
-            // For now, return false to indicate we need the DNA folder
-            return false;
+            try
+            {
+                if (_oasisDNA?.OASIS?.StorageProviders?.HoloOASIS == null)
+                    return false;
+
+                var holoSettings = _oasisDNA.OASIS.StorageProviders.HoloOASIS;
+                string starBasePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.STARBasePath);
+                string rustTemplateFolder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustDNARSMTemplateFolder);
+                string baseSTARPathFull = string.IsNullOrEmpty(starBasePath)
+                    ? rustTemplateFolder
+                    : Path.Combine(starBasePath, rustTemplateFolder);
+
+                if (!Directory.Exists(baseSTARPathFull))
+                    return false;
+
+                string libTemplate        = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateLib)));
+                string createTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateCreate)));
+                string readTemplate       = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateRead)));
+                string updateTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateUpdate)));
+                string deleteTemplate     = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateDelete)));
+                string validationTemplate = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateValidation)));
+                string holonTemplateRust  = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateHolon)));
+                string intTemplateRust    = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateInt)));
+                string stringTemplateRust = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateString)));
+                string boolTemplateRust   = File.ReadAllText(Path.Combine(baseSTARPathFull, NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(holoSettings.RustTemplateBool)));
+
+                string rustFolder = Path.Combine(outputFolder, "Rust");
+                if (!Directory.Exists(rustFolder))
+                    Directory.CreateDirectory(rustFolder);
+
+                // Collect IHolonBase property names so we skip them during reflection
+                var basePropertyNames = typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase)
+                    .GetProperties().Select(p => p.Name).ToHashSet();
+
+                string libBuffer = "";
+                bool anyGenerated = false;
+
+                foreach (IZome zome in celestialBody.CelestialBodyCore.Zomes)
+                {
+                    string zomeName = (zome.Name ?? "zome").ToSnakeCase();
+                    libBuffer = libTemplate.Replace("zome_name", zomeName);
+                    int nextLineToWrite = 0;
+
+                    var holonsResult = zome.LoadChildHolons();
+                    var holons = holonsResult?.Result ?? Enumerable.Empty<IHolon>();
+
+                    foreach (IHolon holon in holons)
+                    {
+                        string holonNameSnake  = (holon.Name ?? "holon").ToSnakeCase();
+                        string holonNamePascal = (holon.Name ?? "Holon").ToPascalCase();
+
+                        string holonBufferRust = holonTemplateRust
+                            .Replace("Holon", holonNamePascal)
+                            .Replace("{holon}", holonNameSnake);
+                        holonBufferRust = holonBufferRust.Substring(0, holonBufferRust.Length - 1);
+
+                        string holonFieldsClone = "";
+                        bool firstField = true;
+
+                        // Reflect on the concrete holon type; emit only string/int/bool domain properties
+                        foreach (var prop in holon.GetType().GetProperties()
+                            .Where(p => p.CanRead && !basePropertyNames.Contains(p.Name)))
+                        {
+                            string fieldTemplate = null;
+                            if (prop.PropertyType == typeof(string))
+                                fieldTemplate = stringTemplateRust;
+                            else if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(uint))
+                                fieldTemplate = intTemplateRust;
+                            else if (prop.PropertyType == typeof(bool))
+                                fieldTemplate = boolTemplateRust;
+
+                            if (fieldTemplate != null)
+                                GenerateRustField(prop.Name.ToSnakeCase(), fieldTemplate, holonNameSnake, ref firstField, ref holonFieldsClone, ref holonBufferRust);
+                        }
+
+                        if (holonBufferRust.Length > 2)
+                            holonBufferRust = holonBufferRust.Remove(holonBufferRust.Length - 3);
+
+                        holonBufferRust = string.Concat(Environment.NewLine, holonBufferRust, Environment.NewLine, holonTemplateRust.Substring(holonTemplateRust.Length - 1, 1), Environment.NewLine);
+
+                        int zomeIndex         = libTemplate.IndexOf("#[zome]");
+                        int zomeBodyStartIndex = libTemplate.IndexOf("{", zomeIndex);
+                        libBuffer = libBuffer.Insert(zomeIndex - 2, holonBufferRust);
+
+                        if (nextLineToWrite == 0)
+                            nextLineToWrite = zomeBodyStartIndex + holonBufferRust.Length;
+                        else
+                            nextLineToWrite += holonBufferRust.Length;
+
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, createTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, readTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, updateTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake).Replace("//#CopyFields//", holonFieldsClone), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, deleteTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+                        libBuffer = libBuffer.Insert(nextLineToWrite + 2, string.Concat(Environment.NewLine, validationTemplate.Replace("Holon", holonNamePascal).Replace("{holon}", holonNameSnake), Environment.NewLine));
+
+                        anyGenerated = true;
+                    }
+                }
+
+                if (!anyGenerated || string.IsNullOrEmpty(libBuffer))
+                    return false;
+
+                File.WriteAllText(Path.Combine(rustFolder, "lib.rs"), libBuffer);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         #endregion
@@ -1558,8 +1694,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain transaction
@@ -1614,8 +1754,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars
@@ -1658,8 +1802,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars
@@ -1697,8 +1845,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by username
@@ -1741,8 +1893,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by username
@@ -1785,8 +1941,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by email
@@ -1829,8 +1989,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get wallet addresses for avatars by email
@@ -1893,8 +2057,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT transfer transaction
@@ -1948,8 +2116,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT mint transaction
@@ -2007,8 +2179,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar to get provider wallets
@@ -2051,8 +2227,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar and update provider wallets
@@ -2288,9 +2468,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             try
             {
                 // Extract basic information from Holochain JSON response
+                var holochainAddress = ExtractHolochainProperty(holochainJson, "address") ?? ExtractHolochainProperty(holochainJson, "hash") ?? ExtractHolochainProperty(holochainJson, "id") ?? "holochain_unknown";
                 var avatar = new Avatar
                 {
-                    Id = Guid.NewGuid(),
+                    Id = CreateDeterministicGuid($"{ProviderType.Value}:{holochainAddress}"),
                     Username = ExtractHolochainProperty(holochainJson, "username") ?? "holochain_user",
                     Email = ExtractHolochainProperty(holochainJson, "email") ?? "user@holochain.example",
                     FirstName = ExtractHolochainProperty(holochainJson, "first_name"),
@@ -2402,8 +2583,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create Holochain NFT burn transaction
@@ -2457,8 +2642,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get mint to address from avatar ID
@@ -2524,8 +2713,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Get from address from avatar ID
@@ -2592,20 +2785,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
-                // Lock token by transferring to bridge pool account on Holochain
+                // Lock token by transferring to bridge pool account on Holochain (one NFT – no amount)
                 var bridgePoolAccount = "holo-pool";
-                // Cast to concrete type to access Amount property if available
-                var lockRequest = request as LockWeb3TokenRequest;
-                var amount = lockRequest?.Amount ?? 1m;
                 var tokenLock = new
                 {
                     from = request.FromWalletAddress,
                     to = bridgePoolAccount,
-                    amount = amount,
+                    amount = 1m,
                     symbol = "HOT",
                     timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ")
                 };
@@ -2652,8 +2846,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Unlock token by transferring from bridge pool account on Holochain
@@ -2719,8 +2917,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
@@ -2760,8 +2962,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
@@ -2786,8 +2992,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         {
                             var transaction = new WalletTransaction
                             {
-                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : Guid.NewGuid(),
-                                FromWalletAddress = txElement.TryGetProperty("from", out var from) ? from.GetString() : "",
+                                TransactionId = txElement.TryGetProperty("id", out var id) ? Guid.Parse(id.GetString()) : CreateDeterministicGuid($"{ProviderType.Value}:tx:{(txElement.TryGetProperty("hash", out var hash) ? hash.GetString() : (txElement.TryGetProperty("from", out var fromAddr) ? fromAddr.GetString() : "unknown"))}"),
+                                FromWalletAddress = txElement.TryGetProperty("from", out var fromWallet) ? fromWallet.GetString() : "",
                                 ToWalletAddress = txElement.TryGetProperty("to", out var to) ? to.GetString() : "",
                                 Amount = txElement.TryGetProperty("amount", out var amount) ? (double)amount.GetDecimal() : 0.0,
                                 Description = txElement.TryGetProperty("memo", out var memo) ? memo.GetString() : "",
@@ -2814,20 +3020,24 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate Holochain key pair using KeyManager
@@ -2858,8 +3068,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query Holochain for account balance
@@ -2901,8 +3115,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate key pair and seed phrase using KeyManager
@@ -2936,8 +3154,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Restore key pair from seed phrase for Holochain
@@ -2980,8 +3202,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge withdrawal transaction on Holochain
@@ -3029,8 +3255,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create bridge deposit transaction on Holochain
@@ -3077,8 +3307,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query transaction status from Holochain
@@ -3128,8 +3362,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Lock NFT by transferring to bridge pool on Holochain
@@ -3184,8 +3422,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Unlock NFT by transferring from bridge pool on Holochain
@@ -3240,8 +3482,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create NFT withdrawal transaction on Holochain bridge
@@ -3290,8 +3536,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holo provider is not activated");
-                    return result;
+                    var activateResult = await ActivateProviderAsync();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Holo provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Create NFT deposit transaction on Holochain bridge
@@ -3362,6 +3612,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 }
                 return string.Join(" ", words);
             }
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

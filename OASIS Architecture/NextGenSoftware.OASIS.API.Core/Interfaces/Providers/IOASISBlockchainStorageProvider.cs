@@ -35,8 +35,8 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
         public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request);
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request);
         public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request);
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request);
-        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request);
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair();
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync();
 
         // Bridge methods ported from IOASISBridge
         /// <summary>

@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
@@ -27,8 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
                 Console.WriteLine("✅ BNB Chain Provider initialized successfully");
                 Console.WriteLine($"Provider Name: {provider.ProviderName}");
                 Console.WriteLine($"Provider Description: {provider.ProviderDescription}");
-                Console.WriteLine($"Provider Category: {provider.ProviderCategory}");
-                Console.WriteLine($"Provider Version: {provider.ProviderVersion}");
+                Console.WriteLine($"Provider Category: {provider.ProviderCategory.Value}");
                 Console.WriteLine();
 
                 // Test provider activation
@@ -102,15 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
                 }
                 Console.WriteLine("    ✅ Avatar loaded successfully");
 
-                // Test avatar search
-                Console.WriteLine("  Searching avatars...");
-                var searchResult = await provider.SearchAvatarsAsync("testuser_bnb");
-                if (searchResult.IsError)
-                {
-                    Console.WriteLine($"    ❌ Avatar search failed: {searchResult.Message}");
-                    return;
-                }
-                Console.WriteLine("    ✅ Avatar search completed");
+                // Avatar search not on this provider
+                Console.WriteLine("  (Search not exercised on this provider)");
             }
             catch (Exception ex)
             {
@@ -128,7 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
                 {
                     Name = "Test Holon BNB",
                     Description = "A test holon for BNB Chain provider",
-                    HolonType = HolonType.Generic
+                    HolonType = HolonType.Holon
                 };
 
                 var saveResult = await provider.SaveHolonAsync(holon);
@@ -149,15 +142,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
                 }
                 Console.WriteLine("    ✅ Holon loaded successfully");
 
-                // Test holon search
-                Console.WriteLine("  Searching holons...");
-                var searchResult = await provider.SearchHolonsAsync("Test Holon BNB");
-                if (searchResult.IsError)
-                {
-                    Console.WriteLine($"    ❌ Holon search failed: {searchResult.Message}");
-                    return;
-                }
-                Console.WriteLine("    ✅ Holon search completed");
+                // Holon search not on this provider
+                Console.WriteLine("  (Search not exercised on this provider)");
             }
             catch (Exception ex)
             {
@@ -168,17 +154,7 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.TestHarness
         static async Task TestBlockchainOperations(BNBChainOASIS provider)
         {
             try
-                {
-                // Test blockchain connection
-                Console.WriteLine("  Testing blockchain connection...");
-                var connectionResult = await provider.ConnectAsync();
-                if (connectionResult.IsError)
-                {
-                    Console.WriteLine($"    ❌ Blockchain connection failed: {connectionResult.Message}");
-                    return;
-                }
-                Console.WriteLine("    ✅ Blockchain connection successful");
-
+            {
                 // Test account balance (if supported)
                 Console.WriteLine("  Testing account operations...");
                 var balanceResult = await provider.GetAccountBalanceAsync("0x0000000000000000000000000000000000000000");

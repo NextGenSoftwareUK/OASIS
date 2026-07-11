@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests
         //Default Global NFT Properties (these will be applied to all Web3 NFTs being minted unless overridden in the individual Web3NFTs):
         //public int NumberToMint { get; set; }
         //public bool StoreNFTMetaDataOnChain { get; set; }
-        public Dictionary<string, object> MetaData { get; set; }
+        public Dictionary<string, string> MetaData { get; set; }
         public List<string> Tags { get; set; }
         //public EnumValue<ProviderType> OffChainProvider { get; set; }
         //public EnumValue<ProviderType> OnChainProvider { get; set; }

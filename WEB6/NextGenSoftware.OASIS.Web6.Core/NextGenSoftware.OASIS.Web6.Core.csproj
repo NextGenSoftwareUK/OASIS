@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <PackageId>NextGenSoftware.OASIS.Web6.Core</PackageId>
+    <Company>NextGen Software Ltd</Company>
+    <Product>WEB6 OASIS AI Abstraction Layer Core</Product>
+    <Title>WEB6 OASIS AI Abstraction Layer Core</Title>
+    <Summary>The Core (Business Logic Layer) for WEB6 - the unified AI abstraction and orchestration layer built on top of WEB4 (OASIS API/ONODE Core - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). Hosts the AIProviderManager (routes/normalises requests across every AI provider), the HolonicBraidManager (fractal holonic shared reasoning-graph memory) and the FAHRNManager (Fractal Adaptive Holonic Reasoning Network - the controller-agent meta-orchestrator with composite scoring, dispatch modes and loop detection).</Summary>
+    <Version>2.0.0</Version>
+    <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
+- Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
+- Security-hardened from day one: CORS open/pluggable policy, JWT middleware, API key support.
+- Built on .NET 10 from the ground up for maximum performance and longevity.
+- Miscellaneous bug fixes and improvements during initial stabilisation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Interoperability; Abstraction-Layer; Avatar-API; Karma-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.BedrockRuntime" Version="3.7.415" />
+    <PackageReference Include="Microsoft.ML" Version="4.0.2" />
+    <PackageReference Include="Microsoft.ML.AutoML" Version="0.22.1" />
+  </ItemGroup>
+
+</Project>

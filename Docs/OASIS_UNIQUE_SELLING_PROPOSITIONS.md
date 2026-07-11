@@ -2,9 +2,120 @@
 
 ## Overview
 
-This document provides a comprehensive analysis of OASIS's Unique Selling Propositions (USPs) that differentiate it from competitors and create significant investment value. These USPs are derived from extensive analysis of the OASIS codebase, architecture, and innovative features.
+This document provides a comprehensive analysis of OASIS's Unique Selling Propositions (USPs) that differentiate it from competitors and create significant investment value. The OASIS Omniverse spans WEB4 (identity and data), WEB5 (applications and metaverse), WEB6 (AI intelligence layer), WEB7 (bio-signal symbiosis), and beyond — each layer building on the one below to create a compounding moat.
 
-## Core Technology USPs
+**WEB6 is the most commercially significant layer right now.** It shipped fully in July 2026 and represents the primary near-term revenue driver. The WEB6 USPs are documented first below.
+
+---
+
+## WEB6 USPs — The Intelligence Layer
+
+### WEB6-USP-1: FAHRN — The Only Identity-Grounded Multi-Agent Orchestrator
+
+**What it is**: FAHRN (Fractal Adaptive Holonic Reasoning Network) is a universal multi-agent orchestration system that routes AI completions across 20+ providers in 5 dispatch modes, with every request grounded in real avatar identity and ecosystem data from WEB4/WEB5.
+
+**Why no competitor can replicate it**:
+- OpenAI, Anthropic, and Google sell single-provider model access — they have structural incentives not to route to competitors
+- Generic AI proxies (LiteLLM, etc.) are stateless pass-throughs with no identity, no memory, and no compounding intelligence
+- FAHRN uniquely combines provider-agnostic routing + real identity (WEB4 avatar) + real ecosystem data (WEB5 holons) + self-learning routing intelligence (EMA scoring) + shared memory (Holonic BRAID)
+
+**Quantified advantage**:
+- **74× performance-per-dollar gain** on GSM-Hard benchmarks via Holonic BRAID graph reuse (gpt-4.1 Generator → gpt-5-nano-minimal Solver vs GPT-5-medium full-reasoning baseline)
+- **98% accuracy** on GSM-Hard (up from 94% baseline) while reducing cost by 74×
+- **40–70% AI cost reduction** from semantic caching, serial dispatch, and BRAID graph reuse
+
+**Revenue model**: Per-call API fees + karma-tier subscriptions (Bronze→Diamond) + enterprise SLAs
+
+---
+
+### WEB6-USP-2: SkillOpt — Self-Evolving Agent Skills (First in Production)
+
+**What it is**: Implementation of the Microsoft Research SkillOpt method (arXiv:2605.23904) — each FAHRN agent autonomously evolves its own `best_skill.md` procedure through a rollout → reflect → edit → gate loop.
+
+**Why this matters**:
+- **+23.5% average accuracy gain** with zero model weight updates — works across any model
+- The skill corpus is a proprietary, compounding data asset that grows with every agent interaction
+- Skills are plain-text markdown — they transfer across providers, harnesses, and even to competitor models, making the *skill library* the moat, not the model weights
+- Paired with ML.NET in-process AutoML: task classification at microsecond latency with no external API call required
+
+**Competitive moat**: No other production AI platform has shipped a self-evolving skill system with a documented benchmark gain. The longer FAHRN runs, the larger the skill library — and the larger the gap vs competitors starting from zero.
+
+---
+
+### WEB6-USP-3: Holonic Memory — Fractal Persistent Intelligence
+
+**What it is**: A fractal memory hierarchy (Session → Agent → User → Group → Neighbourhood → ... → Earth) where permitted insights propagate upward while privacy is enforced structurally at each membrane boundary.
+
+**What makes it unique**:
+- **Not a vector database**: It is a hierarchical holon graph where each level has configurable membrane rules governing what propagates — far more expressive than flat embedding stores
+- **External provider integration**: Mem0, Zep, Letta, LangMem, Graphiti, Redis Vector all auto-registered from env vars — OASIS orchestrates across all of them
+- **Semantic search**: Cosine similarity search across stored embeddings within any holon
+- **Multi-hop propagation**: Permitted patterns flow from individual sessions all the way to the Earth holon — enabling genuine collective intelligence at planetary scale
+- **WebSocket persistence**: Agent sessions maintain full server-side state across connection lifetime
+
+**Long-term moat**: As the network scales, the Earth holon accumulates planetary-scale intelligence. This is a data asset impossible to replicate without equivalent usage volume.
+
+---
+
+### WEB6-USP-4: Karma-Gated AI — Aligned Incentives as Revenue
+
+**What it is**: Avatar karma tiers gate model access and monthly token budgets. High karma = access to more powerful models.
+
+**Why it is a revenue USP**:
+- Creates natural upgrade pressure: every user wants higher-tier model access → earns karma through ecosystem contribution → upgrades plan
+- Karma cannot be purchased directly — it must be earned through verified contributions (OAPPs built, quests completed, verified credentials via DID/VC)
+- This makes the user base inherently high-quality: Diamond-tier users are verified, active ecosystem contributors
+- **Enterprise Revenue**: Diamond and Enterprise tiers provide predictable SaaS ARR; karma verification (via WEB7 bio-signals) will make verification tamper-proof
+
+**Competitive advantage**: No other AI platform ties model access to verifiable real-world contribution. This creates a self-reinforcing flywheel: better contributors get better tools → they build better things → they attract more users.
+
+---
+
+### WEB6-USP-5: 111 MCP Tools — Largest Production MCP Surface
+
+**What it is**: 111 typed named tools across WEB4 (33), WEB5 (31), WEB6 (30), WEB7 (7), WEB8 (8), WEB9 (1), WEB10 (1) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
+
+**Distribution leverage**:
+- Every MCP-compatible IDE (Claude.ai Desktop, Cursor, VS Code, JetBrains) becomes an embedded distribution channel
+- Claude.ai integration alone gives access to millions of active Claude users who can interact with the entire OASIS ecosystem through natural language
+- The npm package (`@oasisomniverse/web6-api`) — v2.0, 14 modules, 40 operations — extends reach to the entire JavaScript ecosystem
+- 56 REST endpoints for traditional API integration
+- ACP, ANP, gRPC, GraphQL, AsyncAPI/Kafka — all exposed from a single endpoint
+
+**Investment value**: Distribution through IDE integrations costs nothing per user and compounds with every new MCP-compatible tool that ships.
+
+---
+
+### WEB6-USP-6: DID/Verifiable Credentials — Enterprise Compliance Ready
+
+**What it is**: W3C DID + Verifiable Credential support (did:key, did:web, did:ethr, did:ion) — AI agents act on behalf of avatars via cryptographically-signed VC grants.
+
+**Why enterprises need this**:
+- Every FAHRN dispatch is now attributable to a provable, consent-governed identity — critical for AI compliance, audit trails, and GDPR
+- Agent-to-agent delegation is cryptographically verifiable — eliminates "who authorised this AI action?" ambiguity
+- Universal Resolver integration means any DID from any system can be resolved and verified
+
+**Competitive advantage**: No other AI orchestration platform ships native DID/VC support. This makes WEB6 the only AI router enterprise compliance teams can approve without additional infrastructure.
+
+---
+
+## WEB7 USPs — The Symbiosis Layer (Emerging — Get Ahead of the Curve)
+
+### WEB7-USP-1: Neural Interface Ready Architecture
+
+**What it is**: WEB7 bridges bio-signal data (wearables, EEG, heart-rate, neural interfaces) into the FAHRN dispatch pipeline and holonic memory hierarchy.
+
+**Why invest now**:
+- Neural interface hardware (Neuralink, Emotiv, OpenBCI) is approaching consumer readiness (est. 2027–2030)
+- WEB7 is the only AI platform already architected to receive, verify, and act on that data stream
+- 7 MCP tools for WEB7 are already live
+- Bio-signal verified karma (impossible to fake from a keyboard) makes the reputation system tamper-proof at scale
+
+**First-mover value**: Whoever owns the standard for bio-signal-to-AI integration when the neural interface wave arrives will define the market. WEB7 has the first-mover position.
+
+---
+
+## Core Technology USPs (WEB4/WEB5)
 
 ### 1. OASIS HyperDrive - 100% Uptime System
 **Innovation**: The world's first universal auto-failover system that provides 100% uptime across all Web2 and Web3 platforms.

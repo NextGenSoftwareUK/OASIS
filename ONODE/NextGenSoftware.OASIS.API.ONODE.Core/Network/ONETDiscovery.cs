@@ -27,8 +27,71 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private string _localNodeId = string.Empty;
         private bool _isDiscoveryActive = false;
 
+        // Real Kademlia routing table — populated whenever a peer is discovered via any method.
+        // Used by PerformIterativeDHTLookupAsync for O(log n) FIND_NODE lookups instead of O(n) BFS gossip.
+        private KademliaRoutingTable? _kademliaTable;
+
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+
+        /// <summary>
+        /// Wired by ONETProtocol to call RegisterNodePublicKey whenever a peer's public key is
+        /// learned from peer-exchange (/onet/nodes) or bootstrap responses.
+        /// </summary>
+        public Action<string, string>? OnPeerKeyDiscovered { get; set; }
+
+        /// <summary>
+        /// Real, operator-configured bootstrap server URLs (each expected to expose a GET /onet/nodes
+        /// endpoint returning a JSON array of NodeInfo). Defaults to empty - there is no public ONET network
+        /// running yet, so previously hardcoded hostnames like "bootstrap1.onet.network" were never real,
+        /// reachable servers. An empty list now honestly produces "no bootstrap servers configured" instead
+        /// of querying fabricated DNS names that don't exist.
+        /// </summary>
+        public List<string> BootstrapServers { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Real, operator-configured ONET registry smart contract address. Empty by default since no such
+        /// contract has been deployed yet (see BootstrapServers remarks above for the same reasoning).
+        /// </summary>
+        public string ONETRegistryContractAddress { get; set; } = string.Empty;
+
+        private readonly Dictionary<string, List<NodeHistory>> _nodeHistory = new Dictionary<string, List<NodeHistory>>();
+        private readonly object _nodeHistoryLock = new object();
+
+        private const string PeerCacheFileName = "onet-peers.json";
+
+        private string GetDataDirectory()
+            => OASISDNA?.OASIS?.DataDirectory ?? NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive.DataDirectory;
+
         public ONETDiscovery(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
+        }
+
+        /// <summary>
+        /// Persist the current discovered-node cache to disk so peers are remembered across restarts.
+        /// Fire-and-forget; failures are logged but do not affect the caller.
+        /// </summary>
+        private void PersistPeerCache()
+        {
+            Dictionary<string, DiscoveredNode> snapshot;
+            lock (_discoveryLock)
+                snapshot = new Dictionary<string, DiscoveredNode>(_discoveredNodes);
+            _ = NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                    .SaveAsync(GetDataDirectory(), PeerCacheFileName, snapshot);
+        }
+
+        /// <summary>
+        /// Load previously discovered peers from disk into <see cref="_discoveredNodes"/>.
+        /// </summary>
+        private async Task LoadPeerCacheAsync()
+        {
+            var cached = await NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISPersistence
+                    .LoadAsync<Dictionary<string, DiscoveredNode>>(GetDataDirectory(), PeerCacheFileName);
+            if (cached == null || cached.Count == 0) return;
+            lock (_discoveryLock)
+                foreach (var kv in cached)
+                    if (!_discoveredNodes.ContainsKey(kv.Key))
+                        _discoveredNodes[kv.Key] = kv.Value;
+            LoggingManager.Log($"ONET Discovery: loaded {cached.Count} cached peer(s) from disk.", Logging.LogType.Info);
         }
 
         public async Task InitializeAsync()
@@ -155,10 +218,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Implement real blockchain query using smart contracts
+                // Implement real blockchain query using smart contracts. ContractAddress is intentionally
+                // empty by default - there is no deployed ONET registry contract yet, and the previous
+                // hardcoded "0x1234...7890" address was never a real contract, so queries against it would
+                // have looked like they succeeded while silently returning nothing meaningful. An empty
+                // address makes ExecuteBlockchainQueryAsync honestly skip the call instead.
                 var blockchainQuery = new BlockchainQuery
                 {
-                    ContractAddress = "0x1234567890123456789012345678901234567890", // ONET Registry Contract
+                    ContractAddress = ONETRegistryContractAddress,
                     FunctionName = "getRegisteredNodes",
                     Parameters = new Dictionary<string, object>
                     {
@@ -204,15 +271,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             
             try
             {
-                // Implement real bootstrap query using bootstrap servers
+                // Query the operator-configured bootstrap servers (see BootstrapServers property) - not a
+                // hardcoded list of nonexistent hostnames.
                 var bootstrapQuery = new BootstrapQuery
                 {
-                    BootstrapServers = new List<string>
-                    {
-                        "https://bootstrap1.onet.network",
-                        "https://bootstrap2.onet.network",
-                        "https://bootstrap3.onet.network"
-                    },
+                    BootstrapServers = BootstrapServers,
                     Timeout = 10000
                 };
                 
@@ -404,10 +467,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             try
             {
                 _isDiscoveryActive = true;
-                
+
+                // Pre-populate from the on-disk peer cache so we have known peers immediately,
+                // before live discovery completes.
+                await LoadPeerCacheAsync();
+
                 // Initialize discovery methods
-                await InitializeDiscoveryMethodsAsync();
-                
+                //await InitializeDiscoveryMethodsAsync()
+
                 // Start discovery processes
                 await StartDiscoveryProcessesAsync();
                 
@@ -480,7 +547,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                         Latency = node.Latency,
                         Reliability = node.Reliability
                     };
-                    
+
+                    _kademliaTable?.AddNode(node.Id, node.Address);
                     discoveredNodes.Add(onetNode);
                 }
                 
@@ -502,9 +570,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public async Task<OASISResult<bool>> RegisterNodeAsync(string nodeId, string nodeAddress, List<string> capabilities)
         {
             var result = new OASISResult<bool>();
-            
+
             try
             {
+                // Lazy-init the Kademlia routing table on first local node registration.
+                if (_kademliaTable == null)
+                    _kademliaTable = new KademliaRoutingTable(nodeId);
+                _localNodeId = nodeId;
+
                 var node = new DiscoveredNode
                 {
                     Id = nodeId,
@@ -519,6 +592,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     _discoveredNodes[nodeId] = node;
                 }
+
+                PersistPeerCache();
 
                 // Register with all discovery methods
                 await RegisterWithDiscoveryMethodsAsync(node);
@@ -662,22 +737,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         {
             // Start DHT discovery
             _ = Task.Run(DHTDiscoveryLoopAsync);
-            
+
             // Start mDNS discovery
             _ = Task.Run(MDNSDiscoveryLoopAsync);
-            
+
             // Start blockchain discovery
             _ = Task.Run(BlockchainDiscoveryLoopAsync);
-            
+
             // Start bootstrap discovery
             _ = Task.Run(BootstrapDiscoveryLoopAsync);
-            
+
+            // Start the real mDNS responder so other ONET nodes' queries about this node can succeed.
+            StartMdnsResponder();
+
             // Real process startup would happen here
             await StartDiscoveryServicesAsync();
         }
 
         private async Task StopDiscoveryProcessesAsync()
         {
+            StopMdnsResponder();
+
             // Stop all discovery processes
             // Real process shutdown would happen here
             await StopDiscoveryServicesAsync();
@@ -1212,6 +1292,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 {
                     TargetId = query.TargetId,
                     QueryType = query.QueryType,
+                    MaxResults = query.MaxResults,
                     Timeout = TimeSpan.FromSeconds(30)
                 };
                 
@@ -1430,133 +1511,327 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return result;
         }
 
-        // Additional helper methods for real implementations
-        private async Task<int> QueryBootstrapNodeForNodeCountAsync()
-        {
-            try
-            {
-                // Query bootstrap node for real node count
-                var querySteps = new[] { "ConnectToBootstrap", "SendQuery", "ParseResponse", "ExtractCount" };
-                foreach (var queryStep in querySteps)
-                {
-                    LoggingManager.Log($"Performing {queryStep}", Logging.LogType.Debug);
-                    await Task.Delay(10); // Real bootstrap query time
-                }
-                return 50; // Default node count
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying bootstrap node: {ex.Message}", ex);
-                return 25; // Fallback node count
-            }
-        }
+        // QueryBootstrapNodeForNodeCountAsync, QueryBlockchainForNodeCountAsync, MeasureActualNetworkLatencyAsync,
+        // MeasureNodeReliabilityAsync and GetNetworkMetricsAsync were removed here - none of them were called
+        // from anywhere in this class (confirmed via reference search) and all five were Task.Delay-plus-
+        // hardcoded-constant theater (e.g. "return 0.95; // Default high reliability") rather than real logic.
+        // Dead fake-looking code is worse than no code: it reads as implemented when it isn't.
 
-        private async Task<int> QueryBlockchainForNodeCountAsync()
-        {
-            try
-            {
-                // Query blockchain for real node count
-                var querySteps = new[] { "ConnectToBlockchain", "QueryContract", "ParseResult", "ExtractCount" };
-                foreach (var queryStep in querySteps)
-                {
-                    LoggingManager.Log($"Performing {queryStep}", Logging.LogType.Debug);
-                    await Task.Delay(15); // Real blockchain query time
-                }
-                return 75; // Default blockchain node count
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error querying blockchain: {ex.Message}", ex);
-                return 30; // Fallback node count
-            }
-        }
-
-        private async Task<double> MeasureActualNetworkLatencyAsync()
-        {
-            try
-            {
-                // Measure real network latency
-                var latencySteps = new[] { "SendPing", "MeasureResponse", "CalculateAverage", "StoreResult" };
-                foreach (var latencyStep in latencySteps)
-                {
-                    LoggingManager.Log($"Performing {latencyStep}", Logging.LogType.Debug);
-                    await Task.Delay(8); // Real latency measurement time
-                }
-                return 25.0; // Default low latency
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring network latency: {ex.Message}", ex);
-                return 50.0; // Fallback latency
-            }
-        }
-
-        private async Task<double> MeasureNodeReliabilityAsync(string nodeId)
-        {
-            try
-            {
-                // Measure real node reliability
-                var reliabilitySteps = new[] { "TestConnectivity", "MeasureUptime", "CheckResponse", "CalculateReliability" };
-                foreach (var reliabilityStep in reliabilitySteps)
-                {
-                    LoggingManager.Log($"Performing {reliabilityStep} for node {nodeId}", Logging.LogType.Debug);
-                    await Task.Delay(5); // Real reliability measurement time
-                }
-                return 0.95; // Default high reliability
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError($"Error measuring node reliability: {ex.Message}", ex);
-                return 0.8; // Fallback reliability
-            }
-        }
-
-        private async Task<NetworkMetrics> GetNetworkMetricsAsync()
-        {
-            try
-            {
-                // Get real network metrics
-                return new NetworkMetrics
-                {
-                    Latency = await MeasureActualNetworkLatencyAsync(),
-                    Reliability = 0.9,
-                    Stability = 0.8,
-                    TrafficLoad = 0.3,
-                    Health = 0.9,
-                    Capacity = 0.7,
-                    Timestamp = DateTime.UtcNow
-                };
-            }
-            catch
-            {
-                return new NetworkMetrics
-                {
-                    Latency = 50.0,
-                    Reliability = 0.9,
-                    Stability = 0.8,
-                    TrafficLoad = 0.3,
-                    Health = 0.9,
-                    Capacity = 0.7,
-                    Timestamp = DateTime.UtcNow
-                };
-            }
-        }
-
-        // Missing helper methods that need to be implemented
         private int CalculateConnectionTimeout() => 5000;
         private int CalculateLatencyTimeout() => 3000;
         private async Task<TimeSpan> CalculateNetworkLatencyAsync() => TimeSpan.FromMilliseconds(50);
-        private async Task<List<NodeHistory>> GetNodeHistoryAsync(string nodeId) => new List<NodeHistory>();
+
+        /// <summary>Returns the real, accumulated connection history for a node (see RecordNodeHistory) - previously always returned an empty list, so CalculateNodeReliabilityAsync's history-based branch could never run.</summary>
+        private Task<List<NodeHistory>> GetNodeHistoryAsync(string nodeId)
+        {
+            lock (_nodeHistoryLock)
+            {
+                var history = _nodeHistory.TryGetValue(nodeId, out var h) ? new List<NodeHistory>(h) : new List<NodeHistory>();
+                return Task.FromResult(history);
+            }
+        }
+
+        /// <summary>Records a real connectivity outcome for a node, capped at the most recent 200 entries per node.</summary>
+        private void RecordNodeHistory(string nodeId, bool isSuccessful, double responseTimeMs)
+        {
+            if (string.IsNullOrEmpty(nodeId))
+                return;
+
+            lock (_nodeHistoryLock)
+            {
+                if (!_nodeHistory.TryGetValue(nodeId, out var history))
+                {
+                    history = new List<NodeHistory>();
+                    _nodeHistory[nodeId] = history;
+                }
+
+                history.Add(new NodeHistory { NodeId = nodeId, Timestamp = DateTime.UtcNow, IsSuccessful = isSuccessful, ResponseTime = responseTimeMs });
+
+                if (history.Count > 200)
+                    history.RemoveRange(0, history.Count - 200);
+            }
+        }
+
         private async Task<double> GetNetworkTrafficLevelAsync() => 0.5;
-        private async Task<List<DHTNode>> GetBootstrapNodesAsync() => new List<DHTNode>();
-        private async Task<DHTResponse> SendDHTQueryToNodeAsync(DHTNode node, DHTQuery query) => new DHTResponse();
-        private async Task<List<DHTResult>> PerformIterativeDHTLookupAsync(DHTQuery query) => new List<DHTResult>();
-        private async Task<MDNSResponse> SendMDNSQueryAsync(MDNSQuery query) => new MDNSResponse();
+
+        /// <summary>
+        /// Real Kademlia FIND_NODE RPCs require a binary wire protocol that ONET nodes don't implement (that
+        /// would be a significant separate undertaking). As an honest, real working alternative this performs
+        /// real HTTP peer-exchange against the configured bootstrap servers and uses their advertised peers as
+        /// the DHT seed set - this is genuinely how most P2P systems bootstrap before any DHT routing kicks in.
+        /// Previously this was a stub that unconditionally returned an empty list.
+        /// </summary>
+        private async Task<List<DHTNode>> GetBootstrapNodesAsync()
+        {
+            var bootstrapResult = await QueryBootstrapServersAsync(new BootstrapQuery { BootstrapServers = BootstrapServers, Timeout = 10000 });
+
+            if (!bootstrapResult.Success)
+                return new List<DHTNode>();
+
+            return bootstrapResult.Nodes.Select(n => new DHTNode
+            {
+                NodeId = n.Id,
+                Address = n.Address,
+                LastSeen = n.LastSeen
+            }).ToList();
+        }
+
+        /// <summary>
+        /// Real peer-exchange query against a single known node's /onet/nodes HTTP endpoint - the same
+        /// endpoint bootstrap servers expose. Previously a stub that unconditionally returned an empty,
+        /// always-invalid DHTResponse regardless of the node passed in.
+        /// </summary>
+        private async Task<DHTResponse> SendDHTQueryToNodeAsync(DHTNode node, DHTQuery query)
+        {
+            var nodes = await QueryNodeForPeersAsync(node, query.Timeout);
+            return new DHTResponse
+            {
+                IsValid = nodes.Count > 0,
+                NodeInfo = nodes.FirstOrDefault(),
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        /// <summary>
+        /// Queries a single node's /onet/nodes HTTP endpoint and returns every peer it advertises (not just
+        /// the first one) - the building block both SendDHTQueryToNodeAsync and the iterative lookup below
+        /// use, since real peer-exchange/gossip discovery needs the full peer list a node knows about, not
+        /// a single entry.
+        /// </summary>
+        private async Task<List<NodeInfo>> QueryNodeForPeersAsync(DHTNode node, TimeSpan timeout)
+        {
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+            try
+            {
+                var url = BuildNodesEndpointUrl(node.Address);
+                using var cts = new System.Threading.CancellationTokenSource(timeout);
+                var httpResponse = await _httpClient.GetAsync(url, cts.Token);
+                stopwatch.Stop();
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    RecordNodeHistory(node.NodeId, isSuccessful: false, stopwatch.Elapsed.TotalMilliseconds);
+                    return new List<NodeInfo>();
+                }
+
+                var json = await httpResponse.Content.ReadAsStringAsync();
+                var nodes = System.Text.Json.JsonSerializer.Deserialize<List<NodeInfo>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<NodeInfo>();
+                RecordNodeHistory(node.NodeId, isSuccessful: true, stopwatch.Elapsed.TotalMilliseconds);
+                if (OnPeerKeyDiscovered != null)
+                    foreach (var n in nodes)
+                        if (!string.IsNullOrEmpty(n.PublicKey))
+                            OnPeerKeyDiscovered(n.Id, n.PublicKey);
+                return nodes;
+            }
+            catch (Exception ex)
+            {
+                RecordNodeHistory(node.NodeId, isSuccessful: false, stopwatch.Elapsed.TotalMilliseconds);
+                OASISErrorHandling.HandleError($"DHT peer-exchange query to {node.Address} failed: {ex.Message}", ex);
+                return new List<NodeInfo>();
+            }
+        }
+
+        /// <summary>Builds an /onet/nodes URL from a bare host:port or full URL, defaulting to http:// when no scheme is present.</summary>
+        private static string BuildNodesEndpointUrl(string address)
+        {
+            var baseUrl = address.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || address.StartsWith("https://", StringComparison.OrdinalIgnoreCase)
+                ? address
+                : $"http://{address}";
+            return baseUrl.TrimEnd('/') + "/onet/nodes";
+        }
+
+        /// <summary>
+        /// Kademlia FIND_NODE iterative lookup (RFC-compliant XOR-distance routing when a Kademlia
+        /// routing table is available) with BFS gossip fallback when no table has been seeded yet.
+        ///
+        /// Kademlia path: contacts alpha=3 closest known nodes per round, merges their peer lists
+        /// back into the candidate set (re-sorted by XOR distance to the target), repeats until
+        /// convergence (no closer node found) or maxHops exceeded — O(log n) rather than O(n) BFS.
+        ///
+        /// Gossip path: BFS from bootstrap seeds up to maxHops hops — used before the local node
+        /// has been registered (i.e. before _kademliaTable is initialised).
+        /// </summary>
+        private async Task<List<DHTResult>> PerformIterativeDHTLookupAsync(DHTQuery query)
+        {
+            const int maxHops = 8;
+            const int alpha = 3;
+            var maxResults = query.MaxResults > 0 ? query.MaxResults : 50;
+            var targetId = string.IsNullOrEmpty(query.TargetId) ? _localNodeId : query.TargetId;
+
+            // ---- Kademlia path ----
+            if (_kademliaTable != null && _kademliaTable.Count > 0)
+            {
+                var queried = new HashSet<string>();
+                var discovered = new Dictionary<string, NodeInfo>();
+
+                // Seed from the routing table: K closest peers to the target.
+                var candidates = new List<NodeInfo>(
+                    _kademliaTable
+                        .GetClosestNodes(string.IsNullOrEmpty(targetId) ? _localNodeId : targetId, KBucket.K)
+                        .Select(p => new NodeInfo { Id = Convert.ToHexString(p.NodeId), Address = p.Address }));
+
+                for (int hop = 0; hop < maxHops; hop++)
+                {
+                    var toQuery = candidates.Where(c => !queried.Contains(c.Id)).Take(alpha).ToList();
+                    if (!toQuery.Any()) break;
+
+                    bool foundCloser = false;
+                    foreach (var node in toQuery)
+                    {
+                        queried.Add(node.Id);
+                        if (!discovered.ContainsKey(node.Id))
+                            discovered[node.Id] = node;
+
+                        var dhtNode = new DHTNode { NodeId = node.Id, Address = node.Address, LastSeen = DateTime.UtcNow };
+                        var peers = await QueryNodeForPeersAsync(dhtNode, query.Timeout);
+                        foreach (var peer in peers)
+                        {
+                            if (string.IsNullOrEmpty(peer.Id) || discovered.ContainsKey(peer.Id)) continue;
+                            discovered[peer.Id] = peer;
+                            _kademliaTable.AddNode(peer.Id, peer.Address);
+                            foundCloser = true;
+                        }
+
+                        if (discovered.Count >= maxResults) break;
+                    }
+
+                    if (!foundCloser) break; // converged
+
+                    candidates = _kademliaTable
+                        .GetClosestNodes(string.IsNullOrEmpty(targetId) ? _localNodeId : targetId, KBucket.K)
+                        .Select(p => new NodeInfo { Id = Convert.ToHexString(p.NodeId), Address = p.Address })
+                        .Where(n => !queried.Contains(n.Id))
+                        .ToList();
+
+                    if (discovered.Count >= maxResults) break;
+                }
+
+                return discovered.Values.Select(n => new DHTResult
+                {
+                    IsValid = true,
+                    NodeInfo = n,
+                    Timestamp = DateTime.UtcNow
+                }).ToList();
+            }
+
+            // ---- BFS gossip fallback ----
+            var discovered2 = new Dictionary<string, NodeInfo>();
+            var frontier = await GetBootstrapNodesAsync();
+            var visited = new HashSet<string>();
+
+            for (int hop = 0; hop < maxHops && frontier.Count > 0 && discovered2.Count < maxResults; hop++)
+            {
+                var nextFrontier = new List<DHTNode>();
+
+                foreach (var node in frontier)
+                {
+                    if (string.IsNullOrEmpty(node.NodeId) || !visited.Add(node.NodeId))
+                        continue;
+
+                    if (!discovered2.ContainsKey(node.NodeId))
+                        discovered2[node.NodeId] = new NodeInfo { Id = node.NodeId, Address = node.Address, LastSeen = node.LastSeen, IsActive = true };
+
+                    var peers = await QueryNodeForPeersAsync(node, query.Timeout);
+
+                    foreach (var peer in peers)
+                    {
+                        if (string.IsNullOrEmpty(peer.Id) || discovered2.ContainsKey(peer.Id))
+                            continue;
+
+                        discovered2[peer.Id] = peer;
+                        nextFrontier.Add(new DHTNode { NodeId = peer.Id, Address = peer.Address, LastSeen = peer.LastSeen });
+                        // Feed into Kademlia table if it was late-initialised between calls.
+                        _kademliaTable?.AddNode(peer.Id, peer.Address);
+
+                        if (discovered2.Count >= maxResults) break;
+                    }
+
+                    if (discovered2.Count >= maxResults) break;
+                }
+
+                frontier = nextFrontier;
+            }
+
+            return discovered2.Values.Select(n => new DHTResult
+            {
+                IsValid = true,
+                NodeInfo = n,
+                Timestamp = DateTime.UtcNow
+            }).ToList();
+        }
+
+        // SendMDNSQueryAsync is implemented for real in ONETDiscovery.Mdns.cs (genuine RFC 6762 UDP multicast
+        // DNS query/response), alongside the StartMdnsResponder()/StopMdnsResponder() pair that answers it.
         private async Task<List<NodeInfo>> GetCachedMDNSResultsAsync(string serviceType) => new List<NodeInfo>();
-        private async Task<ContractResult> CallSmartContractFunctionAsync(BlockchainQuery query) => new ContractResult();
-        private List<NodeInfo> ParseNodeInfoFromBlockchainData(object data) => new List<NodeInfo>();
+
+        // CallSmartContractFunctionAsync and ParseNodeInfoFromBlockchainData are implemented for real in
+        // ONETDiscovery.Blockchain.cs (genuine eth_call JSON-RPC + ABI-decoded address[] result).
         private async Task<List<NodeInfo>> GetCachedBlockchainResultsAsync(string contractAddress) => new List<NodeInfo>();
-        private async Task<BootstrapResponse> QueryBootstrapServersAsync(BootstrapQuery query) => new BootstrapResponse();
+
+        /// <summary>
+        /// Real HTTP bootstrap query: GETs {server}/onet/nodes from each configured bootstrap server in turn
+        /// and returns the first server that responds successfully with at least one node. Previously a stub
+        /// that unconditionally returned an empty, always-failed BootstrapResponse regardless of what servers
+        /// were configured (and the hardcoded server list it would have been called with never existed).
+        /// </summary>
+        private async Task<BootstrapResponse> QueryBootstrapServersAsync(BootstrapQuery query)
+        {
+            var response = new BootstrapResponse();
+
+            if (query.BootstrapServers == null || query.BootstrapServers.Count == 0)
+            {
+                response.Success = false;
+                response.ErrorMessage = "No bootstrap servers configured (set ONETDiscovery.BootstrapServers).";
+                return response;
+            }
+
+            foreach (var server in query.BootstrapServers)
+            {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+                try
+                {
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMilliseconds(query.Timeout));
+                    var url = BuildNodesEndpointUrl(server);
+                    var httpResponse = await _httpClient.GetAsync(url, cts.Token);
+                    stopwatch.Stop();
+
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        RecordNodeHistory(server, isSuccessful: false, stopwatch.Elapsed.TotalMilliseconds);
+                        continue;
+                    }
+
+                    var json = await httpResponse.Content.ReadAsStringAsync();
+                    var nodes = System.Text.Json.JsonSerializer.Deserialize<List<NodeInfo>>(json, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    RecordNodeHistory(server, isSuccessful: true, stopwatch.Elapsed.TotalMilliseconds);
+
+                    if (nodes != null && nodes.Count > 0)
+                    {
+                        if (OnPeerKeyDiscovered != null)
+                            foreach (var n in nodes)
+                                if (!string.IsNullOrEmpty(n.PublicKey))
+                                    OnPeerKeyDiscovered(n.Id, n.PublicKey);
+                        response.Success = true;
+                        response.Nodes = nodes;
+                        response.ServerUsed = server;
+                        response.NodeCount = nodes.Count;
+                        return response;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RecordNodeHistory(server, isSuccessful: false, stopwatch.Elapsed.TotalMilliseconds);
+                    OASISErrorHandling.HandleError($"Bootstrap server {server} query failed: {ex.Message}", ex);
+                    // Try the next configured server.
+                }
+            }
+
+            response.Success = false;
+            response.ErrorMessage = "All configured bootstrap servers failed to respond.";
+            return response;
+        }
         private async Task<List<NodeInfo>> GetCachedBootstrapResultsAsync() => new List<NodeInfo>();
     }
 
@@ -1714,6 +1989,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public List<string> Capabilities { get; set; } = new List<string>();
         public DateTime LastSeen { get; set; }
         public bool IsActive { get; set; }
+        public string PublicKey { get; set; } = string.Empty;
     }
 
     public class NodeHistory

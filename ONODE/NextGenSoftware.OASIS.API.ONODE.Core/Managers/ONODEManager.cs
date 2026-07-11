@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly Dictionary<string, object> _nodeStats = new Dictionary<string, object>();
         private readonly List<string> _nodeLogs = new List<string>();
 
-        public ONODEManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
+        public ONODEManager(IOASISStorageProvider storageProvider, OASISDNA? oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
             InitializeAsync().Wait();
         }

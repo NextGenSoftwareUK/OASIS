@@ -30,9 +30,16 @@
     "typescript": "^4.7.4",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "vite": "^5.4.21"
+  },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "dev": "npx vite",
+    "build": "vite build",
+    "build:cra": "react-scripts build",
+    "preview": "vite preview --port 3000",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

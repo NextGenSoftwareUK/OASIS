@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { ENV } from '../config/env';
 
 // WEB4 OASIS API Configuration
-const WEB4_API_BASE_URL = process.env.REACT_APP_WEB4_API_URL || 'http://localhost:50564/api';
+const WEB4_API_BASE_URL = ENV.WEB4_API_URL;
 
 const web4Api = axios.create({
   baseURL: WEB4_API_BASE_URL,

@@ -1,0 +1,22 @@
+<testsuites>
+  <testsuite name="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.dll" tests="8" skipped="0" failures="0" errors="0" time="0.09642780000000001" timestamp="2026-02-17T07:57:38" hostname="OASIS-LAPPY" id="0" package="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.dll">
+    <properties />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiExportsUnitTests" name="StarApiGetInventory_NullOutPointer_ReturnsInvalidParam" time="0.0212333" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiExportsUnitTests" name="StarApiInit_NullConfig_ReturnsInvalidParam_AndSetsError" time="0.0014917" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiExportsUnitTests" name="StarApiSetOasisBaseUrl_BeforeInit_ReturnsNotInitialized" time="0.0010949" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiClientUnitTests" name="Methods_WhenNotInitialized_ReturnNotInitialized" time="0.0429253" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiClientUnitTests" name="Init_ThenCleanup_Succeeds" time="0.0249568" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiClientUnitTests" name="Init_WithMissingWeb5BaseUrl_ReturnsInvalidParam" time="0.0002215" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiClientUnitTests" name="Failure_UpdatesLastError_AndInvokesCallback" time="0.0042780" />
+    <testcase classname="NextGenSoftware.OASIS.STARAPI.Client.UnitTests.StarApiClientUnitTests" name="Init_WithInvalidWeb5BaseUrl_ReturnsInvalidParam" time="0.0002263" />
+    <system-out>
+Test Framework Informational Messages:
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.23)
+[xUnit.net 00:00:00.24]   Discovering: NextGenSoftware.OASIS.STARAPI.Client.UnitTests
+[xUnit.net 00:00:00.32]   Discovered:  NextGenSoftware.OASIS.STARAPI.Client.UnitTests
+[xUnit.net 00:00:00.33]   Starting:    NextGenSoftware.OASIS.STARAPI.Client.UnitTests
+[xUnit.net 00:00:00.48]   Finished:    NextGenSoftware.OASIS.STARAPI.Client.UnitTests
+</system-out>
+    <system-err></system-err>
+  </testsuite>
+</testsuites>

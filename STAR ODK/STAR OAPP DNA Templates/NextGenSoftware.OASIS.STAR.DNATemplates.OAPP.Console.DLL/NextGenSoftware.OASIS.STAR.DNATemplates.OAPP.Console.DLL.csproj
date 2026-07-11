@@ -1,8 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -531,5 +531,11 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
+
+	<Target Name="EnsureDNAFiles" BeforeTargets="Build">
+		<MakeDir Directories="$(ProjectDir)DNA" Condition="!Exists('$(ProjectDir)DNA')" />
+		<Copy SourceFiles="$(ProjectDir)..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\OASIS_DNA.json" DestinationFolder="$(ProjectDir)DNA\" Condition="!Exists('$(ProjectDir)DNA\OASIS_DNA.json')" />
+		<WriteLinesToFile File="$(ProjectDir)DNA\STAR_DNA.json" Lines="{}" Overwrite="true" Condition="!Exists('$(ProjectDir)DNA\STAR_DNA.json')" />
+	</Target>
 
 </Project>

@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         public ONETHyperDriveIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
             _hyperDrive = new OASISHyperDrive();
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
         }
         private bool _isIntegrated = false;
 
@@ -137,17 +137,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             {
                 // Get ONET topology
                 var onetTopology = await _onetProtocol.GetNetworkTopologyAsync();
-                
+
                 // Get HyperDrive topology
                 var hyperDriveTopology = await _hyperDrive.GetNetworkTopologyAsync();
-                
+                var hyperDriveProviders = await GetHyperDriveProvidersAsync();
+
                 // Create unified topology
                 var unifiedTopology = new UnifiedNetworkTopology
                 {
                     ONETNodes = onetTopology.Result?.Nodes ?? new List<ONETNode>(),
-                    HyperDriveProviders = await GetHyperDriveProvidersAsync(),
-                    NetworkHealth = CalculateUnifiedNetworkHealth(onetTopology.Result, null),
-                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + (await GetHyperDriveProvidersAsync()).Count,
+                    HyperDriveProviders = hyperDriveProviders,
+                    NetworkHealth = CalculateUnifiedNetworkHealth(onetTopology.Result, BuildHyperDriveTopology(hyperDriveTopology.Result)),
+                    TotalNodes = (onetTopology.Result?.Nodes.Count ?? 0) + hyperDriveProviders.Count,
                     ActiveConnections = await GetActiveConnectionsAsync(),
                     LastUpdated = DateTime.UtcNow
                 };
@@ -329,10 +330,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
+        /// <summary>
+        /// Converts OASISHyperDrive's summary-only NetworkTopology (counts only, no per-provider list) into the
+        /// per-node HyperDriveTopology shape this integration class needs, by reading the live provider list
+        /// directly from ProviderManager. Never returns null, so CalculateHyperDriveHealth is safe to call.
+        /// </summary>
+        private HyperDriveTopology BuildHyperDriveTopology(NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.NetworkTopology hyperDriveNetworkTopology)
+        {
+            var topology = new HyperDriveTopology
+            {
+                LastUpdated = hyperDriveNetworkTopology?.LastUpdated ?? DateTime.UtcNow
+            };
+
+            foreach (var provider in ProviderManager.Instance.GetAllRegisteredProviders())
+            {
+                topology.Nodes.Add(new HyperDriveNode
+                {
+                    Id = provider.ProviderType?.Value.ToString() ?? provider.ProviderName,
+                    Name = provider.ProviderName,
+                    IsActive = provider.IsProviderActivated
+                });
+            }
+
+            return topology;
+        }
+
         private double CalculateHyperDriveHealth(HyperDriveTopology topology)
         {
             try
             {
+                if (topology == null || topology.Nodes.Count == 0)
+                    return 0.0;
+
                 // Calculate HyperDrive health based on topology
                 var totalNodes = topology.Nodes.Count;
                 var activeNodes = topology.Nodes.Count(n => n.IsActive);

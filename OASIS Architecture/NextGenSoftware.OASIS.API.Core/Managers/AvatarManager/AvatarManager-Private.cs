@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Linq;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -34,14 +35,69 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             }
         }
 
-        private void SendPasswordResetEmail(IAvatar avatar)
+        private void SendPasswordResetEmail(IAvatar avatar, string returnUrl = null)
         {
-            string message;
+            var baseUrl = !string.IsNullOrWhiteSpace(returnUrl) ? returnUrl.TrimEnd('/') : $"{OASISWebSiteURL}/avatar/reset-password";
+            var resetUrl = $"{baseUrl}?token={avatar.ResetToken}";
 
-            var resetUrl = $"{OASISWebSiteURL}/avatar/reset-password?token={avatar.ResetToken}";
-            message =
-                $@"<p>Please click the below link to reset your password, the link will be valid for 1 day:</p>
-                             <p><a href=""{resetUrl}"">{resetUrl}</a></p>";
+            string message = $@"
+                <!DOCTYPE html>
+                <html>
+                <body style='margin:0; padding:0; background-color:#000000; font-family:Arial, sans-serif;'>
+                    <table width='100%' cellpadding='0' cellspacing='0' style='background-color:#000000; padding:40px 0;'>
+                        <tr>
+                            <td align='center'>
+                                <table width='500' cellpadding='0' cellspacing='0' style='background-color:#1a1a1a; border-radius:12px; padding:40px;'>
+                                    <tr>
+                                        <td align='left' style='padding-bottom:24px;'>
+                                            <img src='https://portal.oasisomniverse.one/assets/img/OASISLogoEmail.jpg' 
+                                                 alt='OASIS' 
+                                                 width='120'
+                                                 style='display:block; background-color:#1a1a1a; border-radius:4px;' />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#ffffff; font-size:22px; font-weight:bold; padding-bottom:16px;'>
+                                            Reset Your Password
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                            We received a request to reset your password. Click the button below to choose a new one. 
+                                            This link will be valid for <strong style='color:#ffffff;'>1 day</strong>.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-bottom:28px;'>
+                                            <a href='{resetUrl}' 
+                                               style='background-color:#ffffff; color:#000000; padding:14px 28px; 
+                                                      border-radius:6px; text-decoration:none; font-weight:bold; font-size:15px;'>
+                                                Reset Password
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                            Or copy and paste this link into your browser:<br/>
+                                            <a href='{resetUrl}' style='color:#4a9eff;'>{resetUrl}</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                            If you didn't request a password reset you can safely ignore this email — your password will not be changed.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                            OASIS · Our World
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>";
 
 
             //if (!string.IsNullOrEmpty(origin))
@@ -61,41 +117,203 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                avatar.Email,
+            Task.Run(() => EmailManager.SendAsync(avatar.Email,
                 "OASIS - Reset Password",
                 $@"<h4>Reset Password</h4>
-                         {message}"
-            );
+                         {message}")).GetAwaiter().GetResult();
         }
+
+        //private void SendAlreadyRegisteredEmail(string email, string message)
+        //{
+        //    message = String.Concat($"<p>{message}</p>", $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>");
+
+        //    //if (!string.IsNullOrEmpty(origin))
+        //    //    message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
+        //    //else
+        //    //    message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+
+        //    if (!EmailManager.IsInitialized)
+        //        EmailManager.Initialize(OASISDNA);
+
+
+        //    //EmailManager.Send(
+        //    //    to: email,
+        //    //    subject: "OASIS Sign-up Verification - Email Already Registered",
+        //    //    html: $@"<h4>Email Already Registered</h4>{message}"
+        //    //    //html: $@"<h4>Email Already Registered</h4>
+        //    //    //         <p>Your email <strong>{email}</strong> is already registered.</p>
+        //    //    //         {message}"
+        //    //);
+
+        //    Task.Run(() => EmailManager.SendAsync(
+        //        to: email,
+        //        subject: "OASIS Sign-up Verification - Email Already Registered",
+        //        html: $@"<h4>Email Already Registered</h4>{message}")).GetAwaiter().GetResult();
+
+        //    //html: $@"<h4>Email Already Registered</h4>
+        //    //         <p>Your email <strong>{email}</strong> is already registered.</p>
+        //    //         {message}"
+        //    //);
+        //}
 
         private void SendAlreadyRegisteredEmail(string email, string message)
         {
-            message = String.Concat($"<p>{message}</p>", $@"<p>If you don't know your password please visit the <a href=""{OASISWebSiteURL}/avatar/forgot-password"">forgot password</a> page.</p>");
+            string html = $@"
+                <!DOCTYPE html>
+                <html>
+                <body style='margin:0; padding:0; background-color:#000000; font-family:Arial, sans-serif;'>
+                    <table width='100%' cellpadding='0' cellspacing='0' style='background-color:#000000; padding:40px 0;'>
+                        <tr>
+                            <td align='center'>
+                                <table width='500' cellpadding='0' cellspacing='0' style='background-color:#1a1a1a; border-radius:12px; padding:40px;'>
+                                    <tr>
+                                        <td align='left' style='padding-bottom:24px;'>
+                                            <img src='https://portal.oasisomniverse.one/assets/img/OASISLogoEmail.jpg' 
+                                                 alt='OASIS' 
+                                                 width='120'
+                                                 style='display:block; background-color:#1a1a1a; border-radius:4px;' />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#ffffff; font-size:22px; font-weight:bold; padding-bottom:16px;'>
+                                            Email Already Registered
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                            Sorry, the email <a href='mailto:{email}' style='color:#4a9eff;'>{email}</a> 
+                                            is already in use, please use another one.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-bottom:28px;'>
+                                            <a href='{OASISWebSiteURL}/avatar/forgot-password' 
+                                               style='background-color:#ffffff; color:#000000; padding:14px 28px; 
+                                                      border-radius:6px; text-decoration:none; font-weight:bold; font-size:15px;'>
+                                                Forgot password?
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                            OASIS · Our World
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>";
 
-            //if (!string.IsNullOrEmpty(origin))
-            //    message = $@"<p>If you don't know your password please visit the <a href=""{origin}/avatar/forgot-password"">forgot password</a> page.</p>";
-            //else
-            //    message = "<p>If you don't know your password you can reset it via the <code>/avatar/forgot-password</code> api route.</p>";
+            //string html = $@"
+            //<div style='background-color:#000000; padding:30px; text-align:center; font-family:Arial, sans-serif;'>
+            //    <img src='{OASISWebSiteURL}/assets/img/OASISLogo.jpg' 
+            //         alt='OASIS' 
+            //         style='width:200px; margin-bottom:20px;' />
+
+            //    <h4 style='color:#ffffff;'>Email Already Registered</h4>
+
+            //    <p style='color:#ffffff;'>{message}</p>
+
+            //    <p style='color:#ffffff;'>
+            //        If you don't know your password please visit the 
+            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#aaaaaa;'>
+            //            forgot password
+            //        </a> 
+            //        page.
+            //    </p>
+            //</div>";
+
+            //string html = $@"
+            //<div style='background-color:#000000; padding:30px; text-align:center; font-family:Arial, sans-serif;'>
+            //    <img src='data:image/jpeg;base64,{EmailManager.LogoBase64}' 
+            //         alt='OASIS' 
+            //         style='width:200px; margin-bottom:20px;' />
+
+            //    <h4 style='color:#ffffff;'>Email Already Registered</h4>
+
+            //    <p style='color:#ffffff;'>{message}</p>
+
+            //    <p style='color:#ffffff;'>
+            //        If you don't know your password please visit the 
+            //        <a href='{OASISWebSiteURL}/avatar/forgot-password' style='color:#aaaaaa;'>
+            //            forgot password
+            //        </a> 
+            //        page.
+            //    </p>
+            //</div>";
 
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
+            Task.Run(() => EmailManager.SendAsync(
                 to: email,
                 subject: "OASIS Sign-up Verification - Email Already Registered",
-                html: $@"<h4>Email Already Registered</h4>{message}"
-                //html: $@"<h4>Email Already Registered</h4>
-                //         <p>Your email <strong>{email}</strong> is already registered.</p>
-                //         {message}"
-            );
+                html: html
+            )).GetAwaiter().GetResult();
         }
 
         private void SendVerificationEmail(IAvatar avatar)
         {
             var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
-            string message = $@"<p>Please click the below link to verify your email address:</p>
-                             <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
+
+            string message = $@"
+                <!DOCTYPE html>
+                <html>
+                <body style='margin:0; padding:0; background-color:#000000; font-family:Arial, sans-serif;'>
+                    <table width='100%' cellpadding='0' cellspacing='0' style='background-color:#000000; padding:40px 0;'>
+                        <tr>
+                            <td align='center'>
+                                <table width='500' cellpadding='0' cellspacing='0' style='background-color:#1a1a1a; border-radius:12px; padding:40px;'>
+                                    <tr>
+                                        <td align='left' style='padding-bottom:24px;'>
+                                            <img src='https://portal.oasisomniverse.one/assets/img/OASISLogoEmail.jpg' 
+                                                 alt='OASIS' 
+                                                 width='120'
+                                                 style='display:block; background-color:#1a1a1a; border-radius:4px;' />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#ffffff; font-size:22px; font-weight:bold; padding-bottom:16px;'>
+                                            Verify Your Email Address
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#cccccc; font-size:15px; padding-bottom:28px; line-height:1.6;'>
+                                            Thanks for signing up! Please click the button below to verify your email address and activate your account.
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='padding-bottom:28px;'>
+                                            <a href='{verifyUrl}' 
+                                               style='background-color:#ffffff; color:#000000; padding:14px 28px; 
+                                                      border-radius:6px; text-decoration:none; font-weight:bold; font-size:15px;'>
+                                                Verify Email
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='color:#666666; font-size:13px; padding-bottom:20px; line-height:1.6;'>
+                                            Or copy and paste this link into your browser:<br/>
+                                            <a href='{verifyUrl}' style='color:#4a9eff;'>{verifyUrl}</a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style='border-top:1px solid #333333; padding-top:20px; color:#666666; font-size:13px;'>
+                                            OASIS · Our World
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>";
+
+            //var verifyUrl = $"{OASISWebSiteURL}/avatar/verify-email?token={avatar.VerificationToken}";
+            //string message = $@"<p>Please click the below link to verify your email address:</p>
+            //                 <p><a href=""{verifyUrl}"">{verifyUrl}</a></p>";
 
             //if (!string.IsNullOrEmpty(OASISDNA.OASIS.Email.VerificationWebSiteURL))
             //{
@@ -112,16 +330,32 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (!EmailManager.IsInitialized)
                 EmailManager.Initialize(OASISDNA);
 
-            EmailManager.Send(
-                to: avatar.Email,
-                subject: "OASIS Sign-up Verification - Verify Email",
-                //html: $@"<h4>Verify Email</h4>
-                html: $@"<h4>Verify Email</h4>
-                         <p>Thanks for registering!</p>
-                         <p>Welcome to the OASIS!</p>
-                         <p>Ready Player One?</p>
-                         {message}"
-            );
+            //EmailManager.Send(
+            //    to: avatar.Email,
+            //    subject: "OASIS Sign-up Verification - Verify Email",
+            //    //html: $@"<h4>Verify Email</h4>
+            //    html: $@"<h4>Verify Email</h4>
+            //             <p>Thanks for registering!</p>
+            //             <p>Welcome to the OASIS!</p>
+            //             <p>Ready Player One?</p>
+            //             {message}"
+            //);
+
+            //Task.Run(() => EmailManager.SendAsync(
+            //   to: avatar.Email,
+            //   subject: "OASIS Sign-up Verification - Verify Email",
+            //   //html: $@"<h4>Verify Email</h4>
+            //   html: $@"<h4>Verify Email</h4>
+            //             <p>Thanks for registering!</p>
+            //             <p>Welcome to the OASIS!</p>
+            //             <p>Ready Player One?</p>
+            //             {message}")).GetAwaiter().GetResult();
+
+            Task.Run(() => EmailManager.SendAsync(
+              to: avatar.Email,
+              subject: "OASIS Sign-up Verification - Verify Email",
+              //html: $@"<h4>Verify Email</h4>
+              html: message)).GetAwaiter().GetResult();
         }
 
         private async Task<OASISResult<IAvatar>> PrepareToRegisterAvatarAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType)
@@ -160,18 +394,27 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (IOASISBlockchainStorageProvider provider in ProviderManager.Instance.GetAllBlockchainProviders())
             {
-                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {Enum.GetName(typeof(ProviderType), provider)} Wallet", $"Default wallet for chain {Enum.GetName(typeof(ProviderType), provider)}", provider.ProviderType.Value, isDefaultWallet: true);
+                OASISResult<IProviderWallet> walletResult = WalletManager.Instance.CreateWalletWithoutSaving(result.Result.Id, $"Default {provider.ProviderType.Name} Wallet", $"Default wallet for chain {provider.ProviderType.Name}", provider.ProviderType.Value, isDefaultWallet: true);
 
                 if (walletResult != null && walletResult.Result != null && !walletResult.IsError)
+                {
+                    if (!result.Result.ProviderWallets.ContainsKey(provider.ProviderType.Value) )
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
+                    if (result.Result.ProviderWallets[provider.ProviderType.Value] == null)
+                        result.Result.ProviderWallets[provider.ProviderType.Value] = new List<IProviderWallet>();
+
                     result.Result.ProviderWallets[provider.ProviderType.Value].Add(walletResult.Result);
+                }
                 else
                     OASISErrorHandling.HandleError(ref result, $"Error occured creating default wallet for provider/chain {walletResult.Message}");
             }
 
-            OASISResult<bool> saveWalletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(result.Result.Id, result.Result.ProviderWallets);
+            //TODO: Fix this properly later! For some reason was causing an error in Azure cloud but seemed fine everywhere else including AWS etc! Its to do with not being able to save the wallets locally, which is not what we want on a server anyway! lol
+            //OASISResult<bool> saveWalletsResult = await WalletManager.Instance.SaveProviderWalletsForAvatarByIdAsync(result.Result.Id, result.Result.ProviderWallets);
             
-            if (!(saveWalletsResult != null && saveWalletsResult.Result != null && !saveWalletsResult.IsError))
-                OASISErrorHandling.HandleError(ref result, $"Error occured saving the default wallets. Reason: {saveWalletsResult.Message}");
+            //if (!(saveWalletsResult != null && saveWalletsResult.Result != null && !saveWalletsResult.IsError))
+            //    OASISErrorHandling.HandleError(ref result, $"Error occured saving the default wallets. Reason: {saveWalletsResult.Message}");
 
             result.Result.CreatedByAvatarId = result.Result.Id;
             OASISResult<bool> checkIfUsernameExistsResult = CheckIfUsernameIsAlreadyInUse(email);
@@ -617,6 +860,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -665,6 +911,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -713,6 +962,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                        {
                            result.IsLoaded = true;
                            result.Result = task.Result.Result;
+                           if (result.Result != null)
+                               result.Result = (IAvatarDetail)HolonManager.Instance.MapMetaData<AvatarDetail>(result.Result);
+                           PromoteInventoryNftIdFromMetaData(result.Result);
                        }
                    }
                    else
@@ -1021,16 +1273,33 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private string GenerateJWTToken(IAvatar account)
         {
-            //TODO: Replace exception with OASISResult ASAP.
-            if (string.IsNullOrEmpty(OASISDNA.OASIS.Security.SecretKey))
-                throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey", "OASISDNA.OASIS.Security.SecretKey is missing, please generate a unique secret key from two GUID's.");
+            OASISResult<bool> jwtReady = OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuth();
+            if (jwtReady.IsError || OASISDNAManager.OASISDNA == null || string.IsNullOrEmpty(OASISDNAManager.OASISDNA.OASIS?.Security?.SecretKey))
+                throw new ArgumentNullException("OASISDNA.OASIS.Security.SecretKey",
+                    string.IsNullOrEmpty(jwtReady.Message)
+                        ? "OASISDNA.OASIS.Security.SecretKey is missing and could not be generated. Check DNA/OASIS_DNA.json exists next to STAR CLI."
+                        : jwtReady.Message);
+
+            OASISDNA = OASISDNAManager.OASISDNA;
+            try
+            {
+                ProviderManager.Instance.OASISDNA = OASISDNAManager.OASISDNA;
+            }
+            catch
+            {
+                // non-fatal
+            }
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
+            var jwtMinutes = OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
+            if (jwtMinutes <= 0) jwtMinutes = 15;
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
-                Expires = DateTime.UtcNow.AddMinutes(15),
+                Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
+                Issuer = "OASIS",
+                Audience = "OASIS",
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -1039,10 +1308,12 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
         private RefreshToken generateRefreshToken(string ipAddress)
         {
+            var refreshDays = OASISDNA.OASIS.Security.RefreshTokenExpirationDays;
+            if (refreshDays <= 0) refreshDays = 7;
             return new RefreshToken
             {
                 Token = randomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(refreshDays),
                 Created = DateTime.UtcNow,
                 CreatedByIp = ipAddress
             };
@@ -1178,6 +1449,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.XP != avatarDetailToUpdate.XP && avatarDetailToUpdate.XP > 0)
                 avatarDetailOriginal.XP = avatarDetailToUpdate.XP;
 
+            /* Quest tracker state: always apply so GET avatar/current can restore after beam-in */
+            avatarDetailOriginal.ActiveQuestId = avatarDetailToUpdate.ActiveQuestId;
+            avatarDetailOriginal.ActiveObjectiveId = avatarDetailToUpdate.ActiveObjectiveId;
+
             if (avatarDetailOriginal.STARCLIColour != avatarDetailToUpdate.STARCLIColour && avatarDetailToUpdate.STARCLIColour != ConsoleColor.Black)
                 avatarDetailOriginal.STARCLIColour = avatarDetailToUpdate.STARCLIColour;
 
@@ -1268,7 +1543,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
             foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
             {
-                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, type.Value);
+                walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(result.Result.Id, false, false, false, type.Value);
 
                 if (!walletsResult.IsError && walletsResult.Result != null)
                 {
@@ -1346,7 +1621,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 foreach (EnumValue<ProviderType> type in ProviderManager.Instance.GetProviderAutoFailOverList())
                 {
-                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, type.Value);
+                    walletsResult = await WalletManager.Instance.LoadProviderWalletsForAvatarByIdAsync(avatar.Id, false, false, false, type.Value);
 
                     if (!walletsResult.IsError && walletsResult.Result != null)
                     {

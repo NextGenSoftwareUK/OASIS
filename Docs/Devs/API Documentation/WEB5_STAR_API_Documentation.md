@@ -780,16 +780,20 @@ DELETE /api/quests/{id}
 GET /api/quests/by-avatar/{avatarId}
 GET /api/quests/by-type/{type}
 GET /api/quests/by-status/{status}
+GET /api/quests/by-status/{status}/game
 GET /api/quests/search
 POST /api/quests/create
 ```
+
+Lightweight game read models (`/game` suffix): same auth and filtering semantics as the non-`game` routes, but the response is a flat DTO (no full Quest holon graph). The native **StarApiClient** uses `GET /api/quests/all-for-avatar/game` and `GET /api/quests/by-status/{status}/game` for quest lists. Use `GET /api/quests/all-for-avatar` (no suffix) when you need full holon JSON for tools, graph, or admin.
 
 #### **Quests Loading**
 ```http
 GET /api/quests/{id}/load
 GET /api/quests/load-from-path
 GET /api/quests/load-from-published
-GET /api/quests/load-all-for-avatar
+GET /api/quests/all-for-avatar
+GET /api/quests/all-for-avatar/game
 ```
 
 #### **Quests Publishing**

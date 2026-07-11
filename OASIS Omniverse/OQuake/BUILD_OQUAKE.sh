@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# OQuake - vkQuake + OASIS STAR API. Cross-platform (Linux, macOS) build; equivalent of "BUILD_OQUAKE.bat" on Windows.
+# Supports: Windows (use BUILD_OQUAKE.bat), Linux, macOS (use this script).
+# Usage: ./BUILD_OQUAKE.sh [ run ] [ batch ]
+#   (none) = incremental: deploy STAR API, copy integration, patch vkQuake, build, package
+#   run    = build then launch OQuake
+#   batch  = build only, no launch, no prompt
+
+set -e
+
+
+# OASIS: pause before exit when run from GUI (CI: OASIS_SCRIPT_NO_PAUSE=1)
+if [[ "${OASIS_SCRIPT_NO_PAUSE:-}" != "1" ]]; then
+  _OASIS_TD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  while [[ "$_OASIS_TD" != "/" ]]; do
+    if [[ -f "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh" ]]; then
+      # shellcheck disable=SC1091
+      source "$_OASIS_TD/Scripts/include/pause_on_exit.inc.sh"
+      break
+    fi
+    _OASIS_TD="$(dirname "$_OASIS_TD")"
+  done
+fi
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OMNIVERSE="$(cd "$HERE/.." && pwd)"
+STARAPICLIENT="$OMNIVERSE/STARAPIClient"
+OQUAKE_INTEGRATION="$HERE"
+OQUAKE_CODE="$HERE/Code"
+
+# Default paths: Linux Steam vs macOS Steam
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  OQUAKE_BASEDIR_DEFAULT="$HOME/Library/Application Support/Steam/steamapps/common/Quake"
+else
+  OQUAKE_BASEDIR_DEFAULT="$HOME/.steam/steam/steamapps/common/Quake"
+fi
+QUAKE_SRC="${QUAKE_SRC:-$HOME/Source/quake-rerelease-qc}"
+VKQUAKE_SRC="${VKQUAKE_SRC:-$HOME/Source/vkQuake}"
+OQUAKE_BASEDIR="${OQUAKE_BASEDIR:-$OQUAKE_BASEDIR_DEFAULT}"
+
+DO_FULL_CLEAN=0
+RUN_AFTER_BUILD=0
+BATCH_MODE=0
+BUILD_STAR_CLIENT=0
+for arg in "$@"; do
+  [[ "$arg" == "run" ]] && RUN_AFTER_BUILD=1
+  [[ "$arg" == "batch" ]] && BATCH_MODE=1
+done
+
+# When not run and not batch, prompt for full clean vs incremental (match Windows BUILD_OQUAKE.bat)
+if [[ $RUN_AFTER_BUILD -eq 0 && $BATCH_MODE -eq 0 ]]; then
+  echo ""
+  read -p "  Full clean/rebuild [c] or incremental build [i]? [i]: " BUILD_CHOICE
+  BUILD_CHOICE="${BUILD_CHOICE:-i}"
+  if [[ "${BUILD_CHOICE,,}" == "c" ]]; then
+    DO_FULL_CLEAN=1
+    BUILD_STAR_CLIENT=1
+  fi
+fi
+
+# Version
+if [[ -f "$HERE/Scripts/generate_oquake_version.ps1" ]] && command -v pwsh &>/dev/null; then
+  pwsh -NoProfile -ExecutionPolicy Bypass -File "$HERE/Scripts/generate_oquake_version.ps1" -Root "$HERE" || true
+fi
+VERSION_DISPLAY="1.0 (Build 1)"
+[[ -f "$HERE/Version/version_display.txt" ]] && VERSION_DISPLAY=$(cat "$HERE/Version/version_display.txt" | tr -d '\r')
+
+# Banner (centre-aligned, colours, slogan - same as ODOOM)
+if [[ -f "$OMNIVERSE/run_oasis_header.sh" ]]; then
+  bash "$OMNIVERSE/run_oasis_header.sh" OQUAKE "$VERSION_DISPLAY" || true
+fi
+
+echo "[OQuake] Checking STARAPIClient - build if changed, deploy..."
+DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-unix.sh"
+[[ ! -f "$DEPLOY_SCRIPT" ]] && DEPLOY_SCRIPT="$OMNIVERSE/STARAPIClient/Scripts/build-and-deploy-star-api-linux.sh"
+if [[ "$BUILD_STAR_CLIENT" == "1" ]]; then
+  bash "$DEPLOY_SCRIPT" -ForceBuild
+else
+  bash "$DEPLOY_SCRIPT"
+fi
+
+# STAR API: Linux .so, macOS .dylib
+STAR_SO=""
+for so in "$OQUAKE_CODE/libstar_api.so" "$OQUAKE_INTEGRATION/libstar_api.so" "$OQUAKE_CODE/libstar_api.dylib" "$OQUAKE_INTEGRATION/libstar_api.dylib"; do
+  if [[ -f "$so" ]]; then
+    STAR_SO="$so"
+    break
+  fi
+done
+if [[ -z "$STAR_SO" ]]; then
+  for so in "$OQUAKE_INTEGRATION/star_api.so" "$OQUAKE_CODE/star_api.so" "$OQUAKE_INTEGRATION/star_api.dylib" "$OQUAKE_CODE/star_api.dylib"; do
+    if [[ -f "$so" ]]; then
+      STAR_SO="$so"
+      break
+    fi
+  done
+fi
+if [[ -z "$STAR_SO" ]]; then
+  case "$(uname -s)" in
+    Darwin) [[ "$(uname -m)" == "arm64" ]] && RID="osx-arm64" || RID="osx-x64" ;;
+    *)      RID="linux-x64" ;;
+  esac
+  for name in libstar_api.so star_api.so libstar_api.dylib star_api.dylib; do
+    if [[ -f "$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name" ]]; then
+      STAR_SO="$STARAPICLIENT/bin/Release/net10.0/$RID/publish/$name"
+      break
+    fi
+  done
+fi
+if [[ -z "$STAR_SO" || ! -f "$STAR_SO" ]]; then
+  echo "ERROR: STAR API native library (libstar_api.so / libstar_api.dylib) missing after deploy. Check STARAPIClient build."
+  exit 1
+fi
+
+if [[ ! -f "$STARAPICLIENT/star_api.h" ]]; then
+  echo "ERROR: star_api.h not found: $STARAPICLIENT"
+  exit 1
+fi
+
+# star_sync API comes from star_api client exports; only header is needed for declarations.
+if [[ -f "$STARAPICLIENT/star_sync.h" ]]; then
+  mkdir -p "$OQUAKE_CODE"
+  cp -f "$STARAPICLIENT/star_sync.h" "$OQUAKE_CODE/"
+fi
+
+# Require vkQuake to build the exe. QUAKE_SRC (quake-rerelease-qc) is optional if you only run BUILD QUAKE.
+if [[ -z "$VKQUAKE_SRC" || ! -d "$VKQUAKE_SRC" || ! -f "$VKQUAKE_SRC/Quake/pr_ext.c" ]]; then
+  echo "ERROR: vkQuake source required. Set VKQUAKE_SRC (e.g. \$HOME/Source/vkQuake) to build the engine."
+  echo "  Optional: set QUAKE_SRC to also copy integration into a QuakeC tree."
+  exit 1
+fi
+
+echo ""
+echo "[OQuake] Installing..."
+if [[ -d "$QUAKE_SRC" ]]; then
+  echo "[OQuake] Installing integration into QuakeC tree..."
+  cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_SRC/"
+  cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/oquake_version.h" ]] && cp -f "$OQUAKE_CODE/oquake_version.h" "$QUAKE_SRC/"
+  [[ -f "$HERE/Docs/WINDOWS_INTEGRATION.md" ]] && cp -f "$HERE/Docs/WINDOWS_INTEGRATION.md" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" ]] && cp -f "$OQUAKE_CODE/engine_oquake_hooks.c.example" "$QUAKE_SRC/"
+  cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_SRC/"
+  [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_SRC/"
+  cp -f "$STAR_SO" "$QUAKE_SRC/"
+  echo "  $QUAKE_SRC"
+else
+  echo "  QUAKE_SRC not set or missing; skipping copy to QuakeC tree (only vkQuake will get integration)."
+fi
+
+# vkQuake: patch and build
+QUAKE_ENGINE_EXE=""
+if [[ -n "$VKQUAKE_SRC" && -d "$VKQUAKE_SRC" && -f "$VKQUAKE_SRC/Quake/pr_ext.c" ]]; then
+  echo ""
+  echo "[OQuake] Patching vkQuake source..."
+  if command -v pwsh &>/dev/null && [[ -f "$HERE/vkquake_oquake/apply_oquake_to_vkquake.ps1" ]]; then
+    pwsh -NoProfile -ExecutionPolicy Bypass -File "$HERE/vkquake_oquake/apply_oquake_to_vkquake.ps1" -VkQuakeSrc "$VKQUAKE_SRC" -QuakeInstallDir "$OQUAKE_BASEDIR" -SkipQuakeInstallPrompt || true
+  else
+    echo "[OQuake][WARN] pwsh not found or apply script missing; copying integration files manually."
+    QUAKE_DIR="$VKQUAKE_SRC/Quake"
+    [[ -f "$OQUAKE_CODE/oquake_star_integration.c" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.c" "$QUAKE_DIR/"
+    [[ -f "$OQUAKE_CODE/oquake_star_integration.h" ]] && cp -f "$OQUAKE_CODE/oquake_star_integration.h" "$QUAKE_DIR/"
+    [[ -f "$OQUAKE_CODE/star_sync.h" ]] && cp -f "$OQUAKE_CODE/star_sync.h" "$QUAKE_DIR/"
+    cp -f "$STARAPICLIENT/star_api.h" "$QUAKE_DIR/"
+  fi
+  # Stage anorak HUD face (same as apply script): Images/ is canonical; pwsh path may be skipped above.
+  if [[ -f "$HERE/Images/face_anorak.png" ]]; then
+    mkdir -p "$HERE/build/id1/gfx"
+    cp -f "$HERE/Images/face_anorak.png" "$HERE/build/id1/gfx/face_anorak.png"
+    echo "[OQuake] Staged face_anorak.png -> build/id1/gfx/"
+  elif [[ -f "$HERE/face_anorak.png" ]]; then
+    mkdir -p "$HERE/build/id1/gfx"
+    cp -f "$HERE/face_anorak.png" "$HERE/build/id1/gfx/face_anorak.png"
+    echo "[OQuake] Staged face_anorak.png -> build/id1/gfx/"
+  fi
+  # OQuake_STAR_PollItems must run every frame (including menu/console). If host.c already contains the call
+  # (e.g. vkQuake was patched on Windows with apply_oquake_to_vkquake.ps1), the unix script skips edits.
+  HOST_C="$VKQUAKE_SRC/Quake/host.c"
+  PATCH_PY="$HERE/vkquake_oquake/patch_host_oquake_star_unix.py"
+  if [[ -f "$HOST_C" && -f "$PATCH_PY" ]]; then
+    if command -v python3 &>/dev/null; then
+      python3 "$PATCH_PY" "$HOST_C" || {
+        echo "[OQuake][ERROR] host.c OQuake_STAR_PollItems patch failed. Async beamin needs python3 patch or apply_oquake_to_vkquake.ps1."
+        exit 1
+      }
+    else
+      echo "[OQuake][ERROR] python3 required to verify/patch host.c for OQuake_STAR_PollItems."
+      exit 1
+    fi
+  fi
+  # Ensure STAR API shared lib is in vkQuake/Quake (.so on Linux, .dylib on macOS; Windows uses .dll)
+  cp -f "$STAR_SO" "$VKQUAKE_SRC/Quake/"
+
+  if [[ "$DO_FULL_CLEAN" == "1" ]]; then
+    echo "[OQuake] Full clean..."
+    rm -rf "$VKQUAKE_SRC/Windows/VisualStudio/Build-vkQuake" "$VKQUAKE_SRC/Windows/VisualStudio/x64" "$VKQUAKE_SRC/build"
+  fi
+
+  echo ""
+  echo "[OQuake] Building engine..."
+  if [[ -f "$VKQUAKE_SRC/meson.build" ]]; then
+    if command -v meson &>/dev/null && command -v ninja &>/dev/null; then
+      cd "$VKQUAKE_SRC"
+      if [[ ! -d build ]]; then
+        meson setup build --buildtype=release
+      fi
+      ninja -C build
+      cd "$HERE"
+      if [[ -f "$VKQUAKE_SRC/build/vkquake" ]]; then
+        QUAKE_ENGINE_EXE="$VKQUAKE_SRC/build/vkquake"
+      elif [[ -f "$VKQUAKE_SRC/build/vkquake.exe" ]]; then
+        QUAKE_ENGINE_EXE="$VKQUAKE_SRC/build/vkquake.exe"
+      fi
+    else
+      echo "[OQuake][WARN] meson/ninja not found. Install with: sudo apt install meson ninja-build (or equivalent)."
+    fi
+  else
+    echo "[OQuake][WARN] vkQuake meson.build not found at $VKQUAKE_SRC"
+  fi
+fi
+
+# Copy to OQuake/build
+if [[ -n "$QUAKE_ENGINE_EXE" && -f "$QUAKE_ENGINE_EXE" ]]; then
+  echo ""
+  echo "[OQuake] Copying files to build folder..."
+  mkdir -p "$OQUAKE_INTEGRATION/build"
+  cp -f "$QUAKE_ENGINE_EXE" "$OQUAKE_INTEGRATION/build/OQUAKE"
+  chmod +x "$OQUAKE_INTEGRATION/build/OQUAKE"
+  cp -f "$STAR_SO" "$OQUAKE_INTEGRATION/build/"
+  # Copy any other shared libs from vkQuake build (e.g. Vulkan loader)
+  EXE_DIR="$(dirname "$QUAKE_ENGINE_EXE")"
+  for d in "$EXE_DIR"/*.so "$EXE_DIR"/*.dylib; do
+    [[ -f "$d" ]] && cp -f "$d" "$OQUAKE_INTEGRATION/build/" || true
+  done
+  # Ensure anorak face is next to OQUAKE (Images/ or prior staging)
+  if [[ -f "$HERE/Images/face_anorak.png" ]]; then
+    mkdir -p "$OQUAKE_INTEGRATION/build/id1/gfx"
+    cp -f "$HERE/Images/face_anorak.png" "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png"
+  elif [[ -f "$HERE/face_anorak.png" ]]; then
+    mkdir -p "$OQUAKE_INTEGRATION/build/id1/gfx"
+    cp -f "$HERE/face_anorak.png" "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png"
+  fi
+  # If game data path exists, install face there too (same as Windows apply → Steam id1/gfx)
+  if [[ -f "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png" && -d "$OQUAKE_BASEDIR/id1" ]]; then
+    mkdir -p "$OQUAKE_BASEDIR/id1/gfx"
+    cp -f "$OQUAKE_INTEGRATION/build/id1/gfx/face_anorak.png" "$OQUAKE_BASEDIR/id1/gfx/face_anorak.png" && \
+      echo "[OQuake] Copied face_anorak.png -> $OQUAKE_BASEDIR/id1/gfx/"
+  fi
+  echo "  Output: $OQUAKE_INTEGRATION/build/OQUAKE"
+fi
+
+echo ""
+echo "---"
+if [[ -n "$QUAKE_ENGINE_EXE" ]]; then
+  echo "OQuake ready. Use ./RUN_OQUAKE.sh or BUILD_OQUAKE.sh run to launch."
+  echo "Game data: id1 with pak0.pak, pak1.pak in -basedir (e.g. $OQUAKE_BASEDIR)."
+else
+  echo "To build engine: set VKQUAKE_SRC (e.g. \$HOME/Source/vkQuake) and ensure meson/ninja are installed."
+fi
+echo "Cross-game keys: set STAR_USERNAME / STAR_PASSWORD or STAR_API_KEY / STAR_AVATAR_ID"
+echo "---"
+
+if [[ $RUN_AFTER_BUILD -eq 1 ]] && [[ -x "$OQUAKE_INTEGRATION/build/OQUAKE" ]]; then
+  echo "Launching OQuake..."
+  cd "$OQUAKE_INTEGRATION/build"
+  exec ./OQUAKE -basedir "$OQUAKE_BASEDIR"
+fi
+

@@ -1,5 +1,7 @@
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MonadOASIS;
 
@@ -22,7 +24,11 @@ public sealed class MonadOASIS : Web3CoreOASISBaseProvider,
         ProviderName = "MonadOASIS";
         ProviderDescription = "Monad high-throughput EVM provider";
         ProviderType = new(Core.Enums.ProviderType.MonadOASIS);
-        ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 }
 

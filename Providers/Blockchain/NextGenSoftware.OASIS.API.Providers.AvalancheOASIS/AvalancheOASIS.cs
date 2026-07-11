@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -45,9 +45,15 @@ using System.IO;
 using System.Text;
 
 
+using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
+
 namespace NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
 
-public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
+/// <summary>
+/// Legacy Avalanche provider using chain-specific contract and custom Nethereum logic.
+/// Kept for reference and backward compatibility. The main <see cref="AvalancheOASIS"/> uses Web3CoreOASISBaseProvider.
+/// </summary>
+public sealed class AvalancheOASIS_Legacy : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private readonly string _hostURI;
     private readonly string _chainPrivateKey;
@@ -122,14 +128,17 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
     private object _nextGenSoftwareOasisService;
     private object _avalancheClient;
 
-    public AvalancheOASIS(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
+    public AvalancheOASIS_Legacy(string hostUri, string chainPrivateKey, BigInteger chainId, string contractAddress)
     {
-        this.ProviderName = "AvalancheOASIS";
-        this.ProviderDescription = "Avalanche Provider";
+        this.ProviderName = "AvalancheOASIS_Legacy";
+        this.ProviderDescription = "Avalanche Provider (Legacy)";
         this.ProviderType = new(Core.Enums.ProviderType.AvalancheOASIS);
         this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
-        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
         this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
         _hostURI = hostUri;
         _chainPrivateKey = chainPrivateKey;
@@ -225,8 +234,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!this.IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref response, "Avalanche provider is not activated");
-                return response;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return response;
+                }
             }
 
             // Delete avatar from Avalanche blockchain using smart contract call
@@ -267,8 +280,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by provider key first
@@ -317,8 +334,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -367,8 +388,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -478,8 +503,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load holon by provider key first
@@ -538,8 +567,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first
@@ -588,8 +621,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by ID first
@@ -638,8 +675,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first
@@ -683,15 +724,47 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                var activateResult = ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            var avatarsResult = LoadAllAvatars();
+            if (avatarsResult.IsError || avatarsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                 return result;
             }
-            OASISErrorHandling.HandleError(ref result, "GetAvatarsNearMe is not supported by Avalanche provider");
+
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IAvatar>();
+
+            foreach (var avatar in avatarsResult.Result)
+            {
+                if (avatar.MetaData != null &&
+                    avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(avatar);
+                }
+            }
+
+            result.Result = nearby;
+            result.IsError = false;
+            result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
             result.Exception = ex;
-            OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}");
+            OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsNearMe: {ex.Message}", ex);
         }
         return result;
     }
@@ -703,15 +776,47 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
+                var activateResult = ActivateProvider();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            var holonsResult = LoadAllHolons(holonType, true, true, 0, 0, true, false, 0);
+            if (holonsResult.IsError || holonsResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                 return result;
             }
-            OASISErrorHandling.HandleError(ref result, "GetHolonsNearMe is not supported by Avalanche provider");
+
+            var centerLat = geoLat / 1e6d;
+            var centerLng = geoLong / 1e6d;
+            var nearby = new List<IHolon>();
+
+            foreach (var holon in holonsResult.Result)
+            {
+                if (holon.MetaData != null &&
+                    holon.MetaData.TryGetValue("Latitude", out var latObj) &&
+                    holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
+                    double.TryParse(latObj?.ToString(), out var lat) &&
+                    double.TryParse(lngObj?.ToString(), out var lng))
+                {
+                    var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
+                    if (distance <= radiusInMeters)
+                        nearby.Add(holon);
+                }
+            }
+
+            result.Result = nearby;
+            result.IsError = false;
+            result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
         }
         catch (Exception ex)
         {
             result.Exception = ex;
-            OASISErrorHandling.HandleError(ref result, $"Error in GetHolonsNearMe: {ex.Message}");
+            OASISErrorHandling.HandleError(ref result, $"Error in GetHolonsNearMe: {ex.Message}", ex);
         }
         return result;
     }
@@ -723,8 +828,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = ActivateProviderAsync().Result;
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/players/nearby").Result;
@@ -769,8 +878,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             if (holons == null || !holons.Any())
@@ -813,8 +926,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar details directly from Avalanche blockchain
@@ -834,7 +951,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarDetailData = await getAvatarDetailFunction.CallDeserializingToObjectAsync<AvatarDetailStruct>(i);
                         
                         var avatarDetail = new AvatarDetail();
-                        avatarDetail.Id = Guid.NewGuid();
+                        avatarDetail.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:avatarDetail:{avatarDetailData.EntityId}");
                         avatarDetail.Username = avatarDetailData.AvatarId;
                         avatarDetail.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -881,8 +998,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for all avatars
@@ -901,7 +1022,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var avatarData = await getAvatarFunction.CallDeserializingToObjectAsync<AvatarStruct>(i);
                         
                         var avatar = new Avatar();
-                        avatar.Id = Guid.NewGuid();
+                        avatar.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:avatar:{avatarData.EntityId}");
                         avatar.Username = avatarData.AvatarId;
                         avatar.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -947,8 +1068,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for all holons
@@ -967,7 +1092,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1064,8 +1189,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for avatar by email
@@ -1135,8 +1264,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for avatar by provider key
@@ -1190,8 +1323,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for avatar by username
@@ -1310,8 +1447,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by email first, then create avatar detail
@@ -1354,8 +1495,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Load avatar by username first, then create avatar detail
@@ -1448,8 +1593,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for holon by provider key
@@ -1462,7 +1611,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                     var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(entityId);
                     
                     var holon = new Holon();
-                    holon.Id = Guid.NewGuid();
+                    holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                     holon.Name = holonData.HolonId;
                     holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                     {
@@ -1491,15 +1640,89 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return LoadHolonByCustomKeyAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+    }
 
-    //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(customKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "Custom key cannot be null or empty");
+                return result;
+            }
+
+            // Load holon by custom key from Avalanche smart contract
+            // Try loading by provider key first (custom key might be stored as provider key)
+            var holonResult = await LoadHolonAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            if (!holonResult.IsError && holonResult.Result != null)
+            {
+                result.Result = holonResult.Result;
+                result.IsError = false;
+                result.Message = "Holon loaded successfully from Avalanche by custom key";
+            }
+            else
+            {
+                // Custom key might be stored in metadata - search for it
+                try
+                {
+                    var searchParams = new SearchParams
+                    {
+                        FilterByMetaData = new Dictionary<string, string> { ["CustomKey"] = customKey },
+                        MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All
+                    };
+                    
+                    var searchResult = await SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version);
+                    if (!searchResult.IsError && searchResult.Result != null && searchResult.Result.SearchResultHolons != null && searchResult.Result.SearchResultHolons.Any())
+                    {
+                        // Find holon where custom key matches in metadata
+                        var matchingHolon = searchResult.Result.SearchResultHolons.FirstOrDefault(h => 
+                            h.MetaData != null && 
+                            h.MetaData.ContainsKey("CustomKey") && 
+                            h.MetaData["CustomKey"]?.ToString() == customKey);
+                        
+                        if (matchingHolon != null)
+                        {
+                            result.Result = matchingHolon;
+                            result.IsError = false;
+                            result.Message = "Holon loaded successfully from Avalanche by custom key (via metadata search)";
+                        }
+                        else
+                        {
+                            OASISErrorHandling.HandleError(ref result, "Holon not found with that custom key on Avalanche blockchain");
+                        }
+                    }
+                    else
+                    {
+                        OASISErrorHandling.HandleError(ref result, "Holon not found with that custom key on Avalanche blockchain");
+                    }
+                }
+                catch (Exception searchEx)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to search for holon by custom key: {searchEx.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holon by custom key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
+    }
 
     //public override OASISResult<IHolon> LoadHolonByMetaData(string metaKey, string metaValue, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     //{
@@ -1528,8 +1751,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for holons for parent
@@ -1550,7 +1777,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1591,8 +1818,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for holons for parent by provider key
@@ -1613,7 +1844,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1647,15 +1878,54 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        return LoadHolonsForParentByCustomKeyAsync(customKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+    }
 
-    //public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    //{
-    //    throw new NotImplementedException();
-    //}
+    public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if (!IsProviderActivated)
+            {
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(customKey))
+            {
+                OASISErrorHandling.HandleError(ref result, "Custom key cannot be null or empty");
+                return result;
+            }
+
+            // First load the parent holon by custom key
+            var parentResult = await LoadHolonByCustomKeyAsync(customKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
+            
+            if (parentResult.IsError || parentResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Parent holon not found: {parentResult.Message}");
+                return result;
+            }
+
+            // Then load children for the parent
+            var childrenResult = await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+            
+            result.Result = childrenResult.Result;
+            result.IsError = childrenResult.IsError;
+            result.Message = childrenResult.Message;
+        }
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by custom key from Avalanche: {ex.Message}", ex);
+        }
+        return result;
+    }
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
@@ -1664,8 +1934,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for holons by metadata
@@ -1686,7 +1960,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -1732,8 +2006,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Query Avalanche smart contract for holons by multiple metadata pairs
@@ -1754,7 +2032,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -2155,8 +2433,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Search avatars and holons using Avalanche smart contract
@@ -2178,7 +2460,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                         var holonData = await getHolonFunction.CallDeserializingToObjectAsync<HolonStruct>(i);
                         
                         var holon = new Holon();
-                        holon.Id = Guid.NewGuid();
+                        holon.Id = AvalancheContractHelper.CreateDeterministicGuid($"{ProviderType.Value}:holon:{holonData.EntityId}");
                         holon.Name = holonData.HolonId;
                         holon.ProviderMetaData.Add(this.ProviderType.Value, new Dictionary<string, string>
                         {
@@ -2310,8 +2592,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get wallet addresses for both avatars
@@ -2366,8 +2652,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get avatar wallets by ID
@@ -2449,13 +2739,17 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Get avatar wallets by username
-            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, false, false, this.ProviderType.Value);
-            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, false, false, this.ProviderType.Value);
+            var fromWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(fromAvatarUsername, false, false, false, this.ProviderType.Value);
+            var toWalletResult = await WalletManager.Instance.GetAvatarDefaultWalletByUsernameAsync(toAvatarUsername, false, false, false, this.ProviderType.Value);
 
             if (fromWalletResult.IsError || toWalletResult.IsError)
             {
@@ -2684,7 +2978,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
                 var nft = new Web3NFT();
                 nft.Id = Guid.NewGuid();
                 nft.NFTTokenAddress = nftTokenAddress;
-                nft.MetaData.Add("AvalancheEntityId", nftData.EntityId);
+                nft.MetaData.Add("AvalancheEntityId", nftData.EntityId.ToString());
                 nft.MetaData.Add("AvalancheInfo", nftData.Info);
             
             result.Result = nft;
@@ -2947,8 +3241,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
@@ -2973,8 +3271,12 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             var wallet = new Nethereum.HdWallet.Wallet(seedPhrase, null);
@@ -3527,20 +3829,24 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
         return result;
     }
 
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {
-        return GenerateKeyPairAsync(request).Result;
+        return GenerateKeyPairAsync().Result;
     }
 
-    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+    public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
     {
         var result = new OASISResult<IKeyPairAndWallet>();
         try
         {
             if (!IsProviderActivated)
             {
-                OASISErrorHandling.HandleError(ref result, "Avalanche provider is not activated");
-                return result;
+                var activateResult = await ActivateProviderAsync();
+                if (activateResult.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Avalanche provider: {activateResult.Message}");
+                    return result;
+                }
             }
 
             // Generate Avalanche key pair using Nethereum (Avalanche uses same secp256k1 as Ethereum)
@@ -3548,6 +3854,7 @@ public sealed class AvalancheOASIS : OASISStorageProviderBase, IOASISDBStoragePr
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
+            //TODO: Replace KeyHelper with Avalanche specific implementation.
             // Use KeyHelper to generate key pair structure
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
@@ -3796,5 +4103,47 @@ file static class AvalancheContractHelper
         {
             return new Web3NFT();
         }
+    }
+
+    /// <summary>
+    /// Creates a deterministic GUID from input string using SHA-256 hash
+    /// </summary>
+    public static Guid CreateDeterministicGuid(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return Guid.Empty;
+
+        using var sha256 = System.Security.Cryptography.SHA256.Create();
+        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+        return new Guid(bytes.Take(16).ToArray());
+    }
+}
+
+/// <summary>
+/// AvalancheOASIS provider using the shared Web3CoreOASISBaseProvider and generic Web3Core contract.
+/// All Avatar, AvatarDetail, and Holon operations are handled by the base provider.
+/// </summary>
+public sealed class AvalancheOASIS : Web3CoreOASISBaseProvider,
+    IOASISDBStorageProvider,
+    IOASISNETProvider,
+    IOASISSuperStar,
+    IOASISBlockchainStorageProvider,
+    IOASISNFTProvider
+{
+    public AvalancheOASIS(
+        string hostUri = "https://api.avax.network/ext/bc/C/rpc",
+        string chainPrivateKey = "",
+        string contractAddress = "")
+        : base(hostUri, chainPrivateKey, contractAddress)
+    {
+        ProviderName = "AvalancheOASIS";
+        ProviderDescription = "Avalanche Provider - EVM-compatible using Web3Core";
+        ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AvalancheOASIS);
+        ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.EVMBlockchain));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+        ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
     }
 }

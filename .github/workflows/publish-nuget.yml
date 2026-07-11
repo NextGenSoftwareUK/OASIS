@@ -1,0 +1,48 @@
+name: Publish NuGet Packages
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout OASIS2
+        uses: actions/checkout@v4
+        with:
+          path: OASIS2
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          path: holochain-client-csharp
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Pack all packages
+        shell: pwsh
+        working-directory: OASIS2
+        run: .\publish-nuget.ps1 -SkipPush
+
+      - name: Push all packages to NuGet.org
+        shell: pwsh
+        working-directory: OASIS2
+        run: |
+          Get-ChildItem -Path .\nupkgs\*.nupkg | ForEach-Object {
+            Write-Host "Pushing $($_.Name)..."
+            dotnet nuget push $_.FullName `
+              --source https://api.nuget.org/v3/index.json `
+              --api-key ${{ secrets.NUGET_API_KEY }} `
+              --skip-duplicate
+          }

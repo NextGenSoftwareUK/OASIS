@@ -1,0 +1,15 @@
+ODOOM is a fork of UZDoom with the OASIS STAR API integrated.
+By NextGen World Ltd.
+
+The underlying engine is UZDoom, which is licensed under the
+GNU General Public License v3.0 (GPL-3.0).
+
+When you build or distribute ODOOM (or any build that includes
+UZDoom source), you must comply with UZDoom's license and give
+appropriate credit to UZDoom.
+
+Full license text: https://www.gnu.org/licenses/gpl-3.0.html
+UZDoom repository:   https://github.com/UZDoom/UZDoom
+
+See CREDITS_AND_LICENSE.md in this folder for detailed credits
+and license obligations.

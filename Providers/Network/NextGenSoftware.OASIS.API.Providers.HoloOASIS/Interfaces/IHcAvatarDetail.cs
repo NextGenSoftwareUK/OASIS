@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -19,6 +19,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         long Karma { get; set; } //TODO: This really needs to have a private setter but in the HoloOASIS provider it needs to copy the object along with each property... would prefer another work around if possible?
         //int Level { get; set; }
         int XP { get; set; }
+        Guid? ActiveQuestId { get; set; }
+        Guid? ActiveObjectiveId { get; set; }
         string Model3D { get; set; }
         string UmaJson { get; set; }
         string Portrait { get; set; }

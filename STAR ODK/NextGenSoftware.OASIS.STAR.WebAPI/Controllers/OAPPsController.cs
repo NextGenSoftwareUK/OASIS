@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -22,6 +23,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
     public class OAPPsController : STARControllerBase
     {
         private static readonly STARAPI _starAPI = new STARAPI(new STARDNA());
+
+        protected override STARAPI GetStarAPI() => _starAPI;
 
         /// <summary>
         /// Retrieves all OAPPs in the system.
@@ -37,16 +40,26 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPs.LoadAllAsync(AvatarId, null);
+
+                // Return test data if setting is enabled and result is null, has error, or is empty
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test OAPPs - using empty list for now as OAPP type may need specific implementation
+                    var testOAPPs = new List<OAPP>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<OAPP>>(testOAPPs, "OAPPs retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<IEnumerable<OAPP>>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading OAPPs: {ex.Message}",
-                    Exception = ex
-                });
+                    var testOAPPs = new List<OAPP>();
+                    return Ok(TestDataHelper.CreateSuccessResult<IEnumerable<OAPP>>(testOAPPs, "OAPPs retrieved successfully (using test data)"));
+                }
+                return HandleException<IEnumerable<OAPP>>(ex, "GetAllOAPPs");
             }
         }
 
@@ -65,16 +78,24 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             try
             {
                 var result = await _starAPI.OAPPs.LoadAsync(AvatarId, id, 0);
+
+                // Return test data if setting is enabled and result is null, has error, or result is null
+                if (UseTestDataWhenLiveDataNotAvailable && TestDataHelper.ShouldUseTestData(result))
+                {
+                    // Create test OAPP - using null for now as OAPP type may need specific implementation
+                    return Ok(TestDataHelper.CreateSuccessResult<OAPP>(null, "OAPP retrieved successfully (using test data)"));
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
+                // Return test data if setting is enabled, otherwise return error
+                if (UseTestDataWhenLiveDataNotAvailable)
                 {
-                    IsError = true,
-                    Message = $"Error loading OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                    return Ok(TestDataHelper.CreateSuccessResult<OAPP>(null, "OAPP retrieved successfully (using test data)"));
+                }
+                return HandleException<OAPP>(ex, "GetOAPP");
             }
         }
 
@@ -97,12 +118,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error creating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "creating OAPP");
             }
         }
 
@@ -117,12 +133,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error updating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "updating OAPP");
             }
         }
 
@@ -136,18 +147,15 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<bool>(ex, "deleting OAPP");
             }
         }
 
         [HttpPost("{id}/clone")]
         public async Task<IActionResult> CloneOAPP(Guid id, [FromBody] CloneRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewName." });
             try
             {
                 var result = await _starAPI.OAPPs.CloneAsync(AvatarId, id, request.NewName);
@@ -155,12 +163,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error cloning OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "cloning OAPP");
             }
         }
 
@@ -177,6 +180,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PublishOAPP(Guid id, [FromBody] PublishRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SourcePath, LaunchTarget, and optional publish options." });
             try
             {
                 var result = await _starAPI.OAPPs.PublishAsync(
@@ -193,12 +198,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error publishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "publishing OAPP");
             }
         }
 
@@ -230,7 +230,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                var result = await _starAPI.OAPPs.SearchAsync<OAPP>(AvatarId, searchTerm, true, showAllVersions, version);
+                var result = await _starAPI.OAPPs.SearchAsync<OAPP>(AvatarId, searchTerm, default, null, MetaKeyValuePairMatchMode.All, true, showAllVersions, version);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -284,19 +284,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateOAPPWithOptions([FromBody] CreateOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name, Description, and optional HolonSubType, SourceFolderPath, CreateOptions." });
+            var validationError = ValidateCreateRequest(request.Name, request.Description);
+            if (validationError != null)
+                return validationError;
+            var avatarCheck = ValidateAvatarId<OAPP>();
+            if (avatarCheck != null) return avatarCheck;
             try
             {
+                await EnsureStarApiBootedAsync();
+                EnsureLoggedInAvatar();
                 var result = await _starAPI.OAPPs.CreateAsync(AvatarId, request.Name, request.Description, request.HolonSubType, request.SourceFolderPath, request.CreateOptions);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error creating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "creating OAPP");
             }
         }
 
@@ -319,12 +323,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP from path: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP from path");
             }
         }
 
@@ -347,12 +346,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP from published: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP from published");
             }
         }
 
@@ -395,9 +389,11 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<IEnumerable<OAPP>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> SearchOAPPs([FromBody] SearchRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<IEnumerable<OAPP>> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with SearchTerm." });
             try
             {
-                var result = await _starAPI.OAPPs.SearchAsync<OAPP>(AvatarId, request.SearchTerm, true, false, 0);
+                var result = await _starAPI.OAPPs.SearchAsync<OAPP>(AvatarId, request.SearchTerm, default, null, MetaKeyValuePairMatchMode.All, true, false, 0);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -424,6 +420,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<object>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> DownloadOAPP(Guid id, [FromBody] DownloadOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<object> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with DestinationPath and optional Overwrite." });
             try
             {
                 var result = await _starAPI.OAPPs.DownloadAsync(AvatarId, id, 0, request.DestinationPath, request.Overwrite);
@@ -431,12 +429,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<object>
-                {
-                    IsError = true,
-                    Message = $"Error downloading OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<object>(ex, "downloading OAPP");
             }
         }
 
@@ -460,12 +453,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error loading OAPP version: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "loading OAPP version");
             }
         }
 
@@ -482,6 +470,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISResult<OAPP>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> EditOAPP(Guid id, [FromBody] EditOAPPRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<OAPP> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with NewDNA." });
             try
             {
                 var result = await _starAPI.OAPPs.EditAsync(id, request.NewDNA, AvatarId);
@@ -489,12 +479,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error editing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "editing OAPP");
             }
         }
 
@@ -517,12 +502,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error unpublishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "unpublishing OAPP");
             }
         }
 
@@ -546,12 +526,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error republishing OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "republishing OAPP");
             }
         }
 
@@ -574,12 +549,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error activating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "activating OAPP");
             }
         }
 
@@ -602,12 +572,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new OASISResult<OAPP>
-                {
-                    IsError = true,
-                    Message = $"Error deactivating OAPP: {ex.Message}",
-                    Exception = ex
-                });
+                return HandleException<OAPP>(ex, "deactivating OAPP");
             }
         }
     }

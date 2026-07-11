@@ -25,7 +25,11 @@ if not exist node_modules (
     npm install
     if %errorlevel% neq 0 (
         echo ❌ Frontend dependencies FAILED
-        pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
         exit /b 1
     )
 ) else (

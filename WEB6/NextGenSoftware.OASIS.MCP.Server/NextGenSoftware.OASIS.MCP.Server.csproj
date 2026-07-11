@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet dotnet tool packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>oasis-mcp</ToolCommandName>
+
+    <!-- NuGet metadata -->
+    <PackageId>NextGenSoftware.OASIS.MCP.Server</PackageId>
+    <Version>2.0.0</Version>
+    <Title>OASIS MCP Server</Title>
+    <Product>OASIS MCP Server</Product>
+    <Summary>The OASIS Model Context Protocol (MCP) Server — exposes 111 typed named tools across WEB4–WEB10 directly to Cursor, VS Code, and any MCP-compatible IDE. Mint NFTs, manage wallets, generate smart contracts, interact with AI agents, and access the full OASIS ecosystem through natural language. Install with: dotnet tool install -g NextGenSoftware.OASIS.MCP.Server</Summary>
+    <Description>The OASIS Model Context Protocol (MCP) Server — exposes 111 typed named tools across WEB4–WEB10 directly to Cursor, VS Code, and any MCP-compatible IDE. Mint NFTs, manage wallets, generate smart contracts, interact with AI agents, and access the full OASIS ecosystem through natural language. Install with: dotnet tool install -g NextGenSoftware.OASIS.MCP.Server</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; MCP; ModelContextProtocol; AI; IDE; Cursor; VSCode; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Interoperability; Avatar-API; Karma-API; SmartContracts; FAHRN; HolonicBraid; OpenSERV; A2A; DeveloperTools; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Rewrote from Node.js/npm to .NET 10 using the official ModelContextProtocol SDK for improved performance and type safety.
+- Consolidated into the OASIS2 repository under WEB6/ — single source of truth alongside Web6.Core and Web6.WebAPI.
+- Full integration with OASIS API Core v2.0.0, WEB6 AI abstraction layer, WEB7-WEB10 APIs, FAHRN, HolonicBraid, and STAR ODK.
+- 111 typed named tools covering WEB4–WEB10: NFT operations, wallet management, smart contracts, A2A Protocol, avatar/identity, AI completions, FAHRN orchestration, holonic memory, external memory, DID/VC auth, and direct blockchain access.
+- Configurable via IDE mcp.json: dotnet tool install -g NextGenSoftware.OASIS.MCP.Server, then point your IDE at the oasis-mcp command.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.9" />
+    <PackageReference Include="ModelContextProtocol" Version="2.0.0-preview.1" />
+
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.Web6.Core\NextGenSoftware.OASIS.Web6.Core.csproj" />
+    <ProjectReference Include="..\..\WEB7\NextGenSoftware.OASIS.Web7.Core\NextGenSoftware.OASIS.Web7.Core.csproj" />
+    <ProjectReference Include="..\..\WEB8\NextGenSoftware.OASIS.Web8.Core\NextGenSoftware.OASIS.Web8.Core.csproj" />
+    <ProjectReference Include="..\..\WEB9\NextGenSoftware.OASIS.Web9.Core\NextGenSoftware.OASIS.Web9.Core.csproj" />
+    <ProjectReference Include="..\..\WEB10\NextGenSoftware.OASIS.Web10.Core\NextGenSoftware.OASIS.Web10.Core.csproj" />
+  </ItemGroup>
+
+</Project>

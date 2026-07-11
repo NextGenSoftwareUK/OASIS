@@ -1,26 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NextGenSoftware.OASIS.API.Core.Objects;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Native.EndPoint;
-using NextGenSoftware.OASIS.STAR.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
 using NextGenSoftware.OASIS.STAR.WebAPI.Controllers;
 using Xunit;
 using FluentAssertions;
-using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 {
     public class GeoHotSpotsControllerTests
     {
-        private readonly Mock<ILogger<GeoHotSpotsController>> _mockLogger;
         private readonly GeoHotSpotsController _controller;
 
         public GeoHotSpotsControllerTests()
         {
-            _mockLogger = new Mock<ILogger<GeoHotSpotsController>>();
             _controller = new GeoHotSpotsController();
+            STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
         [Fact]
@@ -31,7 +24,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -45,23 +38,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
         public async Task CreateGeoHotSpot_WithValidGeoHotSpot_ShouldReturnOASISResult()
         {
             // Arrange
-            var mockGeoHotSpot = new Mock<IGeoHotSpot>();
-            mockGeoHotSpot.Setup(x => x.Id).Returns(Guid.NewGuid());
-            mockGeoHotSpot.Setup(x => x.Name).Returns("Test GeoHotSpot");
+            var hotSpot = new GeoHotSpot { Id = Guid.NewGuid(), Name = "Test GeoHotSpot" };
 
             // Act
-            var result = await _controller.CreateGeoHotSpot(mockGeoHotSpot.Object);
+            var result = await _controller.CreateGeoHotSpot(hotSpot);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -69,16 +60,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         {
             // Arrange
             var id = Guid.NewGuid();
-            var mockGeoHotSpot = new Mock<IGeoHotSpot>();
-            mockGeoHotSpot.Setup(x => x.Id).Returns(id);
-            mockGeoHotSpot.Setup(x => x.Name).Returns("Updated GeoHotSpot");
+            var hotSpot = new GeoHotSpot { Id = id, Name = "Updated GeoHotSpot" };
 
             // Act
-            var result = await _controller.UpdateGeoHotSpot(id, mockGeoHotSpot.Object);
+            var result = await _controller.UpdateGeoHotSpot(id, hotSpot);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
 
         [Fact]
@@ -92,7 +81,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<IActionResult>();
+            result.Should().BeAssignableTo<IActionResult>();
         }
     }
 }

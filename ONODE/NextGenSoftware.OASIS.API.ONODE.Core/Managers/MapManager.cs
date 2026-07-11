@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -62,19 +62,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             CurrentMapProviderType = mapProvider.MapProviderType;
         }
 
+        private bool WithMapProvider(Func<IOASISMapProvider, bool> action)
+        {
+            if (CurrentMapProvider == null) return false;
+            return action(CurrentMapProvider);
+        }
+
         public bool Draw3DObjectOnMap(object obj, float x, float y)
         {
-            return CurrentMapProvider.Draw3DObjectOnMap(obj, x, y);
+            return WithMapProvider(p => p.Draw3DObjectOnMap(obj, x, y));
         }
 
         public bool Draw2DSpriteOnMap(object sprite, float x, float y)
         {
-            return CurrentMapProvider.Draw2DSpriteOnMap(sprite, x, y);
+            return WithMapProvider(p => p.Draw2DSpriteOnMap(sprite, x, y));
         }
 
         public bool Draw2DSpriteOnHUD(object sprite, float x, float y)
         {
-            return CurrentMapProvider.Draw2DSpriteOnHUD(sprite, x, y);
+            return WithMapProvider(p => p.Draw2DSpriteOnHUD(sprite, x, y));
         }
 
         public bool HighlightBuildingOnMap(IBuilding building)
@@ -84,132 +90,132 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public bool PlaceHolonOnMap(IHolon holon, float x, float y)
         {
-            return CurrentMapProvider.PlaceHolonOnMap(holon, x, y);
+            return WithMapProvider(p => p.PlaceHolonOnMap(holon, x, y));
         }
 
         public bool PlaceBuildingOnMap(IBuilding building, float x, float y)
         {
-            return CurrentMapProvider.PlaceBuildingOnMap(building, x, y);
+            return WithMapProvider(p => p.PlaceBuildingOnMap(building, x, y));
         }
 
         public bool PlaceQuestOnMap(IQuest quest, float x, float y)
         {
-            return CurrentMapProvider.PlaceQuestOnMap(quest, x, y);
+            return WithMapProvider(p => p.PlaceQuestOnMap(quest, x, y));
         }
 
         public bool PlaceGeoNFTOnMap(IWeb4GeoSpatialNFT geoNFT, float x, float y)
         {
-            return CurrentMapProvider.PlaceGeoNFTOnMap(geoNFT, x, y);
+            return WithMapProvider(p => p.PlaceGeoNFTOnMap(geoNFT, x, y));
         }
 
         public bool PlaceGeoHotSpotOnMap(IGeoHotSpot geoHotSpot, float x, float y)
         {
-            return CurrentMapProvider.PlaceGeoHotSpotOnMap(geoHotSpot, x, y);
+            return WithMapProvider(p => p.PlaceGeoHotSpotOnMap(geoHotSpot, x, y));
         }
 
         public bool PlaceOAPPOnMap(IOAPP OAPP, float x, float y)
         {
-            return CurrentMapProvider.PlaceOAPPOnMap(OAPP, x, y);
+            return WithMapProvider(p => p.PlaceOAPPOnMap(OAPP, x, y));
         }
 
         public bool DrawRouteOnMap(float startX, float startY, float endX, float endY, Color colour)
         {
-            return CurrentMapProvider.DrawRouteOnMap(startX, startY, endX, endY, colour);
+            return WithMapProvider(p => p.DrawRouteOnMap(startX, startY, endX, endY, colour));
         }
 
         public bool CreateAndDrawRouteOnMapBeweenPoints(MapPoints points)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBeweenPoints(points);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBeweenPoints(points));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(IHolon fromHolon, IHolon toHolon)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenHolons(fromHolon, toHolon);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenHolons(fromHolon, toHolon));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenHolons(Guid fromHolonId, Guid toHolonId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenHolons(fromHolonId, toHolonId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenHolons(fromHolonId, toHolonId));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(IQuest fromQuest, IQuest toQuest)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenQuests(fromQuest, toQuest);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenQuests(fromQuest, toQuest));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenQuests(Guid fromQuestId, Guid toQuestId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenQuests(fromQuestId, toQuestId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenQuests(fromQuestId, toQuestId));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(IWeb4GeoSpatialNFT fromGeoNFT, IWeb4GeoSpatialNFT toGeoNFT)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFT, toGeoNFT);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFT, toGeoNFT));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoNFTs(Guid fromGeoNFTId, Guid toGeoNFTId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFTId, toGeoNFTId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenGeoNFTs(fromGeoNFTId, toGeoNFTId));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(IGeoHotSpot fromGeoHotSpot, IGeoHotSpot toGeoHotSpot)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpot, toGeoHotSpot);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpot, toGeoHotSpot));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenGeoHotSpots(Guid fromGeoHotSpotId, Guid toGeoHotSpotId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpotId, toGeoHotSpotId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenGeoHotSpots(fromGeoHotSpotId, toGeoHotSpotId));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(IOAPP fromOAPP, IOAPP toOAPP)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPP, toOAPP);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPP, toOAPP));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenOAPPs(Guid fromOAPPId, Guid toOAPPId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPPId, toOAPPId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenOAPPs(fromOAPPId, toOAPPId));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(IBuilding fromBuilding, IBuilding toBuilding)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenBuildings(fromBuilding, toBuilding);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenBuildings(fromBuilding, toBuilding));
         }
 
         public bool CreateAndDrawRouteOnMapBetweenBuildings(Guid fromBuildingId, Guid toBuildingId)
         {
-            return CurrentMapProvider.CreateAndDrawRouteOnMapBetweenBuildings(fromBuildingId, toBuildingId);
+            return WithMapProvider(p => p.CreateAndDrawRouteOnMapBetweenBuildings(fromBuildingId, toBuildingId));
         }
 
         public bool ZoomMapOut(float value)
         {
-            return CurrentMapProvider.ZoomMapOut(value);
+            return WithMapProvider(p => p.ZoomMapOut(value));
         }
 
         public bool ZoomMapIn(float value)
         {
-            return CurrentMapProvider.ZoomMapIn(value);
+            return WithMapProvider(p => p.ZoomMapIn(value));
         }
 
         public bool PanMapLeft(float value)
         {
-            return CurrentMapProvider.PanMapLeft(value);
+            return WithMapProvider(p => p.PanMapLeft(value));
         }
 
         public bool PanMapRight(float value)
         {
-            return CurrentMapProvider.PanMapRight(value);
+            return WithMapProvider(p => p.PanMapRight(value));
         }
 
         public bool PanMapUp(float value)
         {
-            return CurrentMapProvider.PanMapUp(value);
+            return WithMapProvider(p => p.PanMapUp(value));
         }
 
         public bool PanMapDown(float value)
         {
-            return CurrentMapProvider.PanMapDown(value);
+            return WithMapProvider(p => p.PanMapDown(value));
         }
 
         //Select is same as Zoom so these functions are now redundant because zoom will zoom to and select the item on the map...
@@ -270,67 +276,67 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public bool ZoomToHolonOnMap(IHolon holon)
         {
-            return CurrentMapProvider.ZoomToHolonOnMap(holon);
+            return WithMapProvider(p => p.ZoomToHolonOnMap(holon));
         }
 
         public bool ZoomToHolonOnMap(Guid holonId)
         {
-            return CurrentMapProvider.ZoomToHolonOnMap(holonId);
+            return WithMapProvider(p => p.ZoomToHolonOnMap(holonId));
         }
 
         public bool ZoomToQuestOnMap(IQuest quest)
         {
-            return CurrentMapProvider.ZoomToQuestOnMap(quest);
+            return WithMapProvider(p => p.ZoomToQuestOnMap(quest));
         }
 
         public bool ZoomToQuestOnMap(Guid questId)
         {
-            return CurrentMapProvider.ZoomToQuestOnMap(questId);
+            return WithMapProvider(p => p.ZoomToQuestOnMap(questId));
         }
 
         public bool ZoomToGeoNFTOnMap(IWeb4GeoSpatialNFT geoNFT)
         {
-            return CurrentMapProvider.ZoomToGeoNFTOnMap(geoNFT);
+            return WithMapProvider(p => p.ZoomToGeoNFTOnMap(geoNFT));
         }
 
         public bool ZoomToGeoNFTOnMap(Guid geoNFTId)
         {
-            return CurrentMapProvider.ZoomToGeoNFTOnMap(geoNFTId);
+            return WithMapProvider(p => p.ZoomToGeoNFTOnMap(geoNFTId));
         }
 
         public bool ZoomToGeoHotSpotOnMap(IGeoHotSpot geoHotSpot)
         {
-            return CurrentMapProvider.ZoomToGeoHotSpotOnMap(geoHotSpot);
+            return WithMapProvider(p => p.ZoomToGeoHotSpotOnMap(geoHotSpot));
         }
 
         public bool ZoomToGeoHotSpotOnMap(Guid geoHotSpotId)
         {
-            return CurrentMapProvider.ZoomToGeoHotSpotOnMap(geoHotSpotId);
+            return WithMapProvider(p => p.ZoomToGeoHotSpotOnMap(geoHotSpotId));
         }
 
         public bool ZoomToOAPPOnMap(IOAPP oapp)
         {
-            return CurrentMapProvider.ZoomToOAPPOnMap(oapp);
+            return WithMapProvider(p => p.ZoomToOAPPOnMap(oapp));
         }
 
         public bool ZoomToOAPPOnMap(Guid oappId)
         {
-            return CurrentMapProvider.ZoomToOAPPOnMap(oappId);
+            return WithMapProvider(p => p.ZoomToOAPPOnMap(oappId));
         }
 
         public bool ZoomToBuildingOnMap(IBuilding building)
         {
-            return CurrentMapProvider.ZoomToBuildingOnMap(building);
+            return WithMapProvider(p => p.ZoomToBuildingOnMap(building));
         }
 
         public bool ZoomToBuildingOnMap(Guid buildingId)
         {
-            return CurrentMapProvider.ZoomToBuildingOnMap(buildingId);
+            return WithMapProvider(p => p.ZoomToBuildingOnMap(buildingId));
         }
 
         public bool ZoomToCoOrdsOnMap(float x, float y)
         {
-            return CurrentMapProvider.ZoomToCoOrdsOnMap(x, y);
+            return WithMapProvider(p => p.ZoomToCoOrdsOnMap(x, y));
         }
 
         public async Task<OASISResult<List<MapLocation>>> GetNearbyLocationsAsync(Guid avatarId, double latitude, double longitude, double radiusKm = 10.0)

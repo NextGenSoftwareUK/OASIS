@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <RootNamespace>NextGenSoftware.OASIS.Web7.WebAPI</RootNamespace>
+    <AssemblyName>NextGenSoftware.OASIS.Web7.WebAPI</AssemblyName>
+    <UserSecretsId>b2f7d4e3-9f5c-4d0b-ac2f-7a8e9d6b3f21</UserSecretsId>
+  </PropertyGroup>
+
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.Web7.WebAPI</PackageId>
+    <Version>2.0.0</Version>
+    <Title>OASIS WEB7 Spatial/AR Layer WebAPI</Title>
+    <Product>OASIS WEB7 Spatial/AR Layer WebAPI</Product>
+    <Summary>ASP.NET Core REST API controllers for the OASIS WEB7 Spatial/AR Layer — spatial data, AR anchors, and holographic object management endpoints.</Summary>
+    <Description>ASP.NET Core REST API controllers for the OASIS WEB7 Spatial/AR Layer — spatial data, AR anchors, and holographic object management endpoints.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
+    <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\NextGenSoftware.OASIS.OASISBootLoader.csproj" />
+    <ProjectReference Include="..\NextGenSoftware.OASIS.Web7.Core\NextGenSoftware.OASIS.Web7.Core.csproj" />
+  </ItemGroup>
+
+</Project>

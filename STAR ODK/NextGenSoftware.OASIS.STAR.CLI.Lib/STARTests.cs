@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             CLIEngine.ShowWorkingMessage("Linking Private Key to Solana Wallet...");
             keyLinkResult = STAR.OASISAPI.Keys.LinkProviderPrivateKeyToAvatarByEmail(keyLinkResult.Result.Id, "davidellams@hotmail.com", ProviderType.SolanaOASIS, "TEST PRIVATE KEY");
-
+                
             if (!keyLinkResult.IsError && keyLinkResult.Result != null)
                 CLIEngine.ShowSuccessMessage($"Successfully linked private key to Solana Wallet. WalletID: {keyLinkResult.Result.Id}");
             else
@@ -368,7 +368,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
 
             CLIEngine.ShowWorkingMessage("Generating KeyPair & Linking to EOS Wallet...");
-            OASISResult<IProviderWallet> generateKeyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairAndLinkProviderKeysToAvatarByEmail("davidellams@hotmail.com", ProviderType.EOSIOOASIS, true, true);
+            OASISResult<IProviderWallet> generateKeyPairResult = STAR.OASISAPI.Keys.GenerateKeyPairWithWalletAddressAndLinkProviderKeysToAvatarByEmail("davidellams@hotmail.com", ProviderType.EOSIOOASIS, true, true);
 
             if (!generateKeyPairResult.IsError && generateKeyPairResult.Result != null)
                 CLIEngine.ShowSuccessMessage($"Successfully generated new keypair and linked to EOS Wallet. Public Key: {generateKeyPairResult.Result.PublicKey}, Private Key: {generateKeyPairResult.Result.PrivateKey}");

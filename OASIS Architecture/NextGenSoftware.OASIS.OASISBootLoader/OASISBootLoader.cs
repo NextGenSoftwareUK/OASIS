@@ -1,49 +1,55 @@
-﻿using System;
-using System.Numerics;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+//using NextGenSoftware.OASIS.API.Providers.TONOASIS; // Not referenced in Core Only solution
+//using NextGenSoftware.OASIS.API.Providers.ZkSyncOASIS;
+//using NextGenSoftware.OASIS.API.Providers.LineaOASIS;
+//using NextGenSoftware.OASIS.API.Providers.ScrollOASIS;
+//using NextGenSoftware.OASIS.API.Providers.XRPLOASIS;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.Logging;
 using NextGenSoftware.Logging.NLogger;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
-using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
-using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
-using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
-using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
-using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
-using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
-using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
-using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
+using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
+using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
+using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
+using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
+using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
+using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
+using NextGenSoftware.OASIS.API.Providers.EOSIOOASIS;
+using NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
+using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
+using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
+using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura;
+using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
+using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 using NextGenSoftware.OASIS.API.Providers.RootstockOASIS;
-using NextGenSoftware.OASIS.API.Providers.BitcoinOASIS;
-using NextGenSoftware.OASIS.API.Providers.AptosOASIS;
-using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
-using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
-using NextGenSoftware.OASIS.API.Providers.AvalancheOASIS;
-using NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
-using NextGenSoftware.OASIS.API.Providers.BaseOASIS;
+using NextGenSoftware.OASIS.API.Providers.SEEDSOASIS;
+using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
-using NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS;
-using NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
-using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
+using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
-//using NextGenSoftware.OASIS.API.Providers.CardanoOASIS;
-//using NextGenSoftware.OASIS.API.Providers.BNBChainOASIS;
-//using NextGenSoftware.OASIS.API.Providers.FantomOASIS;
-//using NextGenSoftware.OASIS.API.Providers.OptimismOASIS;
-//using NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Numerics;
+using System.Threading.Tasks;
 //using NextGenSoftware.OASIS.API.Providers.ElrondOASIS;
 //using NextGenSoftware.OASIS.API.Providers.PolkaDotOASIS;
 
@@ -59,13 +65,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "4.4.4";
-        public static string OASISAPIVersion { get; set; } = "4.4.4";
+        public static string OASISRuntimeVersion { get; set; } = "4.5.1";
+        public static string OASISAPIVersion { get; set; } = "4.6.0";
         public static string COSMICVersion { get; set; } = "2.1.1";
-        public static string STARODKVersion { get; set; } = "3.3.3";
-        public static string STARRuntimeVersion { get; set; } = "3.3.3";
-        public static string STARNETVersion { get; set; } = "2.2.2";
-        public static string STARAPIVersion { get; set; } = "1.1.1";
+        public static string STARODKVersion { get; set; } = "3.5.0";
+        public static string STARRuntimeVersion { get; set; } = "3.5.0";
+        public static string STARNETVersion { get; set; } = "2.4.0";
+        public static string STARAPIVersion { get; set; } = "1.3.0";
 
         public static string DotNetVersion
         {
@@ -173,6 +179,18 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     }
 
                     OASISDNAManager.OASISDNA = OASISDNA;
+
+                    OASISResult<bool> secretKeyResult = await OASISDNAManager.EnsureSecuritySecretKeyPersistedAsync();
+                    if (secretKeyResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"{errorMessage}{secretKeyResult.Message}");
+                        IsOASISBooting = false;
+                        return result;
+                    }
+
+                    if (secretKeyResult.IsWarning && !string.IsNullOrEmpty(secretKeyResult.Message))
+                        OASISErrorHandling.HandleWarning(ref result, secretKeyResult.Message);
+
                     LoggingManager.CurrentLoggingFramework = (LoggingFramework)Enum.Parse(typeof(LoggingFramework), OASISDNA.OASIS.Logging.LoggingFramework);
 
                     switch (LoggingManager.CurrentLoggingFramework)
@@ -200,6 +218,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                     OASISErrorHandling.ErrorHandlingBehaviour = OASISDNA.OASIS.ErrorHandling.ErrorHandlingBehaviour;
 
                     ProviderManager.Instance.IsAutoFailOverEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabled;
+                    ProviderManager.Instance.IsAutoFailOverLocalProvidersEnabled = OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProvidersEnabled;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForAvatarLogin = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForAvatarLogin;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfEmailAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfEmailAlreadyInUse;
                     //ProviderManager.Instance.IsAutoFailOverEnabledForCheckIfUsernameAlreadyInUse = OASISDNA.OASIS.StorageProviders.AutoFailOverEnabledForCheckIfUsernameAlreadyInUse;
@@ -331,6 +350,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($".NET VERSION:          v{DotNetVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
+
+                        OASISResult<bool> jwtReady = await OASISDNAManager.EnsureJwtSecretKeyReadyForAvatarAuthAsync();
+                        if (jwtReady.IsWarning && !string.IsNullOrEmpty(jwtReady.Message))
+                            LoggingManager.Log(jwtReady.Message, LogType.Warning);
+                        if (jwtReady.IsError)
+                            OASISErrorHandling.HandleWarning(ref result, jwtReady.Message ?? "EnsureJwtSecretKeyReadyForAvatarAuth failed.");
+                        try
+                        {
+                            ProviderManager.Instance.OASISDNA = OASISDNA;
+                        }
+                        catch
+                        {
+                            // non-fatal
+                        }
                     }
 
                     IsOASISBooting = false;
@@ -1095,14 +1128,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.AvalancheOASIS:
                         {
-                            var chainIdHex = OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainId ?? "0x0";
-                            var chainId = chainIdHex.StartsWith("0x") 
-                                ? BigInteger.Parse(chainIdHex.Substring(2), System.Globalization.NumberStyles.HexNumber)
-                                : BigInteger.Parse(chainIdHex);
                             var avalancheProvider = new AvalancheOASIS(
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.RpcEndpoint ?? "https://api.avax.network/ext/bc/C/rpc",
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ChainPrivateKey ?? "",
-                                chainId,
                                 OASISDNA.OASIS.StorageProviders.AvalancheOASIS.ContractAddress ?? "");
                             avalancheProvider.OnStorageProviderError += AvalancheOASIS_StorageProviderError;
                             result.Result = avalancheProvider;
@@ -1298,7 +1326,24 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
         private static OASISResult<OASISDNA> LoadOASISDNA(string OASISDNAPath)
         {
-            return OASISDNAManager.LoadDNA(OASISDNAPath);
+            string dnaPath = Environment.GetEnvironmentVariable("OASIS_DNA_PATH") ?? Path.Combine(AppContext.BaseDirectory, OASISDNAPath);
+
+            Console.WriteLine($"2CurrentDirectory: {Environment.CurrentDirectory}");
+            Console.WriteLine($"BaseDirectory: {AppContext.BaseDirectory}");
+            Console.WriteLine($"DNA Path being used: {OASISDNAManager.OASISDNAPath}");
+            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+            Console.WriteLine($"AppRootDirectory: {AppPathHelper.ResolveAppRootDirectory()}");
+            Console.WriteLine($"OASISDNAPath: {OASISDNAPath}");
+            Console.WriteLine($"dnaPath: {dnaPath}");
+
+            var dnaResult = OASISDNAManager.LoadDNA(dnaPath);
+
+            Console.WriteLine($"DNA Load Success: {!dnaResult.IsError}");
+            Console.WriteLine($"DNA Load Message: {dnaResult.Message}");
+            Console.WriteLine($"OASISDNA null: {OASISDNAManager.OASISDNA == null}");
+
+            return dnaResult;
+            //return OASISDNAManager.LoadDNA(OASISDNAPath);
         }
 
         private static async Task<OASISResult<OASISDNA>> LoadOASISDNAAsync(string OASISDNAPath)
@@ -1363,6 +1408,13 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
             if (providerTypesResult != null && !providerTypesResult.IsError)
                 ProviderManager.Instance.SetAutoReplicationForProviders(true, providerTypesResult.Result);
+            else
+                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
+
+            providerTypesResult = GetProviderTypesFromDNA("AutoFailOverLocalProviders", OASISDNA.OASIS.StorageProviders.AutoFailOverLocalProviders);
+
+            if (providerTypesResult != null && !providerTypesResult.IsError)
+                ProviderManager.Instance.SetAutoFailOverLocalForProviders(true, providerTypesResult.Result);
             else
                 OASISErrorHandling.HandleWarning(ref result, $"{errorMessage}Error Occured Calling GetProviderTypesFromDNA. Reason: {providerTypesResult.Message}");
 
