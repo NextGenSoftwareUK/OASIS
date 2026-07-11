@@ -1,6 +1,6 @@
 # WEB6 MCP Tool Reference
 
-The OASIS MCP Server exposes **101 typed named tools** covering WEB4 through WEB10. This reference lists every tool, its parameters, and its return value.
+The OASIS MCP Server exposes **111 typed named tools** covering WEB4 through WEB10. This reference lists every tool, its parameters, and its return value.
 
 All tools return a JSON-serialised `OASISResult<T>` envelope. On success, `isError` is `false` and the data is in `result`. On failure, `isError` is `true` and `message` describes the problem.
 
