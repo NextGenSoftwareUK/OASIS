@@ -70,15 +70,17 @@ If building from source, point directly at the project:
 
 ## Tool coverage
 
-| Layer | How covered |
+Every layer is exposed as **specific, named, typed tools** — the agent can see exactly what's available in its tool list and call them by name. Generic HTTP passthrough is deliberately avoided: an agent given `web4_request(url, method, body)` can't discover what endpoints exist and can't reason about what to call.
+
+| Layer | Coverage approach |
 |---|---|
-| **WEB4** — OASIS API / ONODE (identity, karma, NFTs, wallets, smart contracts) | `web4_request` generic HTTP passthrough — full access to every WEB4 REST endpoint without duplicating hundreds of routes |
-| **WEB5** — STAR API / STARNET (holon graph, OAPPs, quests) | `web5_request` generic HTTP passthrough — same pattern as WEB4 |
-| **WEB6** — AI abstraction layer (FAHRN, Holonic BRAID, semantic cache, orchestration) | Specific typed tools — one per public manager method, called **in-process** (no HTTP round-trip) |
-| **WEB7** — Symbiotic layer | Specific typed tools, in-process |
-| **WEB8** — Inter-Galactic mesh | Specific typed tools, in-process |
-| **WEB9** — Singularity status aggregation | Specific typed tools, in-process |
-| **WEB10** — Source / Omniversal layer | Specific typed tools, in-process |
+| **WEB4** — OASIS API / ONODE (identity, karma, NFTs, wallets, smart contracts) | Named typed tools per operation (`oasis_avatar_get`, `oasis_karma_get`, `oasis_nft_mint`, `oasis_wallet_create`, etc.) calling the WEB4 REST API |
+| **WEB5** — STAR API / STARNET (holon graph, OAPPs, quests) | Named typed tools per operation (`oasis_holon_search`, `oasis_quest_get`, `oasis_oapp_list`, etc.) calling the WEB5 REST API |
+| **WEB6** — AI abstraction layer (FAHRN, Holonic BRAID, semantic cache, orchestration) | Named typed tools calling Core managers **in-process** (no HTTP round-trip) |
+| **WEB7** — Symbiotic layer | Named typed tools, in-process |
+| **WEB8** — Inter-Galactic mesh | Named typed tools, in-process |
+| **WEB9** — Singularity status aggregation | Named typed tools, in-process |
+| **WEB10** — Source / Omniversal layer | Named typed tools, in-process |
 
 ---
 
