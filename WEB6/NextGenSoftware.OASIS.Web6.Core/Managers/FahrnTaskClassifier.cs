@@ -30,6 +30,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             if (string.IsNullOrWhiteSpace(problem))
                 return "general";
 
+            // Priority 25: Try ML.NET in-process classifier first (zero latency, no API call)
+            try
+            {
+                var mlNet = new MLNetManager(Guid.Empty);
+                string mlResult = mlNet.ClassifyTaskType(problem);
+                if (!string.Equals(mlResult, "general", StringComparison.OrdinalIgnoreCase))
+                    return mlResult;
+                // "general" from ML.NET means unclassified — fall through to LLM for confirmation
+            }
+            catch { }
+
             try
             {
                 var request = new CompletionRequest
