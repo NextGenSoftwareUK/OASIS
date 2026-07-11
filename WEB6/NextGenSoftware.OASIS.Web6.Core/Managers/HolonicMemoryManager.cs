@@ -216,6 +216,100 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             return result;
         }
 
+        // ── Priority 16a — multi-hop propagation ────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Propagates permitted memory items up the fractal hierarchy for up to <paramref name="levels"/> hops.
+        /// Pass <c>int.MaxValue</c> to propagate all the way to Earth.
+        /// </summary>
+        public async Task<OASISResult<int>> PropagateUpAsync(Guid childHolonId, int levels = 1)
+        {
+            OASISResult<int> result = new OASISResult<int>();
+            int totalPropagated = 0;
+            Guid currentId = childHolonId;
+
+            for (int i = 0; i < levels; i++)
+            {
+                OASISResult<int> step = await PropagateAsync(currentId);
+                if (step.IsError || step.Result == 0)
+                    break;
+                totalPropagated += step.Result;
+
+                OASISResult<IHolon> holon = await Data.LoadHolonAsync(currentId, false);
+                if (holon.IsError || holon.Result == null)
+                    break;
+                if (!holon.Result.MetaData.TryGetValue("ParentHolonId", out object p) ||
+                    !Guid.TryParse(p?.ToString(), out Guid parentId) || parentId == Guid.Empty)
+                    break;
+
+                currentId = parentId;
+            }
+
+            result.Result = totalPropagated;
+            return result;
+        }
+
+        // ── Priority 16c — TTL enforcement ──────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Removes all expired HolonicMemoryItems (RetentionPolicy.TimeLimited past ExpiresUtc) from every
+        /// holon across all levels. Call on startup and/or periodically to enforce time-limited retention.
+        /// </summary>
+        public async Task<OASISResult<int>> PurgeExpiredAsync()
+        {
+            OASISResult<int> result = new OASISResult<int>();
+            int totalPurged = 0;
+
+            // Iterate all known holonic holon types
+            foreach (HolonType holonType in Enum.GetValues(typeof(HolonType)).Cast<HolonType>()
+                .Where(t => t.ToString().StartsWith("HolonicMemory") || t == HolonType.ReasoningSession || t == HolonType.ReasoningAgent))
+            {
+                OASISResult<IEnumerable<IHolon>> loadResult = await Data.LoadAllHolonsAsync(holonType);
+                if (loadResult.IsError || loadResult.Result == null) continue;
+
+                foreach (IHolon holon in loadResult.Result)
+                {
+                    HolonicMemoryHolonDto dto = MapToDto(holon);
+                    int before = dto.MemoryItems.Count;
+                    dto.MemoryItems.RemoveAll(item => item.IsExpired);
+                    int purged = before - dto.MemoryItems.Count;
+
+                    if (purged > 0)
+                    {
+                        totalPurged += purged;
+                        WriteDtoToMetaData(holon, dto);
+                        await Data.SaveHolonAsync(holon, AvatarId, false);
+                    }
+                }
+            }
+
+            result.Result = totalPurged;
+            return result;
+        }
+
+        /// <summary>Deletes all Ephemeral memory items from the specified session holon (called when a session ends).</summary>
+        public async Task<OASISResult<int>> DeleteEphemeralMemoriesAsync(Guid sessionHolonId)
+        {
+            OASISResult<int> result = new OASISResult<int>();
+            OASISResult<IHolon> loadResult = await Data.LoadHolonAsync(sessionHolonId, false);
+
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Session holon {sessionHolonId} not found.");
+                return result;
+            }
+
+            HolonicMemoryHolonDto dto = MapToDto(loadResult.Result);
+            int before = dto.MemoryItems.Count;
+            dto.MemoryItems.RemoveAll(item => item.RetentionPolicy == Enums.RetentionPolicy.Ephemeral || item.RetentionPolicy == Enums.RetentionPolicy.Session);
+
+            WriteDtoToMetaData(loadResult.Result, dto);
+            await Data.SaveHolonAsync(loadResult.Result, AvatarId, false);
+
+            result.Result = before - dto.MemoryItems.Count;
+            return result;
+        }
+
         private static bool IsPermittedToPropagate(HolonicMemoryItem item, MembraneRule rule)
         {
             if (rule.FieldsAllowedToPropagate == null || !rule.FieldsAllowedToPropagate.Contains(item.FieldName, StringComparer.OrdinalIgnoreCase))

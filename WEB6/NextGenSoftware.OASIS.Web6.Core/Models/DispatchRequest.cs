@@ -59,5 +59,13 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         /// <summary>When true, FAHRN runs a lightweight NLI check between adjacent agent outputs in Debate/Voting
         /// modes and flags contradictions. Adds one model call per agent pair. Default false.</summary>
         public bool EnableContradictionDetection { get; set; } = false;
+
+        // ── Priority 15 — External memory providers ──────────────────────────────────────────────────
+        /// <summary>
+        /// External memory providers to search for relevant context before dispatch.
+        /// Results are injected into every agent system message. Values: "Mem0", "Zep", "Letta", "LangMem", "Graphiti".
+        /// null/empty = skip. Requires AvatarId to be set.
+        /// </summary>
+        public List<string> ExternalMemoryProviders { get; set; }
     }
 }
