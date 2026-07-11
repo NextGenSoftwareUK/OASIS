@@ -23,5 +23,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>True if WEB6 had to fail over to a different provider/model than requested.</summary>
         public bool FailedOver { get; set; }
+
+        /// <summary>Estimated cost in USD based on token usage and provider pricing table.</summary>
+        public double EstimatedCostUSD { get; set; }
+
+        /// <summary>True if this response was served from the semantic cache (no provider call was made).</summary>
+        public bool FromCache { get; set; }
     }
 }
