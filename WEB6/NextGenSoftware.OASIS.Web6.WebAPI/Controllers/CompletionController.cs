@@ -120,6 +120,10 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
                 }
             }
 
+            // --- Auto-inject built-in OASIS tools when avatar is known and caller hasn't specified tools ---
+            if (request.AvatarId != Guid.Empty && (request.Tools == null || request.Tools.Count == 0))
+                request.Tools = BuiltInTools.All;
+
             // --- Provider call ---
             var manager = new AIProviderManager(request.AvatarId, OASISDNA);
             var result  = await manager.CompleteAsync(request);
@@ -140,6 +144,18 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 
             return result.IsError ? BadRequest(result) : Ok(result);
         }
+
+        /// <summary>
+        /// Continues a tool-calling loop by re-entering the completion pipeline with the full message
+        /// history already containing the assistant's tool_call message(s) and one or more tool result
+        /// messages (Role="tool"). The pipeline is identical to POST /v1/complete — the separate endpoint
+        /// name is a semantic marker so callers can distinguish agentic loop turns from initial requests.
+        /// POST https://api.web6.oasisomniverse.one/v1/complete/tool-result
+        /// </summary>
+        [HttpPost("complete/tool-result")]
+        [ProducesResponseType(typeof(CompletionResponse), StatusCodes.Status200OK)]
+        public Task<IActionResult> CompleteToolResult([FromBody] CompletionRequest request)
+            => Complete(request);
 
         /// <summary>
         /// Streams a completion response as SSE (text/event-stream). Each event is a JSON CompletionChunk;
