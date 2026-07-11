@@ -41,5 +41,23 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
 
         /// <summary>"stop" (default — return partial results) or "best_so_far" (return best answer seen before budget hit).</summary>
         public string BudgetExceededBehaviour { get; set; } = "stop";
+
+        // ── Priority 3c — Web7 Symbiosis hints ──────────────────────────────────────────────────────
+        /// <summary>When set, FAHRN reads the user's real-time bio-signal state (cognitive load, focus, arousal)
+        /// from the active Symbiosis session and adjusts dispatch mode accordingly.</summary>
+        public Guid? SymbiosisSessionId { get; set; }
+
+        // ── Priority 3d — Web8 mesh routing ─────────────────────────────────────────────────────────
+        /// <summary>When true, completion requests are routed through the Web8 galactic mesh rather than
+        /// calling AIProviderManager directly. Requires SourceMeshNodeId to be set.</summary>
+        public bool UseMeshRouting { get; set; } = false;
+
+        /// <summary>The mesh node that initiates the routed completion request.</summary>
+        public Guid? SourceMeshNodeId { get; set; }
+
+        // ── Priority 17d — Contradiction detection ───────────────────────────────────────────────────
+        /// <summary>When true, FAHRN runs a lightweight NLI check between adjacent agent outputs in Debate/Voting
+        /// modes and flags contradictions. Adds one model call per agent pair. Default false.</summary>
+        public bool EnableContradictionDetection { get; set; } = false;
     }
 }
