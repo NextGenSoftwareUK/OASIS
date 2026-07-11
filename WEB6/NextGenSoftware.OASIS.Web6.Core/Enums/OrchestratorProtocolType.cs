@@ -18,6 +18,29 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
         SemanticKernel,
 
         /// <summary>A generic JSON-over-HTTP webhook for any orchestrator that doesn't have a dedicated adapter yet.</summary>
-        Webhook
+        Webhook,
+
+        // ── Priority 21 — Additional Protocol Adapters ──────────────────────────────
+
+        /// <summary>ACP (Agent Communication Protocol — BeeAI/IBM). Async run lifecycle: POST runs → poll/SSE.</summary>
+        ACP,
+
+        /// <summary>ANP (Agent Network Protocol). Decentralised agent discovery via DID Documents + message POST.</summary>
+        ANP,
+
+        /// <summary>gRPC — high-performance agent-to-agent calls using Protocol Buffers.</summary>
+        GRPC,
+
+        /// <summary>GraphQL — query/mutation-based agent invocation.</summary>
+        GraphQL,
+
+        /// <summary>Kafka event streaming — fire-and-forget or request/reply via topic pairs.</summary>
+        Kafka,
+
+        /// <summary>AMQP (RabbitMQ etc.) — durable message queue invocation.</summary>
+        AMQP,
+
+        /// <summary>MQTT — lightweight pub/sub for IoT agents and low-bandwidth environments.</summary>
+        MQTT
     }
 }

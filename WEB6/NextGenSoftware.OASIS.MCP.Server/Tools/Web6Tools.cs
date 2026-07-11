@@ -221,5 +221,39 @@ namespace NextGenSoftware.OASIS.MCP.Server.Tools
         {
             return JsonSerializer.Serialize(MemoryProviderManager.Instance.ProviderNames);
         }
+
+        // ── Priority 24: SkillOpt ────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web6_fahrn_get_agent_skill"), Description("WEB6 SkillOpt: returns the current best_skill.md document for a FAHRN agent and task category — the evolved natural-language procedure that guides the agent's reasoning, produced by the SkillOpt self-improvement loop (Microsoft Research arXiv:2605.23904, +23.5% avg improvement).")]
+        public static async Task<string> GetAgentSkill(string agentId, string taskCategory, string? avatarId = null)
+        {
+            var manager = new SkillOptManager(ParseAvatarId(avatarId));
+            var result = await manager.LoadSkillAsync(Guid.Parse(agentId), taskCategory);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web6_fahrn_evolve_agent_skill"), Description("WEB6 SkillOpt: triggers one SkillOpt epoch for a FAHRN agent and task category — proposes bounded textual edits to the skill document, validates on held-out problems, and accepts only improvements. Returns the updated skill document.")]
+        public static async Task<string> EvolveAgentSkill(string agentId, string taskCategory, string? avatarId = null)
+        {
+            var manager = new SkillOptManager(ParseAvatarId(avatarId));
+            var result = await manager.RunEpochAsync(Guid.Parse(agentId), taskCategory);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── Priority 25: ML.NET ──────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web6_ml_classify_task"), Description("WEB6 ML.NET: classifies a problem string into a FAHRN task category in-process (zero latency, no API call) using the trained ML.NET model or heuristic fallback. Returns: code/reasoning/writing/mathematics/legal/architecture/real-time/general.")]
+        public static string MlClassifyTask(string text, string? avatarId = null)
+        {
+            var manager = new MLNetManager(ParseAvatarId(avatarId));
+            return JsonSerializer.Serialize(new { taskType = manager.ClassifyTaskType(text) });
+        }
+
+        [McpServerTool(Name = "web6_ml_sentiment"), Description("WEB6 ML.NET: analyses the sentiment of text in-process (no API call). Returns Positive, Neutral, or Negative.")]
+        public static string MlSentiment(string text, string? avatarId = null)
+        {
+            var manager = new MLNetManager(ParseAvatarId(avatarId));
+            return JsonSerializer.Serialize(new { sentiment = manager.AnalyseSentiment(text) });
+        }
     }
 }

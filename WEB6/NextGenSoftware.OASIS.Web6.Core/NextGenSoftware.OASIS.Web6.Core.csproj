@@ -44,6 +44,8 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.BedrockRuntime" Version="3.7.415" />
+    <PackageReference Include="Microsoft.ML" Version="4.0.2" />
+    <PackageReference Include="Microsoft.ML.AutoML" Version="0.22.1" />
   </ItemGroup>
 
 </Project>
