@@ -6,8 +6,6 @@ on:
 jobs:
   publish:
     runs-on: windows-latest
-    permissions:
-      id-token: write
 
     steps:
       - name: Checkout OASIS2
@@ -41,14 +39,10 @@ jobs:
         shell: pwsh
         working-directory: OASIS2
         run: |
-          $response = Invoke-RestMethod `
-            -Uri "$env:ACTIONS_ID_TOKEN_REQUEST_URL&audience=api.nuget.org" `
-            -Headers @{ Authorization = "Bearer $env:ACTIONS_ID_TOKEN_REQUEST_TOKEN" }
-          $token = $response.value
           Get-ChildItem -Path .\nupkgs\*.nupkg | ForEach-Object {
             Write-Host "Pushing $($_.Name)..."
             dotnet nuget push $_.FullName `
               --source https://api.nuget.org/v3/index.json `
-              --api-key $token `
+              --api-key ${{ secrets.NUGET_API_KEY }} `
               --skip-duplicate
           }
