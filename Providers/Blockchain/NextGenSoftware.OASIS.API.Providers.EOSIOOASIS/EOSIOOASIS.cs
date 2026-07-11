@@ -74,10 +74,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             ProviderName = "EOSIOOASIS";
             ProviderDescription = "EOSIO Provider";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.EOSIOOASIS);
-            ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
-
-            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork));
+            this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
+            this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
             HostURI = hostUri;
             EOSAccountName = eosAccountName;
@@ -324,8 +325,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "EOSIO provider is not activated");
-                    return response;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Query EOSIO blockchain for avatar by email using account lookup
@@ -366,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     var avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(), // Would be retrieved from account metadata
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{accountName}"),
                         Username = accountName,
                         Email = avatarEmail,
                         FirstName = accountResponse.Result.AccountName,
@@ -442,8 +447,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref response, "EOSIO provider is not activated");
-                    return response;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return response;
+                    }
                 }
 
                 // Real EOSIO implementation: Query EOSIO blockchain for avatar by username
@@ -519,8 +528,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by provider key from EOSIO blockchain
@@ -533,7 +546,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     // Convert EOSIO account data to OASIS Avatar
                     var avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{avatarData.AccountName ?? "eosio_user"}"),
                         Username = avatarData.AccountName ?? "",
                         Email = "", // EOSIO doesn't store email directly
                         CreatedDate = DateTime.TryParse(avatarData.Created, out var createdDate) ? createdDate : DateTime.UtcNow,
@@ -613,8 +626,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Real EOSIO implementation: Load avatar detail directly from EOSIO blockchain
@@ -638,7 +655,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                         var avatarDetail = new AvatarDetail
                         {
-                            Id = Guid.NewGuid(),
+                            Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{accountResponse.AccountName}"),
                             Username = accountResponse.AccountName,
                             Email = avatarEmail,
                             FirstName = accountResponse.AccountName,
@@ -730,8 +747,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first, then create avatar detail
@@ -1104,8 +1125,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by email first, then delete
@@ -1148,8 +1173,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by username first, then delete
@@ -1196,8 +1225,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Load avatar by provider key first, then delete
@@ -1308,8 +1341,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query EOSIO smart contract for holon by provider key
@@ -1356,8 +1393,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query EOSIO smart contract for holons for parent
@@ -1402,8 +1443,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Query EOSIO smart contract for holons for parent by provider key
@@ -1723,8 +1768,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Delete holon directly by provider key from EOSIO blockchain
@@ -1753,8 +1802,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (holons == null || !holons.Any())
@@ -1797,8 +1850,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons for avatar from EOSIO blockchain
@@ -1838,8 +1895,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons for avatar by username from EOSIO blockchain
@@ -1879,8 +1940,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons for avatar by email from EOSIO blockchain
@@ -1920,8 +1985,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Export all holons from EOSIO blockchain
@@ -1961,8 +2030,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Search avatars and holons using EOSIO smart contract
@@ -1996,8 +2069,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var avatarsResult = LoadAllAvatars();
@@ -2043,8 +2120,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
@@ -2191,8 +2272,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarId);
@@ -2233,8 +2318,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByUsernameAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarUsername);
@@ -2279,8 +2368,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, fromAvatarEmail);
@@ -2988,8 +3081,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress))
@@ -3072,8 +3169,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAccount = _contractAddress ?? "oasisbridge";
@@ -3116,8 +3217,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 var bridgePoolAccount = _contractAddress ?? "oasisbridge";
@@ -3156,8 +3261,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(tokenId) ||
@@ -3170,7 +3279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 var lockRequest = new LockWeb3NFTRequest
                 {
                     NFTTokenAddress = nftTokenAddress,
-                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : Guid.NewGuid(),
+                    Web3NFTId = Guid.TryParse(tokenId, out var guid) ? guid : CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:nft:{nftTokenAddress}"),
                     LockedByAvatarId = Guid.Empty
                 };
 
@@ -3217,8 +3326,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(nftTokenAddress) || string.IsNullOrWhiteSpace(receiverAccountAddress))
@@ -3288,7 +3401,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 {
                     avatar = new Avatar
                     {
-                        Id = Guid.NewGuid(),
+                        Id = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:{username}"),
                         Username = username,
                         Email = $"user@{username}.eosio",
                         FirstName = "EOSIO",
@@ -3362,12 +3475,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
                 var holon = new Holon
                 {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : Guid.NewGuid(),
+                    Id = dataDict.ContainsKey("id") && dataDict["id"] != null ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}"),
                     Name = dataDict.GetValueOrDefault("name")?.ToString() ?? "EOSIO Holon",
                     Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "Holon from EOSIO blockchain",
                     ProviderUniqueStorageKey = new Dictionary<ProviderType, string>
                     {
-                        [Core.Enums.ProviderType.EOSIOOASIS] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? Guid.NewGuid().ToString()
+                        [Core.Enums.ProviderType.EOSIOOASIS] = dataDict.GetValueOrDefault("eosioId")?.ToString() ?? CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:holon:{JsonConvert.SerializeObject(dataDict)}").ToString()
                     },
                     IsActive = dataDict.GetValueOrDefault("isActive")?.ToString()?.ToLower() == "true",
                     CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
@@ -3405,9 +3518,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3465,9 +3587,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3513,9 +3644,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3589,9 +3729,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3662,9 +3811,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3674,10 +3832,9 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                     return result;
                 }
 
-                // Lock token by transferring to bridge pool
+                // Lock one NFT/token by transferring to bridge pool
                 var bridgePoolAddress = EOSAccountName ?? "oasispool";
-                // Get amount from concrete class if available, otherwise use default
-                var lockAmount = (request as LockWeb3TokenRequest)?.Amount ?? 1m;
+                var lockAmount = 1m; // One NFT/token per request
 
                 // Get from address from KeyManager
                 var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EOSIOOASIS, request.LockedByAvatarId);
@@ -3721,9 +3878,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -3780,9 +3946,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _eosClient == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_eosClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO client is not initialized");
                     return result;
                 }
 
@@ -3842,9 +4017,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
 
             try
             {
-                if (!IsProviderActivated || _eosClient == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_eosClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO client is not initialized");
                     return result;
                 }
 
@@ -3901,12 +4085,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             return result;
         }
 
-        public OASISResult<IKeyPairAndWallet> GenerateKeyPair(IGetWeb3WalletBalanceRequest request)
+        public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
-            return GenerateKeyPairAsync(request).Result;
+            return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync(IGetWeb3WalletBalanceRequest request)
+        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             string errorMessage = "Error in GenerateKeyPairAsync method in EOSIOOASIS. Reason: ";
@@ -3915,8 +4099,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate EOSIO-specific key pair using Nethereum SDK (production-ready)
@@ -3930,6 +4118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // In production, use EosSharp SDK's key conversion utilities
                 var eosPublicKey = $"EOS{publicKey.Substring(2)}"; // EOS format prefix
 
+                //TODO: Replace KeyHelper with EOSIO specific implementation.
                 // Create key pair structure
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)
@@ -4042,9 +4231,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<decimal>();
             try
             {
-                if (!IsProviderActivated || _eosClient == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_eosClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO client is not initialized");
                     return result;
                 }
 
@@ -4097,8 +4295,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Generate EOS key pair
@@ -4114,7 +4316,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // EOS doesn't use seed phrases in the same way as other chains
                 // For compatibility, we'll generate a simple identifier
                 // In production, you would use proper BIP39 mnemonic generation if needed
-                var seedPhrase = Guid.NewGuid().ToString("N"); // Simple identifier for now
+                // Generate deterministic seed phrase from account name and timestamp
+                var seedPhrase = CreateDeterministicGuid($"{Core.Enums.ProviderType.EOSIOOASIS}:account:{DateTime.UtcNow.Ticks}").ToString("N");
 
                 // EOS uses WIF (Wallet Import Format) for private keys and public keys in EOS format
                 // The generated keys will work for EOS, though in production you might want to convert to EOS-specific formats
@@ -4138,8 +4341,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             {
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
-                    return result;
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
                 }
 
                 if (string.IsNullOrWhiteSpace(seedPhrase))
@@ -4208,9 +4415,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -4273,9 +4489,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                if (!IsProviderActivated || _transferRepository == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_transferRepository == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO transfer repository is not initialized");
                     return result;
                 }
 
@@ -4338,9 +4563,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (!IsProviderActivated || _eosClient == null)
+                if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "EOSIO provider is not activated");
+                    var activateResult = ActivateProvider();
+                    if (activateResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate EOSIO provider: {activateResult.Message}");
+                        return result;
+                    }
+                }
+                if (_eosClient == null)
+                {
+                    OASISErrorHandling.HandleError(ref result, "EOSIO client is not initialized");
                     return result;
                 }
 
@@ -4363,6 +4597,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 result.Result = BridgeTransactionStatus.NotFound;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Creates a deterministic GUID from input string using SHA-256 hash
+        /// </summary>
+        private static Guid CreateDeterministicGuid(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return Guid.Empty;
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return new Guid(bytes.Take(16).ToArray());
         }
 
         #endregion

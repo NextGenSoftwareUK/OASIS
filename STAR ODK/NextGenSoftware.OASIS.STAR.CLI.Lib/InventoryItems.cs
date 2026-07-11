@@ -1,4 +1,4 @@
-﻿using NextGenSoftware.CLI.Engine;
+using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
@@ -34,6 +34,19 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
             if (createOptions == null)
                 createOptions = new STARNETCreateOptions<InventoryItem, STARNETDNA>() { STARNETHolon = new InventoryItem()};
+
+            if (createOptions.CustomCreateParams != null
+                && createOptions.CustomCreateParams.TryGetValue(StarCliNonInteractiveCreateKeys.Scripted, out object scriptedFlag)
+                && scriptedFlag is bool sb && sb)
+            {
+                OASISResult<ImageObjectResult> emptyImg = new OASISResult<ImageObjectResult> { Result = new ImageObjectResult() };
+                createOptions.STARNETHolon ??= new InventoryItem();
+                createOptions.STARNETHolon.Image2D = emptyImg.Result.Image2D;
+                createOptions.STARNETHolon.Image2DURI = emptyImg.Result.Image2DURI;
+                createOptions.STARNETHolon.Object3D = emptyImg.Result.Object3D;
+                createOptions.STARNETHolon.Object3DURI = emptyImg.Result.Object3DURI;
+                return await base.CreateAsync(createOptions, holonSubType, showHeaderAndInro, addDependencies, providerType);
+            }
 
             OASISResult<ImageObjectResult> imageObjectResult = await ProcessImageOrObjectAsync("InventoryItem");
 

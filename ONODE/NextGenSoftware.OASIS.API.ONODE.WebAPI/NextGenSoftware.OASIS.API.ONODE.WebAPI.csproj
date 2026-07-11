@@ -6,7 +6,11 @@
   </PropertyGroup>
     
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <UseRidGraph>true</UseRidGraph>
+  </PropertyGroup>
+    
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <RootNamespace>NextGenSoftware.OASIS.API.ONODE.WebAPI</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.ONODE.WebAPI</AssemblyName>
@@ -23,9 +27,37 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <ItemGroup>
+  
+  <PropertyGroup>
+    <PackageId>NextGenSoftware.OASIS.API.ONODE.WebAPI</PackageId>
+    <Version>2.0.0</Version>
+    <Title>OASIS ONODE WebAPI</Title>
+    <Product>OASIS ONODE WebAPI</Product>
+    <Summary>ASP.NET Core REST API controllers and middleware for the OASIS ONODE — the WEB4 decentralised API layer exposing Avatar, Karma, Holon, Provider, and Search endpoints.</Summary>
+    <Description>ASP.NET Core REST API controllers and middleware for the OASIS ONODE — the WEB4 decentralised API layer exposing Avatar, Karma, Holon, Provider, and Search endpoints.</Description>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Company>NextGen Software Ltd</Company>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReleaseNotes>- Initial NuGet release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
+- Upgraded to .NET 10 — latest runtime with improved performance and language features.
+- Full integration with OASIS API Core v2.0.0, WEB6-WEB10 layers, ONET, FAHRN, HyperDrive v2, and OASIS MCP Server.
+- Security-hardened: CORS, JWT, and NuGet vulnerability remediation.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
+  </PropertyGroup>
+<ItemGroup>
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
+  
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -40,16 +72,20 @@
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
-	  <PackageReference Include="AutoMapper" Version="12.0.0" />
-	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.0" />
-	  <PackageReference Include="MailKit" Version="3.4.1" />
+	  <PackageReference Include="AutoMapper" Version="16.2.0" />
+	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+	  <PackageReference Include="MailKit" Version="4.17.0" />
+    <!-- Force resolution of .Logging.Abstractions to 10.0.0 across the whole graph.
+         AutoMapper 16.x requires >= 10.0.0; Nethereum.JsonRpc.Client 4.25.0 declares < 9.0.0.
+         Declaring it here converts all provider-level NU1107 errors to NU1608 warnings. -->
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.3" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageReference Include="Stripe.net" Version="45.0.0" />
 	  <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
   </ItemGroup>
@@ -61,12 +97,6 @@
 
   <ItemGroup>
     <Folder Include="Pages\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="OASIS_DNA.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
 </Project>

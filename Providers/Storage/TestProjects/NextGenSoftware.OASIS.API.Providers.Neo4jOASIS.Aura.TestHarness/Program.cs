@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -358,18 +358,18 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.Aura.TestHarness
             }
             
 
-            Console.WriteLine("Loading Avatar by Username and Password...");
-            var uAvatar = await neo.LoadAvatarAsync("devangpatel@gmail.com","password");
+            Console.WriteLine("Loading Avatar by Username...");
+            var uAvatar = await neo.LoadAvatarByUsernameAsync("devangpatel@gmail.com", 0);
             
-            if (resAvatar.IsLoaded)
+            if (uAvatar.IsLoaded)
             {
                 Console.WriteLine("Avatar Loaded.");
-                Console.WriteLine("Avatar First Name:{0}", retAvatar.Result.FirstName);
-                Console.WriteLine("Avatar Last Name:{0}", retAvatar.Result.LastName);
+                Console.WriteLine("Avatar First Name:{0}", uAvatar.Result.FirstName);
+                Console.WriteLine("Avatar Last Name:{0}", uAvatar.Result.LastName);
             }
             else
             {
-                Console.WriteLine(retAvatar.Message);
+                Console.WriteLine(uAvatar.Message);
             }
             
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -51,5 +51,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Holons
 
         [CustomOASISProperty()]
         public IList<string> RewardIds { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Audio"/>: binary audio on the holon; takes precedence over <see cref="AudioUrl"/> when non-empty.</summary>
+        [CustomOASISProperty]
+        public byte[] AudioData { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Audio"/>: URL to audio when <see cref="AudioData"/> is null or empty.</summary>
+        [CustomOASISProperty]
+        public string AudioUrl { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Video"/>: binary video on the holon; takes precedence over <see cref="VideoUrl"/> when non-empty.</summary>
+        [CustomOASISProperty]
+        public byte[] VideoData { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Video"/>: URL to video when <see cref="VideoData"/> is null or empty.</summary>
+        [CustomOASISProperty]
+        public string VideoUrl { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.Text"/>: body text to display (UI may also use Name/Description).</summary>
+        [CustomOASISProperty]
+        public string TextContent { get; set; }
+
+        /// <summary>When <see cref="GeoHotSpotType"/> is <see cref="GeoHotSpotType.WebsiteLink"/>: URL to open in browser or in-app web view.</summary>
+        [CustomOASISProperty]
+        public string WebsiteUrl { get; set; }
     }
 }

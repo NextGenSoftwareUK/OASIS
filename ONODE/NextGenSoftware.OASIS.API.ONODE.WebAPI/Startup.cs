@@ -1,25 +1,32 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Filters;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Interfaces;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services;
-using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
 {
     public class Startup
     {
+        private string VERSION
+        {
+            get
+            {
+                return $"WEB 4 OASIS API v{OASISBootLoader.OASISBootLoader.OASISAPIVersion}";
+            }
+        }
+
         // Helper method to get a unique display name for types, including generic types
         private static string GetTypeDisplayName(Type type)
         {
@@ -30,9 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             var genericArgs = string.Join("", type.GetGenericArguments().Select(arg => GetTypeDisplayName(arg)));
             return $"{genericTypeName}Of{genericArgs}";
         }
-        private const string VERSION = "WEB 4 OASIS API v4.1.0";
-        //readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
+        
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -52,9 +57,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI
             // services.AddMvc();
 
             // services.AddDbContext<DataContext>();
-            //services.AddCors(); //Needed twice? It is below too...
-            services.AddControllers(x => x.Filters.Add(typeof(ServiceExceptionInterceptor)))
-                .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+            services.AddCors();
+            // Add exception filter with configuration
+            services.AddControllers(x => x.Filters.Add(new Filters.ServiceExceptionInterceptor(Configuration)))
+                .AddJsonOptions(x =>
+                {
+                    x.JsonSerializerOptions.IgnoreNullValues = true;
+                    x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                    x.JsonSerializerOptions.Converters.Add(new ISTARNETDNAJsonConverter());
+                });
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddSwaggerGen(c =>
             {
@@ -287,33 +298,44 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             });
 
 
-            app.UseDeveloperExceptionPage();
+            if (env.IsDevelopment())
+                app.UseDeveloperExceptionPage();
             app.UseStaticFiles();
             // app.UseMvcWithDefaultRoute();
 
-            app.UseHttpsRedirection();
+            // Skip HTTPS redirect in Testing so WebApplicationFactory (HTTP-only test server) does not throw
+            if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
+                app.UseHttpsRedirection();
 
             app.UseRouting();
             //app.UseSession();
 
-            // global cors policy
+            // global cors policy — open to any origin so OASIS APIs are pluggable everywhere
             app.UseCors(x => x
-                .SetIsOriginAllowed(origin => true)
+                .AllowAnyOrigin()
                 .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials());
+                .AllowAnyHeader());
 
             //TODO: Was this, check later...
             //app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
+            app.UseMiddleware<OASISRequestContextMiddleware>();
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
             app.UseMiddleware<SubscriptionMiddleware>();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapGet("/", context =>
+                {
+                    context.Response.Redirect("/swagger");
+                    return Task.CompletedTask;
+                });
+            });
 
             //  string dbConn = configuration.GetSection("MySettings").GetSection("DbConnection").Value;
 

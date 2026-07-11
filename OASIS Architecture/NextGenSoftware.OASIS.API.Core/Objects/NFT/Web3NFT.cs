@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.API.Core.Objects.NFT
         public string NFTMintedUsingWalletAddress { get; set; } //This may be different to OASISMintWalletAddress if it was imported.
         public string NFTTokenAddress { get; set; } //The address of the actual minted NFT on the chain.
         public string MintTransactionHash { get; set; }
+        public string VerifyCollectionTransactionHash { get; set; }
         public string SendNFTTransactionHash { get; set; }
         public string UpdateAuthority { get; set; }
     }

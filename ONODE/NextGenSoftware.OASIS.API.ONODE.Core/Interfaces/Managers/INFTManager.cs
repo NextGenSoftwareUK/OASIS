@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers
         Task<OASISResult<IWeb4GeoNFTCollection>> AddWeb4GeoNFTToCollectionAsync(Guid collectionId, IWeb4GeoSpatialNFT OASISGeoNFT, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4NFTCollection>> AddWeb4NFTToCollectionAsync(Guid collectionId, Guid OASISNFTId, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4NFTCollection>> AddWeb4NFTToCollectionAsync(Guid collectionId, IWeb4NFT OASISNFT, ProviderType providerType = ProviderType.Default);
-        Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(Guid avatarId, IBurnWeb3NFTRequest request, ProviderType providerType = ProviderType.Default);
+        Task<OASISResult<IWeb3NFTTransactionResponse>> BurnWeb3NFTAsync(IBurnWeb3NFTRequest request);
         string CreateMetaDataJson(IMintWeb4NFTRequest request, NFTStandardType NFTStandardType);
         Task<OASISResult<IWeb4GeoNFTCollection>> CreateWeb4GeoNFTCollectionAsyc(ICreateWeb4GeoNFTCollectionRequest createWeb4OASISGeoNFTCollectionRequest, ProviderType providerType = ProviderType.Default);
         Task<OASISResult<IWeb4NFTCollection>> CreateWeb4NFTCollectionAsync(ICreateWeb4NFTCollectionRequest createOASISNFTCollectionRequest, ProviderType providerType = ProviderType.Default);

@@ -34,7 +34,26 @@ namespace EOSNewYork.EOSCore.Serialization
 
         public override void WriteToStream(Stream stream)
         {
-            throw new NotImplementedException(); 
+            if (value == null) return;
+
+            // Write index as VarUint32 (EOS packed varint encoding)
+            var v = value.index;
+            while (v >= 0x80)
+            {
+                stream.WriteByte((byte)(0x80 | (v & 0x7f)));
+                v >>= 7;
+            }
+            stream.WriteByte((byte)v);
+
+            // Write packed transaction binary data if present
+            if (value.trx?.packed_trx != null)
+            {
+                var packedHex = value.trx.packed_trx;
+                var bytes = new byte[packedHex.Length / 2];
+                for (int i = 0; i < bytes.Length; i++)
+                    bytes[i] = Convert.ToByte(packedHex.Substring(i * 2, 2), 16);
+                stream.Write(bytes, 0, bytes.Length);
+            }
         }
     }
 }

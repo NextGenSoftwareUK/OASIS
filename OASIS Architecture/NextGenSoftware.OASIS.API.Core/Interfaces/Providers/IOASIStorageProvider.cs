@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -12,6 +12,12 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
 {
     // This interface is responsbile for persisting data/state to storage, this could be a local DB or other local 
     // storage or through a distributed/decentralised provider such as IPFS (IPFSOASIS Provider coming soon) or Holochain (HoloOASIS Provider implemented).
+    //
+    // Avatar, AvatarDetail and Holon are distinct types, each with their own full CRUD:
+    // Avatar (IAvatar): LoadAvatar*/SaveAvatar/DeleteAvatar*.
+    // AvatarDetail (IAvatarDetail): LoadAvatarDetail*/SaveAvatarDetail/LoadAllAvatarDetails (and karma operations use IAvatarDetail).
+    // Holon (IHolon): LoadHolon*/SaveHolon/DeleteHolon*.
+    // Do not return AvatarDetail from LoadAvatar* or Avatar from LoadAvatarDetail*, or cast generic holons to IAvatar.
     public interface IOASISStorageProvider : IOASISProvider
     {
         Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0);

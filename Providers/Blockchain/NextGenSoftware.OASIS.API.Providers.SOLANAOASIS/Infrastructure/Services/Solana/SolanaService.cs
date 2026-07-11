@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.DTOs.Requests;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Entities.DTOs.Requests;
+using Solnet.Metaplex.Utilities;
 using Solnet.Wallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Services.Solana;
@@ -20,8 +21,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         new(oasisAccount.PublicKey, share: CreatorShare, verified: true)
     ];
 
+    public MetadataClient MetadataClient => new(rpcClient);
 
-    //TODO: Finish porting!
     public async Task<OASISResult<decimal>> GetAccountBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
         OASISResult<decimal> result = new OASISResult<decimal>();
@@ -29,8 +30,6 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
 
         try
         {
-            MetadataClient metadataClient = new(rpcClient);
-
             // Save the original Console.Out
             var originalConsoleOut = Console.Out;
 
@@ -68,7 +67,8 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     {
         try
         {
-            MetadataClient metadataClient = new(rpcClient);
+            string verifyTransaction = null;
+            string verifyWarning = null;
             Account mintAccount = new();
 
             Metadata tokenMetadata = new()
@@ -77,24 +77,22 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 symbol = mintNftRequest.Symbol,
                 sellerFeeBasisPoints = SellerFeeBasisPoints,
                 uri = mintNftRequest.JSONMetaDataURL,
-                creators = _creators
+                creators = _creators,
+                collection = string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey) ? null : new Collection(new PublicKey(mintNftRequest.CollectionPublicKey))
             };
 
-            // Save the original Console.Out
             var originalConsoleOut = Console.Out;
-
             try
             {
-                // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
                 Console.SetOut(new NullTextWriter());
 
-                RequestResult<string> createNftResult = await metadataClient.CreateNFT(
-                ownerAccount: oasisAccount,
-                mintAccount: mintAccount,
-                TokenStandard.NonFungible,
-                tokenMetadata,
-                isMasterEdition: true,
-                isMutable: true);
+                RequestResult<string> createNftResult = await MetadataClient.CreateNFT(
+                    ownerAccount: oasisAccount,
+                    mintAccount: mintAccount,
+                    TokenStandard.NonFungible,
+                    tokenMetadata,
+                    isMasterEdition: true,
+                    isMutable: true);
 
                 if (!createNftResult.WasSuccessful)
                 {
@@ -106,24 +104,58 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                         log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
 
                     if (isBalanceError || isLamportError)
-                    {
-                        return HandleError<MintNftResult>(
-                            $"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
-                    }
+                        return HandleError<MintNftResult>($"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
 
                     return HandleError<MintNftResult>(createNftResult.Reason);
                 }
 
-                return SuccessResult(
-                    new(mintAccount.PublicKey.Key,
-                        Solana,
-                        createNftResult.Result));
+                if (!string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey))
+                {
+                    if (mintNftRequest.WaitTillNFTVerified == true)
+                    {
+                        var (txSig, error) = await VerifyCollectionWithRetryAsync(
+                            mintNftRequest.CollectionPublicKey,
+                            mintAccount.PublicKey.Key,
+                            timeout: mintNftRequest.WaitForNFTToVerifyInSeconds.HasValue
+                                ? TimeSpan.FromSeconds(mintNftRequest.WaitForNFTToVerifyInSeconds.Value)
+                                : null,
+                            retryInterval: mintNftRequest.AttemptToVerifyEveryXSeconds.HasValue
+                                ? TimeSpan.FromSeconds(mintNftRequest.AttemptToVerifyEveryXSeconds.Value)
+                                : null);
+
+                        if (error != null)
+                            return HandleError<MintNftResult>($"NFT minted (mint: {mintAccount.PublicKey.Key}) but collection verification failed: {error}");
+
+                        verifyTransaction = txSig;
+                    }
+                    else
+                    {
+                        // Single attempt, no retries — still awaited
+                        try
+                        {
+                            verifyTransaction = await SetAndVerifyCollectionAsync(
+                                mintNftRequest.CollectionPublicKey,
+                                mintAccount.PublicKey.Key);
+                        }
+                        catch (Exception ex)
+                        {
+                            verifyWarning = $"NFT minted successfully but collection verification failed (no retries requested): {ex.Message}. " +
+                                            $"You can retry verification manually for mint: {mintAccount.PublicKey.Key}";
+                        }
+                    }
+                }
+
+                var result = SuccessResult(new(mintAccount.PublicKey.Key, Solana, createNftResult.Result, verifyTransaction));
+
+                if (verifyWarning != null)
+                    OASISErrorHandling.HandleWarning(ref result, verifyWarning);
+
+                return result;
             }
             finally
             {
-                // Restore the original Console.Out
                 Console.SetOut(originalConsoleOut);
-            } 
+            }
         }
         catch (Exception ex)
         {
@@ -131,9 +163,135 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         }
     }
 
+    /// <summary>
+    /// Attempts SetAndVerifyCollection every 5 seconds for up to 1 minute by default.
+    /// Returns (txSignature, null) on success or (null, errorMessage) on failure.
+    /// </summary>
+    private async Task<(string TxSignature, string Error)> VerifyCollectionWithRetryAsync(
+        string collectionMintAddress,
+        string nftMintAddress,
+        TimeSpan? timeout = null,
+        TimeSpan? retryInterval = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TimeSpan.FromMinutes(1));
+        var interval = retryInterval ?? TimeSpan.FromSeconds(5);
+        string lastError = null;
+        int attempt = 0;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            attempt++;
+            try
+            {
+                string txSig = await SetAndVerifyCollectionAsync(collectionMintAddress, nftMintAddress);
+                return (txSig, null); // success
+            }
+            catch (Exception ex)
+            {
+                lastError = $"Attempt {attempt}: {ex.Message}";
+                var remaining = deadline - DateTime.UtcNow;
+                if (remaining > interval)
+                    await Task.Delay(interval);
+                else
+                    break;
+            }
+        }
+
+        return (null, $"Gave up after {attempt} attempt(s) over {(timeout ?? TimeSpan.FromMinutes(1)).TotalSeconds}s. Last error: {lastError}");
+    }
+
+    public async Task<string> SetAndVerifyCollectionAsync(string collectionMintAddress, string nftMintAddress)
+    {
+        PublicKey metadataProgram = new("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+        PublicKey nftMint = new(nftMintAddress);
+        PublicKey collectionMint = new(collectionMintAddress);
+
+        // Derive PDAs manually (seeds: "metadata", programId, mintAddress)
+        PublicKey nftMetadataPda = DeriveMetadataPda(nftMint, metadataProgram);
+        PublicKey collectionMetadataPda = DeriveMetadataPda(collectionMint, metadataProgram);
+        PublicKey collectionMasterEditionPda = DeriveMasterEditionPda(collectionMint, metadataProgram);
+
+        // Instruction discriminator 25 = SetAndVerifyCollection
+        byte[] instructionData = new byte[] { 25 };
+
+        List<AccountMeta> accounts = new()
+    {
+        AccountMeta.Writable(nftMetadataPda, false),           // NFT metadata
+        AccountMeta.Writable(oasisAccount.PublicKey, true),    // collection authority (signer)
+        AccountMeta.Writable(oasisAccount.PublicKey, true),    // payer (signer)
+        AccountMeta.ReadOnly(oasisAccount.PublicKey, false),   // update authority of NFT
+        AccountMeta.ReadOnly(collectionMint, false),           // collection mint
+        AccountMeta.Writable(collectionMetadataPda, false),    // collection metadata
+        AccountMeta.ReadOnly(collectionMasterEditionPda, false) // collection master edition
+    };
+
+        TransactionInstruction verifyInstruction = new()
+        {
+            ProgramId = metadataProgram.KeyBytes,
+            Keys = accounts,
+            Data = instructionData
+        };
+
+        // ✅ Correct Solnet v8 pattern — TransactionBuilder, not Transaction
+        var blockHash = await rpcClient.GetLatestBlockHashAsync();
+
+        byte[] txBytes = new TransactionBuilder()
+            .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
+            .SetFeePayer(oasisAccount)
+            .AddInstruction(verifyInstruction)
+            .Build(oasisAccount);  // signs in one step
+
+        RequestResult<string> sendResult = await rpcClient.SendTransactionAsync(txBytes);
+
+        if (!sendResult.WasSuccessful)
+            throw new Exception($"SetAndVerifyCollection failed: {sendResult.Reason}");
+
+        return sendResult.Result;
+    }
+
+    // PDA derivation — seeds: ["metadata", programId, mintPubkey]
+    private static PublicKey DeriveMetadataPda(PublicKey mint, PublicKey metadataProgram)
+    {
+        bool success = PublicKey.TryFindProgramAddress(
+            new[]
+            {
+            System.Text.Encoding.UTF8.GetBytes("metadata"),
+            metadataProgram.KeyBytes,
+            mint.KeyBytes
+            },
+            metadataProgram,
+            out PublicKey pda,
+            out _);
+
+        if (!success) throw new Exception($"Failed to derive metadata PDA for {mint}");
+        return pda;
+    }
+
+    // PDA derivation — seeds: ["metadata", programId, mintPubkey, "edition"]
+    private static PublicKey DeriveMasterEditionPda(PublicKey mint, PublicKey metadataProgram)
+    {
+        bool success = PublicKey.TryFindProgramAddress(
+            new[]
+            {
+            System.Text.Encoding.UTF8.GetBytes("metadata"),
+            metadataProgram.KeyBytes,
+            mint.KeyBytes,
+            System.Text.Encoding.UTF8.GetBytes("edition")
+            },
+            metadataProgram,
+            out PublicKey pda,
+            out _);
+
+        if (!success) throw new Exception($"Failed to derive master edition PDA for {mint}");
+        return pda;
+    }
+
     public async Task<OASISResult<BurnNftResult>> BurnNftAsync(IBurnWeb3NFTRequest mintNftRequest)
     {
         var response = new OASISResult<BurnNftResult>();
+
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
 
         try
         {
@@ -154,6 +312,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 mintAccount))
                 .Build(oasisAccount);
 
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
@@ -172,6 +333,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -179,6 +345,10 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
     {
         var response = new OASISResult<SendTransactionResult>();
+
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
+
         try
         {
             (bool success, string res) = sendTransactionRequest.IsRequestValid();
@@ -201,6 +371,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
                 .AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts))
                 .Build(oasisAccount);
 
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
             if (!sendTransactionResult.WasSuccessful)
             {
@@ -219,6 +392,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.IsError = true;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -227,8 +405,15 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         string address)
     {
         OASISResult<GetNftResult> response = new();
+        
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
+
         try
         {
+            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
+            Console.SetOut(new NullTextWriter());
+
             PublicKey nftAccount = new(address);
             MetadataAccount metadataAccount = await MetadataAccount.GetAccount(rpcClient, nftAccount);
 
@@ -254,6 +439,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
             response.Message = e.Message;
             OASISErrorHandling.HandleError(ref response, e.Message);
         }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
+        }
 
         return response;
     }
@@ -261,6 +451,9 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
     public async Task<OASISResult<SendTransactionResult>> SendNftAsync(SendWeb3NFTRequest mintNftRequest)
     {
         OASISResult<SendTransactionResult> response = new OASISResult<SendTransactionResult>();
+
+        // Save the original Console.Out
+        var originalConsoleOut = Console.Out;
 
         try
         {
@@ -375,6 +568,11 @@ public sealed class SolanaService(Account oasisAccount, IRpcClient rpcClient) : 
         {
             response.IsError = true;
             response.Message = ex.Message;
+        }
+        finally
+        {
+            // Restore the original Console.Out
+            Console.SetOut(originalConsoleOut);
         }
 
         return response;

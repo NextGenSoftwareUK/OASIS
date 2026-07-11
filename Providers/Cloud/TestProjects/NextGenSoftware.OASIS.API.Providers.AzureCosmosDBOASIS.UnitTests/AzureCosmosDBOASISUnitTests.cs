@@ -3,7 +3,9 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests
 {
@@ -15,14 +17,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new AzureCosmosDBOASIS();
+            _provider = new AzureCosmosDBOASIS(new Uri("https://localhost:8081"), "testKey", "testDb", new List<string> { "testCollection" });
         }
 
         [TestMethod]
         public void ProviderType_ShouldBeAzureCosmosDBOASIS()
         {
             // Arrange & Act
-            var providerType = _provider.ProviderType;
+            var providerType = _provider.ProviderType.Value;
 
             // Assert
             Assert.AreEqual(ProviderType.AzureCosmosDBOASIS, providerType);
@@ -89,14 +91,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderName_ShouldNotBeEmpty()
         {
             // Arrange & Act
-            var version = _provider.GetProviderVersion();
+            var name = _provider.ProviderName;
 
             // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsNotNull(name);
+            Assert.IsFalse(string.IsNullOrEmpty(name));
         }
 
         [TestCleanup]

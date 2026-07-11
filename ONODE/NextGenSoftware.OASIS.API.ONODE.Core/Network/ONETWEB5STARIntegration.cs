@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETWEB5STARIntegration(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
-            _onetProtocol = new ONETProtocol(storageProvider, oasisdna);
+            _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
             InitializeSTARServices();
         }
 
@@ -73,7 +73,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             string method = "GET")
         {
             var result = new OASISResult<T>();
-            
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            STARService? service = null;
+
             try
             {
                 if (!_isIntegrated)
@@ -83,10 +85,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                 }
 
                 // Find appropriate STAR service
-                var service = await FindSTARServiceAsync(apiName);
+                service = await FindSTARServiceAsync(apiName);
                 if (service == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"STAR API service '{apiName}' not found");
+                    return result;
+                }
+
+                var targetNodeId = await FindOptimalNodeForSTARAPIAsync(apiName);
+                if (string.IsNullOrEmpty(targetNodeId))
+                {
+                    OASISErrorHandling.HandleError(ref result, $"No ONET node advertises the '{apiName}' STAR API capability - cannot route.");
                     return result;
                 }
 
@@ -96,7 +105,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
                     Content = CreateSTARAPIRequest(apiName, endpoint, parameters, method),
                     MessageType = "STAR_API_CALL",
                     SourceNodeId = "local",
-                    TargetNodeId = await FindOptimalNodeForSTARAPIAsync(apiName)
+                    TargetNodeId = targetNodeId
                 };
 
                 // Send through ONET network
@@ -122,6 +131,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error calling STAR API: {ex.Message}", ex);
+            }
+            finally
+            {
+                if (service != null)
+                {
+                    stopwatch.Stop();
+                    var previousTotal = service.TotalRequests;
+                    service.AverageResponseTime = previousTotal == 0
+                        ? stopwatch.Elapsed.TotalMilliseconds
+                        : ((service.AverageResponseTime * previousTotal) + stopwatch.Elapsed.TotalMilliseconds) / (previousTotal + 1);
+                    service.TotalRequests = previousTotal + 1;
+                }
             }
 
             return result;
@@ -406,12 +427,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             }
         }
 
-        private async Task<STARService?> FindSTARServiceAsync(string apiName)
+        /// <summary>
+        /// Finds a STAR service by name. Prefers an exact (case-insensitive) match against the service's
+        /// canonical dictionary key, falling back to bidirectional substring matching against the display
+        /// Name only when no exact key matches - see ONETWEB4APIIntegration.FindWEB4ServiceAsync for the
+        /// full reasoning (substring-only matching risks routing to an unrelated service, e.g. a short Name
+        /// being a substring of an unrelated apiName).
+        /// </summary>
+        private Task<STARService?> FindSTARServiceAsync(string apiName)
         {
-            // Find STAR service by name
-            return _starServices.Values.FirstOrDefault(s => 
-                s.Name.ToLower().Contains(apiName.ToLower()) || 
-                apiName.ToLower().Contains(s.Name.ToLower()));
+            if (_starServices.TryGetValue(apiName.ToLowerInvariant(), out var exactMatch))
+                return Task.FromResult<STARService?>(exactMatch);
+
+            var fuzzyMatch = _starServices.Values.FirstOrDefault(s =>
+                s.Name.ToLowerInvariant().Contains(apiName.ToLowerInvariant()) ||
+                apiName.ToLowerInvariant().Contains(s.Name.ToLowerInvariant()));
+
+            return Task.FromResult(fuzzyMatch);
         }
 
         private string CreateSTARAPIRequest(string apiName, string endpoint, object parameters, string method)
@@ -429,19 +461,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return System.Text.Json.JsonSerializer.Serialize(request);
         }
 
-        private async Task<string> FindOptimalNodeForSTARAPIAsync(string apiName)
+        /// <summary>
+        /// Finds a real ONET node advertising the requested STAR API capability. Returns null (not a
+        /// fabricated "star-node-XXXXXXXX" ID) when none exists - see
+        /// ONETUnifiedArchitecture.FindOptimalONETNodeAsync for the full reasoning.
+        /// </summary>
+        private async Task<string?> FindOptimalNodeForSTARAPIAsync(string apiName)
         {
-            // Find optimal ONET node for specific STAR API
             var topology = await _onetProtocol.GetNetworkTopologyAsync();
             var nodes = topology.Result?.Nodes ?? new List<ONETNode>();
-            
-            // Find node with best capabilities for this STAR API
-            var optimalNode = nodes.FirstOrDefault(n => 
-                n.Capabilities.Contains("STAR") || 
+
+            var optimalNode = nodes.FirstOrDefault(n =>
+                n.Capabilities.Contains("STAR") ||
                 n.Capabilities.Contains("Gamification") ||
                 n.Capabilities.Contains(apiName.ToLower()));
-            
-            return optimalNode?.Id ?? await CalculateDefaultSTARNodeIdAsync();
+
+            return optimalNode?.Id;
         }
 
         private async Task<OASISResult<T>> ProcessSTARAPIResponseAsync<T>(ONETMessage message)
@@ -487,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
         private async Task RegisterSTARServiceWithONETAsync(STARService service)
         {
             // Register service with ONET network
-            await PerformRealSTARAPIRegistrationAsync(); // Real STAR API registration
+            await PerformRealSTARAPIRegistrationAsync(service);
         }
 
         private async Task<long> GetTotalSTARAPIRequestsAsync()
@@ -503,100 +538,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
             return services.Any() ? services.Average(s => s.AverageResponseTime) : 0.0;
         }
 
-        private async Task<double> GetNetworkUptimeAsync()
+        /// <summary>Real uptime estimate: fraction of registered STAR services currently marked active. Previously hardcoded to 99.9% regardless of actual service state.</summary>
+        private Task<double> GetNetworkUptimeAsync()
         {
-            // Get network uptime
-            return 99.9; // 99.9% uptime
+            if (_starServices.Count == 0)
+                return Task.FromResult(0.0);
+
+            var activeFraction = (double)_starServices.Values.Count(s => s.IsActive) / _starServices.Count;
+            return Task.FromResult(Math.Round(activeFraction * 100.0, 2));
         }
 
-        // Helper methods for calculations
-        private static async Task<string> CalculateDefaultSTARNodeIdAsync()
+        /// <summary>
+        /// Registers a STAR service with ONET's real discovery layer via ONETProtocol's
+        /// RegisterNodeForDiscoveryAsync passthrough. Previously this ran five Task.Run blocks looping over
+        /// hardcoded system/protocol/mechanism name lists (STARDID/.../STARIdentityManagement,
+        /// STARIPFS/.../STARBlockchain, STARlibp2p/.../STARQuantum, STARProofOfStake/.../STARQuantumConsensus,
+        /// STAREncryption/.../STARBiometricSecurity) doing nothing but Task.Delay and logging - no actual
+        /// registration with any real component ever happened.
+        /// </summary>
+        private async Task PerformRealSTARAPIRegistrationAsync(STARService service)
         {
-            // Return default STAR node ID
-            return await Task.FromResult("star-node-" + Guid.NewGuid().ToString("N")[..8]);
-        }
+            var nodeId = $"star-{service.Name.ToLowerInvariant().Replace(' ', '-')}-node";
+            var registerResult = await _onetProtocol.RegisterNodeForDiscoveryAsync(nodeId, service.Name, service.Capabilities);
 
-        private static async Task PerformRealSTARAPIRegistrationAsync()
-        {
-            // Perform real STAR API registration with actual network operations
-            LoggingManager.Log("Starting STAR API registration", Logging.LogType.Info);
-            
-            var registrationTasks = new List<Task>();
-            
-        // Register with STAR identity systems
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with STAR identity systems", Logging.LogType.Debug);
-            // Real STAR identity registration
-            var starIdentitySystems = new[] { "STARDID", "STARCredentials", "STARAuthentication", "STARAuthorization", "STARIdentityManagement" };
-            foreach (var system in starIdentitySystems)
-            {
-                LoggingManager.Log($"Registering with {system} identity system", Logging.LogType.Debug);
-                await Task.Delay(7); // Real system registration time
-            }
-            LoggingManager.Log("STAR identity registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with STAR storage systems
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with STAR storage systems", Logging.LogType.Debug);
-            // Real STAR storage registration
-            var starStorageSystems = new[] { "STARIPFS", "STARArweave", "STARSwarm", "STARFilecoin", "STARSia", "STARBlockchain" };
-            foreach (var system in starStorageSystems)
-            {
-                LoggingManager.Log($"Registering with {system} storage system", Logging.LogType.Debug);
-                await Task.Delay(5); // Real system registration time
-            }
-            LoggingManager.Log("STAR storage registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with STAR networking protocols
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with STAR networking protocols", Logging.LogType.Debug);
-            // Real STAR networking registration
-            var starNetworkingProtocols = new[] { "STARlibp2p", "STARWebRTC", "STARWebSocket", "STARHTTP3", "STARQUIC", "STARQuantum" };
-            foreach (var protocol in starNetworkingProtocols)
-            {
-                LoggingManager.Log($"Registering with {protocol} networking protocol", Logging.LogType.Debug);
-                await Task.Delay(4); // Real protocol registration time
-            }
-            LoggingManager.Log("STAR networking registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with STAR consensus mechanisms
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with STAR consensus mechanisms", Logging.LogType.Debug);
-            // Real STAR consensus registration
-            var starConsensusMechanisms = new[] { "STARProofOfStake", "STARProofOfWork", "STARDelegatedProofOfStake", "STARPracticalByzantineFaultTolerance", "STARQuantumConsensus" };
-            foreach (var mechanism in starConsensusMechanisms)
-            {
-                LoggingManager.Log($"Registering with {mechanism} consensus mechanism", Logging.LogType.Debug);
-                await Task.Delay(4); // Real mechanism registration time
-            }
-            LoggingManager.Log("STAR consensus registration completed", Logging.LogType.Debug);
-        }));
-            
-        // Register with STAR security systems
-        registrationTasks.Add(Task.Run(async () =>
-        {
-            LoggingManager.Log("Registering with STAR security systems", Logging.LogType.Debug);
-            // Real STAR security registration
-            var starSecuritySystems = new[] { "STAREncryption", "STARAuthentication", "STARAuthorization", "STARKeyManagement", "STARQuantumSecurity", "STARBiometricSecurity" };
-            foreach (var system in starSecuritySystems)
-            {
-                LoggingManager.Log($"Registering with {system} security system", Logging.LogType.Debug);
-                await Task.Delay(2); // Real system registration time
-            }
-            LoggingManager.Log("STAR security registration completed", Logging.LogType.Debug);
-        }));
-            
-            // Wait for all registration tasks to complete
-            await Task.WhenAll(registrationTasks);
-            
-            LoggingManager.Log("STAR API registration completed successfully", Logging.LogType.Info);
+            if (registerResult.IsError)
+                OASISErrorHandling.HandleError($"Error registering STAR service {service.Name} with ONET discovery: {registerResult.Message}");
+            else
+                LoggingManager.Log($"STAR service {service.Name} registered with ONET discovery as node {nodeId}.", Logging.LogType.Info);
         }
     }
 

@@ -137,6 +137,31 @@ jobs:
         dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebAPI.IntegrationTests.csproj" --no-build --verbosity normal
         dotnet test "STAR ODK/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests/NextGenSoftware.OASIS.STAR.WebUI.IntegrationTests.csproj" --no-build --verbosity normal
 
+  # STARAPIClient Unit + Integration + Harness
+  test-starapi-client:
+    name: Test STARAPIClient
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Run STARAPIClient test suite
+      shell: pwsh
+      run: |
+        & "OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1" -Configuration Release -KillStaleTestHosts $true
+
+    - name: Upload STARAPIClient test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: starapiclient-test-results
+        path: OASIS Omniverse/STARAPIClient/TestResults/
+        retention-days: 30
+
   # Unity Tests (if Unity is available)
   unity-tests:
     name: Unity Tests
@@ -160,7 +185,7 @@ jobs:
   build-and-package:
     name: Build and Package
     runs-on: ubuntu-latest
-    needs: [test-oasis-architecture, test-onode, test-star-odk, integration-tests]
+    needs: [test-oasis-architecture, test-onode, test-star-odk, integration-tests, test-starapi-client]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:

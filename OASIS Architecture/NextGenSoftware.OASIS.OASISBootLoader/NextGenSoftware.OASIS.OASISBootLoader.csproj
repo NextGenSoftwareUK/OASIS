@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	  <!--<GeneratePackageOnBuild>True</GeneratePackageOnBuild>-->
 	  <PackageId>NextGenSoftware.OASIS.OASISBootLoader</PackageId>
 	  <Company>NextGen Software Ltd</Company>
@@ -10,10 +10,36 @@
 	  <Summary>Responsible for Booting The OASIS &amp; managing the various OASIS Providers. Used by various OASIS Packages such as OASIS.API.Integrated.Native.EndPoint, STAR &amp; others.</Summary>
 	  <Description>Responsible for Booting The OASIS &amp; managing the various OASIS Providers. Used by various OASIS Packages such as OASIS.API.Integrated.Native.EndPoint, STAR &amp; others.</Description>
 	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-	  <PackageIcon>OASISLogo128.jpg</PackageIcon>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB3; WEB4; WEB5; Blockchain; NFT; Tokens; Crypto; Future-Prove; Metaverse; Aggregation; HOT-Swappable-Architecture; P2P; Decentralised; Distributed; Interoprability; Abstraction-Layer; Multi-Network; Multi-Chain; Bridging; Network-Of-Networks; SSO; Avatar-API; Karma-API; Data-API; Providers-API; SEEDS-API; "Keys/Wallets-API", Auto-FailOver; Auto-LoadBalancing; Auto-Replication; Auto-Sync; Offline-Support; Write-Once-Deploy-Everywhere; Triple-Level-Quantum-Resistant-Encryption; Quantum; Encryption; Smart-Contracts; Intelligent-Key-Management; Zero-Lag; Zero-Downtime; Agent-Centric; Smart-City-Ready; WEB/2D/3D/AR/VR/IR/Map/Meta-Visusalization; Bio-feedback-Ready; IR-(Infinite-Reality)-Ready; Infinite-Players-Online-At-Same-Time; LAN/Bluetooth-Support; AI/Machine-Learning-Over-All-Of-World's-Aggregated-Data; HTTP-REST/gRPC/GraphQL/CLI/Native-Endpoints; Best-Of-All-Worlds; GOD-Protocol/API; Our-World-Geo-Location/AR/IR/Map-UI-(Game-of-Games-Engine); One-World-Open-World-MMO-(VR)-UI-(Game-of-Games-Engine); ActivityPub; AzureCosmosDB; BlockStack; Chainlink; COSMOS; Elrond; EOSIO; Ethereum; Hashgraph; Holochain; IPFS; MapBox; MongoDB; Neo4j; OrionProtocol; PLAN; Scuttlebutt; SEEDS; SOLANA; SOLID; SqlLiteDB; Telos; ThreeFold; TRON; WRLD3D; More-Coming...</PackageTags>
-	  <PackageReleaseNotes>Updated Tags</PackageReleaseNotes>
+	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one after ~3 years of deep development.
+- Added WEB6 (The AI Layer) with full LLM routing via FAHRN — supports OpenAI, Anthropic Claude, Cohere, HuggingFace, and Azure OpenAI.
+- Added WEB7 (The Spatial/AR Layer), WEB8 (The Holographic Layer), WEB9 (The Neural Layer), and WEB10 (The Omniversal Layer) decentralised API tiers.
+- Added ONET P2P network with FAHRN (Federated Adaptive Holonic Routing Network) and HolonicBraid mesh routing.
+- Added OASIS HyperDrive v2 with DHT-based distributed storage and replication.
+- Added OASIS MCP Server for seamless WEB4-WEB10 tool integration.
+- Full implementation of all remaining provider interface stubs across all ~55 OASIS Providers.
+- Security overhaul: CORS hardening (open/pluggable API policy), JWT validation fixes, NuGet vulnerability remediation across all projects.
+- Fixed GetKarmaAsync returning 0: now falls back to AvatarDetail.Karma when in-memory cache is empty.
+- Auto-creates AvatarDetail on first karma award if it does not exist yet.
+- Fixed MongoDB holon save always inserting instead of updating for REST clients.
+- Fixed circular reference serialisation causing truncated JSON in loadHolon responses.
+- Fixed null max_tokens causing 400 errors across OpenAI, Cohere, AzureOpenAI, and HuggingFace providers.
+- JWT middleware now skips silently on invalid tokens; AuthorizeAttribute handles the decision.
+- PreferOpenServ, EnableFAHRN, EnableHolonicBraid, and ApiKeys added to OASIS_DNA.json.
+- Added optional returnUrl parameter to forgot-password endpoint.
+- Made OldPassword optional in ResetPassword (not required when using a reset token).
+- Changed license to GNU Affero General Public License v3 (AGPL3).
+- Numerous bug fixes, stability improvements, and performance enhancements.
+- Upgraded all projects to .NET 10 — the latest LTS runtime with improved performance, lower memory footprint, and new language features.
+- Miscellaneous stability improvements and internal refactoring across all layers.
+- Improved async/await patterns and cancellation token propagation throughout.
+- Better null safety and nullable reference type annotations.
+- Refined logging output for easier diagnostics.
+- Various minor bug fixes identified during the WEB6-10 integration testing phase.
+- Many misc improvements.
+- Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
 	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
@@ -21,21 +47,18 @@
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>1.0.5</Version>
+	  <Version>2.0.0</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
 	<ItemGroup>
-	    <None Include="..\Images\Logos\OASISLogo128.jpg">
-		    <Pack>True</Pack>
-		    <PackagePath>\</PackagePath>
-	    </None>
+	    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj" />
+    <ProjectReference Include="..\..\..\NextGenSoftware-Libraries\NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS\NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CardanoOASIS\NextGenSoftware.OASIS.API.Providers.CardanoOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS\NextGenSoftware.OASIS.API.Providers.ChainLinkOASIS.csproj" />

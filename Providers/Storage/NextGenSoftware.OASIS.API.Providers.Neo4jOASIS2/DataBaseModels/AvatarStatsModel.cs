@@ -38,8 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             this.Energy_Current=source.Energy.Current;
             this.Energy_Max=source.Energy.Max;
 
-            this.Staminia_Current=source.Staminia.Current;
-            this.Staminia_Max=source.Staminia.Max;
+            this.Staminia_Current=source.Stamina.Current;
+            this.Staminia_Max=source.Stamina.Max;
         }
 
         public AvatarStats GetAvatarStats(){
@@ -55,8 +55,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.DataBaseModels{
             item.Energy.Current=this.Energy_Current;
             item.Energy.Max=this.Energy_Max;
 
-            item.Staminia.Current=this.Staminia_Current;
-            item.Staminia.Max=this.Staminia_Max;
+            item.Stamina.Current=this.Staminia_Current;
+            item.Stamina.Max=this.Staminia_Max;
 
             return(item);
         }
