@@ -10,7 +10,16 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS2
+        uses: actions/checkout@v4
+        with:
+          path: OASIS2
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -19,6 +28,7 @@ jobs:
 
       - name: Pack all packages
         shell: pwsh
+        working-directory: OASIS2
         run: .\publish-nuget.ps1 -SkipPush
 
       - name: Get NuGet token via Trusted Publishing
@@ -32,6 +42,7 @@ jobs:
 
       - name: Push all packages to NuGet.org
         shell: pwsh
+        working-directory: OASIS2
         run: |
           Get-ChildItem -Path .\nupkgs\*.nupkg | ForEach-Object {
             Write-Host "Pushing $($_.Name)..."
