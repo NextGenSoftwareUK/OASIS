@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NextGenSoftware.OASIS.Web6.Core.Enums;
 
 namespace NextGenSoftware.OASIS.Web6.Core.Models
 {
@@ -14,6 +15,16 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public List<string> Tags { get; set; } = new List<string>();
 
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
+
+        // Priority 16c — TTL enforcement
+        /// <summary>How long this memory persists. Default Persistent (no expiry).</summary>
+        public RetentionPolicy RetentionPolicy { get; set; } = RetentionPolicy.Persistent;
+
+        /// <summary>Absolute UTC expiry for TimeLimited retention. Null = no expiry.</summary>
+        public DateTime? ExpiresUtc { get; set; }
+
+        /// <summary>Returns true when this item has passed its TTL and should be purged.</summary>
+        public bool IsExpired => ExpiresUtc.HasValue && DateTime.UtcNow > ExpiresUtc.Value;
     }
 
     /// <summary>A holon in the Holonic BRAID fractal memory hierarchy (Session → Agent → User → Group → ... → Earth).</summary>
