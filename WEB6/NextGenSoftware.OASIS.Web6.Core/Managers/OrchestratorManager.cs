@@ -105,11 +105,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 string output = config.Protocol switch
                 {
                     OrchestratorProtocolType.MCP => await InvokeMcpAsync(config, request),
-                    OrchestratorProtocolType.A2A => await InvokeJsonWebhookAsync(config, request, "task"),
+                    OrchestratorProtocolType.A2A => await InvokeA2AAsync(config, request),
                     OrchestratorProtocolType.LangChain => await InvokeJsonWebhookAsync(config, request, "input"),
                     OrchestratorProtocolType.AutoGen => await InvokeJsonWebhookAsync(config, request, "message"),
                     OrchestratorProtocolType.CrewAI => await InvokeJsonWebhookAsync(config, request, "inputs"),
                     OrchestratorProtocolType.SemanticKernel => await InvokeJsonWebhookAsync(config, request, "input"),
+                    OrchestratorProtocolType.ACP => await InvokeAcpAsync(config, request),
+                    OrchestratorProtocolType.ANP => await InvokeAnpAsync(config, request),
+                    OrchestratorProtocolType.GraphQL => await InvokeGraphQLAsync(config, request),
+                    OrchestratorProtocolType.Kafka or OrchestratorProtocolType.AMQP or OrchestratorProtocolType.MQTT
+                        => await InvokeEventStreamAsync(config, request),
+                    OrchestratorProtocolType.GRPC => await InvokeJsonWebhookAsync(config, request, "input"), // gRPC stub — full impl requires .proto descriptor
                     _ => await InvokeJsonWebhookAsync(config, request, "input"),
                 };
 
@@ -224,6 +230,157 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             }
 
             return (body, newSessionId);
+        }
+
+        // ── Priority 4c — proper A2A wire format ────────────────────────────────────
+        private async Task<string> InvokeA2AAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            // 1. POST {endpoint}/a2a/tasks/send → { "message": { "role": "user", "parts": [{"text": input}] } }
+            string taskUrl = config.EndpointUrl.TrimEnd('/') + "/a2a/tasks/send";
+            var body = new { message = new { role = "user", parts = new[] { new { text = request.Input } } } };
+            using var req = new HttpRequestMessage(HttpMethod.Post, taskUrl);
+            if (!string.IsNullOrEmpty(config.AuthToken))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+            req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            using var resp = await _httpClient.SendAsync(req);
+            string raw = await resp.Content.ReadAsStringAsync();
+            if (!resp.IsSuccessStatusCode)
+                throw new HttpRequestException($"A2A '{config.Name}' returned {(int)resp.StatusCode}: {raw}");
+
+            // 2. Poll task until completed
+            using var doc = JsonDocument.Parse(raw);
+            string taskId = doc.RootElement.TryGetProperty("id", out var id) ? id.GetString() : null;
+            if (string.IsNullOrEmpty(taskId)) return raw;
+
+            string pollUrl = config.EndpointUrl.TrimEnd('/') + $"/a2a/tasks/{taskId}";
+            for (int i = 0; i < 60; i++)
+            {
+                await Task.Delay(500);
+                using var pollReq = new HttpRequestMessage(HttpMethod.Get, pollUrl);
+                if (!string.IsNullOrEmpty(config.AuthToken))
+                    pollReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+                using var pollResp = await _httpClient.SendAsync(pollReq);
+                string pollRaw = await pollResp.Content.ReadAsStringAsync();
+                using var pollDoc = JsonDocument.Parse(pollRaw);
+                string state = pollDoc.RootElement.TryGetProperty("state", out var s) ? s.GetString() : "working";
+                if (state == "completed" || state == "failed") return pollRaw;
+            }
+            return raw; // timeout — return last known state
+        }
+
+        // ── Priority 21a — ACP (Agent Communication Protocol) ───────────────────────
+        private async Task<string> InvokeAcpAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            string agentId = config.ExtraConfig?.GetValueOrDefault("agentId") ?? "default";
+            string runUrl = config.EndpointUrl.TrimEnd('/') + $"/agents/{agentId}/runs";
+            var body = new { input = new[] { new { role = "user", content = new[] { new { type = "text", text = request.Input } } } } };
+            using var req = new HttpRequestMessage(HttpMethod.Post, runUrl);
+            if (!string.IsNullOrEmpty(config.AuthToken))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+            req.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
+            using var resp = await _httpClient.SendAsync(req);
+            string raw = await resp.Content.ReadAsStringAsync();
+            if (!resp.IsSuccessStatusCode)
+                throw new HttpRequestException($"ACP '{config.Name}' returned {(int)resp.StatusCode}: {raw}");
+
+            using var doc = JsonDocument.Parse(raw);
+            string runId = doc.RootElement.TryGetProperty("run_id", out var rid) ? rid.GetString()
+                         : doc.RootElement.TryGetProperty("id", out var id) ? id.GetString() : null;
+            if (string.IsNullOrEmpty(runId)) return raw;
+
+            // Poll until terminal state
+            string statusUrl = config.EndpointUrl.TrimEnd('/') + $"/agents/{agentId}/runs/{runId}";
+            for (int i = 0; i < 120; i++)
+            {
+                await Task.Delay(500);
+                using var pollReq = new HttpRequestMessage(HttpMethod.Get, statusUrl);
+                if (!string.IsNullOrEmpty(config.AuthToken))
+                    pollReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+                using var pollResp = await _httpClient.SendAsync(pollReq);
+                string pollRaw = await pollResp.Content.ReadAsStringAsync();
+                using var pollDoc = JsonDocument.Parse(pollRaw);
+                string status = pollDoc.RootElement.TryGetProperty("status", out var st) ? st.GetString() : "running";
+                if (status == "completed" || status == "failed" || status == "error") return pollRaw;
+            }
+            return raw;
+        }
+
+        // ── Priority 21b — ANP (Agent Network Protocol) ─────────────────────────────
+        private async Task<string> InvokeAnpAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            // Resolve DID document → extract ANP service endpoint
+            string endpoint = config.EndpointUrl;
+            if (endpoint.StartsWith("did:", StringComparison.OrdinalIgnoreCase))
+            {
+                string resolverUrl = (Environment.GetEnvironmentVariable("DID_RESOLVER_URL") ?? "https://resolver.identity.foundation").TrimEnd('/');
+                using var resolveReq = new HttpRequestMessage(HttpMethod.Get, $"{resolverUrl}/1.0/identifiers/{Uri.EscapeDataString(endpoint)}");
+                resolveReq.Headers.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                using var resolveResp = await _httpClient.SendAsync(resolveReq);
+                if (resolveResp.IsSuccessStatusCode)
+                {
+                    string resolved = await resolveResp.Content.ReadAsStringAsync();
+                    using var resolvedDoc = JsonDocument.Parse(resolved);
+                    if (resolvedDoc.RootElement.TryGetProperty("didDocument", out var didDoc)
+                        && didDoc.TryGetProperty("service", out var services))
+                    {
+                        foreach (var svc in services.EnumerateArray())
+                        {
+                            string svcType = svc.TryGetProperty("type", out var t) ? t.GetString() : "";
+                            if (string.Equals(svcType, "ANPAgent", StringComparison.OrdinalIgnoreCase)
+                                && svc.TryGetProperty("serviceEndpoint", out var ep))
+                            {
+                                endpoint = ep.GetString();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // POST ANP message envelope
+            var anpBody = new { type = "message", content = request.Input, parameters = request.Parameters };
+            using var postReq = new HttpRequestMessage(HttpMethod.Post, endpoint.TrimEnd('/') + "/messages");
+            if (!string.IsNullOrEmpty(config.AuthToken))
+                postReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+            postReq.Content = new StringContent(JsonSerializer.Serialize(anpBody), Encoding.UTF8, "application/json");
+            using var postResp = await _httpClient.SendAsync(postReq);
+            string postRaw = await postResp.Content.ReadAsStringAsync();
+            if (!postResp.IsSuccessStatusCode)
+                throw new HttpRequestException($"ANP '{config.Name}' returned {(int)postResp.StatusCode}: {postRaw}");
+            return postRaw;
+        }
+
+        // ── Priority 21e — GraphQL ────────────────────────────────────────────────────
+        private async Task<string> InvokeGraphQLAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            string query = config.ExtraConfig?.GetValueOrDefault("query") ?? "mutation InvokeAgent($input: String!) { invoke(input: $input) { result } }";
+            var variables = new Dictionary<string, object>(request.Parameters) { ["input"] = request.Input };
+            var gqlBody = new { query, variables };
+            using var req = new HttpRequestMessage(HttpMethod.Post, config.EndpointUrl);
+            if (!string.IsNullOrEmpty(config.AuthToken))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+            req.Content = new StringContent(JsonSerializer.Serialize(gqlBody), Encoding.UTF8, "application/json");
+            using var resp = await _httpClient.SendAsync(req);
+            string raw = await resp.Content.ReadAsStringAsync();
+            if (!resp.IsSuccessStatusCode)
+                throw new HttpRequestException($"GraphQL '{config.Name}' returned {(int)resp.StatusCode}: {raw}");
+            return raw;
+        }
+
+        // ── Priority 21d — Event streaming (Kafka/AMQP/MQTT stub) ───────────────────
+        private async Task<string> InvokeEventStreamAsync(OrchestratorAdapterConfig config, OrchestratorInvokeRequest request)
+        {
+            // Fire-and-forget via generic HTTP POST to a webhook bridge
+            // Full Kafka/AMQP/MQTT clients require additional NuGet packages (Confluent.Kafka, RabbitMQ.Client, MQTTnet)
+            // For now, delegate to a configurable HTTP bridge: ExtraConfig["bridgeUrl"]
+            string bridgeUrl = config.ExtraConfig?.GetValueOrDefault("bridgeUrl") ?? config.EndpointUrl;
+            var payload = new { topic = config.ExtraConfig?.GetValueOrDefault("topic") ?? "oasis.web6", protocol = config.Protocol.ToString(), message = request.Input, parameters = request.Parameters };
+            using var req = new HttpRequestMessage(HttpMethod.Post, bridgeUrl);
+            if (!string.IsNullOrEmpty(config.AuthToken))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", config.AuthToken);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            using var resp = await _httpClient.SendAsync(req);
+            return await resp.Content.ReadAsStringAsync();
         }
 
         private static OrchestratorAdapterConfig MapToConfig(IHolon holon)

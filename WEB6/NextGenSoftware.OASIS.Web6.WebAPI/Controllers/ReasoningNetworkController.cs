@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -68,6 +69,28 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             var result = await manager.DispatchAsync(request);
 
             return result.IsError ? BadRequest(result) : Ok(result);
+        }
+
+        // ── Priority 24: SkillOpt endpoints ─────────────────────────────────────────
+
+        /// <summary>Returns the current best skill document for an agent and task category.</summary>
+        [HttpGet("agents/{agentId}/skills/{category}")]
+        [ProducesResponseType(typeof(SkillDocument), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetSkill(string agentId, string category)
+        {
+            var manager = new SkillOptManager(AvatarId, OASISDNA);
+            var result = await manager.LoadSkillAsync(Guid.Parse(agentId), category);
+            return result.IsError ? BadRequest(result) : Ok(result.Result);
+        }
+
+        /// <summary>Triggers one SkillOpt epoch — proposes and validates a textual edit to the agent's skill document.</summary>
+        [HttpPost("agents/{agentId}/skills/{category}/evolve")]
+        [ProducesResponseType(typeof(SkillDocument), StatusCodes.Status200OK)]
+        public async Task<IActionResult> EvolveSkill(string agentId, string category)
+        {
+            var manager = new SkillOptManager(AvatarId, OASISDNA);
+            var result = await manager.RunEpochAsync(Guid.Parse(agentId), category);
+            return result.IsError ? BadRequest(result) : Ok(result.Result);
         }
     }
 }
