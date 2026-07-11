@@ -216,6 +216,86 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             return result;
         }
 
+        // ── Priority 16b — semantic search ──────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns the top-K memory items from <paramref name="holonId"/> most semantically similar to
+        /// <paramref name="query"/>, using cosine similarity against stored embedding vectors.
+        /// Items without a pre-computed embedding fall back to keyword overlap scoring so the method
+        /// degrades gracefully when embeddings have not been stored yet.
+        /// </summary>
+        public async Task<OASISResult<List<MemorySearchResult>>> QueryMemoryAsync(Guid holonId, string query, int topK = 5, string embeddingProvider = "auto")
+        {
+            OASISResult<List<MemorySearchResult>> result = new OASISResult<List<MemorySearchResult>>();
+
+            OASISResult<IHolon> loadResult = await Data.LoadHolonAsync(holonId, false);
+            if (loadResult.IsError || loadResult.Result == null)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Holon {holonId} not found.");
+                return result;
+            }
+
+            HolonicMemoryHolonDto dto = MapToDto(loadResult.Result);
+            if (dto.MemoryItems.Count == 0)
+            {
+                result.Result = new List<MemorySearchResult>();
+                return result;
+            }
+
+            float[] queryEmbedding = null;
+            bool anyEmbedded = dto.MemoryItems.Any(i => i.Embedding != null && i.Embedding.Length > 0);
+
+            if (anyEmbedded)
+            {
+                try
+                {
+                    var embManager = new EmbeddingManager(AvatarId, OASISDNA);
+                    OASISResult<EmbeddingResponse> embedResult = await embManager.EmbedAsync(
+                        new EmbeddingRequest { Provider = embeddingProvider, Model = "auto", Texts = new List<string> { query } });
+
+                    if (!embedResult.IsError && embedResult.Result?.Embeddings?.Count > 0)
+                        queryEmbedding = embedResult.Result.Embeddings[0];
+                }
+                catch { /* fall through to keyword scoring */ }
+            }
+
+            var scored = dto.MemoryItems
+                .Where(i => !i.IsExpired)
+                .Select(item =>
+                {
+                    double score;
+                    if (queryEmbedding != null && item.Embedding != null && item.Embedding.Length == queryEmbedding.Length)
+                        score = CosineSimilarity(queryEmbedding, item.Embedding);
+                    else
+                        score = KeywordOverlap(query, item.Value ?? item.FieldName ?? "");
+
+                    return new MemorySearchResult { Item = item, Score = score };
+                })
+                .OrderByDescending(r => r.Score)
+                .Take(topK)
+                .ToList();
+
+            result.Result = scored;
+            return result;
+        }
+
+        private static double CosineSimilarity(float[] a, float[] b)
+        {
+            double dot = 0, normA = 0, normB = 0;
+            for (int i = 0; i < a.Length; i++) { dot += a[i] * b[i]; normA += a[i] * a[i]; normB += b[i] * b[i]; }
+            double denom = Math.Sqrt(normA) * Math.Sqrt(normB);
+            return denom < 1e-10 ? 0 : dot / denom;
+        }
+
+        private static double KeywordOverlap(string query, string value)
+        {
+            if (string.IsNullOrEmpty(query) || string.IsNullOrEmpty(value)) return 0;
+            var queryWords = new HashSet<string>(query.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            var valueWords = value.ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (queryWords.Count == 0) return 0;
+            return (double)valueWords.Count(w => queryWords.Contains(w)) / queryWords.Count;
+        }
+
         // ── Priority 16a — multi-hop propagation ────────────────────────────────────────────────────
 
         /// <summary>
