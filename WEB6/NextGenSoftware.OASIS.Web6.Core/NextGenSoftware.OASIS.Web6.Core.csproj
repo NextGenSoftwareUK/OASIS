@@ -19,8 +19,21 @@
 - Miscellaneous bug fixes and improvements during initial stabilisation.
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
+    <Authors>David Ellams (NextGen Software Ltd)</Authors>
+    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Interoperability; Abstraction-Layer; Avatar-API; Karma-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; NextGenSoftware</PackageTags>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageIcon>OASIS.jpg</PackageIcon>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
