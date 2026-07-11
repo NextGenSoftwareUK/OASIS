@@ -5,48 +5,66 @@ _Generated: 2026-07-10_
 
 ---
 
-## SESSION CHECKPOINT — 2026-07-10
+## SESSION CHECKPOINT — 2026-07-10 (updated)
 
-### Completed this session
+### Completed across all sessions to date
 | Priority | What | Status |
 |---|---|---|
-| P12 | Per-avatar API Key Vault (`KeyVaultManager`), Cost Metering + Usage Quotas (`UsageMeteringManager`), `KeysController` (POST/GET/DELETE `/v1/keys`), `UsageController` (GET `/v1/usage`) | ✅ Done & pushed |
-| P13 | Semantic Cache (`SemanticCacheManager` — cosine-similarity, LRU eviction, per-request TTL override), wired into `CompletionController` | ✅ Done & pushed |
-| P26 | Agent Budget Guard (`BudgetGuard` inner class in `FAHRNManager`, wired into all 5 dispatch modes, budget-estimate endpoint) | ✅ Done & pushed (prev session) |
-| MCP | Moved MCP Server from `C:\Source\MCP\` into `C:\Source\OASIS2\WEB6\NextGenSoftware.OASIS.MCP.Server\`, fixed project references | ✅ Done & pushed |
-| MCP NuGet | Added full NuGet metadata + `<PackAsTool>true</PackAsTool>` + `ToolCommandName=oasis-mcp` to MCP Server `.csproj` | ✅ Done & pushed |
-| Rebrand URLs | Updated `PackageProjectUrl` → `https://oasisomniverse.one`, `RepositoryUrl` → `github.com/NextGenSoftwareUK/OASIS` in Web6.Core, Web6.WebAPI, and MCP Server csproj files | ✅ Done & pushed |
-| oasisweb4.com | Updated `/products/mcp` page from old Node.js instructions to new .NET/.NuGet install steps | ✅ Done & pushed |
-| OPORTAL-JS | Updated dev-portal MCP Server download link to new WEB6 location | ✅ Done & pushed |
+| P12 | Per-avatar API Key Vault (`KeyVaultManager`), Cost Metering + Usage Quotas (`UsageMeteringManager`), `KeysController`, `UsageController` | ✅ Done & pushed |
+| P13 | Semantic Cache (`SemanticCacheManager` — cosine-similarity, LRU eviction, per-request TTL override) | ✅ Done & pushed |
+| P26 | Agent Budget Guard in `FAHRNManager` (all 5 dispatch modes, budget-estimate endpoint) | ✅ Done & pushed |
+| MCP | MCP Server moved into `WEB6/NextGenSoftware.OASIS.MCP.Server/`, project references fixed | ✅ Done & pushed |
+| MCP NuGet | `<PackAsTool>true</PackAsTool>`, `ToolCommandName=oasis-mcp`, full OASISOmniverse NuGet metadata | ✅ Done & pushed |
+| MCP npm | `WEB6/npm/` — `@oasisomniverse/mcp-server` shim: `install.js` downloads platform binary, `bin/oasis-mcp.js` exec shim | ✅ Done & pushed |
+| publish-mcp.yml | GitHub Actions workflow: 5-platform matrix build → GitHub release → NuGet Trusted Publishing → npm publish | ✅ Done & pushed |
+| Rebrand URLs | `PackageProjectUrl` → `https://oasisomniverse.one`, `RepositoryUrl` → `github.com/NextGenSoftwareUK/OASIS` in all csproj files | ✅ Done & pushed |
+| oasisweb4.com/products/mcp | Updated from old Node.js instructions to .NET/.NuGet/.npm install steps (5 tabs) | ✅ Done & pushed |
+| vercel.json fix | Removed invalid `"public": true` property that was failing Vercel build | ✅ Done & pushed |
+| WEB6 README | New `WEB6/README.md` — projects table, capabilities, REST API quick reference, publish workflow table | ✅ Done & pushed |
+| MCP README | Rewritten `WEB6/NextGenSoftware.OASIS.MCP.Server/README.md` — 3 install options, tool coverage table, env vars | ✅ Done & pushed |
 
-### In-flight at session end — RESUME HERE
-**Priority 8 — Tool / Function Calling** (partially started, NOT committed)
+### In-flight at session end — RESUME HERE FIRST
+**Delete `Web4Web5Tools.cs` passthrough + replace with full named typed MCP tools**
 
-Files already edited:
-- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ChatMessage.cs` — added `ToolCalls`, `ToolCallId`, `Name` fields
-- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/CompletionRequest.cs` — added `Tools` (`List<ToolDefinition>`) and `ToolChoice` fields
-- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ToolDefinition.cs` — NEW (not yet committed)
-- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ToolCall.cs` — NEW (not yet committed)
+Context: `WEB6/NextGenSoftware.OASIS.MCP.Server/Tools/Web4Web5Tools.cs` contains 6 HTTP passthrough tools
+(`web4_request`, `web5_request`, `web7_request`, `web8_request`, `web9_request`, `web10_request`).
+WEB7/8/9/10 are **already fully typed** in their own files — those passthrough tools are just dead code.
+WEB4 and WEB5 needed expanding.
+
+**Work done this session (NOT yet committed/pushed):**
+- `Web4Tools.cs` — EXPANDED with new tools (avatar_load_by_username, avatar_load_all, avatar_save, avatar_delete, karma_transfer, nft_mint, nft_send, nft_delete, nft_collection_load/load_all, geo_nft_load/load_all/load_near_location/mint_and_place/delete, wallet_create, wallet_load_provider_wallets, wallet_get_total_balance) — written but NOT yet verified/committed
+- `Web5Tools.cs` — STARTED rewrite (new tools for quest_load, quest_search, mission_load/load_all/search, oapp_load/load_all/search/download/download_and_install/activate/deactivate/is_installed, celestial_body_load/load_all/search, holon_load/load_all/search/download/download_and_install) — **write was interrupted before the file was saved**
+
+**RESUME STEPS:**
+1. Verify `Web4Tools.cs` was saved correctly (Read the file and check it has all the new tools listed above)
+2. Write `Web5Tools.cs` — all managers are in namespace `NextGenSoftware.OASIS.API.ONODE.Core.Managers`; constructors: `new QuestManager(Guid avatarId, STARDNA starDna)`, same pattern for MissionManager, OAPPManager, CelestialBodyManager, STARHolonManager. Methods come from `ISTARNETManagerBase<T1,T2,T3,T4>`: `LoadAsync`, `LoadAllForAvatarAsync`, `Search`, `DownloadAsync`, `DownloadAndInstallAsync`, `ActivateAsync`, `DeactivateAsync`, `IsInstalledAsync`, `ListInstalledAsync`. QuestManager also has quest-specific: `LoadAllQuestsForAvatarAsync`, `StartQuestAsync`, `CompleteQuestObjectiveAsync`, `CompleteQuestAsync`. MissionManager has: `CompleteMissionAsync`, `GetMissionLeaderboardAsync`, `GetMissionRewardsAsync`, `GetMissionStatsAsync`.
+3. Delete `Web4Web5Tools.cs`
+4. Try to build — fix any compile errors (check enum casing, using namespaces, constructor signatures match)
+5. Commit and push with message: "Replace all WEB4/WEB5 passthrough MCP tools with full named typed tools"
+
+**Priority 8 — Tool / Function Calling** (partially started, committed in prev checkpoint)
+Files already edited (committed):
+- `ChatMessage.cs` — added `ToolCalls`, `ToolCallId`, `Name`
+- `CompletionRequest.cs` — added `Tools` (`List<ToolDefinition>`) and `ToolChoice`
+- `ToolDefinition.cs` — NEW
+- `ToolCall.cs` — NEW
 
 Still TODO to complete Priority 8:
 1. Update `CompletionResponse` — add `List<ToolCall> ToolCalls` and `string FinishReason`
-2. Update `AIProviderManager.CallOpenAICompatibleAsync` — pass `tools`/`tool_choice` in payload; parse `tool_calls` from response instead of throwing on null content
-3. Update `AIProviderManager.CallAnthropicAsync` — normalise Anthropic tool format (`input_schema` instead of `parameters`); parse `tool_use` content blocks
-4. Update `AIProviderManager.CallGeminiAsync` — normalise Gemini `functionDeclarations` format; parse `functionCall` parts
-5. Update `AIProviderManager.CallCohereAsync` + others — shim: inject tool descriptions into system prompt for providers that don't support native tool calls
-6. Add `POST /v1/complete/tool-result` endpoint to `CompletionController` — appends tool-role message and continues the loop
-7. Register built-in first-party tools (`oasis_avatar_get`, `oasis_karma_get`, `oasis_holon_search`, `oasis_quest_get`, `oasis_memory_read`, `oasis_memory_write`, `oasis_braid_graph_get`)
-8. Build and test; commit
+2. Update `AIProviderManager.CallOpenAICompatibleAsync` — pass `tools`/`tool_choice` in payload; parse `tool_calls` from response
+3. Update `AIProviderManager.CallAnthropicAsync` — normalise `input_schema` format; parse `tool_use` content blocks
+4. Update `AIProviderManager.CallGeminiAsync` — normalise `functionDeclarations`; parse `functionCall` parts
+5. Shim for providers without native tool calls — inject descriptions into system prompt
+6. Add `POST /v1/complete/tool-result` endpoint to `CompletionController`
+7. Register built-in first-party tools (`oasis_avatar_get`, `oasis_karma_get`, `oasis_holon_search`, etc.)
+8. Build, test, commit
 
-### npm package for MCP Server
-Discussed but not started. Decision: YES, build a thin npm wrapper (`@oasis-omniverse/mcp-server`) that downloads the platform binary on install.
-Steps when resuming:
-1. Add `dotnet publish` matrix job to GitHub Actions (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64) — attach binaries to GitHub release
-2. Create `packages/mcp-server-npm/` folder with `package.json`, `install.js` (downloads correct binary), `bin/oasis-mcp.js` (exec shim)
-3. Add npm publish step to the release workflow
+### npm publishing setup (manual steps needed)
+- Create `oasisomniverse` org on npmjs.com
+- Add `NPM_TOKEN` secret to GitHub repo settings → Secrets → Actions
 
 ### Remaining action plan priorities (not started)
-`3b` karma gating in FAHRN dispatch · `3c` BRAID auto-promote · `3d` loop detection hooks · `14` decentralised AI providers · `15` external memory providers (Mem0/Zep/Letta/LangMem) · `16` holonic memory improvements (multi-hop propagation, semantic search) · `17` enhanced loop detection · `18` WebSocket sessions · `19a/c` telemetry · `20` DID/VCs · `21` prompt injection guard · `24` SkillOpt · `25` ML.NET
+`3b` karma gating in FAHRN dispatch · `3c` BRAID auto-promote · `3d` loop detection hooks · `14` decentralised AI providers · `15` external memory providers (Mem0/Zep/Letta/LangMem) · `16` holonic memory improvements · `17` enhanced loop detection · `18` WebSocket sessions · `19a/c` telemetry · `20` DID/VCs · `21` prompt injection guard · `24` SkillOpt · `25` ML.NET
 
 ---
 
