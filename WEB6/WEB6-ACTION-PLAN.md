@@ -5,6 +5,51 @@ _Generated: 2026-07-10_
 
 ---
 
+## SESSION CHECKPOINT — 2026-07-10
+
+### Completed this session
+| Priority | What | Status |
+|---|---|---|
+| P12 | Per-avatar API Key Vault (`KeyVaultManager`), Cost Metering + Usage Quotas (`UsageMeteringManager`), `KeysController` (POST/GET/DELETE `/v1/keys`), `UsageController` (GET `/v1/usage`) | ✅ Done & pushed |
+| P13 | Semantic Cache (`SemanticCacheManager` — cosine-similarity, LRU eviction, per-request TTL override), wired into `CompletionController` | ✅ Done & pushed |
+| P26 | Agent Budget Guard (`BudgetGuard` inner class in `FAHRNManager`, wired into all 5 dispatch modes, budget-estimate endpoint) | ✅ Done & pushed (prev session) |
+| MCP | Moved MCP Server from `C:\Source\MCP\` into `C:\Source\OASIS2\WEB6\NextGenSoftware.OASIS.MCP.Server\`, fixed project references | ✅ Done & pushed |
+| MCP NuGet | Added full NuGet metadata + `<PackAsTool>true</PackAsTool>` + `ToolCommandName=oasis-mcp` to MCP Server `.csproj` | ✅ Done & pushed |
+| Rebrand URLs | Updated `PackageProjectUrl` → `https://oasisomniverse.one`, `RepositoryUrl` → `github.com/NextGenSoftwareUK/OASIS` in Web6.Core, Web6.WebAPI, and MCP Server csproj files | ✅ Done & pushed |
+| oasisweb4.com | Updated `/products/mcp` page from old Node.js instructions to new .NET/.NuGet install steps | ✅ Done & pushed |
+| OPORTAL-JS | Updated dev-portal MCP Server download link to new WEB6 location | ✅ Done & pushed |
+
+### In-flight at session end — RESUME HERE
+**Priority 8 — Tool / Function Calling** (partially started, NOT committed)
+
+Files already edited:
+- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ChatMessage.cs` — added `ToolCalls`, `ToolCallId`, `Name` fields
+- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/CompletionRequest.cs` — added `Tools` (`List<ToolDefinition>`) and `ToolChoice` fields
+- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ToolDefinition.cs` — NEW (not yet committed)
+- `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/ToolCall.cs` — NEW (not yet committed)
+
+Still TODO to complete Priority 8:
+1. Update `CompletionResponse` — add `List<ToolCall> ToolCalls` and `string FinishReason`
+2. Update `AIProviderManager.CallOpenAICompatibleAsync` — pass `tools`/`tool_choice` in payload; parse `tool_calls` from response instead of throwing on null content
+3. Update `AIProviderManager.CallAnthropicAsync` — normalise Anthropic tool format (`input_schema` instead of `parameters`); parse `tool_use` content blocks
+4. Update `AIProviderManager.CallGeminiAsync` — normalise Gemini `functionDeclarations` format; parse `functionCall` parts
+5. Update `AIProviderManager.CallCohereAsync` + others — shim: inject tool descriptions into system prompt for providers that don't support native tool calls
+6. Add `POST /v1/complete/tool-result` endpoint to `CompletionController` — appends tool-role message and continues the loop
+7. Register built-in first-party tools (`oasis_avatar_get`, `oasis_karma_get`, `oasis_holon_search`, `oasis_quest_get`, `oasis_memory_read`, `oasis_memory_write`, `oasis_braid_graph_get`)
+8. Build and test; commit
+
+### npm package for MCP Server
+Discussed but not started. Decision: YES, build a thin npm wrapper (`@oasis-omniverse/mcp-server`) that downloads the platform binary on install.
+Steps when resuming:
+1. Add `dotnet publish` matrix job to GitHub Actions (win-x64, linux-x64, linux-arm64, osx-x64, osx-arm64) — attach binaries to GitHub release
+2. Create `packages/mcp-server-npm/` folder with `package.json`, `install.js` (downloads correct binary), `bin/oasis-mcp.js` (exec shim)
+3. Add npm publish step to the release workflow
+
+### Remaining action plan priorities (not started)
+`3b` karma gating in FAHRN dispatch · `3c` BRAID auto-promote · `3d` loop detection hooks · `14` decentralised AI providers · `15` external memory providers (Mem0/Zep/Letta/LangMem) · `16` holonic memory improvements (multi-hop propagation, semantic search) · `17` enhanced loop detection · `18` WebSocket sessions · `19a/c` telemetry · `20` DID/VCs · `21` prompt injection guard · `24` SkillOpt · `25` ML.NET
+
+---
+
 ## Appendix A — Original GPT Conversation (Reference)
 
 _The conversation below was the starting point for this action plan. It covers the current AI protocol landscape, GPT's analysis of the WEB6 site and whitepaper, and the framing of OASIS as a universal interoperability layer._
