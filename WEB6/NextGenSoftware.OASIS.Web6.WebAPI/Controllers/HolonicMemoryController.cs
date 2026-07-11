@@ -62,5 +62,22 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
             var result = await manager.PropagateAsync(childHolonId);
             return result.IsError ? BadRequest(result) : Ok(result);
         }
+
+        /// <summary>
+        /// Semantic search across all memory items in a holon.
+        /// Priority 16b — returns the top-K items most similar to the query string using cosine similarity
+        /// over stored embedding vectors (falls back to keyword overlap when no embeddings are stored).
+        /// GET /v1/holonic-memory/holons/{holonId}/memory/search?q=...&amp;topK=5&amp;provider=auto
+        /// </summary>
+        [HttpGet("holons/{holonId}/memory/search")]
+        [ProducesResponseType(typeof(System.Collections.Generic.List<MemorySearchResult>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> SearchMemory(Guid holonId, [FromQuery] string q, [FromQuery] int topK = 5, [FromQuery] string provider = "auto")
+        {
+            if (string.IsNullOrWhiteSpace(q))
+                return BadRequest(new { error = "q (query) is required" });
+            HolonicMemoryManager manager = new HolonicMemoryManager(AvatarId, OASISDNA);
+            var result = await manager.QueryMemoryAsync(holonId, q, topK, provider);
+            return result.IsError ? BadRequest(result) : Ok(result);
+        }
     }
 }
