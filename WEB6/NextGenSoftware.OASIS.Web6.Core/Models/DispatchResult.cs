@@ -45,5 +45,14 @@ namespace NextGenSoftware.OASIS.Web6.Core.Models
         public Guid HolonicBraidGraphId { get; set; }
 
         public long TotalLatencyMs { get; set; }
+
+        public bool BudgetExceeded { get; set; }
+
+        /// <summary>Human-readable reason why dispatch stopped early, e.g. "MaxTotalTokens 4000 reached after agent 2 of 5".</summary>
+        public string BudgetExceededReason { get; set; }
+
+        public int TokensUsedTotal { get; set; }
+
+        public decimal CostUsdTotal { get; set; }
     }
 }

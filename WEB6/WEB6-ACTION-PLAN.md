@@ -1794,6 +1794,107 @@ GET    /v1/holonic-memory/holons/{id}/memory/search  Semantic search within holo
 
 ---
 
+### PRIORITY 26 — Agent Budget Guard (Auto-Stop at Token/Cost Threshold)
+
+**Lets callers set a hard budget on any dispatch — FAHRN stops launching new agents the moment the running total crosses the threshold. Directly addresses the "how do I stop agents before they burn my entire session?" problem.**
+
+#### Why it matters
+
+- Serial/Parallel/Debate/Voting modes can each run multiple model calls. Without a ceiling, a single `DispatchAsync` on a large problem can exhaust a session or a monthly cost quota silently.
+- `MaxTotalTokens` already exists on `DispatchRequest` but is never checked — this priority wires it in and adds cost-based stopping.
+- Integrates naturally with Priority 12 (per-avatar quota system): the quota manager feeds its remaining budget as the ceiling; FAHRN respects it without any extra code in the controller.
+
+#### Changes
+
+**`DispatchRequest.cs`** — add:
+```csharp
+/// <summary>Hard USD cost ceiling for the entire dispatch run. Checked between each agent call; stops early if exceeded.</summary>
+public decimal? MaxCostUsd { get; set; }
+
+/// <summary>Hard token ceiling per individual agent call. Agent calls whose projected tokens exceed this are skipped.</summary>
+public int? MaxTokensPerAgent { get; set; }
+
+/// <summary>When budget is hit: "stop" (default, return partial results) or "best_so_far" (return best answer seen so far).</summary>
+public string BudgetExceededBehaviour { get; set; } = "stop";
+```
+
+**`DispatchResult.cs`** — add:
+```csharp
+public bool BudgetExceeded { get; set; }
+public string BudgetExceededReason { get; set; }   // e.g. "MaxTotalTokens 4000 reached after agent 2 of 5"
+public int TokensUsedTotal { get; set; }
+public decimal CostUsdTotal { get; set; }
+```
+
+**`FAHRNSettings`** in `OASISDNA.cs` — add global defaults:
+```csharp
+public int?     DefaultMaxTotalTokens    { get; set; }      // null = unlimited
+public decimal? DefaultMaxCostUsd        { get; set; }
+public int?     DefaultMaxTokensPerAgent { get; set; }
+```
+
+**`FAHRNManager.cs`** — add `BudgetGuard` inner class and check after every agent call:
+```csharp
+private class BudgetGuard
+{
+    private readonly DispatchRequest _req;
+    private readonly FAHRNSettings   _settings;
+    public int     TokensUsed { get; private set; }
+    public decimal CostUsd    { get; private set; }
+
+    public BudgetGuard(DispatchRequest req, FAHRNSettings settings) { _req = req; _settings = settings; }
+
+    // Call after each agent completes — returns non-null reason string if budget exceeded
+    public string? Record(int tokens, decimal costUsd)
+    {
+        TokensUsed += tokens;
+        CostUsd    += costUsd;
+
+        int? maxTokens = _req.MaxTotalTokens ?? _settings?.DefaultMaxTotalTokens;
+        decimal? maxCost = _req.MaxCostUsd ?? _settings?.DefaultMaxCostUsd;
+
+        if (maxTokens.HasValue && TokensUsed >= maxTokens.Value)
+            return $"MaxTotalTokens {maxTokens} reached ({TokensUsed} used)";
+        if (maxCost.HasValue && CostUsd >= maxCost.Value)
+            return $"MaxCostUsd {maxCost:F4} reached ({CostUsd:F4} used)";
+        return null;
+    }
+}
+```
+
+Wire into `DispatchSerialAsync`, `DispatchParallelAsync`, `DispatchDebateAsync`, `DispatchVotingAsync` — after each `ExecuteAgentAsync` / `ExecuteAgentFullAsync` call, call `guard.Record(plan.TokensUsed, estimatedCost)` and break the loop if it returns non-null.
+
+Populate `result.BudgetExceeded`, `result.BudgetExceededReason`, `result.TokensUsedTotal`, `result.CostUsdTotal` before returning.
+
+**`FahrnSolveRequest.cs`** — expose budget fields through the hero endpoint too:
+```csharp
+public int?     MaxTotalTokens    { get; set; }
+public decimal? MaxCostUsd        { get; set; }
+public int?     MaxTokensPerAgent { get; set; }
+public string   BudgetExceededBehaviour { get; set; } = "stop";
+```
+
+**MCP tool** `web6_fahrn_dispatch` — already passes `DispatchRequest` through, so new fields are automatically exposed to MCP clients with no tool changes needed.
+
+#### New REST endpoint
+
+```
+GET  /v1/fahrn/budget-estimate    Dry-run estimate of token/cost for a given DispatchRequest (no agent calls — uses model pricing table)
+```
+
+#### File locations
+
+| Change | File |
+|---|---|
+| `MaxCostUsd`, `MaxTokensPerAgent`, `BudgetExceededBehaviour` | `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/DispatchRequest.cs` |
+| `BudgetExceeded`, `BudgetExceededReason`, `TokensUsedTotal`, `CostUsdTotal` | `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/DispatchResult.cs` |
+| `DefaultMaxTotalTokens`, `DefaultMaxCostUsd`, `DefaultMaxTokensPerAgent` | `OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASISDNA.cs` → `FAHRNSettings` |
+| `BudgetGuard` + dispatch loop checks | `WEB6/NextGenSoftware.OASIS.Web6.Core/Managers/FAHRNManager.cs` |
+| Budget fields on hero endpoint | `WEB6/NextGenSoftware.OASIS.Web6.Core/Models/FahrnSolveRequest.cs` |
+| Budget estimate endpoint | New `WEB6/NextGenSoftware.OASIS.Web6.WebAPI/Controllers/FahrnSolveController.cs` |
+
+---
+
 ## 5. GPT Conversation — Key Takeaways & Alignment Notes
 
 The GPT conversation confirms the vision is coherent and the positioning is correct. Key points that directly map to this action plan:

@@ -313,12 +313,66 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             });
         }
 
+        /// <summary>Tracks running token and cost totals for a dispatch run and enforces per-request or global FAHRN budget ceilings.</summary>
+        private sealed class BudgetGuard
+        {
+            private readonly DispatchRequest _req;
+            private readonly FAHRNSettings   _settings;
+            public int     TokensUsed { get; private set; }
+            public decimal CostUsd    { get; private set; }
+
+            public BudgetGuard(DispatchRequest req, OASISDNA dna)
+            {
+                _req      = req;
+                _settings = dna?.OASIS?.Web6?.FAHRN;
+            }
+
+            /// <summary>Record a completed agent call. Returns a non-null reason string when the budget has been hit.</summary>
+            public string Record(int tokens, decimal costUsd = 0m)
+            {
+                TokensUsed += tokens;
+                CostUsd    += costUsd;
+
+                int?     maxTokens = _req.MaxTotalTokens    ?? _settings?.DefaultMaxTotalTokens;
+                decimal? maxCost   = _req.MaxCostUsd        ?? _settings?.DefaultMaxCostUsd;
+
+                if (maxTokens.HasValue && TokensUsed >= maxTokens.Value)
+                    return $"MaxTotalTokens {maxTokens} reached ({TokensUsed} tokens used)";
+                if (maxCost.HasValue && CostUsd >= maxCost.Value)
+                    return $"MaxCostUsd {maxCost:F4} reached (${CostUsd:F4} used)";
+                return null;
+            }
+
+            /// <summary>Returns true when this agent call should be skipped because its expected size exceeds MaxTokensPerAgent.</summary>
+            public bool ShouldSkip(int? estimatedTokens)
+            {
+                int? perAgent = _req.MaxTokensPerAgent ?? _settings?.DefaultMaxTokensPerAgent;
+                return perAgent.HasValue && estimatedTokens.HasValue && estimatedTokens.Value > perAgent.Value;
+            }
+
+            public void ApplyTo(DispatchResult result)
+            {
+                result.TokensUsedTotal = TokensUsed;
+                result.CostUsdTotal    = CostUsd;
+            }
+        }
+
         private async Task DispatchSerialAsync(List<(ReasoningAgentMetadata agent, double score)> ranked, DispatchRequest request, HolonicBraidGraphDto graph, DispatchResult dispatchResult)
         {
+            BudgetGuard guard = new BudgetGuard(request, OASISDNA);
+
             foreach ((ReasoningAgentMetadata agent, double score) in ranked)
             {
                 AgentExecutionPlan plan = await ExecuteAgentAsync(agent, score, request, graph);
                 dispatchResult.AgentPlans.Add(plan);
+
+                string budgetReason = guard.Record(plan.TokensUsed);
+                if (budgetReason != null)
+                {
+                    dispatchResult.BudgetExceeded = true;
+                    dispatchResult.BudgetExceededReason = budgetReason;
+                    break;
+                }
 
                 if (!plan.Stalled && !plan.LoopDetected)
                 {
@@ -329,6 +383,8 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
 
                 // Stalled/looped - the controller promotes the next-best agent and tries again.
             }
+
+            guard.ApplyTo(dispatchResult);
         }
 
         private async Task DispatchParallelAsync(List<(ReasoningAgentMetadata agent, double score)> ranked, DispatchRequest request, HolonicBraidGraphDto graph, DispatchResult dispatchResult)
@@ -336,6 +392,15 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             IEnumerable<Task<AgentExecutionPlan>> tasks = ranked.Select(r => ExecuteAgentAsync(r.agent, r.score, request, graph));
             AgentExecutionPlan[] plans = await Task.WhenAll(tasks);
             dispatchResult.AgentPlans.AddRange(plans);
+
+            // Budget guard: tally all agents (already ran in parallel), flag if over limit
+            BudgetGuard guard = new BudgetGuard(request, OASISDNA);
+            foreach (AgentExecutionPlan p in plans)
+            {
+                string reason = guard.Record(p.TokensUsed);
+                if (reason != null) { dispatchResult.BudgetExceeded = true; dispatchResult.BudgetExceededReason = reason; break; }
+            }
+            guard.ApplyTo(dispatchResult);
 
             AgentExecutionPlan best = plans.Where(p => !p.Stalled && !p.LoopDetected).OrderByDescending(p => p.CompositeScoreAtDispatch).FirstOrDefault();
 
@@ -365,11 +430,16 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
                 return;
             }
 
+            BudgetGuard guard = new BudgetGuard(request, OASISDNA);
+
             // Step 1: Proposer generates an answer
             (ReasoningAgentMetadata proposer, double proposerScore) = ranked[0];
             AgentExecutionPlan proposerPlan = await ExecuteAgentFullAsync(proposer, proposerScore, request, graph, "Produce the best answer to the following problem.");
             dispatchResult.AgentPlans.Add(proposerPlan);
             string proposerAnswer = proposerPlan.Plan ?? proposerPlan.MermaidDiagram ?? "";
+
+            string budgetReason = guard.Record(proposerPlan.TokensUsed);
+            if (budgetReason != null) { dispatchResult.BudgetExceeded = true; dispatchResult.BudgetExceededReason = budgetReason; dispatchResult.FinalAnswer = proposerAnswer; guard.ApplyTo(dispatchResult); return; }
 
             // Step 2: Critic reviews the answer
             (ReasoningAgentMetadata critic, double criticScore) = ranked[1];
@@ -378,11 +448,17 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             dispatchResult.AgentPlans.Add(criticPlan);
             string critique = criticPlan.Plan ?? "";
 
+            budgetReason = guard.Record(criticPlan.TokensUsed);
+            if (budgetReason != null) { dispatchResult.BudgetExceeded = true; dispatchResult.BudgetExceededReason = budgetReason; dispatchResult.FinalAnswer = proposerAnswer; guard.ApplyTo(dispatchResult); return; }
+
             // Step 3: Judge synthesises the final answer
             (ReasoningAgentMetadata judge, double judgeScore) = ranked.Count >= 3 ? ranked[2] : ranked[0];
             DispatchRequest judgeRequest = new DispatchRequest { Problem = $"Original problem: {request.Problem}\n\nProposed answer:\n{proposerAnswer}\n\nCritique:\n{critique}\n\nProduce the final best answer synthesising both perspectives.", TaskType = request.TaskType, AvatarId = request.AvatarId };
             AgentExecutionPlan judgePlan = await ExecuteAgentFullAsync(judge, judgeScore, judgeRequest, null, "Synthesise the final best answer.");
             dispatchResult.AgentPlans.Add(judgePlan);
+
+            guard.Record(judgePlan.TokensUsed);
+            guard.ApplyTo(dispatchResult);
 
             dispatchResult.WinningAgentId = judge.Id;
             dispatchResult.FinalAnswer = judgePlan.Plan;
@@ -394,6 +470,15 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
             IEnumerable<Task<AgentExecutionPlan>> tasks = ranked.Select(r => ExecuteAgentFullAsync(r.agent, r.score, request, graph, null));
             AgentExecutionPlan[] plans = await Task.WhenAll(tasks);
             dispatchResult.AgentPlans.AddRange(plans);
+
+            // Budget guard: tally all agents, flag if over limit
+            BudgetGuard guard = new BudgetGuard(request, OASISDNA);
+            foreach (AgentExecutionPlan p in plans)
+            {
+                string reason = guard.Record(p.TokensUsed);
+                if (reason != null) { dispatchResult.BudgetExceeded = true; dispatchResult.BudgetExceededReason = reason; break; }
+            }
+            guard.ApplyTo(dispatchResult);
 
             // Weighted vote: weight each answer by composite score, pick highest-weight cluster
             AgentExecutionPlan best = plans
@@ -461,13 +546,19 @@ namespace NextGenSoftware.OASIS.Web6.Core.Managers
         {
             // Each ranked agent owns one sub-problem slice, best-fit-first - then sub-plans are stitched together.
             List<AgentExecutionPlan> subPlans = new List<AgentExecutionPlan>();
+            BudgetGuard guard = new BudgetGuard(request, OASISDNA);
 
             int maxSubProblems = OASISDNA?.OASIS?.Web6?.FAHRN?.MaxDecomposedSubProblems ?? 3;
             foreach ((ReasoningAgentMetadata agent, double score) in ranked.Take(Math.Min(maxSubProblems, ranked.Count)))
             {
                 AgentExecutionPlan plan = await ExecuteAgentAsync(agent, score, request, graph);
                 subPlans.Add(plan);
+
+                string budgetReason = guard.Record(plan.TokensUsed);
+                if (budgetReason != null) { dispatchResult.BudgetExceeded = true; dispatchResult.BudgetExceededReason = budgetReason; break; }
             }
+
+            guard.ApplyTo(dispatchResult);
 
             dispatchResult.AgentPlans.AddRange(subPlans);
             AgentExecutionPlan lead = subPlans.OrderByDescending(p => p.CompositeScoreAtDispatch).FirstOrDefault();

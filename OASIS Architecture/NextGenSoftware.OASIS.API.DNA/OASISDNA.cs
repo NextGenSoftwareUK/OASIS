@@ -178,6 +178,15 @@ namespace NextGenSoftware.OASIS.API.DNA
 
         /// <summary>Maximum number of agents considered "leads" in Decomposed dispatch mode (mirrors the Take(3) used in FAHRNManager.DispatchDecomposedAsync).</summary>
         public int MaxDecomposedSubProblems { get; set; } = 3;
+
+        /// <summary>Global default token ceiling for a full dispatch run (null = unlimited). Per-request MaxTotalTokens takes priority.</summary>
+        public int? DefaultMaxTotalTokens { get; set; }
+
+        /// <summary>Global default USD cost ceiling for a full dispatch run (null = unlimited). Per-request MaxCostUsd takes priority.</summary>
+        public decimal? DefaultMaxCostUsd { get; set; }
+
+        /// <summary>Global default token ceiling per individual agent call (null = unlimited). Per-request MaxTokensPerAgent takes priority.</summary>
+        public int? DefaultMaxTokensPerAgent { get; set; }
     }
 
     /// <summary>Settings for the Holonic BRAID shared reasoning-graph memory (HolonicBraidManager) - persisted per task-type Mermaid execution plans that any agent can re-use at zero generation cost.</summary>
