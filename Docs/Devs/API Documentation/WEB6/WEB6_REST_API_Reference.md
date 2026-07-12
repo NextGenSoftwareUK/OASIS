@@ -5,6 +5,20 @@
 **Version:** 2.0.0  
 **Framework:** ASP.NET Core on .NET 10
 
+> **Note — endpoints not shown in Swagger UI:**  
+> Six endpoints are intentionally hidden from the Swagger API explorer because they use streaming transports (SSE / WebSocket) or are auto-discovered by MCP/A2A clients rather than called directly by users. They work exactly as documented below; they just don't appear in the interactive UI.  
+>
+> | Endpoint | Reason hidden |
+> |---|---|
+> | `POST /v1/complete/stream` | SSE — returns `text/event-stream`, not a JSON response body |
+> | `GET /a2a/tasks/{id}/events` | SSE — real-time task state stream |
+> | `GET /v1/telemetry/stream` | SSE — real-time telemetry event stream |
+> | `GET /ws/session` | WebSocket upgrade — bidirectional agent session |
+> | `GET /.well-known/mcp.json` | MCP discovery document — consumed by MCP clients automatically |
+> | `GET /.well-known/agent.json` | A2A agent card — consumed by A2A peer agents automatically |
+>
+> All other endpoints are visible and testable at the Swagger UI link above.
+
 ---
 
 ## Authentication

@@ -62,6 +62,8 @@ dotnet run
 
 The API starts on `http://localhost:5000`. Swagger UI is at `http://localhost:5000/swagger`.
 
+> **Note:** SSE streaming endpoints (`/v1/complete/stream`, `/v1/telemetry/stream`, `/a2a/tasks/{id}/events`), the WebSocket session (`/ws/session`), and the auto-discovery documents (`/.well-known/mcp.json`, `/.well-known/agent.json`) are intentionally hidden from Swagger UI because they use streaming transports that the interactive explorer cannot represent. Use `curl` or a WebSocket client to call them directly — they are fully documented in the [REST API Reference](WEB6_REST_API_Reference.md).
+
 ---
 
 ### Option 3 — NuGet packages (embed in your .NET app)
