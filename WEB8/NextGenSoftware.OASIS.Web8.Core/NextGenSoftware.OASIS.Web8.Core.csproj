@@ -11,7 +11,7 @@
     <Title>WEB8 OASIS Inter-Galactic Layer Core</Title>
     <Description>The Core (Business Logic Layer) for WEB8 - the fractal holonic mesh-networking layer of the OASIS Omniverse. Hosts the GalacticMeshManager (node registry, Dijkstra routing, self-healing failover) and ProtocolBridgeManager for translating external wire formats into the unified MeshMessage envelope.</Description>
     <Summary>The Core (Business Logic Layer) for WEB8 - the fractal holonic mesh-networking layer. Hosts the GalacticMeshManager (real node registry, link/liveness tracking and Dijkstra shortest-path routing with self-healing failover) and the ProtocolBridgeManager (translates any external system's wire format into the unified MeshMessage envelope and relays it across the mesh via real HTTP forwarding).</Summary>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
 - Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
 - Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
