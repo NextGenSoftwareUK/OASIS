@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Memory
         /// <summary>
         /// Searches all requested providers (or all registered if names is null/empty) and returns merged results.
         /// </summary>
-        public async Task<List<MemorySearchResult>> SearchAllAsync(Guid avatarId, string query, IList<string> providerNames = null, int topK = 5)
+        public async Task<List<ExternalMemorySearchResult>> SearchAllAsync(Guid avatarId, string query, IList<string> providerNames = null, int topK = 5)
         {
             var targets = providerNames != null && providerNames.Count > 0
                 ? providerNames.Select(n => _providers.TryGetValue(n, out var p) ? p : null).Where(p => p != null)
@@ -48,11 +48,11 @@ namespace NextGenSoftware.OASIS.Web6.Core.Memory
                 try
                 {
                     var entries = await p.SearchAsync(avatarId, query, topK);
-                    return entries.Select(e => new MemorySearchResult { Provider = p.Name, Entry = e });
+                    return entries.Select(e => new ExternalMemorySearchResult { Provider = p.Name, Entry = e });
                 }
                 catch
                 {
-                    return Enumerable.Empty<MemorySearchResult>();
+                    return Enumerable.Empty<ExternalMemorySearchResult>();
                 }
             });
 
@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Memory
         /// <summary>
         /// Builds a [External Memory] system context block from search results for injection into AI prompts.
         /// </summary>
-        public static string BuildContextBlock(List<MemorySearchResult> results)
+        public static string BuildContextBlock(List<ExternalMemorySearchResult> results)
         {
             if (results == null || results.Count == 0) return null;
             var sb = new StringBuilder();
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.Web6.Core.Memory
         }
     }
 
-    public class MemorySearchResult
+    public class ExternalMemorySearchResult
     {
         public string Provider { get; set; }
         public MemoryEntry Entry { get; set; }
