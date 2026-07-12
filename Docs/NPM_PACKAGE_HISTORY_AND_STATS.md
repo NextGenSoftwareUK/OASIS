@@ -16,7 +16,7 @@ All WEB 5–WEB 10 JS packages are brand new with no prior published history, so
 |---|---|---|
 | WEB 4 | `@oasisomniverse/web4-api` | v2.0.0 (continuation) |
 | WEB 5 | `@oasisomniverse/web5-api` | v1.0.0 (new) |
-| WEB 6 | `@oasisomniverse/web6-api` | v1.0.0 (new) |
+| WEB 6 | `@oasisomniverse/web6-api` | v1.0.0 (new) → **v2.0.0** (July 2026 — full v2 release: 14 modules, 40 ops, FAHRN/SkillOpt/Holonic Memory/DID/ML.NET) |
 | WEB 7 | `@oasisomniverse/web7-api` | v1.0.0 (new) |
 | WEB 8 | `@oasisomniverse/web8-api` | v1.0.0 (new) |
 | WEB 9 | `@oasisomniverse/web9-api` | v1.0.0 (new) |
