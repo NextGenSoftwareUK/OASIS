@@ -1,4 +1,4 @@
-# OASIS UNIQUE SELLING PROPOSITIONS (USPs)
+﻿# OASIS UNIQUE SELLING PROPOSITIONS (USPs)
 
 ## Overview
 
@@ -71,9 +71,9 @@ This document provides a comprehensive analysis of OASIS's Unique Selling Propos
 
 ---
 
-### WEB6-USP-5: 111 MCP Tools — Largest Production MCP Surface
+### WEB6-USP-5: 250 MCP tools — Largest Production MCP Surface
 
-**What it is**: 111 typed named tools across WEB4 (33), WEB5 (31), WEB6 (30), WEB7 (7), WEB8 (8), WEB9 (1), WEB10 (1) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
+**What it is**: 250 typed named tools across WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2) — all accessible from Claude.ai, Cursor, VS Code, and any MCP-compatible IDE.
 
 **Distribution leverage**:
 - Every MCP-compatible IDE (Claude.ai Desktop, Cursor, VS Code, JetBrains) becomes an embedded distribution channel

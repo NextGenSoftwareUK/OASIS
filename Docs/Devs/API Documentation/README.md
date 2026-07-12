@@ -1,4 +1,4 @@
-# OASIS API Documentation
+﻿# OASIS API Documentation
 
 ## Overview
 
@@ -50,7 +50,7 @@ The WEB6 OASIS AI API is the Intelligence Layer that supercharges every applicat
 - **20+ AI Providers** - OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, StabilityAI, and more — one unified API
 - **DID/Verifiable Credentials** - W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver
 - **BudgetGuard** - Per-dispatch cost and token caps enforced before any API call
-- **111 MCP Tools** — the largest production MCP surface area of any AI platform
+- **250 MCP tools** — the largest production MCP surface area of any AI platform
 - **REST API v2**: 56 endpoints · Swagger at `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` (v2.0.0 — 14 modules, 40 operations)
 

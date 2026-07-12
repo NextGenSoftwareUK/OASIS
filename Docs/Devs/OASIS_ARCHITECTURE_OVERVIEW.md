@@ -1,4 +1,4 @@
-# OASIS ARCHITECTURE OVERVIEW
+﻿# OASIS ARCHITECTURE OVERVIEW
 
 ## Executive Summary
 
@@ -20,7 +20,7 @@ The OASIS (Open Advanced Secure Interoperable System) is a revolutionary WEB4–
 │  │ • Karma-Gated AI (Bronze/Silver/Gold/Diamond tiers)        │ │
 │  │ • 20+ AI Providers Unified (OpenAI, Anthropic, Gemini…)   │ │
 │  │ • DID/Verifiable Credentials (W3C standard)               │ │
-│  │ • 111 MCP Tools · 56 REST Endpoints · v2.0                │ │
+│  │ • 250 MCP tools · 56 REST Endpoints · v2.0                │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 ├─────────────────────────────────────────────────────────────────┤
 │  WEB5 STAR Web API (Gamification & Business Layer)             │
@@ -236,7 +236,7 @@ OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFac
 **Standards**: W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver — enterprise-grade identity and compliance built into the AI layer.
 
 #### 7. MCP Server & REST API
-- **111 typed named MCP tools**: WEB4(33) + WEB5(31) + WEB6(30) + WEB7(7) + WEB8(8) + WEB9(1) + WEB10(1)
+- **111 typed named MCP tools**: WEB4(102) + WEB5(96) + WEB6(31) + WEB7(8) + WEB8(9) + WEB9(2) + WEB10(2)
 - **56 REST endpoints** across 14 controllers (v2.0)
 - **Swagger**: `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` v2.0.0 — 14 modules, 40 operations
