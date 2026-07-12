@@ -50,9 +50,54 @@ The WEB6 OASIS AI API is the Intelligence Layer that supercharges every applicat
 - **REST API v2**: 56 endpoints · Swagger at `https://api.web6.oasisomniverse.one/swagger`
 - **npm**: `@oasisomniverse/web6-api` (v2.0.0 — 14 modules, 40 operations)
 
-[View WEB6 REST API Reference →](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)
-[View WEB6 MCP Tool Reference →](../../WEB6/Docs/WEB6_MCP_TOOL_REFERENCE.md)
-[View WEB6 User Guide →](../../WEB6/Docs/WEB6_USER_GUIDE.md)
+[View WEB6 REST API Reference →](WEB6/WEB6_REST_API_Reference.md)
+[View WEB6 MCP Tool Reference →](WEB6/WEB6_MCP_Tool_Reference.md)
+[View WEB6 User Guide →](WEB6/WEB6_User_Guide.md)
+
+### WEB7 — Symbiosis Layer *(Live — 7 MCP tools)*
+
+The WEB7 Symbiosis Layer bridges biological and digital intelligence through bio-signal and neural interface integration. 7 MCP tools are live now; the full REST API surface is in active development.
+
+- **Bio-Signal Integration** - Ingest heart rate, EEG, galvanic skin response and other physiological signals
+- **Neural Interface Hooks** - Low-latency bridge to BCI devices (OpenBCI, Muse, NeuroSky)
+- **Biometric-Verified Karma** - Karma actions verified and weighted by real physiological state
+- **Adaptive AI Responses** - AI behaviour modulates based on user's measured cognitive/emotional state
+- **Symbiosis Sessions** - Persistent session context combining digital identity with bio-signal stream
+
+*WEB7 REST API reference coming as the layer matures. Use MCP tools for current access.*
+[View MCP Tool Reference — WEB7 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+
+### WEB8 — Galactic Mesh *(Live — 8 MCP tools)*
+
+The WEB8 Galactic Mesh layer extends the OASIS network beyond planetary infrastructure into distributed mesh networking at scale. 8 MCP tools are live.
+
+- **Galactic Node Registry** - Register and discover mesh nodes across global and off-world infrastructure
+- **Mesh Routing** - Intelligent routing across planetary and satellite relay networks
+- **Distributed Consensus** - Byzantine-fault-tolerant consensus across geographically dispersed nodes
+- **Bandwidth Optimisation** - Adaptive compression and protocol switching for high-latency links
+- **Mesh Telemetry** - Real-time health and performance monitoring across the mesh
+
+[View MCP Tool Reference — WEB8 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+
+### WEB9 — Singularity Layer *(Live — 1 MCP tool)*
+
+The WEB9 Singularity Layer provides a unified status interface across the entire OASIS stack — a single endpoint that surfaces the operational state of every layer from WEB4 through WEB10.
+
+- **Unified Stack Status** - Single MCP tool returns live health across all OASIS layers
+- **Cross-Layer Observability** - Aggregated metrics, error rates, and latency from every service
+- **Singularity Health Score** - Composite wellness score for the full OASIS ecosystem
+
+[View MCP Tool Reference — WEB9 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+
+### WEB10 — Source / Root Identity *(Live — 1 MCP tool)*
+
+The WEB10 Source Layer is the root identity and ontological foundation of the OASIS stack — the anchor point from which all holonic identity hierarchies originate.
+
+- **Root Identity Anchor** - The ultimate source holon from which all avatar, group, and Earth holons descend
+- **Ontological Integrity** - Ensures every identity chain in the system traces back to a verifiable root
+- **Source Attestation** - Cryptographic proof of identity lineage from avatar all the way to Source
+
+[View MCP Tool Reference — WEB10 section →](WEB6/WEB6_MCP_Tool_Reference.md)
 
 ## Getting Started
 
