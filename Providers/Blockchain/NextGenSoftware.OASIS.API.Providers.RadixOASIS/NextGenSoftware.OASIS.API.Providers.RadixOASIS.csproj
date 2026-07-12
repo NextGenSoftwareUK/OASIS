@@ -9,7 +9,7 @@
         <Title>WEB4 OASIS API Radix OASIS Provider</Title>
         <Summary>WEB4 OASIS API Radix OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Summary>
         <Description>WEB4 OASIS API Radix OASIS Provider enables cross-chain bridge operations and native Radix blockchain integration for the OASIS API.</Description>
-        <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+        <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
         <Authors>David Ellams (NextGen Software Ltd), Quantum Street Team</Authors>
         <PackageTags>OASIS API; Radix; WEB4; Provider; Bridge; Cross-Chain</PackageTags>
         <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
@@ -24,7 +24,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
         <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+        <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
         <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>

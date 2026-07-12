@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -9,7 +9,7 @@
 	  <Title>WEB4 OASIS API Contracts</Title>
 	  <Summary>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts for OASIS ecosystem</Summary>
 	  <Description>WEB4 OASIS API Contracts - Shared interfaces, enums, and contracts that can be referenced by both OASIS.API.Core and Unity projects</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Contracts; Interfaces; Enums; Shared; Unity; .NET Standard</PackageTags>
@@ -41,7 +41,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>

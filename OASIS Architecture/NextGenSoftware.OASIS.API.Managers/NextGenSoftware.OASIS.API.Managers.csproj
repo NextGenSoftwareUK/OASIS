@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -11,7 +11,7 @@
     <Title>WEB4 OASIS API Managers</Title>
     <Summary>WEB4 OASIS API Managers provides core management functionality for the OASIS ecosystem.</Summary>
     <Description>WEB4 OASIS API Managers provides core management functionality for the OASIS ecosystem including MapManager, etc.</Description>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <PackageTags>OASIS API; Native; Integrated; WEB4; Manager; Unity; Our World</PackageTags>
@@ -43,7 +43,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
     <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

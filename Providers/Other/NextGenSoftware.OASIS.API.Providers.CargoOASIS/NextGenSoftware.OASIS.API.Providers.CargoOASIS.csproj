@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Library</OutputType>
@@ -17,8 +17,8 @@
     <Company>NextGen Software Ltd</Company>
     <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
     <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
