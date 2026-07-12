@@ -37,6 +37,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         /// GET /v1/telemetry/stream
         /// </summary>
         [HttpGet("stream")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task Stream(CancellationToken ct)
         {
             Response.ContentType = "text/event-stream";
