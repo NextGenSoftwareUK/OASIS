@@ -1,4 +1,4 @@
-# OASIS: A Holonic Interoperable Metaverse Framework
+﻿# OASIS: A Holonic Interoperable Metaverse Framework
 
 ## Abstract
 
@@ -62,7 +62,7 @@ application built on WEB4/WEB5 into an adaptive, self-improving system:
     Cohere, xAI, Ollama, HuggingFace, DeepSeek, and more — one unified API
 -   **DID/Verifiable Credentials**: W3C DID (did:key, did:web, did:ethr,
     did:ion) — enterprise-grade compliance built in
--   **111 MCP Tools · 56 REST Endpoints**: the largest production MCP surface
+-   **250 MCP tools · 56 REST Endpoints**: the largest production MCP surface
     area of any AI platform
 
 ------------------------------------------------------------------------

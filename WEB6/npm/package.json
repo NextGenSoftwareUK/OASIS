@@ -1,7 +1,7 @@
-{
+﻿{
   "name": "@oasisomniverse/mcp-server",
   "version": "2.0.0",
-  "description": "OASIS MCP Server — 111 typed named tools across WEB4–WEB10 for NFT minting, wallet management, smart contracts, AI agent orchestration, holonic memory, and more, directly in Cursor, VS Code, and any MCP-compatible IDE.",
+  "description": "OASIS MCP Server — 250 typed named tools across WEB4–WEB10 for NFT minting, wallet management, smart contracts, AI agent orchestration, holonic memory, and more, directly in Cursor, VS Code, and any MCP-compatible IDE.",
   "keywords": ["oasis", "mcp", "model-context-protocol", "ai", "blockchain", "nft", "web4", "web5", "web6", "cursor", "vscode", "ide"],
   "homepage": "https://oasisomniverse.one",
   "repository": { "type": "git", "url": "https://github.com/NextGenSoftwareUK/OASIS" },

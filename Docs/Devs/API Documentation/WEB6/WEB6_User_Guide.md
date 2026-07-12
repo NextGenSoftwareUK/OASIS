@@ -1,4 +1,4 @@
-# WEB6 User Guide
+﻿# WEB6 User Guide
 
 This guide covers everything you need to get started with WEB6 — from installation to common AI and multi-agent workflows.
 
@@ -13,7 +13,7 @@ WEB6 is the AI Abstraction & Orchestration Layer of the OASIS Omniverse. It give
 - **Holonic BRAID shared memory** — agents across sessions share a growing library of Mermaid reasoning graphs. Over time, the network gets better at your specific problem types.
 - **Fractal holonic memory** — structured, hierarchical memory from session level all the way up to a shared planetary Earth holon, with consent-governed membrane rules controlling what propagates upward.
 - **External memory** — plug in Mem0, Zep, Letta, LangMem, or Graphiti as memory backends. WEB6 searches them all and injects the relevant context into your prompts automatically.
-- **111 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
+- **250 MCP tools** — the entire WEB4–WEB10 stack is available directly in Cursor, VS Code, and Claude Desktop.
 
 ---
 

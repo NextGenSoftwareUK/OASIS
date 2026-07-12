@@ -1,6 +1,6 @@
-# OASIS MCP Server
+﻿# OASIS MCP Server
 
-The OASIS [Model Context Protocol](https://modelcontextprotocol.io) Server — **111 typed tools** covering the full OASIS stack (WEB4 through WEB10) delivered directly into Cursor, VS Code, Claude Desktop, and any other MCP-compatible IDE.
+The OASIS [Model Context Protocol](https://modelcontextprotocol.io) Server — **250 typed tools** covering the full OASIS stack (WEB4 through WEB10) delivered directly into Cursor, VS Code, Claude Desktop, and any other MCP-compatible IDE.
 
 Built on the official [`ModelContextProtocol`](https://github.com/modelcontextprotocol/csharp-sdk) C# SDK, communicating over stdio. Part of the [OASIS Omniverse](https://oasisomniverse.one) ecosystem.
 
@@ -88,7 +88,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ## Tool Reference
 
-### WEB4 — Identity, Karma, NFTs, Wallets (25 tools)
+### WEB4 — Identity, Karma, NFTs, Wallets, Chat, Search, Stats & more (102 tools)
 
 #### Avatar
 
@@ -140,7 +140,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB5 — Holon Graph, OAPPs, Quests, Missions (26 tools)
+### WEB5 — Holons, OAPPs, Quests, Missions, Zomes, Libraries, Games & more (96 tools)
 
 #### Quests & Missions
 
@@ -190,7 +190,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB6 — AI, FAHRN, BRAID, Memory, Orchestration (28 tools)
+### WEB6 — AI, FAHRN, BRAID, Memory, Orchestration (31 tools)
 
 #### AI Completion & Embeddings
 
@@ -259,7 +259,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB7 — Symbiosis & Collective Consciousness (7 tools)
+### WEB7 — Symbiosis & Collective Consciousness (8 tools)
 
 | Tool | Description |
 |---|---|
@@ -273,7 +273,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB8 — Galactic Mesh & Protocol Bridge (8 tools)
+### WEB8 — Galactic Mesh & Protocol Bridge (9 tools)
 
 | Tool | Description |
 |---|---|
@@ -288,7 +288,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB9 — Singularity (1 tool)
+### WEB9 — Singularity (2 tools)
 
 | Tool | Description |
 |---|---|
@@ -296,7 +296,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 ---
 
-### WEB10 — The Source (1 tool)
+### WEB10 — The Source (2 tools)
 
 | Tool | Description |
 |---|---|
