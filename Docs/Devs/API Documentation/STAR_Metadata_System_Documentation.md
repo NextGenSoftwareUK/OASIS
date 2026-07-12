@@ -1,4 +1,4 @@
-# STAR Metadata System - Complete Documentation
+﻿# STAR Metadata System - Complete Documentation
 
 ## 📋 **Overview**
 
@@ -29,7 +29,7 @@ https://localhost:5004/api
 
 ### **Production**
 ```
-https://star-api.oasisplatform.world/api
+https://api.starnet.oasisomniverse.one/api
 ```
 
 ## 🔐 **Authentication**
@@ -718,7 +718,7 @@ import { STARMetadataClient } from '@oasis/star-metadata-client';
 
 const client = new STARMetadataClient({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world'
+  baseUrl: 'https://api.starnet.oasisomniverse.one'
 });
 
 // Create metadata
