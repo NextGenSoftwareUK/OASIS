@@ -69,7 +69,7 @@ The WEB7 Symbiosis Layer bridges biological and digital intelligence through bio
 - **Symbiosis Sessions** - Persistent session context combining digital identity with bio-signal stream
 
 *WEB7 REST API reference coming as the layer matures. Use MCP tools for current access.*
-[View MCP Tool Reference — WEB7 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+[View WEB7 MCP Tool Reference →](WEB7/WEB7_MCP_Tool_Reference.md)
 
 ### WEB8 — Galactic Mesh *(Live — 8 MCP tools)*
 
@@ -81,7 +81,7 @@ The WEB8 Galactic Mesh layer extends the OASIS network beyond planetary infrastr
 - **Bandwidth Optimisation** - Adaptive compression and protocol switching for high-latency links
 - **Mesh Telemetry** - Real-time health and performance monitoring across the mesh
 
-[View MCP Tool Reference — WEB8 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+[View WEB8 MCP Tool Reference →](WEB8/WEB8_MCP_Tool_Reference.md)
 
 ### WEB9 — Singularity Layer *(Live — 1 MCP tool)*
 
@@ -91,7 +91,7 @@ The WEB9 Singularity Layer provides a unified status interface across the entire
 - **Cross-Layer Observability** - Aggregated metrics, error rates, and latency from every service
 - **Singularity Health Score** - Composite wellness score for the full OASIS ecosystem
 
-[View MCP Tool Reference — WEB9 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+[View WEB9 MCP Tool Reference →](WEB9/WEB9_MCP_Tool_Reference.md)
 
 ### WEB10 — Source / Root Identity *(Live — 1 MCP tool)*
 
@@ -101,7 +101,7 @@ The WEB10 Source Layer is the root identity and ontological foundation of the OA
 - **Ontological Integrity** - Ensures every identity chain in the system traces back to a verifiable root
 - **Source Attestation** - Cryptographic proof of identity lineage from avatar all the way to Source
 
-[View MCP Tool Reference — WEB10 section →](WEB6/WEB6_MCP_Tool_Reference.md)
+[View WEB10 MCP Tool Reference →](WEB10/WEB10_MCP_Tool_Reference.md)
 
 ## Getting Started
 
