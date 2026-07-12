@@ -37,7 +37,7 @@ Add to your IDE config (`~/.cursor/mcp.json`, `.vscode/mcp.json`, or `claude_des
     "oasis": {
       "command": "oasis-mcp",
       "env": {
-        "OASIS_API_URL": "https://api.oasisplatform.world",
+        "OASIS_API_URL": "https://api.web4.oasisomniverse.one",
         "OPENAI_API_KEY": "sk-...",
         "ANTHROPIC_API_KEY": "sk-ant-..."
       }
@@ -93,7 +93,7 @@ ZEP_API_KEY=...
 LETTA_BASE_URL=http://localhost:8283
 
 # OASIS platform
-OASIS_API_URL=https://api.oasisplatform.world
+OASIS_API_URL=https://api.web4.oasisomniverse.one
 ```
 
 ---

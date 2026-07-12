@@ -1,4 +1,4 @@
-# OASIS WEB4, WEB5 & WEB6 APIs - Combined Overview
+﻿# OASIS WEB4, WEB5 & WEB6 APIs - Combined Overview
 
 ## 📋 **Executive Summary**
 
@@ -90,7 +90,7 @@ User Request → WEB5 STAR API → WEB4 OASIS API → Provider Selection → Dat
 // Initialize the foundational OASIS API
 const oasisAPI = new OASISClient({
   apiKey: 'your-oasis-api-key',
-  baseUrl: 'https://api.oasisplatform.world'
+  baseUrl: 'https://api.web4.oasisomniverse.one'
 });
 
 // Boot OASIS and authenticate
@@ -106,7 +106,7 @@ const avatar = await oasisAPI.avatar.create({
 // Initialize STAR API with OASIS integration
 const starAPI = new STARClient({
   apiKey: 'your-star-api-key',
-  baseUrl: 'https://star-api.oasisplatform.world',
+  baseUrl: 'https://api.starnet.oasisomniverse.one',
   oasisAPI: oasisAPI  // Pass the initialized OASIS API
 });
 
@@ -267,8 +267,8 @@ const client = new OASISClient({
   oasisApiKey: 'your-oasis-key',
   starApiKey: 'your-star-key',
   baseUrls: {
-    oasis: 'https://api.oasisplatform.world',
-    star: 'https://star-api.oasisplatform.world'
+    oasis: 'https://api.web4.oasisomniverse.one',
+    star: 'https://api.starnet.oasisomniverse.one'
   }
 });
 

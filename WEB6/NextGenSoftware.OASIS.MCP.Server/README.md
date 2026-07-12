@@ -47,7 +47,7 @@ After installing, the `oasis-mcp` command is on your PATH. Add it to your IDE's 
     "oasis": {
       "command": "oasis-mcp",
       "env": {
-        "OASIS_API_URL": "https://api.oasisplatform.world",
+        "OASIS_API_URL": "https://api.web4.oasisomniverse.one",
         "OASIS_MCP_LICENSE_KEY": "your-license-key",
         "OPENAI_API_KEY": "sk-...",
         "ANTHROPIC_API_KEY": "sk-ant-..."
@@ -310,7 +310,7 @@ GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discove
 
 | Variable | Purpose |
 |---|---|
-| `OASIS_API_URL` | WEB4 API base URL (default: `https://api.oasisplatform.world`) |
+| `OASIS_API_URL` | WEB4 API base URL (default: `https://api.web4.oasisomniverse.one`) |
 | `OASIS_MCP_LICENSE_KEY` | License key (required for write operations) |
 
 ### AI Provider Keys (at least one required for WEB6 tools)

@@ -1,4 +1,4 @@
-# WEB4 OASIS API - Complete Endpoints Reference
+﻿# WEB4 OASIS API - Complete Endpoints Reference
 
 ## 📋 **Overview**
 
@@ -13,7 +13,7 @@ https://localhost:5000/api
 
 ### **Production**
 ```
-https://api.oasisplatform.world
+https://api.web4.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
