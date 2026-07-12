@@ -12,10 +12,17 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[ODOOM quest list + STAR](../../OASIS%20Omniverse/Docs/ODOOM_Quest_List_STAR.md)** — Quest list CVar/ZScript invariants (developers)
 
 ### **System Architecture**
-- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture
+- **[OASIS Architecture Overview](../OASIS_ARCHITECTURE_OVERVIEW.md)** - Complete system architecture (WEB4–WEB10)
 - **[OASIS Architecture Diagrams](./OASIS_ARCHITECTURE_DIAGRAMS.md)** - Visual system diagrams
-- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 integration
+- **[Combined API Overview](./API%20Documentation/COMBINED_API_OVERVIEW.md)** - WEB4 + WEB5 + WEB6 integration
 - **[Current Implementation Status](../CURRENT_IMPLEMENTATION_STATUS.md)** - Complete implementation status across all components
+
+### **WEB6 OASIS AI API — The Intelligence Layer** *(Live July 2026)*
+- **[WEB6 REST API Reference](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)** - All 56 endpoints across 14 controllers
+- **[WEB6 MCP Tool Reference](../../WEB6/Docs/WEB6_MCP_TOOL_REFERENCE.md)** - All 30 WEB6 MCP tools (111 total across all layers)
+- **[WEB6 User Guide](../../WEB6/Docs/WEB6_USER_GUIDE.md)** - FAHRN, SkillOpt, Holonic Memory, DID/VC, Karma-Gated AI
+- **[npm: @oasisomniverse/web6-api](https://www.npmjs.com/package/@oasisomniverse/web6-api)** - v2.0.0 JS/TS client (14 modules, 40 operations)
+- **Swagger UI**: `https://api.web6.oasisomniverse.one/swagger` — live interactive API explorer
 
 ### **Core Managers & Systems**
 - **[OASIS Managers Complete Guide](./OASIS-Managers-Complete-Guide.md)** - Core managers (AvatarManager, WalletManager, KeyManager)

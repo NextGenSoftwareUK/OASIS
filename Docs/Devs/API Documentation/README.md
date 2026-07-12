@@ -2,10 +2,11 @@
 
 ## Overview
 
-Welcome to the OASIS API documentation. The OASIS platform provides two comprehensive API layers:
+Welcome to the OASIS API documentation. The OASIS platform provides three fully live API layers (as of July 2026), with WEB7–WEB10 on the roadmap:
 
 - **WEB4 OASIS API** - The foundational layer bridging Web2 and Web3
 - **WEB5 STAR API** - Advanced metaverse and application development layer
+- **WEB6 OASIS AI API** - The Intelligence Layer — unified AI orchestration, holonic memory, and self-evolving agents
 
 ## API Documentation
 
@@ -33,6 +34,25 @@ The WEB5 STAR API provides advanced functionality for building immersive metaver
 - **Communication** - Chat, Messaging, Social Features
 
 [View WEB5 STAR API Documentation →](WEB5%20STAR%20API/README.md)
+
+### [WEB6 OASIS AI API](../../WEB6/README.md) *(Live — July 2026)*
+
+The WEB6 OASIS AI API is the Intelligence Layer that supercharges every application built on WEB4 and WEB5 with production-grade AI capabilities:
+
+- **FAHRN Orchestrator** - Multi-agent reasoning: Serial, Parallel, Debate, Voting, and Decomposed modes; auto-selected by ML.NET classifier. Benchmarked 74× PPD improvement on GSM-Hard
+- **SkillOpt** - Self-evolving agent skills (Microsoft Research, arXiv:2605.23904) — +23.5% accuracy gain; builds a proprietary skill corpus asset over time
+- **Holonic Memory** - Fractal persistent memory (Session→Agent→User→Group→…→Earth) with semantic search, TTL, and multi-hop propagation
+- **Karma-Gated AI** - Bronze/Silver/Gold/Diamond access tiers; aligned incentives as recurring SaaS revenue
+- **20+ AI Providers** - OpenAI, Anthropic, Google Gemini, Groq, Mistral, Cohere, xAI, Ollama, HuggingFace, DeepSeek, AWS Bedrock, Azure, Replicate, StabilityAI, and more — one unified API
+- **DID/Verifiable Credentials** - W3C DID (did:key, did:web, did:ethr, did:ion), HMAC-SHA256 proof, Universal Resolver
+- **BudgetGuard** - Per-dispatch cost and token caps enforced before any API call
+- **111 MCP Tools** — the largest production MCP surface area of any AI platform
+- **REST API v2**: 56 endpoints · Swagger at `https://api.web6.oasisomniverse.one/swagger`
+- **npm**: `@oasisomniverse/web6-api` (v2.0.0 — 14 modules, 40 operations)
+
+[View WEB6 REST API Reference →](../../WEB6/Docs/WEB6_REST_API_REFERENCE.md)
+[View WEB6 MCP Tool Reference →](../../WEB6/Docs/WEB6_MCP_TOOL_REFERENCE.md)
+[View WEB6 User Guide →](../../WEB6/Docs/WEB6_USER_GUIDE.md)
 
 ## Getting Started
 
