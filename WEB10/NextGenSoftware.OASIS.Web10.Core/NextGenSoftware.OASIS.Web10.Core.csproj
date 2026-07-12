@@ -11,7 +11,7 @@
     <Title>WEB10 OASIS Source Layer Core</Title>
     <Description>The Core for WEB10 (The Source / WEB0) - the root source-of-truth layer of the OASIS Omniverse. The SourceManager returns the foundational OASIS_DNA configuration (the Alpha) together with WEB9 live unified status across WEB4-WEB8 (the Omega), closing the loop where WEB10 = WEB0.</Description>
     <Summary>The Core for WEB10 - "The Source" / WEB0, made literal as the single root source-of-truth endpoint for the entire OASIS stack. The SourceManager returns the foundational OASIS_DNA configuration every other layer derives from (the Alpha) together with WEB9's live unified status report across WEB4-WEB8 (the Omega) - closing the loop the site describes ("WEB10 = WEB0") as one real, queryable endpoint instead of metaphor.</Summary>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
 - Part of the new decentralised WEB6-WEB10 API tier architecture (AI, Spatial/AR, Holographic, Neural, Omniversal layers).
 - Integrates with ONET, FAHRN, HolonicBraid, and HyperDrive v2 for full mesh routing.
