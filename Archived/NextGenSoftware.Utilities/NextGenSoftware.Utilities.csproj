@@ -9,7 +9,7 @@
 	<Title>NextGen Software Utilities</Title>
 	<Summary>Utilities library used by other NextGen Software libraries.</Summary>
 	<Description>Utilities library used by other NextGen Software libraries.</Description>
-	<PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	<PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	<PackageIcon>STARJPG.JPG</PackageIcon>
 	<Authors>David Ellams (NextGen Software Ltd)</Authors>
 	<PackageTags>utilities;net;unity</PackageTags>
@@ -20,7 +20,7 @@
 		- Added new ExpandoObjectHelpers.
 	</PackageReleaseNotes>
 	<RepositoryType>git</RepositoryType>
-	<RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	<RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
 	<Copyright>Copyright © NextGen Software Ltd 2022 - 2024</Copyright>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->

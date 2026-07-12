@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -9,7 +9,7 @@
     <Title>WEB4 OASIS API Starknet Provider</Title>
     <Summary>Starknet privacy provider for OASIS offering Starknet asset orchestration and atomic swaps.</Summary>
     <Description>Starknet privacy provider for the OASIS API, enabling ZEC ↔ Starknet atomic swap flows for the Zypherpunk stack.</Description>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <PackageTags>OASIS API; Starknet; Privacy; Atomic Swaps;</PackageTags>
@@ -25,7 +25,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
     <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
