@@ -56,12 +56,23 @@ Exposes the full WEB4–WEB10 stack as 111 typed named tools directly inside Cur
 Full Swagger UI: `https://api.web6.oasisomniverse.one/swagger`
 Full docs: [`Docs/Devs/API Documentation/WEB6/`](../Docs/Devs/API%20Documentation/WEB6/)
 
+> **Endpoints not shown in Swagger UI** — six endpoints use streaming transports (SSE / WebSocket) or are auto-discovered by MCP/A2A clients and are intentionally hidden from the interactive explorer. They work as documented; call them directly with `curl` or a WebSocket client:
+>
+> | Endpoint | Transport | Notes |
+> |---|---|---|
+> | `POST /v1/complete/stream` | SSE | Token-by-token streaming completion |
+> | `GET /a2a/tasks/{id}/events` | SSE | Real-time A2A task state stream |
+> | `GET /v1/telemetry/stream` | SSE | Live per-request telemetry events |
+> | `GET /ws/session` | WebSocket | Bidirectional agent session |
+> | `GET /.well-known/mcp.json` | HTTP | MCP discovery document (auto-fetched by MCP clients) |
+> | `GET /.well-known/agent.json` | HTTP | A2A agent card (auto-fetched by A2A peers) |
+
 ### AI Completion
 
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/v1/complete` | Unified AI completion (15+ providers, auto routing, failover) |
-| `POST` | `/v1/complete/stream` | Streaming SSE completion |
+| `POST` | `/v1/complete/stream` | Streaming SSE completion *(not in Swagger — see note above)* |
 | `POST` | `/v1/complete/tool-result` | Feed tool call result back to continue agent loop |
 | `POST` | `/v1/embed` | Text embeddings (OpenAI / Cohere / HuggingFace) |
 | `GET` | `/v1/images/generate` | Image generation (StabilityAI, OpenAI) |
