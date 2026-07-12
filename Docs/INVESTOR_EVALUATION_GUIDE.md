@@ -1,4 +1,4 @@
-# OASIS INVESTOR EVALUATION GUIDE
+﻿# OASIS INVESTOR EVALUATION GUIDE
 
 ## Executive Summary
 
@@ -7,7 +7,7 @@ The OASIS (Open Advanced Sensory Immersion System) is the universal interoperabi
 **Where we are today (July 2026):**
 - **WEB4** — The foundation: universal data aggregation, COSMIC ORM (40+ providers), HyperDrive 100% uptime, SSO Avatar, cross-chain NFTs, ONET P2P networking. Live in production.
 - **WEB5** — The application layer: STAR ODK low-code metaverse generator, STARNET holon graph, OAPPs (OASIS applications), quests, missions, cross-world asset sharing. Live in production.
-- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, 111 MCP tools, DID/Verifiable Credentials, 20+ AI providers, karma-gated model tiers. **Fully shipped as of July 2026. This is the primary revenue growth driver.**
+- **WEB6** — The intelligence layer: one API, every AI. FAHRN multi-agent orchestration, Holonic BRAID shared reasoning graph, SkillOpt self-evolving agent skills, 250 MCP tools, DID/Verifiable Credentials, 20+ AI providers, karma-gated model tiers. **Fully shipped as of July 2026. This is the primary revenue growth driver.**
 - **WEB7** — The symbiosis layer: bio-signal and neural interface integration bridging human consciousness to the OASIS AI layer. Architecture complete, implementation in progress.
 - **WEB8–WEB10** — The galactic mesh, singularity, and source layers — long-horizon vision stages.
 
@@ -276,10 +276,10 @@ WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. 
 
 **Investment Value**: Karma-gated tiers create a proven revenue escalation model with natural upgrade pressure. It also aligns economic incentives with network quality — the best contributors get the best tools.
 
-### WEB6.5 — 111 MCP Tools + REST API (56 Endpoints)
+### WEB6.5 — 250 MCP tools + REST API (56 Endpoints)
 **Innovation**: The largest single MCP server surface area available on any platform:
 
-- **111 typed named tools** spanning WEB4 (33), WEB5 (31), WEB6 (30), WEB7 (7), WEB8 (8), WEB9 (1), WEB10 (1)
+- **250 typed named tools** spanning WEB4 (102), WEB5 (96), WEB6 (31), WEB7 (8), WEB8 (9), WEB9 (2), WEB10 (2)
 - Works natively with Claude.ai, Cursor, VS Code, and any MCP-compatible IDE
 - **56 REST endpoints** for traditional API integration
 - **JavaScript/TypeScript npm package** (`@oasisomniverse/web6-api`) — 14 modules, 40 operations, zero dependencies, isomorphic (Node + browser)
@@ -293,7 +293,7 @@ WEB6 is the AI abstraction and aggregation layer built on top of WEB4 and WEB5. 
 |---|---|---|
 | AI API Infrastructure | $45B+ | Provider-agnostic + real identity grounding |
 | Enterprise AI Orchestration | $12B+ | FAHRN multi-mode dispatch + BRAID memory |
-| AI Developer Tools | $8B+ | 111 MCP tools + npm package + IDE integration |
+| AI Developer Tools | $8B+ | 250 MCP tools + npm package + IDE integration |
 | Data-Grounded AI | Emerging | Only AI router with WEB4/WEB5 ecosystem context |
 
 **Key differentiator from competitors**: OpenAI, Anthropic, and Google all sell model access. WEB6 sells *intelligence infrastructure* — routing, orchestration, memory, identity, and skill evolution — that works with all of them simultaneously.
