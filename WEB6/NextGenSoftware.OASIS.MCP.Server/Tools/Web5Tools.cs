@@ -275,5 +275,545 @@ namespace NextGenSoftware.OASIS.MCP.Server.Tools
             var result = await manager.DownloadAndInstallAsync(Guid.Parse(avatarId), Guid.Parse(holonId), version, fullInstallPath, fullDownloadPath);
             return JsonSerializer.Serialize(result);
         }
+
+        // ── CHAPTERS ────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_chapter_load"), Description("WEB5 STARNET: loads a single quest chapter by its GUID id.")]
+        public static async Task<string> ChapterLoad(string avatarId, string chapterId)
+        {
+            ChapterManager manager = new ChapterManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(chapterId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_chapter_load_all_for_avatar"), Description("WEB5 STARNET: loads every chapter published by or accessible to an avatar.")]
+        public static async Task<string> ChapterLoadAllForAvatar(string avatarId)
+        {
+            ChapterManager manager = new ChapterManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_chapter_search"), Description("WEB5 STARNET: searches chapters on STARNET by a free-text search term.")]
+        public static async Task<string> ChapterSearch(string avatarId, string searchTerm)
+        {
+            ChapterManager manager = new ChapterManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_chapter_download"), Description("WEB5 STARNET: downloads a chapter from STARNET to a local path.")]
+        public static async Task<string> ChapterDownload(string avatarId, string chapterId, int version, string fullDownloadPath = "")
+        {
+            ChapterManager manager = new ChapterManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(chapterId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── GEO HOTSPOTS ────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_geo_hotspot_load"), Description("WEB5 STARNET: loads a single geo hotspot by its GUID id.")]
+        public static async Task<string> GeoHotSpotLoad(string avatarId, string hotspotId)
+        {
+            GeoHotSpotManager manager = new GeoHotSpotManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(hotspotId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_geo_hotspot_load_all_for_avatar"), Description("WEB5 STARNET: loads every geo hotspot published by or accessible to an avatar.")]
+        public static async Task<string> GeoHotSpotLoadAllForAvatar(string avatarId)
+        {
+            GeoHotSpotManager manager = new GeoHotSpotManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_geo_hotspot_search"), Description("WEB5 STARNET: searches geo hotspots on STARNET by a free-text search term.")]
+        public static async Task<string> GeoHotSpotSearch(string avatarId, string searchTerm)
+        {
+            GeoHotSpotManager manager = new GeoHotSpotManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_geo_hotspot_download"), Description("WEB5 STARNET: downloads a geo hotspot from STARNET to a local path.")]
+        public static async Task<string> GeoHotSpotDownload(string avatarId, string hotspotId, int version, string fullDownloadPath = "")
+        {
+            GeoHotSpotManager manager = new GeoHotSpotManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(hotspotId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── INVENTORY ITEMS ──────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_inventory_item_load"), Description("WEB5 STARNET: loads a single inventory item by its GUID id.")]
+        public static async Task<string> InventoryItemLoad(string avatarId, string itemId)
+        {
+            InventoryItemManager manager = new InventoryItemManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(itemId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_inventory_item_load_all_for_avatar"), Description("WEB5 STARNET: loads every inventory item owned by or accessible to an avatar.")]
+        public static async Task<string> InventoryItemLoadAllForAvatar(string avatarId)
+        {
+            InventoryItemManager manager = new InventoryItemManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_inventory_item_search"), Description("WEB5 STARNET: searches inventory items on STARNET by a free-text search term.")]
+        public static async Task<string> InventoryItemSearch(string avatarId, string searchTerm)
+        {
+            InventoryItemManager manager = new InventoryItemManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_inventory_item_download"), Description("WEB5 STARNET: downloads an inventory item definition from STARNET to a local path.")]
+        public static async Task<string> InventoryItemDownload(string avatarId, string itemId, int version, string fullDownloadPath = "")
+        {
+            InventoryItemManager manager = new InventoryItemManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(itemId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── LIBRARIES ────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_library_load"), Description("WEB5 STARNET: loads a single OASIS library by its GUID id.")]
+        public static async Task<string> LibraryLoad(string avatarId, string libraryId)
+        {
+            LibraryManager manager = new LibraryManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(libraryId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_library_load_all_for_avatar"), Description("WEB5 STARNET: loads every library published by or accessible to an avatar.")]
+        public static async Task<string> LibraryLoadAllForAvatar(string avatarId)
+        {
+            LibraryManager manager = new LibraryManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_library_search"), Description("WEB5 STARNET: searches libraries on STARNET by a free-text search term.")]
+        public static async Task<string> LibrarySearch(string avatarId, string searchTerm)
+        {
+            LibraryManager manager = new LibraryManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_library_download"), Description("WEB5 STARNET: downloads a library from STARNET to a local path.")]
+        public static async Task<string> LibraryDownload(string avatarId, string libraryId, int version, string fullDownloadPath = "")
+        {
+            LibraryManager manager = new LibraryManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(libraryId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_library_download_and_install"), Description("WEB5 STARNET: downloads and installs a library from STARNET in one step.")]
+        public static async Task<string> LibraryDownloadAndInstall(string avatarId, string libraryId, int version, string fullInstallPath, string fullDownloadPath = "")
+        {
+            LibraryManager manager = new LibraryManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAndInstallAsync(Guid.Parse(avatarId), Guid.Parse(libraryId), version, fullInstallPath, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── OAPP TEMPLATES ───────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_oapp_template_load"), Description("WEB5 STARNET: loads a single OAPP template by its GUID id.")]
+        public static async Task<string> OAPPTemplateLoad(string avatarId, string templateId)
+        {
+            OAPPTemplateManager manager = new OAPPTemplateManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(templateId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_oapp_template_load_all_for_avatar"), Description("WEB5 STARNET: loads every OAPP template published by or accessible to an avatar.")]
+        public static async Task<string> OAPPTemplateLoadAllForAvatar(string avatarId)
+        {
+            OAPPTemplateManager manager = new OAPPTemplateManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_oapp_template_search"), Description("WEB5 STARNET: searches OAPP templates on STARNET by a free-text search term.")]
+        public static async Task<string> OAPPTemplateSearch(string avatarId, string searchTerm)
+        {
+            OAPPTemplateManager manager = new OAPPTemplateManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_oapp_template_download"), Description("WEB5 STARNET: downloads an OAPP template from STARNET to a local path.")]
+        public static async Task<string> OAPPTemplateDownload(string avatarId, string templateId, int version, string fullDownloadPath = "")
+        {
+            OAPPTemplateManager manager = new OAPPTemplateManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(templateId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── RUNTIMES ─────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_runtime_load"), Description("WEB5 STARNET: loads a single OASIS runtime by its GUID id.")]
+        public static async Task<string> RuntimeLoad(string avatarId, string runtimeId)
+        {
+            RuntimeManager manager = new RuntimeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(runtimeId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_runtime_load_all_for_avatar"), Description("WEB5 STARNET: loads every runtime published by or accessible to an avatar.")]
+        public static async Task<string> RuntimeLoadAllForAvatar(string avatarId)
+        {
+            RuntimeManager manager = new RuntimeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_runtime_search"), Description("WEB5 STARNET: searches runtimes on STARNET by a free-text search term.")]
+        public static async Task<string> RuntimeSearch(string avatarId, string searchTerm)
+        {
+            RuntimeManager manager = new RuntimeManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_runtime_download"), Description("WEB5 STARNET: downloads a runtime from STARNET to a local path.")]
+        public static async Task<string> RuntimeDownload(string avatarId, string runtimeId, int version, string fullDownloadPath = "")
+        {
+            RuntimeManager manager = new RuntimeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(runtimeId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_runtime_download_and_install"), Description("WEB5 STARNET: downloads and installs a runtime from STARNET in one step.")]
+        public static async Task<string> RuntimeDownloadAndInstall(string avatarId, string runtimeId, int version, string fullInstallPath, string fullDownloadPath = "")
+        {
+            RuntimeManager manager = new RuntimeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAndInstallAsync(Guid.Parse(avatarId), Guid.Parse(runtimeId), version, fullInstallPath, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── PLUGINS ──────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_plugin_load"), Description("WEB5 STARNET: loads a single OASIS plugin by its GUID id.")]
+        public static async Task<string> PluginLoad(string avatarId, string pluginId)
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(pluginId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_plugin_load_all_for_avatar"), Description("WEB5 STARNET: loads every plugin published by or accessible to an avatar.")]
+        public static async Task<string> PluginLoadAllForAvatar(string avatarId)
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_plugin_search"), Description("WEB5 STARNET: searches plugins on STARNET by a free-text search term.")]
+        public static async Task<string> PluginSearch(string avatarId, string searchTerm)
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_plugin_download_and_install"), Description("WEB5 STARNET: downloads and installs a plugin from STARNET in one step.")]
+        public static async Task<string> PluginDownloadAndInstall(string avatarId, string pluginId, int version, string fullInstallPath, string fullDownloadPath = "")
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAndInstallAsync(Guid.Parse(avatarId), Guid.Parse(pluginId), version, fullInstallPath, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_plugin_activate"), Description("WEB5 STARNET: activates an installed plugin for an avatar.")]
+        public static async Task<string> PluginActivate(string avatarId, string pluginId, int version)
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.ActivateAsync(Guid.Parse(avatarId), Guid.Parse(pluginId), version);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_plugin_deactivate"), Description("WEB5 STARNET: deactivates a running plugin for an avatar.")]
+        public static async Task<string> PluginDeactivate(string avatarId, string pluginId, int version)
+        {
+            PluginManager manager = new PluginManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DeactivateAsync(Guid.Parse(avatarId), Guid.Parse(pluginId), version);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── CELESTIAL SPACES ─────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_celestial_space_load"), Description("WEB5 STARNET: loads a single celestial space (universe, multiverse, dimension, etc.) by its GUID id.")]
+        public static async Task<string> CelestialSpaceLoad(string avatarId, string celestialSpaceId)
+        {
+            CelestialSpaceManager manager = new CelestialSpaceManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(celestialSpaceId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_celestial_space_load_all_for_avatar"), Description("WEB5 STARNET: loads every celestial space published by or visible to an avatar.")]
+        public static async Task<string> CelestialSpaceLoadAllForAvatar(string avatarId)
+        {
+            CelestialSpaceManager manager = new CelestialSpaceManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_celestial_space_search"), Description("WEB5 STARNET: searches celestial spaces by a free-text search term.")]
+        public static async Task<string> CelestialSpaceSearch(string avatarId, string searchTerm)
+        {
+            CelestialSpaceManager manager = new CelestialSpaceManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_celestial_space_download"), Description("WEB5 STARNET: downloads a celestial space package from STARNET to a local path.")]
+        public static async Task<string> CelestialSpaceDownload(string avatarId, string celestialSpaceId, int version, string fullDownloadPath = "")
+        {
+            CelestialSpaceManager manager = new CelestialSpaceManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(celestialSpaceId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── STAR GEO NFTS ────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_star_geo_nft_load"), Description("WEB5 STARNET: loads a single STAR geo-spatial NFT by its GUID id.")]
+        public static async Task<string> STARGeoNFTLoad(string avatarId, string nftId)
+        {
+            STARGeoNFTManager manager = new STARGeoNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(nftId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_load_all_for_avatar"), Description("WEB5 STARNET: loads every STAR geo-spatial NFT published by or owned by an avatar.")]
+        public static async Task<string> STARGeoNFTLoadAllForAvatar(string avatarId)
+        {
+            STARGeoNFTManager manager = new STARGeoNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_search"), Description("WEB5 STARNET: searches STAR geo-spatial NFTs on STARNET by a free-text search term.")]
+        public static async Task<string> STARGeoNFTSearch(string avatarId, string searchTerm)
+        {
+            STARGeoNFTManager manager = new STARGeoNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_download"), Description("WEB5 STARNET: downloads a STAR geo-spatial NFT from STARNET to a local path.")]
+        public static async Task<string> STARGeoNFTDownload(string avatarId, string nftId, int version, string fullDownloadPath = "")
+        {
+            STARGeoNFTManager manager = new STARGeoNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(nftId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_delete"), Description("WEB5 STARNET: soft-deletes a STAR geo-spatial NFT by id (set softDelete=false to hard delete).")]
+        public static async Task<string> STARGeoNFTDelete(string avatarId, string nftId, int version, bool softDelete = true)
+        {
+            STARGeoNFTManager manager = new STARGeoNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DeleteAsync(Guid.Parse(avatarId), Guid.Parse(nftId), version, softDelete);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── STAR GEO NFT COLLECTIONS ─────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_star_geo_nft_collection_load"), Description("WEB5 STARNET: loads a single STAR geo-spatial NFT collection by its GUID id.")]
+        public static async Task<string> STARGeoNFTCollectionLoad(string avatarId, string collectionId)
+        {
+            STARGeoNFTCollectionManager manager = new STARGeoNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(collectionId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_collection_load_all_for_avatar"), Description("WEB5 STARNET: loads every STAR geo-spatial NFT collection owned by an avatar.")]
+        public static async Task<string> STARGeoNFTCollectionLoadAllForAvatar(string avatarId)
+        {
+            STARGeoNFTCollectionManager manager = new STARGeoNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_collection_search"), Description("WEB5 STARNET: searches STAR geo-spatial NFT collections on STARNET by a free-text search term.")]
+        public static async Task<string> STARGeoNFTCollectionSearch(string avatarId, string searchTerm)
+        {
+            STARGeoNFTCollectionManager manager = new STARGeoNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_geo_nft_collection_download"), Description("WEB5 STARNET: downloads a STAR geo-spatial NFT collection from STARNET to a local path.")]
+        public static async Task<string> STARGeoNFTCollectionDownload(string avatarId, string collectionId, int version, string fullDownloadPath = "")
+        {
+            STARGeoNFTCollectionManager manager = new STARGeoNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(collectionId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── STAR NFTS ────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_star_nft_load"), Description("WEB5 STARNET: loads a single STAR NFT by its GUID id.")]
+        public static async Task<string> STARNFTLoad(string avatarId, string nftId)
+        {
+            STARNFTManager manager = new STARNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(nftId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_load_all_for_avatar"), Description("WEB5 STARNET: loads every STAR NFT published by or owned by an avatar.")]
+        public static async Task<string> STARNFTLoadAllForAvatar(string avatarId)
+        {
+            STARNFTManager manager = new STARNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_search"), Description("WEB5 STARNET: searches STAR NFTs on STARNET by a free-text search term.")]
+        public static async Task<string> STARNFTSearch(string avatarId, string searchTerm)
+        {
+            STARNFTManager manager = new STARNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_download"), Description("WEB5 STARNET: downloads a STAR NFT from STARNET to a local path.")]
+        public static async Task<string> STARNFTDownload(string avatarId, string nftId, int version, string fullDownloadPath = "")
+        {
+            STARNFTManager manager = new STARNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(nftId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_delete"), Description("WEB5 STARNET: soft-deletes a STAR NFT by id (set softDelete=false to hard delete).")]
+        public static async Task<string> STARNFTDelete(string avatarId, string nftId, int version, bool softDelete = true)
+        {
+            STARNFTManager manager = new STARNFTManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DeleteAsync(Guid.Parse(avatarId), Guid.Parse(nftId), version, softDelete);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── STAR NFT COLLECTIONS ─────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_star_nft_collection_load"), Description("WEB5 STARNET: loads a single STAR NFT collection by its GUID id.")]
+        public static async Task<string> STARNFTCollectionLoad(string avatarId, string collectionId)
+        {
+            STARNFTCollectionManager manager = new STARNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(collectionId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_collection_load_all_for_avatar"), Description("WEB5 STARNET: loads every STAR NFT collection owned by an avatar.")]
+        public static async Task<string> STARNFTCollectionLoadAllForAvatar(string avatarId)
+        {
+            STARNFTCollectionManager manager = new STARNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_collection_search"), Description("WEB5 STARNET: searches STAR NFT collections on STARNET by a free-text search term.")]
+        public static async Task<string> STARNFTCollectionSearch(string avatarId, string searchTerm)
+        {
+            STARNFTCollectionManager manager = new STARNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_nft_collection_download"), Description("WEB5 STARNET: downloads a STAR NFT collection from STARNET to a local path.")]
+        public static async Task<string> STARNFTCollectionDownload(string avatarId, string collectionId, int version, string fullDownloadPath = "")
+        {
+            STARNFTCollectionManager manager = new STARNFTCollectionManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(collectionId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── STAR ZOMES ───────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_star_zome_load"), Description("WEB5 STARNET: loads a single STAR Zome by its GUID id. Zomes are the callable module containers inside Holochain OAPPs.")]
+        public static async Task<string> STARZomeLoad(string avatarId, string zomeId)
+        {
+            STARZomeManager manager = new STARZomeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(zomeId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_zome_load_all_for_avatar"), Description("WEB5 STARNET: loads every STAR Zome published by or accessible to an avatar.")]
+        public static async Task<string> STARZomeLoadAllForAvatar(string avatarId)
+        {
+            STARZomeManager manager = new STARZomeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_zome_search"), Description("WEB5 STARNET: searches STAR Zomes on STARNET by a free-text search term.")]
+        public static async Task<string> STARZomeSearch(string avatarId, string searchTerm)
+        {
+            STARZomeManager manager = new STARZomeManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_star_zome_download"), Description("WEB5 STARNET: downloads a STAR Zome from STARNET to a local path.")]
+        public static async Task<string> STARZomeDownload(string avatarId, string zomeId, int version, string fullDownloadPath = "")
+        {
+            STARZomeManager manager = new STARZomeManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.DownloadAsync(Guid.Parse(avatarId), Guid.Parse(zomeId), version, fullDownloadPath);
+            return JsonSerializer.Serialize(result);
+        }
+
+        // ── GAME ─────────────────────────────────────────────────────────────
+
+        [McpServerTool(Name = "web5_game_load"), Description("WEB5 STARNET: loads a single game by its GUID id.")]
+        public static async Task<string> GameLoad(string avatarId, string gameId)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAsync(Guid.Parse(avatarId), Guid.Parse(gameId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_game_load_all_for_avatar"), Description("WEB5 STARNET: loads every game published by or accessible to an avatar.")]
+        public static async Task<string> GameLoadAllForAvatar(string avatarId)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.LoadAllForAvatarAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_game_search"), Description("WEB5 STARNET: searches games on STARNET by a free-text search term.")]
+        public static async Task<string> GameSearch(string avatarId, string searchTerm)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = manager.Search(Guid.Parse(avatarId), searchTerm);
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_game_get_shared_assets"), Description("WEB5 STARNET: gets inventory items shared across all games for an avatar.")]
+        public static async Task<string> GameGetSharedAssets(string avatarId)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.GetSharedAssetsAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_game_get_cross_game_quests"), Description("WEB5 STARNET: gets quests that span multiple games for an avatar.")]
+        public static async Task<string> GameGetCrossGameQuests(string avatarId)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.GetCrossGameQuestsAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
+
+        [McpServerTool(Name = "web5_game_get_avatar_karma"), Description("WEB5 STARNET: gets the total karma accumulated by an avatar across all games.")]
+        public static async Task<string> GameGetAvatarKarma(string avatarId)
+        {
+            GameManager manager = new GameManager(Guid.Parse(avatarId), _starDna);
+            var result = await manager.GetAvatarKarmaAsync(Guid.Parse(avatarId));
+            return JsonSerializer.Serialize(result);
+        }
     }
 }
