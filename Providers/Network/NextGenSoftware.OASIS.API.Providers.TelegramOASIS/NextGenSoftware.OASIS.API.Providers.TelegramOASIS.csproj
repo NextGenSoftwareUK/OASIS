@@ -8,7 +8,7 @@
 	  <Title>WEB4 OASIS API Telegram OASIS Provider</Title>
 	  <Summary>WEB4 OASIS API Telegram OASIS Provider integrates Telegram messaging platform with OASIS for social accountability and achievement tracking.</Summary>
 	  <Description>WEB4 OASIS API Telegram OASIS Provider enables Telegram bots to interact with OASIS avatars, track achievements, and manage accountability groups.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Telegram; WEB4; Provider; Social; Achievement</PackageTags>
 	  <PackageReleaseNotes>- OASIS Omniverse Reboot and Rebrand: major ecosystem relaunch under oasisomniverse.one.
@@ -23,7 +23,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
 	  <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

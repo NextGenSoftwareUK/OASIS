@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
@@ -16,7 +16,7 @@
     <Title>WEB4 OASIS API Monad OASIS Provider</Title>
     <Summary>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Summary>
     <Description>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Description>
-    <PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
     <PackageTags>OASIS API; Monad; Provider; WEB3</PackageTags>
@@ -32,7 +32,7 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
+    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
     <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
