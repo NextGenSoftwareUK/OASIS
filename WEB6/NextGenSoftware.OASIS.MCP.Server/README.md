@@ -72,6 +72,20 @@ For a local build, point at the project instead:
 
 ---
 
+## HTTP MCP Transport (cloud / remote access)
+
+The MCP server also runs as an **HTTP endpoint** built into the WEB6 REST API — useful for cloud-hosted agents, `claude.ai` connectors, and any client that can't use stdio:
+
+```
+GET  https://api.web6.oasisomniverse.one/mcp       — establishes SSE stream
+POST https://api.web6.oasisomniverse.one/mcp       — send MCP JSON-RPC tool calls
+GET  https://api.web6.oasisomniverse.one/.well-known/mcp.json   — auto-discovery document
+```
+
+> **Note:** These endpoints are intentionally **not shown in the Swagger UI** (`/swagger`) because they use SSE / streaming transports that the interactive explorer cannot represent. They work normally — call them directly or point your MCP client at the discovery URL and it will configure itself automatically.
+
+---
+
 ## Tool Reference
 
 ### WEB4 — Identity, Karma, NFTs, Wallets (25 tools)
