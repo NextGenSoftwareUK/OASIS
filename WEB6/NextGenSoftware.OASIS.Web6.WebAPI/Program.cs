@@ -49,12 +49,12 @@ try
 catch { /* MCP tools assembly may not be referenced directly — skip if unavailable */ }
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    c.SwaggerDoc("v2", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB6 OASIS AI API" },
-        Description = "WEB6 - the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent and the Holonic BRAID shared reasoning-graph memory.",
-        Title = "WEB6 OASIS AI API",
-        Version = "v1"
+        Description = "WEB6 v2.0 — the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent, Holonic BRAID shared reasoning-graph memory, SkillOpt self-evolving agent skills, ML.NET in-process AutoML, DID/Verifiable Credentials, ACP/ANP/gRPC/GraphQL multi-protocol orchestration, karma-gated AI access, and full OpenTelemetry observability.",
+        Title = "WEB6 OASIS AI API v2",
+        Version = "v2"
     });
 
     var xmlFiles = new[]
@@ -86,7 +86,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB6 OASIS AI API v1");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", "WEB6 OASIS AI API v2");
 });
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
@@ -159,7 +159,7 @@ app.MapGet("/.well-known/agent.json", () => Results.Json(new
     name = "OASIS WEB6 FAHRN",
     description = "Fractal Adaptive Holonic Reasoning Network — universal AI abstraction and aggregation layer (Web4–Web10)",
     url = "https://api.web6.oasisomniverse.one",
-    version = "1.0.0",
+    version = "2.0.0",
     documentationUrl = "https://web6.oasisomniverse.one",
     capabilities = new { streaming = true, pushNotifications = false, stateTransitionHistory = false },
     defaultInputModes = new[] { "text/plain", "application/json" },

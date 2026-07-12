@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         /// POST /v1/memory/external/search
         /// </summary>
         [HttpPost("search")]
-        [ProducesResponseType(typeof(List<MemorySearchResult>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<ExternalMemorySearchResult>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromBody] ExternalMemorySearchRequest request)
         {
             if (string.IsNullOrWhiteSpace(request?.Query))
