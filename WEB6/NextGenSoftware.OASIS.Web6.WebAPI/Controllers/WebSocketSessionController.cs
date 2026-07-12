@@ -41,6 +41,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         /// Server sends: { "type": "chunk"|"tool_call"|"done"|"error"|"pong", ... }
         /// </summary>
         [HttpGet("ws/session")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task Session()
         {
             if (!HttpContext.WebSockets.IsWebSocketRequest)
