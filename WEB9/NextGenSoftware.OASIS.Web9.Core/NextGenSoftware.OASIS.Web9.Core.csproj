@@ -9,6 +9,7 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB9 OASIS Singularity Layer Core</Product>
     <Title>WEB9 OASIS Singularity Layer Core</Title>
+    <Description>The Core for WEB9 - the Singularity Layer of the OASIS Omniverse. The SingularityAggregationManager polls WEB4-WEB8 layers and returns one unified status report, enabling the network to observe itself as a single coherent entity across all decentralised layers.</Description>
     <Summary>The Core for WEB9 - the Singularity Layer, made literal as a live introspection/aggregation service: the SingularityAggregationManager polls WEB4 (OASIS API/ONODE), WEB5 (STAR API), WEB6 (AI abstraction), WEB7 (Symbiotic) and WEB8 (Inter-Galactic mesh) and returns one unified status report - "the network observing itself" implemented as real, honest cross-service health aggregation rather than fabricated metaphysics.</Summary>
     <Version>2.0.0</Version>
     <PackageReleaseNotes>- Initial release as part of the OASIS Omniverse Reboot and Rebrand under oasisomniverse.one.
