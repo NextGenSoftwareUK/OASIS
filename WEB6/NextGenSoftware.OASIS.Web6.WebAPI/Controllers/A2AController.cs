@@ -109,6 +109,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         /// GET /a2a/tasks/{id}/events
         /// </summary>
         [HttpGet("tasks/{id}/events")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task TaskEvents(string id, CancellationToken ct)
         {
             Response.ContentType = "text/event-stream";
