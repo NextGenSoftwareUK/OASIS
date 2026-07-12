@@ -57,6 +57,8 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v2"
     });
 
+    c.CustomSchemaIds(t => t.FullName);
+
     var xmlFiles = new[]
     {
         $"{Assembly.GetExecutingAssembly().GetName().Name}.xml",
