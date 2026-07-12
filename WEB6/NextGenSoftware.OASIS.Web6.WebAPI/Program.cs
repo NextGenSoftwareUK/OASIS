@@ -58,6 +58,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 
     c.CustomSchemaIds(t => t.FullName);
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
     // JsonObject / JsonNode have no built-in Swashbuckle mapping — tell it to treat them as free-form objects
     c.MapType<System.Text.Json.Nodes.JsonObject>(() => new Microsoft.OpenApi.Models.OpenApiSchema { Type = "object", AdditionalPropertiesAllowed = true });

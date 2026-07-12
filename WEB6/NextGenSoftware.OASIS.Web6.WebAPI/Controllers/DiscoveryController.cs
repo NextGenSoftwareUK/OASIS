@@ -10,6 +10,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
     {
         /// <summary>MCP discovery document. Tells MCP clients where the /mcp endpoint is and what it offers.</summary>
         [HttpGet(".well-known/mcp.json")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult McpDiscovery() => Ok(new
         {
             schema_version = "v1",
@@ -23,6 +24,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
 
         /// <summary>Google A2A agent card. Describes this OASIS agent and its skills to peer A2A agents.</summary>
         [HttpGet(".well-known/agent.json")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult A2AAgentCard() => Ok(new
         {
             name = "OASIS WEB6 FAHRN",
