@@ -29,7 +29,12 @@
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Version>2.0.0</Version>
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+	  <PackageIcon>OASIS.jpg</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Telegram.Bot" Version="20.0.1" />
