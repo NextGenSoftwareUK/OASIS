@@ -2,11 +2,15 @@
 
 ## Overview
 
-Welcome to the OASIS API documentation. The OASIS platform provides three fully live API layers (as of July 2026), with WEB7–WEB10 on the roadmap:
+Welcome to the OASIS API documentation. The OASIS platform has seven live API layers as of July 2026, spanning WEB4 through WEB10. The primary development focus is WEB4–WEB6; WEB7–WEB10 are live with MCP tools available now and full REST API surfaces in development.
 
 - **WEB4 OASIS API** - The foundational layer bridging Web2 and Web3
 - **WEB5 STAR API** - Advanced metaverse and application development layer
 - **WEB6 OASIS AI API** - The Intelligence Layer — unified AI orchestration, holonic memory, and self-evolving agents
+- **WEB7 Symbiosis Layer** - Bio-signal and neural interface integration (7 MCP tools live)
+- **WEB8 Galactic Mesh** - Distributed mesh networking at planetary scale (8 MCP tools live)
+- **WEB9 Singularity Layer** - Unified cross-layer status and observability (1 MCP tool live)
+- **WEB10 Source Layer** - Root identity and ontological foundation of the OASIS stack (1 MCP tool live)
 
 ## API Documentation
 
