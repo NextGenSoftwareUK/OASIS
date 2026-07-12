@@ -2,8 +2,8 @@
 
 ## Base URLs
 - **Development**: `https://localhost:5002`
-- **Staging**: `https://staging-api.oasisplatform.world`
-- **Production**: `https://api.oasisplatform.world`
+- **Staging**: `https://staging-api.web4.oasisomniverse.one`
+- **Production**: `https://api.web4.oasisomniverse.one`
 
 ## Authentication
 
