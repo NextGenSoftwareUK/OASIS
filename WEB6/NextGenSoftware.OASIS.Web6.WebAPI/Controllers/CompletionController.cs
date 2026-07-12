@@ -193,6 +193,7 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.Controllers
         /// POST https://api.web6.oasisomniverse.one/v1/complete/stream
         /// </summary>
         [HttpPost("complete/stream")]
+        [ApiExplorerSettings(IgnoreApi = true)]
         public async Task CompleteStream([FromBody] CompletionRequest request)
         {
             if (request.AvatarId == System.Guid.Empty)
