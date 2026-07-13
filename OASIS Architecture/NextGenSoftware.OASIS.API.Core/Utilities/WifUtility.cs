@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.Core.Utilities
                 case 'L':
                     return CutLastBytes(Base58CheckDecode(data), 1);
                 default:
-                    throw new NotImplementedException();
+                    throw new ArgumentException($"Unsupported WIF prefix character '{data[0]}'. Expected '5', '6', 'K', or 'L'.", nameof(data));
             }
         }
         public static byte[] Base58CheckDecode(string data)

@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -191,7 +192,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllNearAsync method not yet implemented");
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.GeoHotSpot);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<GeoHotSpot>> { IsError = true, Message = result.Message });
+
+                // Filter by haversine distance from (latitude, longitude) within radiusKm.
+                var nearby = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .OfType<GeoHotSpot>()
+                    .Where(h => HaversineDistanceKm(latitude, longitude, h.Lat, h.Long) <= radiusKm)
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<GeoHotSpot>> { Result = nearby, IsError = false });
             }
             catch (Exception ex)
             {
@@ -202,6 +212,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Exception = ex
                 });
             }
+        }
+
+        private static double HaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0;
+            var dLat = (lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (lon2 - lon1) * Math.PI / 180.0;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                  + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                  * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         /// <summary>
