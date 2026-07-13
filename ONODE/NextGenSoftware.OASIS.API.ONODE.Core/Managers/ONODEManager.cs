@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -19,6 +20,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private DateTime _nodeStartTime = DateTime.MinValue;
         private readonly Dictionary<string, object> _nodeConfig = new Dictionary<string, object>();
         private readonly List<string> _nodeLogs = new List<string>();
+
+        // CPU sampling: record processor time + wall time at each metrics call to compute % since last call.
+        private TimeSpan _lastCpuTime = TimeSpan.Zero;
+        private DateTime _lastCpuSample = DateTime.MinValue;
 
         // ONETManager is injected so StartNodeAsync can join ONET and peers/stats delegate to it.
         private readonly ONETManager? _onetManager;
@@ -264,10 +269,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     if (!peersResult.IsError) peerCount = peersResult.Result?.Count ?? 0;
                 }
 
-                var proc = System.Diagnostics.Process.GetCurrentProcess();
+                var proc = Process.GetCurrentProcess();
+                proc.Refresh();
+
+                double cpuPercent = 0;
+                var now = DateTime.UtcNow;
+                var currentCpu = proc.TotalProcessorTime;
+                if (_lastCpuSample != DateTime.MinValue)
+                {
+                    var wallElapsed = (now - _lastCpuSample).TotalSeconds;
+                    var cpuElapsed = (currentCpu - _lastCpuTime).TotalSeconds;
+                    if (wallElapsed > 0)
+                        cpuPercent = Math.Round(cpuElapsed / (wallElapsed * Environment.ProcessorCount) * 100.0, 1);
+                }
+                _lastCpuTime = currentCpu;
+                _lastCpuSample = now;
+
                 var metrics = new NodeMetrics
                 {
-                    CpuUsage = 0, // real CPU % requires background sampling; placeholder
+                    CpuUsage = cpuPercent,
                     MemoryUsage = Math.Round(proc.WorkingSet64 / 1024.0 / 1024.0, 1),
                     DiskUsage = 0,
                     NetworkIn = 0,

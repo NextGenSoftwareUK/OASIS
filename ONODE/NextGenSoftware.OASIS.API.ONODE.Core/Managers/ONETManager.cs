@@ -179,24 +179,35 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private async Task RegisterWithBootstrapServersAsync(string nodeId, string publicKey, List<string> bootstrapServers)
         {
             var payload = JsonSerializer.Serialize(new { nodeId, publicKey });
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
 
             foreach (var server in bootstrapServers)
             {
-                try
+                var url = $"{server.TrimEnd('/')}/api/v1/onet/nodes/register";
+                const int maxAttempts = 3;
+                int delayMs = 2000;
+
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
                 {
-                    var url = $"{server.TrimEnd('/')}/api/v1/onet/nodes/register";
-                    var response = await _httpClient.PostAsync(url, new StringContent(payload, Encoding.UTF8, "application/json"));
-                    if (!response.IsSuccessStatusCode)
+                    try
+                    {
+                        var response = await _httpClient.PostAsync(url, new StringContent(payload, Encoding.UTF8, "application/json"));
+                        if (response.IsSuccessStatusCode)
+                            break;
+
+                        var warn = new OASISResult<bool>();
+                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} attempt {attempt}/{maxAttempts} returned {(int)response.StatusCode}");
+                        if (attempt < maxAttempts)
+                            await Task.Delay(delayMs);
+                        delayMs *= 2;
+                    }
+                    catch (Exception ex)
                     {
                         var warn = new OASISResult<bool>();
-                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} returned {(int)response.StatusCode}");
+                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} attempt {attempt}/{maxAttempts} failed: {ex.Message}", ex);
+                        if (attempt < maxAttempts)
+                            await Task.Delay(delayMs);
+                        delayMs *= 2;
                     }
-                }
-                catch (Exception ex)
-                {
-                    var warn = new OASISResult<bool>();
-                    OASISErrorHandling.HandleWarning(ref warn, $"Could not register with bootstrap server {server}: {ex.Message}", ex);
                 }
             }
         }
