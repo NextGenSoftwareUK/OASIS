@@ -16,106 +16,42 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
     {
         private OASISDNA? _oasisdna;
         private bool _isNodeRunning = false;
-        private readonly List<PeerNode> _connectedPeers = new List<PeerNode>();
-        private readonly Dictionary<string, object> _nodeStats = new Dictionary<string, object>();
+        private DateTime _nodeStartTime = DateTime.MinValue;
+        private readonly Dictionary<string, object> _nodeConfig = new Dictionary<string, object>();
         private readonly List<string> _nodeLogs = new List<string>();
 
-        public ONODEManager(IOASISStorageProvider storageProvider, OASISDNA? oasisdna = null) : base(storageProvider, Guid.NewGuid(), oasisdna)
-        {
-            InitializeAsync().Wait();
-        }
+        // ONETManager is injected so StartNodeAsync can join ONET and peers/stats delegate to it.
+        private readonly ONETManager? _onetManager;
 
-        private async Task InitializeAsync()
+        public ONODEManager(IOASISStorageProvider storageProvider, OASISDNA? oasisdna = null, ONETManager? onetManager = null)
+            : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
-            var oasisdnaResult = new OASISResult<OASISDNA>();
-            try
-            {
-                // Load OASISDNA configuration
-                oasisdnaResult = await LoadOASISDNAAsync();
-                if (!oasisdnaResult.IsError && oasisdnaResult.Result != null)
-                {
-                    _oasisdna = oasisdnaResult.Result;
-                }
-
-                // Initialize node logs
-                _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONODE Manager initialized");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref oasisdnaResult, $"Error initializing ONODE manager: {ex.Message}", ex);
-            }
+            _onetManager = onetManager;
+            _oasisdna = oasisdna;
+            _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONODE Manager initialized");
         }
 
         /// <summary>
-        /// Get OASISDNA configuration
+        /// Get OASISDNA configuration — returns the instance passed to the constructor (sourced from ONETManager).
         /// </summary>
-        public async Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
+        public Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
         {
-            var result = new OASISResult<OASISDNA>();
-            
-            try
+            return Task.FromResult(new OASISResult<OASISDNA>
             {
-                if (_oasisdna == null)
-                {
-                    var loadResult = await LoadOASISDNAAsync();
-                    if (loadResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error loading OASISDNA: {loadResult.Message}");
-                        return result;
-                    }
-                    _oasisdna = loadResult.Result;
-                }
-
-                result.Result = _oasisdna;
-                result.IsError = false;
-                result.Message = "OASISDNA configuration retrieved successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting OASISDNA configuration: {ex.Message}", ex);
-            }
-
-            return result;
+                Result = _oasisdna,
+                IsError = false,
+                Message = "OASISDNA configuration retrieved successfully"
+            });
         }
 
         /// <summary>
-        /// Update OASISDNA configuration
+        /// Update OASISDNA in-memory. To also persist the change use ONETManager.UpdateOASISDNAAsync.
         /// </summary>
-        public async Task<OASISResult<bool>> UpdateOASISDNAAsync(OASISDNA oasisdna)
+        public Task<OASISResult<bool>> UpdateOASISDNAAsync(OASISDNA oasisdna)
         {
-            var result = new OASISResult<bool>();
-            
-            try
-            {
-                if (oasisdna == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "OASISDNA configuration cannot be null");
-                    return result;
-                }
-
-                // Update the configuration
-                _oasisdna = oasisdna;
-
-                // Save the configuration
-                var saveResult = await SaveOASISDNAAsync(oasisdna);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error saving OASISDNA: {saveResult.Message}");
-                    return result;
-                }
-
-                _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] OASISDNA configuration updated");
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "OASISDNA configuration updated successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error updating OASISDNA configuration: {ex.Message}", ex);
-            }
-
-            return result;
+            _oasisdna = oasisdna;
+            _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] OASISDNA configuration updated");
+            return Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = "OASISDNA updated" });
         }
 
         /// <summary>
@@ -127,13 +63,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
+                int peerCount = 0;
+                if (_onetManager != null)
+                {
+                    var peersResult = await _onetManager.GetConnectedNodesAsync();
+                    if (!peersResult.IsError) peerCount = peersResult.Result?.Count ?? 0;
+                }
+
                 var status = new NodeStatus
                 {
                     IsRunning = _isNodeRunning,
-                    ConnectedPeersCount = _connectedPeers.Count,
-                    NodeId = _oasisdna?.OASIS?.NetworkId ?? "unknown",
+                    ConnectedPeersCount = peerCount,
+                    NodeId = _oasisdna?.OASIS?.ONET?.NodeId ?? _oasisdna?.OASIS?.NetworkId ?? "unknown",
                     LastUpdated = DateTime.UtcNow,
-                    Uptime = _isNodeRunning ? DateTime.UtcNow - (_connectedPeers.FirstOrDefault()?.ConnectedAt ?? DateTime.UtcNow) : TimeSpan.Zero
+                    Uptime = _isNodeRunning ? DateTime.UtcNow - _nodeStartTime : TimeSpan.Zero
                 };
 
                 result.Result = status;
@@ -157,15 +100,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
+                int peerCount = 0;
+                if (_onetManager != null)
+                {
+                    var peersResult = await _onetManager.GetConnectedNodesAsync();
+                    if (!peersResult.IsError) peerCount = peersResult.Result?.Count ?? 0;
+                }
+
                 var info = new NodeInfo
                 {
-                    NodeId = _oasisdna?.OASIS?.NetworkId ?? "unknown",
-                    Version = "1.0.0",
+                    NodeId = _oasisdna?.OASIS?.ONET?.NodeId ?? _oasisdna?.OASIS?.NetworkId ?? "unknown",
+                    Version = "2.0.0",
                     Platform = Environment.OSVersion.Platform.ToString(),
                     Architecture = Environment.OSVersion.VersionString,
                     IsRunning = _isNodeRunning,
-                    ConnectedPeers = _connectedPeers.Count,
-                    LastStarted = _isNodeRunning ? DateTime.UtcNow.AddMinutes(-30) : DateTime.MinValue
+                    ConnectedPeers = peerCount,
+                    LastStarted = _isNodeRunning ? _nodeStartTime : DateTime.MinValue
                 };
 
                 result.Result = info;
@@ -196,7 +146,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 _isNodeRunning = true;
+                _nodeStartTime = DateTime.UtcNow;
                 _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONODE started");
+
+                // Join ONET so this node is discoverable by peers.
+                if (_onetManager != null)
+                {
+                    var netResult = await _onetManager.StartNetworkAsync();
+                    if (netResult.IsError)
+                        _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] WARNING: ONET network start failed: {netResult.Message}");
+                    else
+                        _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONET network started successfully");
+                }
 
                 result.Result = true;
                 result.IsError = false;
@@ -225,8 +186,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
+                if (_onetManager != null)
+                {
+                    var netResult = await _onetManager.StopNetworkAsync();
+                    if (netResult.IsError)
+                        _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] WARNING: ONET network stop failed: {netResult.Message}");
+                }
+
                 _isNodeRunning = false;
-                _connectedPeers.Clear();
                 _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONODE stopped");
 
                 result.Result = true;
@@ -290,14 +257,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
+                int peerCount = 0;
+                if (_onetManager != null)
+                {
+                    var peersResult = await _onetManager.GetConnectedNodesAsync();
+                    if (!peersResult.IsError) peerCount = peersResult.Result?.Count ?? 0;
+                }
+
+                var proc = System.Diagnostics.Process.GetCurrentProcess();
                 var metrics = new NodeMetrics
                 {
-                    CpuUsage = 15.5,
-                    MemoryUsage = 256.7,
-                    DiskUsage = 1024.3,
-                    NetworkIn = 1024,
-                    NetworkOut = 2048,
-                    ConnectedPeers = _connectedPeers.Count,
+                    CpuUsage = 0, // real CPU % requires background sampling; placeholder
+                    MemoryUsage = Math.Round(proc.WorkingSet64 / 1024.0 / 1024.0, 1),
+                    DiskUsage = 0,
+                    NetworkIn = 0,
+                    NetworkOut = 0,
+                    ConnectedPeers = peerCount,
                     LastUpdated = DateTime.UtcNow
                 };
 
@@ -341,7 +316,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<bool>> UpdateNodeConfigAsync(Dictionary<string, object> config)
         {
             var result = new OASISResult<bool>();
-            
+
             try
             {
                 if (config == null || config.Count == 0)
@@ -350,14 +325,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                // Update configuration (in a real implementation, this would update actual settings)
                 foreach (var kvp in config)
-                {
-                    _nodeStats[kvp.Key] = kvp.Value;
-                }
+                    _nodeConfig[kvp.Key] = kvp.Value;
 
                 _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Node configuration updated");
-
                 result.Result = true;
                 result.IsError = false;
                 result.Message = "Node configuration updated successfully";
@@ -376,10 +347,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public async Task<OASISResult<Dictionary<string, object>>> GetNodeConfigAsync()
         {
             var result = new OASISResult<Dictionary<string, object>>();
-            
+
             try
             {
-                result.Result = new Dictionary<string, object>(_nodeStats);
+                result.Result = new Dictionary<string, object>(_nodeConfig);
                 result.IsError = false;
                 result.Message = "Node configuration retrieved successfully";
             }
@@ -392,17 +363,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
-        /// Get connected peers
+        /// Get connected peers — delegates to ONETManager so the list reflects real ONET state.
         /// </summary>
         public async Task<OASISResult<List<PeerNode>>> GetConnectedPeersAsync()
         {
             var result = new OASISResult<List<PeerNode>>();
-            
+
             try
             {
-                result.Result = new List<PeerNode>(_connectedPeers);
-                result.IsError = false;
-                result.Message = "Connected peers retrieved successfully";
+                if (_onetManager != null)
+                {
+                    var nodesResult = await _onetManager.GetConnectedNodesAsync();
+                    result.Result = nodesResult.Result?
+                        .Select(n => new PeerNode { Id = n.Id, Address = n.Address, ConnectedAt = n.ConnectedAt, Status = n.Status })
+                        .ToList() ?? new List<PeerNode>();
+                    result.IsError = nodesResult.IsError;
+                    result.Message = nodesResult.IsError ? nodesResult.Message : "Connected peers retrieved successfully";
+                }
+                else
+                {
+                    result.Result = new List<PeerNode>();
+                    result.IsError = false;
+                    result.Message = "No ONET manager available";
+                }
             }
             catch (Exception ex)
             {
@@ -413,22 +396,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         }
 
         /// <summary>
-        /// Get node statistics
+        /// Get node statistics — merges local ONODE state with live ONET network stats.
         /// </summary>
         public async Task<OASISResult<Dictionary<string, object>>> GetNodeStatsAsync()
         {
             var result = new OASISResult<Dictionary<string, object>>();
-            
+
             try
             {
                 var stats = new Dictionary<string, object>
                 {
-                    ["totalPeers"] = _connectedPeers.Count,
                     ["nodeRunning"] = _isNodeRunning,
-                    ["uptime"] = _isNodeRunning ? DateTime.UtcNow - (_connectedPeers.FirstOrDefault()?.ConnectedAt ?? DateTime.UtcNow) : TimeSpan.Zero,
+                    ["uptime"] = _isNodeRunning ? (object)(DateTime.UtcNow - _nodeStartTime) : TimeSpan.Zero,
                     ["lastActivity"] = DateTime.UtcNow,
-                    ["logsCount"] = _nodeLogs.Count
+                    ["logsCount"] = _nodeLogs.Count,
+                    ["nodeId"] = _oasisdna?.OASIS?.ONET?.NodeId ?? ""
                 };
+
+                if (_onetManager != null)
+                {
+                    var netStats = await _onetManager.GetNetworkStatsAsync();
+                    if (!netStats.IsError && netStats.Result != null)
+                        foreach (var kv in netStats.Result)
+                            stats[$"onet_{kv.Key}"] = kv.Value;
+                }
 
                 result.Result = stats;
                 result.IsError = false;
@@ -442,57 +433,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             return result;
         }
 
-        private async Task<OASISResult<OASISDNA>> LoadOASISDNAAsync()
-        {
-            var result = new OASISResult<OASISDNA>();
-            
-            try
-            {
-                // Load from the actual OASISDNA system
-                var oasisdna = await OASISDNAManager.LoadDNAAsync();
-
-                if (oasisdna != null && oasisdna.Result != null && !oasisdna.IsError)
-                {
-                    result.Result = oasisdna.Result;
-                    result.IsError = false;
-                    result.Message = "OASISDNA configuration loaded successfully";
-                }
-                else
-                    OASISErrorHandling.HandleError(ref result, $"Failed to load OASISDNA configuration. Reason: {oasisdna?.Message ?? "Unknown error"}");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading OASISDNA: {ex.Message}", ex);
-            }
-
-            return result;
-        }
-
-        private async Task<OASISResult<bool>> SaveOASISDNAAsync(OASISDNA oasisdna)
-        {
-            var result = new OASISResult<bool>();
-            
-            try
-            {
-                // Save using the actual OASISDNA system
-                var saveResult = await OASISDNAManager.SaveDNAAsync();
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error saving OASISDNA: {saveResult.Message}");
-                    return result;
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "OASISDNA configuration saved successfully";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error saving OASISDNA: {ex.Message}", ex);
-            }
-
-            return result;
-        }
     }
 
     public class NodeStatus

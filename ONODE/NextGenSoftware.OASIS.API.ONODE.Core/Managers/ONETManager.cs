@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.DNA;
-using NextGenSoftware.OASIS.API.Core.Enums;
-using NextGenSoftware.OASIS.Common;
-using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
-using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
+using NextGenSoftware.OASIS.API.Providers.HoloOASIS;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 {
@@ -31,8 +34,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
         private bool _isNetworkRunning = false;
+        private DateTime _networkStartTime = DateTime.MinValue;
 
         private readonly IOASISStorageProvider _storageProvider;
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
 
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
@@ -116,6 +121,44 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 if (!oasisdnaResult.IsError && oasisdnaResult.Result != null)
                     _oasisdna = oasisdnaResult.Result;
 
+                // Generate a stable ECDSA-P256 NodeId/keypair on first run and persist it back to DNA.
+                if (_oasisdna?.OASIS?.ONET != null)
+                {
+                    bool keypairDirty = false;
+
+                    if (string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodePrivateKey) ||
+                        string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodePublicKey))
+                    {
+                        using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+                        _oasisdna.OASIS.ONET.NodePrivateKey = Convert.ToBase64String(ecdsa.ExportECPrivateKey());
+                        _oasisdna.OASIS.ONET.NodePublicKey  = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+                        keypairDirty = true;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(_oasisdna.OASIS.ONET.NodeId) || keypairDirty)
+                    {
+                        var pubBytes = Convert.FromBase64String(_oasisdna.OASIS.ONET.NodePublicKey);
+                        _oasisdna.OASIS.ONET.NodeId = Convert.ToHexString(SHA256.HashData(pubBytes)).ToLowerInvariant();
+                        keypairDirty = true;
+                    }
+
+                    if (keypairDirty)
+                        await SaveOASISDNAAsync(_oasisdna);
+
+                    // Register our public key with this node's own protocol so inbound ECDSA checks work.
+                    _onetProtocol.RegisterNodePublicKey(_oasisdna.OASIS.ONET.NodeId, _oasisdna.OASIS.ONET.NodePublicKey);
+
+                    // Push registration to each bootstrap server so they can verify future signed requests.
+                    if (_oasisdna.OASIS.ONET.AutoRegisterOnBootstrap &&
+                        _oasisdna.OASIS.ONET.BootstrapServers?.Count > 0)
+                    {
+                        await RegisterWithBootstrapServersAsync(
+                            _oasisdna.OASIS.ONET.NodeId,
+                            _oasisdna.OASIS.ONET.NodePublicKey,
+                            _oasisdna.OASIS.ONET.BootstrapServers);
+                    }
+                }
+
                 result.Result = _oasisdna;
                 result.IsError = oasisdnaResult.IsError;
                 result.Message = oasisdnaResult.Message;
@@ -126,6 +169,36 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Register this node's public key with every bootstrap server so they can verify our
+        /// future ECDSA-signed requests (X-ONET-NodeId / X-ONET-Signature headers).
+        /// Failures are logged but never throw — network may not be available yet at startup.
+        /// </summary>
+        private async Task RegisterWithBootstrapServersAsync(string nodeId, string publicKey, List<string> bootstrapServers)
+        {
+            var payload = JsonSerializer.Serialize(new { nodeId, publicKey });
+            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+            foreach (var server in bootstrapServers)
+            {
+                try
+                {
+                    var url = $"{server.TrimEnd('/')}/api/v1/onet/nodes/register";
+                    var response = await _httpClient.PostAsync(url, new StringContent(payload, Encoding.UTF8, "application/json"));
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var warn = new OASISResult<bool>();
+                        OASISErrorHandling.HandleWarning(ref warn, $"Bootstrap registration at {url} returned {(int)response.StatusCode}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var warn = new OASISResult<bool>();
+                    OASISErrorHandling.HandleWarning(ref warn, $"Could not register with bootstrap server {server}: {ex.Message}", ex);
+                }
+            }
         }
 
         /// <summary>
@@ -234,6 +307,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// </summary>
         public Task<bool> VerifyRequestSignatureAsync(string nodeId, string message, string base64Signature)
             => _onetProtocol.VerifyRequestSignatureAsync(nodeId, message, base64Signature);
+
+        /// <summary>
+        /// Register a peer's base-64 ECDSA-P256 public key so subsequent VerifyRequestSignatureAsync
+        /// calls from that node will succeed. Called by the /onet/nodes/register REST endpoint and
+        /// automatically during peer-exchange (OnPeerKeyDiscovered).
+        /// </summary>
+        public void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+            => _onetProtocol.RegisterNodePublicKey(nodeId, base64PublicKey);
 
         /// Get connected nodes
         /// </summary>
@@ -348,7 +429,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 {
                     ["totalNodes"] = _connectedNodes.Count,
                     ["networkRunning"] = _isNetworkRunning,
-                    ["uptime"] = DateTime.UtcNow - (_connectedNodes.FirstOrDefault()?.ConnectedAt ?? DateTime.UtcNow),
+                    ["networkType"] = _networkType.ToString(),
+                    ["nodeId"] = _oasisdna?.OASIS?.ONET?.NodeId ?? "",
+                    ["uptime"] = _isNetworkRunning ? (object)(DateTime.UtcNow - _networkStartTime) : TimeSpan.Zero,
                     ["lastActivity"] = DateTime.UtcNow
                 };
 
@@ -382,6 +465,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 _isNetworkRunning = true;
+                _networkStartTime = DateTime.UtcNow;
                 result.Result = true;
                 result.IsError = false;
                 result.Message = $"ONET P2P network started successfully using {_networkType} - Web2 and Web3 unified!";
