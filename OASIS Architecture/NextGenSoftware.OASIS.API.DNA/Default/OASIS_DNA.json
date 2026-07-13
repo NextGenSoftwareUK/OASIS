@@ -462,7 +462,7 @@
             "NodePrivateKey": "",
             "TcpPort": 38470,
             "EnableMDNS": true,
-            "AutoRegisterOnBootstrap": true
+            "AutoRegisterOnBootstrap": false
         },
         "OASISSystemAccountId": "",
         "OASISAPIURL": "https://api.oasisweb4.one",
