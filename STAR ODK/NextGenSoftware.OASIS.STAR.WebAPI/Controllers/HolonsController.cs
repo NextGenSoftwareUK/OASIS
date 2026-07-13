@@ -11,6 +11,7 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -184,7 +185,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllOfTypeAsync method not yet implemented");
+                if (!Enum.TryParse<HolonType>(type, true, out var holonType))
+                    return BadRequest(new OASISResult<IEnumerable<STARHolon>> { IsError = true, Message = $"Unknown holon type '{type}'." });
+
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(holonType);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARHolon>> { IsError = true, Message = result.Message });
+
+                var holons = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARHolon { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARHolon>> { Result = holons, IsError = false });
             }
             catch (Exception ex)
             {
@@ -211,7 +222,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllForParentAsync method not yet implemented");
+                var result = await HolonManager.Instance.LoadHolonsForParentAsync(parentId);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARHolon>> { IsError = true, Message = result.Message });
+
+                var holons = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARHolon { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARHolon>> { Result = holons, IsError = false });
             }
             catch (Exception ex)
             {
@@ -239,7 +257,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllByMetaDataAsync method not yet implemented");
+                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                    return BadRequest(new OASISResult<IEnumerable<STARHolon>> { IsError = true, Message = "key and value query parameters are required." });
+
+                var result = await HolonManager.Instance.LoadHolonsByMetaDataAsync(key, value);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARHolon>> { IsError = true, Message = result.Message });
+
+                var holons = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARHolon { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARHolon>> { Result = holons, IsError = false });
             }
             catch (Exception ex)
             {

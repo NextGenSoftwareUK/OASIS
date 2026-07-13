@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -185,7 +186,23 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllNearAsync method not yet implemented");
+                // Load all GeoNFTs and filter by coordinates stored in MetaData["lat"] / MetaData["long"].
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Web5GeoNFT);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARGeoNFT>> { IsError = true, Message = result.Message });
+
+                var nearby = new List<STARGeoNFT>();
+                foreach (var h in result.Result ?? Enumerable.Empty<IHolon>())
+                {
+                    if (h.MetaData != null
+                        && h.MetaData.TryGetValue("lat", out var latStr) && double.TryParse(latStr, out var lat)
+                        && h.MetaData.TryGetValue("long", out var lonStr) && double.TryParse(lonStr, out var lon)
+                        && HaversineDistanceKm(latitude, longitude, lat, lon) <= radiusKm)
+                    {
+                        nearby.Add(new STARGeoNFT { Id = h.Id, Name = h.Name });
+                    }
+                }
+                return Ok(new OASISResult<IEnumerable<STARGeoNFT>> { Result = nearby, IsError = false });
             }
             catch (Exception ex)
             {
@@ -196,6 +213,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Exception = ex
                 });
             }
+        }
+
+        private static double HaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0;
+            var dLat = (lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (lon2 - lon1) * Math.PI / 180.0;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                  + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                  * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
 
         /// <summary>
