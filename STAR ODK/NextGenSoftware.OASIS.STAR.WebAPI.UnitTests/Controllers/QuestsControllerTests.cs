@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
         public QuestsControllerTests()
         {
             _mockLogger = new Mock<ILogger<QuestsController>>();
-            _controller = new QuestsController();
+            _controller = new QuestsController(_mockLogger.Object);
             STARControllerTestHelper.SetUpControllerContext(_controller);
         }
 
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             mockQuest.Setup(x => x.Name).Returns("Updated Quest");
 
             // Act
-            var result = await _controller.UpdateIQuest(id, mockQuest.Object);
+            var result = await _controller.UpdateIQuest(id, mockQuest.Object as NextGenSoftware.OASIS.API.ONODE.Core.Holons.Quest ?? new NextGenSoftware.OASIS.API.ONODE.Core.Holons.Quest { Id = id, Name = "Updated Quest" });
 
             // Assert
             result.Should().NotBeNull();
@@ -140,7 +140,6 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.UnitTests.Controllers
             {
                 Name = "Unit Test Quest",
                 Description = "Quest with objectives",
-                HolonSubType = HolonType.Quest,
                 Objectives = new List<QuestObjectiveRequest>
                 {
                     new QuestObjectiveRequest
