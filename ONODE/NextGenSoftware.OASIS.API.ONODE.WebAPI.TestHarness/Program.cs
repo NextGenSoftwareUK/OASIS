@@ -73,6 +73,31 @@ class Program
             new { NodeId = "test-node-id" },
             "POST /onet/network/disconnect");
 
+        // ── Subscription — plans & free plan activation ───────────────
+        await Section("Subscription — plans");
+        await Get("/api/subscription/plans",                        "GET  /subscription/plans");
+        await Get("/api/subscription/subscriptions/me",            "GET  /subscription/subscriptions/me");
+        await Get("/api/subscription/orders/me",                   "GET  /subscription/orders/me");
+        await Get("/api/subscription/usage",                       "GET  /subscription/usage");
+        await Get("/api/subscription/hyperdrive-usage",            "GET  /subscription/hyperdrive-usage");
+
+        await Post("/api/subscription/checkout/session",
+            new { PlanId = "free", SuccessUrl = "/success" },
+            "POST /subscription/checkout/session (free)");
+
+        await Post("/api/subscription/toggle-pay-as-you-go",
+            new { Enabled = false },
+            "POST /subscription/toggle-pay-as-you-go");
+
+        await Section("Subscription — paid plan (expects Stripe key error without config)");
+        await Post("/api/subscription/checkout/session",
+            new { PlanId = "bronze", SuccessUrl = "/success", CancelUrl = "/cancel" },
+            "POST /subscription/checkout/session (bronze — needs Stripe key)");
+
+        await Post("/api/subscription/checkout/session",
+            new { PlanId = "enterprise" },
+            "POST /subscription/checkout/session (enterprise — contact sales)");
+
         // ── Summary ──────────────────────────────────────────────────
         Console.WriteLine();
         Console.WriteLine(new string('=', 60));
