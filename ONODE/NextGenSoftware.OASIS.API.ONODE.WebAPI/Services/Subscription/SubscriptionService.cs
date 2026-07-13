@@ -1,152 +1,205 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 {
     /// <summary>
-    /// JSON-file-backed subscription service. Thread-safe via SemaphoreSlim.
-    /// Data directory defaults to App_Data/subscriptions relative to content root.
-    /// Replace with a database-backed implementation by swapping the ISubscriptionService registration.
+    /// HolonManager-backed subscription service.
+    /// Subscription records are persisted per-avatar under the "subscription" settings category.
+    /// Usage is persisted under "subscription-usage". Orders under "subscription-orders".
+    /// Reverse lookups by Stripe IDs use LoadHolonsByMetaDataAsync.
     /// </summary>
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly string _dataDir;
         private readonly ILogger<SubscriptionService> _logger;
 
-        private readonly SemaphoreSlim _subLock = new(1, 1);
+        // Protects read-modify-write usage increments from concurrent requests
         private readonly SemaphoreSlim _usageLock = new(1, 1);
         private readonly SemaphoreSlim _orderLock = new(1, 1);
 
-        private string SubsFile => Path.Combine(_dataDir, "subscriptions.json");
-        private string UsageFile => Path.Combine(_dataDir, "usage.json");
-        private string OrdersFile => Path.Combine(_dataDir, "orders.json");
-
         private static readonly JsonSerializerOptions _json = new()
         {
-            WriteIndented = true,
             PropertyNameCaseInsensitive = true
         };
 
-        public SubscriptionService(IConfiguration configuration, ILogger<SubscriptionService> logger)
+        public SubscriptionService(ILogger<SubscriptionService> logger)
         {
             _logger = logger;
-            var configured = configuration["Subscription:DataDirectory"];
-            _dataDir = string.IsNullOrWhiteSpace(configured)
-                ? Path.Combine(AppContext.BaseDirectory, "App_Data", "subscriptions")
-                : configured;
-
-            Directory.CreateDirectory(_dataDir);
         }
 
         // ── Subscription ────────────────────────────────────────────────────
 
         public async Task<SubscriptionRecord> GetSubscriptionAsync(string userId)
         {
-            var all = await ReadAsync<List<SubscriptionRecord>>(SubsFile, _subLock) ?? new();
-            return all.FirstOrDefault(s => s.UserId == userId);
+            if (!Guid.TryParse(userId, out var avatarId)) return null;
+            return await LoadSubscriptionAsync(avatarId);
         }
 
         public async Task<SubscriptionRecord> GetSubscriptionByStripeCustomerIdAsync(string stripeCustomerId)
         {
-            var all = await ReadAsync<List<SubscriptionRecord>>(SubsFile, _subLock) ?? new();
-            return all.FirstOrDefault(s => s.StripeCustomerId == stripeCustomerId);
+            try
+            {
+                var result = await HolonManager.Instance.LoadHolonsByMetaDataAsync(
+                    "stripeCustomerId", stripeCustomerId);
+
+                if (result.IsError || result.Result == null) return null;
+
+                var holon = result.Result.FirstOrDefault();
+                if (holon == null) return null;
+
+                // The avatarId is stored in the holon's CreatedByAvatarId
+                return await LoadSubscriptionAsync(holon.CreatedByAvatarId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error looking up subscription by Stripe customer ID {Id}", stripeCustomerId);
+                return null;
+            }
         }
 
         public async Task<SubscriptionRecord> GetSubscriptionByStripeSubscriptionIdAsync(string stripeSubscriptionId)
         {
-            var all = await ReadAsync<List<SubscriptionRecord>>(SubsFile, _subLock) ?? new();
-            return all.FirstOrDefault(s => s.StripeSubscriptionId == stripeSubscriptionId);
+            try
+            {
+                var result = await HolonManager.Instance.LoadHolonsByMetaDataAsync(
+                    "stripeSubscriptionId", stripeSubscriptionId);
+
+                if (result.IsError || result.Result == null) return null;
+
+                var holon = result.Result.FirstOrDefault();
+                if (holon == null) return null;
+
+                return await LoadSubscriptionAsync(holon.CreatedByAvatarId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error looking up subscription by Stripe subscription ID {Id}", stripeSubscriptionId);
+                return null;
+            }
         }
 
         public async Task UpsertSubscriptionAsync(SubscriptionRecord record)
         {
-            await _subLock.WaitAsync();
+            if (!Guid.TryParse(record.UserId, out var avatarId)) return;
+            record.UpdatedAt = DateTime.UtcNow;
+
+            var settings = RecordToDict(record);
             try
             {
-                var all = await ReadFileAsync<List<SubscriptionRecord>>(SubsFile) ?? new();
-                var existing = all.FindIndex(s => s.UserId == record.UserId);
-                record.UpdatedAt = DateTime.UtcNow;
-                if (existing >= 0)
-                    all[existing] = record;
-                else
-                    all.Add(record);
-                await WriteFileAsync(SubsFile, all);
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription", settings);
             }
-            finally { _subLock.Release(); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error upserting subscription for user {UserId}", record.UserId);
+            }
         }
 
         public async Task SetPayAsYouGoAsync(string userId, bool enabled)
         {
-            await _subLock.WaitAsync();
+            if (!Guid.TryParse(userId, out var avatarId)) return;
             try
             {
-                var all = await ReadFileAsync<List<SubscriptionRecord>>(SubsFile) ?? new();
-                var record = all.FirstOrDefault(s => s.UserId == userId);
-                if (record == null)
+                var record = await LoadSubscriptionAsync(avatarId) ?? new SubscriptionRecord
                 {
-                    record = new SubscriptionRecord { UserId = userId, PlanId = "free", Status = "active" };
-                    all.Add(record);
-                }
+                    UserId = userId,
+                    PlanId = "free",
+                    Status = "active",
+                    CreatedAt = DateTime.UtcNow
+                };
                 record.PayAsYouGoEnabled = enabled;
                 record.UpdatedAt = DateTime.UtcNow;
-                await WriteFileAsync(SubsFile, all);
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription", RecordToDict(record));
             }
-            finally { _subLock.Release(); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting pay-as-you-go for user {UserId}", userId);
+            }
         }
 
         // ── Usage ───────────────────────────────────────────────────────────
 
         public async Task<UsageRecord> GetUsageAsync(string userId, int year, int month)
         {
-            var all = await ReadAsync<List<UsageRecord>>(UsageFile, _usageLock) ?? new();
-            return all.FirstOrDefault(u => u.UserId == userId && u.Year == year && u.Month == month)
-                   ?? new UsageRecord { UserId = userId, Year = year, Month = month };
+            if (!Guid.TryParse(userId, out var avatarId))
+                return new UsageRecord { UserId = userId, Year = year, Month = month };
+
+            try
+            {
+                var key = UsageKey(year, month);
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                if (result.IsError || result.Result == null || !result.Result.TryGetValue(key, out var raw))
+                    return new UsageRecord { UserId = userId, Year = year, Month = month };
+
+                return DeserializeUsage(userId, year, month, raw);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading usage for user {UserId}", userId);
+                return new UsageRecord { UserId = userId, Year = year, Month = month };
+            }
         }
 
         public async Task IncrementUsageAsync(string userId)
         {
+            if (!Guid.TryParse(userId, out var avatarId)) return;
             var now = DateTime.UtcNow;
+
             await _usageLock.WaitAsync();
             try
             {
-                var all = await ReadFileAsync<List<UsageRecord>>(UsageFile) ?? new();
-                var record = all.FirstOrDefault(u => u.UserId == userId && u.Year == now.Year && u.Month == now.Month);
-                if (record == null)
-                {
-                    record = new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
-                    all.Add(record);
-                }
-                record.RequestCount++;
-                record.LastUpdated = now;
-                await WriteFileAsync(UsageFile, all);
+                var key = UsageKey(now.Year, now.Month);
+                var allResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                var all = allResult.Result ?? new Dictionary<string, object>();
+
+                var rec = all.TryGetValue(key, out var raw)
+                    ? DeserializeUsage(userId, now.Year, now.Month, raw)
+                    : new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
+
+                rec.RequestCount++;
+                rec.LastUpdated = now;
+                all[key] = JsonSerializer.Serialize(rec, _json);
+
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription-usage", all);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error incrementing usage for user {UserId}", userId);
             }
             finally { _usageLock.Release(); }
         }
 
         public async Task IncrementOverageAsync(string userId)
         {
+            if (!Guid.TryParse(userId, out var avatarId)) return;
             var now = DateTime.UtcNow;
+
             await _usageLock.WaitAsync();
             try
             {
-                var all = await ReadFileAsync<List<UsageRecord>>(UsageFile) ?? new();
-                var record = all.FirstOrDefault(u => u.UserId == userId && u.Year == now.Year && u.Month == now.Month);
-                if (record == null)
-                {
-                    record = new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
-                    all.Add(record);
-                }
-                record.RequestCount++;
-                record.OverageCount++;
-                record.LastUpdated = now;
-                await WriteFileAsync(UsageFile, all);
+                var key = UsageKey(now.Year, now.Month);
+                var allResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                var all = allResult.Result ?? new Dictionary<string, object>();
+
+                var rec = all.TryGetValue(key, out var raw)
+                    ? DeserializeUsage(userId, now.Year, now.Month, raw)
+                    : new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
+
+                rec.RequestCount++;
+                rec.OverageCount++;
+                rec.LastUpdated = now;
+                all[key] = JsonSerializer.Serialize(rec, _json);
+
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription-usage", all);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error incrementing overage for user {UserId}", userId);
             }
             finally { _usageLock.Release(); }
         }
@@ -155,53 +208,114 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
 
         public async Task<List<OrderRecord>> GetOrdersAsync(string userId)
         {
-            var all = await ReadAsync<List<OrderRecord>>(OrdersFile, _orderLock) ?? new();
-            return all.Where(o => o.UserId == userId).OrderByDescending(o => o.CreatedAt).ToList();
+            if (!Guid.TryParse(userId, out var avatarId)) return new();
+            try
+            {
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-orders");
+                if (result.IsError || result.Result == null || !result.Result.TryGetValue("orders", out var raw))
+                    return new();
+
+                var list = JsonSerializer.Deserialize<List<OrderRecord>>(raw?.ToString() ?? "[]", _json) ?? new();
+                return list.OrderByDescending(o => o.CreatedAt).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading orders for user {UserId}", userId);
+                return new();
+            }
         }
 
         public async Task AddOrderAsync(OrderRecord order)
         {
+            if (!Guid.TryParse(order.UserId, out var avatarId)) return;
+
             await _orderLock.WaitAsync();
             try
             {
-                var all = await ReadFileAsync<List<OrderRecord>>(OrdersFile) ?? new();
-                // Deduplicate by Stripe invoice ID
-                if (!string.IsNullOrEmpty(order.StripeInvoiceId) && all.Any(o => o.StripeInvoiceId == order.StripeInvoiceId))
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-orders");
+                var all = result.Result ?? new Dictionary<string, object>();
+
+                var list = all.TryGetValue("orders", out var raw)
+                    ? JsonSerializer.Deserialize<List<OrderRecord>>(raw?.ToString() ?? "[]", _json) ?? new()
+                    : new List<OrderRecord>();
+
+                if (!string.IsNullOrEmpty(order.StripeInvoiceId) && list.Any(o => o.StripeInvoiceId == order.StripeInvoiceId))
                     return;
-                all.Add(order);
-                await WriteFileAsync(OrdersFile, all);
+
+                list.Add(order);
+                all["orders"] = JsonSerializer.Serialize(list, _json);
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription-orders", all);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding order for user {UserId}", order.UserId);
             }
             finally { _orderLock.Release(); }
         }
 
-        // ── Internal helpers ─────────────────────────────────────────────────
+        // ── Helpers ──────────────────────────────────────────────────────────
 
-        private async Task<T> ReadAsync<T>(string path, SemaphoreSlim sem) where T : class
+        private async Task<SubscriptionRecord> LoadSubscriptionAsync(Guid avatarId)
         {
-            await sem.WaitAsync();
-            try { return await ReadFileAsync<T>(path); }
-            finally { sem.Release(); }
-        }
-
-        private async Task<T> ReadFileAsync<T>(string path) where T : class
-        {
-            if (!System.IO.File.Exists(path)) return null;
             try
             {
-                var json = await System.IO.File.ReadAllTextAsync(path);
-                return JsonSerializer.Deserialize<T>(json, _json);
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription");
+                if (result.IsError || result.Result == null || result.Result.Count == 0) return null;
+
+                var d = result.Result;
+                return new SubscriptionRecord
+                {
+                    UserId               = avatarId.ToString(),
+                    StripeCustomerId     = d.GetValueOrDefault("stripeCustomerId")?.ToString(),
+                    StripeSubscriptionId = d.GetValueOrDefault("stripeSubscriptionId")?.ToString(),
+                    PlanId               = d.GetValueOrDefault("planId")?.ToString() ?? "free",
+                    Status               = d.GetValueOrDefault("status")?.ToString() ?? "active",
+                    PayAsYouGoEnabled    = d.TryGetValue("payAsYouGoEnabled", out var payg) && payg is bool b && b,
+                    CurrentPeriodStart   = d.TryGetValue("currentPeriodStart", out var s) && s != null ? ParseDate(s) : null,
+                    CurrentPeriodEnd     = d.TryGetValue("currentPeriodEnd", out var e) && e != null ? ParseDate(e) : null,
+                    CreatedAt            = ParseDate(d.GetValueOrDefault("createdAt")) ?? DateTime.UtcNow,
+                    UpdatedAt            = ParseDate(d.GetValueOrDefault("updatedAt")) ?? DateTime.UtcNow,
+                };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to read subscription data from {Path}", path);
+                _logger.LogError(ex, "Error loading subscription for avatar {AvatarId}", avatarId);
                 return null;
             }
         }
 
-        private async Task WriteFileAsync<T>(string path, T data)
+        private static Dictionary<string, object> RecordToDict(SubscriptionRecord r) => new()
         {
-            var json = JsonSerializer.Serialize(data, _json);
-            await System.IO.File.WriteAllTextAsync(path, json);
+            ["stripeCustomerId"]     = r.StripeCustomerId ?? "",
+            ["stripeSubscriptionId"] = r.StripeSubscriptionId ?? "",
+            ["planId"]               = r.PlanId ?? "free",
+            ["status"]               = r.Status ?? "active",
+            ["payAsYouGoEnabled"]    = r.PayAsYouGoEnabled,
+            ["currentPeriodStart"]   = r.CurrentPeriodStart?.ToString("O") ?? "",
+            ["currentPeriodEnd"]     = r.CurrentPeriodEnd?.ToString("O") ?? "",
+            ["createdAt"]            = r.CreatedAt.ToString("O"),
+            ["updatedAt"]            = r.UpdatedAt.ToString("O"),
+        };
+
+        private static string UsageKey(int year, int month) => $"{year:D4}-{month:D2}";
+
+        private UsageRecord DeserializeUsage(string userId, int year, int month, object raw)
+        {
+            try
+            {
+                var rec = JsonSerializer.Deserialize<UsageRecord>(raw?.ToString() ?? "{}", _json);
+                if (rec != null) return rec;
+            }
+            catch { }
+            return new UsageRecord { UserId = userId, Year = year, Month = month };
+        }
+
+        private static DateTime? ParseDate(object val)
+        {
+            if (val == null) return null;
+            if (val is DateTime dt) return dt;
+            if (DateTime.TryParse(val.ToString(), out var parsed)) return parsed;
+            return null;
         }
     }
 }

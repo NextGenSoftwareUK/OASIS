@@ -139,9 +139,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             try
             {
-                var secretKey = _configuration["STRIPE_SECRET_KEY"];
+                var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
+                    ?? _configuration["STRIPE_SECRET_KEY"]
+                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.SecretKey;
                 if (string.IsNullOrWhiteSpace(secretKey))
-                    return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY." });
+                    return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
                 StripeConfiguration.ApiKey = secretKey;
 
@@ -188,7 +190,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("webhooks/stripe")]
         public async Task<IActionResult> StripeWebhook()
         {
-            var webhookSecret = _configuration["STRIPE_WEBHOOK_SECRET"];
+            var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
+                ?? _configuration["STRIPE_WEBHOOK_SECRET"]
+                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.WebhookSecret;
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Webhook secret not configured.");
 
