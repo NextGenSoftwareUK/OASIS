@@ -8,8 +8,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API WRLD3D OASIS Provider</Product>
 	  <Title>WEB4 OASIS API WRLD3D OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API WRLD3D OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API WRLD3D OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Summary>WRLD3D OASIS Provider -- photorealistic 3D geo-spatial world simulation for OASIS avatars and holons. Supports Unity, Unreal, and web. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to WRLD3D -- a 3D geo-spatial mapping engine for visualising OASIS avatars, holons, and Our World/One World data in photorealistic 3D city models, indoor maps, and open-world environments. Supports Unity, Unreal, and web targets. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -26,8 +26,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>

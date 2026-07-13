@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -19,7 +19,7 @@
     <Description>The OASIS Model Context Protocol (MCP) Server — exposes 250 typed named tools across WEB4–WEB10 directly to Cursor, VS Code, and any MCP-compatible IDE. Mint NFTs, manage wallets, generate smart contracts, interact with AI agents, and access the full OASIS ecosystem through natural language. Install with: dotnet tool install -g NextGenSoftware.OASIS.MCP.Server</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
-    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageTags>OASIS; MCP; ModelContextProtocol; AI; IDE; Cursor; VSCode; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Interoperability; Avatar-API; Karma-API; SmartContracts; FAHRN; HolonicBraid; OpenSERV; A2A; DeveloperTools; NextGenSoftware</PackageTags>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
