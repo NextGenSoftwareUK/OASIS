@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -41,6 +42,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private readonly IOASISStorageProvider _storageProvider;
         // Shorter timeout for bootstrap registration — 15s per attempt × 3 retries = up to 45s stall on a dead server.
         private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
+
+        // Path where the peer list is persisted so the node gets a warm start after a restart.
+        private string PeerCachePath =>
+            Path.Combine(
+                _oasisdna?.OASIS?.DataDirectory ?? AppContext.BaseDirectory,
+                "onet-peers.json");
+
+        /// <summary>Constructor for test subclasses that override virtual methods without needing the full network init chain.</summary>
+        protected ONETManager(OASISDNA? oasisdna) : base(null!, Guid.Empty, oasisdna ?? new OASISDNA()) { }
 
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
@@ -220,7 +230,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// <summary>
         /// Get OASISDNA configuration
         /// </summary>
-        public async Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
+        public virtual async Task<OASISResult<OASISDNA>> GetOASISDNAAsync()
         {
             var result = new OASISResult<OASISDNA>();
             
@@ -329,8 +339,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         /// calls from that node will succeed. Called by the /onet/nodes/register REST endpoint and
         /// automatically during peer-exchange (OnPeerKeyDiscovered).
         /// </summary>
-        public void RegisterNodePublicKey(string nodeId, string base64PublicKey)
+        public virtual void RegisterNodePublicKey(string nodeId, string base64PublicKey)
             => _onetProtocol.RegisterNodePublicKey(nodeId, base64PublicKey);
+
+        private void PersistPeers()
+        {
+            try
+            {
+                var peers = _connectedNodes.Values.ToList();
+                var json = JsonSerializer.Serialize(peers, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(PeerCachePath, json);
+            }
+            catch { /* non-fatal — worst case the node cold-starts */ }
+        }
+
+        private void LoadPersistedPeers()
+        {
+            try
+            {
+                if (!File.Exists(PeerCachePath)) return;
+                var json = File.ReadAllText(PeerCachePath);
+                var peers = JsonSerializer.Deserialize<List<ONETNode>>(json);
+                if (peers == null) return;
+                foreach (var peer in peers)
+                    _connectedNodes.TryAdd(peer.Id, peer);
+            }
+            catch { /* non-fatal — bad cache file is just ignored */ }
+        }
 
         /// Get connected nodes
         /// </summary>
@@ -479,6 +514,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 _isNetworkRunning = true;
                 _networkStartTime = DateTime.UtcNow;
+                LoadPersistedPeers();
                 result.Result = true;
                 result.IsError = false;
                 result.Message = $"ONET P2P network started successfully using {_networkType} - Web2 and Web3 unified!";
@@ -509,6 +545,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 }
 
                 _isNetworkRunning = false;
+                PersistPeers();
                 result.Result = true;
                 result.IsError = false;
                 result.Message = $"ONET P2P network stopped successfully using {_networkType}";
