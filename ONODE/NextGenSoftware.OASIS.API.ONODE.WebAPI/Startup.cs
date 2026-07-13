@@ -326,7 +326,7 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<OASISMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
             app.UseMiddleware<JwtMiddleware>();
-            app.UseMiddleware<SubscriptionMiddleware>();
+            //app.UseMiddleware<SubscriptionMiddleware>(); // TODO: Re-enable when subscriptions are live
 
             app.UseEndpoints(endpoints =>
             {
