@@ -12,14 +12,14 @@
     <Version>2.0.0</Version>
     <Title>OASIS Common</Title>
     <Product>OASIS Common</Product>
-    <Summary>Shared common utilities, helpers, and base types used across the entire OASIS ecosystem.</Summary>
-    <Description>Shared common utilities, helpers, and base types used across the entire OASIS ecosystem.</Description>
+    <Summary>Shared OASIS utilities, result types, error handling, and cross-cutting concerns used by every OASIS package.</Summary>
+    <Description>The shared foundation layer for the entire OASIS ecosystem -- OASISResult/OASISResultCollectionWithPagination result types, shared constants, extension methods, cross-cutting error handling, and utility helpers relied upon by every other OASIS NuGet package. A transitive dependency of all OASIS packages. Part of the OASIS Omniverse at https://oasisomniverse.one</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
-    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

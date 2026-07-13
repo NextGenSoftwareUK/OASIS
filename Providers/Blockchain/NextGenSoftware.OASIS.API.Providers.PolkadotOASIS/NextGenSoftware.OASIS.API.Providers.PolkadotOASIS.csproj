@@ -6,8 +6,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Polkadot OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Polkadot OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API Polkadot OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API Polkadot OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Summary>Polkadot OASIS Provider -- cross-chain interoperability hub. Store OASIS holons across relay chain and parachains via XCM. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Polkadot -- the leading cross-chain interoperability protocol enabling sovereign blockchains (parachains) to communicate via XCM. Stores OASIS holons, avatars, and data on the relay chain or any connected parachain, enabling true multi-chain deployments. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -24,8 +24,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

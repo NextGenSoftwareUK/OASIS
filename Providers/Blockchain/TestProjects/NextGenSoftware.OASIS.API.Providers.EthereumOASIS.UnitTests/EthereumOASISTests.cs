@@ -445,7 +445,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.UnitTests
         public void ProviderCategory_ShouldBeBlockchainStorage()
         {
             // Assert
-            Assert.AreEqual(ProviderCategory.BlockchainStorage, _provider.ProviderCategory);
+            Assert.AreEqual(ProviderCategory.StorageAndNetworkStorage, _provider.ProviderCategory);
         }
 
         [TestMethod]

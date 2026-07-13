@@ -6,8 +6,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API SQLLiteDB OASIS Provider</Product>
 	  <Title>WEB4 OASIS API SQLLiteDB OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API SQLLiteDB OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API SQLLiteDB OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Summary>SQLite OASIS Provider -- embedded, serverless relational database for OASIS holons and avatars. Zero-config, perfect for local and offline deployments. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to SQLite -- the world's most widely deployed embedded relational database. Stores OASIS holons and avatar data in a local SQLite file with zero configuration and no server required. Ideal for desktop apps, mobile, edge/IoT, or offline-first OASIS deployments. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>

@@ -6,8 +6,8 @@
 		<Company>NextGen Software Ltd</Company>
 		<Product>WEB4 OASIS API MapBox OASIS Provider</Product>
 		<Title>WEB4 OASIS API MapBox OASIS Provider</Title>
-		<Summary>WEB4 OASIS API MapBox OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-		<Description>WEB4 OASIS API MapBox OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+		<Summary>Mapbox OASIS Provider -- professional geo-spatial mapping and visualisation for OASIS avatars and holons using the Mapbox GL platform. https://oasisomniverse.one</Summary>
+		<Description>Connects the OASIS to Mapbox -- the leading developer platform for custom maps, navigation, and geo-spatial analytics. Visualises OASIS avatars, holons, and Our World/One World data on Mapbox GL maps with custom styling, 3D terrain, and real-time overlays. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 		<PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 		<PackageIcon>OASIS.jpg</PackageIcon>
 		<Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -24,8 +24,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 		<RepositoryType>git</RepositoryType>
-		<RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-		<Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+		<RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+		<Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

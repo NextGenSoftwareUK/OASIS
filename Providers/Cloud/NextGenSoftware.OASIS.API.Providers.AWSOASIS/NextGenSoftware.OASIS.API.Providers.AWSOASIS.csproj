@@ -6,8 +6,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API AWS OASIS Provider</Product>
 	  <Title>WEB4 OASIS API AWS OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API AWS OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API AWS OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Summary>AWS OASIS Provider -- Amazon DynamoDB and S3 cloud storage for OASIS holons and avatars. Enterprise-grade persistence at global AWS scale. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to Amazon Web Services -- leveraging DynamoDB (key-value/document) and S3 (object storage) for OASIS holon and avatar persistence at global AWS scale. Ideal for existing AWS-hosted applications adding OASIS capabilities with enterprise SLAs. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -24,8 +24,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

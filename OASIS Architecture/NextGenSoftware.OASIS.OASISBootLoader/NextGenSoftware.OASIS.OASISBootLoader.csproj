@@ -7,8 +7,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API BootLoader</Product>
 	  <Title>WEB4 OASIS API BootLoader</Title>
-	  <Summary>Responsible for Booting The OASIS &amp; managing the various OASIS Providers. Used by various OASIS Packages such as OASIS.API.Integrated.Native.EndPoint, STAR &amp; others.</Summary>
-	  <Description>Responsible for Booting The OASIS &amp; managing the various OASIS Providers. Used by various OASIS Packages such as OASIS.API.Integrated.Native.EndPoint, STAR &amp; others.</Description>
+	  <Summary>OASIS BootLoader -- one-line startup that reads OASISDNA, wires all providers, and initialises the full OASIS Engine in any .NET app.</Summary>
+	  <Description>The OASIS BootLoader provides a single entry point to initialise the entire OASIS ecosystem in any .NET application. Reads OASISDNA configuration, registers and activates all configured providers, sets up Auto-FailOver/LoadBalancing, and returns a ready-to-use OASIS instance. Integrate 55+ decentralised networks into your app with just a few lines of code. Part of the OASIS Omniverse at https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -41,8 +41,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>

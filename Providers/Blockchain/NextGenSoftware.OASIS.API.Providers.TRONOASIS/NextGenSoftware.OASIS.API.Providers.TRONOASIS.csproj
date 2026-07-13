@@ -6,8 +6,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API TRON OASIS Provider</Product>
 	  <Title>WEB4 OASIS API TRON OASIS Provider</Title>
-	  <Summary>WEB4 OASIS API TRON OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
-	  <Description>WEB4 OASIS API TRON OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
+	  <Summary>TRON OASIS Provider -- entertainment and content blockchain, 2,000+ TPS, minimal fees, TRC-20/TRC-721 tokens for OASIS data. https://oasisomniverse.one</Summary>
+	  <Description>Connects the OASIS to TRON -- high-throughput blockchain optimised for entertainment and gaming with 2,000+ TPS, minimal fees, and TRC-20/TRC-721 support. Stores OASIS holons, avatars, and tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -24,8 +24,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>

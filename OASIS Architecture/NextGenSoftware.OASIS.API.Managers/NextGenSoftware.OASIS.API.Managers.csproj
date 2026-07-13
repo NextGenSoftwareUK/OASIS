@@ -9,8 +9,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API Managers</Product>
     <Title>WEB4 OASIS API Managers</Title>
-    <Summary>WEB4 OASIS API Managers provides core management functionality for the OASIS ecosystem.</Summary>
-    <Description>WEB4 OASIS API Managers provides core management functionality for the OASIS ecosystem including MapManager, etc.</Description>
+    <Summary>High-level OASIS managers (Avatar, Karma, Holon, Data, Map, Provider, and more) -- the recommended orchestration layer between your app and the 55+ OASIS providers.</Summary>
+    <Description>Provides all high-level OASIS manager classes including AvatarManager, KarmaManager, HolonManager, DataManager, MapManager, SearchManager, ProviderManager, and more. These managers are the recommended integration point for .NET apps -- they abstract the underlying HOT-Swappable Provider Architecture and give you clean, consistent async APIs for avatars, karma, holons, keys/wallets, NFTs, search, and geo-data across 55+ providers. Part of the OASIS Omniverse ecosystem at https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -43,8 +43,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <Version>2.0.0</Version>

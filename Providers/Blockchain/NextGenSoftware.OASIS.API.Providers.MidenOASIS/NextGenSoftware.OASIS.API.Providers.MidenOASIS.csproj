@@ -7,8 +7,8 @@
         <Company>NextGen Software Ltd</Company>
         <Product>WEB4 OASIS API Miden OASIS Provider</Product>
         <Title>WEB4 OASIS API Miden OASIS Provider</Title>
-        <Summary>Miden privacy provider for OASIS offering private note management, STARK proof workflows, and zkVM interactions.</Summary>
-        <Description>Miden privacy provider for OASIS offering private note management, STARK proof workflows, and zkVM interactions. Built for Zypherpunk hackathon Track 4 (Zcash ↔ Miden bridge).</Description>
+        <Summary>Miden OASIS Provider -- Polygon STARK ZK rollup with client-side proving for private, scalable OASIS holon storage. https://oasisomniverse.one</Summary>
+        <Description>Connects the OASIS to Polygon Miden -- STARK-based ZK rollup with a unique client-side proving model enabling private transactions and account abstraction at scale. Stores OASIS holons and avatars with ZK-proven privacy. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
         <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
         <PackageIcon>OASIS.jpg</PackageIcon>
         <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -25,8 +25,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
         <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-        <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+        <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+        <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
