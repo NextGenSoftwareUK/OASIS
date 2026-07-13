@@ -856,15 +856,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement mission completion logic
-                // This would involve updating mission status, awarding rewards, etc.
-                var result = new OASISResult<bool>
-                {
-                    Result = true,
-                    IsError = false,
-                    Message = "Mission completed successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.CompleteMissionAsync(AvatarId, id, completionNotes);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -887,14 +880,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement mission leaderboard logic
-                var result = new OASISResult<IEnumerable<MissionLeaderboard>>
-                {
-                    Result = new List<MissionLeaderboard>(),
-                    IsError = false,
-                    Message = "Mission leaderboard retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionLeaderboardAsync(id, limit);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -921,14 +908,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement mission rewards logic
-                var result = new OASISResult<IEnumerable<MissionReward>>
-                {
-                    Result = new List<MissionReward>(),
-                    IsError = false,
-                    Message = "Mission rewards retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionRewardsAsync(id);
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -954,22 +935,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement mission statistics logic
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalMissions"] = 0,
-                    ["completedMissions"] = 0,
-                    ["activeMissions"] = 0,
-                    ["totalRewards"] = 0
-                };
-
-                var result = new OASISResult<Dictionary<string, object>>
-                {
-                    Result = stats,
-                    IsError = false,
-                    Message = "Mission statistics retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionStatsAsync(AvatarId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
