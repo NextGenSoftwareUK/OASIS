@@ -375,7 +375,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.UnitTests
         [TestMethod]
         public void ProviderCategory_ShouldBeBlockchain()
         {
-            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestMethod]
