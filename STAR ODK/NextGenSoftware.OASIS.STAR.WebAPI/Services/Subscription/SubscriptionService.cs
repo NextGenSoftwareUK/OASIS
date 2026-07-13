@@ -1,59 +1,49 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription
 {
     public class SubscriptionService : ISubscriptionService
     {
-        private readonly string _dataDir;
         private readonly ILogger<SubscriptionService> _logger;
-
-        private readonly SemaphoreSlim _subLock = new(1, 1);
         private readonly SemaphoreSlim _usageLock = new(1, 1);
 
-        private string SubsFile => Path.Combine(_dataDir, "subscriptions.json");
-        private string UsageFile => Path.Combine(_dataDir, "usage.json");
+        private static readonly JsonSerializerOptions _json = new() { PropertyNameCaseInsensitive = true };
 
-        private static readonly JsonSerializerOptions _json = new() { WriteIndented = true, PropertyNameCaseInsensitive = true };
-
-        public SubscriptionService(IConfiguration configuration, ILogger<SubscriptionService> logger)
+        public SubscriptionService(ILogger<SubscriptionService> logger)
         {
             _logger = logger;
-            var configured = configuration["Subscription:DataDirectory"];
-            _dataDir = string.IsNullOrWhiteSpace(configured)
-                ? Path.Combine(AppContext.BaseDirectory, "App_Data", "subscriptions")
-                : configured;
-            Directory.CreateDirectory(_dataDir);
         }
 
         public async Task<SubscriptionRecord> GetSubscriptionAsync(string userId)
         {
-            await _subLock.WaitAsync();
-            try
-            {
-                var all = await ReadAsync<List<SubscriptionRecord>>(SubsFile) ?? new();
-                return all.FirstOrDefault(s => s.UserId == userId);
-            }
-            finally { _subLock.Release(); }
+            if (!Guid.TryParse(userId, out var avatarId)) return null;
+            return await LoadSubscriptionAsync(avatarId, userId);
         }
 
         public async Task<UsageRecord> GetUsageAsync(string userId, int year, int month)
         {
-            await _usageLock.WaitAsync();
+            if (!Guid.TryParse(userId, out var avatarId))
+                return new UsageRecord { UserId = userId, Year = year, Month = month };
             try
             {
-                var all = await ReadAsync<List<UsageRecord>>(UsageFile) ?? new();
-                return all.FirstOrDefault(u => u.UserId == userId && u.Year == year && u.Month == month)
-                       ?? new UsageRecord { UserId = userId, Year = year, Month = month };
+                var key = $"{year:D4}-{month:D2}";
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                if (result.IsError || result.Result == null || !result.Result.TryGetValue(key, out var raw))
+                    return new UsageRecord { UserId = userId, Year = year, Month = month };
+                return DeserializeUsage(userId, year, month, raw);
             }
-            finally { _usageLock.Release(); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading usage for user {UserId}", userId);
+                return new UsageRecord { UserId = userId, Year = year, Month = month };
+            }
         }
 
         public async Task IncrementUsageAsync(string userId) => await BumpCounter(userId, overage: false);
@@ -61,29 +51,74 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription
 
         private async Task BumpCounter(string userId, bool overage)
         {
+            if (!Guid.TryParse(userId, out var avatarId)) return;
             var now = DateTime.UtcNow;
+            var key = $"{now.Year:D4}-{now.Month:D2}";
+
             await _usageLock.WaitAsync();
             try
             {
-                var all = await ReadAsync<List<UsageRecord>>(UsageFile) ?? new();
-                var record = all.FirstOrDefault(u => u.UserId == userId && u.Year == now.Year && u.Month == now.Month);
-                if (record == null) { record = new() { UserId = userId, Year = now.Year, Month = now.Month }; all.Add(record); }
-                record.RequestCount++;
-                if (overage) record.OverageCount++;
-                record.LastUpdated = now;
-                await WriteAsync(UsageFile, all);
+                var allResult = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription-usage");
+                var all = allResult.Result ?? new Dictionary<string, object>();
+
+                var rec = all.TryGetValue(key, out var raw)
+                    ? DeserializeUsage(userId, now.Year, now.Month, raw)
+                    : new UsageRecord { UserId = userId, Year = now.Year, Month = now.Month };
+
+                rec.RequestCount++;
+                if (overage) rec.OverageCount++;
+                rec.LastUpdated = now;
+                all[key] = JsonSerializer.Serialize(rec, _json);
+
+                await HolonManager.Instance.SaveSettingsAsync(avatarId, "subscription-usage", all);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error bumping usage counter for user {UserId}", userId);
             }
             finally { _usageLock.Release(); }
         }
 
-        private async Task<T> ReadAsync<T>(string path) where T : class
+        private async Task<SubscriptionRecord> LoadSubscriptionAsync(Guid avatarId, string userId)
         {
-            if (!File.Exists(path)) return null;
-            try { return JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(path), _json); }
-            catch (Exception ex) { _logger.LogError(ex, "Failed to read {Path}", path); return null; }
+            try
+            {
+                var result = await HolonManager.Instance.GetAllSettingsAsync(avatarId, "subscription");
+                if (result.IsError || result.Result == null || result.Result.Count == 0) return null;
+                var d = result.Result;
+                return new SubscriptionRecord
+                {
+                    UserId            = userId,
+                    PlanId            = d.GetValueOrDefault("planId")?.ToString() ?? "free",
+                    Status            = d.GetValueOrDefault("status")?.ToString() ?? "active",
+                    PayAsYouGoEnabled = d.TryGetValue("payAsYouGoEnabled", out var payg) && payg is bool b && b,
+                    CurrentPeriodEnd  = d.TryGetValue("currentPeriodEnd", out var e) && e != null ? ParseDate(e) : null,
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading subscription for avatar {AvatarId}", avatarId);
+                return null;
+            }
         }
 
-        private async Task WriteAsync<T>(string path, T data) =>
-            await File.WriteAllTextAsync(path, JsonSerializer.Serialize(data, _json));
+        private UsageRecord DeserializeUsage(string userId, int year, int month, object raw)
+        {
+            try
+            {
+                var rec = JsonSerializer.Deserialize<UsageRecord>(raw?.ToString() ?? "{}", _json);
+                if (rec != null) return rec;
+            }
+            catch { }
+            return new UsageRecord { UserId = userId, Year = year, Month = month };
+        }
+
+        private static DateTime? ParseDate(object val)
+        {
+            if (val == null) return null;
+            if (val is DateTime dt) return dt;
+            if (DateTime.TryParse(val.ToString(), out var parsed)) return parsed;
+            return null;
+        }
     }
 }
