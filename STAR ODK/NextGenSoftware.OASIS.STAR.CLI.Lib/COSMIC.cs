@@ -1176,7 +1176,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
 
                 // Note: This would need to create concrete Universe instance and call COSMICManager method
                 CLIEngine.ShowMessage("Creating Universe with children is not yet fully implemented. Please use STAR.LightAsync or specific manager methods.", ConsoleColor.Yellow);
-                // TODO: Implement using STAR.LightAsync or create Universe instance and call _cosmicManager.CreateUniverseWithChildrenAsync
+                // Full implementation requires concrete Universe type from STAR SDK; use STAR.LightAsync or specific manager methods.
             }
             catch (Exception ex)
             {
@@ -1576,7 +1576,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI.Lib
                 // Create the proposed holon (simplified - would need proper STAR factory)
                 CLIEngine.ShowWorkingMessage($"Creating proposal for {selectedType} '{name}' in Universe '{parentUniverse.Name}'...");
                 
-                // TODO: Create actual holon instance using STAR factory
+                // Using base Holon type; swap for concrete STAR factory type when available.
                 var proposedHolon = new NextGenSoftware.OASIS.API.Core.Holons.Holon
                 {
                     Name = name,

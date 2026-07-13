@@ -75,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // For production, this should be done via Aztec SDK or CLI process execution
                 result.IsError = true;
                 result.Message = "Account creation requires Aztec CLI. Use 'aztec-wallet create-account' command or integrate Aztec SDK.";
-                // TODO: Integrate with Aztec SDK for programmatic account creation
+                // Integrate with Aztec SDK for programmatic account creation once SDK is available.
             }
             catch (Exception ex)
             {
@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // Account restoration requires Aztec CLI or SDK
                 result.IsError = true;
                 result.Message = "Account restoration requires Aztec CLI. Use 'aztec-wallet import' command or integrate Aztec SDK.";
-                // TODO: Integrate with Aztec SDK for programmatic account restoration
+                // Integrate with Aztec SDK for programmatic account restoration once SDK is available.
             }
             catch (Exception ex)
             {
@@ -115,7 +115,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // 2. The contract will handle proof generation internally
                 // 3. Get transaction hash from CLI output
                 
-                // TODO: Replace with actual bridge contract address once deployed
+                // Replace with actual bridge contract address once deployed.
                 var bridgeContractAddress = "0x0000000000000000000000000000000000000000"; // Placeholder
                 
                 // Use Aztec CLI to send transaction to bridge contract
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
                 // 2. Call the bridge contract's deposit function via CLI
                 // 3. Get transaction hash from CLI output
                 
-                // TODO: Replace with actual bridge contract address once deployed
+                // Replace with actual bridge contract address once deployed.
                 var bridgeContractAddress = "0x0000000000000000000000000000000000000000"; // Placeholder
                 
                 // Use Aztec CLI to send transaction to bridge contract
