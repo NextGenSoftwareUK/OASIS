@@ -276,7 +276,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public OASISResult<IAvatar> Register(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, bool callerIsWizard = false)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
@@ -299,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = SaveAvatarDetail(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result);
+                                result = AvatarRegistered(result, callerIsWizard);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;
@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green)
+        public async Task<OASISResult<IAvatar>> RegisterAsync(string avatarTitle, string firstName, string lastName, string email, string password, string username, AvatarType avatarType, OASISType createdOASISType, ConsoleColor cliColour = ConsoleColor.Green, ConsoleColor favColour = ConsoleColor.Green, bool callerIsWizard = false)
         {
             OASISResult<IAvatar> result = new OASISResult<IAvatar>();
 
@@ -348,7 +348,7 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                             OASISResult<IAvatarDetail> saveAvatarDetailResult = await SaveAvatarDetailAsync(avatarDetailResult.Result);
 
                             if (saveAvatarDetailResult != null && !saveAvatarDetailResult.IsError && saveAvatarDetailResult.Result != null)
-                                result = AvatarRegistered(result);
+                                result = AvatarRegistered(result, callerIsWizard);
                             else
                             {
                                 result.Message = saveAvatarDetailResult.Message;

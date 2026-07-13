@@ -85,7 +85,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
         public async Task<OASISHttpResponseMessage<IAvatar>> Register(RegisterRequest model)
         {
-            // Call AvatarManager directly
+            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
             var result = await AvatarManager.RegisterAsync(
                 model.Title,
                 model.FirstName,
@@ -94,9 +94,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.Password,
                 model.Username,
                 model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
-                OASISType.OASISAPIREST
+                OASISType.OASISAPIREST,
+                callerIsWizard: callerIsWizard
             );
-            
+
             return HttpResponseHelper.FormatResponse(result);
         }
 
