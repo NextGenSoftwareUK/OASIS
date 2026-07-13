@@ -37,7 +37,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
             _storageProvider = storageProvider;
-            _networkType = networkType;
+
+            // Resolve network type: DNA takes priority over the constructor parameter default.
+            if (oasisdna?.OASIS?.ONET != null && !string.IsNullOrWhiteSpace(oasisdna.OASIS.ONET.NetworkType))
+            {
+                _networkType = oasisdna.OASIS.ONET.NetworkType.Equals("HoloNET", StringComparison.OrdinalIgnoreCase)
+                    ? P2PNetworkType.HoloNET
+                    : P2PNetworkType.Internal;
+            }
+            else
+            {
+                _networkType = networkType;
+            }
 
             if (!string.IsNullOrWhiteSpace(oasisdna?.OASIS?.DataDirectory))
                 OASISHyperDrive.DataDirectory = oasisdna.OASIS.DataDirectory;

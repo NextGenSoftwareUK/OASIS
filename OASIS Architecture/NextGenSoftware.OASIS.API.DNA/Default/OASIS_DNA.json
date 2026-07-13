@@ -454,6 +454,16 @@
             "OptimizationGoals":
             []
         },
+        "ONET": {
+            "BootstrapServers": [ "https://api.web4.oasisomniverse.one" ],
+            "NetworkType": "Internal",
+            "NodeId": "",
+            "NodePublicKey": "",
+            "NodePrivateKey": "",
+            "TcpPort": 38470,
+            "EnableMDNS": true,
+            "AutoRegisterOnBootstrap": true
+        },
         "OASISSystemAccountId": "",
         "OASISAPIURL": "https://api.oasisweb4.one",
         "NetworkId": "onet01",
