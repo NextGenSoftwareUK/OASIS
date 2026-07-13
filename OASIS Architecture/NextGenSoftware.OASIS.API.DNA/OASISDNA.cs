@@ -1231,5 +1231,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         /// supplying NodeId and NodePublicKey so the server can verify future ECDSA-signed requests.
         /// </summary>
         public bool AutoRegisterOnBootstrap { get; set; } = true;
+
+        /// <summary>
+        /// Shared secret required in the X-ONET-API-Key header for POST /onet/nodes/register.
+        /// If empty, the check is skipped (open registration). Set a strong random value in production.
+        /// </summary>
+        public string ONETApiKey { get; set; } = "";
     }
 }
