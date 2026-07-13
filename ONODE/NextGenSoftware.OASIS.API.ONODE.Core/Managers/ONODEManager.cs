@@ -222,12 +222,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             
             try
             {
-                // Stop the node first
-                var stopResult = await StopNodeAsync();
-                if (stopResult.IsError)
+                // Stop the node first — tolerate "not running" so restart works from either state.
+                if (_isNodeRunning)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error stopping node: {stopResult.Message}");
-                    return result;
+                    var stopResult = await StopNodeAsync();
+                    if (stopResult.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, $"Error stopping node: {stopResult.Message}");
+                        return result;
+                    }
                 }
 
                 // Wait a moment

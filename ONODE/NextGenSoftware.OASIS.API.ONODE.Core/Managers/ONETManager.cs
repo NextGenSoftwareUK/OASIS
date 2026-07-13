@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -32,12 +34,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
         private P2PNetworkType _networkType = P2PNetworkType.Internal;
         private HoloOASIS? _holoOASIS;
 
-        private readonly List<ONETNode> _connectedNodes = new List<ONETNode>();
+        private readonly ConcurrentDictionary<string, ONETNode> _connectedNodes = new ConcurrentDictionary<string, ONETNode>();
         private bool _isNetworkRunning = false;
         private DateTime _networkStartTime = DateTime.MinValue;
 
         private readonly IOASISStorageProvider _storageProvider;
-        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        // Shorter timeout for bootstrap registration — 15s per attempt × 3 retries = up to 45s stall on a dead server.
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(5) };
 
         public ONETManager(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null, P2PNetworkType networkType = P2PNetworkType.Internal) : base(storageProvider, Guid.NewGuid(), oasisdna)
         {
@@ -59,6 +62,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 OASISHyperDrive.DataDirectory = oasisdna.OASIS.DataDirectory;
 
             _onetProtocol = ONETProtocol.GetInstance(storageProvider, oasisdna);
+            if (oasisdna?.OASIS?.ONET?.TcpPort > 0)
+                _onetProtocol.ListenPort = oasisdna.OASIS.ONET.TcpPort;
             _consensus = new ONETConsensus(storageProvider, oasisdna);
             _routing = new ONETRouting(storageProvider, oasisdna);
             _security = new ONETSecurity(storageProvider, oasisdna);
@@ -406,14 +411,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     return result;
                 }
 
-                var node = _connectedNodes.FirstOrDefault(n => n.Id == nodeId);
-                if (node == null)
+                if (!_connectedNodes.TryRemove(nodeId, out _))
                 {
                     OASISErrorHandling.HandleError(ref result, "Node is not connected");
                     return result;
                 }
-
-                _connectedNodes.Remove(node);
 
                 result.Result = true;
                 result.IsError = false;
@@ -438,7 +440,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 var stats = new Dictionary<string, object>
                 {
-                    ["totalNodes"] = _connectedNodes.Count,
+                    ["totalNodes"] = _connectedNodes.Count,  // ConcurrentDictionary.Count is thread-safe
                     ["networkRunning"] = _isNetworkRunning,
                     ["networkType"] = _networkType.ToString(),
                     ["nodeId"] = _oasisdna?.OASIS?.ONET?.NodeId ?? "",
@@ -530,7 +532,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             {
                 var topology = new NextGenSoftware.OASIS.API.ONODE.Core.Network.NetworkTopology
                 {
-                    Nodes = _connectedNodes,
+                    Nodes = _connectedNodes.Values.ToList(),
                     Connections = new List<NetworkConnection>(),
                     LastUpdated = DateTime.UtcNow
                 };

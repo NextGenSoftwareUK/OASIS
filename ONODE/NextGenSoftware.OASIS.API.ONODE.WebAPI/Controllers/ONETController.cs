@@ -352,6 +352,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 var manager = await GetOnetManagerAsync();
 
+                // API key guard — skipped when ONETApiKey is empty (open bootstrap servers or local dev).
+                var dnaResult = await manager.GetOASISDNAAsync();
+                var apiKey = dnaResult.Result?.OASIS?.ONET?.ONETApiKey;
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    var supplied = Request.Headers["X-ONET-API-Key"].FirstOrDefault();
+                    if (supplied != apiKey)
+                        return Unauthorized(new { message = "Invalid or missing X-ONET-API-Key header." });
+                }
+
                 // Store the public key so ECDSA verification works for this node.
                 manager.RegisterNodePublicKey(request.NodeId, request.PublicKey);
 
