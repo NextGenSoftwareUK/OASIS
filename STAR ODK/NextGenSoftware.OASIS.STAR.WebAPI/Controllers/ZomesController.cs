@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -159,7 +160,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllOfTypeAsync method not yet implemented");
+                if (!Enum.TryParse<HolonType>(type, true, out var holonType))
+                    return BadRequest(new OASISResult<IEnumerable<STARZome>> { IsError = true, Message = $"Unknown zome type '{type}'." });
+
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(holonType);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARZome>> { IsError = true, Message = result.Message });
+
+                var zomes = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARZome { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARZome>> { Result = zomes, IsError = false });
             }
             catch (Exception ex)
             {
@@ -177,7 +188,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllInSpaceAsync method not yet implemented");
+                var result = await HolonManager.Instance.LoadHolonsForParentAsync(spaceId);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARZome>> { IsError = true, Message = result.Message });
+
+                var zomes = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARZome { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARZome>> { Result = zomes, IsError = false });
             }
             catch (Exception ex)
             {
