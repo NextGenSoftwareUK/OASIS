@@ -3688,7 +3688,24 @@ public sealed class AvalancheOASIS_Legacy : OASISStorageProviderBase, IOASISDBSt
                 Amount = amount
             };
 
-            return await SendTokenAsync(sendRequest);
+            var sendResult = await SendTokenAsync(sendRequest);
+            if (!sendResult.IsError)
+            {
+                // Persist the lock record so UnlockTokenAsync can retrieve address and amount.
+                var lockHolon = new Holon
+                {
+                    Name = $"LockedToken_{request.Web3TokenId}",
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["avalancheLockRecord"] = true,
+                        ["web3TokenId"] = request.Web3TokenId.ToString(),
+                        ["fromWalletAddress"] = request.FromWalletAddress ?? "",
+                        ["lockedAmount"] = amount.ToString()
+                    }
+                };
+                await HolonManager.Instance.SaveHolonAsync(lockHolon, request.LockedByAvatarId);
+            }
+            return sendResult;
         }
         catch (Exception ex)
         {
@@ -3721,15 +3738,20 @@ public sealed class AvalancheOASIS_Legacy : OASISStorageProviderBase, IOASISDBSt
                 return result;
             }
             
-            // IUnlockWeb3TokenRequest doesn't have UnlockedToWalletAddress or Amount properties
-            // We'll need to get these from the Web3TokenId or use defaults
-            // For now, we'll use a placeholder - this should be retrieved from the locked token record
-            var unlockedToWalletAddress = ""; // TODO: Get from locked token record using request.Web3TokenId
-            var amount = 0m; // TODO: Get from locked token record using request.Web3TokenId
-            
+            // Load the lock record saved by LockTokenAsync to retrieve address and amount.
+            var lockRecords = await HolonManager.Instance.LoadHolonsByMetaDataAsync("web3TokenId", request.Web3TokenId.ToString());
+            if (lockRecords.IsError || lockRecords.Result == null || !lockRecords.Result.Any())
+            {
+                OASISErrorHandling.HandleError(ref result, $"No locked token record found for Web3TokenId {request.Web3TokenId}.");
+                return result;
+            }
+            var lockRecord = lockRecords.Result.First();
+            var unlockedToWalletAddress = lockRecord.MetaData.ContainsKey("fromWalletAddress") ? lockRecord.MetaData["fromWalletAddress"]?.ToString() : "";
+            decimal.TryParse(lockRecord.MetaData.ContainsKey("lockedAmount") ? lockRecord.MetaData["lockedAmount"]?.ToString() : "0", out var amount);
+
             if (string.IsNullOrWhiteSpace(unlockedToWalletAddress))
             {
-                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is required but not available in IUnlockWeb3TokenRequest interface");
+                OASISErrorHandling.HandleError(ref result, "Unlocked to wallet address is missing from the locked token record.");
                 return result;
             }
 
