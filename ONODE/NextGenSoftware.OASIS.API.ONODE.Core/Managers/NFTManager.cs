@@ -3960,6 +3960,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, result.Result.Id, web3Request);
                     OASISResult<IHolon> saveHolonResult = null;
 
+                    //Default to Mongo for storing the OASIS NFT meta data if none is specified.
+                    if (metaDataProviderType.Value == ProviderType.None)
+                        metaDataProviderType.Value = ProviderType.MongoDBOASIS;
+
                     //TODO: Do we want to still save the holon even if it did not mint?!
                     //TODO: After the FormatSuccessMessage call below we need to remove the web3nft from the parent web4 nft (otherwise there wont be a matching holon fo it and could cause issues later?)
                     if (!currentWeb3NFT.MintTransactionHash.ToLower().Contains("error"))
@@ -3972,10 +3976,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                     //Important to set this AFTER we save the holon so its not persited! ;-)
                     currentWeb3NFT.MetaData["{{{newnft}}}"] = "true";
-
-                    //Default to Mongo for storing the OASIS NFT meta data if none is specified.
-                    if (metaDataProviderType.Value == ProviderType.None)
-                        metaDataProviderType.Value = ProviderType.MongoDBOASIS;
 
                     //Check if this is the last Web3 NFT to mint. If so then we can save the Holon otherwise we wait till the final one to save.
                     if (isLastWeb3NFT)
