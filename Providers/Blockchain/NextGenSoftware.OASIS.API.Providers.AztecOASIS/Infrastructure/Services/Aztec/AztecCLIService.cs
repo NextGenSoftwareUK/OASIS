@@ -220,6 +220,172 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
         }
 
         /// <summary>
+        /// Create a new Aztec account via CLI (aztec-wallet create-account).
+        /// Returns (PublicKey/address, SecretKey, Mnemonic).
+        /// </summary>
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(string accountAlias, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            try
+            {
+                // Try Node.js service first
+                if (_useNodeJsService)
+                {
+                    try
+                    {
+                        var nodeResult = await CreateAccountViaNodeJsAsync(accountAlias);
+                        if (!nodeResult.IsError) return nodeResult;
+                    }
+                    catch { }
+                }
+
+                var args = $"create-account --node-url {_nodeUrl} --alias {accountAlias}";
+                var (output, error, exitCode) = await RunCliAsync(args);
+
+                if (exitCode != 0)
+                {
+                    result.IsError = true;
+                    result.Message = $"aztec-wallet create-account failed: {error}";
+                    return result;
+                }
+
+                var publicKey  = ExtractField(output, "Address:");
+                var privateKey = ExtractField(output, "Secret key:");
+                var mnemonic   = ExtractField(output, "Mnemonic:");
+
+                if (string.IsNullOrEmpty(publicKey) || string.IsNullOrEmpty(privateKey))
+                {
+                    result.IsError = true;
+                    result.Message = $"Could not parse create-account output. Raw output: {output}";
+                    return result;
+                }
+
+                result.Result = (publicKey, privateKey, mnemonic ?? "");
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error creating Aztec account: {ex.Message}";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Restore an Aztec account from a secret key (derived from mnemonic by caller) via CLI.
+        /// </summary>
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string secretKey, string accountAlias, CancellationToken token = default)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            try
+            {
+                // Try Node.js service first
+                if (_useNodeJsService)
+                {
+                    try
+                    {
+                        var nodeResult = await RestoreAccountViaNodeJsAsync(secretKey, accountAlias);
+                        if (!nodeResult.IsError) return nodeResult;
+                    }
+                    catch { }
+                }
+
+                var args = $"create-account --node-url {_nodeUrl} --secret-key {secretKey} --alias {accountAlias}";
+                var (output, error, exitCode) = await RunCliAsync(args);
+
+                if (exitCode != 0)
+                {
+                    result.IsError = true;
+                    result.Message = $"aztec-wallet restore failed: {error}";
+                    return result;
+                }
+
+                var publicKey = ExtractField(output, "Address:");
+                if (string.IsNullOrEmpty(publicKey))
+                {
+                    result.IsError = true;
+                    result.Message = $"Could not parse restore output. Raw output: {output}";
+                    return result;
+                }
+
+                result.Result = (publicKey, secretKey);
+                result.IsError = false;
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = $"Error restoring Aztec account: {ex.Message}";
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        private async Task<(string Output, string Error, int ExitCode)> RunCliAsync(string arguments)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = _aztecCliPath,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            };
+            psi.Environment["NODE_URL"] = _nodeUrl;
+            psi.Environment["PATH"] = $"{Path.GetDirectoryName(_aztecCliPath)}:{Environment.GetEnvironmentVariable("PATH")}";
+
+            using var process = Process.Start(psi);
+            if (process == null)
+                return (string.Empty, "Failed to start aztec-wallet process", -1);
+
+            var output = await process.StandardOutput.ReadToEndAsync();
+            var error  = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            return (output, error, process.ExitCode);
+        }
+
+        private static string ExtractField(string output, string label)
+        {
+            foreach (var line in output.Split('\n'))
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith(label, StringComparison.OrdinalIgnoreCase))
+                    return trimmed.Substring(label.Length).Trim();
+            }
+            return null;
+        }
+
+        private async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountViaNodeJsAsync(string accountAlias)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
+            var payload = JsonConvert.SerializeObject(new { accountAlias });
+            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_nodeJsServiceUrl}/api/create-account", content);
+            var body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) { result.IsError = true; result.Message = body; return result; }
+            dynamic parsed = JsonConvert.DeserializeObject(body);
+            if (parsed?.success != true) { result.IsError = true; result.Message = "Node.js service returned failure"; return result; }
+            result.Result = ((string)parsed.address, (string)parsed.secretKey, (string)(parsed.mnemonic ?? ""));
+            return result;
+        }
+
+        private async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountViaNodeJsAsync(string secretKey, string accountAlias)
+        {
+            var result = new OASISResult<(string PublicKey, string PrivateKey)>();
+            var payload = JsonConvert.SerializeObject(new { secretKey, accountAlias });
+            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync($"{_nodeJsServiceUrl}/api/restore-account", content);
+            var body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode) { result.IsError = true; result.Message = body; return result; }
+            dynamic parsed = JsonConvert.DeserializeObject(body);
+            if (parsed?.success != true) { result.IsError = true; result.Message = "Node.js service returned failure"; return result; }
+            result.Result = ((string)parsed.address, secretKey);
+            return result;
+        }
+
+        /// <summary>
         /// Get transaction receipt using Aztec CLI
         /// </summary>
         public async Task<OASISResult<AztecTransactionReceipt>> GetTransactionReceiptAsync(string txHash)
