@@ -14,7 +14,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Web10.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS WEB10 Omniversal Layer WebAPI</Title>
     <Product>OASIS WEB10 Omniversal Layer WebAPI</Product>
     <Summary>ASP.NET Core REST API controllers for the OASIS WEB10 Omniversal Layer — the top-level omniverse-scale routing, governance, and reality-bridging endpoints.</Summary>

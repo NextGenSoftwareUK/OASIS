@@ -14,7 +14,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Web7.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS WEB7 Spatial/AR Layer WebAPI</Title>
     <Product>OASIS WEB7 Spatial/AR Layer WebAPI</Product>
     <Summary>ASP.NET Core REST API controllers for the OASIS WEB7 Spatial/AR Layer — spatial data, AR anchors, and holographic object management endpoints.</Summary>

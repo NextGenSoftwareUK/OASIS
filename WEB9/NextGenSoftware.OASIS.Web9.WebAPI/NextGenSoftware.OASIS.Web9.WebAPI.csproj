@@ -14,7 +14,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Web9.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS WEB9 Neural Layer WebAPI</Title>
     <Product>OASIS WEB9 Neural Layer WebAPI</Product>
     <Summary>ASP.NET Core REST API controllers for the OASIS WEB9 Neural Layer — brain-computer interface, biofeedback, and neural-state management endpoints.</Summary>

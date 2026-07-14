@@ -30,7 +30,7 @@
 		  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 		  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 		  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		  <Version>2.0.0</Version>
+		  <Version>2.0.1</Version>
 		  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 		  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>

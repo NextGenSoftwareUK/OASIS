@@ -8,7 +8,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Providers.MoralisOASIS</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS Moralis OASIS Provider</Title>
     <Product>OASIS Moralis OASIS Provider</Product>
     <Summary>Moralis DB OASIS Provider — bridges the OASIS API to Moralis (Web3 backend-as-a-service) for avatar, holon, and NFT storage with built-in EVM cross-chain support.</Summary>

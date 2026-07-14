@@ -16,7 +16,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.STAR.APIClient</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS STAR ODK API Client</Title>
     <Product>OASIS STAR ODK API Client</Product>
     <Summary>.NET HTTP client for the STAR ODK REST API — lets external apps create OAPPs, holons, and quests against the STAR WebAPI without a direct library dependency.</Summary>
