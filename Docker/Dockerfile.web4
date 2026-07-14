@@ -13,9 +13,8 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG LIBRARIES_REPO=https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries.git
 ARG HOLOCHAIN_REPO=https://github.com/holochain-open-dev/holochain-client-csharp.git
 RUN apt-get update && apt-get install -y --no-install-recommends git \
-    && git clone --depth 1 "${HOLOCHAIN_REPO}" /holochain-client-csharp \
-    && git clone --depth 1 "${LIBRARIES_REPO}" /holochain-client-csharp/NextGenSoftware-Libraries \
     && git clone --depth 1 "${LIBRARIES_REPO}" /NextGenSoftware-Libraries \
+    && git clone --depth 1 "${HOLOCHAIN_REPO}" /holochain-client-csharp \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src
