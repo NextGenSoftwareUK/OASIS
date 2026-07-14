@@ -481,7 +481,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public BaseOASISProviderSettings BaseOASIS { get; set; }
         public SuiOASISProviderSettings SuiOASIS { get; set; }
         public MoralisOASISProviderSettings MoralisOASIS { get; set; }
-        
+        public AztecOASISProviderSettings AztecOASIS { get; set; }
+
         // Network Providers
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
         public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
@@ -1146,6 +1147,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ApiKey { get; set; }
         public string RpcEndpoint { get; set; } = "https://speedy-nodes-nyc.moralis.io/YOUR_API_KEY/eth/mainnet";
         public string Network { get; set; } = "mainnet";
+    }
+
+    public class AztecOASISProviderSettings : ProviderSettingsBase
+    {
+        /// <summary>Base URL of the Aztec node API (e.g. http://localhost:8080 for sandbox or a testnet/mainnet endpoint).</summary>
+        public string ApiBaseUrl { get; set; } = "http://localhost:8080";
+        /// <summary>Optional API key for the Aztec node.</summary>
+        public string ApiKey { get; set; } = "";
+        /// <summary>Deployed Aztec bridge contract address. Required for Deposit/Withdraw operations.</summary>
+        public string BridgeContractAddress { get; set; } = "";
+        /// <summary>Alias of the OASIS operator account registered in the aztec-wallet CLI. Used for deposit transactions.</summary>
+        public string OperatorAccountAlias { get; set; } = "oasis_operator";
+        /// <summary>Network name passed to aztec-wallet CLI (e.g. "sandbox", "testnet", "mainnet").</summary>
+        public string Network { get; set; } = "sandbox";
     }
 
     public class TelosOASISProviderSettings : ProviderSettingsBase
