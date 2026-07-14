@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System;
@@ -3970,8 +3971,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     {
                         saveHolonResult = await Data.SaveHolonAsync(web3NFTHolon, web3Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
 
-                        if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                        if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            LoggingManager.Log($"[NFTManager] Web3 NFT holon saved successfully. Id: {saveHolonResult.Result.Id}, Provider: {metaDataProviderType.Name}", LogType.Info);
+                        else
+                            // Non-fatal in a batch — log as warning so IsError is not set and the batch continues; error is captured in InnerMessages and included in the final response.
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult?.Message}", onlyLogToInnerMessages: true);
                     }
 
                     //Important to set this AFTER we save the holon so its not persited! ;-)
@@ -4022,18 +4026,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                             {
-                                result.IsError = result.SavedCount == 0;
+                                LoggingManager.Log($"[NFTManager] Web4 NFT holon saved successfully. Id: {saveHolonResult.Result.Id}, Provider: {metaDataProviderType.Name}", LogType.Info);
+                                // Preserve any prior IsError/IsWarning from Web3 holon saves — don't reset to false.
+                                result.IsError = result.IsError || result.SavedCount == 0;
                                 result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                             else
                             {
-                                result.Result = null;
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                                // Non-fatal: Web3 NFTs minted OK but Web4 holon failed — log as warning to preserve batch results.
+                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult?.Message}", onlyLogToInnerMessages: true);
+                                result.IsError = result.IsError || result.SavedCount == 0;
+                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                         }
                         else
                         {
-                            result.IsError = result.SavedCount == 0;
+                            // Nothing was minted — preserve any accumulated errors and mark as error.
+                            result.IsError = result.IsError || result.SavedCount == 0;
                             result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                         }
 
