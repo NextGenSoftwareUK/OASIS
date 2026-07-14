@@ -14,7 +14,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Web6.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS WEB6 AI Layer WebAPI</Title>
     <Product>OASIS WEB6 AI Layer WebAPI</Product>
     <Summary>ASP.NET Core REST API controllers for the OASIS WEB6 AI Layer — routes LLM completions, embeddings, and AI tool calls through FAHRN to OpenAI, Claude, Cohere, HuggingFace, and Azure OpenAI.</Summary>

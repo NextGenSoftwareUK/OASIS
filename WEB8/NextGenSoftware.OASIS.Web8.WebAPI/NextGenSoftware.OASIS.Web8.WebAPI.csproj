@@ -14,7 +14,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Web8.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS WEB8 Holographic Layer WebAPI</Title>
     <Product>OASIS WEB8 Holographic Layer WebAPI</Product>
     <Summary>ASP.NET Core REST API controllers for the OASIS WEB8 Holographic Layer — holographic scene, object, and interaction management endpoints.</Summary>

@@ -12,7 +12,7 @@
 
     <!-- NuGet metadata -->
     <PackageId>NextGenSoftware.OASIS.MCP.Server</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS MCP Server</Title>
     <Product>OASIS MCP Server</Product>
     <Summary>The OASIS Model Context Protocol (MCP) Server — exposes 250 typed named tools across WEB4–WEB10 directly to Cursor, VS Code, and any MCP-compatible IDE. Mint NFTs, manage wallets, generate smart contracts, interact with AI agents, and access the full OASIS ecosystem through natural language. Install with: dotnet tool install -g NextGenSoftware.OASIS.MCP.Server</Summary>

@@ -8,7 +8,7 @@
     
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Providers.CargoOASIS</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS Cargo OASIS Provider</Title>
     <Product>OASIS Cargo OASIS Provider</Product>
     <Summary>Cargo NFT Platform OASIS Provider — bridges the OASIS API to the Cargo NFT marketplace and minting platform for holonic NFT creation and trading.</Summary>
