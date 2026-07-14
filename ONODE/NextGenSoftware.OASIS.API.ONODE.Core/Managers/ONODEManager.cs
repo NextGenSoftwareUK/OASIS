@@ -152,6 +152,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                 _isNodeRunning = true;
                 _nodeStartTime = DateTime.UtcNow;
+
+                // Seed CPU baseline so the very first GetNodeMetricsAsync call returns a real delta, not 0.
+                var proc0 = Process.GetCurrentProcess();
+                proc0.Refresh();
+                _lastCpuTime = proc0.TotalProcessorTime;
+                _lastCpuSample = DateTime.UtcNow;
+
                 _nodeLogs.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ONODE started");
 
                 // Join ONET so this node is discoverable by peers.
