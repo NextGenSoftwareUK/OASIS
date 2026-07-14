@@ -28,7 +28,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.DNA</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>WEB4 OASIS API DNA</Title>
     <Product>WEB4 OASIS API DNA</Product>
     <Summary>OASIS DNA -- the central configuration object driving provider selection, failover, replication, encryption, FAHRN routing, and all OASIS runtime behaviour.</Summary>

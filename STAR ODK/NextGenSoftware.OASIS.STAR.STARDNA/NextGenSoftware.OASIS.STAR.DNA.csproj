@@ -9,7 +9,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.STAR.DNA</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS STAR DNA</Title>
     <Product>OASIS STAR DNA</Product>
     <Summary>STAR DNA configuration model — strongly-typed binding for STAR_DNA.json governing OAPP templates, Zomes, Holons, and STAR ODK build-time settings.</Summary>

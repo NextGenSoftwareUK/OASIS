@@ -30,7 +30,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.ONODE.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS ONODE WebAPI</Title>
     <Product>OASIS ONODE WebAPI</Product>
     <Summary>The OASIS ONODE REST API -- ASP.NET Core 10 WebAPI exposing Avatar, Karma, Holon, Provider, NFT, Keys/Wallets, WEB4-WEB10 endpoints. Live at https://api.web4.oasisomniverse.one</Summary>
