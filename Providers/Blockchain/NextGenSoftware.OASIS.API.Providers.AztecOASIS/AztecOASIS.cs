@@ -38,12 +38,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
         private readonly string _apiBaseUrl;
         private readonly string _apiKey;
         private readonly string _network;
+        private readonly string _bridgeContractAddress;
+        private readonly string _operatorAccountAlias;
 
         private IAztecService _aztecService;
         private IAztecBridgeService _bridgeService;
         private IAztecRepository _aztecRepository;
 
-        public AztecOASIS(string apiBaseUrl = null, string apiKey = null, string network = "sandbox")
+        public AztecOASIS(string apiBaseUrl = null, string apiKey = null, string network = "sandbox",
+            string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator")
         {
             ProviderName = nameof(AztecOASIS);
             ProviderDescription = "Aztec Privacy Provider";
@@ -54,9 +57,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.SmartContract));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Storage));
 
-            _apiBaseUrl = apiBaseUrl ?? Environment.GetEnvironmentVariable("AZTEC_API_URL") ?? "http://localhost:8080";
-            _apiKey = apiKey ?? Environment.GetEnvironmentVariable("AZTEC_API_KEY");
-            _network = network;
+            _apiBaseUrl = apiBaseUrl ?? "http://localhost:8080";
+            _apiKey = apiKey ?? "";
+            _network = network ?? "sandbox";
+            _bridgeContractAddress = bridgeContractAddress ?? "";
+            _operatorAccountAlias = string.IsNullOrWhiteSpace(operatorAccountAlias) ? "oasis_operator" : operatorAccountAlias;
 
             _apiClient = new AztecAPIClient(_apiBaseUrl, _apiKey);
         }
@@ -67,7 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS
             try
             {
                 _aztecService = new AztecService(_apiClient);
-                _bridgeService = new AztecBridgeService(_apiClient);
+                _bridgeService = new AztecBridgeService(_apiClient, _bridgeContractAddress, _operatorAccountAlias);
                 _aztecRepository = new AztecRepository();
 
                 IsProviderActivated = true;

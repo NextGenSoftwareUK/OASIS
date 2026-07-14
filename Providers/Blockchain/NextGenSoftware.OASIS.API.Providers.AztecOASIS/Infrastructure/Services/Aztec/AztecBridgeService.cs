@@ -20,13 +20,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
         private readonly AztecAPIClient _apiClient;
         private readonly AztecTestnetClient _testnetClient;
         private readonly AztecCLIService _cliService;
+        private readonly string _bridgeContractAddress;
+        private readonly string _operatorAccountAlias;
 
-        public AztecBridgeService(AztecAPIClient apiClient, AztecTestnetClient testnetClient = null, AztecCLIService cliService = null)
+        public AztecBridgeService(AztecAPIClient apiClient, string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator", AztecTestnetClient testnetClient = null, AztecCLIService cliService = null)
         {
             _apiClient = apiClient;
-            // Use real Aztec testnet client - NO MOCKS
+            _bridgeContractAddress = bridgeContractAddress ?? "";
+            _operatorAccountAlias = string.IsNullOrWhiteSpace(operatorAccountAlias) ? "oasis_operator" : operatorAccountAlias;
             _testnetClient = testnetClient ?? new AztecTestnetClient();
-            // Use Aztec CLI for real transactions - NO MOCKS
             _cliService = cliService ?? new AztecCLIService();
         }
 
@@ -124,11 +126,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                var bridgeContractAddress = Environment.GetEnvironmentVariable("AZTEC_BRIDGE_CONTRACT_ADDRESS");
-                if (string.IsNullOrWhiteSpace(bridgeContractAddress))
+                if (string.IsNullOrWhiteSpace(_bridgeContractAddress))
                 {
                     result.IsError = true;
-                    result.Message = "AZTEC_BRIDGE_CONTRACT_ADDRESS environment variable is not set. Deploy the Aztec bridge contract and set this variable to its address.";
+                    result.Message = "AztecOASIS BridgeContractAddress is not set in OASISDNA. Deploy the Aztec bridge contract and set StorageProviders.AztecOASIS.BridgeContractAddress in OASISDNA.json.";
                     return result;
                 }
 
@@ -144,7 +145,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
 
                 var txResult = await _cliService.SendTransactionAsync(
                     accountAlias: accountAlias,
-                    contractAddress: bridgeContractAddress,
+                    contractAddress: _bridgeContractAddress,
                     functionName: "withdraw",
                     functionArgs: new object[] { senderAccountAddress, amount.ToString() }
                 );
@@ -181,20 +182,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                var bridgeContractAddress = Environment.GetEnvironmentVariable("AZTEC_BRIDGE_CONTRACT_ADDRESS");
-                if (string.IsNullOrWhiteSpace(bridgeContractAddress))
+                if (string.IsNullOrWhiteSpace(_bridgeContractAddress))
                 {
                     result.IsError = true;
-                    result.Message = "AZTEC_BRIDGE_CONTRACT_ADDRESS environment variable is not set. Deploy the Aztec bridge contract and set this variable to its address.";
+                    result.Message = "AztecOASIS BridgeContractAddress is not set in OASISDNA. Deploy the Aztec bridge contract and set StorageProviders.AztecOASIS.BridgeContractAddress in OASISDNA.json.";
                     return result;
                 }
 
-                // Use the OASIS bridge operator account (alias stored in AZTEC_OPERATOR_ACCOUNT_ALIAS env var or default).
-                var operatorAlias = Environment.GetEnvironmentVariable("AZTEC_OPERATOR_ACCOUNT_ALIAS") ?? "oasis_operator";
-
                 var txResult = await _cliService.SendTransactionAsync(
-                    accountAlias: operatorAlias,
-                    contractAddress: bridgeContractAddress,
+                    accountAlias: _operatorAccountAlias,
+                    contractAddress: _bridgeContractAddress,
                     functionName: "deposit",
                     functionArgs: new object[] { receiverAccountAddress, amount.ToString() }
                 );
