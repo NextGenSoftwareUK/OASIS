@@ -359,7 +359,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
             var mintedByAvatarId = AvatarId;
-            if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
+            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
+            // Wizards (e.g. oasismint service account) can mint on behalf of another avatar
+            if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
+                mintedByAvatarId = requestedMintedByAvatarId;
+            else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
                 mintedByAvatarId = sendToAvatarAfterMintingId;
 
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
