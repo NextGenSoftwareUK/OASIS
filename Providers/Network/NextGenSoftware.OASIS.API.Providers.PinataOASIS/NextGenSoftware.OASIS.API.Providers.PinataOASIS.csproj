@@ -8,7 +8,7 @@
 	  <Title>WEB4 OASIS API PinataOASIS Provider</Title>
 	  <Summary>WEB4 OASIS API PinataOASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Summary>
 	  <Description>WEB4 OASIS API PinataOASIS Provider is one of the many WEB2/WEB3 providers that plug in and integtate into the OASIS.</Description>
-	  <PackageProjectUrl>https://github.com/NextGenSoftwareUK/OASIS</PackageProjectUrl>
+	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
 	  <PackageTags>OASIS API; Native; Integrated; WEB4; Provider </PackageTags>
