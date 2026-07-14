@@ -195,8 +195,8 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                 foreach (var h in result.Result ?? Enumerable.Empty<IHolon>())
                 {
                     if (h.MetaData != null
-                        && h.MetaData.TryGetValue("lat", out var latStr) && double.TryParse(latStr, out var lat)
-                        && h.MetaData.TryGetValue("long", out var lonStr) && double.TryParse(lonStr, out var lon)
+                        && h.MetaData.TryGetValue("lat", out var latStr) && double.TryParse(latStr?.ToString(), out var lat)
+                        && h.MetaData.TryGetValue("long", out var lonStr) && double.TryParse(lonStr?.ToString(), out var lon)
                         && HaversineDistanceKm(latitude, longitude, lat, lon) <= radiusKm)
                     {
                         nearby.Add(new STARGeoNFT { Id = h.Id, Name = h.Name });
