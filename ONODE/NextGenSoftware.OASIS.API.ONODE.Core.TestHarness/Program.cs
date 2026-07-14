@@ -262,7 +262,88 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.TestHarness
             CLIEngine.ShowWorkingMessage("Stopping ONET nodes...");
             await nodeA.StopNetworkAsync();
             await nodeB.StopNetworkAsync();
-            CLIEngine.ShowSuccessMessage("ONET demo completed.");
+            CLIEngine.ShowSuccessMessage("ONET demo (TCP layer) completed.");
+
+            // ── Two-manager discovery demo ─────────────────────────────────────────
+            // Uses ONETManager (the full business-logic layer, not raw ONETProtocol)
+            // to exercise the connect/discover/broadcast flow between two in-process
+            // peers. No bootstrap HTTP server required — nodes find each other via
+            // direct ConnectToNodeAsync then check each other's node lists.
+            await RunONETTwoManagerDiscoveryAsync();
+        }
+
+        static async Task RunONETTwoManagerDiscoveryAsync()
+        {
+            Console.WriteLine();
+            Console.WriteLine("== ONET Two-Manager Discovery Demo ==");
+
+            var dnaA = new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+            dnaA.OASIS.ONET = new NextGenSoftware.OASIS.API.DNA.ONETConfig
+            {
+                TcpPort = 38472,
+                NetworkType = "Internal",
+                AutoRegisterOnBootstrap = false,
+                EnableMDNS = false,
+                BootstrapServers = new System.Collections.Generic.List<string>()
+            };
+
+            var dnaB = new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+            dnaB.OASIS.ONET = new NextGenSoftware.OASIS.API.DNA.ONETConfig
+            {
+                TcpPort = 38473,
+                NetworkType = "Internal",
+                AutoRegisterOnBootstrap = false,
+                EnableMDNS = false,
+                BootstrapServers = new System.Collections.Generic.List<string>()
+            };
+
+            CLIEngine.ShowWorkingMessage("Initialising ONETManager A (port 38472)...");
+            var managerA = new ONETManager(storageProvider: null, oasisdna: dnaA);
+            await managerA.InitializeAsync();
+            CLIEngine.ShowSuccessMessage($"Manager A NodeId: {dnaA.OASIS.ONET.NodeId[..Math.Min(16, dnaA.OASIS.ONET.NodeId.Length)]}...");
+
+            CLIEngine.ShowWorkingMessage("Initialising ONETManager B (port 38473)...");
+            var managerB = new ONETManager(storageProvider: null, oasisdna: dnaB);
+            await managerB.InitializeAsync();
+            CLIEngine.ShowSuccessMessage($"Manager B NodeId: {dnaB.OASIS.ONET.NodeId[..Math.Min(16, dnaB.OASIS.ONET.NodeId.Length)]}...");
+
+            CLIEngine.ShowWorkingMessage("Starting networks...");
+            await managerA.StartNetworkAsync();
+            await managerB.StartNetworkAsync();
+
+            CLIEngine.ShowWorkingMessage("Node B connecting to Node A...");
+            var connectResult = await managerB.ConnectToNodeAsync(dnaA.OASIS.ONET.NodeId, $"127.0.0.1:{dnaA.OASIS.ONET.TcpPort}");
+            if (connectResult.IsError)
+                CLIEngine.ShowErrorMessage($"Connect failed: {connectResult.Message}");
+            else
+                CLIEngine.ShowSuccessMessage("Node B connected to Node A.");
+
+            CLIEngine.ShowWorkingMessage("Checking Node B's connected nodes...");
+            var nodesB = await managerB.GetConnectedNodesAsync();
+            if (!nodesB.IsError)
+                CLIEngine.ShowSuccessMessage($"Node B sees {nodesB.Result?.Count ?? 0} connected peer(s).");
+            else
+                CLIEngine.ShowErrorMessage($"GetConnectedNodes failed: {nodesB.Message}");
+
+            CLIEngine.ShowWorkingMessage("Node A broadcasting test message...");
+            var broadcastResult = await managerA.BroadcastMessageAsync("Hello from Node A", "test");
+            if (broadcastResult.IsError)
+                CLIEngine.ShowErrorMessage($"Broadcast failed: {broadcastResult.Message}");
+            else
+                CLIEngine.ShowSuccessMessage("Broadcast sent.");
+
+            CLIEngine.ShowWorkingMessage("Fetching stats from both managers...");
+            var statsA = await managerA.GetNetworkStatsAsync();
+            var statsB = await managerB.GetNetworkStatsAsync();
+            if (!statsA.IsError && statsA.Result != null)
+                CLIEngine.ShowSuccessMessage($"Node A — networkType: {statsA.Result.GetValueOrDefault("networkType")}, peers: {statsA.Result.GetValueOrDefault("connectedNodes")}");
+            if (!statsB.IsError && statsB.Result != null)
+                CLIEngine.ShowSuccessMessage($"Node B — networkType: {statsB.Result.GetValueOrDefault("networkType")}, peers: {statsB.Result.GetValueOrDefault("connectedNodes")}");
+
+            CLIEngine.ShowWorkingMessage("Stopping networks...");
+            await managerA.StopNetworkAsync();
+            await managerB.StopNetworkAsync();
+            CLIEngine.ShowSuccessMessage("Two-manager discovery demo completed.");
         }
     }
 }
