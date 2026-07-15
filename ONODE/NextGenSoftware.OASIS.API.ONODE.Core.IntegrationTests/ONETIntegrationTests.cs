@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 using Xunit;
@@ -93,5 +95,127 @@ public class ONETIntegrationTests
         var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
         listener.Stop();
         return port;
+    }
+}
+
+/// <summary>
+/// Integration tests for the ONODE ↔ ONET delegation chain introduced in Phase 2:
+/// ONODEManager receiving an injected ONETManager, StartNodeAsync wiring through to ONET,
+/// and peer/stat queries delegating to live ONET state.
+/// </summary>
+public class ONODEONETChainIntegrationTests
+{
+    private static OASISDNA BuildDna(string networkType = "Internal")
+    {
+        var dna = new OASISDNA();
+        dna.OASIS.ONET = new ONETConfig
+        {
+            NetworkType = networkType,
+            NodeId = "",
+            NodePublicKey = "",
+            NodePrivateKey = "",
+            BootstrapServers = new List<string>(),
+            TcpPort = 38472,
+            EnableMDNS = false,
+            AutoRegisterOnBootstrap = false
+        };
+        return dna;
+    }
+
+    [Fact]
+    public async Task ONODEManager_StartNode_StartsInjectedONETNetwork()
+    {
+        var dna = BuildDna();
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        var onode = new ONODEManager(storageProvider: null, oasisdna: dna, onetManager: onet);
+        var startResult = await onode.StartNodeAsync();
+
+        startResult.IsError.Should().BeFalse();
+
+        // ONET should have uptime > zero now
+        var stats = await onet.GetNetworkStatsAsync();
+        stats.Result.Should().ContainKey("uptime");
+
+        await onode.StopNodeAsync();
+    }
+
+    [Fact]
+    public async Task ONODEManager_StopNode_StopsInjectedONETNetwork()
+    {
+        var dna = BuildDna();
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        var onode = new ONODEManager(storageProvider: null, oasisdna: dna, onetManager: onet);
+        await onode.StartNodeAsync();
+
+        var stopResult = await onode.StopNodeAsync();
+
+        stopResult.IsError.Should().BeFalse();
+        var status = await onode.GetNodeStatusAsync();
+        status.Result!.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ONODEManager_GetNodeStats_MergesONETStatsWithPrefix()
+    {
+        var dna = BuildDna();
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        var onode = new ONODEManager(storageProvider: null, oasisdna: dna, onetManager: onet);
+        await onode.StartNodeAsync();
+
+        var stats = await onode.GetNodeStatsAsync();
+
+        stats.IsError.Should().BeFalse();
+        stats.Result.Should().ContainKey("nodeRunning");
+        stats.Result.Keys.Should().Contain(k => k.StartsWith("onet_"), "ONET stats merged with onet_ prefix");
+
+        await onode.StopNodeAsync();
+    }
+
+    [Fact]
+    public async Task ONODEManager_GetConnectedPeers_DelegatesToONET()
+    {
+        var dna = BuildDna();
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        var onode = new ONODEManager(storageProvider: null, oasisdna: dna, onetManager: onet);
+
+        var result = await onode.GetConnectedPeersAsync();
+
+        result.IsError.Should().BeFalse();
+        result.Result.Should().NotBeNull("list is non-null even when no peers are connected yet");
+    }
+
+    [Fact]
+    public async Task ONETManager_InitializeAsync_GeneratesNodeId_PersistedToDna()
+    {
+        var dna = BuildDna();
+        dna.OASIS.ONET.NodeId = "";
+
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        dna.OASIS.ONET.NodeId.Should().NotBeNullOrWhiteSpace("keypair generated on first run");
+        dna.OASIS.ONET.NodePublicKey.Should().NotBeNullOrWhiteSpace();
+        dna.OASIS.ONET.NodePrivateKey.Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task ONETManager_GetNetworkStats_ContainsNetworkTypeFromDna()
+    {
+        var dna = BuildDna(networkType: "Internal");
+        var onet = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await onet.InitializeAsync();
+
+        var stats = await onet.GetNetworkStatsAsync();
+
+        stats.IsError.Should().BeFalse();
+        stats.Result["networkType"].Should().Be("Internal");
     }
 }

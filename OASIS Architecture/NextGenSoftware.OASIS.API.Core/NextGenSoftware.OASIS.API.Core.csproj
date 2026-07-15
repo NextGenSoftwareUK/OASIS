@@ -9,8 +9,8 @@
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Core</Product>
 	  <Title>WEB4 OASIS API Core</Title>
-	  <Summary>This is the heart of the OASIS and contains the core OASIS Engine, architecture, managers, interfaces, helpers, holons/objects, object model, enums, etc. It can be used directly in projects/apps if needed (you can use any of the Managers) but it is highly recommended you use the OASIS.API.Native.Integrated.EndPoint or REST API instead.</Summary>
-	  <Description>This is the heart of the OASIS and contains the core OASIS Engine, architecture, managers, interfaces, helpers, holons/objects, object model, enums, etc. It can be used directly in projects/apps if needed (you can use any of the Managers) but it is highly recommended you use the OASIS.API.Native.Integrated.EndPoint or REST API instead.</Description>
+	  <Summary>The heart of the OASIS Omniverse -- the core engine, architecture, managers, interfaces, holons, object model, Avatar/Karma/Data APIs, and 55+ provider abstractions powering WEB4 through WEB10.</Summary>
+	  <Description>The core of the OASIS (Open API System / Omniverse Interoperability System) -- the GOD Protocol and API powering the decentralised Web4-Web10 Omniverse. Contains the OASIS Engine, HOT-Swappable Provider Architecture, Avatar API, Karma API, Holon/Data API, Keys/Wallets API, SEEDS API, and all core interfaces, managers, object models, and enums. Supports 55+ blockchain and decentralised network providers with Auto-FailOver, Auto-LoadBalancing, Auto-Replication, Auto-Sync, Write-Once-Deploy-Everywhere, Offline Support, and Triple-Level Quantum-Resistant Encryption. Explore the full OASIS Omniverse ecosystem at https://oasisomniverse.one -- Source code: https://github.com/NextGenSoftwareUK/OASIS -- REST API: https://api.web4.oasisomniverse.one</Description>
 	  <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	  <PackageIcon>OASIS.jpg</PackageIcon>
 	  <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -43,13 +43,13 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2023</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>2.0.0</Version>
+	  <Version>2.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>

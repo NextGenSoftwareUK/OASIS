@@ -32,9 +32,17 @@ namespace NextGenSoftware.OASIS.API.DNA
         public ReplicationRulesConfig ReplicationRules { get; set; } = new ReplicationRulesConfig();
         public FailoverRulesConfig FailoverRules { get; set; } = new FailoverRulesConfig();
         public SubscriptionConfig SubscriptionConfig { get; set; } = new SubscriptionConfig();
+        /// <summary>
+        /// Stripe payment integration keys. Environment variables (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY,
+        /// STRIPE_WEBHOOK_SECRET) always take priority and override these values at runtime. Set keys here
+        /// for local development; leave blank in production and use Railway env vars instead.
+        /// </summary>
+        public StripeSettings Stripe { get; set; } = new StripeSettings();
         public DataPermissionsConfig DataPermissions { get; set; } = new DataPermissionsConfig();
         public IntelligentModeConfig IntelligentMode { get; set; } = new IntelligentModeConfig();
         
+        public ONETConfig ONET { get; set; } = new ONETConfig();
+
         public string OASISSystemAccountId { get; set; }
         public string OASISAPIURL { get; set; }
         public string NetworkId { get; set; } = "onet-network";
@@ -473,7 +481,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public BaseOASISProviderSettings BaseOASIS { get; set; }
         public SuiOASISProviderSettings SuiOASIS { get; set; }
         public MoralisOASISProviderSettings MoralisOASIS { get; set; }
-        
+        public AztecOASISProviderSettings AztecOASIS { get; set; }
+
         // Network Providers
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
         public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
@@ -668,6 +677,18 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string BillingCycle { get; set; } = "Monthly";
         public List<UsageAlertConfig> UsageAlerts { get; set; } = new List<UsageAlertConfig>();
         public List<QuotaNotificationConfig> QuotaNotifications { get; set; } = new List<QuotaNotificationConfig>();
+    }
+
+    /// <summary>
+    /// Stripe API keys used for subscription billing.
+    /// Environment variables (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET) always win.
+    /// These fields act as local-dev fallbacks only — never commit real keys here.
+    /// </summary>
+    public class StripeSettings
+    {
+        public string SecretKey { get; set; } = "";
+        public string PublishableKey { get; set; } = "";
+        public string WebhookSecret { get; set; } = "";
     }
 
     public class DataPermissionsConfig
@@ -1128,6 +1149,20 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Network { get; set; } = "mainnet";
     }
 
+    public class AztecOASISProviderSettings : ProviderSettingsBase
+    {
+        /// <summary>Base URL of the Aztec node API (e.g. http://localhost:8080 for sandbox or a testnet/mainnet endpoint).</summary>
+        public string ApiBaseUrl { get; set; } = "http://localhost:8080";
+        /// <summary>Optional API key for the Aztec node.</summary>
+        public string ApiKey { get; set; } = "";
+        /// <summary>Deployed Aztec bridge contract address. Required for Deposit/Withdraw operations.</summary>
+        public string BridgeContractAddress { get; set; } = "";
+        /// <summary>Alias of the OASIS operator account registered in the aztec-wallet CLI. Used for deposit transactions.</summary>
+        public string OperatorAccountAlias { get; set; } = "oasis_operator";
+        /// <summary>Network name passed to aztec-wallet CLI (e.g. "sandbox", "testnet", "mainnet").</summary>
+        public string Network { get; set; } = "sandbox";
+    }
+
     public class TelosOASISProviderSettings : ProviderSettingsBase
     {
         public string RpcEndpoint { get; set; } = "https://api.telos.net";
@@ -1155,5 +1190,67 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool EnableStorage { get; set; } = true;
         public bool EnableFirestore { get; set; } = true;
         public bool EnableBigQuery { get; set; } = true;
+    }
+
+    /// <summary>
+    /// ONET (OASIS Network) P2P configuration. Controls how this node discovers peers, identifies
+    /// itself on the network, and which P2P transport layer to use.
+    ///
+    /// NetworkType options:
+    ///   "Internal"  — custom Kademlia DHT + mDNS + TCP :38470 (default, no extra deps)
+    ///   "HoloNET"   — delegates P2P to Holochain/HoloNET; requires HoloOASIS as storage provider
+    ///                 and a running Holochain conductor (conductor URL comes from StorageProviders.HoloOASIS)
+    ///
+    /// NodeId / NodePublicKey / NodePrivateKey are generated automatically on first ONODE start if blank.
+    /// For User DNA the private key is DPAPI-protected on disk; for System DNA it lives in the encrypted blob.
+    /// </summary>
+    public class ONETConfig
+    {
+        /// <summary>
+        /// Servers used to bootstrap peer discovery. ONETDiscovery calls GET {server}/api/v1/onet/network/nodes
+        /// on each entry to retrieve the initial peer list. At least one entry is required for non-LAN deployments.
+        /// </summary>
+        public List<string> BootstrapServers { get; set; } = new List<string>
+        {
+            "https://api.web4.oasisomniverse.one"
+        };
+
+        /// <summary>
+        /// P2P transport layer: "Internal" (Kademlia/mDNS/TCP) or "HoloNET" (Holochain conductor).
+        /// HoloNET mode requires StorageProviders.HoloOASIS to be configured and a conductor running.
+        /// </summary>
+        public string NetworkType { get; set; } = "Internal";
+
+        /// <summary>Stable node identifier — SHA-256 of NodePublicKey. Auto-generated on first run if blank.</summary>
+        public string NodeId { get; set; } = "";
+
+        /// <summary>Base-64 encoded ECDSA-P256 public key for this node. Auto-generated on first run if blank.</summary>
+        public string NodePublicKey { get; set; } = "";
+
+        /// <summary>
+        /// Base-64 encoded ECDSA-P256 private key. Auto-generated on first run if blank.
+        /// In User DNA this field is encrypted by DPAPI before being written to disk.
+        /// In System DNA it is protected by the AES key embedded in DNALoader.
+        /// Never store this in plaintext in source control.
+        /// </summary>
+        public string NodePrivateKey { get; set; } = "";
+
+        /// <summary>TCP port ONETProtocol listens on for peer connections. Default matches the hardcoded constant in ONETProtocol.</summary>
+        public int TcpPort { get; set; } = 38470;
+
+        /// <summary>Enable mDNS local-network peer discovery (Internal mode only).</summary>
+        public bool EnableMDNS { get; set; } = true;
+
+        /// <summary>
+        /// Register this node with each bootstrap server on startup via POST /api/v1/onet/nodes/register,
+        /// supplying NodeId and NodePublicKey so the server can verify future ECDSA-signed requests.
+        /// </summary>
+        public bool AutoRegisterOnBootstrap { get; set; } = true;
+
+        /// <summary>
+        /// Shared secret required in the X-ONET-API-Key header for POST /onet/nodes/register.
+        /// If empty, the check is skipped (open registration). Set a strong random value in production.
+        /// </summary>
+        public string ONETApiKey { get; set; } = "";
     }
 }

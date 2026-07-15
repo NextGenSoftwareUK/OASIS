@@ -64,6 +64,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Network
 
         public ONETDiscovery(IOASISStorageProvider storageProvider, OASISDNA oasisdna = null) : base(storageProvider, oasisdna)
         {
+            if (oasisdna?.OASIS?.ONET != null)
+            {
+                if (oasisdna.OASIS.ONET.BootstrapServers?.Count > 0)
+                    BootstrapServers = oasisdna.OASIS.ONET.BootstrapServers;
+
+                if (!string.IsNullOrWhiteSpace(oasisdna.OASIS.ONET.NodeId))
+                    _localNodeId = oasisdna.OASIS.ONET.NodeId;
+            }
         }
 
         /// <summary>

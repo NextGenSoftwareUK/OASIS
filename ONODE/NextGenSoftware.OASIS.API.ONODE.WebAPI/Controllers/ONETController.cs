@@ -39,6 +39,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         private static Task<ONETManager> GetOnetManagerAsync()
+            => GetOnetManagerStaticAsync();
+
+        /// <summary>
+        /// Exposed as internal so ONODEController can share the same singleton instance
+        /// rather than constructing a second ONETManager with its own discovery loop.
+        /// </summary>
+        internal static Task<ONETManager> GetOnetManagerStaticAsync()
         {
             if (_onetManagerTask != null)
                 return _onetManagerTask;
@@ -327,6 +334,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Register a community ONODE's public key with this bootstrap server.
+        /// Community nodes call this on startup so this server can verify their future ECDSA-signed requests
+        /// (X-ONET-NodeId / X-ONET-Signature headers on GET /onet/network/nodes and other authenticated calls).
+        /// </summary>
+        [HttpPost("nodes/register")]
+        public async Task<IActionResult> RegisterNode([FromBody] RegisterNodeRequest request)
+        {
+            if (request == null)
+                return BadRequest(new { message = "Request body is required with NodeId and PublicKey." });
+            if (string.IsNullOrWhiteSpace(request.NodeId))
+                return BadRequest(new { message = "NodeId is required." });
+            if (string.IsNullOrWhiteSpace(request.PublicKey))
+                return BadRequest(new { message = "PublicKey is required." });
+
+            try
+            {
+                var manager = await GetOnetManagerAsync();
+
+                // API key guard — skipped when ONETApiKey is empty (open bootstrap servers or local dev).
+                var dnaResult = await manager.GetOASISDNAAsync();
+                var apiKey = dnaResult.Result?.OASIS?.ONET?.ONETApiKey;
+                if (!string.IsNullOrWhiteSpace(apiKey))
+                {
+                    var supplied = Request.Headers["X-ONET-API-Key"].FirstOrDefault();
+                    if (supplied != apiKey)
+                        return Unauthorized(new { message = "Invalid or missing X-ONET-API-Key header." });
+                }
+
+                // Store the public key so ECDSA verification works for this node.
+                manager.RegisterNodePublicKey(request.NodeId, request.PublicKey);
+
+                // Also connect the node if an address was provided.
+                if (!string.IsNullOrWhiteSpace(request.NodeAddress))
+                    await manager.ConnectToNodeAsync(request.NodeId, request.NodeAddress);
+
+                return Ok(new { message = "Node registered successfully.", nodeId = request.NodeId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error registering node {NodeId}", request.NodeId);
+                return StatusCode(500, new { message = "Error registering node", error = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Broadcast message to network
         /// </summary>
         [HttpPost("network/broadcast")]
@@ -355,6 +407,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     {
         public string NodeId { get; set; } = string.Empty;
         public string NodeAddress { get; set; } = string.Empty;
+    }
+
+    public class RegisterNodeRequest
+    {
+        public string NodeId { get; set; } = string.Empty;
+        public string PublicKey { get; set; } = string.Empty;
+        /// <summary>Optional externally-reachable address (host:port) for TCP peer connections.</summary>
+        public string? NodeAddress { get; set; }
     }
 
     public class DisconnectNodeRequest

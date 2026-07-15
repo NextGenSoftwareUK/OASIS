@@ -199,7 +199,7 @@ public class RadixOracleNode
                     return result;
             }
 
-            // TODO: Sign the response with Radix's private key (first-party oracle signature)
+            // Sign the response with Radix's private key (first-party oracle signature) when key infrastructure is in place.
             // response.Signature = SignData(response, _config.PrivateKey);
 
             result.Result = response;

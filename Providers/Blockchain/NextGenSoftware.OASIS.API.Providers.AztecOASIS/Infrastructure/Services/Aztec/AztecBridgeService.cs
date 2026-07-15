@@ -1,4 +1,7 @@
 using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -17,13 +20,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
         private readonly AztecAPIClient _apiClient;
         private readonly AztecTestnetClient _testnetClient;
         private readonly AztecCLIService _cliService;
+        private readonly string _bridgeContractAddress;
+        private readonly string _operatorAccountAlias;
 
-        public AztecBridgeService(AztecAPIClient apiClient, AztecTestnetClient testnetClient = null, AztecCLIService cliService = null)
+        public AztecBridgeService(AztecAPIClient apiClient, string bridgeContractAddress = "", string operatorAccountAlias = "oasis_operator", AztecTestnetClient testnetClient = null, AztecCLIService cliService = null)
         {
             _apiClient = apiClient;
-            // Use real Aztec testnet client - NO MOCKS
+            _bridgeContractAddress = bridgeContractAddress ?? "";
+            _operatorAccountAlias = string.IsNullOrWhiteSpace(operatorAccountAlias) ? "oasis_operator" : operatorAccountAlias;
             _testnetClient = testnetClient ?? new AztecTestnetClient();
-            // Use Aztec CLI for real transactions - NO MOCKS
             _cliService = cliService ?? new AztecCLIService();
         }
 
@@ -70,12 +75,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                // Use Aztec CLI to create account - REAL IMPLEMENTATION
-                // Note: This requires Aztec CLI to be installed and in PATH
-                // For production, this should be done via Aztec SDK or CLI process execution
-                result.IsError = true;
-                result.Message = "Account creation requires Aztec CLI. Use 'aztec-wallet create-account' command or integrate Aztec SDK.";
-                // TODO: Integrate with Aztec SDK for programmatic account creation
+                // Generate a unique alias for this account
+                var alias = $"oasis_{Guid.NewGuid():N}";
+                return await _cliService.CreateAccountAsync(alias, token);
             }
             catch (Exception ex)
             {
@@ -91,10 +93,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<(string PublicKey, string PrivateKey)>();
             try
             {
-                // Account restoration requires Aztec CLI or SDK
-                result.IsError = true;
-                result.Message = "Account restoration requires Aztec CLI. Use 'aztec-wallet import' command or integrate Aztec SDK.";
-                // TODO: Integrate with Aztec SDK for programmatic account restoration
+                if (string.IsNullOrWhiteSpace(seedPhrase))
+                {
+                    result.IsError = true;
+                    result.Message = "Seed phrase cannot be empty.";
+                    return result;
+                }
+
+                // Derive Aztec secret key from BIP-39 mnemonic using PBKDF2 (standard BIP-39 seed derivation).
+                // Aztec uses Grumpkin curve scalars (32 bytes); we derive the seed and take the first 32 bytes.
+                var mnemonicBytes = Encoding.UTF8.GetBytes(seedPhrase.Normalize(NormalizationForm.FormKD));
+                var saltBytes = Encoding.UTF8.GetBytes("mnemonic"); // BIP-39 standard salt prefix
+                using var pbkdf2 = new Rfc2898DeriveBytes(mnemonicBytes, saltBytes, 2048, HashAlgorithmName.SHA512);
+                var seed = pbkdf2.GetBytes(64);
+                var secretKeyBytes = seed.Take(32).ToArray();
+                var secretKey = "0x" + BitConverter.ToString(secretKeyBytes).Replace("-", "").ToLowerInvariant();
+
+                var alias = $"oasis_restored_{Guid.NewGuid():N}";
+                return await _cliService.RestoreAccountAsync(secretKey, alias, token);
             }
             catch (Exception ex)
             {
@@ -110,18 +126,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                // For bridge withdrawals, we need to:
-                // 1. Call the bridge contract's withdraw function via CLI
-                // 2. The contract will handle proof generation internally
-                // 3. Get transaction hash from CLI output
-                
-                // TODO: Replace with actual bridge contract address once deployed
-                var bridgeContractAddress = "0x0000000000000000000000000000000000000000"; // Placeholder
-                
-                // Use Aztec CLI to send transaction to bridge contract
+                if (string.IsNullOrWhiteSpace(_bridgeContractAddress))
+                {
+                    result.IsError = true;
+                    result.Message = "AztecOASIS BridgeContractAddress is not set in OASISDNA. Deploy the Aztec bridge contract and set StorageProviders.AztecOASIS.BridgeContractAddress in OASISDNA.json.";
+                    return result;
+                }
+
+                // Restore the sender account in the CLI wallet so it can sign the transaction.
+                var restoreResult = await RestoreAccountAsync(senderPrivateKey);
+                if (restoreResult.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = $"Failed to load sender account into CLI wallet: {restoreResult.Message}";
+                    return result;
+                }
+                var accountAlias = $"oasis_sender_{senderAccountAddress[..Math.Min(8, senderAccountAddress.Length)]}";
+
                 var txResult = await _cliService.SendTransactionAsync(
-                    accountAlias: "maxgershfield", // Use the account we created
-                    contractAddress: bridgeContractAddress,
+                    accountAlias: accountAlias,
+                    contractAddress: _bridgeContractAddress,
                     functionName: "withdraw",
                     functionArgs: new object[] { senderAccountAddress, amount.ToString() }
                 );
@@ -158,19 +182,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AztecOASIS.Infrastructure.Services
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                // For bridge deposits, we need to:
-                // 1. Create a private note (if bridge contract supports it)
-                // 2. Call the bridge contract's deposit function via CLI
-                // 3. Get transaction hash from CLI output
-                
-                // TODO: Replace with actual bridge contract address once deployed
-                var bridgeContractAddress = "0x0000000000000000000000000000000000000000"; // Placeholder
-                
-                // Use Aztec CLI to send transaction to bridge contract
-                // This requires the bridge contract to be deployed first
+                if (string.IsNullOrWhiteSpace(_bridgeContractAddress))
+                {
+                    result.IsError = true;
+                    result.Message = "AztecOASIS BridgeContractAddress is not set in OASISDNA. Deploy the Aztec bridge contract and set StorageProviders.AztecOASIS.BridgeContractAddress in OASISDNA.json.";
+                    return result;
+                }
+
                 var txResult = await _cliService.SendTransactionAsync(
-                    accountAlias: "maxgershfield", // Use the account we created
-                    contractAddress: bridgeContractAddress,
+                    accountAlias: _operatorAccountAlias,
+                    contractAddress: _bridgeContractAddress,
                     functionName: "deposit",
                     functionArgs: new object[] { receiverAccountAddress, amount.ToString() }
                 );

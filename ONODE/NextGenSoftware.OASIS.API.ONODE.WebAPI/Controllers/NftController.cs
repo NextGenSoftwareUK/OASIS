@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.GeoSpatialNFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
@@ -358,7 +359,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The SendToAvatarAfterMintingId is not valid. Please make sure it is a valid GUID!" };
 
             var mintedByAvatarId = AvatarId;
-            if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
+            bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
+            // Wizards (e.g. oasismint service account) can mint on behalf of another avatar
+            if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
+                mintedByAvatarId = requestedMintedByAvatarId;
+            else if (mintedByAvatarId == Guid.Empty && sendToAvatarAfterMintingId != Guid.Empty)
                 mintedByAvatarId = sendToAvatarAfterMintingId;
 
             API.Core.Objects.NFT.Requests.MintWeb4NFTRequest mintRequest = new API.Core.Objects.NFT.Requests.MintWeb4NFTRequest()
@@ -404,7 +409,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpPost]
         [Route("update-web4-nft")]
-        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] IUpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] UpdateWeb4NFTRequest request, ProviderType providerType = ProviderType.Default)
         {
             if (request == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid update Web4 NFT request." };
@@ -418,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Authorize(AvatarType.Wizard)]
         [HttpPost]
         [Route("update-web4-nft/{providerType}/{setGlobally}")]
-        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] IUpdateWeb4NFTRequest request, ProviderType providerType, bool setGlobally = false)
+        public async Task<OASISResult<IWeb4NFT>> UpdateWeb4NftAsync([FromBody] UpdateWeb4NFTRequest request, ProviderType providerType, bool setGlobally = false)
         {
             await GetAndActivateProviderAsync(providerType, setGlobally);
             return await UpdateWeb4NftAsync(request, providerType);

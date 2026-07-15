@@ -90,6 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
 
             this.ProviderName = "AptosOASIS";
             this.ProviderDescription = "Aptos blockchain provider for OASIS";
+            this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.AptosOASIS);
             this.ProviderCategory = new(Core.Enums.ProviderCategory.StorageAndNetwork);
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.Blockchain));
             this.ProviderCategories.Add(new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.NFT));

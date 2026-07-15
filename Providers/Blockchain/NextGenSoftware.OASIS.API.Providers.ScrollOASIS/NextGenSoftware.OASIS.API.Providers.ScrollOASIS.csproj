@@ -14,8 +14,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API Scroll OASIS Provider</Product>
     <Title>WEB4 OASIS API Scroll OASIS Provider</Title>
-    <Summary>Scroll EVM-compatible L2 provider for OASIS</Summary>
-    <Description>Scroll EVM-compatible L2 provider for OASIS</Description>
+    <Summary>Scroll OASIS Provider -- bytecode-compatible zkEVM rollup, full EVM equivalence with ZK proof security for OASIS data. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Scroll -- a bytecode-level zkEVM rollup that is fully EVM-equivalent, running any Ethereum contract unmodified with ZK validity proof security. Stores OASIS holons, avatars, and tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
@@ -32,11 +32,11 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

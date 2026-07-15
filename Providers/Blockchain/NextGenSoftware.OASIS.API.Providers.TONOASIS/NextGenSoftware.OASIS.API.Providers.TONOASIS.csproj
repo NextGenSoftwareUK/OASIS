@@ -14,8 +14,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API TON OASIS Provider</Product>
     <Title>WEB4 OASIS API TON OASIS Provider</Title>
-    <Summary>TON provider backed by the TON EVM runtime.</Summary>
-    <Description>TON provider backed by the TON EVM runtime.</Description>
+    <Summary>TON OASIS Provider -- The Open Network (950M+ Telegram users), async smart contracts, Jetton/NFT tokens for OASIS data. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to TON (The Open Network) -- the blockchain maintained by the TON Foundation with 950M+ potential Telegram users and asynchronous smart contracts. Stores OASIS holons, avatars, and Jetton/NFT tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
@@ -32,12 +32,12 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
