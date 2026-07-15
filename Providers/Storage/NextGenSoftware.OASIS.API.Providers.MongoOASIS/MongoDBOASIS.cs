@@ -259,28 +259,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                _avatarRepository.Add(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
                _avatarRepository.Update(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
                await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon ?
+            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
                 _avatarRepository.Add(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
                 _avatarRepository.Update(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
         }
@@ -675,7 +675,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             //     ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
             //     : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 
-            OASISResult<IHolon> result = holon.IsNewHolon
+            //OASISResult<IHolon> result = holon.IsNewHolon
+            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
                 ? DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.AddAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
                 : DataHelper.ConvertMongoEntityToOASISHolon(await _holonRepository.UpdateAsync(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 
@@ -697,7 +698,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> result = holon.IsNewHolon
+            OASISResult<IHolon> result = holon.IsNewHolon || holon.CreatedDate == DateTime.MinValue
                 ? DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Add(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider)
                 : DataHelper.ConvertMongoEntityToOASISHolon(_holonRepository.Update(DataHelper.ConvertOASISHolonToMongoEntity(holon)), saveChildrenOnProvider);
 
