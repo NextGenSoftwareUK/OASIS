@@ -56,6 +56,10 @@ namespace NextGenSoftware.OASIS.Web6.Core.Enums
 
         /// <summary>Custom operator-configured OpenAI-compatible endpoint.
         /// Set OASIS_DNA.json → OASIS.Web6.CustomProviders[].BaseUrl.</summary>
-        Custom
+        Custom,
+
+        /// <summary>Leela AI — spiritual intelligence / karmic-pattern reasoning via AWS Lambda endpoint.
+        /// Env: LEELA_API_KEY, LEELA_BASE_URL.</summary>
+        LeelaAI
     }
 }
