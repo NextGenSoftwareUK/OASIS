@@ -1025,12 +1025,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
             try
             {
                 string full = "";
-                //TODO: Finish implementing this.
-                //Process.Start("dotnet publish -c Release -r <RID> --self-contained");
-                //Process.Start("dotnet publish -c Release -r win-x64 --self-contained");
-                //string command = 
-
-                //OnOAPPPublishStatusChanged?.Invoke(this, new OAPPPublishStatusEventArgs() { OAPPDNA = OAPPDNA, Status = Enums.OAPPPublishStatus.DotNetPublishing });
                 RaisePublishStatusChangedEvent((OAPPDNA)OAPPDNA, STARNETHolonPublishStatus.DotNetPublishing);
                 string dotnetPublishPath = Path.Combine(fullPathToSource, "dotnetPublished");
 
