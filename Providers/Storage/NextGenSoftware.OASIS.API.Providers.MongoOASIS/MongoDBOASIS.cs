@@ -117,7 +117,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                Database = null;
+                if (Database != null)
+                {
+                    Database.MongoDB = null;
+                    Database.MongoClient = null;
+                    Database = null;
+                }
+
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
@@ -168,7 +174,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                Database = null;
+                if (Database != null)
+                {
+                    Database.MongoDB = null;
+                    Database.MongoClient = null;
+                    Database = null;
+                }
+
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
