@@ -7,17 +7,17 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Core.ARC.Membrane</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS ARC Membrane</Title>
     <Product>OASIS ARC Membrane</Product>
     <Summary>OASIS ARC (Agent Runtime Container) Membrane — the security and routing membrane governing inter-agent communication and capability-based permissions within the OASIS network.</Summary>
     <Description>OASIS ARC (Agent Runtime Container) Membrane — the security and routing membrane governing inter-agent communication and capability-based permissions within the OASIS network.</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
-    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

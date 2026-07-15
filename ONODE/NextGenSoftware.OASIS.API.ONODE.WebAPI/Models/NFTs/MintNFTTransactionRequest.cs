@@ -25,6 +25,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         public string NFTOffChainMetaType { get; set; }
         public string JSONMetaDataURL { get; set; }
         public string NFTStandardType { get; set; }
+        public string MintedByAvatarId { get; set; } //Wizards can specify another avatar to mint on behalf of.
         public string SendToAddressAfterMinting { get; set; } //optionally send to this wallet after it has been minted.
         public string SendToAvatarAfterMintingId { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.
         public string SendToAvatarAfterMintingUsername { get; set; } //If you want to send to an avatar at least one of these 3 fields needs to be specefied.

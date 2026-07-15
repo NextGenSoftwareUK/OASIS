@@ -22,6 +22,12 @@
 - Multiple bug fixes.</PackageReleaseNotes>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     <PackageIcon>OASIS.jpg</PackageIcon>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.Common;
-using System.Linq;
 using Stripe;
+using OASISSub = NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 {
@@ -17,107 +20,161 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
     public class SubscriptionController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private readonly OASISSub.ISubscriptionService _subscriptionService;
 
-        public SubscriptionController(IConfiguration configuration)
+        // Canonical plan definitions — single source of truth for the whole controller
+        private static readonly List<PlanDto> Plans = new()
+        {
+            new PlanDto
+            {
+                Id = "free",
+                Name = "Free",
+                PriceMonthly = 0m,
+                Currency = "USD",
+                Features = new[] { "1,000 API requests/month", "100 MB storage", "Community support" },
+                MaxRequestsPerMonth = 1000,
+                MaxStorageGB = 0,
+                SupportLevel = "Community"
+            },
+            new PlanDto
+            {
+                Id = "bronze",
+                Name = "Bronze",
+                PriceMonthly = 9m,
+                Currency = "USD",
+                Features = new[] { "10,000 API requests/month", "1 GB storage", "Community support", "Basic analytics" },
+                MaxRequestsPerMonth = 10_000,
+                MaxStorageGB = 1,
+                SupportLevel = "Community"
+            },
+            new PlanDto
+            {
+                Id = "silver",
+                Name = "Silver",
+                PriceMonthly = 29m,
+                Currency = "USD",
+                Features = new[] { "100,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics" },
+                MaxRequestsPerMonth = 100_000,
+                MaxStorageGB = 10,
+                SupportLevel = "Email"
+            },
+            new PlanDto
+            {
+                Id = "gold",
+                Name = "Gold",
+                PriceMonthly = 99m,
+                Currency = "USD",
+                Features = new[] { "1,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee" },
+                MaxRequestsPerMonth = 1_000_000,
+                MaxStorageGB = 100,
+                SupportLevel = "Priority"
+            },
+            new PlanDto
+            {
+                Id = "enterprise",
+                Name = "Enterprise",
+                PriceMonthly = 0m,
+                Currency = "USD",
+                Features = new[] { "Unlimited API requests", "Unlimited storage", "Dedicated support", "SLA & SSO", "On-premise deployment", "Custom contracts" },
+                MaxRequestsPerMonth = -1,
+                MaxStorageGB = -1,
+                SupportLevel = "Dedicated",
+                IsContactSales = true
+            }
+        };
+
+        private static readonly Dictionary<string, int> PlanRequestLimits = Plans
+            .Where(p => p.MaxRequestsPerMonth > 0)
+            .ToDictionary(p => p.Id, p => p.MaxRequestsPerMonth);
+
+        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService)
         {
             _configuration = configuration;
+            _subscriptionService = subscriptionService;
         }
+
+        // ── Plans ────────────────────────────────────────────────────────────
 
         [HttpGet("plans")]
-        public ActionResult<IEnumerable<PlanDto>> GetPlans()
+        public ActionResult GetPlans()
         {
-            try
-            {
-                // Load plans from configuration or database
-                var plans = LoadSubscriptionPlans();
-                return Ok(new { Result = plans, IsError = false, Message = "Plans loaded successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { IsError = true, Message = $"Error loading plans: {ex.Message}" });
-    }
-}
-
-        private List<PlanDto> LoadSubscriptionPlans()
-        {
-            // Load from configuration or database
-            var plans = new List<PlanDto>
-            {
-                new PlanDto 
-                { 
-                    Id = "bronze", 
-                    Name = "Bronze", 
-                    PriceMonthly = 9.0m, 
-                    Currency = "USD", 
-                    Features = new[]{"Starter API limits", "Community support", "Basic analytics"},
-                    MaxRequestsPerMonth = 10000,
-                    MaxStorageGB = 1,
-                    SupportLevel = "Community"
-                },
-                new PlanDto 
-                { 
-                    Id = "silver", 
-                    Name = "Silver", 
-                    PriceMonthly = 29.0m, 
-                    Currency = "USD", 
-                    Features = new[]{"Higher API limits", "Email support", "Basic analytics", "Priority processing"},
-                    MaxRequestsPerMonth = 100000,
-                    MaxStorageGB = 10,
-                    SupportLevel = "Email"
-                },
-                new PlanDto 
-                { 
-                    Id = "gold", 
-                    Name = "Gold", 
-                    PriceMonthly = 99.0m, 
-                    Currency = "USD", 
-                    Features = new[]{"Premium API limits", "Priority support", "Advanced analytics", "Custom integrations"},
-                    MaxRequestsPerMonth = 1000000,
-                    MaxStorageGB = 100,
-                    SupportLevel = "Priority"
-                },
-                new PlanDto 
-                { 
-                    Id = "enterprise", 
-                    Name = "Enterprise", 
-                    PriceMonthly = 0.0m, 
-                    Currency = "USD", 
-                    Features = new[]{"Custom limits", "SLA & SSO", "Dedicated support", "On-premise deployment"},
-                    MaxRequestsPerMonth = -1, // Unlimited
-                    MaxStorageGB = -1, // Unlimited
-                    SupportLevel = "Dedicated",
-                    IsContactSales = true 
-                }
-            };
-
-            return plans;
+            return Ok(new { Result = Plans, IsError = false, Message = "Plans loaded successfully" });
         }
 
+        // ── Checkout ─────────────────────────────────────────────────────────
+
         [HttpPost("checkout/session")]
-        public async Task<ActionResult<CreateCheckoutSessionResponse>> CreateCheckoutSession([FromBody] CreateCheckoutSessionRequest request)
+        public async Task<ActionResult> CreateCheckoutSession([FromBody] CreateCheckoutSessionRequest request)
         {
             if (request == null)
-                return BadRequest(new { IsError = true, Message = "The request body is required. Please provide a valid JSON body with PlanId and optional SuccessUrl, CancelUrl." });
+                return BadRequest(new { IsError = true, Message = "Request body required. Provide PlanId and optional SuccessUrl, CancelUrl." });
             if (!ModelState.IsValid)
-                return BadRequest(new { IsError = true, Message = "Invalid request" });
+                return BadRequest(new { IsError = true, Message = "Invalid request." });
+
+            var plan = Plans.FirstOrDefault(p => p.Id == request.PlanId);
+            if (plan == null)
+                return BadRequest(new { IsError = true, Message = $"Unknown plan '{request.PlanId}'." });
+
+            if (plan.IsContactSales)
+                return BadRequest(new { IsError = true, Message = "Enterprise plan requires contacting sales." });
+
+            // Free plan: provision immediately without Stripe
+            if (plan.PriceMonthly == 0m)
+            {
+                var userId = GetCurrentUserId();
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
+                    {
+                        UserId = userId,
+                        PlanId = "free",
+                        Status = "active",
+                        CurrentPeriodStart = DateTime.UtcNow,
+                        CurrentPeriodEnd = DateTime.UtcNow.AddYears(10)
+                    });
+                }
+                var successUrl = request.SuccessUrl ?? "/";
+                return Ok(new { IsError = false, Message = "Free plan activated.", SessionUrl = successUrl });
+            }
 
             try
             {
-                // Validate Stripe configuration
-                var publishableKey = _configuration["STRIPE_PUBLISHABLE_KEY"];
-                var secretKey = _configuration["STRIPE_SECRET_KEY"];
-                var webhookSecret = _configuration["STRIPE_WEBHOOK_SECRET"];
+                var secretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
+                    ?? _configuration["STRIPE_SECRET_KEY"]
+                    ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.SecretKey;
+                if (string.IsNullOrWhiteSpace(secretKey))
+                    return StatusCode(500, new { IsError = true, Message = "Stripe not configured. Set STRIPE_SECRET_KEY environment variable." });
 
-                if (string.IsNullOrWhiteSpace(publishableKey) || string.IsNullOrWhiteSpace(secretKey))
-                    return StatusCode(500, new { IsError = true, Message = "Stripe keys not configured. Set STRIPE_PUBLISHABLE_KEY and STRIPE_SECRET_KEY." });
+                StripeConfiguration.ApiKey = secretKey;
 
-                // Create Stripe checkout session
-                var session = await CreateStripeCheckoutSessionAsync(request);
-                
+                var avatarId = GetCurrentUserId() ?? request.AvatarId ?? "anonymous";
+                var priceId = await GetOrCreateStripePriceAsync(plan);
+
+                var options = new Stripe.Checkout.SessionCreateOptions
+                {
+                    PaymentMethodTypes = new List<string> { "card" },
+                    LineItems = new List<Stripe.Checkout.SessionLineItemOptions>
+                    {
+                        new() { Price = priceId, Quantity = 1 }
+                    },
+                    Mode = "subscription",
+                    SuccessUrl = (request.SuccessUrl ?? "https://oasisomniverse.one/checkout/success") + "?subscribed=1",
+                    CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
+                    CustomerEmail = request.CustomerEmail,
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "avatar_id", avatarId },
+                        { "plan_id", plan.Id }
+                    }
+                };
+
+                var service = new Stripe.Checkout.SessionService();
+                var session = await service.CreateAsync(options);
+
                 return Ok(new CreateCheckoutSessionResponse
                 {
                     IsError = false,
-                    Message = "Checkout session created successfully",
+                    Message = "Checkout session created.",
                     SessionId = session.Id,
                     SessionUrl = session.Url
                 });
@@ -128,120 +185,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
-
-        private async Task<Stripe.Checkout.Session> CreateStripeCheckoutSessionAsync(CreateCheckoutSessionRequest request)
-        {
-            // Set Stripe API key
-            Stripe.StripeConfiguration.ApiKey = _configuration["STRIPE_SECRET_KEY"];
-
-            // Get plan details
-            var plan = LoadSubscriptionPlans().FirstOrDefault(p => p.Id == request.PlanId);
-            if (plan == null)
-                throw new ArgumentException($"Plan {request.PlanId} not found");
-
-            // Create price if it doesn't exist
-            var priceId = await GetOrCreateStripePriceAsync(plan);
-
-            var options = new Stripe.Checkout.SessionCreateOptions
-            {
-                PaymentMethodTypes = new List<string> { "card" },
-                LineItems = new List<Stripe.Checkout.SessionLineItemOptions>
-                {
-                    new Stripe.Checkout.SessionLineItemOptions
-                    {
-                        Price = priceId,
-                        Quantity = 1,
-                    },
-                },
-                Mode = "subscription",
-                SuccessUrl = request.SuccessUrl ?? "https://oasisweb4.com/checkout/success",
-                CancelUrl = request.CancelUrl ?? "https://oasisweb4.com/checkout/cancel",
-                CustomerEmail = request.CustomerEmail,
-                Metadata = new Dictionary<string, string>
-                {
-                    { "plan_id", plan.Id },
-                    { "avatar_id", request.AvatarId ?? "anonymous" }
-                }
-            };
-
-            var service = new Stripe.Checkout.SessionService();
-            return await service.CreateAsync(options);
-        }
-
-        private async Task<string> GetOrCreateStripePriceAsync(PlanDto plan)
-        {
-            if (plan.IsContactSales)
-                throw new InvalidOperationException("Enterprise plan requires contact sales");
-
-            // Check if price already exists
-            var priceService = new PriceService();
-            var existingPrices = await priceService.ListAsync(new PriceListOptions
-            {
-                Active = true,
-                Limit = 100
-            });
-
-            var existingPrice = existingPrices.Data.FirstOrDefault(p => 
-                p.UnitAmount == (long)(plan.PriceMonthly * 100) && 
-                p.Currency == plan.Currency.ToLower() &&
-                p.Recurring?.Interval == "month");
-
-            if (existingPrice != null)
-                return existingPrice.Id;
-
-            // Create new price
-            var productService = new ProductService();
-            var product = await productService.CreateAsync(new ProductCreateOptions
-            {
-                Name = plan.Name,
-                Description = string.Join(", ", plan.Features),
-                Metadata = new Dictionary<string, string>
-                {
-                    { "plan_id", plan.Id },
-                    { "max_requests", plan.MaxRequestsPerMonth.ToString() },
-                    { "max_storage_gb", plan.MaxStorageGB.ToString() },
-                    { "support_level", plan.SupportLevel }
-                }
-            });
-
-            var price = await priceService.CreateAsync(new PriceCreateOptions
-            {
-                Product = product.Id,
-                UnitAmount = (long)(plan.PriceMonthly * 100),
-                Currency = plan.Currency.ToLower(),
-                Recurring = new PriceRecurringOptions
-                {
-                    Interval = "month"
-                }
-            });
-
-            return price.Id;
-        }
+        // ── Stripe Webhooks ──────────────────────────────────────────────────
 
         [HttpPost("webhooks/stripe")]
         public async Task<IActionResult> StripeWebhook()
         {
+            var webhookSecret = Environment.GetEnvironmentVariable("STRIPE_WEBHOOK_SECRET")
+                ?? _configuration["STRIPE_WEBHOOK_SECRET"]
+                ?? OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Stripe?.WebhookSecret;
+            if (string.IsNullOrWhiteSpace(webhookSecret))
+                return BadRequest("Webhook secret not configured.");
+
+            string body;
+            using (var reader = new System.IO.StreamReader(Request.Body))
+                body = await reader.ReadToEndAsync();
+
+            var signature = Request.Headers["Stripe-Signature"].FirstOrDefault();
+            if (string.IsNullOrEmpty(signature))
+                return BadRequest("Missing Stripe-Signature header.");
+
             try
             {
-                var webhookSecret = _configuration["STRIPE_WEBHOOK_SECRET"];
-                if (string.IsNullOrWhiteSpace(webhookSecret))
-                    return BadRequest("Webhook secret not configured");
-
-                // Read the request body
-                using var reader = new System.IO.StreamReader(Request.Body);
-                var body = await reader.ReadToEndAsync();
-
-                // Get the signature header
-                var signatureHeader = Request.Headers["Stripe-Signature"].FirstOrDefault();
-                if (string.IsNullOrEmpty(signatureHeader))
-                    return BadRequest("Missing Stripe signature");
-
-                // Verify the webhook signature
-                var stripeEvent = EventUtility.ConstructEvent(body, signatureHeader, webhookSecret);
-
-                // Handle the event
+                var stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret);
                 await HandleStripeEventAsync(stripeEvent);
-
                 return Ok();
             }
             catch (StripeException ex)
@@ -259,589 +225,435 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             switch (stripeEvent.Type)
             {
                 case "checkout.session.completed":
-                    await HandleCheckoutSessionCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
+                    await OnCheckoutCompletedAsync(stripeEvent.Data.Object as Stripe.Checkout.Session);
                     break;
-
                 case "customer.subscription.created":
-                    await HandleSubscriptionCreatedAsync(stripeEvent.Data.Object as Subscription);
-                    break;
-
                 case "customer.subscription.updated":
-                    await HandleSubscriptionUpdatedAsync(stripeEvent.Data.Object as Subscription);
+                    await OnSubscriptionUpdatedAsync(stripeEvent.Data.Object as Stripe.Subscription);
                     break;
-
                 case "customer.subscription.deleted":
-                    await HandleSubscriptionDeletedAsync(stripeEvent.Data.Object as Subscription);
+                    await OnSubscriptionDeletedAsync(stripeEvent.Data.Object as Stripe.Subscription);
                     break;
-
                 case "invoice.payment_succeeded":
-                    await HandlePaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
+                    await OnPaymentSucceededAsync(stripeEvent.Data.Object as Invoice);
                     break;
-
                 case "invoice.payment_failed":
-                    await HandlePaymentFailedAsync(stripeEvent.Data.Object as Invoice);
-                    break;
-
-                default:
-                    // Log unhandled event types
-                    Console.WriteLine($"Unhandled event type: {stripeEvent.Type}");
+                    await OnPaymentFailedAsync(stripeEvent.Data.Object as Invoice);
                     break;
             }
         }
 
-        private async Task HandleCheckoutSessionCompletedAsync(Stripe.Checkout.Session session)
+        private async Task OnCheckoutCompletedAsync(Stripe.Checkout.Session session)
         {
-            // Create or update user subscription
-            var userId = session.Metadata.GetValueOrDefault("user_id");
-            var planId = session.Metadata.GetValueOrDefault("plan_id");
-            
-            if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(planId))
+            if (session == null) return;
+            var avatarId = session.Metadata?.GetValueOrDefault("avatar_id");
+            var planId = session.Metadata?.GetValueOrDefault("plan_id");
+            if (string.IsNullOrEmpty(avatarId) || string.IsNullOrEmpty(planId)) return;
+
+            await _subscriptionService.UpsertSubscriptionAsync(new OASISSub.SubscriptionRecord
             {
-                // Update user subscription in database
-                await UpdateUserSubscriptionAsync(userId, planId, session.CustomerId, session.SubscriptionId);
-            }
-        }
+                UserId = avatarId,
+                PlanId = planId,
+                Status = "active",
+                StripeCustomerId = session.CustomerId,
+                StripeSubscriptionId = session.SubscriptionId,
+                CurrentPeriodStart = DateTime.UtcNow,
+                CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
+            });
 
-        private async Task HandleSubscriptionCreatedAsync(Subscription subscription)
-        {
-            // Handle new subscription creation
-            await UpdateSubscriptionStatusAsync(subscription.Id, "active", subscription.CustomerId);
-        }
-
-        private async Task HandleSubscriptionUpdatedAsync(Subscription subscription)
-        {
-            // Handle subscription updates
-            var status = subscription.Status;
-            await UpdateSubscriptionStatusAsync(subscription.Id, status, subscription.CustomerId);
-        }
-
-        private async Task HandleSubscriptionDeletedAsync(Subscription subscription)
-        {
-            // Handle subscription cancellation
-            await UpdateSubscriptionStatusAsync(subscription.Id, "cancelled", subscription.CustomerId);
-        }
-
-        private async Task HandlePaymentSucceededAsync(Invoice invoice)
-        {
-            // Handle successful payment
-            if (invoice.SubscriptionId != null)
+            var plan = Plans.FirstOrDefault(p => p.Id == planId);
+            await _subscriptionService.AddOrderAsync(new OASISSub.OrderRecord
             {
-                await UpdateSubscriptionStatusAsync(invoice.SubscriptionId, "active", invoice.CustomerId);
-            }
+                UserId = avatarId,
+                PlanId = planId,
+                Description = $"{plan?.Name ?? planId} — monthly subscription",
+                Amount = plan?.PriceMonthly ?? 0m,
+                Currency = "USD",
+                Status = "paid",
+                StripeInvoiceId = session.Id
+            });
         }
 
-        private async Task HandlePaymentFailedAsync(Invoice invoice)
+        private async Task OnSubscriptionUpdatedAsync(Stripe.Subscription subscription)
         {
-            // Handle failed payment
-            if (invoice.SubscriptionId != null)
+            if (subscription == null) return;
+            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
+                      ?? await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(subscription.CustomerId);
+            if (record == null) return;
+
+            var planId = subscription.Items?.Data?.FirstOrDefault()?.Price?.Metadata?.GetValueOrDefault("plan_id")
+                      ?? record.PlanId;
+
+            record.Status = subscription.Status;
+            record.PlanId = planId;
+            record.StripeCustomerId = subscription.CustomerId;
+            record.StripeSubscriptionId = subscription.Id;
+            record.CurrentPeriodStart = subscription.CurrentPeriodStart;
+            record.CurrentPeriodEnd = subscription.CurrentPeriodEnd;
+            await _subscriptionService.UpsertSubscriptionAsync(record);
+        }
+
+        private async Task OnSubscriptionDeletedAsync(Stripe.Subscription subscription)
+        {
+            if (subscription == null) return;
+            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscription.Id)
+                      ?? await _subscriptionService.GetSubscriptionByStripeCustomerIdAsync(subscription.CustomerId);
+            if (record == null) return;
+
+            record.Status = "cancelled";
+            await _subscriptionService.UpsertSubscriptionAsync(record);
+        }
+
+        private async Task OnPaymentSucceededAsync(Invoice invoice)
+        {
+            if (invoice?.SubscriptionId == null) return;
+            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(invoice.SubscriptionId);
+            if (record == null) return;
+
+            record.Status = "active";
+            record.CurrentPeriodStart = invoice.PeriodStart;
+            record.CurrentPeriodEnd = invoice.PeriodEnd;
+            await _subscriptionService.UpsertSubscriptionAsync(record);
+
+            var plan = Plans.FirstOrDefault(p => p.Id == record.PlanId);
+            await _subscriptionService.AddOrderAsync(new OASISSub.OrderRecord
             {
-                await UpdateSubscriptionStatusAsync(invoice.SubscriptionId, "past_due", invoice.CustomerId);
-            }
+                UserId = record.UserId,
+                PlanId = record.PlanId,
+                Description = $"{plan?.Name ?? record.PlanId} — renewal",
+                Amount = (invoice.AmountPaid / 100m),
+                Currency = invoice.Currency?.ToUpperInvariant() ?? "USD",
+                Status = "paid",
+                StripeInvoiceId = invoice.Id
+            });
         }
 
-        private async Task UpdateUserSubscriptionAsync(string userId, string planId, string customerId, string subscriptionId)
+        private async Task OnPaymentFailedAsync(Invoice invoice)
         {
-            // Update user subscription in database
-            // This would typically involve updating a database record
-            Console.WriteLine($"Updated subscription for user {userId}: plan={planId}, customer={customerId}, subscription={subscriptionId}");
+            if (invoice?.SubscriptionId == null) return;
+            var record = await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(invoice.SubscriptionId);
+            if (record == null) return;
+
+            record.Status = "past_due";
+            await _subscriptionService.UpsertSubscriptionAsync(record);
         }
 
-        private async Task UpdateSubscriptionStatusAsync(string subscriptionId, string status, string customerId)
-        {
-            // Update subscription status in database
-            Console.WriteLine($"Updated subscription {subscriptionId} status to {status} for customer {customerId}");
-        }
+        // ── My Subscriptions ─────────────────────────────────────────────────
 
         [HttpGet("subscriptions/me")]
-        public async Task<ActionResult<object>> GetMySubscriptions()
+        public async Task<ActionResult> GetMySubscriptions()
         {
-            try
-            {
-                // Get user ID from authentication token
-                var userId = GetCurrentUserId();
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized(new { IsError = true, Message = "User not authenticated" });
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
 
-                // Query user subscriptions from database
-                var subscriptions = await GetUserSubscriptionsAsync(userId);
-                
-                return Ok(new { Result = subscriptions, IsError = false, Message = "Subscriptions loaded successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { IsError = true, Message = $"Error loading subscriptions: {ex.Message}" });
-            }
-        }
+            var record = await _subscriptionService.GetSubscriptionAsync(userId);
+            if (record == null)
+                return Ok(new { Result = Array.Empty<object>(), IsError = false, Message = "No active subscription." });
 
-        private async Task<List<object>> GetUserSubscriptionsAsync(string userId)
-        {
-            // This would typically query a database
-            // For now, return mock data
-            return new List<object>
+            var plan = Plans.FirstOrDefault(p => p.Id == record.PlanId);
+            var result = new[]
             {
-                new 
-                { 
-                    Id = "sub_test_123", 
-                    PlanId = "silver", 
-                    Status = "active", 
-                    RenewsOn = DateTime.UtcNow.AddMonths(1),
-                    CustomerId = "cus_test_123",
-                    CreatedAt = DateTime.UtcNow.AddMonths(-1),
-                    CurrentPeriodStart = DateTime.UtcNow,
-                    CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
+                new
+                {
+                    Id = record.StripeSubscriptionId ?? $"sub_{record.UserId[..Math.Min(8, record.UserId.Length)]}",
+                    record.PlanId,
+                    PlanName = plan?.Name ?? record.PlanId,
+                    record.Status,
+                    RenewsOn = record.CurrentPeriodEnd,
+                    record.StripeCustomerId,
+                    record.StripeSubscriptionId,
+                    record.CurrentPeriodStart,
+                    record.CurrentPeriodEnd,
+                    record.PayAsYouGoEnabled,
+                    record.CreatedAt
                 }
             };
+
+            return Ok(new { Result = result, IsError = false, Message = "Subscription loaded." });
         }
 
+        // ── Orders ───────────────────────────────────────────────────────────
+
         [HttpGet("orders/me")]
-        public ActionResult<object> GetMyOrders()
+        public async Task<ActionResult> GetMyOrders()
         {
-            var orders = new []
-            {
-                new { Id = "ord_test_123", PlanId = "silver", Amount = 29.0m, Currency = "USD", CreatedOn = DateTime.UtcNow }
-            };
-            return Ok(new { Result = orders, IsError = false, Message = "Orders loaded" });
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+
+            var orders = await _subscriptionService.GetOrdersAsync(userId);
+            return Ok(new { Result = orders, IsError = false, Message = "Orders loaded." });
         }
+
+        // ── Pay-as-you-go ────────────────────────────────────────────────────
 
         [HttpPost("toggle-pay-as-you-go")]
         public async Task<IActionResult> TogglePayAsYouGo([FromBody] TogglePayAsYouGoRequest request)
         {
             if (request == null)
-                return BadRequest(new { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Enabled." });
-            try
-            {
-                // Get user ID from authentication token
-                var userId = GetCurrentUserId();
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized(new { IsError = true, Message = "User not authenticated" });
+                return BadRequest(new { IsError = true, Message = "Request body required." });
 
-                // Update pay-as-you-go setting in database
-                await UpdatePayAsYouGoSettingAsync(userId, request.Enabled);
-                
-                return Ok(new { 
-                    IsError = false,
-                    Success = true, 
-                    PayAsYouGoEnabled = request.Enabled,
-                    Message = request.Enabled 
-                        ? "Pay-as-you-go billing enabled. You will be charged for requests over your plan limit."
-                        : "Pay-as-you-go billing disabled. You will hit plan limits."
-                });
-            }
-            catch (Exception ex)
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+
+            await _subscriptionService.SetPayAsYouGoAsync(userId, request.Enabled);
+
+            return Ok(new
             {
-                return StatusCode(500, new { IsError = true, Message = $"Failed to update pay-as-you-go settings: {ex.Message}" });
-            }
+                IsError = false,
+                Success = true,
+                PayAsYouGoEnabled = request.Enabled,
+                Message = request.Enabled
+                    ? "Pay-as-you-go enabled. Requests over your plan limit will be billed per-request."
+                    : "Pay-as-you-go disabled. Requests will stop at your plan limit."
+            });
         }
 
-        private async Task UpdatePayAsYouGoSettingAsync(string userId, bool enabled)
-        {
-            // Update pay-as-you-go setting in database
-            Console.WriteLine($"Updated pay-as-you-go setting for user {userId}: {enabled}");
-        }
+        // ── Usage ─────────────────────────────────────────────────────────────
 
         [HttpGet("usage")]
         public async Task<IActionResult> GetUsage()
         {
+            var userId = GetCurrentUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new { IsError = true, Message = "User not authenticated." });
+
+            var now = DateTime.UtcNow;
+            var usage = await _subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
+            var record = await _subscriptionService.GetSubscriptionAsync(userId);
+            var planId = record?.PlanId ?? "free";
+            var plan = Plans.FirstOrDefault(p => p.Id == planId);
+            var limit = plan?.MaxRequestsPerMonth ?? 1000;
+
+            return Ok(new
+            {
+                currentMonth = new
+                {
+                    requests = usage.RequestCount,
+                    limit,
+                    remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
+                    overage = Math.Max(0, usage.RequestCount - limit)
+                },
+                payAsYouGoEnabled = record?.PayAsYouGoEnabled ?? false,
+                overageCharges = new
+                {
+                    currentMonth = usage.OverageCount * OveragePriceFor(planId),
+                    currency = "USD"
+                },
+                subscription = new
+                {
+                    planId,
+                    planName = plan?.Name ?? planId,
+                    status = record?.Status ?? "free",
+                    currentPeriodStart = record?.CurrentPeriodStart,
+                    currentPeriodEnd = record?.CurrentPeriodEnd
+                }
+            });
+        }
+
+        // ── HyperDrive ───────────────────────────────────────────────────────
+
+        [HttpPost("update-hyperdrive-config")]
+        public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
+        {
+            if (request == null)
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = "Request body required." });
+
             try
             {
-                var userId = GetCurrentUserId();
-                var userUsage = await GetUserUsageAsync(userId);
-                
-                // Get current subscription details
-                var subscription = await GetUserSubscriptionAsync(userId);
-                var planLimits = GetPlanLimits(subscription?.PlanId ?? "free");
-                
-                var usage = new
+                var dna = OASISDNAManager.OASISDNA.OASIS;
+                if (dna != null)
                 {
-                    currentMonth = new
-                    {
-                        requests = userUsage.RequestsThisMonth,
-                        limit = planLimits.RequestLimit,
-                        remaining = Math.Max(0, planLimits.RequestLimit - userUsage.RequestsThisMonth),
-                        overage = Math.Max(0, userUsage.RequestsThisMonth - planLimits.RequestLimit)
-                    },
-                    payAsYouGoEnabled = subscription?.PayAsYouGoEnabled ?? false,
-                    overageCharges = new
-                    {
-                        currentMonth = userUsage.OverageCharges,
-                        currency = "USD"
-                    },
-                    subscription = new
-                    {
-                        planId = subscription?.PlanId ?? "free",
-                        status = subscription?.Status ?? "active",
-                        currentPeriodStart = subscription?.CurrentPeriodStart,
-                        currentPeriodEnd = subscription?.CurrentPeriodEnd
-                    }
-                };
+                    dna.SubscriptionConfig.PlanType = request.PlanType;
+                    dna.SubscriptionConfig.PayAsYouGoEnabled = request.PayAsYouGoEnabled;
 
-                return Ok(usage);
+                    var limits = HyperDriveLimitsFor(request.PlanType);
+                    dna.SubscriptionConfig.MaxReplicationsPerMonth = limits.MaxReplications;
+                    dna.SubscriptionConfig.MaxFailoversPerMonth = limits.MaxFailovers;
+                    dna.SubscriptionConfig.MaxStorageGB = limits.MaxStorageGB;
+                    dna.SubscriptionConfig.CostPerReplication = limits.CostPerReplication;
+                    dna.SubscriptionConfig.CostPerFailover = limits.CostPerFailover;
+                    dna.SubscriptionConfig.CostPerGB = limits.CostPerGB;
+
+                    bool freeOnly = request.PlanType == "free" || request.PlanType == "Free";
+                    dna.ReplicationRules.FreeProvidersOnly = freeOnly;
+                    dna.ReplicationRules.CostThreshold = freeOnly ? 0 : limits.CostThreshold;
+                    dna.FailoverRules.FreeProvidersOnly = freeOnly;
+                    dna.FailoverRules.CostThreshold = freeOnly ? 0 : limits.CostThreshold;
+
+                    await OASISDNAManager.SaveDNAAsync();
+                }
+
+                return Ok(new OASISResult<bool> { Result = true, Message = "HyperDrive configuration updated." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "Failed to retrieve usage data", details = ex.Message });
+                return BadRequest(new OASISResult<bool> { IsError = true, Message = ex.Message, Exception = ex });
             }
         }
 
-        private string GetCurrentUserId()
+        [HttpGet("hyperdrive-usage")]
+        public async Task<ActionResult<OASISResult<HyperDriveUsageDto>>> GetHyperDriveUsage()
         {
-            // This would typically extract user ID from JWT token or session
-            // For now, return a mock user ID
-            return "user_test_123";
-        }
-
-        private async Task<dynamic> GetUserUsageAsync(string userId)
-        {
-            // TODO: Implement real usage tracking from database
-            // For now, return mock data
-            return new
-            {
-                RequestsThisMonth = 45000,
-                OverageCharges = 0.00m,
-                LastUpdated = DateTime.UtcNow
-            };
-        }
-
-        private async Task<dynamic> GetUserSubscriptionAsync(string userId)
-        {
-            // TODO: Implement real subscription lookup from database
-            // For now, return mock data
-            return new
-            {
-                PlanId = "pro",
-                Status = "active",
-                PayAsYouGoEnabled = false,
-                CurrentPeriodStart = DateTime.UtcNow.AddDays(-15),
-                CurrentPeriodEnd = DateTime.UtcNow.AddDays(15)
-            };
-        }
-
-    
-
-    // HyperDrive Integration Methods
-
-    /// <summary>
-    /// Updates HyperDrive configuration based on subscription plan
-    /// </summary>
-    [HttpPost("update-hyperdrive-config")]
-    public async Task<ActionResult<OASISResult<bool>>> UpdateHyperDriveConfig([FromBody] UpdateHyperDriveConfigRequest request)
-    {
-        if (request == null)
-            return BadRequest(new OASISResult<bool> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with PlanType and PayAsYouGoEnabled." });
-        try
-        {
-            var dna = OASISDNAManager.OASISDNA.OASIS;
-            if (dna != null)
-            {
-                // Update subscription configuration
-                dna.SubscriptionConfig.PlanType = request.PlanType;
-                dna.SubscriptionConfig.PayAsYouGoEnabled = request.PayAsYouGoEnabled;
-                
-                // Update HyperDrive limits based on plan
-                var limits = GetPlanLimits(request.PlanType);
-                dna.SubscriptionConfig.MaxReplicationsPerMonth = limits.MaxReplications;
-                dna.SubscriptionConfig.MaxFailoversPerMonth = limits.MaxFailovers;
-                dna.SubscriptionConfig.MaxStorageGB = limits.MaxStorageGB;
-                
-                // Update cost settings
-                dna.SubscriptionConfig.CostPerReplication = limits.CostPerReplication;
-                dna.SubscriptionConfig.CostPerFailover = limits.CostPerFailover;
-                dna.SubscriptionConfig.CostPerGB = limits.CostPerGB;
-                
-                // Update replication rules for free providers only on free plan
-                if (request.PlanType == "Free")
-                {
-                    dna.ReplicationRules.FreeProvidersOnly = true;
-                    dna.ReplicationRules.CostThreshold = 0;
-                }
-                else
-                {
-                    dna.ReplicationRules.FreeProvidersOnly = false;
-                    dna.ReplicationRules.CostThreshold = limits.CostThreshold;
-                }
-                
-                // Update failover rules
-                if (request.PlanType == "Free")
-                {
-                    dna.FailoverRules.FreeProvidersOnly = true;
-                    dna.FailoverRules.CostThreshold = 0;
-                }
-                else
-                {
-                    dna.FailoverRules.FreeProvidersOnly = false;
-                    dna.FailoverRules.CostThreshold = limits.CostThreshold;
-                }
-                
-                await OASISDNAManager.SaveDNAAsync();
-            }
-            
-            return Ok(new OASISResult<bool>
-            {
-                Result = true,
-                Message = "HyperDrive configuration updated successfully for subscription plan."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<bool>
-            {
-                IsError = true,
-                Message = $"Failed to update HyperDrive configuration: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
-
-    /// <summary>
-    /// Gets HyperDrive usage statistics for current subscription
-    /// </summary>
-    [HttpGet("hyperdrive-usage")]
-    public ActionResult<OASISResult<HyperDriveUsageDto>> GetHyperDriveUsage()
-    {
-        try
-        {
+            var userId = GetCurrentUserId();
             var dna = OASISDNAManager.OASISDNA.OASIS;
             var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
-            
-            // This would typically come from a usage tracking service
-            var usage = new HyperDriveUsageDto
+
+            var now = DateTime.UtcNow;
+            var usage = string.IsNullOrEmpty(userId)
+                ? new OASISSub.UsageRecord()
+                : await _subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
+
+            var dto = new HyperDriveUsageDto
             {
                 PlanType = config.PlanType,
                 PayAsYouGoEnabled = config.PayAsYouGoEnabled,
-                CurrentUsage = new Dictionary<string, int>
+                CurrentUsage = new System.Collections.Generic.Dictionary<string, long>
                 {
-                    { "Replications", 45 },
-                    { "Failovers", 3 },
-                    { "Storage", 2 },
-                    { "Requests", 1250 }
+                    { "Replications", 0 },
+                    { "Failovers", 0 },
+                    { "StorageGB", (long)usage.StorageUsedGB },
+                    { "Requests", usage.RequestCount }
                 },
-                Limits = new Dictionary<string, int>
+                Limits = new System.Collections.Generic.Dictionary<string, int>
                 {
                     { "Replications", config.MaxReplicationsPerMonth },
                     { "Failovers", config.MaxFailoversPerMonth },
-                    { "Storage", config.MaxStorageGB },
-                    { "Requests", GetRequestLimit(config.PlanType) }
+                    { "StorageGB", config.MaxStorageGB },
+                    { "Requests", Plans.FirstOrDefault(p => p.Id == config.PlanType.ToLower())?.MaxRequestsPerMonth ?? 1000 }
                 },
-                Costs = new Dictionary<string, decimal>
+                Costs = new System.Collections.Generic.Dictionary<string, decimal>
                 {
                     { "PerReplication", config.CostPerReplication },
                     { "PerFailover", config.CostPerFailover },
                     { "PerGB", config.CostPerGB }
                 }
             };
-            
-            return Ok(new OASISResult<HyperDriveUsageDto>
-            {
-                Result = usage,
-                Message = "HyperDrive usage retrieved successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<HyperDriveUsageDto>
-            {
-                IsError = true,
-                Message = $"Failed to get HyperDrive usage: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    /// <summary>
-    /// Checks if user can perform HyperDrive operation based on quota
-    /// </summary>
-    [HttpPost("check-hyperdrive-quota")]
-    public ActionResult<OASISResult<QuotaCheckResult>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
-    {
-        if (request == null)
-            return BadRequest(new OASISResult<QuotaCheckResult> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with OperationType." });
-        try
+            return Ok(new OASISResult<HyperDriveUsageDto> { Result = dto, Message = "HyperDrive usage retrieved." });
+        }
+
+        [HttpPost("check-hyperdrive-quota")]
+        public async Task<ActionResult<OASISResult<QuotaCheckResult>>> CheckHyperDriveQuota([FromBody] QuotaCheckRequest request)
         {
+            if (request == null)
+                return BadRequest(new OASISResult<QuotaCheckResult> { IsError = true, Message = "Request body required." });
+
             var dna = OASISDNAManager.OASISDNA.OASIS;
             var config = dna?.SubscriptionConfig ?? new SubscriptionConfig();
-            
-            var limits = GetPlanLimits(config.PlanType);
-            var currentUsage = GetCurrentUsage(request.OperationType);
-            var limit = GetLimitForOperation(request.OperationType, limits);
-            
+            var limits = HyperDriveLimitsFor(config.PlanType);
+
+            var userId = GetCurrentUserId();
+            var now = DateTime.UtcNow;
+            var usage = string.IsNullOrEmpty(userId)
+                ? new OASISSub.UsageRecord()
+                : await _subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
+
+            int currentUsage = request.OperationType switch
+            {
+                "Requests" => (int)Math.Min(usage.RequestCount, int.MaxValue),
+                _ => 0
+            };
+            int limit = request.OperationType switch
+            {
+                "Replications" => limits.MaxReplications,
+                "Failovers" => limits.MaxFailovers,
+                "Storage" or "StorageGB" => limits.MaxStorageGB,
+                "Requests" => Plans.FirstOrDefault(p => p.Id == config.PlanType.ToLower())?.MaxRequestsPerMonth ?? 1000,
+                _ => 0
+            };
+
             var result = new QuotaCheckResult
             {
-                CanProceed = currentUsage < limit,
+                CanProceed = currentUsage < limit || limit < 0,
                 CurrentUsage = currentUsage,
                 Limit = limit,
-                Remaining = Math.Max(0, limit - currentUsage),
-                WouldExceedQuota = currentUsage >= limit,
-                RequiresPayAsYouGo = currentUsage >= limit && config.PayAsYouGoEnabled,
+                Remaining = limit < 0 ? int.MaxValue : Math.Max(0, limit - currentUsage),
+                WouldExceedQuota = limit >= 0 && currentUsage >= limit,
+                RequiresPayAsYouGo = limit >= 0 && currentUsage >= limit && config.PayAsYouGoEnabled,
                 EstimatedCost = currentUsage >= limit ? GetEstimatedCost(request.OperationType, config) : 0
             };
-            
-            return Ok(new OASISResult<QuotaCheckResult>
-            {
-                Result = result,
-                Message = "Quota check completed successfully."
-            });
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new OASISResult<QuotaCheckResult>
-            {
-                IsError = true,
-                Message = $"Failed to check quota: {ex.Message}",
-                Exception = ex
-            });
-        }
-    }
 
-    private PlanLimits GetPlanLimits(string planType)
-    {
-        return planType switch
+            return Ok(new OASISResult<QuotaCheckResult> { Result = result, Message = "Quota check complete." });
+        }
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+
+        private string GetCurrentUserId()
         {
-            "Free" => new PlanLimits
-            {
-                MaxReplications = 100,
-                MaxFailovers = 10,
-                MaxStorageGB = 1,
-                CostThreshold = 0,
-                CostPerReplication = 0,
-                CostPerFailover = 0,
-                CostPerGB = 0
-            },
-            "Basic" => new PlanLimits
-            {
-                MaxReplications = 1000,
-                MaxFailovers = 100,
-                MaxStorageGB = 10,
-                CostThreshold = 10,
-                CostPerReplication = 0.01m,
-                CostPerFailover = 0.05m,
-                CostPerGB = 0.10m
-            },
-            "Pro" => new PlanLimits
-            {
-                MaxReplications = 10000,
-                MaxFailovers = 1000,
-                MaxStorageGB = 100,
-                CostThreshold = 50,
-                CostPerReplication = 0.005m,
-                CostPerFailover = 0.025m,
-                CostPerGB = 0.05m
-            },
-            "Enterprise" => new PlanLimits
-            {
-                MaxReplications = int.MaxValue,
-                MaxFailovers = int.MaxValue,
-                MaxStorageGB = int.MaxValue,
-                CostThreshold = 100,
-                CostPerReplication = 0.001m,
-                CostPerFailover = 0.01m,
-                CostPerGB = 0.01m
-            },
-            _ => new PlanLimits
-            {
-                MaxReplications = 100,
-                MaxFailovers = 10,
-                MaxStorageGB = 1,
-                CostThreshold = 0,
-                CostPerReplication = 0,
-                CostPerFailover = 0,
-                CostPerGB = 0
-            }
+            if (HttpContext.Items.TryGetValue("Avatar", out var avatarObj) && avatarObj is IAvatar avatar)
+                return avatar.Id.ToString();
+
+            // Fallback: JWT sub claim
+            return User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? User?.FindFirst("sub")?.Value;
+        }
+
+        private static decimal OveragePriceFor(string planId) => planId switch
+        {
+            "bronze" => 0.001m,
+            "silver" => 0.0005m,
+            "gold" => 0.0002m,
+            "enterprise" => 0.0001m,
+            _ => 0m
         };
-    }
 
-        private int GetRequestLimit(string planType)
+        private static HyperDriveLimits HyperDriveLimitsFor(string planType) => planType?.ToLower() switch
         {
-            return planType switch
-        {
-            "Free" => 1000,
-            "Basic" => 10000,
-            "Pro" => 100000,
-            "Enterprise" => int.MaxValue,
-            _ => 1000
+            "bronze" or "basic" => new HyperDriveLimits { MaxReplications = 1000, MaxFailovers = 100, MaxStorageGB = 1, CostThreshold = 10, CostPerReplication = 0.01m, CostPerFailover = 0.05m, CostPerGB = 0.10m },
+            "silver" or "pro" => new HyperDriveLimits { MaxReplications = 10_000, MaxFailovers = 1000, MaxStorageGB = 10, CostThreshold = 50, CostPerReplication = 0.005m, CostPerFailover = 0.025m, CostPerGB = 0.05m },
+            "gold" => new HyperDriveLimits { MaxReplications = 100_000, MaxFailovers = 10_000, MaxStorageGB = 100, CostThreshold = 100, CostPerReplication = 0.002m, CostPerFailover = 0.01m, CostPerGB = 0.02m },
+            "enterprise" => new HyperDriveLimits { MaxReplications = int.MaxValue, MaxFailovers = int.MaxValue, MaxStorageGB = int.MaxValue, CostThreshold = 0, CostPerReplication = 0.001m, CostPerFailover = 0.005m, CostPerGB = 0.01m },
+            _ => new HyperDriveLimits { MaxReplications = 100, MaxFailovers = 10, MaxStorageGB = 0, CostThreshold = 0 }
         };
-        }
 
-        private int GetCurrentUsage(string operationType)
-        {
-            // This would typically come from a usage tracking service
-            return operationType switch
-        {
-            "Replications" => 45,
-            "Failovers" => 3,
-            "Storage" => 2,
-            "Requests" => 1250,
-            _ => 0
-        };
-        }
-
-        private int GetLimitForOperation(string operationType, PlanLimits limits)
-        {
-            return operationType switch
-        {
-            "Replications" => limits.MaxReplications,
-            "Failovers" => limits.MaxFailovers,
-            "Storage" => limits.MaxStorageGB,
-            "Requests" => GetRequestLimit(limits.PlanType),
-            _ => 0
-        };
-        }
-
-        private decimal GetEstimatedCost(string operationType, SubscriptionConfig config)
-        {
-            return operationType switch
+        private static decimal GetEstimatedCost(string operationType, SubscriptionConfig config) => operationType switch
         {
             "Replications" => config.CostPerReplication,
             "Failovers" => config.CostPerFailover,
-            "Storage" => config.CostPerGB,
-            _ => 0
+            "Storage" or "StorageGB" => config.CostPerGB,
+            _ => 0m
         };
-        }
 
-        // Supporting classes for HyperDrive integration
-        public class UpdateHyperDriveConfigRequest
+        private async Task<string> GetOrCreateStripePriceAsync(PlanDto plan)
         {
-        public string PlanType { get; set; }
-        public bool PayAsYouGoEnabled { get; set; }
+            var priceService = new PriceService();
+            var prices = await priceService.ListAsync(new PriceListOptions { Active = true, Limit = 100 });
+            var existing = prices.Data.FirstOrDefault(p =>
+                p.UnitAmount == (long)(plan.PriceMonthly * 100) &&
+                p.Currency == plan.Currency.ToLower() &&
+                p.Recurring?.Interval == "month" &&
+                p.Metadata.ContainsKey("plan_id") && p.Metadata["plan_id"] == plan.Id);
+            if (existing != null) return existing.Id;
+
+            var productService = new ProductService();
+            var product = await productService.CreateAsync(new ProductCreateOptions
+            {
+                Name = $"OASIS {plan.Name} Plan",
+                Description = string.Join(", ", plan.Features),
+                Metadata = new Dictionary<string, string> { { "plan_id", plan.Id } }
+            });
+
+            var price = await priceService.CreateAsync(new PriceCreateOptions
+            {
+                Product = product.Id,
+                UnitAmount = (long)(plan.PriceMonthly * 100),
+                Currency = plan.Currency.ToLower(),
+                Recurring = new PriceRecurringOptions { Interval = "month" },
+                Metadata = new Dictionary<string, string>
+                {
+                    { "plan_id", plan.Id },
+                    { "max_requests", plan.MaxRequestsPerMonth.ToString() },
+                    { "max_storage_gb", plan.MaxStorageGB.ToString() }
+                }
+            });
+
+            return price.Id;
         }
 
-        public class HyperDriveUsageDto
-        {
-        public string PlanType { get; set; }
-        public bool PayAsYouGoEnabled { get; set; }
-        public Dictionary<string, int> CurrentUsage { get; set; }
-        public Dictionary<string, int> Limits { get; set; }
-        public Dictionary<string, decimal> Costs { get; set; }
-        }
-
-        public class QuotaCheckRequest
-        {
-        public string OperationType { get; set; }
-        }
-
-        public class QuotaCheckResult
-        {
-        public bool CanProceed { get; set; }
-        public int CurrentUsage { get; set; }
-        public int Limit { get; set; }
-        public int Remaining { get; set; }
-        public bool WouldExceedQuota { get; set; }
-        public bool RequiresPayAsYouGo { get; set; }
-        public decimal EstimatedCost { get; set; }
-        }
-
-        public class PlanLimits
-        {
-        public int MaxReplications { get; set; }
-        public int MaxFailovers { get; set; }
-        public int MaxStorageGB { get; set; }
-        public decimal CostThreshold { get; set; }
-        public decimal CostPerReplication { get; set; }
-        public decimal CostPerFailover { get; set; }
-        public decimal CostPerGB { get; set; }
-        public string PlanType { get; set; }
-        public int RequestLimit { get; set; }
-        }
-
+        // ── DTOs / inner types ───────────────────────────────────────────────
 
         public class PlanDto
         {
@@ -879,5 +691,49 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public bool Enabled { get; set; }
         }
+
+        public class UpdateHyperDriveConfigRequest
+        {
+            public string PlanType { get; set; }
+            public bool PayAsYouGoEnabled { get; set; }
+        }
+
+        public class HyperDriveUsageDto
+        {
+            public string PlanType { get; set; }
+            public bool PayAsYouGoEnabled { get; set; }
+            public Dictionary<string, long> CurrentUsage { get; set; }
+            public Dictionary<string, int> Limits { get; set; }
+            public Dictionary<string, decimal> Costs { get; set; }
+        }
+
+        public class QuotaCheckRequest
+        {
+            public string OperationType { get; set; }
+        }
+
+        public class QuotaCheckResult
+        {
+            public bool CanProceed { get; set; }
+            public int CurrentUsage { get; set; }
+            public int Limit { get; set; }
+            public int Remaining { get; set; }
+            public bool WouldExceedQuota { get; set; }
+            public bool RequiresPayAsYouGo { get; set; }
+            public decimal EstimatedCost { get; set; }
+        }
+
+        private class HyperDriveLimits
+        {
+            public int MaxReplications { get; set; }
+            public int MaxFailovers { get; set; }
+            public int MaxStorageGB { get; set; }
+            public decimal CostThreshold { get; set; }
+            public decimal CostPerReplication { get; set; }
+            public decimal CostPerFailover { get; set; }
+            public decimal CostPerGB { get; set; }
+            public string PlanType { get; set; }
+        }
     }
+
 }

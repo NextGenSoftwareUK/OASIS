@@ -13,8 +13,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API XRPL OASIS Provider</Product>
     <Title>WEB4 OASIS API XRPL OASIS Provider</Title>
-    <Summary>XRP Ledger provider for OASIS</Summary>
-    <Description>XRP Ledger provider for OASIS - stores data in transaction memos</Description>
+    <Summary>XRP Ledger OASIS Provider -- 3-5 second settlement, 1,500 TPS, near-zero fees, carbon-neutral consensus for OASIS data. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to the XRP Ledger -- purpose-built for payments and tokenisation, delivering 3-5 second settlement, 1,500 TPS, near-zero fees, and a carbon-neutral consensus protocol. Stores OASIS holons, avatars, and XRP/IOU tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
@@ -31,11 +31,11 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

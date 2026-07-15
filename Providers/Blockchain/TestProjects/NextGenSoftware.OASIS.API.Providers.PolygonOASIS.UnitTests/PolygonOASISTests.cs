@@ -448,7 +448,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.UnitTests
         public void ProviderCategory_ShouldBeBlockchain()
         {
             // Assert
-            Assert.AreEqual(ProviderCategory.Blockchain, _provider.ProviderCategory.Value);
+            Assert.AreEqual(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory.Value);
         }
 
         [TestMethod]

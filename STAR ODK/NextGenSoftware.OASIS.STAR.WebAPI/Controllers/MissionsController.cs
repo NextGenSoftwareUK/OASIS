@@ -852,23 +852,16 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpPost("{id}/complete")]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<bool>), StatusCodes.Status400BadRequest)]
-        public Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
+        public async Task<IActionResult> CompleteMission(Guid id, [FromBody] string completionNotes = null)
         {
             try
             {
-                // TODO: Implement mission completion logic
-                // This would involve updating mission status, awarding rewards, etc.
-                var result = new OASISResult<bool>
-                {
-                    Result = true,
-                    IsError = false,
-                    Message = "Mission completed successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.CompleteMissionAsync(AvatarId, id, completionNotes);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return Task.FromResult(HandleException<bool>(ex, "completing mission"));
+                return HandleException<bool>(ex, "completing mission");
             }
         }
 
@@ -883,27 +876,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/leaderboard")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionLeaderboard>>), StatusCodes.Status400BadRequest)]
-        public Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
+        public async Task<IActionResult> GetMissionLeaderboard(Guid id, [FromQuery] int limit = 50)
         {
             try
             {
-                // TODO: Implement mission leaderboard logic
-                var result = new OASISResult<IEnumerable<MissionLeaderboard>>
-                {
-                    Result = new List<MissionLeaderboard>(),
-                    IsError = false,
-                    Message = "Mission leaderboard retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionLeaderboardAsync(id, limit);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
+                return BadRequest(new OASISResult<IEnumerable<MissionLeaderboard>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission leaderboard: {ex.Message}",
                     Exception = ex
-                }));
+                });
             }
         }
 
@@ -917,27 +904,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("{id}/rewards")]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<IEnumerable<MissionReward>>), StatusCodes.Status400BadRequest)]
-        public Task<IActionResult> GetMissionRewards(Guid id)
+        public async Task<IActionResult> GetMissionRewards(Guid id)
         {
             try
             {
-                // TODO: Implement mission rewards logic
-                var result = new OASISResult<IEnumerable<MissionReward>>
-                {
-                    Result = new List<MissionReward>(),
-                    IsError = false,
-                    Message = "Mission rewards retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionRewardsAsync(id);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<IEnumerable<MissionReward>>
+                return BadRequest(new OASISResult<IEnumerable<MissionReward>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission rewards: {ex.Message}",
                     Exception = ex
-                }));
+                });
             }
         }
 
@@ -950,35 +931,21 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         [HttpGet("stats")]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<Dictionary<string, object>>), StatusCodes.Status400BadRequest)]
-        public Task<IActionResult> GetMissionStats()
+        public async Task<IActionResult> GetMissionStats()
         {
             try
             {
-                // TODO: Implement mission statistics logic
-                var stats = new Dictionary<string, object>
-                {
-                    ["totalMissions"] = 0,
-                    ["completedMissions"] = 0,
-                    ["activeMissions"] = 0,
-                    ["totalRewards"] = 0
-                };
-
-                var result = new OASISResult<Dictionary<string, object>>
-                {
-                    Result = stats,
-                    IsError = false,
-                    Message = "Mission statistics retrieved successfully"
-                };
-                return Task.FromResult<IActionResult>(Ok(result));
+                var result = await _starAPI.Missions.GetMissionStatsAsync(AvatarId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return Task.FromResult<IActionResult>(BadRequest(new OASISResult<Dictionary<string, object>>
+                return BadRequest(new OASISResult<Dictionary<string, object>>
                 {
                     IsError = true,
                     Message = $"Error retrieving mission statistics: {ex.Message}",
                     Exception = ex
-                }));
+                });
             }
         }
     }

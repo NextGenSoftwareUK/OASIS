@@ -12,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
+using NextGenSoftware.OASIS.API.Core.Managers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
 {
@@ -185,7 +186,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllOfTypeAsync method not yet implemented");
+                if (!Enum.TryParse<HolonType>(type, true, out var holonType))
+                    return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>> { IsError = true, Message = $"Unknown celestial body type '{type}'." });
+
+                var result = await HolonManager.Instance.LoadAllHolonsAsync(holonType);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>> { IsError = true, Message = result.Message });
+
+                var bodies = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARCelestialBody { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARCelestialBody>> { Result = bodies, IsError = false });
             }
             catch (Exception ex)
             {
@@ -212,7 +223,14 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                throw new NotImplementedException("LoadAllInSpaceAsync method not yet implemented");
+                var result = await HolonManager.Instance.LoadHolonsForParentAsync(spaceId);
+                if (result.IsError)
+                    return BadRequest(new OASISResult<IEnumerable<STARCelestialBody>> { IsError = true, Message = result.Message });
+
+                var bodies = (result.Result ?? Enumerable.Empty<IHolon>())
+                    .Select(h => new STARCelestialBody { Id = h.Id, Name = h.Name })
+                    .ToList();
+                return Ok(new OASISResult<IEnumerable<STARCelestialBody>> { Result = bodies, IsError = false });
             }
             catch (Exception ex)
             {

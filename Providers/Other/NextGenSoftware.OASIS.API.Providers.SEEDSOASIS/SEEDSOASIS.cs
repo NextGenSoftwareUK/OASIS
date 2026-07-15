@@ -1095,8 +1095,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SEEDSOASIS
                 TransferArgs args = new TransferArgs() { from = avatar.Username, to = avatar.Username, quantity = "0.0000 SEEDS", memo = "SaveAvatar" };
                 EOSNewYork.EOSCore.Params.Action action = new ActionUtility(ENDPOINT_TEST).GetActionObject("saveavatar", SEEDS_EOSIO_ACCOUNT_TEST, "active", SEEDS_EOSIO_ACCOUNT_TEST, args);
 
-                var keypair = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS).Result; // TODO: handle result properly
-                List<string> privateKeysInWIF = new List<string> { keypair.PrivateKey };
+                var keypairResult = KeyManager.GenerateKeyPairWithWalletAddress(Core.Enums.ProviderType.SEEDSOASIS);
+                if (keypairResult.IsError || keypairResult.Result == null)
+                {
+                    OASISErrorHandling.HandleError(ref response, $"Failed to generate SEEDS key pair: {keypairResult.Message}");
+                    return response;
+                }
+                List<string> privateKeysInWIF = new List<string> { keypairResult.Result.PrivateKey };
 
                 var transactionResult = TelosOASIS.EOSIOOASIS.ChainAPI.PushTransaction(new[] { action }, privateKeysInWIF);
 

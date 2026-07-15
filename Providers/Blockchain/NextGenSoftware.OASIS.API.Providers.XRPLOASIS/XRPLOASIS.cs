@@ -455,7 +455,7 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
         return result;
     }
 
-    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => throw new NotImplementedException();
+    public override Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) { var r = new OASISResult<ISearchResults>(); OASISErrorHandling.HandleError(ref r, "SearchAsync is not supported by XRPLOASIS."); return Task.FromResult(r); }
 
     #region Helper Methods
 
@@ -661,94 +661,96 @@ public sealed class XRPLOASIS : OASISStorageProviderBase, IOASISStorageProvider,
 
     #endregion
 
-    #region Unimplemented abstract members
+    #region Unsupported storage/search members — XRPLOASIS is a transaction layer, not a general storage provider
 
-    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar) => throw new NotImplementedException();
-    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => throw new NotImplementedException();
-    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => throw new NotImplementedException();
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => throw new NotImplementedException();
-    public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => throw new NotImplementedException();
-    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) => throw new NotImplementedException();
-    public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => throw new NotImplementedException();
-    public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => throw new NotImplementedException();
-    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) => throw new NotImplementedException();
-    public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => throw new NotImplementedException();
-    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) => throw new NotImplementedException();
-    public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => throw new NotImplementedException();
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => throw new NotImplementedException();
-    public override OASISResult<IHolon> DeleteHolon(Guid id) => throw new NotImplementedException();
-    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => throw new NotImplementedException();
-    public override OASISResult<IHolon> DeleteHolon(string providerKey) => throw new NotImplementedException();
-    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) => throw new NotImplementedException();
-    public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => throw new NotImplementedException();
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => throw new NotImplementedException();
-    public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => throw new NotImplementedException();
+    private static OASISResult<T> NotSupported<T>(string method)
+    {
+        var r = new OASISResult<T>();
+        OASISErrorHandling.HandleError(ref r, $"{method} is not supported by XRPLOASIS. Use a full OASIS storage provider (e.g. MongoDBOASIS) for avatar/holon persistence.");
+        return r;
+    }
+    private static Task<OASISResult<T>> NotSupportedAsync<T>(string method) => Task.FromResult(NotSupported<T>(method));
 
-    // IOASISStorageProviderBase — string overload
-    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => throw new NotImplementedException();
-
-    // IOASISNETProvider
-    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters) => throw new NotImplementedException();
-    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type) => throw new NotImplementedException();
-
-    // IOASISBlockchainStorageProvider
-    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request) => throw new NotImplementedException();
-    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request) => throw new NotImplementedException();
-    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request) => throw new NotImplementedException();
-    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request) => throw new NotImplementedException();
-    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request) => throw new NotImplementedException();
-    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request) => throw new NotImplementedException();
-    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => throw new NotImplementedException();
-    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request) => throw new NotImplementedException();
-    public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => throw new NotImplementedException();
-    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() => throw new NotImplementedException();
-    public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) => throw new NotImplementedException();
-    public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) => throw new NotImplementedException();
-    public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey) => throw new NotImplementedException();
-    public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress) => throw new NotImplementedException();
-    public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default) => throw new NotImplementedException();
+    public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) => NotSupportedAsync<IEnumerable<IAvatar>>(nameof(LoadAllAvatarsAsync));
+    public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => NotSupported<IEnumerable<IAvatar>>(nameof(LoadAllAvatars));
+    public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0) => NotSupported<IAvatar>(nameof(LoadAvatar));
+    public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0) => NotSupportedAsync<IAvatar>(nameof(LoadAvatarByProviderKeyAsync));
+    public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => NotSupported<IAvatar>(nameof(LoadAvatarByProviderKey));
+    public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => NotSupported<IAvatar>(nameof(LoadAvatarByUsername));
+    public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => NotSupported<IAvatar>(nameof(LoadAvatarByEmail));
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) => NotSupportedAsync<IAvatarDetail>(nameof(LoadAvatarDetailAsync));
+    public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => NotSupported<IAvatarDetail>(nameof(LoadAvatarDetail));
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0) => NotSupportedAsync<IAvatarDetail>(nameof(LoadAvatarDetailByEmailAsync));
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => NotSupported<IAvatarDetail>(nameof(LoadAvatarDetailByEmail));
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0) => NotSupportedAsync<IAvatarDetail>(nameof(LoadAvatarDetailByUsernameAsync));
+    public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => NotSupported<IAvatarDetail>(nameof(LoadAvatarDetailByUsername));
+    public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => NotSupported<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetails));
+    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => NotSupportedAsync<IEnumerable<IAvatarDetail>>(nameof(LoadAllAvatarDetailsAsync));
+    public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar) => NotSupported<IAvatar>(nameof(SaveAvatar));
+    public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar) => NotSupported<IAvatarDetail>(nameof(SaveAvatarDetail));
+    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail Avatar) => NotSupportedAsync<IAvatarDetail>(nameof(SaveAvatarDetailAsync));
+    public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true) => NotSupportedAsync<bool>(nameof(DeleteAvatarAsync));
+    public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => NotSupported<bool>(nameof(DeleteAvatar));
+    public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true) => NotSupportedAsync<bool>(nameof(DeleteAvatarAsync));
+    public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => NotSupported<bool>(nameof(DeleteAvatar));
+    public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => NotSupported<bool>(nameof(DeleteAvatarByEmail));
+    public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true) => NotSupportedAsync<bool>(nameof(DeleteAvatarByEmailAsync));
+    public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => NotSupported<bool>(nameof(DeleteAvatarByUsername));
+    public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true) => NotSupportedAsync<bool>(nameof(DeleteAvatarByUsernameAsync));
+    public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0) => NotSupported<ISearchResults>(nameof(Search));
+    public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IHolon>(nameof(LoadHolon));
+    public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IHolon>(nameof(LoadHolon));
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(LoadHolonsForParent));
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(LoadHolonsForParentAsync));
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(LoadHolonsForParent));
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(LoadHolonsForParentAsync));
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaData));
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaDataAsync));
+    public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaData));
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(LoadHolonsByMetaDataAsync));
+    public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(LoadAllHolons));
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(LoadAllHolonsAsync));
+    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotSupported<IHolon>(nameof(SaveHolon));
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotSupported<IEnumerable<IHolon>>(nameof(SaveHolons));
+    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(SaveHolonsAsync));
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => NotSupportedAsync<IHolon>(nameof(DeleteHolonAsync));
+    public override OASISResult<IHolon> DeleteHolon(Guid id) => NotSupported<IHolon>(nameof(DeleteHolon));
+    public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey) => NotSupportedAsync<IHolon>(nameof(DeleteHolonAsync));
+    public override OASISResult<IHolon> DeleteHolon(string providerKey) => NotSupported<IHolon>(nameof(DeleteHolon));
+    public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) => NotSupportedAsync<bool>(nameof(ImportAsync));
+    public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => NotSupported<bool>(nameof(Import));
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByIdAsync));
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarById));
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByUsername));
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByUsernameAsync));
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByEmailAsync));
+    public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(ExportAllDataForAvatarByEmail));
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => NotSupportedAsync<IEnumerable<IHolon>>(nameof(ExportAllAsync));
+    public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => NotSupported<IEnumerable<IHolon>>(nameof(ExportAll));
+    public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => NotSupportedAsync<IHolon>(nameof(LoadHolonAsync));
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters) => NotSupported<IEnumerable<IAvatar>>(nameof(GetAvatarsNearMe));
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type) => NotSupported<IEnumerable<IHolon>>(nameof(GetHolonsNearMe));
+    public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request) => NotSupported<ITransactionResponse>(nameof(SendToken));
+    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request) => NotSupportedAsync<ITransactionResponse>(nameof(SendTokenAsync));
+    public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request) => NotSupported<ITransactionResponse>(nameof(MintToken));
+    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request) => NotSupportedAsync<ITransactionResponse>(nameof(MintTokenAsync));
+    public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request) => NotSupported<ITransactionResponse>(nameof(BurnToken));
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request) => NotSupportedAsync<ITransactionResponse>(nameof(BurnTokenAsync));
+    public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request) => NotSupported<ITransactionResponse>(nameof(LockToken));
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request) => NotSupportedAsync<ITransactionResponse>(nameof(LockTokenAsync));
+    public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request) => NotSupported<ITransactionResponse>(nameof(UnlockToken));
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request) => NotSupportedAsync<ITransactionResponse>(nameof(UnlockTokenAsync));
+    public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request) => NotSupported<double>(nameof(GetBalance));
+    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request) => NotSupportedAsync<double>(nameof(GetBalanceAsync));
+    public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request) => NotSupported<IList<IWalletTransaction>>(nameof(GetTransactions));
+    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request) => NotSupportedAsync<IList<IWalletTransaction>>(nameof(GetTransactionsAsync));
+    public OASISResult<IKeyPairAndWallet> GenerateKeyPair() => NotSupported<IKeyPairAndWallet>(nameof(GenerateKeyPair));
+    public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync() => NotSupportedAsync<IKeyPairAndWallet>(nameof(GenerateKeyPairAsync));
+    public Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync(CancellationToken token = default) => NotSupportedAsync<(string, string, string)>(nameof(CreateAccountAsync));
+    public Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase, CancellationToken token = default) => NotSupportedAsync<(string, string)>(nameof(RestoreAccountAsync));
+    public Task<OASISResult<BridgeTransactionResponse>> WithdrawAsync(decimal amount, string senderAccountAddress, string senderPrivateKey) => NotSupportedAsync<BridgeTransactionResponse>(nameof(WithdrawAsync));
+    public Task<OASISResult<BridgeTransactionResponse>> DepositAsync(decimal amount, string receiverAccountAddress) => NotSupportedAsync<BridgeTransactionResponse>(nameof(DepositAsync));
+    public Task<OASISResult<BridgeTransactionStatus>> GetTransactionStatusAsync(string transactionHash, CancellationToken token = default) => NotSupportedAsync<BridgeTransactionStatus>(nameof(GetTransactionStatusAsync));
 
     #endregion
 }
