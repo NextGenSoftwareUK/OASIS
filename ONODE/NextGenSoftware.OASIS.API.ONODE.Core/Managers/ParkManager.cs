@@ -15,7 +15,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
         public ParkManager(Guid avatarId, OASISDNA OASISDNA = null) : base(avatarId, OASISDNA)
         {
-            //TODO: Finish implementing ASAP...
         }
     }
 }
