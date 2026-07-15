@@ -48,6 +48,8 @@ builder.Services.AddControllers(options =>
         options.JsonSerializerOptions.Converters.Add(new IHolonJsonConverter());
     });
 builder.Services.AddHttpClient();
+builder.Services.AddSingleton<NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.ISubscriptionService,
+    NextGenSoftware.OASIS.STAR.WebAPI.Services.Subscription.SubscriptionService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -364,7 +366,7 @@ app.UseAuthorization();
 
 app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.OASISMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.JwtMiddleware>();
-app.UseMiddleware<NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware.SubscriptionMiddleware>();
+app.UseMiddleware<NextGenSoftware.OASIS.STAR.WebAPI.Middleware.SubscriptionMiddleware>();
 
 app.MapControllers();
 app.MapGet("/", () => Results.Redirect("/swagger"));

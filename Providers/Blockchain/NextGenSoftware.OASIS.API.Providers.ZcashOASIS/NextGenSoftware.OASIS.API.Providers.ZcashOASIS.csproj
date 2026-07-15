@@ -7,8 +7,8 @@
         <Company>NextGen Software Ltd</Company>
         <Product>WEB4 OASIS API Zcash OASIS Provider</Product>
         <Title>WEB4 OASIS API Zcash OASIS Provider</Title>
-        <Summary>WEB4 OASIS API Zcash OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS.</Summary>
-        <Description>WEB4 OASIS API Zcash OASIS Provider is one of the many WEB2/WEB3 providers that plug in and integrate into the OASIS. Supports shielded transactions, viewing keys, and partial notes for privacy-preserving cross-chain operations.</Description>
+        <Summary>Zcash OASIS Provider -- zk-SNARK privacy cryptocurrency, shielded transactions and data storage for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+        <Description>Connects the OASIS to Zcash -- the first cryptocurrency using zk-SNARKs for transaction privacy, enabling fully shielded (private) or transparent transfers. Stores OASIS holons and avatars with optional cryptographic privacy. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
         <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
         <PackageIcon>OASIS.jpg</PackageIcon>
         <Authors>David Ellams (NextGen Software Ltd)</Authors>
@@ -25,12 +25,12 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
         <RepositoryType>git</RepositoryType>
-        <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-        <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+        <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+        <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-        <Version>2.0.0</Version>
+        <Version>2.0.1</Version>
         <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
     </PropertyGroup>
 

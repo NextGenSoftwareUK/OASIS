@@ -30,17 +30,17 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.ONODE.WebAPI</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <Title>OASIS ONODE WebAPI</Title>
     <Product>OASIS ONODE WebAPI</Product>
-    <Summary>ASP.NET Core REST API controllers and middleware for the OASIS ONODE — the WEB4 decentralised API layer exposing Avatar, Karma, Holon, Provider, and Search endpoints.</Summary>
-    <Description>ASP.NET Core REST API controllers and middleware for the OASIS ONODE — the WEB4 decentralised API layer exposing Avatar, Karma, Holon, Provider, and Search endpoints.</Description>
+    <Summary>The OASIS ONODE REST API -- ASP.NET Core 10 WebAPI exposing Avatar, Karma, Holon, Provider, NFT, Keys/Wallets, WEB4-WEB10 endpoints. Live at https://api.web4.oasisomniverse.one</Summary>
+    <Description>The OASIS ONODE (Our World Node) REST WebAPI -- the live decentralised API gateway for the OASIS Omniverse. Built on ASP.NET Core 10, exposing HTTP/REST, gRPC, and GraphQL endpoints for Avatar registration/auth/management, Karma award/query, Holon CRUD with provider routing, NFT minting/transfer, Keys/Wallets, Provider hot-swap, Search, and WEB4-WEB10 routing via FAHRN. Live: https://api.web4.oasisomniverse.one -- Source: https://github.com/NextGenSoftwareUK/OASIS</Description>
     <Authors>David Ellams (NextGen Software Ltd)</Authors>
     <Company>NextGen Software Ltd</Company>
-    <Copyright>Copyright © NextGen Software Ltd 2024</Copyright>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageTags>OASIS; API; WEB4; WEB5; WEB6; WEB7; WEB8; WEB9; WEB10; STAR; ODK; OAPP; Omniverse; Blockchain; NFT; Tokens; Crypto; Metaverse; Holochain; P2P; Decentralised; Distributed; Interoperability; Abstraction-Layer; Multi-Chain; SSO; Avatar-API; Karma-API; Data-API; FAHRN; HolonicBraid; ONET; HyperDrive; MCP; AI; Future-Proof; NextGenSoftware</PackageTags>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

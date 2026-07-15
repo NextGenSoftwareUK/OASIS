@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Exceptions;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Holons;
 using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
@@ -11,6 +12,7 @@ using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.Models;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.STAR.WebAPI.Helpers;
 
 namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
@@ -40,13 +42,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading
-                await Task.Delay(1); // Placeholder async operation
+                var holonsResult = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Park);
                 OASISResult<IEnumerable<IPark>> result = new OASISResult<IEnumerable<IPark>>
                 {
-                    IsError = false,
-                    Message = "Parks loaded successfully",
-                    Result = new List<IPark>()
+                    IsError = holonsResult.IsError,
+                    Message = holonsResult.IsError ? holonsResult.Message : "Parks loaded successfully",
+                    Result = holonsResult.IsError ? new List<IPark>() : holonsResult.Result?.OfType<IPark>().ToList() ?? new List<IPark>()
                 };
 
                 // Return test data if setting is enabled and result is null, has error, or is empty
@@ -84,13 +85,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by ID
-                await Task.Delay(1); // Placeholder async operation
+                var holonResult = await HolonManager.Instance.LoadHolonAsync(id);
                 OASISResult<IPark> result = new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park loaded successfully",
-                    Result = null
+                    IsError = holonResult.IsError,
+                    Message = holonResult.IsError ? holonResult.Message : "Park loaded successfully",
+                    Result = holonResult.IsError ? null : holonResult.Result as IPark
                 };
 
                 // Return test data if setting is enabled and result is null, has error, or result is null
@@ -137,13 +137,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
-                // TODO: Implement proper park saving
-                await Task.Delay(1); // Placeholder async operation
+                var saveResult = await HolonManager.Instance.SaveHolonAsync((IHolon)park, AvatarId);
                 return Ok(new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park saved successfully",
-                    Result = null
+                    IsError = saveResult.IsError,
+                    Message = saveResult.IsError ? saveResult.Message : "Park saved successfully",
+                    Result = saveResult.IsError ? null : saveResult.Result as IPark
                 });
             }
             catch (Exception ex)
@@ -166,13 +165,13 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     });
                 }
 
-                // TODO: Implement proper park saving
-                await Task.Delay(1); // Placeholder async operation
+                ((IHolon)park).Id = id;
+                var saveResult = await HolonManager.Instance.SaveHolonAsync((IHolon)park, AvatarId);
                 return Ok(new OASISResult<IPark>
                 {
-                    IsError = false,
-                    Message = "Park saved successfully",
-                    Result = null
+                    IsError = saveResult.IsError,
+                    Message = saveResult.IsError ? saveResult.Message : "Park updated successfully",
+                    Result = saveResult.IsError ? null : saveResult.Result as IPark
                 });
             }
             catch (Exception ex)
@@ -186,13 +185,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park deletion
-                await Task.Delay(1); // Placeholder async operation
+                var deleteResult = await HolonManager.Instance.DeleteHolonAsync(id, AvatarId);
                 return Ok(new OASISResult<bool>
                 {
-                    IsError = false,
-                    Message = "Park deleted successfully",
-                    Result = true
+                    IsError = deleteResult.IsError,
+                    Message = deleteResult.IsError ? deleteResult.Message : "Park deleted successfully",
+                    Result = !deleteResult.IsError
                 });
             }
             catch (Exception ex)
@@ -206,13 +204,20 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by location
-                await Task.Delay(1); // Placeholder async operation
+                var holonsResult = await HolonManager.Instance.LoadAllHolonsAsync(HolonType.Park);
+                if (holonsResult.IsError)
+                    return Ok(new OASISResult<IEnumerable<IPark>> { IsError = true, Message = holonsResult.Message, Result = new List<IPark>() });
+
+                var nearby = (holonsResult.Result ?? Enumerable.Empty<IHolon>())
+                    .OfType<IPark>()
+                    .Where(p => HaversineDistanceKm(latitude, longitude, p.Latitude, p.Longitude) <= radiusKm)
+                    .ToList();
+
                 return Ok(new OASISResult<IEnumerable<IPark>>
                 {
                     IsError = false,
                     Message = "Nearby parks loaded successfully",
-                    Result = new List<IPark>()
+                    Result = nearby
                 });
             }
             catch (Exception ex)
@@ -231,13 +236,12 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement proper park loading by type
-                await Task.Delay(1); // Placeholder async operation
+                var holonsResult = await HolonManager.Instance.LoadHolonsByMetaDataAsync("parkType", type, HolonType.Park);
                 return Ok(new OASISResult<IEnumerable<IPark>>
                 {
-                    IsError = false,
-                    Message = "Parks by type loaded successfully",
-                    Result = new List<IPark>()
+                    IsError = holonsResult.IsError,
+                    Message = holonsResult.IsError ? holonsResult.Message : "Parks by type loaded successfully",
+                    Result = holonsResult.IsError ? new List<IPark>() : holonsResult.Result?.OfType<IPark>().ToList() ?? new List<IPark>()
                 });
             }
             catch (Exception ex)
@@ -683,6 +687,17 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.Controllers
                     Exception = ex
                 }));
             }
+        }
+
+        private static double HaversineDistanceKm(double lat1, double lon1, double lat2, double lon2)
+        {
+            const double R = 6371.0;
+            var dLat = (lat2 - lat1) * Math.PI / 180.0;
+            var dLon = (lon2 - lon1) * Math.PI / 180.0;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                  + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
+                  * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
     }
 

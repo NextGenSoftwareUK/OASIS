@@ -522,12 +522,16 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false)
         {
             if (OASISDNA.OASIS.Email.SendVerificationEmail)
                 SendVerificationEmail(result.Result);
 
+            string verificationToken = callerIsWizard ? result.Result.VerificationToken : null;
             result.Result = HideAuthDetails(result.Result);
+            if (callerIsWizard)
+                result.Result.VerificationToken = verificationToken;
+
             result.IsSaved = true;
             result.Message = "Avatar Created Successfully. Please check your email for the verification email. You will not be able to log in till you have verified your email. Thank you.";
 

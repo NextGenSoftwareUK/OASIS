@@ -14,8 +14,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API Monad OASIS Provider</Product>
     <Title>WEB4 OASIS API Monad OASIS Provider</Title>
-    <Summary>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Summary>
-    <Description>Monad adaptor for the WEB4 OASIS multi-provider architecture.</Description>
+    <Summary>Monad OASIS Provider -- parallelized EVM L1, 10,000 TPS, 1-second blocks, full EVM bytecode compatibility for OASIS data. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to Monad -- parallelized EVM L1 delivering 10,000 TPS with 1-second block times via parallel execution (OCC) and MonadDb, fully EVM-bytecode compatible. Stores OASIS holons, avatars, and tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
@@ -32,12 +32,12 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

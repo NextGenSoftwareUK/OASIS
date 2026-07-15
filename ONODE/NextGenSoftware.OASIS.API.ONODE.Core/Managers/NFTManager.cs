@@ -23,6 +23,7 @@ using NextGenSoftware.OASIS.API.ONODE.Core.Interfaces.Managers;
 using NextGenSoftware.OASIS.API.ONODE.Core.Managers.Base;
 using NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 using NextGenSoftware.OASIS.API.Providers.PinataOASIS;
+using NextGenSoftware.Logging;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using System;
@@ -3960,22 +3961,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                     IHolon web3NFTHolon = CreateWeb3NFTMetaDataHolon(currentWeb3NFT, result.Result.Id, web3Request);
                     OASISResult<IHolon> saveHolonResult = null;
 
+                    //Default to Mongo for storing the OASIS NFT meta data if none is specified.
+                    if (metaDataProviderType.Value == ProviderType.None)
+                        metaDataProviderType.Value = ProviderType.MongoDBOASIS;
+
                     //TODO: Do we want to still save the holon even if it did not mint?!
                     //TODO: After the FormatSuccessMessage call below we need to remove the web3nft from the parent web4 nft (otherwise there wont be a matching holon fo it and could cause issues later?)
                     if (!currentWeb3NFT.MintTransactionHash.ToLower().Contains("error"))
                     {
                         saveHolonResult = await Data.SaveHolonAsync(web3NFTHolon, web3Request.MintedByAvatarId, true, true, 0, true, false, metaDataProviderType.Value);
 
-                        if (!(saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError))
-                            OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                        if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
+                            LoggingManager.Log($"[NFTManager] Web3 NFT holon saved successfully. Id: {saveHolonResult.Result.Id}, Provider: {metaDataProviderType.Name}", LogType.Info);
+                        else
+                            // Non-fatal in a batch — log as warning so IsError is not set and the batch continues; error is captured in InnerMessages and included in the final response.
+                            OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured saving the WEB3 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult?.Message}", onlyLogToInnerMessages: true);
                     }
 
                     //Important to set this AFTER we save the holon so its not persited! ;-)
                     currentWeb3NFT.MetaData["{{{newnft}}}"] = "true";
-
-                    //Default to Mongo for storing the OASIS NFT meta data if none is specified.
-                    if (metaDataProviderType.Value == ProviderType.None)
-                        metaDataProviderType.Value = ProviderType.MongoDBOASIS;
 
                     //Check if this is the last Web3 NFT to mint. If so then we can save the Holon otherwise we wait till the final one to save.
                     if (isLastWeb3NFT)
@@ -4022,18 +4026,23 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             if (saveHolonResult != null && saveHolonResult.Result != null && !saveHolonResult.IsError)
                             {
-                                result.IsError = result.SavedCount == 0;
+                                LoggingManager.Log($"[NFTManager] Web4 NFT holon saved successfully. Id: {saveHolonResult.Result.Id}, Provider: {metaDataProviderType.Name}", LogType.Info);
+                                // Preserve any prior IsError/IsWarning from Web3 holon saves — don't reset to false.
+                                result.IsError = result.IsError || result.SavedCount == 0;
                                 result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                             else
                             {
-                                result.Result = null;
-                                OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult.Message}");
+                                // Non-fatal: Web3 NFTs minted OK but Web4 holon failed — log as warning to preserve batch results.
+                                OASISErrorHandling.HandleWarning(ref result, $"{errorMessage} Error occured saving the WEB4 NFT metadata holon to the {metaDataProviderType.Name} {Enum.GetName(typeof(ProviderType), metaDataProviderType.Value)}. Reason: {saveHolonResult?.Message}", onlyLogToInnerMessages: true);
+                                result.IsError = result.IsError || result.SavedCount == 0;
+                                result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                             }
                         }
                         else
                         {
-                            result.IsError = result.SavedCount == 0;
+                            // Nothing was minted — preserve any accumulated errors and mark as error.
+                            result.IsError = result.IsError || result.SavedCount == 0;
                             result.Message = FormatSuccessMessage(mergedRequest, result, metaDataProviderType, newlyMintedNFTs, responseFormatType);
                         }
 

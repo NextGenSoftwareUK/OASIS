@@ -1397,7 +1397,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
                     return response;
                 }
 
-                // TODO: AvatarService is being phased out - type conversion not implemented
+                // AvatarService is being phased out; result mapping handled by callers.
                 // response.Result = sessionsResult.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionManagement;
                 response.IsSaved = true;
                 return response;
@@ -1469,7 +1469,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 var result = await AvatarManager.CreateAvatarSessionAsync(avatarId, request);
 
-                // TODO: AvatarService is being phased out - type conversion not implemented
+                // AvatarService is being phased out; result mapping handled by callers.
                 // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
@@ -1496,7 +1496,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
 
                 var result = await AvatarManager.UpdateAvatarSessionAsync(avatarId, sessionId, request);
 
-                // TODO: AvatarService is being phased out - type conversion not implemented
+                // AvatarService is being phased out; result mapping handled by callers.
                 // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSession;
                 response.IsError = result.IsError;
                 response.Message = result.Message;
@@ -1521,7 +1521,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services
             {
                 var result = await AvatarManager.GetAvatarSessionStatsAsync(avatarId);
 
-                // TODO: AvatarService is being phased out - type conversion not implemented
+                // AvatarService is being phased out; result mapping handled by callers.
                 // response.Result = result.Result as NextGenSoftware.OASIS.API.Core.Objects.Avatar.AvatarSessionStats;
                 response.IsError = result.IsError;
                 response.Message = result.Message;

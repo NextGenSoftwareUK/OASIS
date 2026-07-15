@@ -23,8 +23,8 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
 	  <Version>2.0.1</Version>

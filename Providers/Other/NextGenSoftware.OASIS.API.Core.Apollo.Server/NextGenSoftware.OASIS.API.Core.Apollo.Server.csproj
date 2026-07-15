@@ -40,13 +40,13 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
 	  <RepositoryType>git</RepositoryType>
-	  <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-	  <Copyright>Copyright © NextGen Software Ltd 2022</Copyright>
+	  <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	  <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-	  <Version>2.0.0</Version>
+	  <Version>2.0.1</Version>
 	  <!--<PackageLicenseFile>..\LICENSE</PackageLicenseFile>-->
 
 	  <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>

@@ -3838,23 +3838,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedUniverse = universeResult.Result;
 
-            // 2. Create GalaxyCluster if requested
+            // 2–3. Auto-create child GalaxyCluster / Galaxy if requested.
+            // Concrete STAR types (GalaxyCluster, Galaxy, etc.) live in the STAR SDK which cannot
+            // be referenced from ONODE.Core without a circular dependency.  Callers that need
+            // default children should construct those objects themselves and pass them to
+            // AddGalaxyClusterAsync / AddGalaxyAsync after this call.
             if (createGalaxyCluster)
-            {
-                // This would need to create a GalaxyCluster - for now, placeholder
-                // TODO: Implement using STAR.LightAsync or create GalaxyCluster instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "GalaxyCluster auto-creation skipped: pass an IGalaxyCluster instance to AddGalaxyClusterAsync.";
 
-            // 3. Create Galaxy if requested
             if (createGalaxy)
-            {
-                // This would need to create a Galaxy - for now, placeholder
-                // TODO: Implement using STAR.LightAsync or create Galaxy instance
-            }
-
-            // Continue with full hierarchy...
-            // Note: Full implementation would require creating concrete instances of each type
-            // and calling the appropriate Add*Async methods
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Galaxy auto-creation skipped: pass an IGalaxy instance to AddGalaxyAsync.";
 
             result.Result = persistedUniverse;
             return result;
@@ -3887,12 +3882,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedMultiverse = multiverseResult.Result;
 
-            // 2. Create Universe with children if requested
+            // Auto-create child Universe if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an IUniverse
+            // and pass it to CreateUniverseWithChildrenAsync / AddUniverseAsync after this call.
             if (createUniverse)
-            {
-                // This would recursively call CreateUniverseWithChildrenAsync
-                // TODO: Implement using STAR.LightAsync or create Universe instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Universe auto-creation skipped: pass an IUniverse instance to AddUniverseAsync or CreateUniverseWithChildrenAsync.";
 
             result.Result = persistedMultiverse;
             return result;
@@ -3922,12 +3917,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedGalaxy = galaxyResult.Result;
 
-            // 2. Create SolarSystem with children if requested
+            // Auto-create child SolarSystem if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an ISolarSystem
+            // and pass it to CreateSolarSystemWithChildrenAsync / AddSolarSystemAsync after this call.
             if (createSolarSystem)
-            {
-                // This would call CreateSolarSystemWithChildrenAsync
-                // TODO: Implement using STAR.LightAsync or create SolarSystem instance
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "SolarSystem auto-creation skipped: pass an ISolarSystem instance to AddSolarSystemAsync or CreateSolarSystemWithChildrenAsync.";
 
             result.Result = persistedGalaxy;
             return result;
@@ -3959,12 +3954,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedSolarSystem = solarSystemResult.Result;
 
-            // 2. Create Planet with Moon if requested
+            // Auto-create child Planet / Moon if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct an IPlanet/IMoon
+            // and pass them to AddPlanetAsync / AddMoonAsync after this call.
             if (createPlanet)
-            {
-                // This would create a Planet and optionally a Moon
-                // TODO: Implement using STAR.LightAsync or create Planet/Moon instances
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    "Planet auto-creation skipped: pass an IPlanet instance to AddPlanetAsync.";
 
             result.Result = persistedSolarSystem;
             return result;
@@ -3992,15 +3987,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
             var persistedPlanet = planetResult.Result;
 
-            // 2. Create Moons if requested
+            // Auto-create child Moons if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct IMoon instances
+            // and pass them to AddMoonAsync after this call.
             if (createMoon && numberOfMoons > 0)
-            {
-                for (int i = 0; i < numberOfMoons; i++)
-                {
-                    // This would create Moon instances
-                    // TODO: Implement using STAR.LightAsync or create Moon instance
-                }
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    $"Moon auto-creation skipped ({numberOfMoons} requested): pass IMoon instances to AddMoonAsync.";
 
             result.Result = persistedPlanet;
             return result;
@@ -4031,15 +4023,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                 return result;
             }
 
-            // 2. Create Planets with Moons if requested
+            // Auto-create child Planets / Moons if requested.
+            // Concrete STAR types live in the STAR SDK; callers should construct IPlanet/IMoon
+            // instances and pass them to AddPlanetAsync / AddMoonAsync after this call.
             if (createPlanet && numberOfPlanets > 0)
-            {
-                for (int i = 0; i < numberOfPlanets; i++)
-                {
-                    // This would create Planet instances and optionally Moons
-                    // TODO: Implement using STAR.LightAsync or create Planet/Moon instances
-                }
-            }
+                result.Message += (result.Message?.Length > 0 ? " " : "") +
+                    $"Planet auto-creation skipped ({numberOfPlanets} requested): pass IPlanet instances to AddPlanetAsync.";
 
             result.Result = star;
             return result;

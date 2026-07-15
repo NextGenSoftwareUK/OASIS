@@ -14,8 +14,8 @@
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API ZkSync OASIS Provider</Product>
     <Title>WEB4 OASIS API ZkSync OASIS Provider</Title>
-    <Summary>zkSync Era EVM-compatible L2 provider for OASIS</Summary>
-    <Description>zkSync Era EVM-compatible L2 provider for OASIS</Description>
+    <Summary>zkSync OASIS Provider -- ZK rollup with native account abstraction, ZK-proven state, near-zero fees for OASIS holons and avatars. https://oasisomniverse.one</Summary>
+    <Description>Connects the OASIS to zkSync Era -- ZK rollup scaling Ethereum with SNARK validity proofs, native account abstraction, and near-zero fees. Stores OASIS holons, avatars, and NFTs with Ethereum-level security. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one</Description>
     <PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
     <PackageIcon>OASIS.jpg</PackageIcon>
     <Authors>NextGen Software Ltd</Authors>
@@ -32,11 +32,11 @@
 - Many misc improvements.
 - Multiple bug fixes.</PackageReleaseNotes>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://oasisomniverse.one</RepositoryUrl>
-    <Copyright>Copyright © NextGen Software Ltd 2025</Copyright>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+    <Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>2.0.0</Version>
+    <Version>2.0.1</Version>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
 

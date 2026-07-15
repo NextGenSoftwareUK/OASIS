@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -876,25 +878,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement actual key retrieval logic
-                var keys = new List<KeyInfo>();
-                
-                var result = new OASISResult<List<KeyInfo>>
-                {
-                    Result = keys,
-                    IsError = false,
-                    Message = "Keys retrieved successfully"
-                };
-                return result;
+                var holonsResult = await HolonManager.Instance.LoadHolonsForParentAsync(AvatarId);
+                if (holonsResult.IsError)
+                    return new OASISResult<List<KeyInfo>> { IsError = true, Message = holonsResult.Message };
+
+                var keys = (holonsResult.Result ?? Enumerable.Empty<IHolon>())
+                    .Where(h => h.MetaData != null && h.MetaData.ContainsKey("oasisKeyRecord"))
+                    .Select(h => new KeyInfo
+                    {
+                        Id = h.Id,
+                        Name = h.Name,
+                        Type = h.MetaData.ContainsKey("keyType") ? h.MetaData["keyType"]?.ToString() : null,
+                        CreatedAt = h.CreatedDate,
+                        UpdatedAt = h.ModifiedDate == DateTime.MinValue ? (DateTime?)null : h.ModifiedDate,
+                        IsActive = h.IsActive
+                    }).ToList();
+
+                return new OASISResult<List<KeyInfo>> { Result = keys, IsError = false, Message = "Keys retrieved successfully" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<List<KeyInfo>>
-                {
-                    IsError = true,
-                    Message = $"Error retrieving keys: {ex.Message}",
-                    Exception = ex
-                };
+                return new OASISResult<List<KeyInfo>> { IsError = true, Message = $"Error retrieving keys: {ex.Message}", Exception = ex };
             }
         }
 
@@ -911,32 +915,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
-                // TODO: Implement actual key creation logic
+                var holon = new Holon
+                {
+                    Name = keyRequest.Name,
+                    ParentHolonId = AvatarId,
+                    IsActive = true,
+                    MetaData = new Dictionary<string, object>
+                    {
+                        ["oasisKeyRecord"] = true,
+                        ["keyType"] = keyRequest.Type
+                    }
+                };
+                var saveResult = await HolonManager.Instance.SaveHolonAsync(holon, AvatarId);
+                if (saveResult.IsError)
+                    return new OASISResult<KeyInfo> { IsError = true, Message = saveResult.Message };
+
                 var keyInfo = new KeyInfo
                 {
-                    Id = Guid.NewGuid(),
-                    Name = keyRequest.Name,
+                    Id = saveResult.Result.Id,
+                    Name = saveResult.Result.Name,
                     Type = keyRequest.Type,
-                    CreatedAt = DateTime.UtcNow,
+                    CreatedAt = saveResult.Result.CreatedDate,
                     IsActive = true
                 };
-
-                var result = new OASISResult<KeyInfo>
-                {
-                    Result = keyInfo,
-                    IsError = false,
-                    Message = "Key created successfully"
-                };
-                return result;
+                return new OASISResult<KeyInfo> { Result = keyInfo, IsError = false, Message = "Key created successfully" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<KeyInfo>
-                {
-                    IsError = true,
-                    Message = $"Error creating key: {ex.Message}",
-                    Exception = ex
-                };
+                return new OASISResult<KeyInfo> { IsError = true, Message = $"Error creating key: {ex.Message}", Exception = ex };
             }
         }
 
@@ -954,31 +960,34 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return new OASISResult<KeyInfo> { IsError = true, Message = "The request body is required. Please provide a valid JSON body with Name and Type." };
             try
             {
-                // TODO: Implement actual key update logic
+                var loadResult = await HolonManager.Instance.LoadHolonAsync(keyId);
+                if (loadResult.IsError || loadResult.Result == null)
+                    return new OASISResult<KeyInfo> { IsError = true, Message = loadResult.IsError ? loadResult.Message : "Key not found." };
+
+                var holon = loadResult.Result;
+                holon.Name = keyRequest.Name;
+                if (holon.MetaData == null) holon.MetaData = new Dictionary<string, object>();
+                holon.MetaData["keyType"] = keyRequest.Type;
+                holon.MetaData["oasisKeyRecord"] = true;
+
+                var saveResult = await HolonManager.Instance.SaveHolonAsync(holon, AvatarId);
+                if (saveResult.IsError)
+                    return new OASISResult<KeyInfo> { IsError = true, Message = saveResult.Message };
+
                 var keyInfo = new KeyInfo
                 {
-                    Id = keyId,
-                    Name = keyRequest.Name,
+                    Id = saveResult.Result.Id,
+                    Name = saveResult.Result.Name,
                     Type = keyRequest.Type,
-                    UpdatedAt = DateTime.UtcNow
+                    CreatedAt = saveResult.Result.CreatedDate,
+                    UpdatedAt = saveResult.Result.ModifiedDate == DateTime.MinValue ? (DateTime?)null : saveResult.Result.ModifiedDate,
+                    IsActive = saveResult.Result.IsActive
                 };
-
-                var result = new OASISResult<KeyInfo>
-                {
-                    Result = keyInfo,
-                    IsError = false,
-                    Message = "Key updated successfully"
-                };
-                return result;
+                return new OASISResult<KeyInfo> { Result = keyInfo, IsError = false, Message = "Key updated successfully" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<KeyInfo>
-                {
-                    IsError = true,
-                    Message = $"Error updating key: {ex.Message}",
-                    Exception = ex
-                };
+                return new OASISResult<KeyInfo> { IsError = true, Message = $"Error updating key: {ex.Message}", Exception = ex };
             }
         }
 
@@ -993,23 +1002,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement actual key deletion logic
-                var result = new OASISResult<bool>
-                {
-                    Result = true,
-                    IsError = false,
-                    Message = "Key deleted successfully"
-                };
-                return result;
+                var deleteResult = await HolonManager.Instance.DeleteHolonAsync(keyId, AvatarId);
+                if (deleteResult.IsError)
+                    return new OASISResult<bool> { IsError = true, Message = deleteResult.Message };
+
+                return new OASISResult<bool> { Result = true, IsError = false, Message = "Key deleted successfully" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<bool>
-                {
-                    IsError = true,
-                    Message = $"Error deleting key: {ex.Message}",
-                    Exception = ex
-                };
+                return new OASISResult<bool> { IsError = true, Message = $"Error deleting key: {ex.Message}", Exception = ex };
             }
         }
 
@@ -1023,22 +1024,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             try
             {
-                // TODO: Implement actual key statistics logic
+                var holonsResult = await HolonManager.Instance.LoadHolonsForParentAsync(AvatarId);
+                if (holonsResult.IsError)
+                    return new OASISResult<Dictionary<string, object>> { IsError = true, Message = holonsResult.Message };
+
+                var keyHolons = (holonsResult.Result ?? Enumerable.Empty<IHolon>())
+                    .Where(h => h.MetaData != null && h.MetaData.ContainsKey("oasisKeyRecord")).ToList();
+
+                var keyTypeGroups = keyHolons
+                    .GroupBy(h => h.MetaData.ContainsKey("keyType") ? h.MetaData["keyType"]?.ToString() ?? "Unknown" : "Unknown")
+                    .ToDictionary(g => g.Key, g => g.Count());
+
                 var stats = new Dictionary<string, object>
                 {
-                    ["totalKeys"] = 0,
-                    ["activeKeys"] = 0,
-                    ["inactiveKeys"] = 0,
-                    ["keyTypes"] = new Dictionary<string, int>()
+                    ["totalKeys"] = keyHolons.Count,
+                    ["activeKeys"] = keyHolons.Count(h => h.IsActive),
+                    ["inactiveKeys"] = keyHolons.Count(h => !h.IsActive),
+                    ["keyTypes"] = keyTypeGroups
                 };
 
-                var result = new OASISResult<Dictionary<string, object>>
-                {
-                    Result = stats,
-                    IsError = false,
-                    Message = "Key statistics retrieved successfully"
-                };
-                return result;
+                return new OASISResult<Dictionary<string, object>> { Result = stats, IsError = false, Message = "Key statistics retrieved successfully" };
             }
             catch (Exception ex)
             {
