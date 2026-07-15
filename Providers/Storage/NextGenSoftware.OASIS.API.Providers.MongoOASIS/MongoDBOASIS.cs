@@ -117,15 +117,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                // Properly dispose MongoDB resources
-                if (Database != null)
-                {
-                    Database.MongoDB = null;
-                    Database.MongoClient = null;
-                    Database = null;
-                }
-                
-                // Dispose repositories
+                Database = null;
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
@@ -176,15 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             try
             {
-                // Properly dispose MongoDB resources
-                if (Database != null)
-                {
-                    Database.MongoDB = null;
-                    Database.MongoClient = null;
-                    Database = null;
-                }
-                
-                // Dispose repositories
+                Database = null;
                 _avatarRepository = null;
                 _holonRepository = null;
                 _searchRepository = null;
