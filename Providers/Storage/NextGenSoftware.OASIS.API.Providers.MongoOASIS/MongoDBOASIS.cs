@@ -352,6 +352,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
+            if (_avatarRepository == null)
+                return new OASISResult<IAvatarDetail> { IsError = true, Message = "MongoDBOASIS provider is not fully initialised (avatarRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry." };
+
             return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.GetAvatarDetailAsync(id));
         }
 
@@ -567,6 +570,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             //return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetHolonsByMetaData(metaKey, metaValue, type), loadChildrenFromProvider));
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (_holonRepository == null)
+            {
+                result.IsError = true;
+                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
+                return result;
+            }
+
             OASISResult<IEnumerable<Holon>> repoResult = _holonRepository.GetHolonsByMetaData(metaKey, metaValue, type);
 
             if (repoResult.IsError)
@@ -583,6 +594,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+
+            if (_holonRepository == null)
+            {
+                result.IsError = true;
+                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
+                return result;
+            }
+
             OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKey, metaValue, type);
 
             if (repoResult.IsError)
