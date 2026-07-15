@@ -23,6 +23,28 @@
 - **ONODE WebAPI TestHarness `Program.cs`**: replaced "Hello World" stub with full HTTP harness covering all ONODE and ONET endpoints; set `ONODE_BASE_URL` env var to point at any running instance
 - Core unit test csproj: added FluentAssertions, fixed project reference paths
 
+### Phase 5 — Hardening (commit 7e9e12bce)
+- **Thread-safe peer tracking**: `_connectedNodes` changed to `ConcurrentDictionary<string, ONETNode>`
+- **HttpClient timeout**: reduced 15s → 5s; max cold-path with 3 retries now ~21s not 45s+
+- **TcpPort wired from DNA**: `ONETProtocol.ListenPort` now reads `ONETConfig.TcpPort`
+- **`RestartNodeAsync` graceful**: skips `StopNodeAsync` when node is already stopped
+- **API key auth**: `POST /onet/nodes/register` checks `X-ONET-API-Key` vs `ONETConfig.ONETApiKey`
+- **`AutoRegisterOnBootstrap: false`** default in `OASIS_DNA.json` — no spurious bootstrap POSTs on new installs
+- **GitHub Actions CI**: `.github/workflows/onet-onode-tests.yml` — triggers on ONODE/DNA path changes; runs unit + integration + WebAPI unit tests
+
+### Phase 6 — CVE fix, peer persistence, auth tests (commit cfb81852f)
+- **SQLite CVE cleared**: `SQLitePCLRaw.lib.e_sqlite3` bumped 2.1.11 → 2.1.12 (GHSA-2m69-gcr7-jv3q HIGH)
+- **Peer persistence**: `PersistPeers()` / `LoadPersistedPeers()` — saves to `onet-peers.json` on stop, restores on start; warm restart with no rediscovery delay
+- **`GetOASISDNAAsync` and `RegisterNodePublicKey` made `virtual`** — enables test subclass overrides
+- **`protected ONETManager(OASISDNA?)` constructor** — test subclasses avoid full network init chain
+- **7 API key auth unit tests**: `ONETControllerRegisterNodeTests` — open, correct key, wrong key, missing header, null/empty body
+
+### Phase 7 — Controller lifecycle tests, two-manager demo, CPU fix (current)
+- **CPU metric seeded at startup**: `_lastCpuSample`/`_lastCpuTime` set in `StartNodeAsync` so first `GetNodeMetricsAsync` returns a real delta not 0
+- **Two-ONETManager discovery demo**: `RunONETTwoManagerDiscoveryAsync` in Core TestHarness — two in-process ONETManagers connect, broadcast, and report stats
+- **ONETController lifecycle tests** (9 tests in `ONETControllerLifecycleTests`): singleton caching, all GET/POST endpoints, null-body 400 cases
+- **ONODEController lifecycle tests** (12 tests in `ONODEControllerLifecycleTests`): singleton caching, all lifecycle endpoints, start/stop/restart, null-body 400 cases
+
 ### Phase 4 — Improvements (commit b7d4cca15)
 - **Bootstrap retry**: 3 attempts with 2s→4s→8s exponential backoff in `RegisterWithBootstrapServersAsync`
 - **Real CPU %**: `GetNodeMetricsAsync` now computes `ΔTotalProcessorTime / (Δwall × ProcessorCount) × 100` instead of hardcoded 0
@@ -66,13 +88,11 @@ STAR ODK/NextGenSoftware.OASIS.STAR.CLI/Program.cs
 ## Outstanding / TODO
 
 ### Requires Your Action
-- **System DNA key bytes** — `DNALoader.cs` still has placeholder zero bytes. Run the DNA Generator (System mode → option 2), paste the byte arrays in, rebuild OASIS-Security, then generate `OASIS_DNA_SYSTEM.json`. Until done, system DNA is not secure in production.
+- **System DNA key bytes** — `DNALoader` (external project, not in this repo) still has placeholder zero bytes. Run the DNA Generator (System mode → option 2), paste the byte arrays in, rebuild OASIS-Security, then generate `OASIS_DNA_SYSTEM.json`. Until done, system DNA is not secure in production.
 
 ### Future Work
 - **HoloNET mode live test** — `NetworkType = "HoloNET"` path is wired and has a test harness scenario but needs a live Holochain conductor to exercise end-to-end. Run `Providers/Network/TestProjects/HoloOASIS.TestHarness` against a running conductor to verify.
-- **WebAPI controller unit tests** — `ONETController` and `ONODEController` have no controller-level unit tests yet (the existing `ONODEWebAPIUnitTests.cs` only tests `ONODEWebAPI` class property stubs). Add `Microsoft.AspNetCore.Mvc.Testing`-based tests for the `RegisterNode` endpoint and singleton behaviour.
-- **Live multi-node ONET test** — two real ONODE instances haven't been exercised end-to-end yet. The ONODE Core TestHarness already has a two-node PING/PONG TCP demo; extend it to test bootstrap discovery between two processes.
-- **CPU metric on first call** — `CpuUsage` returns 0 on the first `GetNodeMetricsAsync` call (no prior sample). Could seed the first sample at node start time if a non-zero baseline is needed immediately.
+- **Live multi-ONODE test across processes** — the in-process two-manager demo in `RunONETTwoManagerDiscoveryAsync` exercises the manager layer. A true cross-process test (two separate ONODE WebAPI processes talking to each other via the bootstrap server) still hasn't been done.
 
 ---
 
