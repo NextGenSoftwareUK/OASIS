@@ -3904,7 +3904,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
 
                             if (!string.IsNullOrEmpty(mintErrorMessage))
                             {
-                                OASISErrorHandling.HandleError(ref result, mintErrorMessage);
+                                OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
 
                                 if (!mergedRequest.WaitTillNFTSent)
                                 {
@@ -3921,7 +3921,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.Managers
                             {
                                 mintErrorMessage = $"{mintErrorMessage}Timeout expired, WaitForNFTToSendInSeconds ({mergedRequest.WaitForNFTToSendInSeconds}) exceeded, try increasing and trying again!";
                                 currentWeb3NFT.SendNFTTransactionHash = mintErrorMessage;
-                                OASISErrorHandling.HandleError(ref result, mintErrorMessage);
+                                OASISErrorHandling.HandleWarning(ref result, mintErrorMessage, onlyLogToInnerMessages: true);
                                 break;
                             }
 
