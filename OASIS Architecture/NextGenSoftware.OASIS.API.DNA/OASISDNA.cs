@@ -98,6 +98,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public FAHRNSettings FAHRN { get; set; } = new FAHRNSettings();
         public HolonicBraidSettings HolonicBraid { get; set; } = new HolonicBraidSettings();
         public HolonicMemorySettings HolonicMemory { get; set; } = new HolonicMemorySettings();
+        public LeelaAISettings LeelaAI { get; set; } = new LeelaAISettings();
 
         /// <summary>
         /// AI provider API keys. Environment variables always take priority (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
@@ -161,6 +162,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string StabilityAI { get; set; } = "";
         /// <summary>OpenServ SERV gateway key — reaches OpenAI, Anthropic, Google, xAI, Qwen, DeepSeek behind one key.</summary>
         public string OpenServ { get; set; } = "";
+        /// <summary>Leela AI API key. Env var LEELA_API_KEY takes priority.</summary>
+        public string LeelaAI { get; set; } = "";
+    }
+
+    /// <summary>Settings for Leela AI — spiritual intelligence / karmic-pattern reasoning provider.</summary>
+    public class LeelaAISettings
+    {
+        /// <summary>Leela AI Lambda endpoint. Env var LEELA_BASE_URL takes priority.</summary>
+        public string BaseUrl { get; set; } = "https://namozyqyvwf62hqxpzujt7e5hq0njhge.lambda-url.eu-west-1.on.aws/";
     }
 
     /// <summary>
