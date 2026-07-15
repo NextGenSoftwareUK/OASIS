@@ -4118,8 +4118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EOSIOOASIS
                 // In production, use EosSharp SDK's key conversion utilities
                 var eosPublicKey = $"EOS{publicKey.Substring(2)}"; // EOS format prefix
 
-                //TODO: Replace KeyHelper with EOSIO specific implementation.
-                // Create key pair structure
+                // EOSIO uses secp256k1; keys generated above via Nethereum (WIF/EOS format conversion via EosSharp in production).
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)
                 {

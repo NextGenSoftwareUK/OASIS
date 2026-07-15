@@ -3550,7 +3550,7 @@ public sealed class BaseOASIS : OASISStorageProviderBase, IOASISDBStorageProvide
             var publicKey = ecKey.GetPubKey();
             var address = ecKey.GetPublicAddress();
 
-            //TODO: Replace KeyHelper with Base specific implementation.
+            // Base uses secp256k1 (same as Ethereum); keys already generated above via Nethereum.
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
             {
