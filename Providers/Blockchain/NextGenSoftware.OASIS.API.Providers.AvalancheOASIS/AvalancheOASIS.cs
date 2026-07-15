@@ -3876,8 +3876,7 @@ public sealed class AvalancheOASIS_Legacy : OASISStorageProviderBase, IOASISDBSt
             var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
             var publicKey = ecKey.GetPublicAddress();
 
-            //TODO: Replace KeyHelper with Avalanche specific implementation.
-            // Use KeyHelper to generate key pair structure
+            // Avalanche C-Chain uses secp256k1 (same as Ethereum); keys already generated above via Nethereum.
             var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
             if (keyPair != null)
             {

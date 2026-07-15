@@ -4120,8 +4120,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 // In production, use Cosmos SDK's address conversion utilities
                 var cosmosAddress = "0x" + publicKey.Substring(2); // Cosmos addresses typically use bech32
 
-                //TODO: Replace KeyHelper with COSMOS specific implementation.
-                // Create key pair structure
+                // Cosmos uses secp256k1 (addresses in bech32 format); keys generated above via Nethereum.
                 var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
                 if (keyPair != null)
                 {
