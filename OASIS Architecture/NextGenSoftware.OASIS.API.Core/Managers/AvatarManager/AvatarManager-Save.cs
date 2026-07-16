@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Logging;
+using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
 {
@@ -67,6 +68,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
+
+                // Hash the password if it hasn't been hashed yet (bcrypt hashes start with $2)
+                if (!string.IsNullOrEmpty(avatar.Password) && !avatar.Password.StartsWith("$2"))
+                    avatar.Password = BC.HashPassword(avatar.Password);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
