@@ -1301,7 +1301,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
-            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = BCrypt.Net.BCrypt.HashPassword(avatar.Password);
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
@@ -1361,7 +1361,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
-            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = BCrypt.Net.BCrypt.HashPassword(avatar.Password);
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
@@ -1417,7 +1417,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (!string.IsNullOrEmpty(avatar.LastName)) existingAvatar.LastName = avatar.LastName;
             if (!string.IsNullOrEmpty(avatar.Username)) existingAvatar.Username = avatar.Username;
             if (!string.IsNullOrEmpty(avatar.Email)) existingAvatar.Email = avatar.Email;
-            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = avatar.Password;
+            if (!string.IsNullOrEmpty(avatar.Password)) existingAvatar.Password = BCrypt.Net.BCrypt.HashPassword(avatar.Password);
             if (!string.IsNullOrEmpty(avatar.AvatarType) && Avatar.AvatarType.Value == AvatarType.Wizard)
             {
                 if (Enum.TryParse<AvatarType>(avatar.AvatarType, out var avatarType))
