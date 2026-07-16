@@ -476,19 +476,51 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [HttpPost("set-provider-config/{providerType}/{connectionString}")]
         public OASISResult<bool> SetProviderConfig(ProviderType providerType, string connectionString)
         {
-            //TODO: Test this works and then implement for rest of providers...
+            var dna = OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders;
             switch (providerType)
             {
                 case ProviderType.MongoDBOASIS:
-                    {
-                        OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.StorageProviders.MongoDBOASIS.ConnectionString = connectionString;
-
-                        ProviderManager.Instance.DeActivateProvider(ProviderType.MongoDBOASIS);
-                        ProviderManager.Instance.UnRegisterProvider(ProviderType.MongoDBOASIS);
-                    }
+                    dna.MongoDBOASIS.ConnectionString = connectionString;
                     break;
+                case ProviderType.SQLLiteDBOASIS:
+                    dna.SQLLiteDBOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.Neo4jOASIS:
+                    dna.Neo4jOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.IPFSOASIS:
+                    dna.IPFSOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.PinataOASIS:
+                    dna.PinataOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.EthereumOASIS:
+                    dna.EthereumOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.ArbitrumOASIS:
+                    dna.ArbitrumOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.RootstockOASIS:
+                    dna.RootstockOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.PolygonOASIS:
+                    dna.PolygonOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.SolanaOASIS:
+                    dna.SolanaOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.EOSIOOASIS:
+                    dna.EOSIOOASIS.ConnectionString = connectionString;
+                    break;
+                case ProviderType.ThreeFoldOASIS:
+                    dna.ThreeFoldOASIS.ConnectionString = connectionString;
+                    break;
+                default:
+                    return new OASISResult<bool>(false) { IsError = true, Message = $"SetProviderConfig does not support provider type {providerType}." };
             }
 
+            ProviderManager.Instance.DeActivateProvider(providerType);
+            ProviderManager.Instance.UnRegisterProvider(providerType);
             return new(true);
         }
     }
