@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Drawing;
 using System.Diagnostics;
@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.ONODE.Client;
 using NextGenSoftware.CLI.Engine;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -56,7 +57,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
 
         private static async Task<bool> TryBootBeamInAsync(StarCliInvocation inv, string beamUser, string beamPass)
         {
-            // Same skip list as STAR_CLI_NonInteractive.md — do not require avatar for these verbs (interactive or -n).
+            // Same skip list as STAR_CLI_NonInteractive.md â€” do not require avatar for these verbs (interactive or -n).
             bool skipBeamIn = _args.Length > 0 && StarCliInvocation.CommandSkipsAvatarBeamIn(_args[0]);
             if (skipBeamIn)
                 return true;
@@ -4375,1342 +4376,357 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
+        // ─── ONODE Commands ────────────────────────────────────────────────────────
+        // All onode commands route through ONODEService supervisor API (127.0.0.1:8765).
+        // Falls back to direct process spawn if supervisor is not installed/running.
+
         private static async Task ShowONODEMenuAsync(string[] inputArgs)
         {
-            if (inputArgs.Length > 1)
+            if (inputArgs.Length <= 1)
             {
-                switch (inputArgs[1].ToLower())
-                {
-                    case "start":
-                        {
-                            if (inputArgs.Length > 2)
-                            {
-                                switch (inputArgs[2].ToLower())
-                                {
-                                    case "web4":
-                                        await StartWeb4APIAsync();
-                                        break;
-
-                                    case "web5":
-                                        await StartWeb5APIAsync();
-                                        break;
-
-                                    default:
-                                        CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to start the respective OASIS API ONODE in a new window.");
-                                        break;
-                                }
-
-                                //default:
-                                //    await StartONODEAsync();
-                                //    break;
-                            }
-                            else
-                            {
-                                //await StartONODEAsync();
-                                CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to start the respective OASIS API ONODE in a new window.");
-                            }
-                        }
-                        break;
-
-                    case "stop":
-                        {
-                            if (inputArgs.Length > 2)
-                            {
-                                switch (inputArgs[2].ToLower())
-                                {
-                                    case "web4":
-                                        await StopWeb4APIAsync();
-                                        break;
-
-                                    case "web5":
-                                        await StopWeb5APIAsync();
-                                        break;
-
-                                    default:
-                                        CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to stop the respective OASIS API ONODE in a new window.");
-                                        break;
-
-                                    //default:
-                                    //    await StopONODEAsync();
-                                    //    break;
-                                }
-                            }
-                            else
-                                CLIEngine.ShowWarningMessage("Please specify [web4] or [web5] to stop the respective OASIS API ONODE in a new window.");
-
-                            //else
-                            //{
-                            //    await StopONODEAsync();
-                            //}
-                        }
-                        break;
-
-                    case "status":
-                        {
-                            await ShowONODEStatusAsync();
-                        }
-                        break;
-
-                    case "config":
-                        {
-                            if (inputArgs.Length > 2)
-                            {
-                                switch (inputArgs[2].ToLower())
-                                {
-                                    case "web4":
-                                        await OpenONODEConfigAsync();
-                                        break;
-
-                                    case "web5":
-                                        await OpenONODEWeb5ConfigAsync();
-                                        break;
-
-                                    default:
-                                        await OpenONODEConfigAsync();
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                await OpenONODEConfigAsync();
-                            }
-                        }
-                        break;
-
-                    case "providers":
-                        {
-                            await ShowONODEProvidersAsync();
-                        }
-                        break;
-
-                    case "startprovider":
-                        {
-                            if (inputArgs.Length > 2)
-                                await StartONODEProviderAsync(inputArgs[2]);
-                            else
-                                CLIEngine.ShowErrorMessage("Please specify provider name: startprovider {ProviderName}");
-                        }
-                        break;
-
-                    case "stopprovider":
-                        {
-                            if (inputArgs.Length > 2)
-                                await StopONODEProviderAsync(inputArgs[2]);
-                            else
-                                CLIEngine.ShowErrorMessage("Please specify provider name: stopprovider {ProviderName}");
-                        }
-                        break;
-
-                    default:
-                        CLIEngine.ShowErrorMessage("Command Unknown.");
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage($"ONODE SUBCOMMANDS:", ConsoleColor.Green);
-                Console.WriteLine("");
-                CLIEngine.ShowMessage("    start          [web4] [web5]   Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop           [web4] [web5]   Stops a OASIS Node (ONODE).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    status                         Shows stats for this ONODE.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    config         [web4] [web5]   Opens the ONODE's OASISDNA.json or STARNDNA.json file to allow changes to be made (you will need to stop and start the ONODE for changes to apply).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    providers                      Shows what OASIS Providers are running for this ONODE.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    startprovider  {ProviderName}  Starts a given provider.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stopprovider   {ProviderName}  Stops a given provider.", ConsoleColor.Green, false);
-
-                CLIEngine.ShowMessage("NOTES:", ConsoleColor.Green);
-                CLIEngine.ShowMessage("For the start and stop sub-commands, if you specify [web4] it will start/stop a local WEB4 OASIS API ONODE (HTTP REST Service), if you specify [web5] it will start/stop a local WEB5 STAR API ONODE (HTTP REST Service). Otherwise by default it will start the expirmental (beta) OASIS P2P ONET Service and then register the new ONODE on it. For now it is recommended you use the REST HTTP Services.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("For the config sub-command, if you specify [web4] (defaults to if none given) it will open the OASISDNA.json to allow OASIS settings to be configured, for [web5] it will open the STARNDA.json file to allow STAR settings to be configured.", ConsoleColor.Green);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
-            }
-        }
-
-        private static async Task ShowHyperNETSubCommandAsync(string[] inputArgs)
-        {
-            if (inputArgs.Length > 1)
-            {
-                switch (inputArgs[1].ToLower())
-                {
-                    case "start":
-                        {
-                            CLIEngine.ShowMessage("Coming Soon...");
-                        }
-                        break;
-
-                    case "stop":
-                        {
-                            CLIEngine.ShowMessage("Coming Soon...");
-                        }
-                        break;
-
-                    case "status":
-                        {
-                            CLIEngine.ShowMessage("Coming Soon...");
-                        }
-                        break;
-
-                    case "config":
-                        {
-                            CLIEngine.ShowMessage("Coming Soon...");
-                        }
-                        break;
-
-                    default:
-                        CLIEngine.ShowErrorMessage("Command Unknown.");
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage($"HOLONET P2P HYPERNET SUBCOMMANDS:", ConsoleColor.Green);
-                Console.WriteLine("");
-                CLIEngine.ShowMessage("    start   Starts the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    stop    Stops the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    status  Shows stats for the HoloNET P2P HyperNET Service.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    config  Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
-            }
-        }
-
-        private static async Task ShowONETSubCommandAsync(string[] inputArgs)
-        {
-            if (inputArgs.Length > 1)
-            {
-                switch (inputArgs[1].ToLower())
-                {
-                    case "start":
-                        {
-                            if (inputArgs.Length > 2)
-                            {
-                                switch (inputArgs[2].ToLower())
-                                {
-                                    case "web4":
-                                        await StartWeb4APIAsync();
-                                        break;
-                                    case "web5":
-                                        await StartWeb5APIAsync();
-                                        break;
-                                    default:
-                                        await StartONODEAsync();
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                await StartONODEAsync();
-                            }
-                        }
-                        break;
-
-                    case "stop":
-                        {
-                            if (inputArgs.Length > 2)
-                            {
-                                switch (inputArgs[2].ToLower())
-                                {
-                                    case "web4":
-                                        await StopWeb4APIAsync();
-                                        break;
-                                    case "web5":
-                                        await StopWeb5APIAsync();
-                                        break;
-                                    default:
-                                        await StopONODEAsync();
-                                        break;
-                                }
-                            }
-                            else
-                            {
-                                await StopONODEAsync();
-                            }
-                        }
-                        break;
-
-                    case "status":
-                        {
-                            await ShowONETStatusAsync();
-                        }
-                        break;
-
-                    case "providers":
-                        {
-                            await ShowONETProvidersAsync();
-                        }
-                        break;
-
-                    case "discover":
-                        {
-                            await DiscoverONETNodesAsync();
-                        }
-                        break;
-
-                    case "connect":
-                        {
-                            if (inputArgs.Length > 2)
-                                await ConnectToONETNodeAsync(inputArgs[2]);
-                            else
-                                CLIEngine.ShowErrorMessage("Please specify node address: connect {NodeAddress}");
-                        }
-                        break;
-
-                    case "disconnect":
-                        {
-                            if (inputArgs.Length > 2)
-                                await DisconnectFromONETNodeAsync(inputArgs[2]);
-                            else
-                                CLIEngine.ShowErrorMessage("Please specify node address: disconnect {NodeAddress}");
-                        }
-                        break;
-
-                    case "topology":
-                        {
-                            await ShowONETTopologyAsync();
-                        }
-                        break;
-
-                    default:
-                        CLIEngine.ShowErrorMessage("Command Unknown.");
-                        break;
-                }
-            }
-            else
-            {
-                Console.WriteLine("");
-                CLIEngine.ShowMessage($"ONET SUBCOMMANDS:", ConsoleColor.Green);
-                Console.WriteLine("");
-                //CLIEngine.ShowMessage("    start       Starts the ONET network.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    start web4  Starts WEB4 OASIS API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    start web5  Starts WEB5 STAR API REST WebAPI in a new window.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    stop        Stops the ONET network.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    stop web4   Stops WEB4 OASIS API REST WebAPI and closes the window.", ConsoleColor.Green, false);
-                //CLIEngine.ShowMessage("    stop web5   Stops WEB5 STAR API REST WebAPI and closes the window.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    status      Shows stats for the OASIS Network (ONET).", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    providers   Shows what OASIS Providers are running across the ONET and on what ONODE's.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    discover    Discovers available ONET nodes in the network.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    connect     Connects to a specific ONET node.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    disconnect  Disconnects from a specific ONET node.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("    topology    Shows the ONET network topology and connections.", ConsoleColor.Green, false);
-                CLIEngine.ShowMessage("More Coming Soon...", ConsoleColor.Green);
-            }
-        }
-
-        //TODO: Not sure what this is used for?! :)
-        private static void EnableOrDisableAutoProviderList(Func<bool, List<ProviderType>, bool> funct, bool isEnabled, List<ProviderType> providerTypes, string workingMessage, string successMessage, string errorMessage)
-        {
-            CLIEngine.ShowWorkingMessage(workingMessage);
-
-            if (funct(isEnabled, providerTypes))
-                CLIEngine.ShowSuccessMessage(successMessage);
-            else
-                CLIEngine.ShowErrorMessage(errorMessage);
-        }
-
-        private static void ShowHeader()
-        {
-            if (CLIEngine.Quiet)
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"STAR ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} (non-interactive)");
-                Console.ResetColor();
+                ShowONODEHelp();
                 return;
             }
 
-            // Console.SetWindowSize(300, Console.WindowHeight);
-            Console.WriteLine("");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("*************************************************************************************************");
-            Console.Write(" NextGen Software");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write(" STAR");
-            Console.ForegroundColor = ConsoleColor.Green;
-            //Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK TEST HARNESS v{versionString} ");
+            // Parse --hidden / --visible / --minimised flags
+            string? windowMode = null;
+            if (inputArgs.Any(a => a.Equals("--hidden",    StringComparison.OrdinalIgnoreCase))) windowMode = "Hidden";
+            if (inputArgs.Any(a => a.Equals("--visible",   StringComparison.OrdinalIgnoreCase))) windowMode = "Visible";
+            if (inputArgs.Any(a => a.Equals("--minimised", StringComparison.OrdinalIgnoreCase))) windowMode = "Minimised";
 
-            if (RandomNumberGenerator.GetInt32(1) == 0)
-                Console.Write($" (Synergiser Transformer Aggregator Resolver) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+            // Service/group target: first non-flag arg after the subcommand
+            string target = inputArgs.Length > 2 ? inputArgs[2].ToLower() : "all";
+            if (target.StartsWith("--")) target = "all";
+
+            using var client = new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient();
+
+            switch (inputArgs[1].ToLower())
+            {
+                case "start":
+                    await ONODEStartAsync(client, target, windowMode);
+                    break;
+
+                case "stop":
+                    await ONODEStopAsync(client, target);
+                    break;
+
+                case "restart":
+                    await ONODERestartAsync(client, target, windowMode);
+                    break;
+
+                case "status":
+                    await ONODEStatusAsync(client);
+                    break;
+
+                case "logs":
+                    string? logService = target == "all" ? null : target;
+                    int lines = 100;
+                    var linesArg = inputArgs.FirstOrDefault(a => a.StartsWith("--lines="));
+                    if (linesArg != null && int.TryParse(linesArg.Split('=')[1], out var l)) lines = l;
+                    bool follow = inputArgs.Any(a => a.Equals("--follow", StringComparison.OrdinalIgnoreCase));
+                    await ONODELogsAsync(client, logService, lines, follow);
+                    break;
+
+                case "metrics":
+                    await ONODEMetricsAsync(client);
+                    break;
+
+                case "config":
+                    bool edit = inputArgs.Any(a => a.Equals("--edit", StringComparison.OrdinalIgnoreCase));
+                    await ONODEConfigAsync(client, edit);
+                    break;
+
+                case "providers":
+                    await ShowONODEProvidersAsync();
+                    break;
+
+                case "startprovider":
+                    if (inputArgs.Length > 2) await StartONODEProviderAsync(inputArgs[2]);
+                    else CLIEngine.ShowErrorMessage("Usage: onode startprovider {ProviderName}");
+                    break;
+
+                case "stopprovider":
+                    if (inputArgs.Length > 2) await StopONODEProviderAsync(inputArgs[2]);
+                    else CLIEngine.ShowErrorMessage("Usage: onode stopprovider {ProviderName}");
+                    break;
+
+                case "service":
+                    await ONODEServiceCommandAsync(inputArgs);
+                    break;
+
+                default:
+                    CLIEngine.ShowErrorMessage($"Unknown onode subcommand: {inputArgs[1]}");
+                    ShowONODEHelp();
+                    break;
+            }
+        }
+
+        private static async Task ONODEStartAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, string target, string? windowMode)
+        {
+            if (!client.IsAvailable)
+            {
+                CLIEngine.ShowWarningMessage("ONODEService not running — falling back to direct process spawn.");
+                await ONODEStartDirectFallbackAsync(target, windowMode);
+                return;
+            }
+
+            CLIEngine.ShowWorkingMessage($"Starting {target.ToUpper()}...");
+            bool isGroup = new[] { "all","core","ai","extended" }.Contains(target) || target.Contains(",");
+            bool isSingle = target.StartsWith("web");
+
+            if (target.Contains(","))
+            {
+                var ids = target.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                await client.StartManyAsync(ids, windowMode);
+            }
+            else if (isSingle)
+                await client.StartAsync(target, windowMode);
             else
-                Console.Write($" (Super Technogically Advanced Reality-Engine) HDK/ODK {OASISBootLoader.OASISBootLoader.STARODKVersion} ");
+                await client.StartGroupAsync(target, windowMode);
 
-            Console.WriteLine("");
-            Console.WriteLine("*************************************************************************************************");
-            Console.WriteLine("");
-
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("                  ,O,");
-            Console.WriteLine("                 ,OOO,");
-            Console.WriteLine("           'oooooOOOOOooooo'");
-            Console.WriteLine("             `OOOOOOOOOOO`");
-            Console.WriteLine("               `OOOOOOO`");
-            Console.WriteLine("               OOOO'OOOO");
-            Console.WriteLine("              OOO'   'OOO");
-            Console.WriteLine("             O'         'O");
-
-            /*
-            Image Picture = Image.FromFile("images/star6b.jpg");
-            Console.SetBufferSize((Picture.Width * 0x2), (Picture.Height * 0x2));
-            //Console.SetBufferSize((Picture.Width), (Picture.Height));
-            Console.WindowWidth = 100; //180
-            //Console.WindowHeight = 61;
-
-            FrameDimension Dimension = new FrameDimension(Picture.FrameDimensionsList[0x0]);
-            int FrameCount = Picture.GetFrameCount(Dimension);
-            int Left = Console.WindowLeft, Top = Console.WindowTop;
-            char[] Chars = { '#', '#', '@', '%', '=', '+', '*', ':', '-', '.', ' ' };
-            Picture.SelectActiveFrame(Dimension, 0x0);
-            for (int i = 0x0; i < Picture.Height; i++)
-            {
-                for (int x = 0x0; x < Picture.Width; x++)
-                {
-                    Color Color = ((Bitmap)Picture).GetPixel(x, i);
-                    int Gray = (Color.R + Color.G + Color.B) / 0x3;
-                    int Index = (Gray * (Chars.Length - 0x1)) / 0xFF;
-                    Console.Write(Chars[Index]);
-                }
-                Console.Write('\n');
-                Thread.Sleep(50);
-            }
-            //Console.SetCursorPosition(Left, Top);
-            */
-
-            // Console.SetCursorPosition(Console.CursorLeft + 1, Console.CursorTop);
-            Colorful.Console.WriteAscii(" STAR", Color.Yellow);
-
-            // var font = FigletFont.Load("fonts/wow.flf");
-            // Figlet figlet = new Figlet(font);
-            //Colorful.Console.WriteLine(figlet.ToAscii("STAR"), Color.FromArgb(67, 144, 198));
-            // Colorful.Console.WriteLine(figlet.ToAscii("STAR"), Color.Yellow);
-
-            ShowCommands();
-
-            Console.WriteLine("");
-            Console.Write(" Welcome to");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write(" STAR");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" (The");
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Write(" ❤️ ");
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write(" Of The OASIS)");
-            Console.ForegroundColor = ConsoleColor.Yellow;
+            CLIEngine.ShowSuccessMessage($"Start command sent for {target.ToUpper()}.");
         }
 
-        private static void ShowCommands(bool showFullCommands = false)
+        private static async Task ONODEStopAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, string target)
         {
-            //Table table = new Table("one", "two", "three");
-            //int CommandColSize = 48;
-            //int argsColSize = 42;
-            //int indentSize = 4;
-
-            
-
-
-            ////var table = new ConsoleTable("one", "two", "three");
-            //table.AddRow("ssdsd", "dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d 111122 2222 33333333333 44444 55555555 666666666666 677 ");
-            //table.AddRow("2ssdsd", "2dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "2dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.AddRow("3ssdsd", "3dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "3dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.AddRow("4ssdsd", "4dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "4dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.AddRow("5sdsd", "5fdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "d5fdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.AddRow("6ssdsd", "6dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "6dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            //table.AddRow("7sdsd", "7dfdfdf d fdfd d fd fd fd fd fd fd fd fd fdf d f", "7dfdf df dfdfd fd dfd fdfdfdf dfd df df d dfd fdfd d fd fd fd fd fd fd fd fd fdf d ");
-            ////table.Write(Format.Default);
-            ////table.Write(Format.Alternative);
-            ////table.Write(Format.MarkDown);
-            ////table.Write(Format.Minimal);
-
-            //Console.Write(table.ToString());
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\n USAGE:");
-            Console.WriteLine("    star {SUBCOMMAND}");
-            Console.WriteLine("    star [--non-interactive|-n] [--json] [--quiet|-q] [--yes|-y] [--username U] [--password P] {SUBCOMMAND} ...");
-            Console.WriteLine("         (automation flags may appear anywhere; see Docs/Devs/STAR_CLI_NonInteractive.md)");
-            Console.WriteLine("");
-            Console.WriteLine(" FLAGS:");
-            DisplaySummary("--non-interactive (-n)", "Script/CI: no stdin prompts; omit for interactive wizards.");
-            DisplaySummary("--json", "Machine-readable JSON on stdout where supported; quieter startup.");
-            DisplaySummary("ignite", "Ignite STAR & Boot The OASIS");
-            DisplaySummary("extinguish", "Extinguish STAR & Shutdown The OASIS");
-            DisplaySummary("help [full]", "Show this help page. If the [full] flag is omitted it will show only the top level sub-commands, if [full] is included it will show every option for each sub-command.");
-            DisplaySummary("version", "Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers...");
-            DisplaySummary("status", "Show the status of STAR ODK.");
-            DisplaySummary("dna", "Show paths to DNATemplates, OASIS DNA and STAR DNA.");
-            DisplaySummary("exit", "Exit the STAR CLI.");
-
-            //Console.WriteLine("    ignite           Ignite STAR & Boot The OASIS");
-            //Console.WriteLine("    extinguish       Extinguish STAR & Shutdown The OASIS");
-            //Console.WriteLine("    help [full]      Show this help page. If the [full] flag is omitted it will show only the top level sub-commands, if [full] is included it will show every option for each sub-command.");
-            //Console.WriteLine("    version          Show the versions of STAR ODK, COSMIC ORM, OASIS Runtime & the OASIS Providers..");
-            //Console.WriteLine("    status           Show the status of STAR ODK.");
-            //Console.WriteLine("    exit             Exit the STAR CLI.");
-            Console.WriteLine("");
-            Console.WriteLine(" SUBCOMMANDS:");
-
-            
-            if (showFullCommands)
+            if (!client.IsAvailable)
             {
-                DisplayCommand("light", "{OAPPName} {OAPPDesc} {OAPPType}", "Creates a new OAPP (Zomes/Holons/Star/Planet/Moon) at the given genesis folder location, from the given OAPP DNA.");
-                DisplayCommand("", "{dnaFolder} {geneisFolder}", "");
-                DisplayCommand("", "{genesisNameSpace} {genesisType}", "");
-                DisplayCommand("", "{parentCelestialBodyId}", "");
-                DisplayCommand("light", "", "Displays more detail on how to use this command and optionally launches the Light Wizard.");
-                DisplayCommand("light wiz", "", "Start the Light Wizard.");
-                DisplayCommand("light", "{LightRequest.json}", "Non-interactive / scripted: full Light from StarCliLightRequest JSON. Same as: oapp light <file> / oapp create light <file>. Alias: light json <file>.");
-                DisplayCommand("light transmute", "{hAppDNA} {geneisFolder}", "Creates a new Planet (OApp) at the given folder genesis locations, from the given hApp DNA.");
-                DisplayCommand("bang", "", "Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                DisplayCommand("wiz", "", "Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
-                DisplayCommand("flare", "", "Build a OAPP for the given {id} or {name}.");
-                DisplayCommand("shine", "", "Launch & activate a OAPP for the given {id} or {name} by shining the 's light upon it...");
-                DisplayCommand("twinkle", "", "Activate a published OAPP for the given {id} or {name} within the STARNET store.");
-                DisplayCommand("dim", "", "Deactivate a published OAPP for the given {id} or {name} within the STARNET store.");
-                DisplayCommand("seed", "", "Deploy/Publish a OAPP for the given {id} or {name} to the STARNET Store.");
-                DisplayCommand("unseed", "", "Undeploy/Unpublish a OAPP for the given {id} or {name} from the STARNET Store.");
-                DisplayCommand("reseed", "", "Redeploy/Republish a OAPP for the given {id} or {name} to the STARNET Store.");
-                DisplayCommand("dust", "", "Delete a OAPP for the given {id} or {name} (this will also remove it from STARNET if it has already been published).");
-                DisplayCommand("radiate", "", "Highlight the OAPP for the given {id} or {name} in the STARNET Store. *Admin/Wizards Only*");
-                DisplayCommand("emit", "{id/name}", "Show how much light the OAPP is emitting into the solar system for the given {id} or {name} (this is determined by the collective karma score of all users of that OAPP).");
-                DisplayCommand("reflect", "{id/name}", "Show stats of the OAPP for the given {id} or {name}.");
-                DisplayCommand("evolve", "{id/name}", "Upgrade/update a OAPP for the given {id} or {name}.");
-                DisplayCommand("mutate", "{id/name}", "Import/Export hApp, dApp & others for the given {id} or {name}.");
-                DisplayCommand("love", "{id/username}", "Send/Receive Love for the given {id} or {username}.");
-                DisplayCommand("burst", "", "View network stats/management/settings.");
-                DisplayCommand("super", "", "Reserved For Future Use...");
-                DisplayCommand("net", "", "Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-                DisplayCommand("gate", "", "Opens the STARGATE to the OASIS Portal!");
-                DisplayCommand("api", "[oasis]", "Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
-                DisplayCommand("avatar beamin", "", "Beam in (log in).");
-                DisplayCommand("avatar beamout", "", "Beam out (Log out).");
-                DisplayCommand("avatar whoisbeamedin", "", "Display who is currently beamed in (if any) and the last time they beamed in and out.");
-                DisplayCommand("avatar show me", "", "Display the currently beamed in avatar details (if any).");
-                DisplayCommand("avatar show", "{id/username}", "Shows the details for the avatar for the given {id} or {username}.");
-                DisplayCommand("avatar edit", "", "Edit the currently beamed in avatar.");
-                DisplayCommand("avatar list", "[detailed]", "Lists all avatars. If [detailed] is included it will list detailed stats also.");
-                DisplayCommand("avatar search", "", "Search avatars that match the given search parameters (public fields only such as level, karma, username & any fields the player has set to public).");
-                DisplayCommand("avatar inventory", "[detailed]", "List inventory items for the currently beamed-in avatar (WEB4 avatar API via OASISAPI). If [detailed] is included it will list full holon + STARNET DNA data also.");
-                DisplayCommand("avatar forgotpassword", "", "Send a Forgot Password email to your email account containing a Reset Token.");
-                DisplayCommand("avatar resetpassword", "", "Allows you to reset your password using the Reset Token received in your email from the forgotpassword sub-command.");
-                DisplayCommand("karma list", "", "Display the karma thresholds.");
-                DisplayCommand("keys link privateKey", "[walletId] [privateKey]", "Links a private key to the given wallet for the currently beamed in avatar.");
-                DisplayCommand("keys link publicKey", "[walletId] [publicKey]", "Links a public key to the given wallet for the currently beamed in avatar.");
-                DisplayCommand("keys link genKeyPair", "[walletId]", "Generates a unique keyvalue pair and then links them to to the given wallet for the currently beamed in avatar.");
-                DisplayCommand("keys generateKeyPair", "", "Generates a unique keyvalue pair.");
-                DisplayCommand("keys clearCache", "", "Clears the cache.");
-                DisplayCommand("keys get provideruniquestoragekey", "{providerType}", "Gets the Provider Unique Storage Key for the given provider and the currently beamed in avatar.");
-                DisplayCommand("keys get providerpublickeys", "{providerType}", "Gets the Provider Public Keys for the given provider and the currently beamed in avatar.");
-                DisplayCommand("keys get avataridforprovideruniquestoragekey", "{avatarId}", "Gets the Provider Private Keys for the given provider and the currently beamed in avatar.");
-                DisplayCommand("keys list", "", "Shows the keys for the currently beamed in avatar.");
-                DisplayCommand("wallet sendtoken", "{walletAddress} {token} {amount}", "Sends a token to the given wallet address.");
-                DisplayCommand("wallet transfer", "{from walletId/name} {amount} {to walletId/name}", "Transfers the given [amount] from one wallet to another for the currently beamed in avatar.");
-                DisplayCommand("wallet get", "{publickey}", "Gets the wallet that the public key belongs to.");
-                DisplayCommand("wallet getDefault", "", "Gets the default wallet for the currently beamed in avatar.");
-                DisplayCommand("wallet setDefault", "{walletId}", "Sets the default wallet for the currently beamed in avatar.");
-                DisplayCommand("wallet import privateKey", "{privateKey}", "Imports a wallet using the privateKey.");
-                DisplayCommand("wallet import publicKey", "{publicKey}", "Imports a wallet using the publicKey.");
-                DisplayCommand("wallet import secretPhase", "{secretPhase}", "Imports a wallet using the secretPhase.");
-                DisplayCommand("wallet import", "{file.json}", "Import one wallet from JSON (export file). Alias: wallet import json <file>.");
-                DisplayCommand("wallet import all", "{jsonFile}", "Import all wallets from JSON. Alias: wallet import json all <file>.");
-                DisplayCommand("wallet import json", "{jsonFile}", "Legacy alias for wallet import <file.json>.");
-                DisplayCommand("wallet add", "", "Adds a wallet for the currently beamed in avatar.");
-                DisplayCommand("wallet list", "", "Lists the wallets for the currently beamed in avatar.");
-                DisplayCommand("wallet balance", "{walletId}", "Gets the balance for the given wallet for the currently beamed in avatar.");
-                DisplayCommand("wallet balance", "", "Gets the total balance for all wallets for the currently beamed in avatar.");
-                DisplayCommand("search", "", "Searches The OASIS for the given search parameters.");
-                DisplaySTARNETHolonCommands("oapp", createDesc: "Shortcut to the light sub-command.", publishDesc: "Shortcut to the seed sub-command.", unpublishDesc: "Shortcut to the un-seed sub-command.", republishDesc: "Shortcut to the re-seed sub-command.");
-                DisplayCommand("oapp light", "{LightRequest.json}", "Non-interactive / scripted: full Light from StarCliLightRequest (alias: oapp create light <file>).");
-                DisplaySTARNETHolonCommands("oapp template");
-                DisplaySTARNETHolonCommands("runtime");
-                DisplaySTARNETHolonCommands("lib");
-                DisplaySTARNETHolonCommands("celestialspace");
-                DisplaySTARNETHolonCommands("celestialbody");
-                DisplaySTARNETHolonCommands("zome");
-                DisplaySTARNETHolonCommands("holon");
-                DisplaySTARNETHolonCommands("chapter");
-                DisplaySTARNETHolonCommands("mission");
-                DisplaySTARNETHolonCommands("quest");
-                DisplayCommand("nft mint", "{id/name}", "Mints a WEB4 OASIS NFT for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS NFT.");
-                DisplayCommand("nft burn", "{id/name}", "Burn's a nft for the given {id} or {name}.");
-                DisplayCommand("nft send", "{id/name}", "Send a NFT for the given {id} or {name} to another wallet cross-chain.");
-                DisplayCommand("nft import", "{id/name} [web3]", "Imports a WEB4 OASIS NFT JSON file. If [web3] param is given it will either import a WEB3 NFT JSON MetaData file and mint a WEB3 NFT and then wrap in a WEB4 OASIS NFT or use an existing WEB3 NFT Token Address to be wrapped in a WEB4 OASIS NFT.");
-                DisplayCommand("nft export", "{id/name}", "Exports a WEB4 OASIS NFT as a JSON file as well as a WEB3 JSON MetaData file.");
-                DisplayCommand("nft convert", "{id/name}", "Allows the minting of different WEB3 NFT Standards for different chains from the same OASIS WEB4 Metadata.");
-                DisplaySTARNETHolonCommands("nft");
-                DisplayCommand("nft collection add", "{colid/colname} {nftid/nftname}", "Adds a nft to the nft collection.");
-                DisplayCommand("nft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a nft from the nft collection.");
-                //DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", showDesc: "Shows a nft collection for the given {id} or {name}. If [web4] is included it will show a WEB4 OASIS NFT Collection, otherwise it will show a WEB5 STAR NFT Collection.", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", listDesc: "List all that have been generated.", searchParams: "", searchDesc: "");
-                //DisplaySTARNETHolonCommands("nft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
-                DisplaySTARNETHolonCommands("nft collection");
-                DisplayCommand("geonft mint", "{id/name}", "Mints a OASIS GeoNFT and places in Our World for the currently beamed in avatar. Also allows minting more WEB3 NFT's from an existing WEB4 OASIS GeoNFT.");
-                DisplayCommand("geonft burn", "{id/name}", "Burn's a GeoNFT for the given {id} or {name}.");
-                DisplayCommand("geonft place", "{id/name}", "Places an existing OASIS NFT for the given {id} or {name} in Our World for the currently beamed in avatar.");
-                DisplayCommand("geonft send", "{id/name}", "Send a GeoNFT for the given {id} or {name} to another wallet cross-chain.");
-                DisplayCommand("geonft import", "{id/name}", "Imports a WEB4 OASIS GeoNFT JSON file.");
-                DisplayCommand("geonft export", "{id/name}", "Exports a WEB4 OASIS GeoNFT as a JSON file as well as a WEB3 JSON MetaData file.");
-                DisplaySTARNETHolonCommands("geonft");
-                DisplayCommand("geonft collection add", "{colid/colname} {nftid/nftname}", "Adds a geo-nft to the geo-nft collection.");
-                DisplayCommand("geonft collection remove", "{colid/colname} {nftid/nftname}", "Remove's a geo-nft from the geo-nft collection.");
-                //DisplaySTARNETHolonCommands("geonft collection", showParams: "{id/name} [detailed] [web4]", listParams: "[allVersions] [forAllAvatars] [detailed] [web4]", searchParams: "[allVersions] [forAllAvatars] [web4]");
-                DisplaySTARNETHolonCommands("geonft collection");
-                DisplaySTARNETHolonCommands("geohotspot");
-                DisplaySTARNETHolonCommands("inventoryitem");
-                DisplaySTARNETHolonCommands("plugin");
-
-                //SEEDS Commands
-                DisplayCommand("seeds balance", "{telosAccountName/avatarId}", "Get's the balance of your SEEDS account.");
-                DisplayCommand("seeds organisations", "", "Get's a list of all the SEEDS organisations.");
-                DisplayCommand("seeds organisation", "{organisationName}", "Get's a organisation for the given {organisationName}.");
-                DisplayCommand("seeds pay", "{telosAccountName/avatarId}", "Pay using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                DisplayCommand("seeds donate", "{telosAccountName/avatarId}", "Donate using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                DisplayCommand("seeds reward", "{telosAccountName/avatarId}", "Reward using SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                DisplayCommand("seeds invite", "{telosAccountName/avatarId}", "Send invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                DisplayCommand("seeds accept", "{telosAccountName/avatarId}", "Accept the invite to join SEEDS using either your {telosAccountName} or {avatarId} and earn karma.");
-                DisplayCommand("seeds qrcode", "{telosAccountName/avatarId}", "Generate a sign-in QR code using either your {telosAccountName} or {avatarId}.");
-
-                //Data Commands
-                DisplayCommand("data save", "{key} {value}", "Saves data for the given {key} and {value} to the currently beamed in avatar.");
-                DisplayCommand("data load", "{key}", "Loads data for the given {key} for the currently beamed in avatar.");
-                DisplayCommand("data delete", "{key}", "Deletes data for the given {key} for the currently beamed in avatar.");
-                DisplayCommand("data list", "", "Lists all data for the currently beamed in avatar.");
-
-                //Map Commands
-                DisplayCommand("map setprovider", "{mapProviderType}", "Sets the currently {mapProviderType}.");
-                DisplayCommand("map draw3dobject", "{3dObjectPath} {x} {y}", "Draws a 3D object on the map at {x/y} co-ordinates for the given file {3dobjectPath}.");
-                DisplayCommand("map draw2dsprite", "{2dSpritePath} {x} {y}", "Draws a 2d sprite on the map at {x/y} co-ordinates for the given file {2dSpritePath}.");
-                DisplayCommand("map draw2dspriteonhud", "{2dSpritePath}", "Draws a 2d sprite on the HUD for the given file {2dSpritePath}.");
-                DisplayCommand("map placeHolon", "{Holon id/name} {x} {y}", "Place the holon on the map.");
-                DisplayCommand("map placeBuilding", "{Building id/name} {x} {y}", "Place the building on the map.");
-                DisplayCommand("map placeQuest", "{Quest id/name} {x} {y}", "Place the Quest on the map.");
-                DisplayCommand("map placeGeoNFT", "{GeoNFT id/name} {x} {y}", "Place the GeoNFT on the map.");
-                DisplayCommand("map placeGeoHotSpot", "{GeoHotSpot id/name} {x} {y}", "Place the GeoHotSpot on the map.");
-                DisplayCommand("map placeOAPP", "{OAPP id/name} {x} {y}", "Place the OAPP on the map.");
-                DisplayCommand("map pamLeft", "", "Pam the map left.");
-                DisplayCommand("map pamRight", "", "Pam the map right.");
-                DisplayCommand("map pamUp", "", "Pam the map up.");
-                DisplayCommand("map pamDown", "", "Pam the map down.");
-                DisplayCommand("map zoomOut", "", "Zoom the map out.");
-                DisplayCommand("map zoomIn", "", "Zoom the map in.");
-                DisplayCommand("map zoomToHolon", "{GeoNFT id/name}", "Zoom the map to the location of the given holon.");
-                DisplayCommand("map zoomToBuilding", "{GeoNFT id/name}", "Zoom the map to the location of the given building.");
-                DisplayCommand("map zoomToQuest", "{GeoNFT id/name}", "Zoom the map to the location of the given quest.");
-                DisplayCommand("map zoomToGeoNFT", "{GeoNFT id/name}", "Zoom the map to the location of the given GeoNFT.");
-                DisplayCommand("map zoomToGeoHotSpot", "{GeoHotSpot id/name}", "Zoom the map to the location of the given GeoHotSpot.");
-                DisplayCommand("map zoomToOAPP", "{OAPP id/name}", "Zoom the map to the location of the given OAPP.");
-                DisplayCommand("map zoomToCoOrds", "{x} {y}", "Zoom the map to the location of the given {x} and {y} coordinates.");
-                DisplayCommand("map drawRouteOnMap", "{startX} {startY} {endX} {endY}", "Draw a route on the map.");
-                DisplayCommand("map drawRouteBetweenHolons", "{fromHolonId} {toHolonId}", "Draw a route on the map between the two holons.");
-                DisplayCommand("map drawRouteBetweenBuildings", "{fromBuildingId} {toBuildingId}", "Draw a route on the map between the two buildings.");
-                DisplayCommand("map drawRouteBetweenQuests", "{fromQuestId} {toQuestId}", "Draw a route on the map between the two quests.");
-                DisplayCommand("map drawRouteBetweenGeoNFTs", "{fromGeoNFTId} {ToGeoNFTId}", "Draw a route on the map between the two GeoNFTs.");
-                DisplayCommand("map drawRouteBetweenGeoHotSpots", "{fromGeoHotSpotId} {ToGeoHotSpotId}", "Draw a route on the map between the two GeoHotSpots.");
-                DisplayCommand("map drawRouteBetweenOAPPs", "{fromOAPP id/name} {ToOAPP id/name}", "Draw a route on the map between the two OAPPs.");
-
-                //OLAND Commands
-                DisplayCommand("oland price", "", "Get the currently OLAND price.");
-                DisplayCommand("oland purchase", "", "Purchase OLAND for Our World/OASIS.");
-                DisplayCommand("oland load", "{id}", "Load a OLAND for the given {id}.");
-                DisplayCommand("oland save", "", "Save a OLAND.");
-                DisplayCommand("oland delete", "{id}", "Deletes a OLAND for the given {id}.");
-                DisplayCommand("oland list", "[allVersions] [forAllAvatars]", "If [all] is omitted it will list all OLAND for the given beamed in avatar, otherwise it will list all OLAND for all avatars.");
-
-                //ONET Commands
-                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
-                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
-                DisplayCommand("onet discover", "", "Discovers available ONET nodes in the network.");
-                DisplayCommand("onet connect", "{nodeAddress}", "Connects to a specific ONET node.");
-                DisplayCommand("onet disconnect", "{nodeAddress}", "Disconnects from a specific ONET node.");
-                DisplayCommand("onet topology", "", "Shows the ONET network topology and connections.");
-               
-                //ONODE Commands
-                DisplayCommand("onode start", "[web4] [web5]", "Starts a OASIS Node (ONODE) and registers it on the OASIS Network (ONET).");
-                DisplayCommand("onode stop", "[web4] [web5]", "Stops a OASIS Node (ONODE).");
-                DisplayCommand("onode status", "[web4] [web5]", "Shows stats for this ONODE.");
-                DisplayCommand("onode config", "", "Opens the ONODE's OASISDNA to allow changes to be made (you will need to stop and start the ONODE for changes to apply).");
-                DisplayCommand("onode providers", "", "Shows what OASIS Providers are running for this ONODE.");
-                DisplayCommand("onode startprovider", "{ProviderName}", "Starts a given provider.");
-                DisplayCommand("onode stopprovider", "{ProviderName}", "Stops a given provider.");
-
-                //HyperNET Commands
-                DisplayCommand("hypernet start", "", "Starts the HoloNET P2P HyperNET Service.");
-                DisplayCommand("hypernet stop", "", "Stops the HoloNET P2P HyperNET Service.");
-                DisplayCommand("hypernet status", "", "Shows stats for the HoloNET P2P HyperNET Service.");
-                DisplayCommand("hypernet config", "", "Opens the HyperNET's DNA to allow changes to be made (you will need to stop and start the HyperNET Service for changes to apply.");
-
-                //ONET Commands
-                DisplayCommand("onet status", "", "Shows stats for the OASIS Network (ONET).");
-                DisplayCommand("onet providers", "", "Shows what OASIS Providers are running across the ONET and on what ONODE's.");
-
-                //Config Commands
-                DisplayCommand("config dna", "", "Shows paths to DNATemplates, OASIS DNA and STAR DNA.");
-                DisplayCommand("config cosmicdetailedoutput", "{enable/disable/status}", "Enables/disables COSMIC Detailed Output.");
-                DisplayCommand("config starstatusdetailedoutput", "{enable/disable/status}", "Enables/disables STAR ODK Detailed Output.");
-
-                //Test Commands
-                DisplayCommand("runcosmictests", "{OAPPType} {dnaFolder} {geneisFolder}", "Run the STAR ODK/COSMIC Tests... If OAPPType, DNAFolder or GenesisFolder are not specified it will use the defaults.");
-                DisplayCommand("runoasisapitests", "", "Run the OASIS API Tests...");
-
-                Console.WriteLine("");
-                //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
-                Console.WriteLine(" NOTES:");
-                Console.WriteLine("        When invoking any sub-commands that take a {id} or {name}, if neither is specified then a wizard will launch to help find the correct item.");
-                Console.WriteLine("        In some cases, sub-commands may only list {id} as a param to save space but these also accept the {name}.");
-                Console.WriteLine("        When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
-                Console.WriteLine("        When invoking any sub-commands that have an optional [detailed] argument/flag, if it is included it will show detailed information for that item (such as show and list).");
-                Console.WriteLine("        If you invoke the update, delete, list, show or search sub-command with [web4] param it will update/delete/list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will update/delete/list/show/search WEB5 STAR Geo-NFT's/NFT's.");
-                Console.WriteLine("        If you invoke the create, update, delete, list, show or search sub-command with [web4] param it will create/update/delete/list/show/search WEB4 OASIS Geo-NFT/NFT Collection's otherwise it will create/update/delete/list/show/search WEB5 STAR Geo-NFT/NFT Collection's.");
-                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to launch any wizards to help guide you.");
+                CLIEngine.ShowWarningMessage("ONODEService not running — cannot stop via supervisor.");
+                return;
             }
+
+            CLIEngine.ShowWorkingMessage($"Stopping {target.ToUpper()}...");
+            if (target.Contains(","))
+            {
+                var ids = target.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                await client.StopManyAsync(ids);
+            }
+            else if (target.StartsWith("web"))
+                await client.StopAsync(target);
             else
+                await client.StopGroupAsync(target);
+
+            CLIEngine.ShowSuccessMessage($"Stop command sent for {target.ToUpper()}.");
+        }
+
+        private static async Task ONODERestartAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, string target, string? windowMode)
+        {
+            if (!client.IsAvailable) { CLIEngine.ShowWarningMessage("ONODEService not running."); return; }
+            CLIEngine.ShowWorkingMessage($"Restarting {target.ToUpper()}...");
+            if (target.StartsWith("web")) await client.RestartAsync(target, windowMode);
+            else await client.RestartGroupAsync(target, windowMode);
+            CLIEngine.ShowSuccessMessage($"Restart command sent for {target.ToUpper()}.");
+        }
+
+        private static async Task ONODEStatusAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client)
+        {
+            if (!client.IsAvailable)
             {
-                DisplaySummary("light", "Generate a OAPP.");
-                DisplaySummary("bang", "Generate a whole metaverse or part of one such as Multierveres, Universes, Dimensions, Galaxy Clusters, Galaxies, Solar Systems, Stars, Planets, Moons etc.");
-                DisplaySummary("wiz", "Start the STAR ODK Wizard which will walk you through the steps for creating a OAPP tailored to your specefic needs (such as which OASIS Providers do you need and the specefic use case(s) you need etc).");
- 
-                //TODO: Finish converting the lines below to use DisplaySummary instead...
-                Console.WriteLine("    flare                   Build a OAPP.");
-                Console.WriteLine("    shine                   Launch & activate a OAPP by shining the 's light upon it..."); //TODO: Dev next.
-                Console.WriteLine("    twinkle                 Activate a published OAPP within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    dim                     Deactivate a published OAPP within the STARNET store."); //TODO: Dev next.
-                Console.WriteLine("    seed                    Deploy/Publish a OAPP to the STARNET Store.");
-                Console.WriteLine("    unseed                  Undeploy/Unpublish a OAPP from the STARNET Store.");
-                Console.WriteLine("    dust                    Delete a OAPP (this will also remove it from STARNET if it has already been published)."); //TODO: Dev next.
-                Console.WriteLine("    radiate                 Highlight the OAPP in the STARNET Store. *Admin/Wizards Only*");
-                Console.WriteLine("    emit                    Show how much light the OAPP is emitting into the solar system (this is determined by the collective karma score of all users of that OAPP).");
-                Console.WriteLine("    reflect                 Show stats of the OAPP.");
-                Console.WriteLine("    evolve                  Upgrade/update a OAPP)."); //TODO: Dev next.
-                Console.WriteLine("    mutate                  Import/Export hApp, dApp & others.");
-                Console.WriteLine("    love                    Send/Receive Love.");
-                Console.WriteLine("    burst                   View network stats/management/settings.");
-                Console.WriteLine("    super                   Reserved For Future Use...");
-                //Console.WriteLine("    net = Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's, zomes, holons, celestial spaces, celestial bodies, geo-nft's, geo-hotspots, missions, chapters, quests & inventory items.");
-                Console.WriteLine("    net                     Launch the STARNET Library/Store where you can list, search, update, publish, unpublish, install & uninstall OAPP's & more!");
-                Console.WriteLine("    gate                    Opens the STARGATE to the OASIS Portal!");
-                Console.WriteLine("    api [oasis]             Opens the WEB5 STAR API (if oasis is included then it will open the WEB4 OASIS API instead).");
-                Console.WriteLine("    avatar                  Manage avatars.");
-                Console.WriteLine("    karma                   Manage karma.");
-                Console.WriteLine("    keys                    Manage keys.");
-                Console.WriteLine("    wallet                  Manage wallets.");
-                Console.WriteLine("    search                  Search the OASIS.");
-
-                DisplaySTARNETHolonCommandSummaries("oapp");
-                DisplaySTARNETHolonCommandSummaries("oapp template");
-                DisplaySTARNETHolonCommandSummaries("runtime");
-                DisplaySTARNETHolonCommandSummaries("lib");
-                DisplaySTARNETHolonCommandSummaries("celestialspace");
-                DisplaySTARNETHolonCommandSummaries("celestialbody");
-                DisplaySTARNETHolonCommandSummaries("zome");
-                DisplaySTARNETHolonCommandSummaries("holon");
-                DisplaySTARNETHolonCommandSummaries("chapter");
-                DisplaySTARNETHolonCommandSummaries("mission");
-                DisplaySTARNETHolonCommandSummaries("quest");
-                DisplaySTARNETHolonCommandSummaries("nft");
-                DisplaySTARNETHolonCommandSummaries("nft collection");
-                DisplaySTARNETHolonCommandSummaries("geonft");
-                DisplaySTARNETHolonCommandSummaries("geonft collection");
-                DisplaySTARNETHolonCommandSummaries("geohotspot");
-                DisplaySTARNETHolonCommandSummaries("inventoryitem");
-                DisplaySTARNETHolonCommandSummaries("plugin");
-
-
-                //Console.WriteLine("    oapp                    Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP's.");
-                //Console.WriteLine("    oapp template           Create, edit, delete, publish, unpublish, install, uninstall, list & show OAPP Templates.");
-                //Console.WriteLine("    happ                    Create, edit, delete, publish, unpublish, install, uninstall, list & show hApp's.");
-                //Console.WriteLine("    runtime                 Create, edit, delete, publish, unpublish, install, uninstall, list & show runtime's.");
-                //Console.WriteLine("    lib                     Create, edit, delete, publish, unpublish, install, uninstall, list & show libraries.");
-                //Console.WriteLine("    celestialspace          Create, edit, delete, publish, unpublish, list & show celestial space's.");
-                //Console.WriteLine("    celestialbody           Create, edit, delete, publish, unpublish, list & show celestial bodies's.");
-                //Console.WriteLine("    celestialbody metadata  Create, edit, delete, publish, unpublish, list & show celestial body metadata.");
-                //Console.WriteLine("    zome                    Create, edit, delete, publish, unpublish, list & show zome's.");
-                //Console.WriteLine("    zome metadata           Create, edit, delete, publish, unpublish, list & show zome metadata.");
-                //Console.WriteLine("    holon                   Create, edit, delete, publish, unpublish, list & show holon's.");
-                //Console.WriteLine("    holon metadata          Create, edit, delete, publish, unpublish, list & show holon metadata.");
-                //Console.WriteLine("    chapter                 Create, edit, delete, publish, unpublish, list & show chapter's.");
-                //Console.WriteLine("    mission                 Create, edit, delete, publish, unpublish, list & show mission's.");
-                //Console.WriteLine("    quest                   Create, edit, delete, publish, unpublish, list & show quest's.");
-                //Console.WriteLine("    nft                     Mint, send, edit, burn, publish, unpublish, list & show nft's.");
-                //Console.WriteLine("    nft collection          Work with nft collections.");
-                //Console.WriteLine("    geonft                  Mint, place, edit, burn, publish, unpublish, list & show geo-nft's.");
-                //Console.WriteLine("    geonft collection       Work with geo-nft collections.");
-                //Console.WriteLine("    geohotspot              Create, edit, delete, publish, unpublish, list & show geo-hotspot's.");
-                //Console.WriteLine("    inventoryitem           Create, edit, delete, publish, unpublish, list & show inventory item's.");
-                //Console.WriteLine("    plugin                  Create, edit, delete, publish, unpublish, list & show plugin item's.");
-                Console.WriteLine("    seeds                   Access the SEEDS API.");
-                Console.WriteLine("    data                    Access the Data API.");
-                Console.WriteLine("    map                     Access the Map API.");
-                Console.WriteLine("    oland                   Access the OLAND (Virtual Land) API.");
-                Console.WriteLine("    onode                   Manage this ONODE (OASIS Node) such as start, stop, view status, edit config, view providers, start & stop providers.");
-                Console.WriteLine("    hypernet                Start, stop & view status for the HoloNET P2P HyperNET Service.");
-                Console.WriteLine("    onet                    View the status for the ONET (OASIS Network).");
-                Console.WriteLine("    config                  Enables/disables COSMIC detailed output & STAR ODK detailed output.");
-                Console.WriteLine("    runcosmictests          Run the STAR ODK/COSMIC tests.");
-                Console.WriteLine("    runoasisapitests        Run the OASIS API tests.");
-
-                Console.WriteLine("");
-                //Console.WriteLine(" NOTES: -  is not needed if using the STAR CLI Console directly. Star is only needed if calling from the command line or another external script ( is simply the name of the exe).");
-                Console.WriteLine(" NOTES:");
-                Console.WriteLine("        When invoking any sub-commands that take a {id} or {name}, if neither is specified then a wizard will launch to help find the correct item.");
-                Console.WriteLine("        In some cases, sub-commands may only list {id} as a param to save space but these also accept the {name}.");
-                Console.WriteLine("        When invoking any sub-commands that have an optional [all] argument/flag, if it is omitted it will search only your items, otherwise it will search all published items as well as yours.");
-                Console.WriteLine("        When invoking any sub-commands that have an optional [detailed] argument/flag, if it is included it will show detailed information for that item (such as show and list).");
-                Console.WriteLine("        If you invoke the list, show or search sub-command with [web4] param it will list/show/search WEB4 OASIS Geo-NFT's/NFT's otherwise it will list/show/search WEB5 STAR Geo-NFT's/NFT's..");
-                Console.WriteLine("        If you invoke a sub-command without any arguments it will show more detailed help on how to use that sub-command as well as the option to lanuch any wizards to help guide you.");
+                CLIEngine.ShowWarningMessage("ONODEService not running. Install it with: onode service install");
+                return;
             }
 
-            Console.WriteLine("************************************************************************************************");
-            Console.ForegroundColor = ConsoleColor.Yellow;
-        }
+            var status = await client.GetStatusAsync();
+            if (status == null) { CLIEngine.ShowErrorMessage("Failed to retrieve status."); return; }
 
-        private static void STAR_OnInitialized(object sender, System.EventArgs e)
-        {
-            CLIEngine.ShowSuccessMessage(" STAR Initialized.");
-        }
-
-        private static void STAR_OnOASISBootError(object sender, OASISBootErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage(e.ErrorReason);
-        }
-
-        private static void STAR_OnOASISBooted(object sender, EventArgs.OASISBootedEventArgs e)
-        {
-            // CLIEngine.ShowSuccessMessage(string.Concat("OASIS BOOTED.", e.Message));
-        }
-
-        private static void STAR_OnStarError(object sender, EventArgs.StarErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage(string.Concat("Error Igniting SuperStar. Reason: ", e.Reason));
-        }
-
-        private static void STAR_OnStarIgnited(object sender, System.EventArgs e)
-        {
-            //CLIEngine.ShowSuccessMessage("STAR IGNITED");
             Console.WriteLine("");
-            ShowDNAPaths();
-        }
-
-        /// <summary>
-        /// Resolves a path to a full path (relative paths are resolved against CurrentDirectory).
-        /// </summary>
-        private static string ResolveFullPath(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return path ?? "";
-            return Path.IsPathRooted(path)
-                ? Path.GetFullPath(path)
-                : Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, path.Replace('\\', Path.DirectorySeparatorChar)));
-        }
-
-        /// <summary>
-        /// Shows the paths STAR is using for DNATemplates, OASIS DNA and STAR DNA (used at boot and by status/config/dna commands).
-        /// </summary>
-        private static void ShowDNAPaths()
-        {
-            string oasisPath = ResolveFullPath(STAR.OASISDNAPath);
-            string starPath = ResolveFullPath(STAR.STARDNAPath);
-            CLIEngine.ShowMessage("DNA paths in use:", ConsoleColor.Cyan, false);
-            CLIEngine.ShowMessage($"  OASIS DNA:   {oasisPath}", ConsoleColor.White, false);
-            CLIEngine.ShowMessage($"  STAR DNA:    {starPath}", ConsoleColor.White, false);
-            if (STAR.IsStarIgnited && STAR.STARDNA != null)
+            CLIEngine.ShowMessage($"ONODE SUPERVISOR STATUS", ConsoleColor.Cyan);
+            CLIEngine.ShowMessage($"  Node ID : {status.NodeId}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Version : {status.Version}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Uptime  : {FormatUptime((DateTime.UtcNow - status.StartedAt).TotalSeconds)}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Peers   : {status.Metrics.TotalPeers}", ConsoleColor.White, false);
+            Console.WriteLine("");
+            CLIEngine.ShowMessage($"  {"SERVICE",-10} {"STATUS",-12} {"PID",-8} {"PORT",-6} {"UPTIME",-12} {"RESTARTS"}", ConsoleColor.Green);
+            foreach (var svc in status.Services)
             {
-                string dnatemplatesPath = string.IsNullOrEmpty(STAR.STARDNA.STARBasePath)
-                    ? "(N/A)"
-                    : Path.GetFullPath(Path.Combine(STAR.STARDNA.STARBasePath, "DNATemplates"));
-                CLIEngine.ShowMessage($"  DNATemplates: {dnatemplatesPath}", ConsoleColor.White, false);
+                var col = svc.Status == "Running" ? ConsoleColor.Green :
+                          svc.Status == "Stopped" ? ConsoleColor.Gray :
+                          svc.Status == "Degraded" || svc.Status == "Crashed" ? ConsoleColor.Red :
+                          ConsoleColor.Yellow;
+                var pid = svc.Pid.HasValue ? svc.Pid.ToString() : "-";
+                CLIEngine.ShowMessage($"  {svc.Id.ToUpper(),-10} {svc.Status,-12} {pid,-8} {svc.Port,-6} {FormatUptime(svc.UptimeSeconds),-12} {svc.RestartCount}", col, false);
             }
-            else
-                CLIEngine.ShowMessage("  DNATemplates: (N/A — STAR not ignited)", ConsoleColor.Gray, false);
+            Console.WriteLine("");
         }
 
-        private static void STAR_OnStarStatusChanged(object sender, EventArgs.StarStatusChangedEventArgs e)
+        private static async Task ONODELogsAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, string? serviceId, int lines, bool follow)
         {
-            if (!string.IsNullOrEmpty(e.Message))
+            if (!client.IsAvailable) { CLIEngine.ShowWarningMessage("ONODEService not running."); return; }
+
+            do
             {
-                switch (e.MessageType)
+                var entries = await client.GetLogsAsync(serviceId, lines);
+                if (entries != null)
                 {
-                    case Enums.StarStatusMessageType.Processing:
-                        CLIEngine.ShowWorkingMessage(e.Message);
-                        break;
-
-                    case Enums.StarStatusMessageType.Success:
-                        CLIEngine.ShowSuccessMessage(e.Message);
-                        break;
-
-                    case Enums.StarStatusMessageType.Error:
-                        CLIEngine.ShowErrorMessage(e.Message);
-                        break;
-                }
-            }
-            else
-            {
-                switch (e.Status)
-                {
-                    case Enums.StarStatus.BootingOASIS:
-                    //CLIEngine.ShowWorkingMessage("BOOTING OASIS...");
-                    //break;
-
-                    case Enums.StarStatus.OASISBooted:
-                        //CLIEngine.ShowSuccessMessage("OASIS BOOTED"); //OASISBootLoader already shows this message so no need to show again! ;-)
-                        break;
-
-                    case Enums.StarStatus.Igniting:
-                        CLIEngine.ShowWorkingMessage("IGNITING STAR...");
-                        break;
-
-                    case Enums.StarStatus.Ignited:
-                        CLIEngine.ShowSuccessMessage("STAR IGNITED");
-                        break;
-
-                        //case Enums.SuperStarStatus.Error:
-                        //  CLIEngine.ShowErrorMessage("SuperStar Error");
-                }
-            }
-        }
-
-        private static void STAR_OnCelestialSpacesLoaded(object sender, CelestialSpacesLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalSpaces Loaded Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialSpacesSaved(object sender, CelestialSpacesSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalSpaces Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialSpacesError(object sender, CelestialSpacesErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialSpaces. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnCelestialSpaceLoaded(object sender, CelestialSpaceLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalSpace Loaded Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialSpaceSaved(object sender, CelestialSpaceSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalSpace Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialSpaceError(object sender, CelestialSpaceErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialSpace. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnCelestialBodyLoaded(object sender, CelestialBodyLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalBody Loaded Successfully. {detailedMessage}");
-        }
-        private static void STAR_OnCelestialBodySaved(object sender, CelestialBodySavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            //CLIEngine.ShowSuccessMessage($"CelesitalBody Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialBodyError(object sender, CelestialBodyErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialBody. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnCelestialBodiesLoaded(object sender, CelestialBodiesLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalBodies Loaded Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialBodiesSaved(object sender, CelestialBodiesSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"CelesitalBodies Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnCelestialBodiesError(object sender, CelestialBodiesErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving CelestialBodies. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnZomeLoaded(object sender, ZomeLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"Zome Loaded Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnZomeSaved(object sender, ZomeSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"Zome Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnZomeError(object sender, ZomeErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zome. Reason: {e.Reason}");
-            //Console.WriteLine(string.Concat("Star Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            //CLIEngine.ShowErrorMessage(string.Concat(" STAR Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
-        }
-
-        private static void STAR_OnZomesLoaded(object sender, ZomesLoadedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"Zome Loaded Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnZomesSaved(object sender, ZomesSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"Zome Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnZomesError(object sender, ZomesErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zomes. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnHolonLoaded(object sender, HolonLoadedEventArgs e)
-        {
-            CLIEngine.ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holon Name: ", e.Result.Result.Name));
-        }
-
-        private static void STAR_OnHolonSaved(object sender, HolonSavedEventArgs e)
-        {
-            if (e.Result.IsError)
-                CLIEngine.ShowErrorMessage(e.Result.Message);
-            else
-                CLIEngine.ShowSuccessMessage(string.Concat("STAR Holons Saved. Holon Saved: ", e.Result.Result.Name));
-        }
-
-        private static void STAR_OnHolonError(object sender, HolonErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Holon. Reason: {e.Reason}");
-        }
-
-        private static void STAR_OnHolonsLoaded(object sender, HolonsLoadedEventArgs e)
-        {
-            CLIEngine.ShowSuccessMessage(string.Concat(" STAR Holons Loaded. Holons Loaded: ", e.Result.Result.Count()));
-        }
-
-        private static void STAR_OnHolonsSaved(object sender, HolonsSavedEventArgs e)
-        {
-            string detailedMessage = string.IsNullOrEmpty(e.Result.Message) ? e.Result.Message : "";
-            CLIEngine.ShowSuccessMessage($"Holons Saved Successfully. {detailedMessage}");
-        }
-
-        private static void STAR_OnHolonsError(object sender, HolonsErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Holons. Reason: {e.Reason}");
-        }
-
-        private static void StarCore_OnZomeError(object sender, ZomeErrorEventArgs e)
-        {
-            CLIEngine.ShowErrorMessage($"Error occurred loading/saving Zome For StarCore. Reason: {e.Reason}");
-            //Console.WriteLine(string.Concat("Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails, "HoloNETErrorDetails.Reason: ", e.HoloNETErrorDetails.Reason, "HoloNETErrorDetails.ErrorDetails: ", e.HoloNETErrorDetails.ErrorDetails));
-            //CLIEngine.ShowErrorMessage(string.Concat(" Star Core Error Occurred. EndPoint: ", e.EndPoint, ". Reason: ", e.Reason, ". Error Details: ", e.ErrorDetails));
-        }
-
-        private static void DisplayCommand(string command, string args, string desc, int indent = 4, int commandColSize = 48, int argsColSize = 52)
-        {
-            Console.WriteLine(string.Concat("".PadRight(indent), command.PadRight(commandColSize), args.PadRight(argsColSize), desc));
-        }
-
-        private static void DisplaySTARNETHolonCommands(string holonType, string createParams = "", string createDesc = "", string updateParams = "", string updateDesc = "", string cloneParams = "", string cloneDesc = "", string addDependencyParams = "", string addDependencyDesc = "", string removeDependencyParams = "", string removeDependencyDesc = "", string deleteParams = "", string deleteDesc = "", string publishParams = "", string publishDesc = "", string unpublishParams = "", string unpublishDesc = "", string republishParams = "", string republishDesc = "", string activateParams = "", string activateDesc = "", string deactivateParams = "", string deactivateDesc = "", string downloadParams = "", string downloadDesc = "", string installParams = "", string installDesc = "", string uninstallParams = "", string uninstallDesc = "", string reinstallParams = "", string reinstallDesc = "", string showParams = "", string showDesc = "", string listParams = "", string listDesc = "", string listInstalledParams = "", string listInstalledDesc = "", string listUninstalledParams = "", string listUninstalledDesc = "", string listUnpublishedParams = "", string listUnpublishedDesc = "", string listDeactivatedParams = "", string listDeactivatedDesc = "", string searchParams = "", string searchDesc = "")
-        {
-            string web4Param = "";
-
-            if (holonType == "nft collection" || holonType == "geonft collection" || holonType == "nft" || holonType == "geonft")
-                web4Param = " [web3] [web4]";
-
-            DisplayCommand(string.Concat(holonType, " create"), !string.IsNullOrEmpty(createParams) ? createParams : web4Param, !string.IsNullOrEmpty(createDesc) ? createDesc : $"Create a new {holonType}.");
-            DisplayCommand(string.Concat(holonType, " update"), !string.IsNullOrEmpty(updateParams) ? updateParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(updateDesc) ? updateDesc : string.Concat("Updates an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " clone"), !string.IsNullOrEmpty(cloneParams) ? cloneParams : "{id/name}", !string.IsNullOrEmpty(cloneDesc) ? cloneDesc : string.Concat("Clones an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " adddependency"), !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : "{id/name}", !string.IsNullOrEmpty(addDependencyDesc) ? addDependencyDesc : string.Concat("Adds a dependency to an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " removedependency"), !string.IsNullOrEmpty(removeDependencyParams) ? removeDependencyParams : "{id/name}", !string.IsNullOrEmpty(removeDependencyDesc) ? removeDependencyDesc : string.Concat("Removes a dependency from an existing ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " delete"), !string.IsNullOrEmpty(deleteParams) ? deleteParams : string.Concat("{id/name}", web4Param), !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : !string.IsNullOrEmpty(deleteDesc) ? deleteDesc : string.Concat("Deletes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " publish"), !string.IsNullOrEmpty(publishParams) ? publishParams : "{id/name}", !string.IsNullOrEmpty(publishDesc) ? publishDesc : string.Concat("Publishes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " unpublish"), !string.IsNullOrEmpty(unpublishParams) ? unpublishParams : "{id/name}", !string.IsNullOrEmpty(unpublishDesc) ? unpublishDesc : string.Concat("Unpublishes a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " republish"), !string.IsNullOrEmpty(republishParams) ? republishParams : "{id/name}", !string.IsNullOrEmpty(republishDesc) ? republishDesc : string.Concat("Republish a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " activate"), !string.IsNullOrEmpty(activateParams) ? activateParams : "{id/name}", !string.IsNullOrEmpty(activateDesc) ? activateDesc : string.Concat("Activate a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " deactivate"), !string.IsNullOrEmpty(deactivateParams) ? deactivateParams : "{id/name}", !string.IsNullOrEmpty(deactivateDesc) ? deactivateDesc : string.Concat("Deactivate a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " download"), !string.IsNullOrEmpty(downloadParams) ? downloadParams : "{id/name}", !string.IsNullOrEmpty(downloadDesc) ? downloadDesc : string.Concat("Download a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " install"), !string.IsNullOrEmpty(installParams) ? installParams : "{id/name}", !string.IsNullOrEmpty(installDesc) ? installDesc : string.Concat("Install/Download a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " uninstall"), !string.IsNullOrEmpty(uninstallParams) ? uninstallParams : "{id/name}", !string.IsNullOrEmpty(uninstallDesc) ? uninstallDesc : string.Concat("Uninstall a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " reinstall"), !string.IsNullOrEmpty(reinstallParams) ? reinstallParams : "{id/name}", !string.IsNullOrEmpty(reinstallDesc) ? reinstallDesc : string.Concat("Reinstall a ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " show"), !string.IsNullOrEmpty(showParams) ? showParams : string.Concat("{id/name} [detailed]", web4Param), !string.IsNullOrEmpty(showDesc) ? showDesc : string.Concat("Shows a  ", holonType, " for the given {id} or {name}."));
-            DisplayCommand(string.Concat(holonType, " list"), !string.IsNullOrEmpty(listParams) ? listParams : string.Concat("[allVersions] [forAllAvatars] [detailed]", web4Param), !string.IsNullOrEmpty(listDesc) ? listDesc : string.Concat("List all  ", holonType, " that have been generated."));
-            DisplayCommand(string.Concat(holonType, " list installed"), !string.IsNullOrEmpty(listInstalledParams) ? listInstalledParams : "", !string.IsNullOrEmpty(listInstalledDesc) ? listInstalledDesc : string.Concat("List all ", holonType, "'s installed for the currently beamed in avatar."));
-            DisplayCommand(string.Concat(holonType, " list uninstalled"), !string.IsNullOrEmpty(listUninstalledParams) ? listUninstalledParams : "", !string.IsNullOrEmpty(listUninstalledDesc) ? listUninstalledDesc : string.Concat("List all ", holonType, "'s uninstalled for the currently beamed in avatar (and allow re-install)."));
-            DisplayCommand(string.Concat(holonType, " list unpublished"), !string.IsNullOrEmpty(listUnpublishedParams) ? listUnpublishedParams : "", !string.IsNullOrEmpty(listUnpublishedDesc) ? listUnpublishedDesc : string.Concat("List all ", holonType, "'s unpublished for the currently beamed in avatar (and allow republish)."));
-            DisplayCommand(string.Concat(holonType, " list deactivated"), !string.IsNullOrEmpty(listDeactivatedParams) ? listDeactivatedParams : "", !string.IsNullOrEmpty(listDeactivatedDesc) ? listDeactivatedDesc : string.Concat("List all ", holonType, "'s deactivated for the currently beamed in avatar (and allow reactivate)."));
-            DisplayCommand(string.Concat(holonType, " search"), !string.IsNullOrEmpty(searchParams) ? searchParams : string.Concat("[allVersions] [forAllAvatars]", web4Param), !string.IsNullOrEmpty(searchDesc) ? searchDesc : string.Concat("Searches the ", holonType, "'s for the given search criteria."));
-        }
-
-        private static void DisplaySTARNETHolonCommandSummaries(string holonType)
-        {
-            DisplaySummary(holonType, $"Create, edit, clone, delete, publish, unpublish, install, uninstall, list & show {holonType}'s.");
-            //DisplayCommand($"{holonType}", $"Create, edit, clone, delete, publish, unpublish, install, uninstall, list & show {holonType}'s.", "", commandColSize: 20);
-        }
-
-        private static void DisplaySummary(string command, string desc)
-        {
-            //DisplayCommand(command, desc, "", commandColSize: 20);
-            DisplayCommand(command, desc, "", commandColSize: 24);
-        }
-
-        #region ONET/ONODE CLI Implementation
-
-        private static ONETManager? _onetManager;
-        //private static ONETProtocol? _onetProtocol;
-        private static ONETDiscovery? _onetDiscovery;
-        private static Process? _web4ApiProcess;
-        private static Process? _web5ApiProcess;
-
-        private static async Task InitializeONETAsync()
-        {
-            try
-            {
-                if (_onetManager == null)
-                {
-                    CLIEngine.ShowWorkingMessage("Initializing ONET (OASIS Network)...");
-                    _onetManager = new ONETManager(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    //_onetProtocol = new ONETProtocol(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    _onetDiscovery = new ONETDiscovery(ProviderManager.Instance.CurrentStorageProvider, OASISBootLoader.OASISBootLoader.OASISDNA);
-                    await _onetDiscovery.InitializeAsync();
-                    CLIEngine.ShowSuccessMessage("ONET initialized successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error initializing ONET: {ex.Message}");
-            }
-        }
-
-        #region ONODE Commands
-
-        private static async Task StartONODEAsync()
-        {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Starting ONODE...");
-                
-                var result = await _onetManager!.StartNetworkAsync();
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to start ONODE: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage($"ONODE started successfully. Node ID: {result.Result}");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error starting ONODE: {ex.Message}");
-            }
-        }
-
-        private static async Task StopONODEAsync()
-        {
-            try
-            {
-                if (_onetManager == null)
-                {
-                    CLIEngine.ShowErrorMessage("ONODE is not running");
-                    return;
-                }
-
-                CLIEngine.ShowWorkingMessage("Stopping ONODE...");
-                var result = await _onetManager.StopNetworkAsync();
-                if (result.IsError)
-                {
-                    CLIEngine.ShowErrorMessage($"Failed to stop ONODE: {result.Message}");
-                }
-                else
-                {
-                    CLIEngine.ShowSuccessMessage("ONODE stopped successfully");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error stopping ONODE: {ex.Message}");
-            }
-        }
-
-        private static async Task StartWeb4APIAsync()
-        {
-            try
-            {
-                if (_webApiProcesses.ContainsKey("web4") && _webApiProcesses["web4"] != null && !_webApiProcesses["web4"].HasExited)
-                {
-                    CLIEngine.ShowWarningMessage("WEB4 OASIS API is already running.");
-                    return;
-                }
-
-                CLIEngine.ShowWorkingMessage("Starting WEB4 OASIS API REST WebAPI...");
-                
-                string web4ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "..", "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"));
-                string csprojPath = Path.Combine(web4ApiPath, "NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj");
-                
-                if (!File.Exists(csprojPath))
-                {
-                    CLIEngine.ShowErrorMessage($"WEB4 OASIS API project not found at: {csprojPath}");
-                    return;
-                }
-
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"run --project \"{csprojPath}\" --urls \"http://localhost:5000\"",
-                    WorkingDirectory = web4ApiPath,
-                    UseShellExecute = true,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Normal
-                };
-
-                Process process = Process.Start(startInfo);
-                if (process != null)
-                {
-                    _webApiProcesses["web4"] = process;
-                    await Task.Delay(2000); // Give it time to start
-                    CLIEngine.ShowSuccessMessage("WEB4 OASIS API started successfully in a new window. URL: http://localhost:5000");
-                }
-                else
-                {
-                    CLIEngine.ShowErrorMessage("Failed to start WEB4 OASIS API.");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error starting WEB4 OASIS API: {ex.Message}");
-            }
-        }
-
-        private static async Task StartWeb5APIAsync()
-        {
-            try
-            {
-                if (_webApiProcesses.ContainsKey("web5") && _webApiProcesses["web5"] != null && !_webApiProcesses["web5"].HasExited)
-                {
-                    CLIEngine.ShowWarningMessage("WEB5 STAR API is already running.");
-                    return;
-                }
-
-                CLIEngine.ShowWorkingMessage("Starting WEB5 STAR API REST WebAPI...");
-                
-                string web5ApiPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", "..", "..", "NextGenSoftware.OASIS.STAR.WebAPI"));
-                string csprojPath = Path.Combine(web5ApiPath, "NextGenSoftware.OASIS.STAR.WebAPI.csproj");
-                
-                if (!File.Exists(csprojPath))
-                {
-                    CLIEngine.ShowErrorMessage($"WEB5 STAR API project not found at: {csprojPath}");
-                    return;
-                }
-
-                ProcessStartInfo startInfo = new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"run --project \"{csprojPath}\" --urls \"http://localhost:5001\"",
-                    WorkingDirectory = web5ApiPath,
-                    UseShellExecute = true,
-                    CreateNoWindow = false,
-                    WindowStyle = ProcessWindowStyle.Normal
-                };
-
-                Process process = Process.Start(startInfo);
-                if (process != null)
-                {
-                    _webApiProcesses["web5"] = process;
-                    await Task.Delay(2000); // Give it time to start
-                    CLIEngine.ShowSuccessMessage("WEB5 STAR API started successfully in a new window. URL: http://localhost:5001");
-                }
-                else
-                {
-                    CLIEngine.ShowErrorMessage("Failed to start WEB5 STAR API.");
-                }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error starting WEB5 STAR API: {ex.Message}");
-            }
-        }
-
-        private static async Task StopWeb4APIAsync()
-        {
-            try
-            {
-                if (!_webApiProcesses.ContainsKey("web4") || _webApiProcesses["web4"] == null || _webApiProcesses["web4"].HasExited)
-                {
-                    CLIEngine.ShowWarningMessage("WEB4 OASIS API is not running.");
-                    return;
-                }
-
-                CLIEngine.ShowWorkingMessage("Stopping WEB4 OASIS API...");
-                
-                Process process = _webApiProcesses["web4"];
-                try
-                {
-                    if (!process.HasExited)
+                    Console.Clear();
+                    foreach (var e in entries)
                     {
-                        process.Kill();
-                        process.WaitForExit(5000);
+                        var col = e.IsError ? ConsoleColor.Red : ConsoleColor.Gray;
+                        CLIEngine.ShowMessage($"[{e.Timestamp:HH:mm:ss}] [{e.ServiceId.ToUpper()}] {e.Message}", col, false);
                     }
                 }
-                catch (Exception ex)
-                {
-                    CLIEngine.ShowWarningMessage($"Error stopping process: {ex.Message}. Attempting to close window...");
-                }
-                finally
-                {
-                    process?.Dispose();
-                    _webApiProcesses.Remove("web4");
-                }
-
-                CLIEngine.ShowSuccessMessage("WEB4 OASIS API stopped successfully.");
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error stopping WEB4 OASIS API: {ex.Message}");
-            }
+                if (follow) await Task.Delay(2000);
+            } while (follow);
         }
 
-        private static async Task StopWeb5APIAsync()
+        private static async Task ONODEMetricsAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client)
         {
-            try
+            if (!client.IsAvailable) { CLIEngine.ShowWarningMessage("ONODEService not running."); return; }
+
+            var metrics = await client.GetMetricsAsync();
+            if (metrics == null) { CLIEngine.ShowErrorMessage("Failed to retrieve metrics."); return; }
+
+            Console.WriteLine("");
+            CLIEngine.ShowMessage("ONODE AGGREGATE METRICS", ConsoleColor.Cyan);
+            CLIEngine.ShowMessage($"  Total Peers       : {metrics.Aggregate.TotalPeers}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Bytes Read/s      : {FormatBytes(metrics.Aggregate.TotalBytesReadPerSec)}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Bytes Written/s   : {FormatBytes(metrics.Aggregate.TotalBytesWrittenPerSec)}", ConsoleColor.White, false);
+            CLIEngine.ShowMessage($"  Requests/s        : {metrics.Aggregate.TotalRequestsPerSec:F1}", ConsoleColor.White, false);
+            Console.WriteLine("");
+            CLIEngine.ShowMessage($"  {"SERVICE",-10} {"PEERS",-8} {"READ/s",-12} {"WRITE/s",-12} {"REQ/s",-8} {"LATENCY ms"}", ConsoleColor.Green);
+            foreach (var (id, m) in metrics.Services)
+                CLIEngine.ShowMessage($"  {id.ToUpper(),-10} {m.PeersConnected,-8} {FormatBytes(m.BytesReadPerSec),-12} {FormatBytes(m.BytesWrittenPerSec),-12} {m.RequestsPerSec,-8:F1} {m.AvgLatencyMs:F1}", ConsoleColor.White, false);
+            Console.WriteLine("");
+        }
+
+        private static async Task ONODEConfigAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, bool edit)
+        {
+            if (!client.IsAvailable) { CLIEngine.ShowWarningMessage("ONODEService not running."); return; }
+
+            var config = await client.GetConfigAsync();
+            if (config == null) { CLIEngine.ShowErrorMessage("Could not read OASISDNA.json."); return; }
+
+            if (edit)
             {
-                if (!_webApiProcesses.ContainsKey("web5") || _webApiProcesses["web5"] == null || _webApiProcesses["web5"].HasExited)
-                {
-                    CLIEngine.ShowWarningMessage("WEB5 STAR API is not running.");
-                    return;
-                }
-
-                CLIEngine.ShowWorkingMessage("Stopping WEB5 STAR API...");
-                
-                Process process = _webApiProcesses["web5"];
-                try
-                {
-                    if (!process.HasExited)
-                    {
-                        process.Kill();
-                        process.WaitForExit(5000);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    CLIEngine.ShowWarningMessage($"Error stopping process: {ex.Message}. Attempting to close window...");
-                }
-                finally
-                {
-                    process?.Dispose();
-                    _webApiProcesses.Remove("web5");
-                }
-
-                CLIEngine.ShowSuccessMessage("WEB5 STAR API stopped successfully.");
+                // Write to temp file and open in $EDITOR
+                var tmp = Path.Combine(Path.GetTempPath(), "OASISDNA_edit.json");
+                await File.WriteAllTextAsync(tmp, config);
+                var editor = Environment.GetEnvironmentVariable("EDITOR") ?? (OperatingSystem.IsWindows() ? "notepad" : "nano");
+                var psi = new ProcessStartInfo(editor, $"\"{tmp}\"") { UseShellExecute = true };
+                var proc = Process.Start(psi);
+                proc?.WaitForExit();
+                var updated = await File.ReadAllTextAsync(tmp);
+                await client.UpdateConfigAsync(updated);
+                CLIEngine.ShowSuccessMessage("OASISDNA.json updated.");
             }
-            catch (Exception ex)
+            else
             {
-                CLIEngine.ShowErrorMessage($"Error stopping WEB5 STAR API: {ex.Message}");
+                Console.WriteLine(config);
             }
         }
 
+        private static async Task ONODEServiceCommandAsync(string[] inputArgs)
+        {
+            if (inputArgs.Length < 3) { CLIEngine.ShowErrorMessage("Usage: onode service [install|uninstall|start|stop|restart]"); return; }
+            switch (inputArgs[2].ToLower())
+            {
+                case "install":
+                    CLIEngine.ShowMessage("To install ONODEService, run the service binary directly with --install:", ConsoleColor.Yellow, false);
+                    CLIEngine.ShowMessage("  dotnet run --project <path-to-ONODEService> -- --install", ConsoleColor.White, false);
+                    CLIEngine.ShowMessage("Or publish it and run: NextGenSoftware.OASIS.ONODE.Service install", ConsoleColor.White, false);
+                    break;
+                case "uninstall":
+                    CLIEngine.ShowMessage("To uninstall ONODEService, run:", ConsoleColor.Yellow, false);
+                    CLIEngine.ShowMessage("  NextGenSoftware.OASIS.ONODE.Service uninstall", ConsoleColor.White, false);
+                    break;
+                default:
+                    CLIEngine.ShowErrorMessage($"Unknown service subcommand: {inputArgs[2]}");
+                    break;
+            }
+            await Task.CompletedTask;
+        }
+
+        // Fallback: direct spawn when ONODEService is not running
+        private static async Task ONODEStartDirectFallbackAsync(string target, string? windowMode)
+        {
+            var services = target switch
+            {
+                "all"      => new[] { "web4","web5","web6","web7","web8","web9","web10" },
+                "core"     => new[] { "web4","web5" },
+                "ai"       => new[] { "web6" },
+                "extended" => new[] { "web7","web8","web9","web10" },
+                _ when target.Contains(",") => target.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+                _ => new[] { target }
+            };
+
+            string oasisRoot = @"C:\Source\OASIS2";
+            if (!OperatingSystem.IsWindows())
+                oasisRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Source", "OASIS2");
+
+            foreach (var svc in services)
+            {
+                var projectPath = svc switch
+                {
+                    "web4"  => Path.Combine(oasisRoot, "ONODE", "NextGenSoftware.OASIS.API.ONODE.WebAPI"),
+                    "web5"  => Path.Combine(oasisRoot, "STAR ODK", "NextGenSoftware.OASIS.STAR.WebAPI"),
+                    "web6"  => Path.Combine(oasisRoot, "WEB6",  "NextGenSoftware.OASIS.Web6.WebAPI"),
+                    "web7"  => Path.Combine(oasisRoot, "WEB7",  "NextGenSoftware.OASIS.Web7.WebAPI"),
+                    "web8"  => Path.Combine(oasisRoot, "WEB8",  "NextGenSoftware.OASIS.Web8.WebAPI"),
+                    "web9"  => Path.Combine(oasisRoot, "WEB9",  "NextGenSoftware.OASIS.Web9.WebAPI"),
+                    "web10" => Path.Combine(oasisRoot, "WEB10", "NextGenSoftware.OASIS.Web10.WebAPI"),
+                    _ => ""
+                };
+                if (string.IsNullOrEmpty(projectPath) || !Directory.Exists(projectPath))
+                {
+                    CLIEngine.ShowWarningMessage($"{svc.ToUpper()} not found at {projectPath} — skipping.");
+                    continue;
+                }
+                var hidden = windowMode?.Equals("Hidden", StringComparison.OrdinalIgnoreCase) == true;
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"run --project \"{projectPath}\"",
+                    WorkingDirectory = projectPath,
+                    UseShellExecute = !hidden,
+                    CreateNoWindow = hidden,
+                    WindowStyle = hidden ? ProcessWindowStyle.Hidden : ProcessWindowStyle.Normal
+                };
+                var process = Process.Start(psi);
+                if (process != null)
+                {
+                    _webApiProcesses[svc] = process;
+                    CLIEngine.ShowSuccessMessage($"{svc.ToUpper()} started (pid {process.Id}).");
+                }
+                else CLIEngine.ShowErrorMessage($"Failed to start {svc.ToUpper()}.");
+            }
+            await Task.CompletedTask;
+        }
+
+        private static void ShowONODEHelp()
+        {
+            Console.WriteLine("");
+            CLIEngine.ShowMessage("ONODE SUBCOMMANDS:", ConsoleColor.Green);
+            Console.WriteLine("");
+            CLIEngine.ShowMessage("  start   [target] [--hidden|--visible|--minimised]", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  stop    [target]", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  restart [target] [--hidden|--visible|--minimised]", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  status", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  logs    [target] [--lines=N] [--follow]", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  metrics", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  config  [--edit]", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  providers", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  startprovider {name}", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  stopprovider  {name}", ConsoleColor.Green, false);
+            CLIEngine.ShowMessage("  service [install|uninstall]", ConsoleColor.Green, false);
+            Console.WriteLine("");
+            CLIEngine.ShowMessage("  [target] = web4|web5|web6|web7|web8|web9|web10|all|core|ai|extended|web4,web6,...", ConsoleColor.DarkGreen, false);
+            Console.WriteLine("");
+        }
+
+        private static string FormatUptime(double seconds)
+        {
+            var ts = TimeSpan.FromSeconds(seconds);
+            if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h{ts.Minutes:D2}m";
+            if (ts.TotalMinutes >= 1) return $"{ts.Minutes}m{ts.Seconds:D2}s";
+            return $"{ts.Seconds}s";
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            if (bytes >= 1_000_000) return $"{bytes / 1_000_000.0:F1}MB";
+            if (bytes >= 1_000) return $"{bytes / 1_000.0:F1}KB";
+            return $"{bytes}B";
+        }
         private static async Task ShowONODEStatusAsync()
         {
             try
@@ -5815,7 +4831,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             
             foreach (var stat in stats)
             {
-                CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
+                CLIEngine.ShowMessage($"â€¢ {stat.Key}: {stat.Value}", ConsoleColor.White);
             }
             }
             catch (Exception ex)
@@ -5910,7 +4926,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 
                 foreach (var stat in stats)
                 {
-                    CLIEngine.ShowMessage($"• {stat.Key}: {stat.Value}", ConsoleColor.White);
+                    CLIEngine.ShowMessage($"â€¢ {stat.Key}: {stat.Value}", ConsoleColor.White);
                 }
             }
             catch (Exception ex)
@@ -5941,7 +4957,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                 {
                     foreach (var node in nodes)
                     {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address}", ConsoleColor.White);
+                        CLIEngine.ShowMessage($"â€¢ {node.Id} - {node.Address}", ConsoleColor.White);
                         CLIEngine.ShowMessage($"  Status: {node.Status} | Latency: {node.Latency}ms | Reliability: {node.Reliability}%", ConsoleColor.Gray);
                         CLIEngine.ShowMessage($"  Capabilities: {string.Join(", ", node.Capabilities)}", ConsoleColor.Gray);
                     }
@@ -6029,7 +5045,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage("\nNodes:", ConsoleColor.Yellow);
                     foreach (var node in topology.Nodes)
                     {
-                        CLIEngine.ShowMessage($"• {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
+                        CLIEngine.ShowMessage($"â€¢ {node.Id} - {node.Address} (Status: {node.Status})", ConsoleColor.Gray);
                     }
                 }
                 
@@ -6038,7 +5054,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     CLIEngine.ShowMessage("\nConnections:", ConsoleColor.Yellow);
                     foreach (var connection in topology.Connections)
                     {
-                        CLIEngine.ShowMessage($"• {connection.FromNodeId} ↔ {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
+                        CLIEngine.ShowMessage($"â€¢ {connection.FromNodeId} â†” {connection.ToNodeId} (Latency: {connection.Latency}ms)", ConsoleColor.Gray);
                     }
                 }
             }
@@ -6599,7 +5615,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                             CLIEngine.ShowSuccessMessage($"Found {listResult.Result.Count} item(s) in shared inventory:");
                             foreach (var item in listResult.Result)
                             {
-                                CLIEngine.ShowMessage($"  • {item.Name} (ID: {item.Id})", ConsoleColor.White, false);
+                                CLIEngine.ShowMessage($"  â€¢ {item.Name} (ID: {item.Id})", ConsoleColor.White, false);
                             }
                         }
                         else
