@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
@@ -561,7 +562,6 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
 
-            //TODO: Implement for all other properties ASAP.
             if (copyMessage)
                 toResult.Message = fromResult.Message;
 
@@ -570,6 +570,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
@@ -657,7 +658,6 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
             
-            //TODO: Implement for all other properties ASAP.
             if (copyMessage)
                 toResult.Message = fromResult.Message;
 
@@ -666,6 +666,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
@@ -694,7 +695,6 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
 
-            //TODO: Implement for all other properties ASAP.
             if (copyMessage)
                 toResult.Message = fromResult.Message;
 
@@ -703,6 +703,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
@@ -729,7 +730,6 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
 
-            //TODO: Implement for all other properties ASAP.
             if (copyMessage)
                 toResult.Message = fromResult.Message;
 
@@ -738,6 +738,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
@@ -762,7 +763,6 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.IsSaved = fromResult.IsSaved;
             toResult.IsWarning = fromResult.IsWarning;
 
-            //TODO: Implement for all other properties ASAP.
             if (copyMessage)
                 toResult.Message = fromResult.Message;
 
@@ -771,6 +771,7 @@ namespace NextGenSoftware.OASIS.API.Core.Helpers
             toResult.ErrorCount = fromResult.ErrorCount;
             toResult.HasAnyHolonsChanged = fromResult.HasAnyHolonsChanged;
             toResult.InnerMessages = fromResult.InnerMessages;
+            toResult.StackTraces = fromResult.StackTraces;
             toResult.LoadedCount = fromResult.LoadedCount;
             toResult.SavedCount = fromResult.SavedCount;
             toResult.MetaData = fromResult.MetaData;
