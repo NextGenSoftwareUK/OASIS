@@ -42,6 +42,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 using NextGenSoftware.OASIS.API.Providers.TelosOASIS;
 using NextGenSoftware.OASIS.API.Providers.ThreeFoldOASIS;
+using NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 using NextGenSoftware.OASIS.API.Providers.TRONOASIS; // TODO: Fix TRONOASIS build errors
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
@@ -1150,16 +1151,14 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.NEAROASIS:
                         {
-                            // TODO: Implement NEAROASIS provider initialization
-                            // var nearProvider = new NEAROASIS(
-                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
-                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
-                            //     OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
-                            // nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
-                            // result.Result = nearProvider;
+                            var nearProvider = new NEAROASIS(
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.RpcEndpoint ?? "https://rpc.mainnet.near.org",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.Network ?? "mainnet",
+                                OASISDNA.OASIS.StorageProviders.NEAROASIS.ChainId ?? "mainnet");
+                            nearProvider.OnStorageProviderError += NEAROASIS_StorageProviderError;
+                            result.Result = nearProvider;
                             break;
                         }
-                        //break;
 
                         case ProviderType.BaseOASIS:
                         {
