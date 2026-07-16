@@ -3368,36 +3368,177 @@ namespace NextGenSoftware.OASIS.API.Providers.ElrondOASIS
         return result;
     }
     OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.MintToken(IMintWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).MintTokenAsync(request).Result;
-    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.MintTokenAsync(IMintWeb3TokenRequest request)
+    async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.MintTokenAsync(IMintWeb3TokenRequest request)
     {
         var result = new OASISResult<ITransactionResponse>();
-        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
-        OASISErrorHandling.HandleError(ref result, "MintToken not implemented for Elrond in this build.");
-        return Task.FromResult(result);
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
+            { OASISErrorHandling.HandleError(ref result, "MintTokenAsync: request and Symbol (ESDT token identifier) are required."); return result; }
+            if (!IsProviderActivated)
+            { OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated."); return result; }
+
+            // MultiversX ESDT local mint: ESDTLocalMint@{hex(tokenId)}@{hex(amount)}
+            var tokenIdHex = Convert.ToHexString(Encoding.UTF8.GetBytes(request.Symbol));
+            var amountBigInt = new System.Numerics.BigInteger(request.Amount * 1_000_000_000_000_000_000m);
+            var amountHex = amountBigInt.ToString("X");
+            var walletAddress = await GetWalletAddressAsync();
+            var txData = new
+            {
+                nonce = await GetAccountNonceAsync(),
+                value = "0",
+                receiver = walletAddress,
+                sender = walletAddress,
+                gasPrice = 1000000000,
+                gasLimit = 60000000,
+                data = $"ESDTLocalMint@{tokenIdHex}@{amountHex}",
+                chainID = "1",
+                version = 1
+            };
+            var response = await _httpClient.PostAsync("/transaction/send",
+                new StringContent(JsonSerializer.Serialize(txData), Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var txResult = JsonSerializer.Deserialize<ElrondTransactionResult>(content);
+                result.Result = new ElrondTransactionResponse { TransactionResult = txResult?.txHash ?? "" };
+                result.IsError = false;
+                result.Message = $"ESDT MintToken submitted. TX: {txResult?.txHash}";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"MintTokenAsync failed: {response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error in MintTokenAsync: {ex.Message}", ex); }
+        return result;
     }
     OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.BurnToken(IBurnWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).BurnTokenAsync(request).Result;
-    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.BurnTokenAsync(IBurnWeb3TokenRequest request)
+    async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.BurnTokenAsync(IBurnWeb3TokenRequest request)
     {
         var result = new OASISResult<ITransactionResponse>();
-        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
-        OASISErrorHandling.HandleError(ref result, "BurnToken not implemented for Elrond in this build.");
-        return Task.FromResult(result);
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+            { OASISErrorHandling.HandleError(ref result, "BurnTokenAsync: request and TokenAddress are required."); return result; }
+            if (!IsProviderActivated)
+            { OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated."); return result; }
+
+            // MultiversX ESDT NFT burn: ESDTNFTBurn@{hex(tokenId)}@{hex(nonce=1)}@{hex(amount=1)}
+            var tokenIdHex = Convert.ToHexString(Encoding.UTF8.GetBytes(request.TokenAddress));
+            var walletAddress = await GetWalletAddressAsync();
+            var txData = new
+            {
+                nonce = await GetAccountNonceAsync(),
+                value = "0",
+                receiver = walletAddress,
+                sender = walletAddress,
+                gasPrice = 1000000000,
+                gasLimit = 60000000,
+                data = $"ESDTNFTBurn@{tokenIdHex}@01@01",
+                chainID = "1",
+                version = 1
+            };
+            var response = await _httpClient.PostAsync("/transaction/send",
+                new StringContent(JsonSerializer.Serialize(txData), Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var txResult = JsonSerializer.Deserialize<ElrondTransactionResult>(content);
+                result.Result = new ElrondTransactionResponse { TransactionResult = txResult?.txHash ?? "" };
+                result.IsError = false;
+                result.Message = $"ESDT BurnToken submitted. TX: {txResult?.txHash}";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"BurnTokenAsync failed: {response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error in BurnTokenAsync: {ex.Message}", ex); }
+        return result;
     }
     OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.LockToken(ILockWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).LockTokenAsync(request).Result;
-    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.LockTokenAsync(ILockWeb3TokenRequest request)
+    async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.LockTokenAsync(ILockWeb3TokenRequest request)
     {
         var result = new OASISResult<ITransactionResponse>();
-        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
-        OASISErrorHandling.HandleError(ref result, "LockToken not implemented for Elrond in this build.");
-        return Task.FromResult(result);
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.FromWalletAddress))
+            { OASISErrorHandling.HandleError(ref result, "LockTokenAsync: request, TokenAddress and FromWalletAddress are required."); return result; }
+            if (!IsProviderActivated)
+            { OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated."); return result; }
+
+            // MultiversX bridge lock: ESDTNFTTransfer to bridge contract with @lock argument
+            // Bridge SC: erd1qqqqqqqqqqqqqpgqmuk0q2saj0mgutxm4teywre6dl8wqf58xamqdrukln
+            const string bridgeAddress = "erd1qqqqqqqqqqqqqpgqmuk0q2saj0mgutxm4teywre6dl8wqf58xamqdrukln";
+            var tokenIdHex = Convert.ToHexString(Encoding.UTF8.GetBytes(request.TokenAddress));
+            var bridgeAddrHex = Convert.ToHexString(Encoding.UTF8.GetBytes(bridgeAddress));
+            var txData = new
+            {
+                nonce = await GetAccountNonceAsync(),
+                value = "0",
+                receiver = request.FromWalletAddress,
+                sender = request.FromWalletAddress,
+                gasPrice = 1000000000,
+                gasLimit = 60000000,
+                data = $"ESDTNFTTransfer@{tokenIdHex}@01@01@{bridgeAddrHex}@6C6F636B",
+                chainID = "1",
+                version = 1
+            };
+            var response = await _httpClient.PostAsync("/transaction/send",
+                new StringContent(JsonSerializer.Serialize(txData), Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var txResult = JsonSerializer.Deserialize<ElrondTransactionResult>(content);
+                result.Result = new ElrondTransactionResponse { TransactionResult = txResult?.txHash ?? "" };
+                result.IsError = false;
+                result.Message = $"ESDT LockToken submitted. TX: {txResult?.txHash}";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"LockTokenAsync failed: {response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error in LockTokenAsync: {ex.Message}", ex); }
+        return result;
     }
     OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.UnlockToken(IUnlockWeb3TokenRequest request) => ((IOASISBlockchainStorageProvider)this).UnlockTokenAsync(request).Result;
-    Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+    async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
     {
         var result = new OASISResult<ITransactionResponse>();
-        result.Result = new ElrondTransactionResponse { TransactionResult = "" };
-        OASISErrorHandling.HandleError(ref result, "UnlockToken not implemented for Elrond in this build.");
-        return Task.FromResult(result);
+        try
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
+            { OASISErrorHandling.HandleError(ref result, "UnlockTokenAsync: request and TokenAddress are required."); return result; }
+            if (!IsProviderActivated)
+            { OASISErrorHandling.HandleError(ref result, "Elrond provider is not activated."); return result; }
+
+            // MultiversX bridge unlock: call bridge SC unlock function with token identifier
+            const string bridgeAddress = "erd1qqqqqqqqqqqqqpgqmuk0q2saj0mgutxm4teywre6dl8wqf58xamqdrukln";
+            var tokenIdHex = Convert.ToHexString(Encoding.UTF8.GetBytes(request.TokenAddress));
+            var walletAddress = await GetWalletAddressAsync();
+            var txData = new
+            {
+                nonce = await GetAccountNonceAsync(),
+                value = "0",
+                receiver = bridgeAddress,
+                sender = walletAddress,
+                gasPrice = 1000000000,
+                gasLimit = 60000000,
+                data = $"unlock@{tokenIdHex}",
+                chainID = "1",
+                version = 1
+            };
+            var response = await _httpClient.PostAsync("/transaction/send",
+                new StringContent(JsonSerializer.Serialize(txData), Encoding.UTF8, "application/json"));
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var txResult = JsonSerializer.Deserialize<ElrondTransactionResult>(content);
+                result.Result = new ElrondTransactionResponse { TransactionResult = txResult?.txHash ?? "" };
+                result.IsError = false;
+                result.Message = $"ESDT UnlockToken submitted. TX: {txResult?.txHash}";
+            }
+            else
+                OASISErrorHandling.HandleError(ref result, $"UnlockTokenAsync failed: {response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error in UnlockTokenAsync: {ex.Message}", ex); }
+        return result;
     }
     OASISResult<double> IOASISBlockchainStorageProvider.GetBalance(IGetWeb3WalletBalanceRequest request) => ((IOASISBlockchainStorageProvider)this).GetBalanceAsync(request).Result;
     async Task<OASISResult<double>> IOASISBlockchainStorageProvider.GetBalanceAsync(IGetWeb3WalletBalanceRequest request)

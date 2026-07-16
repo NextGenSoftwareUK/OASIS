@@ -1868,12 +1868,41 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return response;
         }
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false) => Task.FromResult(new OASISResult<IEnumerable<IHolon>> { Result = holons });
+        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            try
+            {
+                foreach (var holon in holons)
+                {
+                    var saveResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
+                    if (saveResult.IsError)
+                    {
+                        if (!continueOnError)
+                        {
+                            OASISErrorHandling.HandleError(ref result, $"SaveHolonsAsync failed on holon {holon.Id}: {saveResult.Message}");
+                            return result;
+                        }
+                    }
+                    else
+                        saved.Add(saveResult.Result);
+                }
+                result.Result = saved;
+                result.IsSaved = true;
+                result.Message = $"{saved.Count} holons saved to Aptos successfully.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in SaveHolonsAsync: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
-        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => Task.FromResult(new OASISResult<IHolon> { Result = new Holon { Id = id } });
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => DeleteHolonAsync(id.ToString());
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             return DeleteHolonAsync(id).Result;
@@ -1921,7 +1950,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS
             return result;
         }
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
-        public override Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) => Task.FromResult(new OASISResult<bool> { Result = true });
+        public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
+        {
+            var result = new OASISResult<bool>();
+            try
+            {
+                var saveResult = await SaveHolonsAsync(holons);
+                if (saveResult.IsError)
+                    OASISErrorHandling.HandleError(ref result, $"ImportAsync failed: {saveResult.Message}");
+                else
+                {
+                    result.Result = true;
+                    result.Message = saveResult.Message;
+                }
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error in ImportAsync: {ex.Message}", ex);
+            }
+            return result;
+        }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
         {
             return ImportAsync(holons).Result;
