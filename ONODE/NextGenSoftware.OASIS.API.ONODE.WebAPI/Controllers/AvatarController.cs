@@ -95,7 +95,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 model.Username,
                 model.AvatarType != null ? (AvatarType)Enum.Parse(typeof(AvatarType), model.AvatarType) : AvatarType.User,
                 OASISType.OASISAPIREST,
-                callerIsWizard: callerIsWizard
+                callerIsWizard: callerIsWizard,
+                suppressVerificationEmail: callerIsWizard && model.SuppressVerificationEmail
             );
 
             return HttpResponseHelper.FormatResponse(result);
