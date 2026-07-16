@@ -8,7 +8,7 @@ namespace NextGenSoftware.OASIS.ONODE.Service.Services;
 /// <summary>
 /// Pushes AvatarNodeStateHolon to the OASIS Data Layer via the Web4 API so OPORTAL can
 /// read live node state remotely. Also polls for CommandHolons (remote commands from OPORTAL).
-/// The Web4 API at /api/v1/holons is used as the transport — this avoids a direct OASIS SDK
+/// The Web4 API at /api/v1/onode is used as the transport — this avoids a direct OASIS SDK
 /// dependency in the supervisor and keeps it decoupled.
 /// </summary>
 public class HolonBridge : BackgroundService
@@ -96,7 +96,7 @@ public class HolonBridge : BackgroundService
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
         var json = JsonSerializer.Serialize(holon);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        await http.PutAsync($"{Web4Base}/api/v1/onode/holons/node-state/{_config.NodeId}", content, ct);
+        await http.PutAsync($"{Web4Base}/api/v1/onode/node-state/{_config.NodeId}", content, ct);
     }
 
     async Task PollCommandsAsync(CancellationToken ct)
@@ -104,7 +104,7 @@ public class HolonBridge : BackgroundService
         if (string.IsNullOrEmpty(_config.NodeId)) return;
 
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
-        var resp = await http.GetAsync($"{Web4Base}/api/v1/onode/holons/commands/pending/{_config.NodeId}", ct);
+        var resp = await http.GetAsync($"{Web4Base}/api/v1/onode/commands/pending/{_config.NodeId}", ct);
         if (!resp.IsSuccessStatusCode) return;
 
         var json = await resp.Content.ReadAsStringAsync(ct);
@@ -140,7 +140,7 @@ public class HolonBridge : BackgroundService
         {
             var json = JsonSerializer.Serialize(cmd);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            await http.PatchAsync($"{Web4Base}/api/v1/onode/holons/commands/{cmd.Id}", content, ct);
+            await http.PatchAsync($"{Web4Base}/api/v1/onode/commands/{cmd.Id}", content, ct);
         }
         catch { /* best effort */ }
     }
