@@ -522,9 +522,9 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             return result;
         }
 
-        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false)
+        private OASISResult<IAvatar> AvatarRegistered(OASISResult<IAvatar> result, bool callerIsWizard = false, bool suppressVerificationEmail = false)
         {
-            if (OASISDNA.OASIS.Email.SendVerificationEmail)
+            if (OASISDNA.OASIS.Email.SendVerificationEmail && !suppressVerificationEmail)
                 SendVerificationEmail(result.Result);
 
             string verificationToken = callerIsWizard ? result.Result.VerificationToken : null;
