@@ -369,7 +369,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// ONODEService pushes current aggregate node state every ~5 seconds.
         /// </summary>
-        [HttpPut("holons/node-state/{nodeId}")]
+        [HttpPut("node-state/{nodeId}")]
         public IActionResult PushNodeState(string nodeId, [FromBody] AvatarNodeStateHolonDto state)
         {
             if (string.IsNullOrWhiteSpace(nodeId) || state == null)
@@ -385,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// OPORTAL reads the latest pushed state for a given node (avatar).
         /// Returns 404 if the node has never synced or has not been seen for >5 minutes.
         /// </summary>
-        [HttpGet("holons/node-state/{nodeId}")]
+        [HttpGet("node-state/{nodeId}")]
         public IActionResult GetNodeState(string nodeId)
         {
             if (!_nodeStates.TryGetValue(nodeId, out var state))
@@ -400,7 +400,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// OPORTAL posts a command; ONODEService polls for Pending commands.
         /// </summary>
-        [HttpPost("holons/commands")]
+        [HttpPost("commands")]
         public IActionResult PostCommand([FromBody] CommandHolonDto cmd)
         {
             if (cmd == null || string.IsNullOrWhiteSpace(cmd.TargetNodeId))
@@ -423,7 +423,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// ONODEService polls for commands pending against its nodeId.
         /// </summary>
-        [HttpGet("holons/commands/pending/{nodeId}")]
+        [HttpGet("commands/pending/{nodeId}")]
         public IActionResult GetPendingCommands(string nodeId)
         {
             var pending = _commands.Values
@@ -437,7 +437,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// ONODEService updates a command's status (Executing → Done/Error).
         /// OPORTAL polls this to get the result.
         /// </summary>
-        [HttpPatch("holons/commands/{commandId}")]
+        [HttpPatch("commands/{commandId}")]
         public IActionResult UpdateCommand(string commandId, [FromBody] CommandStatusUpdateDto update)
         {
             if (!_commands.TryGetValue(commandId, out var cmd))
@@ -454,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <summary>
         /// OPORTAL polls this to read a single command's current status/result.
         /// </summary>
-        [HttpGet("holons/commands/{commandId}")]
+        [HttpGet("commands/{commandId}")]
         public IActionResult GetCommand(string commandId)
         {
             if (!_commands.TryGetValue(commandId, out var cmd))
