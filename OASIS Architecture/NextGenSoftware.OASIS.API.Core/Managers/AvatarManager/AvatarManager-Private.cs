@@ -1486,6 +1486,18 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 ((List<IAchievement>)avatarDetailOriginal.Achievements).AddRange(avatarDetailToUpdate.Achievements);
             }
 
+            if (avatarDetailOriginal.Attributes.Strength != avatarDetailToUpdate.Attributes.Strength && avatarDetailToUpdate.Attributes.Strength > 0)
+                avatarDetailOriginal.Attributes.Strength = avatarDetailToUpdate.Attributes.Strength;
+
+            if (avatarDetailOriginal.Attributes.Speed != avatarDetailToUpdate.Attributes.Speed && avatarDetailToUpdate.Attributes.Speed > 0)
+                avatarDetailOriginal.Attributes.Speed = avatarDetailToUpdate.Attributes.Speed;
+
+            if (avatarDetailOriginal.Attributes.Dexterity != avatarDetailToUpdate.Attributes.Dexterity && avatarDetailToUpdate.Attributes.Dexterity > 0)
+                avatarDetailOriginal.Attributes.Dexterity = avatarDetailToUpdate.Attributes.Dexterity;
+
+            if (avatarDetailOriginal.Attributes.Toughness != avatarDetailToUpdate.Attributes.Toughness && avatarDetailToUpdate.Attributes.Toughness > 0)
+                avatarDetailOriginal.Attributes.Toughness = avatarDetailToUpdate.Attributes.Toughness;
+
             if (avatarDetailOriginal.Attributes.Magic != avatarDetailToUpdate.Attributes.Magic && avatarDetailToUpdate.Attributes.Magic > 0)
                 avatarDetailOriginal.Attributes.Magic = avatarDetailToUpdate.Attributes.Magic;
 
@@ -1495,10 +1507,11 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             if (avatarDetailOriginal.Attributes.Intelligence != avatarDetailToUpdate.Attributes.Intelligence && avatarDetailToUpdate.Attributes.Intelligence > 0)
                 avatarDetailOriginal.Attributes.Intelligence = avatarDetailToUpdate.Attributes.Intelligence;
 
-            //TODO: Finish...
+            if (avatarDetailOriginal.Attributes.Vitality != avatarDetailToUpdate.Attributes.Vitality && avatarDetailToUpdate.Attributes.Vitality > 0)
+                avatarDetailOriginal.Attributes.Vitality = avatarDetailToUpdate.Attributes.Vitality;
 
-
-            //TODO: Apply to all other properties. Use AutoMapper here instead! ;-)
+            if (avatarDetailOriginal.Attributes.Endurance != avatarDetailToUpdate.Attributes.Endurance && avatarDetailToUpdate.Attributes.Endurance > 0)
+                avatarDetailOriginal.Attributes.Endurance = avatarDetailToUpdate.Attributes.Endurance;
 
             result = await SaveAvatarDetailAsync(avatarDetailOriginal);
 
