@@ -257,6 +257,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public int RefreshTokenExpirationDays { get; set; } = 7;
         public EncryptionSettings AvatarPassword { get; set; }
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
+        /// <summary>When true each avatar is assigned a W3C DID (did:oasis:&lt;avatarId&gt;) and the DID is included in issued JWT tokens.</summary>
+        public bool DIDEnabled { get; set; }
     }
 
     public class ErrorHandlingSettings
@@ -423,7 +425,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public bool BCryptEncryptionEnabled { get; set; }
         public bool Rijndael256EncryptionEnabled { get; set; }
         public string Rijndael256Key { get; set; }
+        /// <summary>Enables AES-256-GCM post-quantum symmetric encryption as the outermost password layer.</summary>
         public bool QuantumEncryptionEnabled { get; set; }
+        /// <summary>Passphrase used to derive the AES-256-GCM key for the quantum encryption layer. Generate a long random string.</summary>
+        public string QuantumEncryptionKey { get; set; }
     }
 
     public class StorageProviderSettings
