@@ -8,6 +8,7 @@ using System.Threading;
 using WS = System.Net.WebSockets.WebSocket;
 using WebSocketMessageType = System.Net.WebSockets.WebSocketMessageType;
 using WebSocketState = System.Net.WebSockets.WebSocketState;
+using System.Threading.Tasks;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs;
 
