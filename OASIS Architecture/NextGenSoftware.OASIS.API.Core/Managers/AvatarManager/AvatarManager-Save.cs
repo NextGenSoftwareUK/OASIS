@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using BC = BCrypt.Net.BCrypt;
 
 namespace NextGenSoftware.OASIS.API.Core.Managers
@@ -69,9 +70,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
 
-                // Hash the password if it hasn't been hashed yet (bcrypt hashes start with $2)
-                if (!string.IsNullOrEmpty(avatar.Password) && !avatar.Password.StartsWith("$2"))
-                    avatar.Password = BC.HashPassword(avatar.Password);
+                // Apply the configured encryption stack (BCrypt → Rijndael-256 → AES-256-GCM) if not already done.
+                var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettings);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
@@ -153,6 +155,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 avatar.ModifiedDate = DateTime.Now;
                 avatar.ModifiedByAvatarId = avatar.Id;
+
+                var pwdSettingsSync = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                if (!string.IsNullOrEmpty(avatar.Password) && !PasswordEncryptionHelper.IsAlreadyHashed(avatar.Password))
+                    avatar.Password = PasswordEncryptionHelper.HashPassword(avatar.Password, pwdSettingsSync);
 
                 int removingDays = OASISDNA.OASIS.Security.RemoveOldRefreshTokensAfterXDays;
                 int removeQty = 0;
