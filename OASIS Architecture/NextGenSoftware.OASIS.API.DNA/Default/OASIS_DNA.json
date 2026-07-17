@@ -38,6 +38,12 @@
             "JwtTokenExpirationMinutes": 15,
             "RefreshTokenExpirationDays": 7,
             "DIDEnabled": false,
+            "DIDChallengeStore": {
+                "Provider": "InMemory",
+                "RedisConnectionString": "",
+                "RedisKeyPrefix": "oasis:did:challenge:",
+                "NonceTtlSeconds": 300
+            },
             "AvatarPassword": {
                 "BCryptEncryptionEnabled": true,
                 "Rijndael256EncryptionEnabled": false,

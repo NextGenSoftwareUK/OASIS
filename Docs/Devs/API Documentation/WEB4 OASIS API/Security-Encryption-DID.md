@@ -22,6 +22,7 @@
   - [POST /authenticate-did](#post-authenticate-did)
   - [Client-Side Example (C#)](#client-side-example-c)
   - [Client-Side Example (JavaScript)](#client-side-example-javascript)
+- [DID Challenge Nonce Store](#did-challenge-nonce-store)
 - [Security Recommendations](#security-recommendations)
 
 ---
@@ -240,7 +241,7 @@ The `DIDPublicKey` is the Base64-encoded DER encoding of the SubjectPublicKeyInf
 
 ### GET /did-challenge/{did}
 
-Request a server-issued nonce before authenticating. This is the required first step — the nonce ties the challenge to the server and expires after 5 minutes, preventing replay attacks.
+Request a server-issued nonce before authenticating. This is the required first step — the nonce ties the challenge to the server, expires after 5 minutes, and is single-use (consumed on the first valid authentication attempt).
 
 ```http
 GET /api/avatar/did-challenge/{did}
@@ -412,6 +413,61 @@ const auth = await authRes.json();
 > **Note:** `crypto.subtle.sign` with `{ hash: 'SHA-256' }` hashes the message internally before signing. The server also hashes the `Challenge` string with SHA-256 before verifying — both sides operate on the same `Challenge` string.
 
 ---
+
+## DID Challenge Nonce Store
+
+The nonce store is pluggable and configured in `OASISDNA.Security.DIDChallengeStore`.
+
+### InMemory (default — single-node)
+
+Zero dependencies, sub-microsecond latency. Nonces are lost on process restart (harmless — clients simply request a new one). **Not suitable for multi-node deployments** because nonces issued by one ONODE instance cannot be validated by another.
+
+```json
+"DIDChallengeStore": {
+    "Provider": "InMemory",
+    "NonceTtlSeconds": 300
+}
+```
+
+### Redis (multi-node)
+
+Nonces are stored in Redis with a native TTL so they expire automatically without any cleanup. An atomic Lua script ensures a nonce cannot be consumed twice even under concurrent requests. All ONODE instances share the same Redis and can validate any nonce regardless of which node issued it.
+
+```json
+"DIDChallengeStore": {
+    "Provider": "Redis",
+    "RedisConnectionString": "localhost:6379",
+    "RedisKeyPrefix": "oasis:did:challenge:",
+    "NonceTtlSeconds": 300
+}
+```
+
+The `RedisConnectionString` accepts the full StackExchange.Redis connection string format, e.g.:
+
+```
+redis.myhost.com:6380,password=secret,ssl=true,abortConnect=false
+```
+
+ONODE logs which store is active at startup:
+```
+DID challenge store: Redis
+```
+or
+```
+DID challenge store: InMemory (single-node)
+```
+
+### Implementation details
+
+| | InMemory | Redis |
+|---|---|---|
+| Multi-node safe | No | Yes |
+| Nonce TTL | Checked on read + periodic sweep | Native Redis TTL — no sweep needed |
+| Replay protection | `ConcurrentDictionary.TryRemove` (atomic) | Lua script GET+DEL (atomic) |
+| Latency | Sub-microsecond | ~0.2–1 ms (local Redis) |
+| Dependencies | None | StackExchange.Redis |
+
+To add a custom store (e.g. PostgreSQL, Memcached) implement `IDIDChallengeStore` from `NextGenSoftware.OASIS.API.Core.Helpers` and call `DIDChallengeStore.SetProvider(yourImpl)` at startup before any requests are served.
 
 ## Security Recommendations
 

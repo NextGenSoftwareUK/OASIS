@@ -259,6 +259,27 @@ namespace NextGenSoftware.OASIS.API.DNA
         public EncryptionSettings OASISProviderPrivateKeys { get; set; }
         /// <summary>When true each avatar is assigned a W3C DID (did:oasis:&lt;avatarId&gt;) and the DID is included in issued JWT tokens.</summary>
         public bool DIDEnabled { get; set; }
+        /// <summary>DID challenge nonce store configuration.</summary>
+        public DIDChallengeStoreSettings DIDChallengeStore { get; set; } = new();
+    }
+
+    public class DIDChallengeStoreSettings
+    {
+        /// <summary>
+        /// Which backing store to use for DID challenge nonces.
+        /// "InMemory" (default) — single-node, zero dependencies.
+        /// "Redis"    — multi-node; requires <see cref="RedisConnectionString"/>.
+        /// </summary>
+        public string Provider { get; set; } = "InMemory";
+
+        /// <summary>StackExchange.Redis connection string, e.g. "localhost:6379" or "redis.myhost.com:6379,password=secret".</summary>
+        public string RedisConnectionString { get; set; }
+
+        /// <summary>Redis key prefix to namespace OASIS nonces. Defaults to "oasis:did:challenge:".</summary>
+        public string RedisKeyPrefix { get; set; } = "oasis:did:challenge:";
+
+        /// <summary>Nonce TTL in seconds. Defaults to 300 (5 minutes).</summary>
+        public int NonceTtlSeconds { get; set; } = 300;
     }
 
     public class ErrorHandlingSettings
