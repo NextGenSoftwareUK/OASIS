@@ -57,7 +57,7 @@
     <Compile Remove="Helpers\OASISProviderManager.cs" />
     <Compile Remove="Helpers\OASISSettings.cs" />
   
-    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
+    <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -84,6 +84,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="StackExchange.Redis" Version="3.0.17" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageReference Include="Stripe.net" Version="45.0.0" />

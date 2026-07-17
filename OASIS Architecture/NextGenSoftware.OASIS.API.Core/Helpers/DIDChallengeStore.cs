@@ -1,58 +1,28 @@
-using System;
-using System.Collections.Concurrent;
-using System.Security.Cryptography;
-
 namespace NextGenSoftware.OASIS.API.Core.Helpers
 {
     /// <summary>
-    /// Thread-safe in-memory store for server-issued DID authentication nonces.
-    /// Each nonce is tied to a DID, expires after <see cref="NonceTtlSeconds"/>, and is
-    /// consumed (deleted) on first use so it cannot be replayed.
-    ///
-    /// For multi-node deployments replace this with a distributed cache (Redis, etc.)
-    /// that shares state across all ONODE instances.
+    /// Static facade over <see cref="IDIDChallengeStore"/>.
+    /// Defaults to <see cref="InMemoryDIDChallengeStore"/> (suitable for single-node deployments).
+    /// Multi-node deployments should call <see cref="SetProvider"/> at startup with a
+    /// RedisDIDChallengeStore instance so all ONODE instances share nonce state.
     /// </summary>
     public static class DIDChallengeStore
     {
-        public const int NonceTtlSeconds = 300; // 5 minutes
+        /// <summary>Nonce lifetime in seconds (5 minutes). Shared by all store implementations.</summary>
+        public const int NonceTtlSeconds = 300;
 
-        private sealed record Entry(string Nonce, DateTime ExpiresUtc);
-
-        // Key = DID string, Value = pending challenge entry.
-        // One pending challenge per DID at a time; issuing a new one invalidates the previous.
-        private static readonly ConcurrentDictionary<string, Entry> _store = new();
-
-        /// <summary>Generates a new cryptographically random nonce for the given DID and stores it.</summary>
-        public static string Issue(string did)
-        {
-            var nonce = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
-            _store[did] = new Entry(nonce, DateTime.UtcNow.AddSeconds(NonceTtlSeconds));
-            PurgeExpired();
-            return nonce;
-        }
+        private static IDIDChallengeStore _provider = new InMemoryDIDChallengeStore();
 
         /// <summary>
-        /// Validates that <paramref name="nonce"/> was issued for <paramref name="did"/> and has not expired.
-        /// Consumes (removes) the nonce on success so it cannot be reused.
-        /// Returns false if the nonce is unknown, expired, or belongs to a different DID.
+        /// Replace the active store implementation. Call once at startup before any requests are served.
         /// </summary>
-        public static bool ConsumeIfValid(string did, string nonce)
-        {
-            if (!_store.TryRemove(did, out var entry))
-                return false;
+        public static void SetProvider(IDIDChallengeStore provider)
+            => _provider = provider ?? throw new System.ArgumentNullException(nameof(provider));
 
-            if (entry.ExpiresUtc < DateTime.UtcNow)
-                return false;
+        /// <inheritdoc cref="IDIDChallengeStore.Issue"/>
+        public static string Issue(string did) => _provider.Issue(did);
 
-            return string.Equals(entry.Nonce, nonce, StringComparison.Ordinal);
-        }
-
-        private static void PurgeExpired()
-        {
-            var now = DateTime.UtcNow;
-            foreach (var kvp in _store)
-                if (kvp.Value.ExpiresUtc < now)
-                    _store.TryRemove(kvp.Key, out _);
-        }
+        /// <inheritdoc cref="IDIDChallengeStore.ConsumeIfValid"/>
+        public static bool ConsumeIfValid(string did, string nonce) => _provider.ConsumeIfValid(did, nonce);
     }
 }
