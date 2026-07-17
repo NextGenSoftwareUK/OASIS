@@ -18,6 +18,7 @@
   - [DID in JWT Tokens](#did-in-jwt-tokens)
   - [DID Authentication Flow](#did-authentication-flow)
   - [Registering a DID Public Key](#registering-a-did-public-key)
+  - [GET /did-challenge/{did}](#get-did-challengedid)
   - [POST /authenticate-did](#post-authenticate-did)
   - [Client-Side Example (C#)](#client-side-example-c)
   - [Client-Side Example (JavaScript)](#client-side-example-javascript)
@@ -205,20 +206,21 @@ Downstream services can extract and verify the DID from the JWT to establish ide
 
 ### DID Authentication Flow
 
-DID authentication uses an ECDsa P-256 (NIST P-256 / prime256v1) challenge-response:
+DID authentication uses an ECDsa P-256 (NIST P-256 / prime256v1) challenge-response with a server-issued nonce:
 
 ```
-1. Client generates a P-256 keypair.
+1. Client generates a P-256 keypair (one-time setup).
 2. Client stores their public key on their avatar (via the avatar update endpoint).
 3. To authenticate:
-   a. Client constructs a challenge string (e.g. a timestamp or server-issued nonce).
-   b. Client signs SHA-256(challenge) with their P-256 private key.
-   c. Client POSTs {DID, Challenge, Signature} to POST /api/avatar/authenticate-did.
-   d. Server looks up the avatar by DID, verifies the signature against the stored DIDPublicKey.
-   e. On success, server issues a JWT + refresh token exactly like the password auth flow.
+   a. Client calls GET /api/avatar/did-challenge/{did} to obtain a server-issued nonce.
+   b. Client signs SHA-256(nonce) with their P-256 private key.
+   c. Client POSTs {DID, Challenge (the nonce), Signature} to POST /api/avatar/authenticate-did.
+   d. Server verifies the nonce was issued by itself and has not expired or been replayed.
+   e. Server verifies the signature against the stored DIDPublicKey.
+   f. On success, server issues a JWT + refresh token exactly like the password auth flow.
 ```
 
-> **Challenge freshness:** The challenge string should be short-lived to prevent replay attacks. Use a server-issued nonce (future feature) or a timestamp that your server validates is within an acceptable window (e.g. ±60 seconds of server time).
+The nonce expires after **5 minutes** and is **single-use** — attempting to authenticate with the same nonce twice always fails.
 
 ### Registering a DID Public Key
 
@@ -235,6 +237,38 @@ Content-Type: application/json
 ```
 
 The `DIDPublicKey` is the Base64-encoded DER encoding of the SubjectPublicKeyInfo structure, which is the standard portable format for public keys. See the client examples below for how to generate this.
+
+### GET /did-challenge/{did}
+
+Request a server-issued nonce before authenticating. This is the required first step — the nonce ties the challenge to the server and expires after 5 minutes, preventing replay attacks.
+
+```http
+GET /api/avatar/did-challenge/{did}
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `did` | path string | The avatar's W3C DID (`did:oasis:<avatarId>`) |
+
+**Success response (200):**
+
+```json
+{
+  "isError": false,
+  "result": "K7gX2mPqR1vN8sL0dFhT4wYcZjU5oIeA3bQnVxOy6pC=",
+  "message": "Challenge issued. Sign SHA-256 of this value with your DID private key and submit to /authenticate-did within 300 seconds."
+}
+```
+
+The `result` string is the nonce to sign. Pass it as `Challenge` in the subsequent `/authenticate-did` call.
+
+**Error responses:**
+
+| Status | Reason |
+|---|---|
+| 400 | DID missing or DID auth not enabled in DNA |
+
+> **One nonce per DID at a time.** Calling `/did-challenge` again for the same DID invalidates the previous nonce. The nonce is single-use — it is consumed and deleted the moment `/authenticate-did` validates it.
 
 ### POST /authenticate-did
 
@@ -292,86 +326,90 @@ Same structure as the standard `/authenticate` endpoint — returns the avatar w
 
 ```csharp
 using System;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
-// ── Step 1: Generate keypair (do this once, store the private key securely) ──
+// ── One-time setup: Generate keypair and register the public key on the avatar ──
 using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
 
-// Export public key in SubjectPublicKeyInfo (DER) format — store this on the avatar
-string publicKeyBase64 = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+string publicKeyBase64  = Convert.ToBase64String(ecdsa.ExportSubjectPublicKeyInfo());
+byte[] privateKeyBytes  = ecdsa.ExportECPrivateKey(); // store securely, never send to server
 
-// Export private key — store this securely on the client, never send it to the server
-byte[] privateKeyBytes = ecdsa.ExportECPrivateKey();
-
-// ── Step 2: Register the public key on the avatar ──
 // PATCH /api/avatar/{id}  with body: { "DIDPublicKey": publicKeyBase64 }
 
-// ── Step 3: Authenticate with DID ──
+// ── Authentication (two-step) ──
+var http = new HttpClient { BaseAddress = new Uri("https://api.web4.oasisomniverse.one") };
 string did = "did:oasis:a1b2c3d4-e5f6-7890-abcd-ef1234567890";
-string challenge = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(); // or server nonce
 
-byte[] challengeHash = SHA256.HashData(Encoding.UTF8.GetBytes(challenge));
-byte[] signature = ecdsa.SignHash(challengeHash); // IEEE P1363 format (64 bytes)
-string signatureBase64 = Convert.ToBase64String(signature);
+// Step 1: Request a server-issued challenge nonce
+var challengeResponse = await http.GetFromJsonAsync<OASISResponse<string>>(
+    $"/api/avatar/did-challenge/{Uri.EscapeDataString(did)}");
+string challenge = challengeResponse.Result;
 
-// POST /api/avatar/authenticate-did
-// Body: { "DID": did, "Challenge": challenge, "Signature": signatureBase64 }
+// Step 2: Sign the challenge and authenticate
+byte[] challengeHash   = SHA256.HashData(Encoding.UTF8.GetBytes(challenge));
+byte[] signatureBytes  = ecdsa.SignHash(challengeHash); // IEEE P1363: 64 bytes (R||S)
+string signatureBase64 = Convert.ToBase64String(signatureBytes);
+
+var authResponse = await http.PostAsJsonAsync("/api/avatar/authenticate-did", new
+{
+    DID       = did,
+    Challenge = challenge,
+    Signature = signatureBase64
+});
 ```
 
-**Restoring from saved private key bytes:**
+**Restoring from a saved private key:**
 
 ```csharp
 using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-ecdsa.ImportECPrivateKey(privateKeyBytes, out _);
+ecdsa.ImportECPrivateKey(savedPrivateKeyBytes, out _);
 ```
 
 ### Client-Side Example (JavaScript)
 
 ```js
-// ── Step 1: Generate keypair ──
+// ── One-time setup: Generate keypair and register the public key on the avatar ──
 const keyPair = await crypto.subtle.generateKey(
     { name: 'ECDSA', namedCurve: 'P-256' },
-    true,   // extractable
+    true,
     ['sign', 'verify']
 );
 
-// Export public key as SubjectPublicKeyInfo (spki) — store on the avatar
-const spkiBytes = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(spkiBytes)));
+const spki           = await crypto.subtle.exportKey('spki', keyPair.publicKey);
+const publicKeyB64   = btoa(String.fromCharCode(...new Uint8Array(spki)));
+// PATCH /api/avatar/{id}  with body: { "DIDPublicKey": publicKeyB64 }
 
-// ── Step 2: Authenticate ──
+// ── Authentication (two-step) ──
 const did = 'did:oasis:a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-const challenge = String(Date.now()); // or server-issued nonce
 
+// Step 1: Request a server-issued challenge nonce
+const challengeRes = await fetch(`/api/avatar/did-challenge/${encodeURIComponent(did)}`);
+const { result: challenge } = await challengeRes.json();
+
+// Step 2: Sign the challenge and authenticate
+// WebCrypto ECDSA sign() hashes the message internally with SHA-256
 const challengeBytes = new TextEncoder().encode(challenge);
-const challengeHash  = await crypto.subtle.digest('SHA-256', challengeBytes);
-
 const sigBytes = await crypto.subtle.sign(
-    { name: 'ECDSA', hash: 'SHA-256' }, // WebCrypto hashes internally
-    keyPair.privateKey,
-    challengeHash   // pass the pre-computed hash
-);
-
-// Note: WebCrypto's ECDSA sign() hashes again internally when you pass the raw message.
-// To sign a pre-hashed value, use SignHash equivalent — pass the raw hash bytes as data.
-// Alternatively, pass the raw challenge bytes directly and let the API accept either form:
-const sigBytes2 = await crypto.subtle.sign(
     { name: 'ECDSA', hash: { name: 'SHA-256' } },
     keyPair.privateKey,
-    challengeBytes  // WebCrypto will SHA-256 this internally before signing
+    challengeBytes
 );
+const signatureB64 = btoa(String.fromCharCode(...new Uint8Array(sigBytes)));
 
-const signatureBase64 = btoa(String.fromCharCode(...new Uint8Array(sigBytes2)));
-
-const response = await fetch('/api/avatar/authenticate-did', {
+const authRes = await fetch('/api/avatar/authenticate-did', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ DID: did, Challenge: challenge, Signature: signatureBase64 })
+    body: JSON.stringify({ DID: did, Challenge: challenge, Signature: signatureB64 })
 });
+const auth = await authRes.json();
+// auth.result.jwtToken contains the JWT
 ```
 
-> **Note for JavaScript clients:** `crypto.subtle.sign` with `{ name: 'ECDSA', hash: 'SHA-256' }` accepts the raw message and hashes it internally. The server also hashes the `Challenge` string with SHA-256 before verifying. This means both sides hash the same `Challenge` string — do not pre-hash on the client before passing to `subtle.sign`.
+> **Note:** `crypto.subtle.sign` with `{ hash: 'SHA-256' }` hashes the message internally before signing. The server also hashes the `Challenge` string with SHA-256 before verifying — both sides operate on the same `Challenge` string.
 
 ---
 

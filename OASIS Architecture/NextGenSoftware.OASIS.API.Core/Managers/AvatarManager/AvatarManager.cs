@@ -277,6 +277,38 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
         }
 
         /// <summary>
+        /// Issues a short-lived server-side nonce for DID challenge-response authentication.
+        /// The caller must sign this nonce and submit it to <see cref="AuthenticateWithDIDAsync"/>.
+        /// Requires DIDEnabled = true in OASISDNA.Security.
+        /// </summary>
+        public OASISResult<string> GenerateDIDChallenge(string did)
+        {
+            OASISResult<string> result = new OASISResult<string>();
+            try
+            {
+                if (!OASISDNA.OASIS.Security.DIDEnabled)
+                {
+                    OASISErrorHandling.HandleError(ref result, "DID authentication is not enabled in OASISDNA.Security.DIDEnabled.");
+                    return result;
+                }
+
+                if (string.IsNullOrWhiteSpace(did))
+                {
+                    OASISErrorHandling.HandleError(ref result, "DID is required.");
+                    return result;
+                }
+
+                result.Result  = DIDChallengeStore.Issue(did);
+                result.Message = $"Challenge issued. Sign SHA-256 of this value with your DID private key and submit to /authenticate-did within {DIDChallengeStore.NonceTtlSeconds} seconds.";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error generating DID challenge: {ex.Message}", ex);
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Authenticates an avatar using W3C DID-based challenge-response (secp256k1 ECDSA).
         /// The client signs SHA-256(challenge) with their DID private key; the server verifies
         /// against the DIDPublicKey stored on the avatar and issues a JWT on success.
@@ -338,7 +370,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                // Verify secp256k1 signature: recover public key from sig and compare to stored key
+                // Validate the nonce was server-issued and hasn't expired or been replayed
+                if (!DIDChallengeStore.ConsumeIfValid(did, challenge))
+                {
+                    OASISErrorHandling.HandleError(ref result, "DID challenge is invalid, expired, or has already been used. Please request a new challenge.");
+                    return result;
+                }
+
+                // Verify the ECDsa P-256 signature against the stored public key
                 bool signatureValid = VerifyDIDSignature(challenge, signatureHex, avatar.DIDPublicKey);
                 if (!signatureValid)
                 {
