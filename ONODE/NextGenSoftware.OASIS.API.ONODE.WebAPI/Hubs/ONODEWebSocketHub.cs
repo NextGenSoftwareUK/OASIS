@@ -1,7 +1,13 @@
+using System;
 using System.Collections.Concurrent;
-using System.Net.WebSockets;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using WS = System.Net.WebSockets.WebSocket;
+using WebSocketMessageType = System.Net.WebSockets.WebSocketMessageType;
+using WebSocketState = System.Net.WebSockets.WebSocketState;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs;
 
@@ -14,15 +20,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs;
 public class ONODEWebSocketHub
 {
     // nodeId → set of open WebSocket connections watching that node
-    private static readonly ConcurrentDictionary<string, ConcurrentBag<WebSocket>> _connections = new();
+    private static readonly ConcurrentDictionary<string, ConcurrentBag<WS>> _connections = new();
 
-    public static void Register(string nodeId, WebSocket ws)
+    public static void Register(string nodeId, WS ws)
     {
-        var bag = _connections.GetOrAdd(nodeId, _ => new ConcurrentBag<WebSocket>());
+        var bag = _connections.GetOrAdd(nodeId, _ => new ConcurrentBag<WS>());
         bag.Add(ws);
     }
 
-    public static void Unregister(string nodeId, WebSocket ws)
+    public static void Unregister(string nodeId, WS ws)
     {
         // Bags don't support remove; the Send loop skips closed sockets
         // and cleanup happens in BroadcastAsync.
@@ -37,7 +43,7 @@ public class ONODEWebSocketHub
         var bytes   = Encoding.UTF8.GetBytes(json);
         var segment = new ArraySegment<byte>(bytes);
 
-        var dead    = new List<WebSocket>();
+        var dead    = new List<WS>();
         foreach (var ws in bag)
         {
             if (ws.State == WebSocketState.Open)
@@ -51,7 +57,7 @@ public class ONODEWebSocketHub
         // Rebuild bag without dead sockets (ConcurrentBag doesn't support remove)
         if (dead.Any())
         {
-            var live = new ConcurrentBag<WebSocket>(bag.Except(dead));
+            var live = new ConcurrentBag<WS>(bag.Except(dead));
             _connections[nodeId] = live;
             foreach (var ws in dead)
                 try { ws.Dispose(); } catch { }
