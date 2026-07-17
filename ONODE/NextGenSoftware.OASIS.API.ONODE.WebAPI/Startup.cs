@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using NextGenSoftware.Logging;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.JsonConverters;
@@ -269,6 +271,22 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
         //public void Configure(IApplicationBuilder app, IWebHostEnvironment env, DataContext context)
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // Wire up the DID challenge nonce store based on OASISDNA config
+            var didStoreCfg = NextGenSoftware.OASIS.API.DNA.OASISDNAManager.OASISDNA?.OASIS?.Security?.DIDChallengeStore;
+            if (didStoreCfg?.Provider?.Equals("Redis", StringComparison.OrdinalIgnoreCase) == true
+                && !string.IsNullOrWhiteSpace(didStoreCfg.RedisConnectionString))
+            {
+                DIDChallengeStore.SetProvider(new RedisDIDChallengeStore(
+                    didStoreCfg.RedisConnectionString,
+                    didStoreCfg.RedisKeyPrefix ?? "oasis:did:challenge:",
+                    didStoreCfg.NonceTtlSeconds > 0 ? didStoreCfg.NonceTtlSeconds : DIDChallengeStore.NonceTtlSeconds));
+                LoggingManager.Log("DID challenge store: Redis", LogType.Info);
+            }
+            else
+            {
+                LoggingManager.Log("DID challenge store: InMemory (single-node)", LogType.Info);
+            }
+
             LoggingManager.Log("Starting up The OASIS... (REST API)", LogType.Info);
             LoggingManager.Log("Test Debug", LogType.Debug);
             LoggingManager.Log("Test Info", LogType.Info);
