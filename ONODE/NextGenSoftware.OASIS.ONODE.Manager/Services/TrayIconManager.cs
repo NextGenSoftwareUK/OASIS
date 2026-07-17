@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using NextGenSoftware.OASIS.ONODE.Manager.ViewModels;
 using NextGenSoftware.OASIS.ONODE.Manager.Views;
+using Velopack;
 
 namespace NextGenSoftware.OASIS.ONODE.Manager.Services;
 
@@ -22,7 +23,8 @@ public class TrayIconManager
     private readonly System.Timers.Timer _blinkTimer;
     private bool _blinkOn;
 
-    private static readonly Dictionary<string, string> IconPaths = new()
+    // Embedded resource paths kept as fallback only
+    private static readonly Dictionary<string, string> EmbeddedIconPaths = new()
     {
         ["blue"]   = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-blue.png",
         ["grey"]   = "avares://NextGenSoftware.OASIS.ONODE.Manager/Assets/Icons/onode-grey.png",
@@ -84,8 +86,9 @@ public class TrayIconManager
         }
 
         menu.Add(new NativeMenuItemSeparator());
-        menu.Add(new NativeMenuItem("Open ONODE Manager…") { Command = new RelayCommand(_ => ShowMainWindow()) });
-        menu.Add(new NativeMenuItem("Open OPORTAL…")       { Command = new RelayCommand(_ => OpenOPORTAL()) });
+        menu.Add(new NativeMenuItem("Open ONODE Manager…")   { Command = new RelayCommand(_ => ShowMainWindow()) });
+        menu.Add(new NativeMenuItem("Open OPORTAL…")         { Command = new RelayCommand(_ => OpenOPORTAL()) });
+        menu.Add(new NativeMenuItem("Check for Updates…")    { Command = new RelayCommand(_ => CheckForUpdates()) });
         menu.Add(new NativeMenuItemSeparator());
         menu.Add(new NativeMenuItem("Quit") { Command = new RelayCommand(_ => Quit()) });
 
@@ -132,15 +135,34 @@ public class TrayIconManager
 
     WindowIcon LoadIcon(string key)
     {
-        try
+        // 1. Try runtime-generated PNG from ~/.oasis/icons/
+        var generated = IconGenerator.GetIconPath(key);
+        if (File.Exists(generated))
         {
-            using var stream = AssetLoader.Open(new Uri(IconPaths[key]));
-            return new WindowIcon(stream);
+            try
+            {
+                using var stream = File.OpenRead(generated);
+                return new WindowIcon(stream);
+            }
+            catch { }
         }
-        catch
+
+        // 2. Try embedded resource
+        if (EmbeddedIconPaths.TryGetValue(key, out var embedPath))
         {
-            return new WindowIcon(new Bitmap(AssetLoader.Open(new Uri(IconPaths["grey"]))));
+            try
+            {
+                using var stream = AssetLoader.Open(new Uri(embedPath));
+                return new WindowIcon(stream);
+            }
+            catch { }
         }
+
+        // 3. Fallback: empty 1×1 bitmap
+        return new WindowIcon(new WriteableBitmap(
+            new Avalonia.PixelSize(1, 1),
+            new Avalonia.Vector(96, 96),
+            Avalonia.Platform.PixelFormat.Rgba8888));
     }
 
     void ShowMainWindow()
@@ -157,6 +179,24 @@ public class TrayIconManager
                 _mainWindow.Activate();
             }
         });
+    }
+
+    static async void CheckForUpdates()
+    {
+        try
+        {
+            var mgr = new UpdateManager("https://releases.oasisomniverse.one/onode-manager");
+            var update = await mgr.CheckForUpdatesAsync();
+            if (update == null)
+                Views.ToastWindow.Show("ONODE Manager", "You are running the latest version.");
+            else
+                Views.ToastWindow.Show("Update Available",
+                    $"Version {update.TargetFullRelease.Version} is available. Download at oasisomniverse.one", 8000);
+        }
+        catch
+        {
+            Views.ToastWindow.Show("Update Check", "Could not reach update server.");
+        }
     }
 
     static void OpenOPORTAL()

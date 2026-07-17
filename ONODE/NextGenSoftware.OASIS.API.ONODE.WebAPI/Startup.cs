@@ -308,6 +308,41 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             if (!string.Equals(env.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
                 app.UseHttpsRedirection();
 
+            // WebSocket support — used by OPORTAL in local mode for real-time state push
+            app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(30) });
+
+            // WebSocket endpoint: GET /ws/onode/{nodeId}
+            app.Use(async (context, next) =>
+            {
+                if (context.Request.Path.StartsWithSegments("/ws/onode", out var remainder)
+                    && context.WebSockets.IsWebSocketRequest)
+                {
+                    var nodeId = remainder.Value?.TrimStart('/') ?? "";
+                    if (string.IsNullOrEmpty(nodeId)) { context.Response.StatusCode = 400; return; }
+
+                    var ws = await context.WebSockets.AcceptWebSocketAsync();
+                    NextGenSoftware.OASIS.API.ONODE.WebAPI.Hubs.ONODEWebSocketHub.Register(nodeId, ws);
+
+                    // Keep alive — read until client closes
+                    var buffer = new byte[128];
+                    while (ws.State == System.Net.WebSockets.WebSocketState.Open)
+                    {
+                        try
+                        {
+                            var result = await ws.ReceiveAsync(buffer, CancellationToken.None);
+                            if (result.MessageType == System.Net.WebSockets.WebSocketMessageType.Close)
+                            {
+                                await ws.CloseAsync(System.Net.WebSockets.WebSocketCloseStatus.NormalClosure,
+                                    "Closed by client", CancellationToken.None);
+                            }
+                        }
+                        catch { break; }
+                    }
+                    return;
+                }
+                await next();
+            });
+
             app.UseRouting();
             //app.UseSession();
 

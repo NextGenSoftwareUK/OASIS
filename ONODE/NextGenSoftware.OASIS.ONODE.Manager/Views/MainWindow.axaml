@@ -112,7 +112,7 @@
 
             <!-- Config -->
             <TabItem Header="Config (OASISDNA)">
-                <Grid RowDefinitions="Auto,*,Auto" Margin="12" RowDefinitions="Auto,*,Auto">
+                <Grid RowDefinitions="Auto,*,Auto" Margin="12">
                     <Button Grid.Row="0" Classes="action" Command="{Binding LoadConfigCommand}"
                             Content="Load OASISDNA.json" HorizontalAlignment="Left" Margin="0,0,0,8" />
                     <TextBox Grid.Row="1"
@@ -132,7 +132,10 @@
 
             <!-- Metrics -->
             <TabItem Header="Metrics">
-                <ScrollViewer Margin="12">
+                <Grid RowDefinitions="Auto,*" Margin="12">
+                    <Button Grid.Row="0" Classes="action" Command="{Binding LoadMetricsHistoryCommand}"
+                            Content="⟳ Load 24h History" HorizontalAlignment="Left" Margin="0,0,0,8" />
+                <ScrollViewer Grid.Row="1">
                     <StackPanel Spacing="12">
                         <TextBlock Text="Peers Connected" Foreground="#AAAACC" FontSize="12" FontWeight="Bold" />
                         <lvc:CartesianChart
@@ -156,6 +159,7 @@
                             Height="120" Background="Transparent" />
                     </StackPanel>
                 </ScrollViewer>
+                </Grid>
             </TabItem>
 
             <!-- Network -->

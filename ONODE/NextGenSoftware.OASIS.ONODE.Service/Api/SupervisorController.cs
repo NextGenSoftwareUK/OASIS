@@ -13,17 +13,20 @@ public class SupervisorController : ControllerBase
 {
     private readonly ProcessSupervisor _supervisor;
     private readonly MetricsCollector _metrics;
+    private readonly MetricsHistoryService _metricsHistory;
     private readonly LogAggregator _logs;
     private readonly TokenService _token;
     private readonly SupervisorConfig _config;
     private readonly ProviderService _providers;
 
     public SupervisorController(ProcessSupervisor supervisor, MetricsCollector metrics,
+        MetricsHistoryService metricsHistory,
         LogAggregator logs, TokenService token, IOptions<SupervisorConfig> config,
         ProviderService providers)
     {
         _supervisor = supervisor;
         _metrics = metrics;
+        _metricsHistory = metricsHistory;
         _logs = logs;
         _token = token;
         _config = config.Value;
@@ -299,6 +302,15 @@ public class SupervisorController : ControllerBase
     {
         if (!Authorised()) return Unauthorized();
         return Ok(ProviderService.KnownProviderTypes);
+    }
+
+    // GET /supervisor/metrics/history?hours=24&serviceId=web4
+    [HttpGet("metrics/history")]
+    public IActionResult GetMetricsHistory([FromQuery] int hours = 24, [FromQuery] string? serviceId = null)
+    {
+        if (!Authorised()) return Unauthorized();
+        var history = _metricsHistory.GetHistory(serviceId, hours);
+        return Ok(history);
     }
 }
 
