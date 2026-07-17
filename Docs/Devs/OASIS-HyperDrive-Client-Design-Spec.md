@@ -4,7 +4,7 @@
 **Date:** 2026-07-17  
 **Status:** Implemented (Phase 1 + Phase 2 complete)  
 **Implementation Reference:** [OASIS-HyperDrive-Client-Implementation.md](./OASIS-HyperDrive-Client-Implementation.md)  
-**Repository:** `OasisHyperDriveClient` (separate repo)
+**Repository:** `OASIS-HyperDrive-Client` (separate repo)
 
 ---
 
@@ -439,7 +439,7 @@ Managed via a platform-abstracted `IAutoStartService`. Each platform has its own
 ## 19. Project Structure
 
 ```
-OasisHyperDriveClient/
+OASIS-HyperDrive-Client/
 ├── OasisHyperDriveClient.slnx
 ├── build-win.ps1
 ├── build-linux.sh

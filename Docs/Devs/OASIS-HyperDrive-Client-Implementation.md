@@ -4,7 +4,7 @@
 **Date:** 2026-07-17  
 **Status:** Complete (Phase 1 + Phase 2)  
 **Design Spec:** [OASIS-HyperDrive-Client-Design-Spec.md](./OASIS-HyperDrive-Client-Design-Spec.md)  
-**Repository:** `C:\Source\OasisHyperDriveClient`
+**Repository:** `C:\Source\OASIS-HyperDrive-Client`
 
 ---
 
@@ -62,7 +62,7 @@
 ## 2. Solution Layout
 
 ```
-OasisHyperDriveClient/
+OASIS-HyperDrive-Client/
 ├── OasisHyperDriveClient.slnx
 ├── build-win.ps1
 ├── build-linux.sh
@@ -284,7 +284,7 @@ After a rename, a new `HolonViewModel` is created via `HolonViewModel.FromHolon(
 
 ```bash
 # Build all projects
-cd C:\Source\OasisHyperDriveClient
+cd C:\Source\OASIS-HyperDrive-Client
 dotnet build
 
 # Run the app
@@ -318,7 +318,7 @@ All builds use `--self-contained true -p:PublishSingleFile=true`.
 ## 7. Testing
 
 ```bash
-cd C:\Source\OasisHyperDriveClient
+cd C:\Source\OASIS-HyperDrive-Client
 dotnet test tests/OasisHyperDriveClient.Tests/
 ```
 
