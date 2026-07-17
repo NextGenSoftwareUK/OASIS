@@ -59,20 +59,20 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
     public static class OASISBootLoader
     {
         //private static string _OASISVersion = null;
-        private const string SYSTEM_EMAIL = "anorak@oasisweb4.com";
+        private const string SYSTEM_EMAIL = "anorak@oasisomniverse.one";
         public static bool IsOASISBooted { get; private set; } = false;
         public static bool IsOASISBooting { get; private set; } = false;
 
         public delegate void OASISBootLoaderError(object sender, OASISErrorEventArgs e);
         public static event OASISBootLoaderError OnOASISBootLoaderError;
 
-        public static string OASISRuntimeVersion { get; set; } = "4.5.1";
-        public static string OASISAPIVersion { get; set; } = "4.6.0";
-        public static string COSMICVersion { get; set; } = "2.1.1";
-        public static string STARODKVersion { get; set; } = "3.5.0";
-        public static string STARRuntimeVersion { get; set; } = "3.5.0";
-        public static string STARNETVersion { get; set; } = "2.4.0";
-        public static string STARAPIVersion { get; set; } = "1.3.0";
+        public static string OASISRuntimeVersion { get; set; } = "5.0.0";
+        public static string OASISAPIVersion { get; set; } = "5.0.0";
+        public static string COSMICVersion { get; set; } = "2.2.2";
+        public static string STARODKVersion { get; set; } = "4.0.0";
+        public static string STARRuntimeVersion { get; set; } = "4.0.0";
+        public static string STARNETVersion { get; set; } = "2.5.0";
+        public static string STARAPIVersion { get; set; } = "1.4.0";
 
         public static string DotNetVersion
         {
