@@ -20,6 +20,14 @@ public class HolonServiceState
     public int Port { get; set; }
     public string WindowMode { get; set; } = "Visible";
     public int? Pid { get; set; }
+    public List<HolonProviderState> Providers { get; set; } = [];
+}
+
+public class HolonProviderState
+{
+    public string ProviderType { get; set; } = "";
+    public bool IsEnabled { get; set; }
+    public int Priority { get; set; }
 }
 
 public class HolonMetrics
@@ -33,7 +41,8 @@ public class HolonMetrics
 
 public enum CommandType
 {
-    Start, Stop, Restart, GetLogs, UpdateConfig, GetConfig, GetMetrics
+    Start, Stop, Restart, GetLogs, UpdateConfig, GetConfig, GetMetrics,
+    GetProviders, EnableProvider, DisableProvider, SetProviderPriority
 }
 
 public enum CommandStatus

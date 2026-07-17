@@ -15,6 +15,7 @@ public class HolonBridge : BackgroundService
 {
     private readonly ProcessSupervisor _supervisor;
     private readonly MetricsCollector _metrics;
+    private readonly ProviderService _providers;
     private readonly SupervisorConfig _config;
     private readonly CommandExecutor _executor;
     private readonly ILogger<HolonBridge> _logger;
@@ -25,12 +26,14 @@ public class HolonBridge : BackgroundService
     public HolonBridge(
         ProcessSupervisor supervisor,
         MetricsCollector metrics,
+        ProviderService providers,
         IOptions<SupervisorConfig> config,
         CommandExecutor executor,
         ILogger<HolonBridge> logger)
     {
         _supervisor = supervisor;
         _metrics = metrics;
+        _providers = providers;
         _config = config.Value;
         _executor = executor;
         _logger = logger;
@@ -70,6 +73,7 @@ public class HolonBridge : BackgroundService
         if (string.IsNullOrEmpty(_config.AvatarId)) return;
 
         var agg = _metrics.Aggregate;
+        var providerList = _providers.GetProviders();
         var holon = new AvatarNodeStateHolon
         {
             AvatarId = _config.AvatarId,
@@ -82,7 +86,13 @@ public class HolonBridge : BackgroundService
                 UptimeSeconds = s.UptimeSeconds,
                 Port = s.Port,
                 WindowMode = s.WindowMode.ToString(),
-                Pid = s.Pid
+                Pid = s.Pid,
+                Providers = providerList.Select(p => new HolonProviderState
+                {
+                    ProviderType = p.ProviderType,
+                    IsEnabled    = p.IsEnabled,
+                    Priority     = p.Priority
+                }).ToList()
             }).ToList(),
             Metrics = new HolonMetrics
             {
