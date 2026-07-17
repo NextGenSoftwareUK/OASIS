@@ -120,6 +120,16 @@ public class SupervisorClient : IDisposable
         await _http.PutAsync("supervisor/config", content, ct);
     }
 
+    // ── Metrics history ────────────────────────────────────────────────────────────
+
+    public async Task<List<MetricsHistoryPointDto>?> GetMetricsHistoryAsync(
+        int hours = 24, string? serviceId = null, CancellationToken ct = default)
+    {
+        var qs = $"supervisor/metrics/history?hours={hours}";
+        if (serviceId != null) qs += $"&serviceId={Uri.EscapeDataString(serviceId)}";
+        return await GetAsync<List<MetricsHistoryPointDto>>(qs, ct);
+    }
+
     // ── Metrics (per-service) ──────────────────────────────────────────────────────
 
     public async Task<List<ServiceMetricsDto>?> GetServiceMetricsAsync(CancellationToken ct = default)
@@ -262,6 +272,16 @@ public class ProviderDto
     public string FriendlyName => ProviderType
         .Replace("OASIS", "")
         .TrimEnd();
+}
+
+public class MetricsHistoryPointDto
+{
+    public string Timestamp      { get; set; } = "";
+    public int    Peers          { get; set; }
+    public long   BytesIn        { get; set; }
+    public long   BytesOut       { get; set; }
+    public double RequestsPerSec { get; set; }
+    public double LatencyMs      { get; set; }
 }
 
 public class ProviderActionResult

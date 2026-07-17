@@ -199,6 +199,31 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    async Task LoadMetricsHistory()
+    {
+        if (!_client.IsAvailable) return;
+        var history = await _client.GetMetricsHistoryAsync(24);
+        if (history == null || history.Count == 0) return;
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            // Replace rolling buffer with full historical data
+            _peersHistory.Clear();
+            _bytesInHistory.Clear();
+            _bytesOutHistory.Clear();
+            _requestsHistory.Clear();
+
+            foreach (var pt in history.TakeLast(HistoryLength))
+            {
+                _peersHistory.Add(pt.Peers);
+                _bytesInHistory.Add(pt.BytesIn);
+                _bytesOutHistory.Add(pt.BytesOut);
+                _requestsHistory.Add(pt.RequestsPerSec);
+            }
+        });
+    }
+
+    [RelayCommand]
     async Task StartAll() { if (_client.IsAvailable) await _client.StartGroupAsync("all"); }
 
     [RelayCommand]

@@ -49,7 +49,9 @@ public class Program
         builder.Services.AddSingleton<ProviderService>();
         builder.Services.AddSingleton<CommandExecutor>();
         builder.Services.AddSingleton<MetricsCollector>();
+        builder.Services.AddSingleton<MetricsHistoryService>();
         builder.Services.AddHostedService(sp => sp.GetRequiredService<MetricsCollector>());
+        builder.Services.AddHostedService(sp => sp.GetRequiredService<MetricsHistoryService>());
         builder.Services.AddHostedService<HealthMonitor>();
         builder.Services.AddHostedService<HolonBridge>();
 
