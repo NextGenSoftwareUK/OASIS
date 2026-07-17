@@ -296,6 +296,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Generate a short-lived server-side nonce to use as the challenge in DID authentication.
+        /// Sign the returned nonce with your DID private key (SHA-256 of the nonce string) and submit
+        /// it together with the nonce to POST /authenticate-did within 5 minutes.
+        /// Requires DIDEnabled = true in OASISDNA.Security.
+        /// </summary>
+        /// <param name="did">The avatar's W3C DID (did:oasis:&lt;avatarId&gt;)</param>
+        [HttpGet("did-challenge/{did}")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public OASISHttpResponseMessage<string> GetDIDChallenge(string did)
+        {
+            var result = Program.AvatarManager.GenerateDIDChallenge(did);
+            return HttpResponseHelper.FormatResponse(result, result.IsError ? HttpStatusCode.BadRequest : HttpStatusCode.OK);
+        }
+
+        /// <summary>
         /// Authenticate using a W3C Decentralized Identifier (DID) and secp256k1 challenge-response.
         /// The client signs SHA-256(challenge) with their P-256 DID private key and submits the
         /// 64-byte IEEE P1363 signature (Base64-encoded) together with the challenge string.
