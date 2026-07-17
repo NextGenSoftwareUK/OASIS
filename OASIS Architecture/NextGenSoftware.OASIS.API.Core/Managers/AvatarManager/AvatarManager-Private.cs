@@ -1298,9 +1298,17 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             var key = Encoding.ASCII.GetBytes(OASISDNA.OASIS.Security.SecretKey);
             var jwtMinutes = OASISDNA.OASIS.Security.JwtTokenExpirationMinutes;
             if (jwtMinutes <= 0) jwtMinutes = 15;
+            var claims = new System.Collections.Generic.List<Claim>
+            {
+                new Claim("id", account.Id.ToString())
+            };
+
+            if (OASISDNA.OASIS?.Security?.DIDEnabled == true)
+                claims.Add(new Claim("did", account.DID));
+
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", account.Id.ToString()) }),
+                Subject = new ClaimsIdentity(claims),
                 Expires = DateTime.UtcNow.AddMinutes(jwtMinutes),
                 Issuer = "OASIS",
                 Audience = "OASIS",
@@ -1380,7 +1388,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
 
                 if (result.Result.Password != null)
                 {
-                    if (!BC.Verify(password, result.Result.Password))
+                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                    if (!PasswordEncryptionHelper.VerifyPassword(password, result.Result.Password, pwdSettings))
                     {
                         result.IsError = true;
                         result.Message = "Email or password is incorrect";
@@ -1388,7 +1397,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 }
                 else
                 {
-                    result.Result.Password = BC.HashPassword("changemenow!");
+                    var pwdSettings = OASISDNAManager.OASISDNA?.OASIS?.Security?.AvatarPassword;
+                    result.Result.Password = PasswordEncryptionHelper.HashPassword("changemenow!", pwdSettings);
                     OASISResult<IAvatar> saveResult = SaveAvatar(result.Result);
                     result.IsError = true;
 

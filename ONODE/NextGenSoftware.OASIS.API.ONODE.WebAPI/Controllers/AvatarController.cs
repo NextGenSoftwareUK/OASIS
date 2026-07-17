@@ -296,6 +296,37 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         }
 
         /// <summary>
+        /// Authenticate using a W3C Decentralized Identifier (DID) and secp256k1 challenge-response.
+        /// The client signs SHA-256(challenge) with their P-256 DID private key and submits the
+        /// 64-byte IEEE P1363 signature (Base64-encoded) together with the challenge string.
+        /// The server verifies the signature against the DIDPublicKey stored on the avatar and,
+        /// on success, issues a JWT token exactly like the standard authenticate endpoint.
+        /// Requires DIDEnabled = true in OASISDNA.Security.
+        /// </summary>
+        /// <param name="request">DID, challenge string, and hex-encoded signature.</param>
+        /// <returns>Avatar with JWT and refresh tokens on success.</returns>
+        [HttpPost("authenticate-did")]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<IAvatar>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(OASISHttpResponseMessage<string>), StatusCodes.Status400BadRequest)]
+        public async Task<OASISHttpResponseMessage<IAvatar>> AuthenticateWithDID([FromBody] AuthenticateWithDIDRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.DID) ||
+                string.IsNullOrWhiteSpace(request.Challenge) || string.IsNullOrWhiteSpace(request.Signature))
+                return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar> { IsError = true, Message = "DID, Challenge and Signature are required." }, HttpStatusCode.BadRequest);
+
+            var result = await Program.AvatarManager.AuthenticateWithDIDAsync(request.DID, request.Challenge, request.Signature, ipAddress());
+
+            if (!result.IsError && result.Result != null)
+            {
+                setTokenCookie(result.Result.RefreshToken);
+                return HttpResponseHelper.FormatResponse(result, HttpStatusCode.OK);
+            }
+
+            return HttpResponseHelper.FormatResponse(result, HttpStatusCode.Unauthorized);
+        }
+
+        /// <summary>
         ///     Refresh and generate a new JWT Security Token. This will only work if you are already logged in &amp;
         ///     authenticated.
         /// </summary>

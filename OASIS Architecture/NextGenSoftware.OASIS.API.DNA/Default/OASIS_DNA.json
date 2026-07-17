@@ -37,17 +37,20 @@
             "RemoveOldRefreshTokensAfterXDays": 0,
             "JwtTokenExpirationMinutes": 15,
             "RefreshTokenExpirationDays": 7,
+            "DIDEnabled": false,
             "AvatarPassword": {
                 "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
+                "Rijndael256EncryptionEnabled": false,
                 "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
+                "QuantumEncryptionEnabled": false,
+                "QuantumEncryptionKey": ""
             },
             "OASISProviderPrivateKeys": {
                 "BCryptEncryptionEnabled": true,
-                "Rijndael256EncryptionEnabled": true,
+                "Rijndael256EncryptionEnabled": false,
                 "Rijndael256Key": "",
-                "QuantumEncryptionEnabled": true
+                "QuantumEncryptionEnabled": false,
+                "QuantumEncryptionKey": ""
             }
         },
         "Email": {
