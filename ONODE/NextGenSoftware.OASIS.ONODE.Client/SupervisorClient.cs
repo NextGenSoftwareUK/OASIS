@@ -120,6 +120,15 @@ public class SupervisorClient : IDisposable
         await _http.PutAsync("supervisor/config", content, ct);
     }
 
+    // ── Metrics (per-service) ──────────────────────────────────────────────────────
+
+    public async Task<List<ServiceMetricsDto>?> GetServiceMetricsAsync(CancellationToken ct = default)
+    {
+        var result = await GetAsync<MetricsDto>("supervisor/metrics", ct);
+        if (result?.Services == null) return null;
+        return result.Services.Values.ToList();
+    }
+
     // ── Providers ──────────────────────────────────────────────────────────────────
 
     public async Task<List<ProviderDto>?> GetProvidersAsync(CancellationToken ct = default)

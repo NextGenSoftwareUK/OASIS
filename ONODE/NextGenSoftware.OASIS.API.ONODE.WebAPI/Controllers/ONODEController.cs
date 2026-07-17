@@ -462,6 +462,41 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, AvatarNodeStateHolonDto> _nodeStates = new();
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, CommandHolonDto> _commands = new();
 
+        // ── Audit log ─────────────────────────────────────────────────────────────
+        private static readonly System.Collections.Concurrent.ConcurrentQueue<AuditLogEntryDto> _auditLog = new();
+        private const int AuditLogMaxEntries = 1000;
+
+        static void AppendAudit(string nodeId, string avatarId, string action, string? detail = null)
+        {
+            _auditLog.Enqueue(new AuditLogEntryDto
+            {
+                NodeId   = nodeId,
+                AvatarId = avatarId,
+                Action   = action,
+                Detail   = detail,
+                Timestamp = DateTime.UtcNow
+            });
+            while (_auditLog.Count > AuditLogMaxEntries)
+                _auditLog.TryDequeue(out _);
+        }
+
+        // ── Rate limiting ─────────────────────────────────────────────────────────
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int Count, DateTime WindowStart)> _rateLimits = new();
+        private const int RateLimitMax = 10;
+        private static readonly TimeSpan RateLimitWindow = TimeSpan.FromMinutes(1);
+
+        static bool CheckRateLimit(string nodeId)
+        {
+            var now = DateTime.UtcNow;
+            var entry = _rateLimits.GetOrAdd(nodeId, _ => (0, now));
+            if (now - entry.WindowStart > RateLimitWindow)
+                entry = (0, now);
+
+            if (entry.Count >= RateLimitMax) return false;
+            _rateLimits[nodeId] = (entry.Count + 1, entry.WindowStart);
+            return true;
+        }
+
         /// <summary>
         /// ONODEService pushes current aggregate node state every ~5 seconds.
         /// </summary>
@@ -502,10 +537,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (cmd == null || string.IsNullOrWhiteSpace(cmd.TargetNodeId))
                 return BadRequest(new { message = "Command body with TargetNodeId is required." });
 
+            if (!CheckRateLimit(cmd.TargetNodeId))
+                return StatusCode(429, new { message = $"Rate limit exceeded. Max {RateLimitMax} commands per minute per node." });
+
             cmd.Id = string.IsNullOrWhiteSpace(cmd.Id) ? Guid.NewGuid().ToString() : cmd.Id;
             cmd.Status = "Pending";
             cmd.IssuedAt = DateTime.UtcNow;
             _commands[cmd.Id] = cmd;
+
+            AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId, $"Command:{cmd.Command}", cmd.Service ?? cmd.Payload);
 
             // Prune completed commands older than 10 minutes to avoid unbounded growth
             var cutoff = DateTime.UtcNow.AddMinutes(-10);
@@ -542,20 +582,57 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             cmd.Status = update.Status;
             cmd.Result = update.Result;
             if (update.Status is "Done" or "Error")
+            {
                 cmd.CompletedAt = DateTime.UtcNow;
+                AppendAudit(cmd.TargetNodeId, cmd.IssuedByAvatarId,
+                    $"CommandResult:{cmd.Command}:{update.Status}", update.Result);
+            }
 
             return Ok(cmd);
         }
 
-        /// <summary>
-        /// OPORTAL polls this to read a single command's current status/result.
-        /// </summary>
         [HttpGet("commands/{commandId}")]
         public IActionResult GetCommand(string commandId)
         {
             if (!_commands.TryGetValue(commandId, out var cmd))
                 return NotFound(new { message = "Command not found." });
             return Ok(cmd);
+        }
+
+        // ── Audit log endpoint ────────────────────────────────────────────────────
+
+        [HttpGet("audit")]
+        public IActionResult GetAuditLog([FromQuery] string? nodeId = null, [FromQuery] int limit = 200)
+        {
+            var entries = _auditLog
+                .Where(e => nodeId == null || e.NodeId == nodeId)
+                .TakeLast(Math.Min(limit, 1000))
+                .OrderByDescending(e => e.Timestamp)
+                .ToList();
+            return Ok(entries);
+        }
+
+        // ── Active nodes endpoint ─────────────────────────────────────────────────
+
+        [HttpGet("active-nodes")]
+        public IActionResult GetActiveNodes()
+        {
+            var cutoff = DateTime.UtcNow.AddMinutes(-5);
+            var nodes = _nodeStates.Values
+                .Where(n => n.LastSeen >= cutoff)
+                .Select(n => new
+                {
+                    nodeId       = n.NodeId,
+                    avatarId     = n.AvatarId,
+                    lastSeen     = n.LastSeen,
+                    secondsAgo   = (int)(DateTime.UtcNow - n.LastSeen).TotalSeconds,
+                    runningCount = n.Services?.Count(s => s.Status == "Running") ?? 0,
+                    totalCount   = n.Services?.Count ?? 0,
+                    metrics      = n.Metrics
+                })
+                .OrderBy(n => n.secondsAgo)
+                .ToList();
+            return Ok(nodes);
         }
     }
 
@@ -603,6 +680,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public string? Result { get; set; }
         public DateTime IssuedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+    }
+
+    public class AuditLogEntryDto
+    {
+        public string NodeId   { get; set; } = "";
+        public string AvatarId { get; set; } = "";
+        public string Action   { get; set; } = "";
+        public string? Detail  { get; set; }
+        public DateTime Timestamp { get; set; }
     }
 
     public class CommandStatusUpdateDto

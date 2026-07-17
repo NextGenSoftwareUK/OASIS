@@ -4,6 +4,7 @@ using Avalonia.Markup.Xaml;
 using NextGenSoftware.OASIS.ONODE.Manager.Services;
 using NextGenSoftware.OASIS.ONODE.Manager.ViewModels;
 using NextGenSoftware.OASIS.ONODE.Manager.Views;
+using Avalonia.Threading;
 
 namespace NextGenSoftware.OASIS.ONODE.Manager;
 
@@ -21,6 +22,9 @@ public class App : Application
             desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
 
             var vm = new MainWindowViewModel();
+            vm.NotificationRequested += (title, msg) =>
+                Dispatcher.UIThread.Post(() => ToastWindow.Show(title, msg));
+
             _tray = new TrayIconManager(vm, desktop);
             _tray.Initialise();
         }
