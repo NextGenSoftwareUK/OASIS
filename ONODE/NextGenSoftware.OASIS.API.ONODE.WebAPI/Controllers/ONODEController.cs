@@ -509,6 +509,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             state.NodeId = nodeId;
             state.LastSeen = DateTime.UtcNow;
             _nodeStates[nodeId] = state;
+
+            // Push to any OPORTAL browser clients watching this nodeId via WebSocket (local mode)
+            _ = Hubs.ONODEWebSocketHub.BroadcastAsync(nodeId, state);
+
             return Ok(new { message = "Node state received." });
         }
 
