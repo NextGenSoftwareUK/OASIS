@@ -46,6 +46,7 @@ public class Program
             return new LogAggregator(cfg.LogRingBufferLines);
         });
         builder.Services.AddSingleton<ProcessSupervisor>();
+        builder.Services.AddSingleton<ProviderService>();
         builder.Services.AddSingleton<CommandExecutor>();
         builder.Services.AddSingleton<MetricsCollector>();
         builder.Services.AddHostedService(sp => sp.GetRequiredService<MetricsCollector>());

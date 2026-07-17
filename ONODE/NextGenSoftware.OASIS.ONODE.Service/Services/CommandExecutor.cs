@@ -12,14 +12,16 @@ public class CommandExecutor
 {
     private readonly ProcessSupervisor _supervisor;
     private readonly LogAggregator _logs;
+    private readonly ProviderService _providers;
     private readonly SupervisorConfig _config;
     private readonly ILogger<CommandExecutor> _logger;
 
     public CommandExecutor(ProcessSupervisor supervisor, LogAggregator logs,
-        IOptions<SupervisorConfig> config, ILogger<CommandExecutor> logger)
+        ProviderService providers, IOptions<SupervisorConfig> config, ILogger<CommandExecutor> logger)
     {
         _supervisor = supervisor;
         _logs = logs;
+        _providers = providers;
         _config = config.Value;
         _logger = logger;
     }
@@ -35,13 +37,17 @@ public class CommandExecutor
 
         return cmd.Command switch
         {
-            CommandType.Start   => await StartAsync(cmd.Service, ct),
-            CommandType.Stop    => await StopAsync(cmd.Service, ct),
-            CommandType.Restart => await RestartAsync(cmd.Service, ct),
-            CommandType.GetLogs => GetLogs(cmd.Service, cmd.Payload),
-            CommandType.GetConfig => GetConfig(),
-            CommandType.UpdateConfig => await UpdateConfigAsync(cmd.Payload, ct),
-            CommandType.GetMetrics => null,
+            CommandType.Start           => await StartAsync(cmd.Service, ct),
+            CommandType.Stop            => await StopAsync(cmd.Service, ct),
+            CommandType.Restart         => await RestartAsync(cmd.Service, ct),
+            CommandType.GetLogs         => GetLogs(cmd.Service, cmd.Payload),
+            CommandType.GetConfig       => GetConfig(),
+            CommandType.UpdateConfig    => await UpdateConfigAsync(cmd.Payload, ct),
+            CommandType.GetMetrics      => null,
+            CommandType.GetProviders    => GetProviders(),
+            CommandType.EnableProvider  => await SetProviderEnabledAsync(cmd.Payload, true, ct),
+            CommandType.DisableProvider => await SetProviderEnabledAsync(cmd.Payload, false, ct),
+            CommandType.SetProviderPriority => await SetProviderPriorityAsync(cmd.Payload, ct),
             _ => throw new NotSupportedException($"Unknown command: {cmd.Command}")
         };
     }
@@ -108,8 +114,7 @@ public class CommandExecutor
         if (string.IsNullOrEmpty(payload))
             throw new ArgumentException("No config payload provided");
 
-        // Validate it's valid JSON before writing
-        JsonDocument.Parse(payload);
+        JsonDocument.Parse(payload); // validate JSON
 
         var path = _config.ResolveOASISDNAPath();
         var backup = path + $".bak.{DateTime.UtcNow:yyyyMMddHHmmss}";
@@ -117,5 +122,27 @@ public class CommandExecutor
 
         await File.WriteAllTextAsync(path, payload, ct);
         return "Config updated";
+    }
+
+    string? GetProviders()
+        => JsonSerializer.Serialize(_providers.GetProviders());
+
+    async Task<string?> SetProviderEnabledAsync(string? providerType, bool enabled, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(providerType))
+            throw new ArgumentException("providerType payload required");
+        var ok = await _providers.SetEnabledAsync(providerType, enabled, ct);
+        return ok ? $"{providerType} {(enabled ? "enabled" : "disabled")}" : $"Provider '{providerType}' not found";
+    }
+
+    async Task<string?> SetProviderPriorityAsync(string? payload, CancellationToken ct)
+    {
+        if (string.IsNullOrEmpty(payload))
+            throw new ArgumentException("Payload required: {\"providerType\":\"X\",\"priority\":1}");
+        using var doc = JsonDocument.Parse(payload);
+        var providerType = doc.RootElement.GetProperty("providerType").GetString()!;
+        var priority = doc.RootElement.GetProperty("priority").GetInt32();
+        var ok = await _providers.SetPriorityAsync(providerType, priority, ct);
+        return ok ? $"{providerType} priority set to {priority}" : $"Provider '{providerType}' not found";
     }
 }
