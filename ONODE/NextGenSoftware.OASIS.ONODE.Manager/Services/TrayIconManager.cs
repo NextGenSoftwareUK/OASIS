@@ -19,6 +19,8 @@ public class TrayIconManager
     private TrayIcon? _tray;
     private MainWindow? _mainWindow;
     private readonly System.Timers.Timer _iconTimer;
+    private readonly System.Timers.Timer _blinkTimer;
+    private bool _blinkOn;
 
     private static readonly Dictionary<string, string> IconPaths = new()
     {
@@ -35,6 +37,10 @@ public class TrayIconManager
         _iconTimer = new System.Timers.Timer(3000);
         _iconTimer.Elapsed += (_, _) => UpdateIcon();
         _iconTimer.Start();
+
+        _blinkTimer = new System.Timers.Timer(500);
+        _blinkTimer.Elapsed += (_, _) => BlinkIcon();
+        _blinkTimer.Start();
     }
 
     public void Initialise()
@@ -86,9 +92,27 @@ public class TrayIconManager
         return menu;
     }
 
+    bool IsTransitioning()
+    {
+        // Check if any service is in a transitional state
+        var services = _vm.Services;
+        return services.Any(s => s.Status is "Starting" or "Stopping" or "Restarting");
+    }
+
+    void BlinkIcon()
+    {
+        if (_tray == null || !IsTransitioning()) return;
+        _blinkOn = !_blinkOn;
+        var iconKey = _blinkOn ? "yellow" : "grey";
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            try { _tray.Icon = LoadIcon(iconKey); } catch { }
+        });
+    }
+
     void UpdateIcon()
     {
-        if (_tray == null) return;
+        if (_tray == null || IsTransitioning()) return;
         var status = _vm.OverallStatus;
         var iconKey = status switch
         {
@@ -144,6 +168,7 @@ public class TrayIconManager
     void Quit()
     {
         _iconTimer.Dispose();
+        _blinkTimer.Dispose();
         _tray?.Dispose();
         _vm.Dispose();
         _desktop.Shutdown();
