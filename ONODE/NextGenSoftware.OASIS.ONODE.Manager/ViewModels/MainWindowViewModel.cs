@@ -3,6 +3,10 @@ using System.Timers;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NextGenSoftware.OASIS.ONODE.Client;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
+using SkiaSharp;
 
 namespace NextGenSoftware.OASIS.ONODE.Manager.ViewModels;
 
@@ -24,9 +28,46 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ServiceViewModel> Services { get; } = [];
     public ObservableCollection<ProviderViewModel> Providers { get; } = [];
+    public ObservableCollection<NetworkServiceViewModel> NetworkServices { get; } = [];
+    public ObservableCollection<AuditEntryViewModel> AuditEntries { get; } = [];
+
+    // ── Notification event ────────────────────────────────────────────────────
+    public event Action<string, string>? NotificationRequested; // (title, message)
+
+    // ── Metrics chart data ─────────────────────────────────────────────────────
+    private const int HistoryLength = 60;
+    private readonly ObservableCollection<double> _peersHistory;
+    private readonly ObservableCollection<double> _bytesInHistory;
+    private readonly ObservableCollection<double> _bytesOutHistory;
+    private readonly ObservableCollection<double> _requestsHistory;
+
+    public ISeries[] PeersSeries { get; }
+    public ISeries[] BandwidthSeries { get; }
+    public ISeries[] RequestsSeries { get; }
+
+    public Axis[] TimeXAxis { get; } = [new Axis { Labels = null, MinStep = 1, Labeler = _ => "" }];
+    public Axis[] PeersYAxis { get; } = [new Axis { Name = "Peers", MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray) }];
+    public Axis[] BytesYAxis { get; } = [new Axis { Name = "KB/s",  MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray), Labeler = v => $"{v / 1000:F0}" }];
+    public Axis[] ReqYAxis  { get; } = [new Axis { Name = "req/s", MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray) }];
 
     public MainWindowViewModel()
     {
+        // Initialise rolling chart history
+        _peersHistory   = new(Enumerable.Repeat(0.0, HistoryLength));
+        _bytesInHistory  = new(Enumerable.Repeat(0.0, HistoryLength));
+        _bytesOutHistory = new(Enumerable.Repeat(0.0, HistoryLength));
+        _requestsHistory = new(Enumerable.Repeat(0.0, HistoryLength));
+
+        PeersSeries = [new LineSeries<double> {
+            Values = _peersHistory, Name = "Peers", Fill = null,
+            Stroke = new SolidColorPaint(SKColors.DodgerBlue, 2), GeometrySize = 0 }];
+        BandwidthSeries = [
+            new LineSeries<double> { Values = _bytesInHistory,  Name = "In",  Fill = null, Stroke = new SolidColorPaint(SKColors.LimeGreen, 2),  GeometrySize = 0 },
+            new LineSeries<double> { Values = _bytesOutHistory, Name = "Out", Fill = null, Stroke = new SolidColorPaint(SKColors.OrangeRed, 2), GeometrySize = 0 }];
+        RequestsSeries = [new LineSeries<double> {
+            Values = _requestsHistory, Name = "Req/s", Fill = null,
+            Stroke = new SolidColorPaint(SKColors.Violet, 2), GeometrySize = 0 }];
+
         SupervisorAvailable = _client.IsAvailable;
         if (!_client.IsAvailable)
         {
@@ -82,6 +123,50 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             };
         });
 
+        // Metrics history update (rolling 60-point)
+        void Roll(ObservableCollection<double> col, double value)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (col.Count >= HistoryLength) col.RemoveAt(0);
+                col.Add(value);
+            });
+        }
+        Roll(_peersHistory,   status.Metrics.TotalPeers);
+        Roll(_bytesInHistory,  status.Metrics.TotalBytesReadPerSec);
+        Roll(_bytesOutHistory, status.Metrics.TotalBytesWrittenPerSec);
+        Roll(_requestsHistory, status.Metrics.TotalRequestsPerSec);
+
+        // Network (per-service metrics)
+        var svcMetrics = await _client.GetServiceMetricsAsync();
+        if (svcMetrics != null)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                var existing = NetworkServices.ToDictionary(n => n.ServiceId);
+                var incoming = svcMetrics.ToDictionary(m => m.ServiceId);
+                foreach (var m in svcMetrics)
+                {
+                    if (existing.TryGetValue(m.ServiceId, out var vm))
+                        vm.Update(m);
+                    else
+                        NetworkServices.Add(new NetworkServiceViewModel(m));
+                }
+                foreach (var old in existing.Keys.Except(incoming.Keys).ToList())
+                    NetworkServices.Remove(existing[old]);
+            });
+        }
+
+        // Notifications: detect newly crashed services
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            foreach (var svc in Services)
+            {
+                if (svc.Status == "Crashed")
+                    NotificationRequested?.Invoke("Service Crashed", $"{svc.Id} has crashed.");
+            }
+        });
+
         // Providers
         var providers = await _client.GetProvidersAsync();
         if (providers != null)
@@ -121,6 +206,31 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [RelayCommand]
     async Task RestartAll() { if (_client.IsAvailable) await _client.RestartGroupAsync("all"); }
+
+    [RelayCommand]
+    async Task LoadAudit()
+    {
+        if (!_client.IsAvailable) return;
+        // Fetch audit log from Web4 API (supervisor proxies it)
+        try
+        {
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            var port = 5000; // Web4 API default
+            var resp = await http.GetAsync($"http://localhost:{port}/api/v1/onode/audit?limit=200");
+            if (!resp.IsSuccessStatusCode) return;
+            var json = await resp.Content.ReadAsStringAsync();
+            var entries = System.Text.Json.JsonSerializer.Deserialize<List<AuditEntryRaw>>(json,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (entries == null) return;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                AuditEntries.Clear();
+                foreach (var e in entries)
+                    AuditEntries.Add(new AuditEntryViewModel(e));
+            });
+        }
+        catch { /* audit log is best-effort */ }
+    }
 
     [RelayCommand]
     async Task LoadConfig()
@@ -201,6 +311,62 @@ public partial class ServiceViewModel : ObservableObject
         if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes:D2}m";
         if (ts.TotalMinutes >= 1) return $"{ts.Minutes}m {ts.Seconds:D2}s";
         return $"{ts.Seconds}s";
+    }
+}
+
+public partial class NetworkServiceViewModel : ObservableObject
+{
+    public string ServiceId { get; }
+    [ObservableProperty] private int _peers;
+    [ObservableProperty] private string _bytesIn  = "0 B/s";
+    [ObservableProperty] private string _bytesOut = "0 B/s";
+    [ObservableProperty] private string _requests = "0";
+    [ObservableProperty] private string _latency  = "—";
+
+    public NetworkServiceViewModel(ServiceMetricsDto m)
+    {
+        ServiceId = m.ServiceId.ToUpper();
+        Update(m);
+    }
+
+    public void Update(ServiceMetricsDto m)
+    {
+        Peers    = m.PeersConnected;
+        BytesIn  = FormatBytes(m.BytesReadPerSec) + "/s";
+        BytesOut = FormatBytes(m.BytesWrittenPerSec) + "/s";
+        Requests = $"{m.RequestsPerSec:F1}";
+        Latency  = $"{m.AvgLatencyMs:F0} ms";
+    }
+
+    static string FormatBytes(long b) =>
+        b >= 1_000_000 ? $"{b / 1_000_000.0:F1} MB" :
+        b >= 1_000     ? $"{b / 1_000.0:F1} KB" : $"{b} B";
+}
+
+public class AuditEntryRaw
+{
+    public string NodeId    { get; set; } = "";
+    public string AvatarId  { get; set; } = "";
+    public string Action    { get; set; } = "";
+    public string? Detail   { get; set; }
+    public DateTime Timestamp { get; set; }
+}
+
+public class AuditEntryViewModel
+{
+    public string Time     { get; }
+    public string NodeId   { get; }
+    public string AvatarId { get; }
+    public string Action   { get; }
+    public string Detail   { get; }
+
+    public AuditEntryViewModel(AuditEntryRaw e)
+    {
+        Time     = e.Timestamp.ToLocalTime().ToString("HH:mm:ss");
+        NodeId   = e.NodeId.Length > 12 ? e.NodeId[..8] + "…" : e.NodeId;
+        AvatarId = e.AvatarId.Length > 12 ? e.AvatarId[..8] + "…" : e.AvatarId;
+        Action   = e.Action;
+        Detail   = e.Detail ?? "";
     }
 }
 
