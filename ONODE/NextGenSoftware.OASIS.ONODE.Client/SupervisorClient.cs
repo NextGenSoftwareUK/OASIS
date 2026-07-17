@@ -120,6 +120,34 @@ public class SupervisorClient : IDisposable
         await _http.PutAsync("supervisor/config", content, ct);
     }
 
+    // ── Providers ──────────────────────────────────────────────────────────────────
+
+    public async Task<List<ProviderDto>?> GetProvidersAsync(CancellationToken ct = default)
+        => await GetAsync<List<ProviderDto>>("supervisor/providers", ct);
+
+    public async Task<List<string>?> GetProviderTypesAsync(CancellationToken ct = default)
+        => await GetAsync<List<string>>("supervisor/providers/types", ct);
+
+    public async Task<ProviderActionResult?> EnableProviderAsync(string providerType, CancellationToken ct = default)
+        => await PutAsync<ProviderActionResult>($"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable", ct);
+
+    public async Task<ProviderActionResult?> DisableProviderAsync(string providerType, CancellationToken ct = default)
+        => await PutAsync<ProviderActionResult>($"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable", ct);
+
+    public async Task<ProviderActionResult?> SetProviderPriorityAsync(string providerType, int priority, CancellationToken ct = default)
+    {
+        try
+        {
+            var content = new StringContent(
+                JsonSerializer.Serialize(new { priority }),
+                System.Text.Encoding.UTF8, "application/json");
+            var resp = await _http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", content, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+            return await resp.Content.ReadFromJsonAsync<ProviderActionResult>(JsonOpts, ct);
+        }
+        catch { return null; }
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     async Task<T?> GetAsync<T>(string url, CancellationToken ct)
@@ -143,6 +171,17 @@ public class SupervisorClient : IDisposable
     {
         try { await _http.PostAsJsonAsync(url, body, ct); }
         catch { }
+    }
+
+    async Task<T?> PutAsync<T>(string url, CancellationToken ct)
+    {
+        try
+        {
+            var resp = await _http.PutAsync(url, null, ct);
+            if (!resp.IsSuccessStatusCode) return default;
+            return await resp.Content.ReadFromJsonAsync<T>(JsonOpts, ct);
+        }
+        catch { return default; }
     }
 
     public void Dispose() => _http.Dispose();
@@ -203,4 +242,21 @@ public class LogEntryDto
     public string Message { get; set; } = "";
     public bool IsError { get; set; }
     public DateTime Timestamp { get; set; }
+}
+
+public class ProviderDto
+{
+    public string ProviderType { get; set; } = "";
+    public bool IsEnabled { get; set; }
+    public int Priority { get; set; }
+
+    public string FriendlyName => ProviderType
+        .Replace("OASIS", "")
+        .TrimEnd();
+}
+
+public class ProviderActionResult
+{
+    public string Message { get; set; } = "";
+    public bool ReloadRequired { get; set; }
 }

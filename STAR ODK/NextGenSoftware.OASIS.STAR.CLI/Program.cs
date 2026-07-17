@@ -4437,7 +4437,7 @@ namespace NextGenSoftware.OASIS.STAR.CLI
                     break;
 
                 case "providers":
-                    await ShowONODEProvidersAsync();
+                    await ONODEProvidersAsync(client, inputArgs);
                     break;
 
                 case "startprovider":
@@ -4810,34 +4810,99 @@ namespace NextGenSoftware.OASIS.STAR.CLI
             }
         }
 
-        private static async Task ShowONODEProvidersAsync()
+        private static async Task ONODEProvidersAsync(NextGenSoftware.OASIS.ONODE.Client.SupervisorClient client, string[] inputArgs)
         {
-            try
-            {
-                await InitializeONETAsync();
-                CLIEngine.ShowWorkingMessage("Getting ONODE providers...");
+            // onode providers [list|enable|disable|priority] [providerType] [--service web4] [--priority N]
+            string sub = inputArgs.Length > 2 ? inputArgs[2].ToLower() : "list";
 
-            // Get network stats instead of providers (providers method doesn't exist)
-            var statsResult = await _onetManager!.GetNetworkStatsAsync();
-            if (statsResult.IsError)
+            if (!client.IsAvailable)
             {
-                CLIEngine.ShowErrorMessage($"Failed to get ONODE stats: {statsResult.Message}");
+                CLIEngine.ShowWarningMessage("ONODEService not running. Provider management requires the supervisor.");
                 return;
             }
 
-            var stats = statsResult.Result;
-            Console.WriteLine();
-            CLIEngine.ShowMessage("=== ONODE STATS ===", ConsoleColor.Green);
-            
-            foreach (var stat in stats)
+            switch (sub)
             {
-                CLIEngine.ShowMessage($"â€¢ {stat.Key}: {stat.Value}", ConsoleColor.White);
+                case "list":
+                {
+                    CLIEngine.ShowWorkingMessage("Loading providers…");
+                    var providers = await client.GetProvidersAsync();
+                    if (providers == null || providers.Count == 0)
+                    {
+                        CLIEngine.ShowMessage("No providers configured in OASISDNA.json.", ConsoleColor.Yellow);
+                        return;
+                    }
+                    Console.WriteLine();
+                    CLIEngine.ShowMessage("OASIS Storage Providers:", ConsoleColor.Cyan);
+                    CLIEngine.ShowMessage(new string('─', 50), ConsoleColor.DarkGray);
+                    foreach (var p in providers.OrderBy(x => x.Priority))
+                    {
+                        var dot     = p.IsEnabled ? "●" : "○";
+                        var colour  = p.IsEnabled ? ConsoleColor.Green : ConsoleColor.Gray;
+                        var label   = p.IsEnabled ? "Enabled" : "Disabled";
+                        CLIEngine.ShowMessage($"  {p.Priority,2}. {p.ProviderType,-24} {dot} {label}", colour, false);
+                    }
+                    break;
+                }
+
+                case "enable":
+                {
+                    var providerType = inputArgs.Length > 3 ? inputArgs[3] : null;
+                    if (string.IsNullOrEmpty(providerType))
+                    { CLIEngine.ShowErrorMessage("Usage: onode providers enable <ProviderType>"); return; }
+                    CLIEngine.ShowWorkingMessage($"Enabling {providerType}…");
+                    var result = await client.EnableProviderAsync(providerType);
+                    if (result != null)
+                    {
+                        CLIEngine.ShowSuccessMessage(result.Message);
+                        if (result.ReloadRequired)
+                            CLIEngine.ShowMessage("⚠ Restart the affected service to apply: onode restart web4", ConsoleColor.Yellow);
+                    }
+                    else CLIEngine.ShowErrorMessage($"Failed to enable {providerType}. Check it exists in OASISDNA.json.");
+                    break;
+                }
+
+                case "disable":
+                {
+                    var providerType = inputArgs.Length > 3 ? inputArgs[3] : null;
+                    if (string.IsNullOrEmpty(providerType))
+                    { CLIEngine.ShowErrorMessage("Usage: onode providers disable <ProviderType>"); return; }
+                    CLIEngine.ShowWorkingMessage($"Disabling {providerType}…");
+                    var result = await client.DisableProviderAsync(providerType);
+                    if (result != null)
+                    {
+                        CLIEngine.ShowSuccessMessage(result.Message);
+                        if (result.ReloadRequired)
+                            CLIEngine.ShowMessage("⚠ Restart the affected service to apply: onode restart web4", ConsoleColor.Yellow);
+                    }
+                    else CLIEngine.ShowErrorMessage($"Failed to disable {providerType}.");
+                    break;
+                }
+
+                case "priority":
+                {
+                    var providerType = inputArgs.Length > 3 ? inputArgs[3] : null;
+                    var priorityStr  = inputArgs.Length > 4 ? inputArgs[4] : null;
+                    if (string.IsNullOrEmpty(providerType) || !int.TryParse(priorityStr, out int priority))
+                    { CLIEngine.ShowErrorMessage("Usage: onode providers priority <ProviderType> <N>"); return; }
+                    CLIEngine.ShowWorkingMessage($"Setting {providerType} priority to {priority}…");
+                    var result = await client.SetProviderPriorityAsync(providerType, priority);
+                    if (result != null) CLIEngine.ShowSuccessMessage(result.Message);
+                    else CLIEngine.ShowErrorMessage($"Failed to set priority for {providerType}.");
+                    break;
+                }
+
+                default:
+                    CLIEngine.ShowErrorMessage($"Unknown providers subcommand '{sub}'. Use: list | enable | disable | priority");
+                    break;
             }
-            }
-            catch (Exception ex)
-            {
-                CLIEngine.ShowErrorMessage($"Error getting ONODE providers: {ex.Message}");
-            }
+        }
+
+        private static async Task ShowONODEProvidersAsync()
+        {
+            // Legacy stub — now routed to ONODEProvidersAsync
+            CLIEngine.ShowMessage("Use: onode providers list|enable|disable|priority", ConsoleColor.Yellow);
+            await Task.CompletedTask;
         }
 
         private static async Task StartONODEProviderAsync(string providerName)

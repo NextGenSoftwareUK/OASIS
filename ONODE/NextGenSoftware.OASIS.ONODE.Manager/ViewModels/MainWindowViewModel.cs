@@ -23,6 +23,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty] private string _unifiedLogs = "";
 
     public ObservableCollection<ServiceViewModel> Services { get; } = [];
+    public ObservableCollection<ProviderViewModel> Providers { get; } = [];
 
     public MainWindowViewModel()
     {
@@ -80,6 +81,27 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                 _              => "#FFA500",  // amber (partial)
             };
         });
+
+        // Providers
+        var providers = await _client.GetProvidersAsync();
+        if (providers != null)
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                // Merge: update existing, add new, remove stale
+                var existing = Providers.ToDictionary(p => p.ProviderType);
+                var incoming = providers.ToDictionary(p => p.ProviderType);
+                foreach (var p in providers)
+                {
+                    if (existing.TryGetValue(p.ProviderType, out var vm))
+                        vm.Update(p);
+                    else
+                        Providers.Add(new ProviderViewModel(p, _client));
+                }
+                foreach (var old in existing.Keys.Except(incoming.Keys).ToList())
+                    Providers.Remove(existing[old]);
+            });
+        }
 
         // Logs (unified)
         var logs = await _client.GetLogsAsync(lines: 300);
@@ -179,5 +201,67 @@ public partial class ServiceViewModel : ObservableObject
         if (ts.TotalHours >= 1) return $"{(int)ts.TotalHours}h {ts.Minutes:D2}m";
         if (ts.TotalMinutes >= 1) return $"{ts.Minutes}m {ts.Seconds:D2}s";
         return $"{ts.Seconds}s";
+    }
+}
+
+public partial class ProviderViewModel : ObservableObject
+{
+    private readonly SupervisorClient _client;
+
+    public string ProviderType { get; }
+    public string FriendlyName { get; }
+    [ObservableProperty] private bool _isEnabled;
+    [ObservableProperty] private int _priority;
+    [ObservableProperty] private string _statusText;
+    [ObservableProperty] private string _dotColour;
+
+    public ProviderViewModel(ProviderDto dto, SupervisorClient client)
+    {
+        _client = client;
+        ProviderType = dto.ProviderType;
+        FriendlyName = dto.FriendlyName;
+        _isEnabled = dto.IsEnabled;
+        _priority = dto.Priority;
+        _statusText = dto.IsEnabled ? "Enabled" : "Disabled";
+        _dotColour = dto.IsEnabled ? "#00BFFF" : "#555566";
+    }
+
+    public void Update(ProviderDto dto)
+    {
+        IsEnabled = dto.IsEnabled;
+        Priority = dto.Priority;
+        StatusText = dto.IsEnabled ? "Enabled" : "Disabled";
+        DotColour = dto.IsEnabled ? "#00BFFF" : "#555566";
+    }
+
+    [RelayCommand]
+    async Task Toggle()
+    {
+        ProviderActionResult? result;
+        if (IsEnabled)
+            result = await _client.DisableProviderAsync(ProviderType);
+        else
+            result = await _client.EnableProviderAsync(ProviderType);
+
+        if (result != null)
+        {
+            IsEnabled = !IsEnabled;
+            StatusText = IsEnabled ? "Enabled" : "Disabled";
+            DotColour = IsEnabled ? "#00BFFF" : "#555566";
+        }
+    }
+
+    [RelayCommand]
+    async Task IncreasePriority()
+    {
+        var result = await _client.SetProviderPriorityAsync(ProviderType, Priority - 1);
+        if (result != null && Priority > 1) Priority--;
+    }
+
+    [RelayCommand]
+    async Task DecreasePriority()
+    {
+        var result = await _client.SetProviderPriorityAsync(ProviderType, Priority + 1);
+        if (result != null) Priority++;
     }
 }

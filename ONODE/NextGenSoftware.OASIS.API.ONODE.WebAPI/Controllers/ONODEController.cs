@@ -358,6 +358,102 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             }
         }
 
+        // ── Provider endpoints ────────────────────────────────────────────────────
+        // Read-only in local mode; OPORTAL reads directly. Writes go via supervisor.
+
+        /// <summary>
+        /// Returns configured OASIS storage providers and their enabled state from OASISDNA.json.
+        /// </summary>
+        [HttpGet("providers")]
+        public IActionResult GetProviders()
+        {
+            try
+            {
+                var path = OASISBootLoader.OASISBootLoader.OASISDNA != null
+                    ? (Environment.GetEnvironmentVariable("OASISDNA_PATH") ?? "OASISDNA.json")
+                    : "OASISDNA.json";
+
+                // Resolve the actual path used by OASIS
+                var resolved = Environment.GetEnvironmentVariable("OASISDNA_PATH")
+                    ?? Path.Combine(AppContext.BaseDirectory, "OASISDNA.json");
+
+                if (!System.IO.File.Exists(resolved))
+                    return Ok(new List<object>());
+
+                var json = System.IO.File.ReadAllText(resolved);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                System.Text.Json.JsonElement providersEl;
+                bool found = root.TryGetProperty("OASISDNA", out var oasisdna)
+                    ? (oasisdna.TryGetProperty("StorageProviders", out var sp) && sp.TryGetProperty("Providers", out providersEl))
+                    : (root.TryGetProperty("StorageProviders", out var sp2) && sp2.TryGetProperty("Providers", out providersEl));
+
+                if (!found) return Ok(new List<object>());
+
+                var list = new List<object>();
+                foreach (var p in providersEl.EnumerateArray())
+                {
+                    list.Add(new
+                    {
+                        providerType = p.TryGetProperty("ProviderType", out var pt) ? pt.GetString() : "",
+                        isEnabled    = p.TryGetProperty("IsEnabled",    out var ie) && ie.GetBoolean(),
+                        priority     = p.TryGetProperty("Priority",     out var pr) ? pr.GetInt32() : 0,
+                    });
+                }
+                return Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error reading providers");
+                return StatusCode(500, new { message = "Error reading providers", error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Proxies provider enable/disable/priority writes to ONODEService supervisor.
+        /// Called by OPORTAL in local mode (same machine). If supervisor unavailable, 404.
+        /// </summary>
+        [HttpPut("providers/{providerType}/enable")]
+        public async Task<IActionResult> EnableProvider(string providerType)
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
+                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/enable", null);
+                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
+                return Ok(new { message = $"{providerType} enabled. Restart service to apply." });
+            }
+            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
+        }
+
+        [HttpPut("providers/{providerType}/disable")]
+        public async Task<IActionResult> DisableProvider(string providerType)
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
+                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/disable", null);
+                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
+                return Ok(new { message = $"{providerType} disabled." });
+            }
+            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
+        }
+
+        [HttpPut("providers/{providerType}/priority")]
+        public async Task<IActionResult> SetProviderPriority(string providerType, [FromBody] JsonElement body)
+        {
+            try
+            {
+                using var http = new System.Net.Http.HttpClient { BaseAddress = new Uri("http://127.0.0.1:8765/"), Timeout = TimeSpan.FromSeconds(5) };
+                var content = new System.Net.Http.StringContent(body.GetRawText(), System.Text.Encoding.UTF8, "application/json");
+                var resp = await http.PutAsync($"supervisor/providers/{Uri.EscapeDataString(providerType)}/priority", content);
+                if (!resp.IsSuccessStatusCode) return StatusCode((int)resp.StatusCode, await resp.Content.ReadAsStringAsync());
+                return Ok(new { message = $"{providerType} priority updated." });
+            }
+            catch { return StatusCode(503, new { message = "ONODEService supervisor not reachable." }); }
+        }
+
         // ── Holon Bridge endpoints ────────────────────────────────────────────────
         // Called by ONODEService (push) and OPORTAL-JS (read/command).
         // Node state is stored in memory (last-seen per nodeId) so OPORTAL can read

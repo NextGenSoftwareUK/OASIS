@@ -129,6 +129,43 @@
                 </Grid>
             </TabItem>
 
+            <!-- Providers -->
+            <TabItem Header="Providers">
+                <Grid RowDefinitions="Auto,*" Margin="12">
+                    <!-- Column header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="16,*,80,80,80,80" Margin="4,0,4,4">
+                        <TextBlock Grid.Column="1" Text="Provider"       Foreground="#666688" FontSize="11" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Status"         Foreground="#666688" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="3" Text="Priority"       Foreground="#666688" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="4" Text=""               Foreground="#666688" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+                        <TextBlock Grid.Column="5" Text="Toggle"         Foreground="#666688" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+                    </Grid>
+                    <ScrollViewer Grid.Row="1">
+                        <ItemsControl ItemsSource="{Binding Providers}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ProviderViewModel">
+                                    <Border Background="#12122A" BorderBrush="#1E1E3A" BorderThickness="0,0,0,1" Padding="4,6">
+                                        <Grid ColumnDefinitions="16,*,80,80,80,80">
+                                            <Ellipse Grid.Column="0" Width="8" Height="8" Fill="{Binding DotColour}" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding FriendlyName}" Foreground="White" FontSize="12" VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="2" Text="{Binding StatusText}" Foreground="{Binding DotColour}" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                            <TextBlock Grid.Column="3" Text="{Binding Priority}" Foreground="#AAAACC" FontSize="11" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                            <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="2">
+                                                <Button Classes="action" Command="{Binding IncreasePriorityCommand}" Content="▲" Padding="4,2" FontSize="10" />
+                                                <Button Classes="action" Command="{Binding DecreasePriorityCommand}" Content="▼" Padding="4,2" FontSize="10" />
+                                            </StackPanel>
+                                            <Button Grid.Column="5" Classes="action" Command="{Binding ToggleCommand}"
+                                                    Content="{Binding StatusText}"
+                                                    Padding="6,3" FontSize="11" HorizontalAlignment="Center" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </TabItem>
+
             <!-- About -->
             <TabItem Header="About">
                 <StackPanel Margin="20" Spacing="8">

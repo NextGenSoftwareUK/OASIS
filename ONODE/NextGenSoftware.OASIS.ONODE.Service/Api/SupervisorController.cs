@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using NextGenSoftware.OASIS.ONODE.Service.Models;
 using NextGenSoftware.OASIS.ONODE.Service.Services;
+using System.Text.Json.Nodes;
 
 namespace NextGenSoftware.OASIS.ONODE.Service.Api;
 
@@ -15,15 +16,18 @@ public class SupervisorController : ControllerBase
     private readonly LogAggregator _logs;
     private readonly TokenService _token;
     private readonly SupervisorConfig _config;
+    private readonly ProviderService _providers;
 
     public SupervisorController(ProcessSupervisor supervisor, MetricsCollector metrics,
-        LogAggregator logs, TokenService token, IOptions<SupervisorConfig> config)
+        LogAggregator logs, TokenService token, IOptions<SupervisorConfig> config,
+        ProviderService providers)
     {
         _supervisor = supervisor;
         _metrics = metrics;
         _logs = logs;
         _token = token;
         _config = config.Value;
+        _providers = providers;
     }
 
     bool Authorised() => _token.Validate(Request.Headers.Authorization);
@@ -247,10 +251,64 @@ public class SupervisorController : ControllerBase
             OASISDNAPath = _config.ResolveOASISDNAPath()
         });
     }
+
+    // ── Provider endpoints ────────────────────────────────────────────────────────
+
+    // GET /supervisor/providers
+    [HttpGet("providers")]
+    public IActionResult GetProviders()
+    {
+        if (!Authorised()) return Unauthorized();
+        return Ok(_providers.GetProviders());
+    }
+
+    // PUT /supervisor/providers/{providerType}/enable
+    [HttpPut("providers/{providerType}/enable")]
+    public async Task<IActionResult> EnableProvider(string providerType, CancellationToken ct)
+    {
+        if (!Authorised()) return Unauthorized();
+        var ok = await _providers.SetEnabledAsync(providerType, true, ct);
+        return ok ? Ok(new { message = $"{providerType} enabled.", reloadRequired = true })
+                  : NotFound(new { error = $"Provider '{providerType}' not found in OASISDNA.json." });
+    }
+
+    // PUT /supervisor/providers/{providerType}/disable
+    [HttpPut("providers/{providerType}/disable")]
+    public async Task<IActionResult> DisableProvider(string providerType, CancellationToken ct)
+    {
+        if (!Authorised()) return Unauthorized();
+        var ok = await _providers.SetEnabledAsync(providerType, false, ct);
+        return ok ? Ok(new { message = $"{providerType} disabled.", reloadRequired = true })
+                  : NotFound(new { error = $"Provider '{providerType}' not found in OASISDNA.json." });
+    }
+
+    // PUT /supervisor/providers/{providerType}/priority
+    [HttpPut("providers/{providerType}/priority")]
+    public async Task<IActionResult> SetProviderPriority(string providerType,
+        [FromBody] SetPriorityRequest req, CancellationToken ct)
+    {
+        if (!Authorised()) return Unauthorized();
+        var ok = await _providers.SetPriorityAsync(providerType, req.Priority, ct);
+        return ok ? Ok(new { message = $"{providerType} priority set to {req.Priority}.", reloadRequired = true })
+                  : NotFound(new { error = $"Provider '{providerType}' not found in OASISDNA.json." });
+    }
+
+    // GET /supervisor/providers/types
+    [HttpGet("providers/types")]
+    public IActionResult GetProviderTypes()
+    {
+        if (!Authorised()) return Unauthorized();
+        return Ok(ProviderService.KnownProviderTypes);
+    }
 }
 
 public class ServiceSelectionRequest
 {
     public List<string>? Ids { get; set; }
     public string? WindowMode { get; set; }
+}
+
+public class SetPriorityRequest
+{
+    public int Priority { get; set; }
 }
