@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using System.Linq;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
 
@@ -384,7 +385,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
                 var root = doc.RootElement;
 
-                System.Text.Json.JsonElement providersEl;
+                System.Text.Json.JsonElement providersEl = default;
                 bool found = root.TryGetProperty("OASISDNA", out var oasisdna)
                     ? (oasisdna.TryGetProperty("StorageProviders", out var sp) && sp.TryGetProperty("Providers", out providersEl))
                     : (root.TryGetProperty("StorageProviders", out var sp2) && sp2.TryGetProperty("Providers", out providersEl));
