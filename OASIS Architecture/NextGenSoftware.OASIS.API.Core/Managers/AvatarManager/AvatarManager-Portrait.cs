@@ -116,14 +116,14 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     return result;
                 }
 
-                if (avatarId != Guid.Empty)
-                    avatarDetailResult = await LoadAvatarDetailAsync(avatarId);
-
-                if ((avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null) && !string.IsNullOrEmpty(username))
+                if (!string.IsNullOrEmpty(username))
                     avatarDetailResult = await LoadAvatarDetailByUsernameAsync(username);
 
                 if ((avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null) && !string.IsNullOrEmpty(email))
                     avatarDetailResult = await LoadAvatarDetailByEmailAsync(email);
+
+                if ((avatarDetailResult == null || avatarDetailResult.IsError || avatarDetailResult.Result == null) && avatarId != Guid.Empty)
+                    avatarDetailResult = await LoadAvatarDetailAsync(avatarId);
 
                 if (avatarDetailResult != null && !avatarDetailResult.IsError && avatarDetailResult.Result != null)
                 {
