@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using CommunityToolkit.Mvvm.Input;
 using NextGenSoftware.OASIS.ONODE.Manager.ViewModels;
 using NextGenSoftware.OASIS.ONODE.Manager.Views;
 using Velopack;
@@ -78,9 +79,9 @@ public class TrayIconManager
         {
             var sub = new NativeMenuItem(svcId.ToUpper());
             var subMenu = new NativeMenu();
-            subMenu.Add(new NativeMenuItem("▶  Start")   { Command = new RelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StartAsync(svcId)) });
-            subMenu.Add(new NativeMenuItem("■  Stop")    { Command = new RelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StopAsync(svcId)) });
-            subMenu.Add(new NativeMenuItem("↺  Restart") { Command = new RelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().RestartAsync(svcId)) });
+            subMenu.Add(new NativeMenuItem("▶  Start")   { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StartAsync(svcId)) });
+            subMenu.Add(new NativeMenuItem("■  Stop")    { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().StopAsync(svcId)) });
+            subMenu.Add(new NativeMenuItem("↺  Restart") { Command = new AsyncRelayCommand(async () => await new NextGenSoftware.OASIS.ONODE.Client.SupervisorClient().RestartAsync(svcId)) });
             sub.Menu = subMenu;
             menu.Add(sub);
         }

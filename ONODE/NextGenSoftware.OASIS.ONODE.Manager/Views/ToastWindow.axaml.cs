@@ -21,7 +21,7 @@ public partial class ToastWindow : Window
             toast.MessageText.Text = message;
 
             // Position: bottom-right of primary screen
-            var screen = Screens.Primary;
+            var screen = toast.Screens.Primary;
             if (screen != null)
             {
                 var bounds = screen.WorkingArea;
