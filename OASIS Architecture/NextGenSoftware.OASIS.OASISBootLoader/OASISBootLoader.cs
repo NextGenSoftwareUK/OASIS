@@ -353,6 +353,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                         LoggingManager.Log($"STAR ODK VERSION:      v{STARODKVersion}.", LogType.Info);
                         LoggingManager.Log($"STARNET VERSION:       v{STARNETVersion}.", LogType.Info);
                         LoggingManager.Log($"STAR API VERSION:      v{STARAPIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB6 API VERSION:      v{WEB6APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB7 API VERSION:      v{WEB7APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB8 API VERSION:      v{WEB8APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB9 API VERSION:      v{WEB9APIVersion}.", LogType.Info);
+                        LoggingManager.Log($"WEB10 API VERSION:     v{WEB10APIVersion}.", LogType.Info);
                         LoggingManager.Log($".NET VERSION:          v{DotNetVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (LIVE): {OASISDNA.OASIS.CurrentLiveVersion}.", LogType.Info);
                         //LoggingManager.Log($"OASIS RUNTIME VERSION (STAGING): {OASISDNA.OASIS.CurrentStagingVersion}.", LogType.Info);
