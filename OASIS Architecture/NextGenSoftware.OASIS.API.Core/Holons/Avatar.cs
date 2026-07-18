@@ -43,11 +43,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //    }
         //}
 
-        public Guid AvatarId
-        {
-            get { return base.Id; }
-            set { base.Id = value; }
-        }
+        //public Guid AvatarId // Removed — use Id instead
+        //{
+        //    get { return base.Id; }
+        //    set { base.Id = value; }
+        //}
 
         public new string Name
         {
