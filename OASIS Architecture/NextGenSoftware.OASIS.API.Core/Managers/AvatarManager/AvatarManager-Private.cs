@@ -1427,15 +1427,6 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //TODO: Need to look into it later...
             //TODO: Need to also map the child complex objects/structs such as Gifts, Spells, Achievements, etc, etc...
 
-            if (avatarDetailOriginal.Title != avatarDetailToUpdate.Title && !string.IsNullOrEmpty(avatarDetailToUpdate.Title))
-                avatarDetailOriginal.Title = avatarDetailToUpdate.Title;
-
-            if (avatarDetailOriginal.FirstName != avatarDetailToUpdate.FirstName && !string.IsNullOrEmpty(avatarDetailToUpdate.FirstName))
-                avatarDetailOriginal.FirstName = avatarDetailToUpdate.FirstName;
-
-            if (avatarDetailOriginal.LastName != avatarDetailToUpdate.LastName && !string.IsNullOrEmpty(avatarDetailToUpdate.LastName))
-                avatarDetailOriginal.LastName = avatarDetailToUpdate.LastName;
-
             if (avatarDetailOriginal.Address != avatarDetailToUpdate.Address && !string.IsNullOrEmpty(avatarDetailToUpdate.Address))
                 avatarDetailOriginal.Address = avatarDetailToUpdate.Address;
 
