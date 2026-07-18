@@ -25,19 +25,22 @@ jobs:
         ]
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -45,13 +48,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj"
     
     - name: Build
-      run: dotnet build "OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/OASIS Architecture/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      run: dotnet test "OASIS/OASIS Architecture/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Build and Test ONODE Projects
   test-onode:
@@ -66,19 +69,22 @@ jobs:
         ]
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -86,13 +92,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj"
     
     - name: Build
-      run: dotnet build "ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/ONODE/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      run: dotnet test "OASIS/ONODE/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Build and Test STAR ODK Projects
   test-star-odk:
@@ -110,19 +116,22 @@ jobs:
         ]
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -130,13 +139,13 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
     
     - name: Restore dependencies
-      run: dotnet restore "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj"
+      run: dotnet restore "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj"
     
     - name: Build
-      run: dotnet build "STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
+      run: dotnet build "OASIS/STAR ODK/${{ matrix.project }}/${{ matrix.project }}.csproj" --no-restore
     
     - name: Test
-      run: dotnet test "STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
+      run: dotnet test "OASIS/STAR ODK/${{ matrix.project }}.UnitTests/${{ matrix.project }}.UnitTests.csproj" --no-build --verbosity normal
 
   # Integration Tests
   integration-tests:
@@ -145,19 +154,22 @@ jobs:
     needs: [test-oasis-architecture, test-onode, test-star-odk]
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -200,14 +212,14 @@ jobs:
     - name: Run STARAPIClient test suite
       shell: pwsh
       run: |
-        & "OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1" -Configuration Release -KillStaleTestHosts $true
+        & "OASIS/OASIS Omniverse/STARAPIClient/run_star_api_test_suite.ps1" -Configuration Release -KillStaleTestHosts $true
 
     - name: Upload STARAPIClient test artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: starapiclient-test-results
-        path: OASIS Omniverse/STARAPIClient/TestResults/
+        path: OASIS/OASIS Omniverse/STARAPIClient/TestResults/
         retention-days: 30
 
   # Unity Tests (if Unity is available)
@@ -217,19 +229,22 @@ jobs:
     if: false  # Disabled for now as Unity requires special setup
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -249,19 +264,22 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -276,10 +294,10 @@ jobs:
     
     - name: Pack NuGet packages
       run: |
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" --configuration Release --no-build --output ./packages
-        dotnet pack "OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj" --configuration Release --no-build --output ./packages
+        dotnet pack "OASIS/OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj" --configuration Release --no-build --output ./packages
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -294,19 +312,22 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -327,19 +348,22 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -361,19 +385,22 @@ jobs:
     needs: [test-oasis-architecture, test-onode, test-star-odk]
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout OASIS
+      uses: actions/checkout@v4
+      with:
+        path: OASIS
 
     - name: Checkout NextGenSoftware-Libraries
       uses: actions/checkout@v4
       with:
         repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-        path: ../NextGenSoftware-Libraries
+        path: NextGenSoftware-Libraries
 
     - name: Checkout holochain-client-csharp
       uses: actions/checkout@v4
       with:
         repository: holochain-open-dev/holochain-client-csharp
-        path: ../holochain-client-csharp
+        path: holochain-client-csharp
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4

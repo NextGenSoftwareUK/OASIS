@@ -33,25 +33,29 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
       - name: Publish single-file binary
+        working-directory: OASIS
         run: >
           dotnet publish
           WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
@@ -64,10 +68,11 @@ jobs:
 
       - name: Rename binary
         shell: bash
+        working-directory: OASIS
         run: |
           src="publish/${{ matrix.rid }}/NextGenSoftware.OASIS.MCP.Server"
           [ -f "${src}.exe" ] && src="${src}.exe"
-          cp "$src" "${{ matrix.artifact }}"
+          cp "$src" "../${{ matrix.artifact }}"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -99,7 +104,7 @@ jobs:
 
             **npm (no .NET SDK required):**
             ```bash
-            npm install -g @oasis-omniverse/mcp-server
+            npm install -g @oasisomniverse/mcp-server
             ```
 
             **NuGet dotnet tool (.NET 8+ SDK required):**
@@ -140,25 +145,29 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
 
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
       - name: Pack MCP Server
+        working-directory: OASIS
         run: >
           dotnet pack
           WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
@@ -177,6 +186,7 @@ jobs:
 
       - name: Push to NuGet.org
         shell: pwsh
+        working-directory: OASIS
         run: |
           dotnet nuget push nupkgs\*.nupkg `
             --source https://api.nuget.org/v3/index.json `
@@ -189,7 +199,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - uses: actions/setup-node@v4
         with:
@@ -198,10 +211,10 @@ jobs:
 
       - name: Set version
         run: npm version ${{ inputs.version }} --no-git-tag-version
-        working-directory: WEB6/npm
+        working-directory: OASIS/WEB6/npm
 
       - name: Publish to npm
         run: npm publish --access public
-        working-directory: WEB6/npm
+        working-directory: OASIS/WEB6/npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
