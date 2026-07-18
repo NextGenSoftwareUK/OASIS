@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -1342,6 +1342,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
@@ -1402,6 +1416,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
@@ -1458,6 +1486,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var existingAvatar = existingAvatarResult.Result;
             
+            // Enforce uniqueness before applying username/email changes
+            if (!string.IsNullOrEmpty(avatar.Username) && !string.Equals(avatar.Username, existingAvatar.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameCheck = Program.AvatarManager.CheckIfUsernameIsAlreadyInUse(avatar.Username);
+                if (usernameCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Username '{avatar.Username}' is already taken." }, HttpStatusCode.Conflict);
+            }
+            if (!string.IsNullOrEmpty(avatar.Email) && !string.Equals(avatar.Email, existingAvatar.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailCheck = Program.AvatarManager.CheckIfEmailIsAlreadyInUse(avatar.Email, false);
+                if (emailCheck.Result)
+                    return HttpResponseHelper.FormatResponse(new OASISResult<IAvatar>() { IsError = true, Message = $"Email '{avatar.Email}' is already registered to another account." }, HttpStatusCode.Conflict);
+            }
+
             // Update avatar properties from UpdateRequest
             if (!string.IsNullOrEmpty(avatar.Title)) existingAvatar.Title = avatar.Title;
             if (!string.IsNullOrEmpty(avatar.FirstName)) existingAvatar.FirstName = avatar.FirstName;
