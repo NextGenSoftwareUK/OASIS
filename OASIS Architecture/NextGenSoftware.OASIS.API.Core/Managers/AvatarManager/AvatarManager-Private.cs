@@ -1452,7 +1452,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 var emailCheck = CheckIfEmailIsAlreadyInUse(avatarDetailToUpdate.Email, false);
                 if (emailCheck.Result)
+                {
                     OASISErrorHandling.HandleError(ref result, "Email '" + avatarDetailToUpdate.Email + "' is already registered to another account. Email not updated.");
+                    return result;
+                }
                 else
                     avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
             }
@@ -1461,7 +1464,10 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             {
                 var usernameCheck = CheckIfUsernameIsAlreadyInUse(avatarDetailToUpdate.Username);
                 if (usernameCheck.Result)
+                {
                     OASISErrorHandling.HandleError(ref result, "Username '" + avatarDetailToUpdate.Username + "' is already taken. Username not updated.");
+                    return result;
+                }
                 else
                     avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
             }
