@@ -43,12 +43,11 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //    }
         //}
 
-        //Temp workaround — commented out, use base.Id (serialised as "id") instead.
-        //public Guid AvatarId
-        //{
-        //    get { return base.Id; }
-        //    set { base.Id = value; }
-        //}
+        public Guid AvatarId
+        {
+            get { return base.Id; }
+            set { base.Id = value; }
+        }
 
         public new string Name
         {
