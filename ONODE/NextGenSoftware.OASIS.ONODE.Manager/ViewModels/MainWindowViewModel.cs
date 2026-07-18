@@ -46,9 +46,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     public ISeries[] RequestsSeries { get; }
 
     public Axis[] TimeXAxis { get; } = [new Axis { Labels = null, MinStep = 1, Labeler = _ => "" }];
-    public Axis[] PeersYAxis { get; } = [new Axis { Name = "Peers", MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray) }];
-    public Axis[] BytesYAxis { get; } = [new Axis { Name = "KB/s",  MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray), Labeler = v => $"{v / 1000:F0}" }];
-    public Axis[] ReqYAxis  { get; } = [new Axis { Name = "req/s", MinLimit = 0, Foreground = new SolidColorPaint(SKColors.LightGray) }];
+    public Axis[] PeersYAxis { get; } = [new Axis { Name = "Peers", MinLimit = 0, LabelsPaint = new SolidColorPaint(SKColors.LightGray) }];
+    public Axis[] BytesYAxis { get; } = [new Axis { Name = "KB/s",  MinLimit = 0, LabelsPaint = new SolidColorPaint(SKColors.LightGray), Labeler = v => $"{v / 1000:F0}" }];
+    public Axis[] ReqYAxis  { get; } = [new Axis { Name = "req/s", MinLimit = 0, LabelsPaint = new SolidColorPaint(SKColors.LightGray) }];
 
     public MainWindowViewModel()
     {
@@ -305,7 +305,7 @@ public partial class ServiceViewModel : ObservableObject
         _installed = state.Installed;
         _pid = state.Pid;
         _uptime = FormatUptime(state.UptimeSeconds);
-        _statusColour = StatusColour(state.Status);
+        _statusColour = ResolveStatusColour(state.Status);
     }
 
     [RelayCommand] async Task Start()   => await _client.StartAsync(Id.ToLower());
@@ -319,7 +319,7 @@ public partial class ServiceViewModel : ObservableObject
         await _client.StartAsync(Id.ToLower(), next);
     }
 
-    static string StatusColour(string status) => status switch
+    static string ResolveStatusColour(string status) => status switch
     {
         "Running"   => "#00BFFF",
         "Stopped"   => "#808080",
