@@ -467,6 +467,22 @@ DID challenge store: InMemory (single-node)
 | Latency | Sub-microsecond | ~0.2–1 ms (local Redis) |
 | Dependencies | None | StackExchange.Redis |
 
+### ONET deployments must use Redis
+
+ONET is a network of ONODE instances. When a user's DID challenge request is served by one ONODE and their authentication request is routed to a different ONODE, an InMemory store will fail to find the nonce because each node has its own private memory.
+
+**Any ONODE joining ONET with DID authentication enabled must use Redis.**
+
+ONODE enforces this at startup: if the node is joining ONET, `DIDEnabled` is true, and `Provider` is not `"Redis"`, a warning is written to the node logs and the OASIS logger:
+
+```
+WARNING: This ONODE is joining ONET but DIDChallengeStore.Provider is not set to 'Redis'.
+DID authentication will fail for users whose requests are routed to different ONODE instances.
+Set OASIS.Security.DIDChallengeStore.Provider to 'Redis' and provide a RedisConnectionString in OASIS_DNA.json.
+```
+
+The node still starts — the warning is non-fatal so existing functionality is unaffected — but DID auth will be unreliable until Redis is configured.
+
 To add a custom store (e.g. PostgreSQL, Memcached) implement `IDIDChallengeStore` from `NextGenSoftware.OASIS.API.Core.Helpers` and call `DIDChallengeStore.SetProvider(yourImpl)` at startup before any requests are served.
 
 ## Security Recommendations
