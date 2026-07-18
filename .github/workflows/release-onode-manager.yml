@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'onode-manager-v*'   # e.g. onode-manager-v1.0.0
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.0.0)'
+        required: true
+        default: '1.0.0'
 
 permissions:
   contents: write   # needed to create GitHub Releases and upload assets
@@ -53,7 +59,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ github.ref_name }}"
+          --packVersion "${{ inputs.version || github.ref_name }}"
           --packDir  publish/win-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager.exe
           --outputDir release/win-x64
@@ -104,7 +110,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ github.ref_name }}"
+          --packVersion "${{ inputs.version || github.ref_name }}"
           --packDir  publish/osx-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager
           --outputDir release/osx-x64
@@ -155,7 +161,7 @@ jobs:
         run: >
           vpk pack
           --packId "ONODEManager"
-          --packVersion "${{ github.ref_name }}"
+          --packVersion "${{ inputs.version || github.ref_name }}"
           --packDir  publish/linux-x64
           --mainExe  NextGenSoftware.OASIS.ONODE.Manager
           --outputDir release/linux-x64
@@ -179,8 +185,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: "ONODE Manager ${{ github.ref_name }}"
+          tag_name: ${{ inputs.version || github.ref_name }}
+          name: "ONODE Manager ${{ inputs.version || github.ref_name }}"
           body: |
             ## ONODE Manager Release
 
