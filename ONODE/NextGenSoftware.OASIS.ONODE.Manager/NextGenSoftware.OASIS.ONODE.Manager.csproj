@@ -21,7 +21,7 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.0" />
     <PackageReference Include="ReactiveUI" Version="20.1.1" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.0.0-rc4" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.5.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Velopack" Version="0.0.869" />
   </ItemGroup>
 
