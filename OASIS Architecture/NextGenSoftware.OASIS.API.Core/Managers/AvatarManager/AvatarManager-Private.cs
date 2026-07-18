@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BC = BCrypt.Net.BCrypt;
@@ -1449,10 +1449,22 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                 avatarDetailOriginal.Landline = avatarDetailToUpdate.Landline;
 
             if (avatarDetailOriginal.Email != avatarDetailToUpdate.Email && !string.IsNullOrEmpty(avatarDetailToUpdate.Email))
-                avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
+            {
+                var emailCheck = CheckIfEmailIsAlreadyInUse(avatarDetailToUpdate.Email, false);
+                if (emailCheck.Result)
+                    OASISErrorHandling.HandleWarning(ref result, "Email '" + avatarDetailToUpdate.Email + "' is already registered to another account. Email not updated.");
+                else
+                    avatarDetailOriginal.Email = avatarDetailToUpdate.Email;
+            }
 
             if (avatarDetailOriginal.Username != avatarDetailToUpdate.Username && !string.IsNullOrEmpty(avatarDetailToUpdate.Username))
-                avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
+            {
+                var usernameCheck = CheckIfUsernameIsAlreadyInUse(avatarDetailToUpdate.Username);
+                if (usernameCheck.Result)
+                    OASISErrorHandling.HandleWarning(ref result, "Username '" + avatarDetailToUpdate.Username + "' is already taken. Username not updated.");
+                else
+                    avatarDetailOriginal.Username = avatarDetailToUpdate.Username;
+            }
 
             if (avatarDetailOriginal.DOB != avatarDetailToUpdate.DOB && avatarDetailToUpdate.DOB != DateTime.MinValue)
                 avatarDetailOriginal.DOB = avatarDetailToUpdate.DOB;
