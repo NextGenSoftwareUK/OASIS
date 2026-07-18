@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -914,11 +914,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             //ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
-            List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
-            ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfEmailAlreadyInUse());
+            // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
             OASISResult<IAvatar> existingAvatarResult = LoadAvatarByEmail(email);
-            ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
-            //ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
 
             //CLIEngine.SupressConsoleLogging = false;
 
@@ -957,11 +954,8 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
             //bool isAutoFailOverEnabled = ProviderManager.Instance.IsAutoFailOverEnabled;
             //ProviderManager.Instance.IsAutoFailOverEnabled = false;
 
-            List<EnumValue<ProviderType>> currentProviderFailOverList = ProviderManager.Instance.GetProviderAutoFailOverList();
-            ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(ProviderManager.Instance.GetProviderAutoFailOverListForCheckIfUsernameAlreadyInUse());
+            // Use the currently active provider directly — bypasses HyperDrive failover so no DNA config needed and the check is fast.
             OASISResult<IAvatar> existingAvatarResult = LoadAvatar(username);
-            ProviderManager.Instance.SetAndReplaceAutoFailOverListForProviders(currentProviderFailOverList);
-            //ProviderManager.Instance.IsAutoFailOverEnabled = isAutoFailOverEnabled;
 
             CLIEngine.SupressConsoleLogging = false;
 
