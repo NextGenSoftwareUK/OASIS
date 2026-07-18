@@ -51,6 +51,7 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
   - Legacy (v1): Auto-Replication, Auto-Failover
   - OASIS HyperDrive 2 (v2): Adds Auto-Load Balancing, Intelligent Selection (latency-first), Predictive Failover, Enhanced Replication Rules (provider/data-type/schedule/cost/permissions), Advanced Analytics, Subscription-aware quotas & alerts, Mode switch with v2→v1 fallback
   - Docs: [README HyperDrive section](../../README.md), [HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)
+  - **HyperDrive Client** (desktop tray app): [Architecture & Reference Manual](./OASIS-HyperDrive-Client.md)
 - **ONODE Manager**: Cross-platform desktop tray app for managing OASIS Web4–Web10 node services *(Alpha)*
   - Avalonia UI 11.3 / .NET 10, real-time LiveCharts2 metrics, Velopack auto-update, SQLite 24h history
   - Remote control via OPORTAL using the CommandHolon bridge pattern (~6s round-trip)
