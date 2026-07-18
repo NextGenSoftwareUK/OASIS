@@ -116,6 +116,19 @@ namespace NextGenSoftware.OASIS.API.Core.Managers
                     //TODO: Auto-Failover should also re-try in a background thread after reporting the intial error above and then report after the retries either failed or succeeded later...
                     if ((autoReplicationMode == AutoReplicationMode.UseGlobalDefaultInOASISDNA && ProviderManager.Instance.IsAutoReplicationEnabled) || autoReplicationMode == AutoReplicationMode.True)
                         result = await AutoReplicateAvatarAsync(avatar, result, previousProviderType, waitForAutoReplicationResult);
+
+                    // Sync username/email changes back to AvatarDetail so both stay in sync.
+                    var detailResult = await LoadAvatarDetailAsync(avatar.Id);
+                    if (!detailResult.IsError && detailResult.Result != null)
+                    {
+                        bool detailChanged = false;
+                        if (!string.IsNullOrEmpty(avatar.Username) && detailResult.Result.Username != avatar.Username)
+                        { detailResult.Result.Username = avatar.Username; detailChanged = true; }
+                        if (!string.IsNullOrEmpty(avatar.Email) && detailResult.Result.Email != avatar.Email)
+                        { detailResult.Result.Email = avatar.Email; detailChanged = true; }
+                        if (detailChanged)
+                            await SaveAvatarDetailAsync(detailResult.Result);
+                    }
                 }
 
                 await ProviderManager.Instance.SetAndActivateCurrentStorageProviderAsync(currentProviderType);
