@@ -83,6 +83,8 @@ Welcome to the comprehensive developer documentation for OASIS and STARNET. This
 - **[OASIS HyperDrive Whitepaper](../OASIS_HYPERDRIVE_WHITEPAPER.md)** - Complete HyperDrive documentation
 - **Features**: 100% uptime, auto-failover, auto-load balancing, auto-replication
 - **Benefits**: Impossible to shutdown, intelligent routing, geographic optimization
+- **[OASIS HyperDrive Client — Design Spec](./OASIS-HyperDrive-Client-Design-Spec.md)** - Cross-platform system-tray desktop client design specification (Avalonia UI, .NET 10)
+- **[OASIS HyperDrive Client — Implementation Reference](./OASIS-HyperDrive-Client-Implementation.md)** - Full implementation reference: solution layout, services, key decisions, build & test
 
 ### **OASIS COSMIC ORM**
 - **[OASIS COSMIC ORM Documentation](../OASIS_COSMIC_ORM_DOCUMENTATION.md)** - Complete COSMIC ORM guide

@@ -4,7 +4,7 @@
 **Date:** 2026-07-17  
 **Status:** Complete (Phase 1 + Phase 2)  
 **Design Spec:** [OASIS-HyperDrive-Client-Design-Spec.md](./OASIS-HyperDrive-Client-Design-Spec.md)  
-**Repository:** `C:\Source\OASIS-HyperDrive-Client`
+**Repository:** `OASIS-HyperDrive-Client` (separate repo)
 
 ---
 
