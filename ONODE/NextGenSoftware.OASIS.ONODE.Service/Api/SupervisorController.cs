@@ -195,8 +195,8 @@ public class SupervisorController : ControllerBase
     {
         if (!Authorised()) return Unauthorized();
         var path = _config.ResolveOASISDNAPath();
-        if (!File.Exists(path)) return NotFound(new { error = $"OASISDNA.json not found at {path}" });
-        return Content(File.ReadAllText(path), "application/json");
+        if (!System.IO.File.Exists(path)) return NotFound(new { error = $"OASISDNA.json not found at {path}" });
+        return Content(System.IO.File.ReadAllText(path), "application/json");
     }
 
     // PUT /supervisor/config
@@ -213,10 +213,10 @@ public class SupervisorController : ControllerBase
         var dir = Path.GetDirectoryName(path)!;
         Directory.CreateDirectory(dir);
 
-        if (File.Exists(path))
-            File.Copy(path, path + $".bak.{DateTime.UtcNow:yyyyMMddHHmmss}", overwrite: true);
+        if (System.IO.File.Exists(path))
+            System.IO.File.Copy(path, path + $".bak.{DateTime.UtcNow:yyyyMMddHHmmss}", overwrite: true);
 
-        await File.WriteAllTextAsync(path, body, ct);
+        await System.IO.File.WriteAllTextAsync(path, body, ct);
         return Ok(new { message = "OASISDNA.json updated" });
     }
 
