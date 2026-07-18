@@ -79,7 +79,7 @@ public class MetricsHistoryService : BackgroundService
     {
         var ts      = DateTime.UtcNow.ToString("o");
         var nodeId  = _config.NodeId;
-        var perSvc  = _metrics.PerService;
+        var perSvc  = _metrics.Current;
 
         using var conn = Open();
         using var tx   = conn.BeginTransaction();
