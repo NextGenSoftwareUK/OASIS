@@ -49,7 +49,7 @@ Initial release of the WEB5 STAR API — the REST API surface for the STAR ODK (
 - Various performance improvements and bug fixes.
 
 ----------------------------------------------------------------------------------------------------------------------------
-## 2.0.0 (17/07/26)
+## 1.4.0 (17/07/26)
 
 - **ONET/ONODE system** (Phases 1–7): P2P ONET bootstrap/registration; ONODEService supervisor; Avalonia tray app with Metrics/Network/Audit tabs; ONODE Manager CLI extensions; Web4 Holon bridge endpoints; SQLite metrics history; WebSocket push; rate limiting; audit log; active-nodes endpoint; provider management; GitHub Actions release workflow; comprehensive unit and integration test coverage.
 - **Subscription system**: built from scratch; persists via HolonManager; Stripe keys from env vars with OASISDNA fallback.
