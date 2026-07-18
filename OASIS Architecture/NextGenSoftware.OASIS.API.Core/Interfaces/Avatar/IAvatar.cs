@@ -15,7 +15,7 @@ namespace NextGenSoftware.OASIS.API.Core.Interfaces
        // Dictionary<ProviderType, List<string>> ProviderPublicKey { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
         Dictionary<ProviderType, string> ProviderUsername { get; set; }
        // Dictionary<ProviderType, List<string>> ProviderWalletAddress { get; set; } //TODO: Want to replace this with ProviderWallets above ASAP...
-        Guid AvatarId { get; set; }
+        //Guid AvatarId { get; set; } // Removed — use Id instead
         string Title { get; set; }
         string FirstName { get; set; }
         string LastName { get; set; }
