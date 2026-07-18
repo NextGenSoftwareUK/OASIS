@@ -17,19 +17,22 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -41,7 +44,7 @@ jobs:
 
       - name: Restore & Publish (win-x64)
         run: >
-          dotnet publish ${{ env.PROJECT }}
+          dotnet publish OASIS/${{ env.PROJECT }}
           -c Release -r win-x64 --self-contained
           -o publish/win-x64
           /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true
@@ -65,19 +68,22 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -89,7 +95,7 @@ jobs:
 
       - name: Restore & Publish (osx-x64)
         run: >
-          dotnet publish ${{ env.PROJECT }}
+          dotnet publish OASIS/${{ env.PROJECT }}
           -c Release -r osx-x64 --self-contained
           -o publish/osx-x64
           /p:PublishSingleFile=true
@@ -113,19 +119,22 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
 
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v4
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
-          path: ../NextGenSoftware-Libraries
+          path: NextGenSoftware-Libraries
 
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v4
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          path: ../holochain-client-csharp
+          path: holochain-client-csharp
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -137,7 +146,7 @@ jobs:
 
       - name: Restore & Publish (linux-x64)
         run: >
-          dotnet publish ${{ env.PROJECT }}
+          dotnet publish OASIS/${{ env.PROJECT }}
           -c Release -r linux-x64 --self-contained
           -o publish/linux-x64
           /p:PublishSingleFile=true
