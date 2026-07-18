@@ -31,8 +31,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB7 OASIS Symbiotic Layer API" },
-        Description = "WEB7 - the non-invasive human/AI symbiosis layer. Real bio-signal DSP (EEG/HRV/GSR), consent-gated sessions enforcing the Borg-Free pledge, and collective consciousness spaces.",
-        Title = "WEB7 OASIS Symbiotic Layer API",
+        Description = $"WEB7 v{OASISBootLoader.WEB7APIVersion} - the non-invasive human/AI symbiosis layer. Real bio-signal DSP (EEG/HRV/GSR), consent-gated sessions enforcing the Borg-Free pledge, and collective consciousness spaces." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB7/NextGenSoftware.OASIS.Web7.WebAPI/WEB7%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB7 OASIS Symbiotic Layer API v", OASISBootLoader.WEB7APIVersion),
         Version = "v1"
     });
 
@@ -54,7 +55,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB7 OASIS Symbiotic Layer API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB7 OASIS Symbiotic Layer API v", OASISBootLoader.WEB7APIVersion)));
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
     app.UseHttpsRedirection();

@@ -31,8 +31,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB8 OASIS Inter-Galactic Layer API" },
-        Description = "WEB8 - the fractal holonic mesh-networking layer. Real node registry, Dijkstra shortest-path routing with self-healing failover, and a universal protocol bridge.",
-        Title = "WEB8 OASIS Inter-Galactic Layer API",
+        Description = $"WEB8 v{OASISBootLoader.WEB8APIVersion} - the fractal holonic mesh-networking layer. Real node registry, Dijkstra shortest-path routing with self-healing failover, and a universal protocol bridge." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB8/NextGenSoftware.OASIS.Web8.WebAPI/WEB8%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion),
         Version = "v1"
     });
 
@@ -54,7 +55,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB8 OASIS Inter-Galactic Layer API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB8 OASIS Inter-Galactic Layer API v", OASISBootLoader.WEB8APIVersion)));
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
     app.UseHttpsRedirection();
