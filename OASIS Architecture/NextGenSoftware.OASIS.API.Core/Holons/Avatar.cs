@@ -43,18 +43,12 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
         //    }
         //}
 
-        //Needed to work around bug in WebAPI where base class properties are not returned/serialized (it cannot be the same property name or it breaks Mongo for some unknown reason!)
-        public Guid AvatarId
-        {
-            get
-            {
-                return base.Id;
-            }
-            set
-            {
-                base.Id = value;
-            }
-        }
+        //Temp workaround — commented out, use base.Id (serialised as "id") instead.
+        //public Guid AvatarId
+        //{
+        //    get { return base.Id; }
+        //    set { base.Id = value; }
+        //}
 
         public new string Name
         {
