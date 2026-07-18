@@ -73,6 +73,11 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
         public static string STARRuntimeVersion { get; set; } = "4.0.0";
         public static string STARNETVersion { get; set; } = "2.5.0";
         public static string STARAPIVersion { get; set; } = "1.4.0";
+        public static string WEB6APIVersion { get; set; } = "2.0.0";
+        public static string WEB7APIVersion { get; set; } = "1.0.0";
+        public static string WEB8APIVersion { get; set; } = "1.0.0";
+        public static string WEB9APIVersion { get; set; } = "1.0.0";
+        public static string WEB10APIVersion { get; set; } = "1.0.0";
 
         public static string DotNetVersion
         {

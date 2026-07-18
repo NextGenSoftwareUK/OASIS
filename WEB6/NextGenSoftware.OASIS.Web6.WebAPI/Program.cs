@@ -52,8 +52,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v2", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB6 OASIS AI API" },
-        Description = "WEB6 v2.0 — the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent, Holonic BRAID shared reasoning-graph memory, SkillOpt self-evolving agent skills, ML.NET in-process AutoML, DID/Verifiable Credentials, ACP/ANP/gRPC/GraphQL multi-protocol orchestration, karma-gated AI access, and full OpenTelemetry observability.",
-        Title = "WEB6 OASIS AI API v2",
+        Description = $"WEB6 v{OASISBootLoader.WEB6APIVersion} — the unified AI abstraction and aggregation layer, built on top of WEB4 (OASIS API/ONODE - identity, karma, COSMIC ORM) and WEB5 (STAR ODK/STARNET - holon graph, OAPP ecosystem). One API, every AI provider, with the FAHRN (Fractal Adaptive Holonic Reasoning Network) controller agent, Holonic BRAID shared reasoning-graph memory, SkillOpt self-evolving agent skills, ML.NET in-process AutoML, DID/Verifiable Credentials, ACP/ANP/gRPC/GraphQL multi-protocol orchestration, karma-gated AI access, and full OpenTelemetry observability." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB6/NextGenSoftware.OASIS.Web6.WebAPI/WEB6%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB6 OASIS AI API v", OASISBootLoader.WEB6APIVersion),
         Version = "v2"
     });
 
@@ -94,7 +95,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v2/swagger.json", "WEB6 OASIS AI API v2");
+    c.SwaggerEndpoint("/swagger/v2/swagger.json", string.Concat("WEB6 OASIS AI API v", OASISBootLoader.WEB6APIVersion));
 });
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))

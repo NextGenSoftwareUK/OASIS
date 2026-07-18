@@ -1,5 +1,6 @@
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using NextGenSoftware.OASIS.OASISBootLoader;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +17,9 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo
     {
         Contact = new OpenApiContact { Email = "ourworld@nextgensoftware.co.uk", Name = "WEB10 OASIS Source Layer API" },
-        Description = "WEB10 - The Source / WEB0 made literal: the root source-of-truth endpoint, combining the foundational OASIS runtime/version identity with WEB9's live unified status across WEB4-WEB8.",
-        Title = "WEB10 OASIS Source Layer API",
+        Description = $"WEB10 v{OASISBootLoader.WEB10APIVersion} - The Source / WEB0 made literal: the root source-of-truth endpoint, combining the foundational OASIS runtime/version identity with WEB9's live unified status across WEB4-WEB8." +
+            "<br><a href='https://github.com/dellamsOmega/OASIS/blob/master/WEB10/NextGenSoftware.OASIS.Web10.WebAPI/WEB10%20API%20RELEASE%20HISTORY.md'>Release History</a>",
+        Title = string.Concat("WEB10 OASIS Source Layer API v", OASISBootLoader.WEB10APIVersion),
         Version = "v1"
     });
 
@@ -34,7 +36,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WEB10 OASIS Source Layer API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", string.Concat("WEB10 OASIS Source Layer API v", OASISBootLoader.WEB10APIVersion)));
 
 if (!string.Equals(app.Environment.EnvironmentName, "Testing", StringComparison.OrdinalIgnoreCase))
     app.UseHttpsRedirection();
