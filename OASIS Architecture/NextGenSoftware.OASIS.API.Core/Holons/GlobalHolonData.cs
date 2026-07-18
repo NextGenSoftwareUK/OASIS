@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -384,7 +384,7 @@ namespace NextGenSoftware.OASIS.API.Core.Holons
             var id = AvatarManager.LoggedInAvatar.Id;
             if (id != Guid.Empty)
                 return id;
-            return AvatarManager.LoggedInAvatar.AvatarId;
+            return AvatarManager.LoggedInAvatar.Id;
         }
 
         public virtual async Task<OASISResult<IHolon>> AddHolonToCollectionAsync(IHolon parentHolon, IHolon holon, List<IHolon> holons, bool saveHolon = true, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false, ProviderType providerType = ProviderType.Default)
