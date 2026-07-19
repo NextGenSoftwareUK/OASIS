@@ -1,4 +1,4 @@
-# OASIS Omniverse — Architecture
+﻿# OASIS Omniverse — Architecture
 
 This document describes the full architecture of the OASIS Omniverse game integration stack: how the layers fit together, what belongs in each layer, and how to extend the system to new games.
 
@@ -18,18 +18,18 @@ This document describes the full architecture of the OASIS Omniverse game integr
 │  • HUD overlay       → star_api_get_inventory()            │
 │  • Quest popup       → star_api_get_quests_string()        │
 └───────────────────┬────────────────────────────────────────┘
-                    │  includes ogamelib.h
+                    │  includes oglib.h
                     ▼
 ┌────────────────────────────────────────────────────────────┐
-│           OGameLib   (C, header-only)                       │
-│  OASIS Omniverse/OGameLib/                                 │
+│           OGLib   (C, header-only)                       │
+│  OASIS Omniverse/OGLib/                                 │
 │                                                            │
 │  Shared game boilerplate:                                  │
-│  • oasisstar.json load/save  (ogamelib_config.h)           │
-│  • Beamin/beamout workflow   (ogamelib_beamin.h)           │
-│  • Runtime DLL forwarders    (ogamelib_session.h)          │
-│  • Cross-game asset mapping  (ogamelib_crossgame.h)        │
-│  • JSON & string utilities   (ogamelib_json.h / str.h)     │
+│  • oasisstar.json load/save  (oglib_config.h)           │
+│  • Beamin/beamout workflow   (oglib_beamin.h)           │
+│  • Runtime DLL forwarders    (oglib_session.h)          │
+│  • Cross-game asset mapping  (oglib_crossgame.h)        │
+│  • JSON & string utilities   (oglib_json.h / str.h)     │
 └───────────────────┬────────────────────────────────────────┘
                     │  star_api.h / star_sync.h
                     ▼
@@ -70,24 +70,24 @@ Each game contains **one integration file** (`uzdoom_star_integration.cpp` for O
 - Actor/item name tables that are game-specific
 - Monster XP values (see `ODOOM/Docs/MONSTER_XP_TABLE.md`)
 
-The integration file is **not** the place for config loading, session management, or cross-game logic — those come from OGameLib.
+The integration file is **not** the place for config loading, session management, or cross-game logic — those come from OGLib.
 
 ---
 
-### OGameLib Layer
+### OGLib Layer
 
-`OASIS Omniverse/OGameLib/` is a C header-only library (single-header impl pattern). It provides everything a game integration file needs that is **not** game-engine-specific:
+`OASIS Omniverse/OGLib/` is a C header-only library (single-header impl pattern). It provides everything a game integration file needs that is **not** game-engine-specific:
 
 | Module | File | What it provides |
 |--------|------|-----------------|
-| Config | `ogamelib_config.h` | `star_config_t`, `ogamelib_config_load/save/save_session` |
-| Beamin | `ogamelib_beamin.h` | `ogamelib_beamin_start`, `ogamelib_beamin_restore_session`, `ogamelib_beamout` |
-| Session | `ogamelib_session.h` | Runtime forwarders for 9 session/auth functions via `GetProcAddress`/`dlsym` |
-| Cross-game | `ogamelib_crossgame.h` | `ogamelib_crossgame_maps_t`, `ogamelib_crossgame_init_defaults`, `ogamelib_crossgame_lookup` |
-| JSON | `ogamelib_json.h` | `ogamelib_json_extract`, `ogamelib_json_write_kv` |
-| Strings | `ogamelib_str.h` | `ogamelib_str_contains_nocase`, `ogamelib_str_copy`, `ogamelib_str_trim` |
+| Config | `oglib_config.h` | `star_config_t`, `oglib_config_load/save/save_session` |
+| Beamin | `oglib_beamin.h` | `oglib_beamin_start`, `oglib_beamin_restore_session`, `oglib_beamout` |
+| Session | `oglib_session.h` | Runtime forwarders for 9 session/auth functions via `GetProcAddress`/`dlsym` |
+| Cross-game | `oglib_crossgame.h` | `oglib_crossgame_maps_t`, `oglib_crossgame_init_defaults`, `oglib_crossgame_lookup` |
+| JSON | `oglib_json.h` | `oglib_json_extract`, `oglib_json_write_kv` |
+| Strings | `oglib_str.h` | `oglib_str_contains_nocase`, `oglib_str_copy`, `oglib_str_trim` |
 
-**Test:** if a piece of code compiles without any engine headers (`zdoom.h`, `quakedef.h`, etc.) then it belongs in OGameLib. If it needs engine types, it belongs in the game's own integration file.
+**Test:** if a piece of code compiles without any engine headers (`zdoom.h`, `quakedef.h`, etc.) then it belongs in OGLib. If it needs engine types, it belongs in the game's own integration file.
 
 ---
 
@@ -141,7 +141,7 @@ The build scripts (`BUILD ODOOM.bat`, `BUILD_OQUAKE.bat`) copy these files from 
 
 ## oasisstar.json
 
-Shared config file read by both ODOOM and OQuake (and any future game). All shared fields are defined in `ogamelib_config.h` as `star_config_t`. Game-specific extra fields are handled via the extension hook.
+Shared config file read by both ODOOM and OQuake (and any future game). All shared fields are defined in `oglib_config.h` as `star_config_t`. Game-specific extra fields are handled via the extension hook.
 
 ### Shared fields
 
@@ -200,12 +200,12 @@ Shared config file read by both ODOOM and OQuake (and any future game). All shar
 ## Adding a New OASIS Game
 
 1. **Create your integration file** (e.g. `mygame_star_integration.c`).
-2. **Include OGameLib** with the impl defines in that one file:
+2. **Include OGLib** with the impl defines in that one file:
    ```c
-   #define OGAMELIB_SESSION_IMPL
-   #define OGAMELIB_CONFIG_IMPL
-   #define OGAMELIB_BEAMIN_IMPL
-   #include "ogamelib.h"
+   #define OGLIB_SESSION_IMPL
+   #define OGLIB_CONFIG_IMPL
+   #define OGLIB_BEAMIN_IMPL
+   #include "oglib.h"
    #include "star_api.h"
    #include "star_sync.h"
    ```
@@ -231,15 +231,15 @@ Shared config file read by both ODOOM and OQuake (and any future game). All shar
 
 The OASIS WEB4/WEB5 APIs are built on ASP.NET Core with JWT auth, retry logic, and JSON deserialization. Implementing that correctly in C would require substantial third-party C libraries (libcurl, cJSON, mbedTLS…). C# gives us a single managed binary with all of that built in, compiled via NativeAOT to a native DLL with a clean C ABI.
 
-### Why OGameLib and not just bigger game files?
+### Why OGLib and not just bigger game files?
 
-ODOOM and OQuake had ~350 lines of identical forwarder code, ~200 lines of near-identical config parsing, and the same beamin sequence. Maintaining three copies of the same bug fixes was unsustainable. OGameLib makes the "standard" integration pattern explicit and testable.
+ODOOM and OQuake had ~350 lines of identical forwarder code, ~200 lines of near-identical config parsing, and the same beamin sequence. Maintaining three copies of the same bug fixes was unsustainable. OGLib makes the "standard" integration pattern explicit and testable.
 
 ### Why header-only?
 
 C games have wildly different build systems (CMake, VS projects, Makefiles, Meson). A header-only library with a single-TU implementation pattern requires no changes to the build system — you add one `#define` and the library is compiled where you need it.
 
-### Why not put OGameLib code into STARAPIClient?
+### Why not put OGLib code into STARAPIClient?
 
 STARAPIClient is a managed C# library with a C ABI. Adding C game-integration logic there would pollute a clean, reusable API wrapper with game-specific concerns (file I/O, threading patterns specific to game loops, engine-adjacent types). The separation keeps STARAPIClient usable by non-game consumers (web apps, CLI tools, Unity, etc.).
 
@@ -260,14 +260,14 @@ OASIS Omniverse/
 │   ├── star_api.h               ← C header (canonical)
 │   ├── star_sync.h              ← C header (canonical)
 │   └── star_sync.c              ← C implementation (canonical)
-├── OGameLib/                    ← C game integration library
-│   ├── ogamelib.h               ← master include
-│   ├── ogamelib_config.h        ← oasisstar.json + star_config_t
-│   ├── ogamelib_beamin.h        ← beamin/beamout workflow
-│   ├── ogamelib_session.h       ← runtime DLL forwarders
-│   ├── ogamelib_crossgame.h     ← cross-game asset mapping
-│   ├── ogamelib_json.h          ← JSON key extractor
-│   ├── ogamelib_str.h           ← string utilities
+├── OGLib/                    ← C game integration library
+│   ├── oglib.h               ← master include
+│   ├── oglib_config.h        ← oasisstar.json + star_config_t
+│   ├── oglib_beamin.h        ← beamin/beamout workflow
+│   ├── oglib_session.h       ← runtime DLL forwarders
+│   ├── oglib_crossgame.h     ← cross-game asset mapping
+│   ├── oglib_json.h          ← JSON key extractor
+│   ├── oglib_str.h           ← string utilities
 │   └── README.md
 ├── ODOOM/                       ← UZDoom + OASIS integration
 │   ├── uzdoom_star_integration.cpp

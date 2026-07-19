@@ -1,24 +1,24 @@
-/**
- * ogamelib_config.h — OGameLib oasisstar.json load/save
+﻿/**
+ * oglib_config.h — OGLib oasisstar.json load/save
  *
  * Defines the shared star_config_t structure holding all fields common to both
  * ODOOM and OQuake, plus load/save functions for oasisstar.json.
  *
  * Games that need additional fields extend the config by embedding star_config_t
  * as the first member of their own game-specific config struct, then call the
- * load/save functions with an ogamelib_config_ext_t extension hook.
+ * load/save functions with an oglib_config_ext_t extension hook.
  *
  * USAGE
  * -----
  * Declare the implementation in exactly ONE .c/.cpp file:
  *
- *   #define OGAMELIB_CONFIG_IMPL
- *   #include "ogamelib_config.h"
+ *   #define OGLIB_CONFIG_IMPL
+ *   #include "oglib_config.h"
  *
  * All other files just include it without the define.
  */
-#ifndef OGAMELIB_CONFIG_H
-#define OGAMELIB_CONFIG_H
+#ifndef OGLIB_CONFIG_H
+#define OGLIB_CONFIG_H
 
 #include <stddef.h>
 
@@ -26,9 +26,9 @@
 extern "C" {
 #endif
 
-#define OGAMELIB_CONFIG_STR_MAX   512
-#define OGAMELIB_CONFIG_PATH_MAX  1024
-#define OGAMELIB_CONFIG_FILENAME  "oasisstar.json"
+#define OGLIB_CONFIG_STR_MAX   512
+#define OGLIB_CONFIG_PATH_MAX  1024
+#define OGLIB_CONFIG_FILENAME  "oasisstar.json"
 
 /**
  * Fields shared by all OASIS-integrated games.
@@ -36,14 +36,14 @@ extern "C" {
  */
 typedef struct {
     /* API endpoints */
-    char star_api_url[OGAMELIB_CONFIG_STR_MAX];    /* WEB5 STAR API base URL */
-    char oasis_api_url[OGAMELIB_CONFIG_STR_MAX];   /* WEB4 OASIS API base URL */
+    char star_api_url[OGLIB_CONFIG_STR_MAX];    /* WEB5 STAR API base URL */
+    char oasis_api_url[OGLIB_CONFIG_STR_MAX];   /* WEB4 OASIS API base URL */
     char star_transport[64];                        /* "remote" (default) or "native" */
-    char oasis_dna_path[OGAMELIB_CONFIG_PATH_MAX];  /* Optional: path to OASIS_DNA.json */
+    char oasis_dna_path[OGLIB_CONFIG_PATH_MAX];  /* Optional: path to OASIS_DNA.json */
 
     /* Session (persisted across launches) */
-    char jwt_token[OGAMELIB_CONFIG_STR_MAX];
-    char refresh_token[OGAMELIB_CONFIG_STR_MAX];
+    char jwt_token[OGLIB_CONFIG_STR_MAX];
+    char refresh_token[OGLIB_CONFIG_STR_MAX];
     char username[256];
 
     /* HUD / avatar */
@@ -65,13 +65,13 @@ typedef struct {
     int  mint_powerups;
     int  mint_keys;
     char nft_provider[128];
-    char send_to_address_after_minting[OGAMELIB_CONFIG_STR_MAX];
+    char send_to_address_after_minting[OGLIB_CONFIG_STR_MAX];
 
     /* Cross-game ammo/weapon mappings (stored as comma-separated "from=to" pairs) */
-    char cross_game_doom_ammo_to_quake[OGAMELIB_CONFIG_STR_MAX];
-    char cross_game_quake_ammo_to_doom[OGAMELIB_CONFIG_STR_MAX];
-    char cross_game_doom_weapon_to_quake[OGAMELIB_CONFIG_STR_MAX];
-    char cross_game_quake_weapon_to_doom[OGAMELIB_CONFIG_STR_MAX];
+    char cross_game_doom_ammo_to_quake[OGLIB_CONFIG_STR_MAX];
+    char cross_game_quake_ammo_to_doom[OGLIB_CONFIG_STR_MAX];
+    char cross_game_doom_weapon_to_quake[OGLIB_CONFIG_STR_MAX];
+    char cross_game_quake_weapon_to_doom[OGLIB_CONFIG_STR_MAX];
 } star_config_t;
 
 /**
@@ -82,59 +82,59 @@ typedef struct {
  * @param fp     Open FILE* (for save) or NULL (for load).
  * @param user   Caller-supplied context pointer.
  */
-typedef void (*ogamelib_config_ext_fn)(const char* json, void* fp, void* user);
+typedef void (*oglib_config_ext_fn)(const char* json, void* fp, void* user);
 
 /**
  * Load oasisstar.json from path into cfg.
  * If ext is non-NULL it is called after shared fields are parsed (json = file text, fp = NULL).
  * Returns 1 on success, 0 if file not found or parse error.
  */
-int ogamelib_config_load(const char* path, star_config_t* cfg,
-                          ogamelib_config_ext_fn ext, void* ext_user);
+int oglib_config_load(const char* path, star_config_t* cfg,
+                          oglib_config_ext_fn ext, void* ext_user);
 
 /**
  * Save cfg to oasisstar.json at path.
  * If ext is non-NULL it is called to append game-specific fields before the closing brace.
  * Returns 1 on success, 0 on write error.
  */
-int ogamelib_config_save(const char* path, const star_config_t* cfg,
-                          ogamelib_config_ext_fn ext, void* ext_user);
+int oglib_config_save(const char* path, const star_config_t* cfg,
+                          oglib_config_ext_fn ext, void* ext_user);
 
 /**
  * Write just the session fields (jwt_token, refresh_token, username) back to the file.
  * Cheaper than a full save when only session data changes (e.g. after beamin).
  * Reads the existing file, updates the three keys in-place, rewrites the file.
  */
-int ogamelib_config_save_session(const char* path, const star_config_t* cfg);
+int oglib_config_save_session(const char* path, const star_config_t* cfg);
 
 /* ── Implementation ── */
 
-#ifdef OGAMELIB_CONFIG_IMPL
+#ifdef OGLIB_CONFIG_IMPL
 
-#include "ogamelib_json.h"
-#include "ogamelib_str.h"
+#include "oglib_json.h"
+#include "oglib_str.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static int ogamelib_read_bool(const char* json, const char* key, int default_val)
+static int oglib_read_bool(const char* json, const char* key, int default_val)
 {
     char buf[16];
-    if (!ogamelib_json_extract(json, key, buf, sizeof(buf))) return default_val;
+    if (!oglib_json_extract(json, key, buf, sizeof(buf))) return default_val;
     return (strcmp(buf, "true") == 0 || strcmp(buf, "1") == 0) ? 1 : 0;
 }
-static int ogamelib_read_int(const char* json, const char* key, int default_val)
+static int oglib_read_int(const char* json, const char* key, int default_val)
 {
     char buf[32];
-    if (!ogamelib_json_extract(json, key, buf, sizeof(buf))) return default_val;
+    if (!oglib_json_extract(json, key, buf, sizeof(buf))) return default_val;
     return atoi(buf);
 }
-#define READ_STR(json, key, dest) ogamelib_json_extract((json),(key),(dest),(int)sizeof(dest))
-#define READ_BOOL(json, key, def) ogamelib_read_bool((json),(key),(def))
-#define READ_INT(json, key, def)  ogamelib_read_int((json),(key),(def))
+#define READ_STR(json, key, dest) oglib_json_extract((json),(key),(dest),(int)sizeof(dest))
+#define READ_BOOL(json, key, def) oglib_read_bool((json),(key),(def))
+#define READ_INT(json, key, def)  oglib_read_int((json),(key),(def))
 
-int ogamelib_config_load(const char* path, star_config_t* cfg,
-                          ogamelib_config_ext_fn ext, void* ext_user)
+int oglib_config_load(const char* path, star_config_t* cfg,
+                          oglib_config_ext_fn ext, void* ext_user)
 {
     if (!path || !cfg) return 0;
 
@@ -203,8 +203,8 @@ int ogamelib_config_load(const char* path, star_config_t* cfg,
 #define WRITE_INT_FIELD(f, key, val, comma) \
     fprintf((f), "    \"%s\": %d%s\n", (key), (val), (comma) ? "," : "")
 
-int ogamelib_config_save(const char* path, const star_config_t* cfg,
-                          ogamelib_config_ext_fn ext, void* ext_user)
+int oglib_config_save(const char* path, const star_config_t* cfg,
+                          oglib_config_ext_fn ext, void* ext_user)
 {
     if (!path || !cfg) return 0;
     FILE* f = fopen(path, "w");
@@ -250,13 +250,13 @@ int ogamelib_config_save(const char* path, const star_config_t* cfg,
     return 1;
 }
 
-int ogamelib_config_save_session(const char* path, const star_config_t* cfg)
+int oglib_config_save_session(const char* path, const star_config_t* cfg)
 {
     if (!path || !cfg) return 0;
 
     /* Read existing file */
     FILE* f = fopen(path, "r");
-    if (!f) return ogamelib_config_save(path, cfg, NULL, NULL);
+    if (!f) return oglib_config_save(path, cfg, NULL, NULL);
 
     fseek(f, 0, SEEK_END);
     long len = ftell(f);
@@ -274,13 +274,13 @@ int ogamelib_config_save_session(const char* path, const star_config_t* cfg)
     /* Load into temp config, overlay session fields, save */
     star_config_t tmp;
     memset(&tmp, 0, sizeof(tmp));
-    ogamelib_config_load(path, &tmp, NULL, NULL);
-    ogamelib_str_copy(tmp.jwt_token,     cfg->jwt_token,     sizeof(tmp.jwt_token));
-    ogamelib_str_copy(tmp.refresh_token, cfg->refresh_token, sizeof(tmp.refresh_token));
-    ogamelib_str_copy(tmp.username,      cfg->username,      sizeof(tmp.username));
+    oglib_config_load(path, &tmp, NULL, NULL);
+    oglib_str_copy(tmp.jwt_token,     cfg->jwt_token,     sizeof(tmp.jwt_token));
+    oglib_str_copy(tmp.refresh_token, cfg->refresh_token, sizeof(tmp.refresh_token));
+    oglib_str_copy(tmp.username,      cfg->username,      sizeof(tmp.username));
 
     free(json);
-    return ogamelib_config_save(path, &tmp, NULL, NULL);
+    return oglib_config_save(path, &tmp, NULL, NULL);
 }
 
 #undef READ_STR
@@ -290,10 +290,10 @@ int ogamelib_config_save_session(const char* path, const star_config_t* cfg)
 #undef WRITE_BOOL_FIELD
 #undef WRITE_INT_FIELD
 
-#endif /* OGAMELIB_CONFIG_IMPL */
+#endif /* OGLIB_CONFIG_IMPL */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* OGAMELIB_CONFIG_H */
+#endif /* OGLIB_CONFIG_H */

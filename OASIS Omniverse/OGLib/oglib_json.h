@@ -1,5 +1,5 @@
-/**
- * ogamelib_json.h — OGameLib minimal JSON value extractor
+﻿/**
+ * oglib_json.h — OGLib minimal JSON value extractor
  *
  * A single lightweight function that extracts a string value from a flat JSON
  * object by key name. Handles quoted strings, unquoted scalars (numbers, booleans),
@@ -7,8 +7,8 @@
  *
  * No dependencies beyond the C standard library.
  */
-#ifndef OGAMELIB_JSON_H
-#define OGAMELIB_JSON_H
+#ifndef OGLIB_JSON_H
+#define OGLIB_JSON_H
 
 #include <string.h>
 #include <stdio.h>
@@ -32,7 +32,7 @@ extern "C" {
  * @param max_len   Size of destination buffer (including null terminator).
  * @return          1 if the key was found and value copied, 0 otherwise.
  */
-static inline int ogamelib_json_extract(const char* json, const char* key,
+static inline int oglib_json_extract(const char* json, const char* key,
                                          char* value_out, int max_len)
 {
     if (!json || !key || !value_out || max_len <= 0) return 0;
@@ -89,7 +89,7 @@ static inline int ogamelib_json_extract(const char* json, const char* key,
  * Produces:  "key": "value"
  * Returns number of bytes written (excluding null terminator).
  */
-static inline int ogamelib_json_write_kv(char* buf, size_t buf_size,
+static inline int oglib_json_write_kv(char* buf, size_t buf_size,
                                           const char* key, const char* value)
 {
     if (!buf || buf_size == 0) return 0;
@@ -100,4 +100,4 @@ static inline int ogamelib_json_write_kv(char* buf, size_t buf_size,
 extern "C" {
 #endif
 
-#endif /* OGAMELIB_JSON_H */
+#endif /* OGLIB_JSON_H */
