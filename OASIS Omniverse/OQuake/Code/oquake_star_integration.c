@@ -114,193 +114,9 @@ void star_api_refresh_avatar_profile(void) {
 #endif
 #endif
 
-/* When OQUAKE_STAR_API_SESSION_IMPL is defined, provide JWT/session APIs by forwarding to star_api.dll at runtime. Avoids load-time "Entry Point Not Found" when DLL export list lags. */
-#ifdef OQUAKE_STAR_API_SESSION_IMPL
-#ifdef _WIN32
-static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
-	typedef star_api_result_t (__cdecl *fn_t)(const char*, const char*, char*, size_t);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_authenticate_with_jwt_out");
-	}
-	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
-
-static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
-	typedef star_api_result_t (__cdecl *fn_t)(const char*);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_saved_session");
-	}
-	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
-
-static star_api_result_t star_api_restore_session_impl(void) {
-	typedef star_api_result_t (__cdecl *fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_restore_session");
-	}
-	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
-
-static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
-	typedef int (__cdecl *fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_username");
-	}
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
-
-static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
-	typedef int (__cdecl *fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_jwt");
-	}
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
-
-static void star_api_set_refresh_token_impl(const char* refresh_token) {
-	typedef void (__cdecl *fn_t)(const char*);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_set_refresh_token");
-	}
-	if (fn) fn(refresh_token);
-}
-void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
-
-static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
-	typedef int (__cdecl *fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_get_current_refresh_token");
-	}
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
-
-static int star_api_is_session_expired_impl(void) {
-	typedef int (__cdecl *fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_is_session_expired");
-	}
-	return fn ? fn() : 0;
-}
-int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
-
-static void star_api_request_inventory_in_background_impl(void) {
-	typedef void (__cdecl *fn_t)(void);
-	static fn_t fn;
-	if (!fn) {
-		HMODULE h = GetModuleHandleA("star_api.dll");
-		if (h) fn = (fn_t)(void*)GetProcAddress(h, "star_api_request_inventory_in_background");
-	}
-	if (fn) fn();
-}
-void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
-#else
-/* RTLD_NEXT: avoid dlsym binding to these forwarders in the main binary (same issue as star_api_refresh_avatar_profile). */
-static star_api_result_t star_api_authenticate_with_jwt_out_impl(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) {
-	typedef star_api_result_t (*fn_t)(const char*, const char*, char*, size_t);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_authenticate_with_jwt_out");
-	return fn ? fn(user, pass, jwt_buf, jwt_size) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_authenticate_with_jwt_out(const char* user, const char* pass, char* jwt_buf, size_t jwt_size) { return star_api_authenticate_with_jwt_out_impl(user, pass, jwt_buf, jwt_size); }
-
-static star_api_result_t star_api_set_saved_session_impl(const char* jwt) {
-	typedef star_api_result_t (*fn_t)(const char*);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_saved_session");
-	return fn ? fn(jwt) : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_set_saved_session(const char* jwt) { return star_api_set_saved_session_impl(jwt); }
-
-static star_api_result_t star_api_restore_session_impl(void) {
-	typedef star_api_result_t (*fn_t)(void);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_restore_session");
-	return fn ? fn() : (star_api_result_t)STAR_API_ERROR_NOT_INITIALIZED;
-}
-star_api_result_t star_api_restore_session(void) { return star_api_restore_session_impl(); }
-
-static int star_api_get_current_username_impl(char* buf, size_t buf_size) {
-	typedef int (*fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_username");
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_username(char* buf, size_t buf_size) { return star_api_get_current_username_impl(buf, buf_size); }
-
-static int star_api_get_current_jwt_impl(char* buf, size_t buf_size) {
-	typedef int (*fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_jwt");
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_jwt(char* buf, size_t buf_size) { return star_api_get_current_jwt_impl(buf, buf_size); }
-
-static void star_api_set_refresh_token_impl(const char* refresh_token) {
-	typedef void (*fn_t)(const char*);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_set_refresh_token");
-	if (fn)
-		fn(refresh_token);
-}
-void star_api_set_refresh_token(const char* refresh_token) { star_api_set_refresh_token_impl(refresh_token); }
-
-static int star_api_get_current_refresh_token_impl(char* buf, size_t buf_size) {
-	typedef int (*fn_t)(char*, size_t);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_get_current_refresh_token");
-	return fn ? fn(buf, buf_size) : 0;
-}
-int star_api_get_current_refresh_token(char* buf, size_t buf_size) { return star_api_get_current_refresh_token_impl(buf, buf_size); }
-
-static int star_api_is_session_expired_impl(void) {
-	typedef int (*fn_t)(void);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_is_session_expired");
-	return fn ? fn() : 0;
-}
-int star_api_is_session_expired(void) { return star_api_is_session_expired_impl(); }
-
-static void star_api_request_inventory_in_background_impl(void) {
-	typedef void (*fn_t)(void);
-	static fn_t fn;
-	if (!fn)
-		fn = (fn_t)dlsym(RTLD_NEXT, "star_api_request_inventory_in_background");
-	if (fn)
-		fn();
-}
-void star_api_request_inventory_in_background(void) { star_api_request_inventory_in_background_impl(); }
-#endif
-#endif
+/* OGLib: runtime session forwarders, config, beamin, cross-game utilities. */
+#define OGLIB_SESSION_IMPL
+#include "../../OGLib/oglib.h"
 
 #ifdef OQUAKE_DRAW_STRING_COLORED
 /* Optional: engine provides Draw_StringColored(cbx, x, y, palette_index, str) so quest tracker title can use a different text colour. */
@@ -318,26 +134,8 @@ static void OQ_StarDebugLog(const char* fmt, ...);
 static int OQ_SelectPersistableObjectiveId(const char* quest_id, const char* preferred_id, char* out_id, size_t out_size);
 static qboolean g_star_debug_logging = false;
 
-/** Case-insensitive substring search. Defined early so MSVC parses call sites without error. */
-static int OQ_ContainsNoCase(const char* haystack, const char* needle) {
-    size_t i = 0, j = 0;
-    size_t hay_len, needle_len;
-    if (!haystack || !needle || !needle[0]) return 0;
-    hay_len = strlen(haystack);
-    needle_len = strlen(needle);
-    if (needle_len > hay_len) return 0;
-    for (i = 0; i + needle_len <= hay_len; i++) {
-        for (j = 0; j < needle_len; j++) {
-            unsigned char hc = (unsigned char)haystack[i + j];
-            unsigned char nc = (unsigned char)needle[j];
-            if (tolower(hc) != tolower(nc))
-                break;
-        }
-        if (j == needle_len)
-            return 1;
-    }
-    return 0;
-}
+/* OGLib provides oglib_str_contains_nocase — alias for call-site compat. */
+#define OQ_ContainsNoCase(h, n) oglib_str_contains_nocase(h, n)
 
 /* Cross-game canonical ids (Doom / beam-in rows). Quake uses legacy display names when *adding*; helpers below still match these when reading. */
 #define OQ_OASIS_MEGAHEALTH       "OASIS.MegaHealth"
@@ -1912,42 +1710,8 @@ static int OQ_FindConfigFile(const char *filename, char *out_path, int maxlen) {
 }
 
 /* Simple JSON value extractor - finds "key": "value" or "key": value */
-static int OQ_ExtractJsonValue(const char *json, const char *key, char *value, int maxlen) {
-    char search[128];
-    q_snprintf(search, sizeof(search), "\"%s\"", key);
-    const char *pos = strstr(json, search);
-    if (!pos) return 0;
-    
-    pos += strlen(search);
-    while (*pos && (*pos == ' ' || *pos == ':' || *pos == '\t')) pos++;
-    
-    if (*pos == '"') {
-        pos++;
-        int n = 0;
-        while (*pos && *pos != '"' && *pos != '\n' && *pos != '\r' && n < maxlen - 1) {
-            if (*pos == '\\' && pos[1]) {
-                pos++;
-                if (*pos == 'n') value[n++] = '\n';
-                else if (*pos == 't') value[n++] = '\t';
-                else if (*pos == '\\') value[n++] = '\\';
-                else if (*pos == '"') value[n++] = '"';
-                else value[n++] = *pos;
-            } else {
-                value[n++] = *pos;
-            }
-            pos++;
-        }
-        value[n] = 0;
-        return n > 0;
-    } else {
-        int n = 0;
-        while (*pos && *pos != ',' && *pos != '}' && *pos != '\n' && *pos != '\r' && *pos != ' ' && n < maxlen - 1) {
-            value[n++] = *pos++;
-        }
-        value[n] = 0;
-        return n > 0;
-    }
-}
+/* OGLib provides oglib_json_extract — alias for call-site compat. */
+#define OQ_ExtractJsonValue(json, key, val, maxlen) oglib_json_extract(json, key, val, maxlen)
 
 static void OQ_ResetCrossGameBeamTransferState(void) {
     g_oq_cross_game_beam_transfer_done = 0;

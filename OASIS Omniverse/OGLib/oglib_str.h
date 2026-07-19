@@ -1,11 +1,11 @@
-/**
- * ogamelib_str.h — OGameLib string utilities
+﻿/**
+ * oglib_str.h — OGLib string utilities
  *
  * Lightweight string helpers needed by every C game integration.
  * No dependencies beyond the C standard library.
  */
-#ifndef OGAMELIB_STR_H
-#define OGAMELIB_STR_H
+#ifndef OGLIB_STR_H
+#define OGLIB_STR_H
 
 #include <string.h>
 #include <ctype.h>
@@ -18,7 +18,7 @@ extern "C" {
  * Case-insensitive substring search.
  * Returns 1 if needle is found anywhere in haystack (case-insensitive), 0 otherwise.
  */
-static inline int ogamelib_str_contains_nocase(const char* haystack, const char* needle)
+static inline int oglib_str_contains_nocase(const char* haystack, const char* needle)
 {
     if (!haystack || !needle || !*needle) return 0;
     size_t nlen = strlen(needle);
@@ -39,7 +39,7 @@ static inline int ogamelib_str_contains_nocase(const char* haystack, const char*
  * Safe string copy: always null-terminates dest even when src is longer than dest_size.
  * Returns number of characters written (excluding null terminator).
  */
-static inline size_t ogamelib_str_copy(char* dest, const char* src, size_t dest_size)
+static inline size_t oglib_str_copy(char* dest, const char* src, size_t dest_size)
 {
     if (!dest || dest_size == 0) return 0;
     if (!src) { dest[0] = '\0'; return 0; }
@@ -53,7 +53,7 @@ static inline size_t ogamelib_str_copy(char* dest, const char* src, size_t dest_
  * Trim leading and trailing whitespace in-place.
  * Returns pointer to first non-whitespace character (within the original buffer).
  */
-static inline char* ogamelib_str_trim(char* s)
+static inline char* oglib_str_trim(char* s)
 {
     if (!s) return s;
     while (*s && isspace((unsigned char)*s)) s++;
@@ -67,4 +67,4 @@ static inline char* ogamelib_str_trim(char* s)
 }
 #endif
 
-#endif /* OGAMELIB_STR_H */
+#endif /* OGLIB_STR_H */

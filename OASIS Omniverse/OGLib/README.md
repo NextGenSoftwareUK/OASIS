@@ -1,9 +1,9 @@
-# OGameLib — OASIS Game Integration Library
+﻿# OGLib — OASIS Game Integration Library
 
-OGameLib is a lightweight C library that sits between the raw `star_api.h` exports and your game engine. It contains all the boilerplate that every OASIS-integrated game needs: config loading, session management, beamin/beamout workflow, cross-game mappings, and common utilities.
+OGLib is a lightweight C library that sits between the raw `star_api.h` exports and your game engine. It contains all the boilerplate that every OASIS-integrated game needs: config loading, session management, beamin/beamout workflow, cross-game mappings, and common utilities.
 
 **Games that want minimal ceremony** use `STARAPIClient` directly via `star_api.h`.  
-**Games that want the full workflow** include OGameLib and get all the plumbing for free.
+**Games that want the full workflow** include OGLib and get all the plumbing for free.
 
 ---
 
@@ -12,7 +12,7 @@ OGameLib is a lightweight C library that sits between the raw `star_api.h` expor
 ```
 Game engine (ODOOM / OQuake / your game)
       ↓  engine hooks only
-   OGameLib   ← this library (C, header-only / single-TU impl)
+   OGLib   ← this library (C, header-only / single-TU impl)
       ↓  star_api.h / star_sync.h
   STARAPIClient  (C# NativeAOT → star_api.dll / libstar_api.so)
       ↓
@@ -27,42 +27,42 @@ See [`OASIS Omniverse/ARCHITECTURE.md`](../ARCHITECTURE.md) for the full system 
 
 | File | Purpose |
 |------|---------|
-| `ogamelib.h` | Master include — pulls in all headers below |
-| `ogamelib_str.h` | String helpers: `contains_nocase`, safe copy, trim |
-| `ogamelib_json.h` | Minimal JSON key→value extractor (no dependencies) |
-| `ogamelib_config.h` | `star_config_t` struct + `oasisstar.json` load/save |
-| `ogamelib_beamin.h` | Beamin/beamout workflow (auth, restore session, persist JWT) |
-| `ogamelib_session.h` | Runtime DLL forwarders (`GetProcAddress` / `dlsym` shims) |
-| `ogamelib_crossgame.h` | Cross-game ammo/weapon mapping defaults |
+| `oglib.h` | Master include — pulls in all headers below |
+| `oglib_str.h` | String helpers: `contains_nocase`, safe copy, trim |
+| `oglib_json.h` | Minimal JSON key→value extractor (no dependencies) |
+| `oglib_config.h` | `star_config_t` struct + `oasisstar.json` load/save |
+| `oglib_beamin.h` | Beamin/beamout workflow (auth, restore session, persist JWT) |
+| `oglib_session.h` | Runtime DLL forwarders (`GetProcAddress` / `dlsym` shims) |
+| `oglib_crossgame.h` | Cross-game ammo/weapon mapping defaults |
 
-All implementation headers follow the **single-header library** pattern (a la `stb`): declarations are always compiled; implementations are compiled only in the one translation unit that defines the matching `OGAMELIB_*_IMPL` macro.
+All implementation headers follow the **single-header library** pattern (a la `stb`): declarations are always compiled; implementations are compiled only in the one translation unit that defines the matching `OGLIB_*_IMPL` macro.
 
 ---
 
 ## Quick Start
 
-### 1. Copy OGameLib into your project
+### 1. Copy OGLib into your project
 
-Copy the `OGameLib/` folder (or add it as a submodule path) so your compiler can find the headers.
+Copy the `OGLib/` folder (or add it as a submodule path) so your compiler can find the headers.
 
 ### 2. Add the implementation TU
 
 In exactly **one** `.c` or `.cpp` file in your project (e.g. `my_game_star_integration.c`):
 
 ```c
-#define OGAMELIB_SESSION_IMPL
-#define OGAMELIB_CONFIG_IMPL
-#define OGAMELIB_BEAMIN_IMPL
-#include "ogamelib.h"
+#define OGLIB_SESSION_IMPL
+#define OGLIB_CONFIG_IMPL
+#define OGLIB_BEAMIN_IMPL
+#include "oglib.h"
 #include "star_api.h"
 #include "star_sync.h"
 ```
 
-All other files that use OGameLib just include `ogamelib.h` without the defines.
+All other files that use OGLib just include `oglib.h` without the defines.
 
 ### 3. Include star_api.h / star_sync.h
 
-OGameLib wraps the STAR API — you still need to link `star_api.lib` (Windows) or `libstar_api.so` (Linux). Get the canonical copies from `STARAPIClient/`:
+OGLib wraps the STAR API — you still need to link `star_api.lib` (Windows) or `libstar_api.so` (Linux). Get the canonical copies from `STARAPIClient/`:
 
 - `STARAPIClient/star_api.h`
 - `STARAPIClient/star_sync.h`
@@ -72,12 +72,12 @@ OGameLib wraps the STAR API — you still need to link `star_api.lib` (Windows) 
 
 ## Config: oasisstar.json
 
-`ogamelib_config.h` defines `star_config_t` — all the shared fields from `oasisstar.json`:
+`oglib_config.h` defines `star_config_t` — all the shared fields from `oasisstar.json`:
 
 ```c
 star_config_t cfg;
 memset(&cfg, 0, sizeof(cfg));
-ogamelib_config_load("oasisstar.json", &cfg, NULL, NULL);
+oglib_config_load("oasisstar.json", &cfg, NULL, NULL);
 
 // Initialize STAR API
 star_api_config_t api_cfg = { ... };
@@ -102,11 +102,11 @@ static void my_game_ext_load(const char* json, void* fp, void* user)
 {
     MyGameConfig* g = (MyGameConfig*)user;
     if (json) {
-        ogamelib_json_extract(json, "quest_progress_refresh", g->quest_progress_refresh, sizeof(g->quest_progress_refresh));
+        oglib_json_extract(json, "quest_progress_refresh", g->quest_progress_refresh, sizeof(g->quest_progress_refresh));
     }
 }
 
-ogamelib_config_load("oasisstar.json", &cfg, my_game_ext_load, &myGameCfg);
+oglib_config_load("oasisstar.json", &cfg, my_game_ext_load, &myGameCfg);
 ```
 
 ---
@@ -114,16 +114,16 @@ ogamelib_config_load("oasisstar.json", &cfg, my_game_ext_load, &myGameCfg);
 ## Beamin
 
 ```c
-static void on_beamin_done(ogamelib_beamin_result_t result,
+static void on_beamin_done(oglib_beamin_result_t result,
                             const char* username, void* user)
 {
-    if (result == OGAMELIB_BEAMIN_OK)
+    if (result == OGLIB_BEAMIN_OK)
         Con_Printf("Logged in as %s. Cross-game assets enabled.\n", username);
     else
         Con_Printf("Beamin failed.\n");
 }
 
-static ogamelib_beamin_ctx_t s_beamin_ctx;
+static oglib_beamin_ctx_t s_beamin_ctx;
 
 void MyGame_Beamin(const char* username, const char* password)
 {
@@ -131,7 +131,7 @@ void MyGame_Beamin(const char* username, const char* password)
     s_beamin_ctx.config_path = "oasisstar.json";
     s_beamin_ctx.done_cb     = on_beamin_done;
     s_beamin_ctx.done_user   = NULL;
-    ogamelib_beamin_start(&s_beamin_ctx, username, password);
+    oglib_beamin_start(&s_beamin_ctx, username, password);
 }
 ```
 
@@ -139,7 +139,7 @@ void MyGame_Beamin(const char* username, const char* password)
 
 ## Session Forwarders
 
-`ogamelib_session.h` provides Win32/POSIX runtime forwarders for the nine session/auth functions declared in `star_api.h`. Include `OGAMELIB_SESSION_IMPL` in your implementation TU and they resolve automatically at runtime from the loaded `star_api.dll` / `libstar_api.so`.
+`oglib_session.h` provides Win32/POSIX runtime forwarders for the nine session/auth functions declared in `star_api.h`. Include `OGLIB_SESSION_IMPL` in your implementation TU and they resolve automatically at runtime from the loaded `star_api.dll` / `libstar_api.so`.
 
 This avoids link-time symbol resolution issues that occur when the DLL is loaded by the engine after your code runs.
 
@@ -148,16 +148,16 @@ This avoids link-time symbol resolution issues that occur when the DLL is loaded
 ## Cross-Game Mappings
 
 ```c
-#include "ogamelib_crossgame.h"
+#include "oglib_crossgame.h"
 
-ogamelib_crossgame_maps_t maps;
-ogamelib_crossgame_init_defaults(&maps);
+oglib_crossgame_maps_t maps;
+oglib_crossgame_init_defaults(&maps);
 
 // Override one entry
 snprintf(maps.doom_ammo_to_quake[0].to, 64, "SuperNails");
 
 // Look up a mapping
-const char* quake_ammo = ogamelib_crossgame_lookup(
+const char* quake_ammo = oglib_crossgame_lookup(
     maps.doom_ammo_to_quake, maps.doom_ammo_to_quake_count, "Bullets");
 // quake_ammo = "SuperNails"
 ```
@@ -167,22 +167,22 @@ const char* quake_ammo = ogamelib_crossgame_lookup(
 ## String & JSON Helpers
 
 ```c
-#include "ogamelib_str.h"
-#include "ogamelib_json.h"
+#include "oglib_str.h"
+#include "oglib_json.h"
 
 // Case-insensitive search
-if (ogamelib_str_contains_nocase(item_name, "key")) { ... }
+if (oglib_str_contains_nocase(item_name, "key")) { ... }
 
 // Extract a JSON value
 char url[512];
-ogamelib_json_extract(json_text, "star_api_url", url, sizeof(url));
+oglib_json_extract(json_text, "star_api_url", url, sizeof(url));
 ```
 
 ---
 
-## What OGameLib does NOT do
+## What OGLib does NOT do
 
-OGameLib deliberately excludes anything that is engine-specific or game-specific:
+OGLib deliberately excludes anything that is engine-specific or game-specific:
 
 - HUD / overlay rendering (each engine has its own draw calls)
 - Input handling for inventory/quest popups
@@ -194,12 +194,12 @@ Those belong in your game's own integration file (`uzdoom_star_integration.cpp`,
 
 ---
 
-## Adding OGameLib to a New Game
+## Adding OGLib to a New Game
 
-1. Copy `OGameLib/` headers into your project (or reference via include path).
+1. Copy `OGLib/` headers into your project (or reference via include path).
 2. Copy `star_api.h`, `star_sync.h`, `star_sync.c` from `STARAPIClient/`.
 3. Add `star_sync.c` to your build (or set `OASIS_STAR_SYNC_IN_CLIENT=1` if the client DLL already includes it).
 4. Link `star_api.lib` (Win) / `libstar_api.so` (Linux).
-5. Create `my_game_star_integration.c` with the `OGAMELIB_*_IMPL` defines and your engine hooks.
+5. Create `my_game_star_integration.c` with the `OGLIB_*_IMPL` defines and your engine hooks.
 6. Call `star_sync_pump()` every frame from your game loop.
 7. Add `oasisstar.json` to your game directory and fill in `star_api_url`.
