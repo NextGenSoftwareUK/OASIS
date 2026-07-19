@@ -36,6 +36,23 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 
 3. **Run:** `./RUN_ODOOM.sh` (builds if needed, ensures IWAD search paths and folder exist, then launches).
 
+## Architecture
+
+ODOOM sits at the top of the OASIS Omniverse integration stack:
+
+```
+uzdoom_star_integration.cpp  (ODOOM engine hooks only)
+         ↓
+    OGameLib  (shared C library — config, beamin, session shims)
+         ↓
+  STARAPIClient  (C# NativeAOT → star_api.dll)
+         ↓
+  WEB4 / WEB5 OASIS APIs
+```
+
+See **[OASIS Omniverse/ARCHITECTURE.md](../ARCHITECTURE.md)** for the full design.  
+See **[OGameLib/README.md](../OGameLib/README.md)** for the shared game integration library.
+
 ## Documentation
 
 | Document | Description |
@@ -46,6 +63,8 @@ ODOOM uses a native Windows/SDL2 stack with proper sound, music, and mouse handl
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [LICENSE](LICENSE) | License summary and link to GPL-3.0 |
 | [FILES_AND_VERSIONS.md](FILES_AND_VERSIONS.md) | Full file list and why there are multiple version files |
+| [../ARCHITECTURE.md](../ARCHITECTURE.md) | Full OASIS Omniverse architecture |
+| [../OGameLib/README.md](../OGameLib/README.md) | Shared C game integration library |
 
 ## Version
 
