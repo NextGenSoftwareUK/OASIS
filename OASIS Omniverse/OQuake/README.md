@@ -42,6 +42,23 @@ OQuake is Quake integrated with the **OASIS STAR API** so keys collected in **OD
 
 See **OASIS Omniverse/Docs/GettingStarted_Linux.md** for the full Linux guide.
 
+## Architecture
+
+OQuake sits at the top of the OASIS Omniverse integration stack:
+
+```
+oquake_star_integration.c  (OQuake engine hooks only)
+         ↓
+    OGameLib  (shared C library — config, beamin, session shims)
+         ↓
+  STARAPIClient  (C# NativeAOT → star_api.dll / libstar_api.so)
+         ↓
+  WEB4 / WEB5 OASIS APIs
+```
+
+See **[OASIS Omniverse/ARCHITECTURE.md](../ARCHITECTURE.md)** for the full design.  
+See **[OGameLib/README.md](../OGameLib/README.md)** for the shared game integration library.
+
 ## Documentation
 
 | Document | Description |
@@ -52,6 +69,8 @@ See **OASIS Omniverse/Docs/GettingStarted_Linux.md** for the full Linux guide.
 | [Docs/CONTRIBUTING.md](Docs/CONTRIBUTING.md) | How to contribute |
 | [LICENSE](LICENSE) | License summary and link to GPL-2.0 |
 | [Docs/FILES_AND_VERSIONS.md](Docs/FILES_AND_VERSIONS.md) | Full file list and why there are multiple version files |
+| [../ARCHITECTURE.md](../ARCHITECTURE.md) | Full OASIS Omniverse architecture |
+| [../OGameLib/README.md](../OGameLib/README.md) | Shared C game integration library |
 
 ## Files in this folder
 
