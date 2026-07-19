@@ -1,4 +1,4 @@
-# ODOOM – Doom + OASIS STAR API
+﻿# ODOOM – Doom + OASIS STAR API
 
 **ODOOM** is a fork of [UZDoom](https://github.com/UZDoom/UZDoom) with the **OASIS STAR API** integrated for cross-game features in the OASIS Omniverse. Keys collected in **OQuake** can open doors in ODOOM and vice versa.
 
@@ -43,7 +43,7 @@ ODOOM sits at the top of the OASIS Omniverse integration stack:
 ```
 uzdoom_star_integration.cpp  (ODOOM engine hooks only)
          ↓
-    OGameLib  (shared C library — config, beamin, session shims)
+    OGLib  (shared C library — config, beamin, session shims)
          ↓
   STARAPIClient  (C# NativeAOT → star_api.dll)
          ↓
@@ -51,7 +51,7 @@ uzdoom_star_integration.cpp  (ODOOM engine hooks only)
 ```
 
 See **[OASIS Omniverse/ARCHITECTURE.md](../ARCHITECTURE.md)** for the full design.  
-See **[OGameLib/README.md](../OGameLib/README.md)** for the shared game integration library.
+See **[OGLib/README.md](../OGLib/README.md)** for the shared game integration library.
 
 ## Documentation
 
@@ -64,7 +64,7 @@ See **[OGameLib/README.md](../OGameLib/README.md)** for the shared game integrat
 | [LICENSE](LICENSE) | License summary and link to GPL-3.0 |
 | [FILES_AND_VERSIONS.md](FILES_AND_VERSIONS.md) | Full file list and why there are multiple version files |
 | [../ARCHITECTURE.md](../ARCHITECTURE.md) | Full OASIS Omniverse architecture |
-| [../OGameLib/README.md](../OGameLib/README.md) | Shared C game integration library |
+| [../OGLib/README.md](../OGLib/README.md) | Shared C game integration library |
 
 ## Version
 
