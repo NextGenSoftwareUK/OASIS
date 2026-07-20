@@ -1433,3 +1433,16 @@ STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/DNA/OASIS_DNA.json
 OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json
 OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json
 /OASIS Architecture/NextGenSoftware.OASIS.API.DNA/OASIS_DNA.json
+OASIS Omniverse/STARAPIClient/star_api.def
+OASIS Omniverse/OQuake/star_api.lib
+OASIS Omniverse/OQuake/star_api.dll
+OASIS Omniverse/OQuake/Code/star_api.lib
+OASIS Omniverse/OQuake/Code/star_api.dll
+OASIS Omniverse/OQuake/build/star_api.lib
+OASIS Omniverse/OQuake/build/star_api.dll
+OASIS Omniverse/ODOOM/version_display.txt
+OASIS Omniverse/ODOOM/star_api.lib
+OASIS Omniverse/ODOOM/star_api.dll
+OASIS Omniverse/ODOOM/odoom_version_generated.h
+OASIS Omniverse/ODOOM/odoom_version.txt
+OASIS Omniverse/ODOOM/about.txt
