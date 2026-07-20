@@ -10,6 +10,12 @@ using NextGenSoftware.OASIS.Web7.WebAPI.Grpc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8080");
+    options.ListenAnyIP(port, o => o.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
+});
+
 Directory.SetCurrentDirectory(AppContext.BaseDirectory);
 
 var enableGenericExceptionHandling = builder.Configuration.GetValue<bool>("EnableGenericExceptionHandling",
