@@ -1,4 +1,8 @@
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Native.EndPoint;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
 using NextGenSoftware.OASIS.STAR.DNA;
 using NextGenSoftware.OASIS.STAR.WebAPI.GraphQL.Types;
 
@@ -419,6 +423,122 @@ namespace NextGenSoftware.OASIS.STAR.WebAPI.GraphQL
                 Name = z.Name ?? string.Empty,
                 Description = z.Description ?? string.Empty,
             });
+        }
+
+        // ── Competition ────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<LeaderboardEntry>> GetStarLeaderboardAsync(string competitionType, string seasonType, int limit = 100, int offset = 0)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetLeaderboardAsync(ct, st, limit, offset);
+            return result.IsError || result.Result == null ? Enumerable.Empty<LeaderboardEntry>() : result.Result;
+        }
+
+        public async Task<LeaderboardEntry?> GetStarAvatarRankAsync(Guid avatarId, string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvatarRankAsync(avatarId, ct, st);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<League>> GetStarLeaguesAsync(string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvailableLeaguesAsync(ct, st);
+            return result.IsError || result.Result == null ? Enumerable.Empty<League>() : result.Result;
+        }
+
+        public async Task<League?> GetStarAvatarLeagueAsync(Guid avatarId, string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvatarLeagueAsync(avatarId, ct, st);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<Tournament>> GetStarTournamentsAsync()
+        {
+            var result = await CompetitionManager.Instance.GetActiveTournamentsAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<Tournament>() : result.Result;
+        }
+
+        // ── Cosmic (Omniverse hierarchy) ───────────────────────────────────────
+
+        private COSMICManager CreateCosmicManager()
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new COSMICManager(result.Result, Guid.Empty, OASISBootLoader.OASISBootLoader.OASISDNA);
+        }
+
+        public object? GetOmniverse()
+        {
+            try { return CreateCosmicManager().Omiverse; }
+            catch { return null; }
+        }
+
+        public async Task<IEnumerable<object>> GetChildrenForParentAsync(Guid parentId, string parentHolonType, string childHolonType)
+        {
+            if (!Enum.TryParse<HolonType>(parentHolonType, true, out var pht)) pht = HolonType.All;
+            if (!Enum.TryParse<HolonType>(childHolonType, true, out var cht)) cht = HolonType.All;
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetChildrenForParentAsync<NextGenSoftware.OASIS.API.Core.Holons.Holon>(parentId, pht, cht);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> SearchChildrenForParentAsync(string searchTerm, Guid parentId, string parentHolonType, string childHolonType)
+        {
+            if (!Enum.TryParse<HolonType>(parentHolonType, true, out var pht)) pht = HolonType.All;
+            if (!Enum.TryParse<HolonType>(childHolonType, true, out var cht)) cht = HolonType.All;
+            var mgr = CreateCosmicManager();
+            var result = await mgr.SearchChildrenForParentAsync(searchTerm, parentId, pht, cht);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> SearchHolonsForParentAsync(string searchTerm, Guid parentId, string parentHolonType, string childHolonType)
+        {
+            if (!Enum.TryParse<HolonType>(parentHolonType, true, out var pht)) pht = HolonType.All;
+            if (!Enum.TryParse<HolonType>(childHolonType, true, out var cht)) cht = HolonType.All;
+            var mgr = CreateCosmicManager();
+            var result = await mgr.SearchHolonsForParentAsync<NextGenSoftware.OASIS.API.Core.Holons.Holon>(searchTerm, Guid.Empty, parentId, holonType: cht);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> GetPlanetsForSolarSystemAsync(Guid solarSystemId)
+        {
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetPlanetsForSolarSystemAsync(solarSystemId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> GetSolarSystemsForGalaxyAsync(Guid galaxyId)
+        {
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetSolarSystemsForGalaxyAsync(galaxyId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> GetStarsForGalaxyAsync(Guid galaxyId)
+        {
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetStarsForGalaxyAsync(galaxyId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> GetPlanetsForGalaxyAsync(Guid galaxyId)
+        {
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetPlanetsForGalaxyAsync(galaxyId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<IEnumerable<object>> GetMoonsForGalaxyAsync(Guid galaxyId)
+        {
+            var mgr = CreateCosmicManager();
+            var result = await mgr.GetMoonsForGalaxyAsync(galaxyId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
         }
     }
 }
