@@ -72,6 +72,8 @@
   <ItemGroup>
     <!--<PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />-->
     <!--<PackageReference Include="MailKit" Version="2.9.0" />-->
+    <PackageReference Include="Grpc.AspNetCore" Version="2.67.0" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
 	  <PackageReference Include="AutoMapper" Version="16.2.0" />
 	  <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
 	  <PackageReference Include="MailKit" Version="4.17.0" />
@@ -98,6 +100,12 @@
 
   <ItemGroup>
     <Folder Include="Pages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\avatar.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\karma.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\data.proto" GrpcServices="Server" />
   </ItemGroup>
 
 </Project>
