@@ -91,5 +91,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             var saveResult = await AvatarManager.SaveAvatarDetailAsync(detail);
             return saveResult.IsError ? 0 : (saveResult.Result?.XP ?? 0);
         }
+
+        public async Task<bool> DeleteAvatar(Guid id)
+        {
+            var result = await AvatarManager.DeleteAvatarAsync(id);
+            return !result.IsError;
+        }
+
+        // ── Holon mutations ───────────────────────────────────────────────────────
+
+        public async Task<bool> DeleteHolon(Guid id, bool softDelete = true)
+        {
+            var manager = CreateHolonManager();
+            var result = await manager.DeleteHolonAsync(id, Guid.Empty, softDelete);
+            return !result.IsError;
+        }
     }
 }
