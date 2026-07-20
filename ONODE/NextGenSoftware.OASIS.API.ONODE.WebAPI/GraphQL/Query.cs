@@ -7,7 +7,16 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Configuration;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.DTOs;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.ONODE.Core.Holons;
+using NextGenSoftware.OASIS.API.ONODE.Core.Managers;
+using NextGenSoftware.OASIS.API.ONODE.Core.Network;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 {
@@ -403,5 +412,295 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             var result = manager.GetProviderPublicKeysForAvatarById(avatarId, pt);
             return result.IsError || result.Result == null ? Enumerable.Empty<string>() : result.Result;
         }
+
+        // ── Bridge ────────────────────────────────────────────────────────────────
+
+        public async Task<decimal> GetExchangeRate(string fromToken, string toToken)
+        {
+            var result = await BridgeManager.Instance.GetExchangeRateAsync(fromToken, toToken);
+            return result.IsError ? 0m : result.Result;
+        }
+
+        public async Task<BridgeOrderBalanceResponse?> GetBridgeOrderBalance(Guid orderId)
+        {
+            var result = await BridgeManager.Instance.CheckOrderBalanceAsync(orderId);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── Competition ───────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<LeaderboardEntry>> GetLeaderboard(string competitionType, string seasonType, int limit = 100, int offset = 0)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetLeaderboardAsync(ct, st, limit, offset);
+            return result.IsError || result.Result == null ? Enumerable.Empty<LeaderboardEntry>() : result.Result;
+        }
+
+        public async Task<LeaderboardEntry?> GetAvatarRank(Guid avatarId, string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvatarRankAsync(avatarId, ct, st);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<League>> GetLeagues(string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvailableLeaguesAsync(ct, st);
+            return result.IsError || result.Result == null ? Enumerable.Empty<League>() : result.Result;
+        }
+
+        public async Task<League?> GetAvatarLeague(Guid avatarId, string competitionType, string seasonType)
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var st = Enum.TryParse<SeasonType>(seasonType, true, out var s) ? s : SeasonType.Daily;
+            var result = await CompetitionManager.Instance.GetAvatarLeagueAsync(avatarId, ct, st);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<Tournament>> GetActiveTournaments(string competitionType = "Karma")
+        {
+            var ct = Enum.TryParse<CompetitionType>(competitionType, true, out var c) ? c : CompetitionType.Karma;
+            var result = await CompetitionManager.Instance.GetActiveTournamentsAsync(ct);
+            return result.IsError || result.Result == null ? Enumerable.Empty<Tournament>() : result.Result;
+        }
+
+        // ── Settings ──────────────────────────────────────────────────────────────
+
+        public async Task<Dictionary<string, object>> GetAllSettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetAllSettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetHyperDriveSettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetHyperDriveSettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetSystemSettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetSystemSettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetSubscriptionSettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetSubscriptionSettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetNotificationSettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetNotificationSettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetPrivacySettings(Guid avatarId)
+        {
+            var result = await SettingsManager.Instance.GetPrivacySettingsAsync(avatarId);
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        // ── HyperDrive ────────────────────────────────────────────────────────────
+
+        public OASISHyperDriveConfig? GetHyperDriveConfig()
+        {
+            return OASISHyperDriveConfigManager.Instance.GetConfiguration();
+        }
+
+        public Dictionary<ProviderType, ProviderPerformanceMetrics> GetHyperDriveMetrics()
+        {
+            return PerformanceMonitor.Instance.GetAllMetrics();
+        }
+
+        public ProviderPerformanceMetrics? GetHyperDriveProviderMetrics(string providerType)
+        {
+            var pt = Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : ProviderType.Default;
+            return PerformanceMonitor.Instance.GetMetrics(pt);
+        }
+
+        public async Task<IEnumerable<OptimizationRecommendation>> GetHyperDriveAIRecommendations()
+        {
+            var result = await AIOptimizationEngine.Instance.GetSmartRecommendationsAsync();
+            return result ?? Enumerable.Empty<OptimizationRecommendation>();
+        }
+
+        public async Task<AnalyticsReport?> GetHyperDriveAnalyticsReport(string? providerType = null, string timeRange = "Last24Hours")
+        {
+            ProviderType? pt = providerType != null && Enum.TryParse<ProviderType>(providerType, true, out var parsed) ? parsed : null;
+            var tr = Enum.TryParse<TimeRange>(timeRange, true, out var tr2) ? tr2 : TimeRange.Last24Hours;
+            return await AdvancedAnalyticsEngine.Instance.GetAnalyticsReportAsync(pt, tr);
+        }
+
+        public async Task<DashboardData?> GetHyperDriveDashboard()
+        {
+            return await AdvancedAnalyticsEngine.Instance.GetDashboardDataAsync();
+        }
+
+        public async Task<FailoverPrediction?> GetHyperDriveFailoverPredictions()
+        {
+            return await PredictiveFailoverEngine.Instance.PredictAndPreventFailuresAsync();
+        }
+
+        public async Task<IEnumerable<CostOptimizationRecommendation>> GetHyperDriveCostOptimizationRecommendations()
+        {
+            var result = await AdvancedAnalyticsEngine.Instance.GetCostOptimizationRecommendationsAsync();
+            return result ?? Enumerable.Empty<CostOptimizationRecommendation>();
+        }
+
+        public async Task<Dictionary<string, object>> GetHyperDriveSecurityRecommendations()
+        {
+            return await AdvancedAnalyticsEngine.Instance.GetSecurityRecommendationsAsync();
+        }
+
+        // ── Wallet ────────────────────────────────────────────────────────────────
+
+        public async Task<Dictionary<ProviderType, List<IProviderWallet>>> GetWalletsForAvatarById(Guid avatarId, bool showOnlyDefault = false)
+        {
+            var manager = CreateWalletManager();
+            var result = await manager.LoadProviderWalletsForAvatarByIdAsync(avatarId, showOnlyDefault);
+            return result.IsError || result.Result == null ? new Dictionary<ProviderType, List<IProviderWallet>>() : result.Result;
+        }
+
+        public async Task<Dictionary<ProviderType, List<IProviderWallet>>> GetWalletsForAvatarByUsername(string username, bool showOnlyDefault = false)
+        {
+            var manager = CreateWalletManager();
+            var result = await manager.LoadProviderWalletsForAvatarByUsernameAsync(username, showOnlyDefault);
+            return result.IsError || result.Result == null ? new Dictionary<ProviderType, List<IProviderWallet>>() : result.Result;
+        }
+
+        public async Task<Dictionary<ProviderType, List<IProviderWallet>>> GetWalletsForAvatarByEmail(string email)
+        {
+            var manager = CreateWalletManager();
+            var result = await manager.LoadProviderWalletsForAvatarByEmailAsync(email);
+            return result.IsError || result.Result == null ? new Dictionary<ProviderType, List<IProviderWallet>>() : result.Result;
+        }
+
+        // ── Seeds ─────────────────────────────────────────────────────────────────
+
+        private static SeedsManager CreateSeedsManager(Guid avatarId)
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new SeedsManager(result.Result, avatarId);
+        }
+
+        public async Task<IEnumerable<SeedTransaction>> GetSeedTransactionsForAvatar(Guid avatarId)
+        {
+            var manager = CreateSeedsManager(avatarId);
+            var result = await manager.LoadSeedTransactionsForAvatarAsync(avatarId);
+            return result.IsError || result.Result == null ? Enumerable.Empty<SeedTransaction>() : result.Result;
+        }
+
+        // ── Provider ──────────────────────────────────────────────────────────────
+
+        public IOASISStorageProvider? GetCurrentStorageProvider()
+        {
+            return ProviderManager.Instance.CurrentStorageProvider;
+        }
+
+        public ProviderType GetCurrentStorageProviderType()
+        {
+            return ProviderManager.Instance.CurrentStorageProviderType.Value;
+        }
+
+        public IEnumerable<IOASISProvider> GetAllRegisteredProviders()
+        {
+            var result = ProviderManager.Instance.GetAllRegisteredProviders();
+            return result ?? Enumerable.Empty<IOASISProvider>();
+        }
+
+        public IEnumerable<ProviderType> GetAllRegisteredProviderTypes()
+        {
+            var result = ProviderManager.Instance.GetAllRegisteredProviderTypes();
+            return result == null ? Enumerable.Empty<ProviderType>() : result.Select(ev => ev.Value);
+        }
+
+        // ── ONET ──────────────────────────────────────────────────────────────────
+
+        private static ONETManager CreateONETManager()
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+        }
+
+        private static ONODEManager CreateONODEManager()
+        {
+            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
+            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
+        }
+
+        public async Task<OASISDNA?> GetOASISDNA()
+        {
+            var result = await CreateONETManager().GetOASISDNAAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<NetworkStatus?> GetNetworkStatus()
+        {
+            var result = await CreateONETManager().GetNetworkStatusAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<ONETNode>> GetNetworkNodes()
+        {
+            var result = await CreateONETManager().GetConnectedNodesAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<ONETNode>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetNetworkStats()
+        {
+            var result = await CreateONETManager().GetNetworkStatsAsync();
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        // ── ONODE ─────────────────────────────────────────────────────────────────
+
+        public async Task<NodeStatus?> GetNodeStatus()
+        {
+            var result = await CreateONODEManager().GetNodeStatusAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<NextGenSoftware.OASIS.API.ONODE.Core.Managers.NodeInfo?> GetNodeInfo()
+        {
+            var result = await CreateONODEManager().GetNodeInfoAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<NodeMetrics?> GetNodeMetrics()
+        {
+            var result = await CreateONODEManager().GetNodeMetricsAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<string>> GetNodeLogs(int lines = 100)
+        {
+            var result = await CreateONODEManager().GetNodeLogsAsync(lines);
+            return result.IsError || result.Result == null ? Enumerable.Empty<string>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetNodeConfig()
+        {
+            var result = await CreateONODEManager().GetNodeConfigAsync();
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
+
+        public async Task<IEnumerable<PeerNode>> GetNodePeers()
+        {
+            var result = await CreateONODEManager().GetConnectedPeersAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<PeerNode>() : result.Result;
+        }
+
+        public async Task<Dictionary<string, object>> GetNodeStats()
+        {
+            var result = await CreateONODEManager().GetNodeStatsAsync();
+            return result.IsError || result.Result == null ? new Dictionary<string, object>() : result.Result;
+        }
     }
+
 }
