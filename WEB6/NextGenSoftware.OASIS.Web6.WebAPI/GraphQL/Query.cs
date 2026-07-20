@@ -1,6 +1,7 @@
 using HotChocolate;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.OASISBootLoader;
+using NextGenSoftware.OASIS.Web6.Core.Enums;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
 using NextGenSoftware.OASIS.Web6.Core.Memory;
 using NextGenSoftware.OASIS.Web6.Core.Models;
@@ -109,6 +110,147 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
                 Source  = r.Provider ?? "",
                 Score   = r.Entry?.Score ?? 0
             });
+        }
+
+        // ── Avatar Context ────────────────────────────────────────────────────
+
+        public async Task<object?> GetAvatarContextAsync(
+            [GraphQLDescription("Avatar GUID to build context for.")] string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var aid))
+                return null;
+            var manager = new StarnetContextManager(aid, DNA);
+            var result = await manager.GetAvatarContextAsync(aid, "");
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── DID ──────────────────────────────────────────────────────────────
+
+        public async Task<object?> ResolveDidAsync(
+            [GraphQLDescription("DID to resolve (e.g. did:oasis:...).")] string did)
+        {
+            var manager = new DidManager(Guid.Empty, DNA);
+            var result = await manager.ResolveDid(did);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── External Memory Providers ─────────────────────────────────────────
+
+        public IEnumerable<string> GetExternalMemoryProviders()
+        {
+            return MemoryProviderManager.Instance.ProviderNames ?? Enumerable.Empty<string>();
+        }
+
+        // ── FAHRN Budget Estimate ─────────────────────────────────────────────
+
+        public object GetFahrnBudgetEstimate(
+            [GraphQLDescription("Task type (general, code, reasoning, writing, etc.).")] string taskType = "general",
+            [GraphQLDescription("Execution mode (auto, serial, parallel, decomposed).")] string mode = "auto",
+            [GraphQLDescription("Number of agents to consider.")] int agentCount = 1)
+        {
+            int tokens = taskType switch { "code" => 4000, "reasoning" => 3500, "writing" => 2000, "mathematics" => 3000, _ => 2500 };
+            int total = tokens * agentCount;
+            return new { taskType, mode, agentCount, estimatedTokens = total, estimatedCostUsd = Math.Round(total / 1000.0 * 0.0075 * agentCount, 5) };
+        }
+
+        // ── Holonic Braid ─────────────────────────────────────────────────────
+
+        public async Task<object?> GetHolonicBraidGraphAsync(
+            [GraphQLDescription("Task type to look up the reasoning graph for.")] string taskType)
+        {
+            var manager = new HolonicBraidManager(Guid.Empty);
+            var result = await manager.FindGraphForTaskTypeAsync(taskType);
+            return result.IsError || result.Result == null ? null : result.Result;
+        }
+
+        // ── Holonic Memory ────────────────────────────────────────────────────
+
+        public async Task<object?> GetEarthHolonAsync()
+        {
+            var manager = new HolonicMemoryManager(Guid.Empty);
+            var result = await manager.GetOrCreateEarthHolonAsync();
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<object>> SearchHolonMemoryAsync(
+            [GraphQLDescription("Holon GUID to search memory within.")] string holonId,
+            [GraphQLDescription("Search query.")] string query,
+            [GraphQLDescription("Max results to return.")] int topK = 5,
+            [GraphQLDescription("Embedding provider (auto, openai, etc.).")] string provider = "auto")
+        {
+            if (!Guid.TryParse(holonId, out var hid) || string.IsNullOrWhiteSpace(query))
+                return Enumerable.Empty<object>();
+            var manager = new HolonicMemoryManager(Guid.Empty, DNA);
+            var result = await manager.QueryMemoryAsync(hid, query, topK, provider);
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        // ── Key Vault ─────────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<string>> GetStoredKeyProvidersAsync(
+            [GraphQLDescription("Avatar GUID whose stored providers to list.")] string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var aid))
+                return Enumerable.Empty<string>();
+            var vault = new KeyVaultManager(aid, DNA);
+            var result = await vault.ListStoredProvidersAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<string>() : result.Result;
+        }
+
+        // ── ML.NET ────────────────────────────────────────────────────────────
+
+        public string ClassifyTask([GraphQLDescription("Problem text to classify.")] string text)
+        {
+            var manager = new MLNetManager(Guid.Empty, DNA);
+            return manager.ClassifyTaskType(text);
+        }
+
+        public string AnalyseSentiment([GraphQLDescription("Text to analyse.")] string text)
+        {
+            var manager = new MLNetManager(Guid.Empty, DNA);
+            return manager.AnalyseSentiment(text);
+        }
+
+        // ── Orchestrators ─────────────────────────────────────────────────────
+
+        public async Task<IEnumerable<object>> GetOrchestratorAdaptersAsync()
+        {
+            var manager = new OrchestratorManager(Guid.Empty);
+            var result = await manager.GetAdaptersAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        // ── Reasoning Network Skills ──────────────────────────────────────────
+
+        public async Task<object?> GetAgentSkillAsync(
+            [GraphQLDescription("Agent GUID.")] string agentId,
+            [GraphQLDescription("Skill category (e.g. 'code', 'reasoning').")] string category)
+        {
+            if (!Guid.TryParse(agentId, out var aid))
+                return null;
+            var manager = new SkillOptManager(Guid.Empty, DNA);
+            var result = await manager.LoadSkillAsync(aid, category);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── Telemetry History ─────────────────────────────────────────────────
+
+        public IEnumerable<TelemetryEventDto> GetTelemetryHistory(
+            [GraphQLDescription("Max events to return (1-500).")] int limit = 50)
+        {
+            return GetTelemetry(limit);
+        }
+
+        // ── Discovery ─────────────────────────────────────────────────────────
+
+        public object GetMcpDiscovery() => new { protocol = "mcp", version = "2024-11-05", name = "OASIS Web6 AI/ML API", description = "OASIS Web6 MCP-compatible AI endpoint" };
+        public object GetA2AAgentCard() => new { name = "OASIS FAHRN Agent", version = "1.0", capabilities = new[] { "a2a-tasks", "fahrn-solve", "embeddings", "completions" } };
+
+        // ── A2A Tasks ─────────────────────────────────────────────────────────
+
+        public object? GetA2ATask([GraphQLDescription("A2A task ID.")] string id)
+        {
+            return A2AController._tasks.TryGetValue(id, out var task) ? (object)task : null;
         }
 
         /// <summary>Returns health and latency status for all configured AI providers.</summary>

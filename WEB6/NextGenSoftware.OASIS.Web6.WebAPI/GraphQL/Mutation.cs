@@ -1,5 +1,6 @@
 using HotChocolate;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.Web6.WebAPI.Controllers;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using NextGenSoftware.OASIS.Web6.Core.Enums;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
@@ -148,6 +149,261 @@ namespace NextGenSoftware.OASIS.Web6.WebAPI.GraphQL
                 EstimatedCostUsd = r?.EstimatedCostUSD ?? 0,
                 FailedOver       = r?.FailedOver ?? false
             };
+        }
+
+        // ── A2A ──────────────────────────────────────────────────────────────
+
+        public async Task<object> SendA2ATaskAsync(
+            [GraphQLDescription("Problem text to send as an A2A task.")] string problem,
+            [GraphQLDescription("Optional task ID (auto-generated if omitted).")] string taskId = "")
+        {
+            string id = string.IsNullOrWhiteSpace(taskId) ? Guid.NewGuid().ToString() : taskId;
+            var manager = new FahrnSolveManager(Guid.Empty, DNA);
+            var req = new FahrnSolveRequest { Problem = problem, AvatarId = Guid.Empty, ReturnReasoning = true };
+            var result = await manager.SolveAsync(req);
+            return new { id, state = result.IsError ? "failed" : "completed", output = result.IsError ? result.Message : result.Result?.Answer ?? "" };
+        }
+
+        public object CancelA2ATask([GraphQLDescription("A2A task ID to cancel.")] string id)
+        {
+            if (A2AController._tasks.TryGetValue(id, out var task))
+                task.State = "cancelled";
+            return new { cancelled = true, id };
+        }
+
+        // ── DID / VC ──────────────────────────────────────────────────────────
+
+        public object? CreateDid([GraphQLDescription("Avatar GUID to create DID for.")] string avatarId)
+        {
+            if (!Guid.TryParse(avatarId, out var aid) || aid == Guid.Empty)
+                return null;
+            var manager = new DidManager(aid, DNA);
+            var result = manager.CreateDid(aid);
+            return result.IsError ? null : result.Result;
+        }
+
+        public object? IssueVc(
+            [GraphQLDescription("DID of the credential subject.")] string subjectDid,
+            [GraphQLDescription("Avatar GUID of the issuer.")] string issuerAvatarId,
+            [GraphQLDescription("JSON string of claim key-value pairs (e.g. '{\"role\":\"admin\"}').")] string claimsJson = "{}")
+        {
+            if (!Guid.TryParse(issuerAvatarId, out var aid))
+                return null;
+            Dictionary<string, object> claims;
+            try { claims = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(claimsJson) ?? new(); }
+            catch { claims = new(); }
+            var manager = new DidManager(aid, DNA);
+            var result = manager.IssueCredential(aid, subjectDid, claims);
+            return result.IsError ? null : result.Result;
+        }
+
+        public bool VerifyVc(
+            [GraphQLDescription("Avatar GUID of the issuer.")] string issuerAvatarId,
+            [GraphQLDescription("JSON string of the Verifiable Credential to verify.")] string credentialJson)
+        {
+            if (!Guid.TryParse(issuerAvatarId, out var aid))
+                return false;
+            VerifiableCredential? vc;
+            try { vc = System.Text.Json.JsonSerializer.Deserialize<VerifiableCredential>(credentialJson); }
+            catch { return false; }
+            if (vc == null) return false;
+            var manager = new DidManager(Guid.Empty, DNA);
+            var result = manager.VerifyCredential(vc, aid);
+            return !result.IsError && result.Result;
+        }
+
+        // ── External Memory ───────────────────────────────────────────────────
+
+        public async Task<bool> DeleteMemoryAsync(
+            [GraphQLDescription("Provider name (mem0, zep, letta, etc.).")] string provider,
+            [GraphQLDescription("Memory entry ID to delete.")] string id,
+            [GraphQLDescription("Avatar GUID for scope.")] string avatarId = "")
+        {
+            Guid aid = Guid.TryParse(avatarId, out var g) ? g : Guid.Empty;
+            var memProvider = MemoryProviderManager.Instance.Get(provider);
+            if (memProvider == null) return false;
+            await memProvider.DeleteAsync(aid, id);
+            return true;
+        }
+
+        // ── Holonic Braid ─────────────────────────────────────────────────────
+
+        public async Task<object?> SaveHolonicBraidGraphAsync(
+            [GraphQLDescription("Task type this graph applies to.")] string taskType,
+            [GraphQLDescription("Mermaid diagram string.")] string mermaidDiagram,
+            [GraphQLDescription("Model that generated this graph.")] string generatedByModel = "")
+        {
+            var manager = new HolonicBraidManager(Guid.Empty);
+            var result = await manager.SaveGraphAsync(taskType, mermaidDiagram, generatedByModel);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── Holonic Memory ────────────────────────────────────────────────────
+
+        public async Task<object?> GetOrCreateHolonAsync(
+            [GraphQLDescription("Holonic memory level (Session, Agent, User, Group, etc.).")] string level,
+            [GraphQLDescription("Holon name.")] string name,
+            [GraphQLDescription("Parent holon GUID.")] string parentHolonId)
+        {
+            if (!Enum.TryParse<HolonicMemoryLevel>(level, true, out var lvl)) return null;
+            if (!Guid.TryParse(parentHolonId, out var phid)) return null;
+            var manager = new HolonicMemoryManager(Guid.Empty);
+            var result = await manager.GetOrCreateHolonAsync(lvl, name, phid);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<bool> SetMembraneRuleAsync(
+            [GraphQLDescription("Holon GUID to set membrane rule on.")] string holonId,
+            [GraphQLDescription("JSON of MembraneRule (propagation filter).")] string ruleJson)
+        {
+            if (!Guid.TryParse(holonId, out var hid)) return false;
+            MembraneRule? rule;
+            try { rule = System.Text.Json.JsonSerializer.Deserialize<MembraneRule>(ruleJson); }
+            catch { return false; }
+            if (rule == null) return false;
+            var manager = new HolonicMemoryManager(Guid.Empty);
+            var result = await manager.SetMembraneRuleAsync(hid, rule);
+            return !result.IsError;
+        }
+
+        public async Task<bool> RecordHolonMemoryAsync(
+            [GraphQLDescription("Holon GUID to record memory into.")] string holonId,
+            [GraphQLDescription("JSON of HolonicMemoryItem to record.")] string itemJson)
+        {
+            if (!Guid.TryParse(holonId, out var hid)) return false;
+            HolonicMemoryItem? item;
+            try { item = System.Text.Json.JsonSerializer.Deserialize<HolonicMemoryItem>(itemJson); }
+            catch { return false; }
+            if (item == null) return false;
+            var manager = new HolonicMemoryManager(Guid.Empty);
+            var result = await manager.RecordMemoryAsync(hid, item);
+            return !result.IsError;
+        }
+
+        public async Task<int> PropagateHolonMemoryUpAsync(
+            [GraphQLDescription("Child holon GUID to propagate from.")] string childHolonId,
+            [GraphQLDescription("Number of hops to propagate (use int.MaxValue for all the way to Earth).")] int levels = 1)
+        {
+            if (!Guid.TryParse(childHolonId, out var chid)) return 0;
+            var manager = new HolonicMemoryManager(Guid.Empty, DNA);
+            var result = await manager.PropagateUpAsync(chid, levels);
+            return result.IsError ? 0 : result.Result;
+        }
+
+        public async Task<int> PropagateHolonMemoryAsync(
+            [GraphQLDescription("Child holon GUID to propagate from (one hop up).")] string childHolonId)
+        {
+            if (!Guid.TryParse(childHolonId, out var chid)) return 0;
+            var manager = new HolonicMemoryManager(Guid.Empty);
+            var result = await manager.PropagateAsync(chid);
+            return result.IsError ? 0 : result.Result;
+        }
+
+        // ── Key Vault ─────────────────────────────────────────────────────────
+
+        public async Task<bool> UpsertKeyAsync(
+            [GraphQLDescription("Avatar GUID.")] string avatarId,
+            [GraphQLDescription("Provider name (openai, anthropic, etc.).")] string provider,
+            [GraphQLDescription("API key to store (encrypted).")] string apiKey)
+        {
+            if (!Guid.TryParse(avatarId, out var aid)) return false;
+            var vault = new KeyVaultManager(aid, DNA);
+            var result = await vault.SaveProviderKeyAsync(provider.ToLowerInvariant(), apiKey);
+            return !result.IsError;
+        }
+
+        public async Task<bool> DeleteKeyAsync(
+            [GraphQLDescription("Avatar GUID.")] string avatarId,
+            [GraphQLDescription("Provider whose key to delete.")] string provider)
+        {
+            if (!Guid.TryParse(avatarId, out var aid)) return false;
+            var vault = new KeyVaultManager(aid, DNA);
+            var result = await vault.DeleteProviderKeyAsync(provider.ToLowerInvariant());
+            return !result.IsError;
+        }
+
+        // ── ML.NET ────────────────────────────────────────────────────────────
+
+        public object TrainTaskClassifierAsync(
+            [GraphQLDescription("List of problem texts (must be ≥10 items).")] List<string> problems,
+            [GraphQLDescription("Corresponding task type labels.")] List<string> labels)
+        {
+            if (problems == null || labels == null || problems.Count < 10 || problems.Count != labels.Count)
+                return new { ok = false, message = "At least 10 matched problem/label pairs required." };
+            var manager = new MLNetManager(Guid.Empty, DNA);
+            var samples = problems.Zip(labels, (p, l) => (p, l)).ToList();
+            var result = manager.TrainTaskClassifier(samples);
+            return new { ok = !result.IsError, message = result.IsError ? result.Message : "Model trained." };
+        }
+
+        // ── Orchestrators ─────────────────────────────────────────────────────
+
+        public async Task<object?> RegisterOrchestratorAdapterAsync(
+            [GraphQLDescription("JSON of OrchestratorAdapterConfig.")] string configJson)
+        {
+            OrchestratorAdapterConfig? config;
+            try { config = System.Text.Json.JsonSerializer.Deserialize<OrchestratorAdapterConfig>(configJson); }
+            catch { return null; }
+            if (config == null) return null;
+            var manager = new OrchestratorManager(Guid.Empty);
+            var result = await manager.RegisterAdapterAsync(config);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<object?> InvokeOrchestratorAsync(
+            [GraphQLDescription("JSON of OrchestratorInvokeRequest.")] string requestJson)
+        {
+            OrchestratorInvokeRequest? request;
+            try { request = System.Text.Json.JsonSerializer.Deserialize<OrchestratorInvokeRequest>(requestJson); }
+            catch { return null; }
+            if (request == null) return null;
+            var manager = new OrchestratorManager(Guid.Empty);
+            var result = await manager.InvokeAsync(request);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── Reasoning Network ─────────────────────────────────────────────────
+
+        public async Task<object?> RegisterReasoningAgentAsync(
+            [GraphQLDescription("JSON of ReasoningAgentMetadata.")] string agentJson)
+        {
+            ReasoningAgentMetadata? agent;
+            try { agent = System.Text.Json.JsonSerializer.Deserialize<ReasoningAgentMetadata>(agentJson); }
+            catch { return null; }
+            if (agent == null) return null;
+            var manager = new FAHRNManager(Guid.Empty);
+            var result = await manager.RegisterAgentAsync(agent);
+            return result.IsError ? null : result.Result;
+        }
+
+        public async Task<IEnumerable<object>> SeedOpenServAgentsAsync()
+        {
+            var manager = new FAHRNManager(Guid.Empty);
+            var result = await manager.SeedDefaultOpenServAgentsAsync();
+            return result.IsError || result.Result == null ? Enumerable.Empty<object>() : result.Result.Cast<object>();
+        }
+
+        public async Task<object?> EvolveAgentSkillAsync(
+            [GraphQLDescription("Agent GUID.")] string agentId,
+            [GraphQLDescription("Skill category to evolve.")] string category)
+        {
+            if (!Guid.TryParse(agentId, out var aid)) return null;
+            var manager = new SkillOptManager(Guid.Empty, DNA);
+            var result = await manager.RunEpochAsync(aid, category);
+            return result.IsError ? null : result.Result;
+        }
+
+        // ── FAHRN Solve ───────────────────────────────────────────────────────
+
+        public async Task<object?> SolveFahrnAsync(
+            [GraphQLDescription("Problem to solve via the full FAHRN pipeline.")] string problem,
+            [GraphQLDescription("Avatar GUID for context injection.")] string avatarId = "",
+            [GraphQLDescription("Return full reasoning trace?")] bool returnReasoning = false)
+        {
+            Guid aid = Guid.TryParse(avatarId, out var g) ? g : Guid.Empty;
+            var manager = new FahrnSolveManager(aid, DNA);
+            var result = await manager.SolveAsync(new FahrnSolveRequest { Problem = problem, AvatarId = aid, ReturnReasoning = returnReasoning });
+            return result.IsError ? null : result.Result;
         }
 
         /// <summary>
