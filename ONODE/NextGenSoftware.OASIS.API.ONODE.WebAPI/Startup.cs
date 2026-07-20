@@ -398,6 +398,26 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
                 endpoints.MapGrpcService<AvatarGrpcService>();
                 endpoints.MapGrpcService<KarmaGrpcService>();
                 endpoints.MapGrpcService<DataGrpcService>();
+                endpoints.MapGrpcService<SocialGrpcService>();
+                endpoints.MapGrpcService<ClanGrpcService>();
+                endpoints.MapGrpcService<ChatGrpcService>();
+                endpoints.MapGrpcService<MessagingGrpcService>();
+                endpoints.MapGrpcService<FilesGrpcService>();
+                endpoints.MapGrpcService<GiftsGrpcService>();
+                endpoints.MapGrpcService<EggsGrpcService>();
+                endpoints.MapGrpcService<VideoGrpcService>();
+                endpoints.MapGrpcService<StatsGrpcService>();
+                endpoints.MapGrpcService<SettingsGrpcService>();
+                endpoints.MapGrpcService<HyperDriveGrpcService>();
+                endpoints.MapGrpcService<BridgeGrpcService>();
+                endpoints.MapGrpcService<WalletGrpcService>();
+                endpoints.MapGrpcService<CompetitionGrpcService>();
+                endpoints.MapGrpcService<SeedsGrpcService>();
+                endpoints.MapGrpcService<SearchGrpcService>();
+                endpoints.MapGrpcService<ONETGrpcService>();
+                endpoints.MapGrpcService<ONODEGrpcService>();
+                endpoints.MapGrpcService<ProviderGrpcService>();
+                endpoints.MapGrpcService<KeysGrpcService>();
                 endpoints.MapGet("/", context =>
                 {
                     context.Response.Redirect("/swagger");
