@@ -8,7 +8,10 @@ using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using NextGenSoftware.OASIS.Web6.Core.Managers;
+using NextGenSoftware.OASIS.Web6.WebAPI.GraphQL;
+using NextGenSoftware.OASIS.Web6.WebAPI.GraphQL.Types;
 using NextGenSoftware.OASIS.Web6.WebAPI.GrpcServices;
+using Path = System.IO.Path;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,12 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddGrpc();
 builder.Services.AddHttpClient();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddType<AiModelType>()
+    .AddType<AgentType>();
 builder.Services.AddEndpointsApiExplorer();
 
 // Priority 1: HTTP MCP transport — makes the entire OASIS tool surface reachable by any MCP client (Claude.ai, OpenAI, etc.)
@@ -153,6 +162,7 @@ app.MapGrpcService<MemoryGrpcService>();
 app.MapGrpcService<NetworkGrpcService>();
 app.MapGrpcService<IdentityGrpcService>();
 app.MapGrpcService<TelemetryGrpcService>();
+app.MapGraphQL(); // Maps the Hot Chocolate GraphQL endpoint to /graphql
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
 // Priority 1: mount /mcp HTTP endpoint
